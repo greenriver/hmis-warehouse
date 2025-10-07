@@ -55,11 +55,59 @@ module Hmis::Ce::Match
     end
 
     def compose_requirement_expression(rules)
-      # All applicable eligibility requirements are combined with AND.
-      # Parenthesize rules that contain "OR" conditions.
       rules.filter(&:eligibility_requirement?).
-        map { |rule| rule.expression.include?(' OR ') ? "(#{rule.expression})" : rule.expression }.
+        map { |rule| parenthesize_if_needed(rule.expression) }.
         join(' AND ').presence
+    end
+
+    def parenthesize_if_needed(expression)
+      trimmed_expression = expression.strip
+      return expression if trimmed_expression.blank?
+
+      ast = calculator.ast(trimmed_expression)
+      return expression unless contains_boolean_or?(ast)
+      return expression if expression_is_grouped?(trimmed_expression)
+
+      "(#{expression})"
+    end
+
+    def calculator
+      Hmis::Ce::Match::Expression::CalculatorFactory.build
+    end
+
+    def contains_boolean_or?(node)
+      return false unless node
+      return true if node.is_a?(Dentaku::AST::Or)
+
+      child_nodes =
+        if node.is_a?(Dentaku::AST::And)
+          [node.left, node.right]
+        elsif node.respond_to?(:children)
+          Array(node.children)
+        elsif node.respond_to?(:args)
+          Array(node.args)
+        else
+          []
+        end
+
+      child_nodes.any? { |child| contains_boolean_or?(child) }
+    end
+
+    def expression_is_grouped?(expression)
+      return false unless expression.start_with?('(') && expression.end_with?(')')
+
+      # This method determines if an expression is fully enclosed by its outer parentheses,
+      # distinguishing between `(a OR b)` and `(a) OR (b)`. It works by parsing the
+      # content *inside* the outer parentheses.
+      #
+      # - For `(a OR b)`, the inner content `a OR b` is a valid expression, so parse succeeds.
+      # - For `(a) OR (b)`, the inner content `a) OR (b` is syntactically invalid, so parse fails.
+      #
+      # A successful parse confirms the parentheses are grouping a single, complete expression.
+      calculator.ast(expression[1..-2])
+      true
+    rescue Dentaku::ParseError, Dentaku::TokenizerError
+      false
     end
   end
 end

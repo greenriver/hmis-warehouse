@@ -31,10 +31,12 @@ module BostonHmis
     # encrypted credentials, it's not appropriate for an open-source project
     if File.exist?(Rails.root.join('config', 'secrets.yml'))
       config.secrets = config_for(:secrets) # loads from config/secrets.yml
-      config.secret_key_base = config.secrets[:secret_key_base]
+      if config.secrets.present?
+        config.secret_key_base = config.secrets[:secret_key_base]
 
-      def secrets
-        config.secrets
+        def secrets
+          config.secrets
+        end
       end
     end
 
@@ -124,6 +126,10 @@ module BostonHmis
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
 
+    # Maintain Rails 7.0 behavior for specific settings
+    config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
+    config.active_record.default_column_serializer = YAML # Keep historic behavior
+
     # Extension points
     config.sub_populations = {}
     config.census = {}
@@ -175,8 +181,9 @@ module BostonHmis
       ::Collection.migrate_from_local_coc_codes
     end
 
-    # Maintain Rails 7.0 behavior for specific settings
-    config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
-    config.active_record.default_column_serializer = YAML # Keep historic behavior
+    # Initial setup of HUD item lists
+    config.queued_tasks[:initialize_hud_list_items_table] = -> do
+      GrdaWarehouse::HudListItem.maintain!
+    end
   end
 end

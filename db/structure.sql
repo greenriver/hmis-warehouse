@@ -1,4 +1,4 @@
--- \restrict 0eDozANJiGrLn46n9SlCfXu02fz8lhq1BpC0QmYdaMrCmdHtqoRPbN9DzkMhpHx
+-- \restrict LUOxi9icQbTDp3ZWU4QEFn89sgDoBoV30OpZGdUh9Zt5VRHIvl0dGhNXBZUjRn4
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -1627,6 +1627,43 @@ CREATE SEQUENCE public.pghero_space_stats_id_seq
 --
 
 ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_stats.id;
+
+
+--
+-- Name: puma_scaling_login_demand; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.puma_scaling_login_demand AS
+ WITH current_context AS (
+         SELECT (now() AT TIME ZONE 'UTC'::text) AS "current_time",
+            date_trunc('day'::text, (now() AT TIME ZONE 'UTC'::text)) AS current_day,
+            date_trunc('hour'::text, (now() AT TIME ZONE 'UTC'::text)) AS current_hour,
+            (EXTRACT(dow FROM (now() AT TIME ZONE 'UTC'::text)))::integer AS current_dow
+        ), demand_window AS (
+         SELECT CURRENT_TIME AS "current_time",
+            current_context.current_day,
+            current_context.current_dow,
+            (current_context.current_hour - '01:00:00'::interval) AS window_start,
+            (current_context.current_hour + '02:00:00'::interval) AS window_end,
+            ((current_context.current_hour - '01:00:00'::interval) - current_context.current_day) AS window_start_offset,
+            ((current_context.current_hour + '02:00:00'::interval) - current_context.current_day) AS window_end_offset
+           FROM current_context
+        ), historical_windows AS (
+         SELECT (series_day.series_day)::date AS window_day,
+            (series_day.series_day + demand_window.window_start_offset) AS window_start,
+            (series_day.series_day + demand_window.window_end_offset) AS window_end
+           FROM (demand_window
+             CROSS JOIN LATERAL generate_series((demand_window.current_day - '30 days'::interval), (demand_window.current_day - '1 day'::interval), '1 day'::interval) series_day(series_day))
+          WHERE (EXTRACT(dow FROM series_day.series_day) = (demand_window.current_dow)::numeric)
+        ), historical_window_counts AS (
+         SELECT historical_windows.window_day,
+            count(DISTINCT login_activities.user_id) AS distinct_logins
+           FROM (historical_windows
+             LEFT JOIN public.login_activities ON (((login_activities.success = true) AND (login_activities.created_at >= historical_windows.window_start) AND (login_activities.created_at < historical_windows.window_end))))
+          GROUP BY historical_windows.window_day
+        )
+ SELECT COALESCE(avg(distinct_logins), (0)::numeric) AS projected_unique_users
+   FROM historical_window_counts;
 
 
 --
@@ -4196,11 +4233,12 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict 0eDozANJiGrLn46n9SlCfXu02fz8lhq1BpC0QmYdaMrCmdHtqoRPbN9DzkMhpHx
+-- \unrestrict LUOxi9icQbTDp3ZWU4QEFn89sgDoBoV30OpZGdUh9Zt5VRHIvl0dGhNXBZUjRn4
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251001174258'),
 ('20250918155525'),
 ('20250918155524'),
 ('20250918155523'),

@@ -253,6 +253,9 @@ gem 'k8s-ruby', github: 'k8s-ruby/k8s-ruby', branch: 'master'
 
 gem 'get_process_mem', require: false
 
+# Required for asset compilation
+gem 'spring'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -264,7 +267,6 @@ group :development, :test do
   gem 'vcr'
   gem 'webmock'
   gem 'deprecation_toolkit', require: false
-  gem 'spring'
   gem 'spring-watcher-listen'
 end
 

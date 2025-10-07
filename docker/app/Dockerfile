@@ -208,11 +208,8 @@ COPY --chown=app-user:app-user Gemfile Gemfile.lock ./
 RUN bundle config without development test doc \
   && bundle install \
   && find /bundle -name "*.o" -exec rm {} \; \
-  && find /bundle -name "*.c" -exec rm {} \;
-
-COPY --chown=app-user:app-user package.json yarn.lock ./
-RUN yarn install --frozen-lockfile \
-  && yarn cache clean
+  && find /bundle -name "*.c" -exec rm {} \; \
+  && mkdir -p public/assets var
 
 COPY --chown=app-user:app-user . ./
 COPY --chown=app-user:app-user sample.irbrc ./.irbrc
@@ -220,5 +217,11 @@ COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
+# NOTE: The following ENV are required for assets compilation to run, but not actually used
+# to change the assets in any way
+RUN mkdir -p app/assets/stylesheets/theme/styles \
+  && touch app/assets/stylesheets/theme/styles/_variables.scss \
+  && SECRET_KEY_BASE=dummysecretdummysecretdummysecretdummysecretdummysecret RAILS_ENV=production CLIENT=warehouse DATABASE_ADAPTER=postgresql DATABASE_HOST=postgres DATABASE_PASS=postgres DATABASE_USER=postgres DEFAULT_FROM=greenriver.testing@mailinator.com ENCRYPTION_KEY=strongEncryptionstrongEncryptionstrongEncryption HEALTH_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_HOST=postgres HEALTH_DATABASE_PASS=postgres HEALTH_DATABASE_USER=postgres REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_HOST=postgres REPORTING_DATABASE_PASS=postgres REPORTING_DATABASE_USER=postgres WAREHOUSE_DATABASE_ADAPTER=postgis WAREHOUSE_DATABASE_HOST=postgres WAREHOUSE_DATABASE_PASS=postgres WAREHOUSE_DATABASE_USER=postgres WAREHOUSE_DATABASE_DB=warehouse_db HEALTH_DATABASE_DB=health_db REPORTING_DATABASE_DB=reporting_db DISABLE_SPRING=1 bundle exec rails assets:precompile
+
 RUN rm -rf tmp/* \
-  && mkdir -p tmp/pids public/assets var
+  && mkdir -p tmp/pids

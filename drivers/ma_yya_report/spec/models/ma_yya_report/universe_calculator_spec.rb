@@ -10,6 +10,7 @@ require 'rails_helper'
 
 RSpec.describe MaYyaReport::UniverseCalculator do
   let(:user) { create(:user) }
+  let(:report) { create(:ma_yya_report) }
   let(:filter) do
     ::Filters::FilterBase.new(
       user_id: user.id,
@@ -18,7 +19,7 @@ RSpec.describe MaYyaReport::UniverseCalculator do
       enforce_one_year_range: false,
     )
   end
-  let(:calculator) { described_class.new(filter) }
+  let(:calculator) { described_class.new(filter, report) }
 
   describe '#initialize' do
     it 'sets the filter' do

@@ -120,9 +120,18 @@ class Dba::DatabaseBloat
     run(sql)
   end
 
+  def pg_repack_supported?
+    [ApplicationRecord, GrdaWarehouseBase, ReportingBase].include?(ar_base_class)
+  end
+
   # This is like a vacuum full, but orchestrated by pg_repack which doesn't
   # acquire exclusive locks on the table
   def repack!
+    unless pg_repack_supported?
+      Rails.logger.info "Skipping pg_repack for #{ar_base_class} - not supported"
+      return
+    end
+
     catch(:enough) do
       port = ar_base_class.connection_db_config.configuration_hash[:port].presence || '5432'
       host = File.exist?(ar_base_class.connection_db_config.configuration_hash[:host].to_s) ? CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) : ar_base_class.connection_db_config.configuration_hash[:host]
@@ -176,6 +185,11 @@ class Dba::DatabaseBloat
   # Ensure the pg_repack extension is installed in the database and the version of the pg_repack extension matches the version of the pg_repack binary.
   # This will raise an error if the pg_repack extension is not installed or the version of the pg_repack extension does not match the version of the pg_repack binary.
   def ensure_matching_pg_repack_versions!
+    unless pg_repack_supported?
+      Rails.logger.info "Skipping pg_repack version check for #{ar_base_class} - not supported"
+      return
+    end
+
     db_version = pg_repack_db_version
     raise "pg_repack extension is not installed in this database (#{ar_base_class}). Run CREATE EXTENSION pg_repack;" if db_version.nil?
 

@@ -123,6 +123,46 @@ RSpec.describe SimpleStateMachine do
     end
   end
 
+  describe 'state validation' do
+    it 'validates state inclusion' do
+      record = SimpleStateMachineTestRecord.new
+      record.status = 'invalid_state'
+
+      expect(record).not_to be_valid
+      expect(record.errors[:status]).to include('must be one of: open, locked, closed')
+    end
+
+    it 'accepts valid states as strings' do
+      record = SimpleStateMachineTestRecord.new
+      record.status = 'locked'
+
+      expect(record).to be_valid
+    end
+
+    it 'accepts valid states as symbols' do
+      record = SimpleStateMachineTestRecord.new
+      record.status = :closed
+
+      expect(record).to be_valid
+    end
+
+    it 'works with custom column names' do
+      record = CustomColumnStateMachineRecord.new
+      record.workflow_state = 'invalid_state'
+
+      expect(record).not_to be_valid
+      expect(record.errors[:workflow_state]).to include('must be one of: draft, review')
+    end
+
+    it 'disallows nil values' do
+      record = SimpleStateMachineTestRecord.new
+      record.status = nil
+
+      expect(record).not_to be_valid
+      expect(record.errors[:status]).to include('must be one of: open, locked, closed')
+    end
+  end
+
   describe 'ambiguous transitions' do
     it 'raises an error when the same state appears in multiple transitions' do
       expect do
