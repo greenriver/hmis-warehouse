@@ -4,20 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::Definition, type: :model do
   include_context 'hmis base setup'
-
-  before(:all) do
-    cleanup_test_environment
-    Hmis::Form::Definition.delete_all
-    Hmis::Form::Instance.delete_all
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
 
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
