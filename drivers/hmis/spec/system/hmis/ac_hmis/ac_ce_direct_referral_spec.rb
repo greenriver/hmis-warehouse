@@ -92,12 +92,13 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
       # Provider accepts the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
-      click_button 'Start step: Provider Outcome'
-      mui_date_select 'Date', date: Date.current
-      fill_in 'Notes', with: 'Provider accepts direct referral'
-      mui_radio_choose 'Accept - Add to Project', from: 'Decision'
-      expect(page).to have_content('The client will be added to the project as Incomplete.')
-      click_button 'Submit'
+
+      complete_ce_step('Provider Outcome') do
+        mui_date_select 'Date', date: Date.current
+        fill_in 'Notes', with: 'Provider accepts direct referral'
+        mui_radio_choose 'Accept - Add to Project', from: 'Decision'
+        expect(page).to have_content('The client will be added to the project as Incomplete.')
+      end
 
       # Confirm Success task is available but provider can't access it
       expect(page).to have_content('Confirm Success Available Today')
@@ -131,10 +132,12 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     expect(page).to have_content('Enrolled')
     expect(page).to have_content('Confirm Success Available Today')
-    click_button 'Start step: Confirm Success'
-    mui_date_select 'Date', date: Date.current
-    fill_in 'Notes', with: 'Direct referral completed successfully'
-    click_button 'Submit'
+
+    complete_ce_step('Confirm Success') do
+      mui_date_select 'Date', date: Date.current
+      fill_in 'Notes', with: 'Direct referral completed successfully'
+    end
+
     expect(page).to have_content('Referral Complete')
     expect(page).to have_content("Dan D has been accepted to #{unit.name}")
     expect(referral.reload.status).to eq('accepted')

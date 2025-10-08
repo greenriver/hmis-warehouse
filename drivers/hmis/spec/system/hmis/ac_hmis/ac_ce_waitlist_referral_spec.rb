@@ -99,34 +99,33 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     expect(referral.referral_origin).to eq('waitlist')
 
     # Progress through Initial Review step
-    click_button 'Start step: Initial Review'
-    expect(page).to have_content('Back to All Tasks')
-    mui_date_select 'Date', date: Date.current
-    fill_in 'Notes', with: 'Referral for Alice A is in progress'
-    mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
-    click_button 'Submit'
+    complete_ce_step('Initial Review') do
+      mui_date_select 'Date', date: Date.current
+      fill_in 'Notes', with: 'Referral for Alice A is in progress'
+      mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+    end
 
     # Should return to referral overview
     expect(page).to have_content('Matching In Progress')
 
     # Progress through Initial Client Engagement step
-    click_button 'Start step: Initial Client Engagement'
-    mui_date_select 'Date', date: Date.current
-    click_button 'Submit'
+    complete_ce_step('Initial Client Engagement') do
+      mui_date_select 'Date', date: Date.current
+    end
 
     # Progress through Client Engagement step
-    click_button 'Start step: Client Engagement'
-    mui_date_select 'Date', date: Date.current
-    fill_in 'Notes', with: 'Client engaged with CE staff'
-    mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
-    click_button 'Submit'
+    complete_ce_step('Client Engagement') do
+      mui_date_select 'Date', date: Date.current # todo @martha - separate this out into a shared helper in the AC context
+      fill_in 'Notes', with: 'Client engaged with CE staff'
+      mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+    end
 
     # Progress through Client Offer Outcome step
-    click_button 'Start step: Client Offer Outcome'
-    mui_date_select 'Date', date: Date.current
-    fill_in 'Notes', with: 'Client is interested'
-    mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
-    click_button 'Submit'
+    complete_ce_step('Client Offer Outcome') do
+      mui_date_select 'Date', date: Date.current
+      fill_in 'Notes', with: 'Client is interested'
+      mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+    end
     expect(page).to have_content('Provider Outcome Available Today') # the next task is available
 
     event = referral.source_enrollment.events.sole
@@ -143,6 +142,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
       expect(page).not_to have_content('Alice A')
     end
 
+    # todo @martha - maybe this is a shared function
     visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}") # Navigate back to the referral
     # Assign the Paul Provider user to the Provider Outcome step
     expect(page).to have_content('Provider Outcome Available Today Project Staff No assigned users')
@@ -168,10 +168,12 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   def complete_ce_staff_final_steps
     referral = Hmis::Ce::Referral.sole
     visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
-    click_button 'Start step: Confirm Success'
-    mui_date_select 'Date', date: Date.current
-    fill_in 'Notes', with: 'Everything is good'
-    click_button 'Submit'
+
+    complete_ce_step('Confirm Success') do
+      mui_date_select 'Date', date: Date.current
+      fill_in 'Notes', with: 'Everything is good'
+    end
+
     expect(page).to have_content('Referral Complete')
     expect(page).to have_content("Alice A has been accepted to #{unit.name}")
 
@@ -222,12 +224,13 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
       # Provider approves the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
-      click_button 'Start step: Provider Outcome'
-      mui_date_select 'Date', date: Date.current
-      fill_in 'Notes', with: 'Provider approves'
-      mui_radio_choose 'Accept - Add to Project', from: 'Decision'
-      expect(page).to have_content('The client will be added to the project as Incomplete.')
-      click_button 'Submit'
+
+      complete_ce_step('Provider Outcome') do
+        mui_date_select 'Date', date: Date.current
+        fill_in 'Notes', with: 'Provider approves'
+        mui_radio_choose 'Accept - Add to Project', from: 'Decision'
+        expect(page).to have_content('The client will be added to the project as Incomplete.')
+      end
 
       # Confirm success task is available, but the provider user can't open it
       expect(page).to have_content('Confirm Success Available Today')
@@ -246,33 +249,37 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
       # Provider denies the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
-      click_button 'Start step: Provider Outcome'
-      mui_date_select 'Date', date: Date.current
-      fill_in 'Notes', with: 'Provider declines'
-      mui_radio_choose 'Decline - Submit Referral for Denial Review', from: 'Decision'
-      mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
-      click_button 'Submit'
+
+      complete_ce_step('Provider Outcome') do
+        mui_date_select 'Date', date: Date.current
+        fill_in 'Notes', with: 'Provider declines'
+        mui_radio_choose 'Decline - Submit Referral for Denial Review', from: 'Decision'
+        mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
+      end
 
       # Denial Review task is available, but the provider user can't open it
       expect(page).to have_content('Denial Review Available Today')
       expect(page).not_to have_button('Start step: Denial Review')
     end
 
-    click_button 'Start step: Denial Review'
-    mui_date_select 'Date', date: Date.current
-    fill_in 'Notes', with: 'No, send back!'
-    mui_radio_choose 'Send Back', from: 'Decision'
-    click_button 'Submit'
+    complete_ce_step('Denial Review') do
+      mui_date_select 'Date', date: Date.current
+      fill_in 'Notes', with: 'No, send back!'
+      mui_radio_choose 'Send Back', from: 'Decision'
+    end
+
     expect(page).to have_content('Provider Outcome (Second Attempt)')
 
     with_user_impersonated(provider.id) do
       expect(page).to have_content('Provider Outcome (Second Attempt) Available Today Assigned to you')
-      click_button 'Start step: Provider Outcome (Second Attempt)'
-      mui_date_select 'Date', date: Date.current
-      fill_in 'Notes', with: 'Provider accepts this time'
-      mui_radio_choose 'Accept - Add to Project', from: 'Decision'
-      expect(page).to have_content('The client will be added to the project as Incomplete.')
-      click_button 'Submit'
+
+      complete_ce_step('Provider Outcome (Second Attempt)') do
+        mui_date_select 'Date', date: Date.current
+        fill_in 'Notes', with: 'Provider accepts this time'
+        mui_radio_choose 'Accept - Add to Project', from: 'Decision'
+        expect(page).to have_content('The client will be added to the project as Incomplete.')
+      end
+
       expect(page).to have_content('Confirm Success Available Today')
     end
 
@@ -288,30 +295,33 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
       # Provider denies the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
-      click_button 'Start step: Provider Outcome'
-      mui_date_select 'Date', date: Date.current
-      fill_in 'Notes', with: 'Provider approves'
-      mui_radio_choose 'Accept - Add to Project', from: 'Decision'
-      expect(page).to have_content('The client will be added to the project as Incomplete.')
-      click_button 'Submit'
+
+      complete_ce_step('Provider Outcome') do
+        mui_date_select 'Date', date: Date.current
+        fill_in 'Notes', with: 'Provider approves'
+        mui_radio_choose 'Accept - Add to Project', from: 'Decision'
+        expect(page).to have_content('The client will be added to the project as Incomplete.')
+      end
 
       # Submit the Change Provider Outcome step to move the referral to denied pending status
-      click_button 'Start step: Change Provider Outcome (Optional)'
-      mui_date_select 'Date', date: Date.current
-      fill_in 'Notes', with: 'Changing the result'
-      mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
-      expect(page).to have_content('The client\'s in-progress enrollment in this project will be deleted.')
-      click_button 'Submit'
+      complete_ce_step('Change Provider Outcome (Optional)') do
+        mui_date_select 'Date', date: Date.current
+        fill_in 'Notes', with: 'Changing the result'
+        mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
+        expect(page).to have_content('The client\'s in-progress enrollment in this project will be deleted.')
+      end
+
       expect(page).to have_content('Denial Review Available Today')
       expect(page).to have_content('Denial Pending')
     end
 
-    click_button 'Start step: Denial Review'
-    mui_date_select 'Date', date: Date.current
-    mui_radio_choose 'Approve Denial', from: 'Decision'
-    mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
-    mui_radio_choose 'Unsuccessful referral: provider rejected', from: 'Referral Result'
-    click_button 'Submit'
+    complete_ce_step('Denial Review') do
+      mui_date_select 'Date', date: Date.current
+      mui_radio_choose 'Approve Denial', from: 'Decision'
+      mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
+      mui_radio_choose 'Unsuccessful referral: provider rejected', from: 'Referral Result'
+    end
+
     expect(page).to have_content('Referral Declined')
     expect(page).to have_content("Alice A has been declined from #{unit.name}")
 

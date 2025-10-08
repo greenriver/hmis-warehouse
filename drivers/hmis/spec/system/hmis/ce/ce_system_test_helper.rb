@@ -72,6 +72,17 @@ RSpec.shared_context 'ce system test helper' do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     sign_in(admin) # sign in as admin; use impersonation in tests to complete provider steps
   end
+
+  # Shared code for completing a CE step. Yields to the block to allow for filling in custom fields.
+  def complete_ce_step(step_name)
+    click_button "Start step: #{step_name}"
+    expect(page).to have_content('Back to All Tasks')
+    begin
+      yield
+    ensure
+      click_button 'Submit'
+    end
+  end
 end
 
 RSpec.configure do |rspec|
