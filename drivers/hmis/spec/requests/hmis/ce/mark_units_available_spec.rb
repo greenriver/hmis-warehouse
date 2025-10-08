@@ -204,5 +204,69 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         end.to not_change(Hmis::Ce::Opportunity, :count)
       end
     end
+
+    context 'when project has assigned legacy Referral Postings' do
+      let!(:unit_type_2) { create :hmis_unit_type, description: '2 Bedroom Apartment' }
+      let!(:unit_group_2) { create :hmis_unit_group, project: project, workflow_template: template }
+      let!(:two_br_unit1) { create :hmis_unit, project: project, unit_type: unit_type_2, unit_group: unit_group_2 }
+      let!(:two_br_unit2) { create :hmis_unit, project: project, unit_type: unit_type_2, unit_group: unit_group_2 }
+      let!(:one_br_unit2) { create :hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group }
+      let!(:one_br_unit3) { create :hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group }
+
+      context 'with 2 assigned postings to 1 Bedroom Apartment' do
+        let!(:assigned_posting_1) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :assigned_status) }
+        let!(:assigned_posting_2) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :assigned_status) }
+
+        it 'allows marking 1 unit when within the limit' do
+          variables = { unitIds: [one_br_unit2.id] }
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+          end.to change(Hmis::Ce::Opportunity, :count).by(1)
+        end
+
+        it 'raises an error when trying to mark too many units' do
+          # There are 2 assigned postings for 3 vacant units = 1 1BR unit can be marked available
+          # But trying to mark 2 units
+
+          variables = { unitIds: [one_br_unit2.id, one_br_unit3.id] }
+
+          expect do
+            expect_gql_error(
+              post_graphql(**variables) { mutation },
+              message: /Cannot mark 2 1 Bedroom Apartment units as available because of overlapping legacy Referral Postings. At most 1 1 Bedroom Apartment units can be marked available at this time./,
+            )
+          end.to not_change(Hmis::Ce::Opportunity, :count)
+        end
+
+        it 'allows marking units available for other unit types' do
+          variables = { unitIds: [two_br_unit1.id, two_br_unit2.id] }
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+          end.to change(Hmis::Ce::Opportunity, :count).by(2)
+        end
+      end
+
+      context 'when referral postings have other statuses' do
+        let!(:posting1) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :assigned_status) }
+        let!(:posting2) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :denied_pending_status) }
+        let!(:posting3) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :accepted_pending_status) }
+        let!(:posting4) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :accepted_status) }
+        let!(:posting5) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :denied_status) }
+
+        it 'counts only assigned and denied_pending statuses' do
+          # Create postings with different statuses
+
+          # 3 vacant units - 2 counted postings (assigned + denied_pending) = 1 units can be marked available
+          variables = { unitIds: [two_br_unit1.id, two_br_unit2.id] }
+
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+          end.to change(Hmis::Ce::Opportunity, :count).by(2)
+        end
+      end
+    end
   end
 end
