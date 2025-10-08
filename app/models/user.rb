@@ -36,9 +36,19 @@ class User < ApplicationRecord
   has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', dependent: :destroy
 
   has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :entity_id
-  has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') },
-          class_name: 'GrdaWarehouse::Contact::User',
-          foreign_key: :entity_id
+  has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :entity_id
+
+  accepts_nested_attributes_for :system_contact
+
+  # Ensure system_contact has proper entity attributes before validation
+  before_validation :set_system_contact_entity, if: -> { system_contact.present? }
+
+  private def set_system_contact_entity
+    system_contact.entity_type = 'User'
+    system_contact.entity_id = id
+    system_contact.user_id = id
+    system_contact.type = 'GrdaWarehouse::Contact::User'
+  end
 
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one

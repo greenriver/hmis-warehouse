@@ -39,6 +39,8 @@ module Admin
     def edit
       @user.set_initial_two_factor_secret!
       @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
+      @user.build_system_contact if @user.system_contact.nil?
+      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
     end
 
     def unlock
@@ -64,6 +66,7 @@ module Admin
       return if adding_admin?
 
       @redirecting = true
+      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
       update
       # early return if the response body was set by update(), avoid double-render error
       return if performed?
@@ -410,6 +413,7 @@ module Admin
         coc_codes: [],
         # END_ACL
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
+        system_contact_attributes: [:id, alert_definition_ids: []],
       ).
 
         tap do |result|

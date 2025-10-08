@@ -43,12 +43,14 @@ module GrdaWarehouse
           name: 'New Account Creation',
           category: 'system',
           description: 'Notification when a new user account is created by an external system',
+          visibility_check: ->(_user) { ENV['OKTA_DOMAIN'].present? },
         },
         {
           code: 'account_request',
           name: 'Account Request',
           category: 'system',
           description: 'Notification when a user requests a new account',
+          visibility_check: ->(_user) { GrdaWarehouse::Config.get(:request_account_available) },
         },
         {
           code: 'file_upload',
@@ -56,26 +58,27 @@ module GrdaWarehouse
           category: 'system',
           description: 'Notification when files are uploaded to the system',
         },
-        # Client Activity Category (Project/Org-level)
         {
           code: 'vispdat_completed',
           name: 'VI-SPDAT Completed',
-          category: 'client_activity',
+          category: 'system',
           description: 'Notification when a VI-SPDAT assessment is submitted',
+          visibility_check: lambda(&:can_edit_vspdat?),
         },
         {
           code: 'client_added',
           name: 'Client Added',
-          category: 'client_activity',
+          category: 'system',
           description: 'Notification when a new client is added to authoritative data source',
+          visibility_check: ->(_user) { GrdaWarehouse::DataSource.authoritative.exists? },
         },
-        # Data Quality Category (Project/Org-level)
         {
           code: 'anomaly_identified',
           name: 'Anomaly Identified',
-          category: 'data_quality',
+          category: 'system',
           description: 'Notification when data anomalies are detected',
         },
+        # Data Quality Category (Project/Org-level)
         {
           code: 'data_quality_report',
           name: 'Data Quality Report Available',
@@ -83,6 +86,15 @@ module GrdaWarehouse
           description: 'Notification when a data quality report is ready',
         },
       ]
+    end
+
+    # Check if this alert should be shown to a specific user
+    def show_to?(user)
+      definition = self.class.initial_definitions.find { |d| d[:code] == code }
+      # Note, we default to true if no visibility check is defined
+      return true unless definition&.key?(:visibility_check)
+
+      definition[:visibility_check].call(user)
     end
 
     def subscribed_users
