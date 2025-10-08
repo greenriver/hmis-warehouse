@@ -7,7 +7,6 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-# todo @martha - consider where to move this
 
 # Shared context for CE system tests.
 # Sets up a correctly configured target project and admin/provider users with example permissions.
@@ -73,7 +72,7 @@ RSpec.shared_context 'ce system test helper' do
     sign_in(admin) # sign in as admin; use impersonation in tests to complete provider steps
   end
 
-  # Shared code for completing a CE step. Yields to the block to allow for filling in custom fields.
+  # Shared helper for completing a CE step. Yields to the block to allow for filling in custom fields.
   def complete_ce_step(step_name)
     click_button "Start step: #{step_name}"
     expect(page).to have_content('Back to All Tasks')
@@ -82,6 +81,41 @@ RSpec.shared_context 'ce system test helper' do
     ensure
       click_button 'Submit'
     end
+  end
+
+  # Shared helper for assigning referral steps.
+  # assignment_map is a hashmap { swimlane_name => [user_name] }
+  def assign_referral_contacts(assignment_map)
+    expect(page).to have_content('No assigned users')
+
+    # Assign provider to the Provider Outcome step
+    click_button 'Contacts'
+    assignment_map.each do |swimlane, users|
+      users.each do |user|
+        mui_select(user, from: swimlane)
+      end
+    end
+
+    click_button 'Submit'
+    expect(page).not_to have_content('No assigned users')
+    expect(page).to have_content("Assigned to #{assignment_map.values.first.first}")
+  end
+
+  def with_referral_panel_open(panel_name)
+    click_button panel_name
+    begin
+      yield
+    ensure
+      click_button 'close'
+    end
+  end
+
+  def add_referral_note(note_text: nil)
+    note_text ||= 'Hello, this is a note'
+    click_button 'Add Note'
+    fill_in 'Note', with: note_text
+    click_button 'Submit Note'
+    expect(page).to have_content("Note #{note_text}")
   end
 end
 

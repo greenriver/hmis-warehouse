@@ -7,7 +7,7 @@
 # frozen_string_literal: false
 
 require 'rails_helper'
-require_relative '../ce/ce_system_test_helper'
+require_relative '../../../support/ce_system_test_helper'
 
 RSpec.feature 'CE Direct Referrals', type: :system do
   include_context 'ce system test helper'
@@ -42,6 +42,18 @@ RSpec.feature 'CE Direct Referrals', type: :system do
   end
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
+
+  # Helpers for filling in steps in the AC workflow, many of which have the fields: date, notes, and "continue?"
+  def fill_in_step_with_notes(notes: nil)
+    notes ||= 'abcd'
+    mui_date_select 'Date', date: Date.current
+    fill_in 'Notes', with: notes
+  end
+
+  def fill_in_step_with_continue(notes: nil)
+    fill_in_step_with_notes(notes: notes)
+    mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+  end
 
   describe 'direct referrals with admin assign workflow' do
     let!(:admin_assign_workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already
@@ -83,14 +95,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
       visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
       expect(page).to have_content('Referral for Dan D')
-
-      # Assign provider to the Provider Outcome step
-      expect(page).to have_content('Provider Outcome Available Today Project Staff No assigned users')
-      click_button 'Contacts'
-      mui_select('Paul Provider', from: 'Project Staff')
-      click_button 'Submit'
-      expect(page).not_to have_content('No assigned users')
-      expect(page).to have_content('Assigned to Paul Provider')
+      assign_referral_contacts({ 'Project Staff': ['Paul Provider'] })
 
       # Provider opens referral and completes the Provider Outcome task
       with_user_impersonated(provider.id) do
@@ -112,19 +117,18 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         click_link 'Back to All Tasks'
 
         # Provider can see Details panel
-        click_button 'Details'
-        find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
-        expect(page).to have_content('Household Members')
-        expect(page).to have_content('Dan D (HoH)') # Head of household
-        expect(page).to have_content('Jane D (Child)') # Household member
-        click_button 'close'
+        with_referral_panel_open('Details') do
+          find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
+          expect(page).to have_content('Household Members')
+          expect(page).to have_content('Dan D (HoH)') # Head of household
+          expect(page).to have_content('Jane D (Child)') # Household member
+        end
 
         # Provider accepts the referral
         expect(page).to have_content('Provider Outcome Available Today Assigned to you')
 
         complete_ce_step('Provider Outcome') do
-          mui_date_select 'Date', date: Date.current
-          fill_in 'Notes', with: 'Provider accepts direct referral'
+          fill_in_step_with_notes(notes: 'Provider accepts direct referral')
           mui_radio_choose 'Accept - Add to Project', from: 'Decision'
           expect(page).to have_content('The client will be added to the project as Incomplete.')
         end
@@ -163,8 +167,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       expect(page).to have_content('Confirm Success Available Today')
 
       complete_ce_step('Confirm Success') do
-        mui_date_select 'Date', date: Date.current
-        fill_in 'Notes', with: 'Direct referral completed successfully'
+        fill_in_step_with_notes(notes: 'Direct referral completed successfully')\
       end
 
       expect(page).to have_content('Referral Complete')
@@ -264,9 +267,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
       # Progress through Initial Review step
       complete_ce_step('Initial Review') do
-        mui_date_select 'Date', date: Date.current
-        fill_in 'Notes', with: 'Referral for Alice A is in progress'
-        mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+        fill_in_step_with_continue(notes: 'Referral for Alice A is in progress')
       end
 
       # Should return to referral overview
@@ -279,16 +280,12 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
       # Progress through Client Engagement step
       complete_ce_step('Client Engagement') do
-        mui_date_select 'Date', date: Date.current # todo @martha - separate this out into a shared helper in the AC context
-        fill_in 'Notes', with: 'Client engaged with CE staff'
-        mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+        fill_in_step_with_continue(notes: 'Client engaged with CE staff')
       end
 
       # Progress through Client Offer Outcome step
       complete_ce_step('Client Offer Outcome') do
-        mui_date_select 'Date', date: Date.current
-        fill_in 'Notes', with: 'Client is interested'
-        mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
+        fill_in_step_with_continue(notes: 'Client is interested')
       end
       expect(page).to have_content('Provider Outcome Available Today') # the next task is available
 
@@ -306,26 +303,12 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).not_to have_content('Alice A')
       end
 
-      # todo @martha - maybe this is a shared function
       visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}") # Navigate back to the referral
-      # Assign the Paul Provider user to the Provider Outcome step
-      expect(page).to have_content('Provider Outcome Available Today Project Staff No assigned users')
-      click_button 'Contacts'
-      project_staff_choices = get_mui_select_choices(select_label: 'Project Staff')
-      expect(project_staff_choices).to include('Paul Provider')
-      expect(project_staff_choices).not_to include('Oliver Other')
-      mui_select('Paul Provider', from: 'Project Staff')
+      assign_referral_contacts({ 'Project Staff': ['Paul Provider'] })
 
-      click_button 'Submit'
-      expect(page).not_to have_content('No assigned users')
-      expect(page).to have_content('Assigned to Paul Provider')
-
-      # Add referral note
-      click_button 'Activity'
-      click_button 'Add Note'
-      fill_in 'Note', with: 'Hello Paul, this referral is in your court now'
-      click_button 'Submit Note'
-      expect(page).to have_content('Note Hello Paul')
+      with_referral_panel_open('Activity') do
+        add_referral_note(note_text: 'Hello Paul, this referral is in your court now')
+      end
     end
 
     # Shared method for the CE staff completing final steps to approve the referral
@@ -334,8 +317,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
 
       complete_ce_step('Confirm Success') do
-        mui_date_select 'Date', date: Date.current
-        fill_in 'Notes', with: 'Everything is good'
+        fill_in_step_with_notes(notes: 'Everything is good')
       end
 
       expect(page).to have_content('Referral Complete')
@@ -362,21 +344,20 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       expect(page).to have_content('Referral for Alice A is in progress') # Can see the previously submitted values
       click_link 'Back to All Tasks'
 
-      # View and submit notes
-      click_button 'Activity'
-      expect(page).to have_content('Hello Paul, this referral is in your court now') # can see previous notes
-      click_button 'Add Note'
-      fill_in 'Note', with: 'Everything is good'
-      click_button 'Submit Note'
-      expect(page).to have_content('Note Everything is good')
-      click_button 'close'
+      with_referral_panel_open('Activity') do
+        # Can see the previously submitted note
+        expect(page).to have_content('Hello Paul, this referral is in your court now')
+        # Can submit a new note
+        add_referral_note(note_text: 'Everything is good')
+      end
 
       expect(page).not_to have_button('Contacts') # Can't view contacts
-      click_button 'Details'
-      expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
-      find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
-      expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
-      find('body').send_keys(:escape)
+
+      with_referral_panel_open('Details') do
+        expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
+        find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
+        expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
+      end
     end
 
     it 'completes the happy path' do
@@ -390,8 +371,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).to have_content('Provider Outcome Available Today Assigned to you')
 
         complete_ce_step('Provider Outcome') do
-          mui_date_select 'Date', date: Date.current
-          fill_in 'Notes', with: 'Provider approves'
+          fill_in_step_with_notes(notes: 'Provider approves')
           mui_radio_choose 'Accept - Add to Project', from: 'Decision'
           expect(page).to have_content('The client will be added to the project as Incomplete.')
         end
@@ -415,8 +395,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).to have_content('Provider Outcome Available Today Assigned to you')
 
         complete_ce_step('Provider Outcome') do
-          mui_date_select 'Date', date: Date.current
-          fill_in 'Notes', with: 'Provider declines'
+          fill_in_step_with_notes(notes: 'Provider declines')
           mui_radio_choose 'Decline - Submit Referral for Denial Review', from: 'Decision'
           mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
         end
@@ -427,8 +406,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       end
 
       complete_ce_step('Denial Review') do
-        mui_date_select 'Date', date: Date.current
-        fill_in 'Notes', with: 'No, send back!'
+        fill_in_step_with_notes(notes: 'No, send back!')
         mui_radio_choose 'Send Back', from: 'Decision'
       end
 
@@ -438,8 +416,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).to have_content('Provider Outcome (Second Attempt) Available Today Assigned to you')
 
         complete_ce_step('Provider Outcome (Second Attempt)') do
-          mui_date_select 'Date', date: Date.current
-          fill_in 'Notes', with: 'Provider accepts this time'
+          fill_in_step_with_notes(notes: 'Provider accepts this time')
           mui_radio_choose 'Accept - Add to Project', from: 'Decision'
           expect(page).to have_content('The client will be added to the project as Incomplete.')
         end
@@ -461,16 +438,14 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).to have_content('Provider Outcome Available Today Assigned to you')
 
         complete_ce_step('Provider Outcome') do
-          mui_date_select 'Date', date: Date.current
-          fill_in 'Notes', with: 'Provider approves'
+          fill_in_step_with_notes(notes: 'Provider approves')
           mui_radio_choose 'Accept - Add to Project', from: 'Decision'
           expect(page).to have_content('The client will be added to the project as Incomplete.')
         end
 
         # Submit the Change Provider Outcome step to move the referral to denied pending status
         complete_ce_step('Change Provider Outcome (Optional)') do
-          mui_date_select 'Date', date: Date.current
-          fill_in 'Notes', with: 'Changing the result'
+          fill_in_step_with_notes(notes: 'Changing the result')
           mui_radio_choose 'Inability to complete intake', from: 'Decline Reason'
           expect(page).to have_content('The client\'s in-progress enrollment in this project will be deleted.')
         end

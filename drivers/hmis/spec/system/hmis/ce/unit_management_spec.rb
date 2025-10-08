@@ -7,7 +7,7 @@
 # frozen_string_literal: false
 
 require 'rails_helper'
-require_relative 'ce_system_test_helper'
+require_relative '../../../support/ce_system_test_helper'
 
 RSpec.feature 'CE Unit Management', type: :system do
   include_context 'ce system test helper'
