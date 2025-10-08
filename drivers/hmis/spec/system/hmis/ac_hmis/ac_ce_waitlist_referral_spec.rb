@@ -8,34 +8,12 @@
 
 require 'rails_helper'
 require_relative '../ce/ce_system_test_helper'
+require_relative './ac_ce_system_test_helper'
 
 RSpec.feature 'CE Waitlist Referrals', type: :system do
   include_context 'ce system test helper'
-
-  before(:all) do
-    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
-
-    HmisUtil::JsonForms.new(env_key: 'allegheny', enable_cded_generation_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
-    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
-    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
-    workflow_builder.build_housing_workflow
-  end
-
-  after(:all) do
-    # Clean up data source after deleting dependent records.
-    # It's not auto-cleaned up because it's created in before(:all) and not in a fixture
-    Hmis::WorkflowDefinition::Flow.delete_all
-    Hmis::WorkflowDefinition::Node.delete_all
-    Hmis::WorkflowDefinition::Swimlane.delete_all
-    Hmis::WorkflowDefinition::Template.delete_all
-    Hmis::Ce::CustomReferralStatus.delete_all
-    GrdaWarehouse::DataSource.hmis.delete_all
-
-    # Cleanup seeded referral step forms that were created in before(:all)
-    Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP).delete_all
-    Hmis::Hud::CustomDataElementDefinition.delete_all
-    Hmis::Hud::CustomDataElement.delete_all
-  end
+  include_context 'ac ce workflows'
+  # todo @martha -combine with direct referrals to reduce time
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
   let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
