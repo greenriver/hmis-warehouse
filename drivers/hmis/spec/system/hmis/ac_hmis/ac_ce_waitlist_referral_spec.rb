@@ -22,10 +22,14 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   end
 
   after(:all) do
+    Hmis::WorkflowDefinition::Flow.delete_all
+    Hmis::WorkflowDefinition::Node.delete_all
+    Hmis::WorkflowDefinition::Swimlane.delete_all
+    Hmis::WorkflowDefinition::Template.delete_all
     GrdaWarehouse::DataSource.hmis.delete_all
-    # Hmis::Form::Definition.delete_all
-    # Hmis::Hud::CustomDataElementDefinition.delete_all
-    # Hmis::Hud::CustomDataElement.destroy_all
+
+    # not cleaning up form definitions here isn't causing failures currently, because the only form created in the before_all block is the referral step forms.
+    # we probably should clean them up though, because we don't want the test suite to depend on the order in which things are run
   end
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already

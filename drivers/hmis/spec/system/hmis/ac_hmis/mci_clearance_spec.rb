@@ -87,12 +87,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     it 'does not allow re-clearance' do
-      # this is the (first) test that is failing when all system tests are run as a suite. It succeeds when this file is run alone.
-      # The hmis_user doesn't have permission to view c1, so the page is returning "not found".
-      # I'm pretty sure the problem is that there are 2 hmis data sources created at this point.
-      # But the confusing thing is that debugger shows that hmis_user.hmis_data_source_id == c1.data_source_id  == ds1.id
-      # so the other ds is messing things up somehow, but how?
-      # see also changes in ac_ce_*_spec.rb, which attempt to cleanup data sources, but this is not working - something I'm not understanding about the order of the after(:all) block?
       assert_text 'Client has been cleared'
       assert_text c1_mci_id.value
       assert_no_text 'Search for MCI ID'
