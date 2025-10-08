@@ -87,7 +87,8 @@ module Mutations
           count
 
         # Calculate how many units can be marked available: vacant units - assigned postings
-        max_available_units = vacant_units_count - assigned_postings_count # TODO- dont allow to be negative, just say 0 if thats the case
+        max_available_units = vacant_units_count - assigned_postings_count
+        max_available_units = [max_available_units, 0].max # if already over-requested, max is 0
 
         # Skip if we're not trying to mark more units available than allowed
         next unless num_units_being_marked > max_available_units
