@@ -64,13 +64,15 @@ jobs:
         ports:
           - "9000:9000"
       chrome:
-        image: index.docker.io/browserless/chrome@sha256:efac47cfff3830d9a50b27d29f8bbb61949058ae336c823fbe9bd3c0d1debcc8 # 1-chrome-stable
+        image: ghcr.io/browserless/chromium@sha256:615699913df92b5f0cdaa2873f92d70c87df43c14f6a54aabc53a418ba48fa86 # v2.37.0
         ports:
           - 3333:3333
         env:
+          # See: https://docs.browserless.io/docs/docker.html#changed-parameters
+          TOKEN: "some-token" # v2 requires a token
           TZ: "America/New_York"
           PORT: 3333
-          CONNECTION_TIMEOUT: 600000
+          TIMEOUT: 600000 # v2 renamed from CONNECTION_TIMEOUT
 
     env:
       CLIENT: test
@@ -168,6 +170,7 @@ jobs:
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          BROWSERLESS_TOKEN: some-token
           CHROME_URL: http://chrome:3333
           TODO_OR_DIE_LOG_ONLY: true
         run:

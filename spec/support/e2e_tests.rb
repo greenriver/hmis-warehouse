@@ -2,6 +2,7 @@
 
 require 'capybara'
 require 'capybara/cuprite'
+require 'uri'
 
 # See documentation in: spec/support/E2E_README.md
 # credit:
@@ -73,7 +74,17 @@ module E2eTests
   module RemoteChrome
     # @return [String, nil]
     def self.url
-      ENV['CHROME_URL']
+      base_url = ENV['CHROME_URL']
+      token = ENV['BROWSERLESS_TOKEN']
+
+      return base_url if base_url.blank? || token.blank?
+
+      uri = URI.parse(base_url)
+      params = URI.decode_www_form(String(uri.query))
+      params.reject! { |key, _| key == 'token' }
+      params << ['token', token]
+      uri.query = URI.encode_www_form(params)
+      uri.to_s
     end
 
     # Current port
@@ -115,12 +126,15 @@ module E2eTests
     # Pauses the current driver
     # @return [nil]
     def pause
+      inspector_url = RemoteChrome.url || 'http://localhost:3333'
+      $stdout.puts "🔎 Open Chrome inspector at #{inspector_url}"
       page.driver.pause
     end
 
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
-      $stdout.puts '🔎 Open Chrome inspector at http://localhost:3333'
+      inspector_url = RemoteChrome.url || 'http://localhost:3333'
+      $stdout.puts "🔎 Open Chrome inspector at #{inspector_url}"
       if binding
         return binding.pry if defined?(Pry)
 
