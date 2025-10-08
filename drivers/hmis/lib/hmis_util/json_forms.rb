@@ -302,8 +302,11 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
-      # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
-      if !Rails.env.test? || enable_cded_generation_in_test?
+      # Determine if CDEDs should be generated and validated
+      should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
+
+      if should_generate_cdeds
+        # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
         cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
           create_missing_mappings: false,
@@ -318,7 +321,7 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        skip_cded_validation: Rails.env.test?,
+        skip_cded_validation: !should_generate_cdeds, # skip validation if we didnt generate them
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
