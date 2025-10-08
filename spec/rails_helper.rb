@@ -98,6 +98,9 @@ RSpec.configure do |config|
     end
 
     # load hmis forms if we're testing the driver
+    # This is an overall performance improvement to our test suite, since many tests depend on these forms.
+    # However, it does mean that if individual tests modify the seeded forms, then they are responsible for cleanup
+    # by restoring to the original seeded state, rather than by using Hmis::Form::Definition.delete_all.
     if example_file_paths.grep(%r{/drivers/hmis/}).any? # rubocop:disable Style/RegexpLiteral
       ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
     end

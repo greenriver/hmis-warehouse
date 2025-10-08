@@ -22,20 +22,20 @@ RSpec.feature 'CE Direct Referrals', type: :system do
   end
 
   after(:all) do
-    # Data source needs to be cleaned up so that other tests succeed.
-    # It's not auto-cleaned up because it's created in before(:all) and not in a fixture,
-    # so delete it here (after deleting its dependent records)
+    # Clean up data source after deleting dependent records.
+    # It's not auto-cleaned up because it's created in before(:all) and not in a fixture
     Hmis::WorkflowDefinition::Flow.delete_all
     Hmis::WorkflowDefinition::Node.delete_all
     Hmis::WorkflowDefinition::Swimlane.delete_all
     Hmis::WorkflowDefinition::Template.delete_all
+    Hmis::Ce::CustomReferralStatus.delete_all
     GrdaWarehouse::DataSource.hmis.delete_all
 
-    # Clean up form definitions so they are re-seeded
-    # Hmis::Form::Definition.delete_all
-    HmisUtil::JsonForms.new.seed_all # Re-seed forms
-    # todo @martha - why can't we just use Hmis::Form::Definition.delete_all here? where are forms getting seeded generally such that later tests expect them?
+    # Return enrollment form to normal. (See comment about form cleanup in rails_helper.rb)
+    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
 
+    # Cleanup seeded referral step forms that were created in before(:all)
+    Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP).delete_all
     Hmis::Hud::CustomDataElementDefinition.delete_all
     Hmis::Hud::CustomDataElement.delete_all
   end

@@ -15,21 +15,26 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   before(:all) do
     ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
 
-    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
+    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_all
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
     workflow_builder.build_housing_workflow
   end
 
   after(:all) do
+    # Clean up data source after deleting dependent records.
+    # It's not auto-cleaned up because it's created in before(:all) and not in a fixture
     Hmis::WorkflowDefinition::Flow.delete_all
     Hmis::WorkflowDefinition::Node.delete_all
     Hmis::WorkflowDefinition::Swimlane.delete_all
     Hmis::WorkflowDefinition::Template.delete_all
+    Hmis::Ce::CustomReferralStatus.delete_all
     GrdaWarehouse::DataSource.hmis.delete_all
 
-    # not cleaning up form definitions here isn't causing failures currently, because the only form created in the before_all block is the referral step forms.
-    # we probably should clean them up though, because we don't want the test suite to depend on the order in which things are run
+    # Cleanup seeded referral step forms that were created in before(:all)
+    Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP).delete_all
+    Hmis::Hud::CustomDataElementDefinition.delete_all
+    Hmis::Hud::CustomDataElement.delete_all
   end
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
