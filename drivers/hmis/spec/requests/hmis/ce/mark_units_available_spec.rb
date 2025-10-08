@@ -256,15 +256,21 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         let!(:posting5) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, unit_type: unit_type, status: :denied_status) }
 
         it 'counts only assigned and denied_pending statuses' do
-          # Create postings with different statuses
-
           # 3 vacant units - 2 counted postings (assigned + denied_pending) = 1 units can be marked available
-          variables = { unitIds: [two_br_unit1.id, two_br_unit2.id] }
+          variables = { unitIds: [one_br_unit2.id] }
 
           expect do
             response, result = post_graphql(**variables) { mutation }
             expect(response.status).to eq(200), result.inspect
           end.to change(Hmis::Ce::Opportunity, :count).by(2)
+        end
+
+        it 'rejects above threshold' do
+          variables = { unitIds: [one_br_unit2.id, one_br_unit3.id] }
+
+          expect do
+            expect_gql_error post_graphql(**variables) { mutation }
+          end.to not_change(Hmis::Ce::Opportunity, :count)
         end
       end
     end
