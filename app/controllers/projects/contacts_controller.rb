@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Projects
   class ContactsController < ApplicationController
     include Contacts
@@ -19,6 +21,10 @@ module Projects
 
     def set_entity
       @entity = project_source.find(params[:project_id].to_i)
+    end
+
+    def contact_path_base
+      :project
     end
   end
 end

@@ -1,0 +1,46 @@
+= cache(['clients', 'genders', @client, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+  - items = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids).to_a
+  - if items.any?
+    %div
+      %table.table
+        %thead
+          %tr
+            %th
+            %th Name
+            %th Woman
+            %th Man
+            %th Non-Binary
+            %th Culturally Specific
+            %th Transgender
+            %th Questioning
+            %th Different Identity
+            %th Gender None
+            %th Different Identity Text
+            %th
+        %tbody
+          - displayed = Set.new
+          - items.each do |client|
+            - pii = client.pii_provider(user: current_user)
+            %tr
+              %td
+                .ds{class: "ds-color-#{client.data_source_id}"}= ds_short_name_for(client.id)
+              %td= pii.brief_name
+              %td= HudHelper.util.no_yes client.Woman
+              %td= HudHelper.util.no_yes client.Man
+              %td= HudHelper.util.no_yes client.NonBinary
+              %td= HudHelper.util.no_yes client.CulturallySpecific
+              %td= HudHelper.util.no_yes client.Transgender
+              %td= HudHelper.util.no_yes client.Questioning
+              %td= HudHelper.util.no_yes client.DifferentIdentity
+              %td= HudHelper.util.no_yes_reasons_for_missing_data client.GenderNone
+              %td= client.DifferentIdentityText
+              %td
+                .text-teeny.font-weight-light
+                  .text-nowrap
+                    Created: #{client.DateCreated}
+                  .text-nowrap
+                    Updated: #{client.DateUpdated}
+
+  - else
+    .no-data
+      No source client records found
