@@ -10,7 +10,7 @@ class NotifyUser < DatabaseMailer
   def vispdat_completed(vispdat_id)
     @vispdat = GrdaWarehouse::Vispdat::Base.where(id: vispdat_id).first
     @user = User.active.where(id: @vispdat.user_id).first
-    users_to_notify = User.active.where(notify_on_vispdat_completed: true)
+    users_to_notify = User.active.notifies_on_vispdat_completed
     users_to_notify = users_to_notify.where.not(id: @user.id) if @user.present?
     users_to_notify.each do |user|
       mail(to: user.email, subject: 'A VI-SPDAT was completed.')
@@ -30,7 +30,7 @@ class NotifyUser < DatabaseMailer
   def client_added(client_id)
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
     @user = User.active.where(id: @client.creator_id).first
-    users_to_notify = User.active.where(notify_on_client_added: true)
+    users_to_notify = User.active.notifies_on_client_added
     users_to_notify = users_to_notify.where.not(id: @user.id) if @user.present?
     users_to_notify.each do |user|
       mail(to: user.email, subject: 'A Client was added.')
@@ -80,7 +80,7 @@ class NotifyUser < DatabaseMailer
 
   def anomaly_identified(client_id:, user_id:)
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
-    users_to_notify = User.active.where(notify_on_anomaly_identified: true).
+    users_to_notify = User.active.notifies_on_anomaly_identified.
       where.not(id: user_id).map(&:email)
     mail(to: users_to_notify, subject: 'Client anomaly identified')
   end
