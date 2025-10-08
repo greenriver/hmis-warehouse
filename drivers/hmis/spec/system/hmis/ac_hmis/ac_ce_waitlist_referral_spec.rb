@@ -158,7 +158,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
     # Provider Outcome step is now available but unassigned.
     # Impersonate Paul Provider. Since they are not assigned, they can't see the referral yet
-    with_user_impersonated('Paul Provider') do
+    with_user_impersonated(provider.id) do
       click_link 'Dashboard'
       expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
       expect(page).to have_content('No referral tasks assigned to you')
@@ -239,7 +239,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     complete_ce_staff_initial_steps
 
     # Impersonate Paul Provider and verify they can see the referral
-    with_user_impersonated('Paul Provider') do
+    with_user_impersonated(provider.id) do
       confirm_provider_functionality
 
       # Provider approves the referral
@@ -263,7 +263,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     complete_ce_staff_initial_steps
 
     # Impersonate Paul Provider and verify they can see the referral
-    with_user_impersonated('Paul Provider') do
+    with_user_impersonated(provider.id) do
       confirm_provider_functionality
 
       # Provider denies the referral
@@ -280,8 +280,6 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
       expect(page).not_to have_button('Start step: Denial Review')
     end
 
-    referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Denial Review'
     mui_date_select 'Date', date: Date.current
     fill_in 'Notes', with: 'No, send back!'
@@ -289,9 +287,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     click_button 'Submit'
     expect(page).to have_content('Provider Outcome (Second Attempt)')
 
-    with_user_impersonated('Paul Provider') do
-      # This time, provider approves
-      visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
+    with_user_impersonated(provider.id) do
       expect(page).to have_content('Provider Outcome (Second Attempt) Available Today Assigned to you')
       click_button 'Start step: Provider Outcome (Second Attempt)'
       mui_date_select 'Date', date: Date.current
@@ -309,7 +305,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     complete_ce_staff_initial_steps
 
     # Impersonate Paul Provider and verify they can see the referral
-    with_user_impersonated('Paul Provider') do
+    with_user_impersonated(provider.id) do
       confirm_provider_functionality
 
       # Provider denies the referral
@@ -332,8 +328,6 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
       expect(page).to have_content('Denial Pending')
     end
 
-    referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Denial Review'
     mui_date_select 'Date', date: Date.current
     mui_radio_choose 'Approve Denial', from: 'Decision'
@@ -343,6 +337,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     expect(page).to have_content('Referral Declined')
     expect(page).to have_content("Alice A has been declined from #{unit.name}")
 
+    referral = Hmis::Ce::Referral.sole
     expect(referral.reload.status).to eq('rejected')
     expect(referral.target_enrollment).to be_nil
 

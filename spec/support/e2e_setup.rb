@@ -145,22 +145,49 @@ RSpec.shared_context 'SystemSpecHelper' do
     checkbox_label.find('input[type="checkbox"]', visible: :all).click
   end
 
-  # Impersonate the given user.
-  # Only works if the current user has impersonation permissions.
-  # Does not handle navigating back to the page the user was on before impersonation.
-  def with_user_impersonated(user_name)
-    visit('/admin/users')
-    expect(page).to have_content('Search Users')
-    find('tr', text: user_name).find(:button, text: 'User Actions').click
-    mui_click_menu_item('Impersonate User')
-    click_button 'Confirm'
-    expect(page).to have_content("Acting as #{user_name}")
+  # Impersonate the given user by making an API call to the impersonation endpoint.
+  # Instead of navigating to the Admin page and impersonating the user manually,
+  # just make the API call directly using JS fetch, then reload the page.
+  # (impersonate_hmis_user can't be used directly outside of the impersonations controller)
+  def with_user_impersonated(user_id)
+    user = Hmis::User.find(user_id)
+
+    # Make a POST request to start impersonation using JavaScript fetch
+    page.execute_script(<<~JS)
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      return fetch('/hmis/impersonations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ user_id: #{user.id} })
+      }).then(async (r) => {
+        const body = await r.text();
+        return { ok: r.ok, status: r.status, body: body };
+      });
+    JS
+
+    visit current_path # reload the page
+    expect(page).to have_content("Acting as #{user.full_name}")
 
     begin
       yield
     ensure
-      click_button 'Exit'
-      expect(page).not_to have_content("Acting as #{user_name}")
+      # Stop impersonating by making a DELETE request
+      page.execute_script(<<~JS)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        return fetch('/hmis/impersonations', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+          }
+        }).then(r => r.ok);
+      JS
+
+      visit current_path # reload the page
+      expect(page).not_to have_content("Acting as #{user.full_name}")
     end
   end
 

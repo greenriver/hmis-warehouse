@@ -33,7 +33,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     expect(units.map(&:unit_type)).to all(eq(sro_type))
     expect(units.map(&:unit_group)).to all(eq(unit_group))
 
-    with_user_impersonated('Paul Provider') do
+    with_user_impersonated(provider.id) do
       visit "/projects/#{target_project.id}/units"
       click_link 'Manage Unit Group SROs'
       expect(page).not_to have_button('Add Units') # Can view, but not add units
@@ -64,7 +64,6 @@ RSpec.feature 'CE Unit Management', type: :system do
     end
 
     # Admin can see the waitlist
-    visit "/projects/#{target_project.id}/unit/#{units.first.id}"
     click_link 'Eligible Clients'
     expect(page).to have_content('The eligible client list for this unit has not been generated yet.')
   end

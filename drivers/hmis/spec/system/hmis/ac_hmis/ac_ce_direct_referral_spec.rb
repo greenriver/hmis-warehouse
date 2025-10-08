@@ -90,7 +90,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     expect(page).to have_content('Assigned to Paul Provider')
 
     # Provider opens referral and completes the Provider Outcome task
-    with_user_impersonated('Paul Provider') do
+    with_user_impersonated(provider.id) do
       # Provider can view the referral from their dashboard
       click_link 'Dashboard'
       expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
