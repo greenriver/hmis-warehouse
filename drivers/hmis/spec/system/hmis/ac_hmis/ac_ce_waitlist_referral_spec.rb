@@ -15,7 +15,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   before(:all) do
     ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
 
-    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_all
+    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
     workflow_builder.build_housing_workflow
