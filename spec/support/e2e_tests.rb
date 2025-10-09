@@ -68,18 +68,17 @@ module E2eTests
     end
   end
 
-
   module CupriteHelpers
     # Pauses the current driver
     # @return [nil]
     def pause
-      $stdout.puts "🔎 Pausing browser for inspection"
+      $stdout.puts '🔎 Pausing browser for inspection'
       page.driver.pause
     end
 
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
-      $stdout.puts "🔎 Pausing browser for inspection"
+      $stdout.puts '🔎 Pausing browser for inspection'
       if binding
         return binding.pry if defined?(Pry)
 
