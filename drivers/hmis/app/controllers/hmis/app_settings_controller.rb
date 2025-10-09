@@ -15,10 +15,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
 
     logo = GrdaWarehouse::Theme.hmis_logo.presence || GrdaWarehouse::Theme.logo # prefer HMIS_LOGO if provided, otherwise LOGO
     logo_path = nil
-    if logo.present?
-      content_type = logo.blob.content_type
-      logo_path = "data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_logo}"
-    end
+    logo_path = logo_path('hmis_logo') if logo.present?
 
     hostname = ENV['FQDN']
 
