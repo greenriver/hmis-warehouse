@@ -28,8 +28,6 @@ $table-border-color-secondary: #F0F0F0;
   @include font-bold(18px);
 }
 
-.c-table__header {}
-
 .c-table__header .pagination {
   margin-bottom: 0;
 }
@@ -119,4 +117,11 @@ table.table-fixed {
 .table-fixed .table-dark th,
 .table-fixed th.table-dark {
   background-color: $dark;
+}
+
+// DataTables css modifies the position property when sorting occurs. This breaks the sticky header as
+// set by `table-fixed th`. This override ensures the header remains sticky when sorting occurs.
+table.table-fixed thead .dt-ordering-asc,
+table.table-fixed thead .dt-ordering-desc {
+  position: sticky;
 }
