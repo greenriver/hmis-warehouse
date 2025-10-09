@@ -14,6 +14,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
 
     logo = GrdaWarehouse::Theme.hmis_logo.presence || GrdaWarehouse::Theme.logo # prefer HMIS_LOGO if provided, otherwise LOGO
+    logo_path = nil
     if logo.present?
       content_type = logo.blob.content_type
       logo_path = "data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_logo}"
@@ -28,7 +29,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
 
     render json: {
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
-      logoPath: logo_path.present? ? logo_path : nil,
+      logoPath: logo_path,
       warehouseUrl: "https://#{hostname}",
       warehouseName: Translation.translate('Open Path HMIS Warehouse'),
       appName: Translation.translate('Open Path HMIS'), # TODO: app name should be configurable per data source
