@@ -75,10 +75,9 @@ module Mutations
         next if unit_type_id.nil? # Skip units without unit type
 
         # Count total vacant units for this unit type in this project
-        vacant_units_count = project.units.
-          unoccupied_on.
-          where(unit_type_id: unit_type_id).
-          count
+        vacant_units_count = project.units.unoccupied_on.with_unit_type(unit_type_id).count
+        # Units that are already receiving referrals
+        accepting_referrals_count = project.units.receiving_referrals.with_unit_type(unit_type_id).count
 
         # Count 'assigned' and 'denied pending' ReferralPostings for this unit type in this project.
         # Note: 'accepted pending' is not counted because accepted pending postings have an associated enrollment that is already placed in a unit.
@@ -87,7 +86,7 @@ module Mutations
           count
 
         # Calculate how many units can be marked available: vacant units - assigned postings
-        max_available_units = vacant_units_count - assigned_postings_count
+        max_available_units = vacant_units_count - assigned_postings_count - accepting_referrals_count
         max_available_units = [max_available_units, 0].max # if already over-requested, max is 0
 
         # Skip if we're not trying to mark more units available than allowed

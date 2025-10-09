@@ -246,6 +246,34 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
             expect(response.status).to eq(200), result.inspect
           end.to change(Hmis::Ce::Opportunity, :count).by(2)
         end
+
+        context 'and other unit already has opportunity' do
+          let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
+          # 3 vacant units - 1 already marked available (has open opportunity) - 2 assigned postings = 0 units can be marked available
+
+          it 'raises an error when trying to mark too many units' do
+            variables = { unitIds: [one_br_unit2.id] }
+            expect do
+              expect_gql_error(
+                post_graphql(**variables) { mutation },
+                message: /Cannot mark 1 1 Bedroom Apartment units as available because of overlapping legacy Referral Postings. At most 0 1 Bedroom Apartment units can be marked available at this time./,
+              )
+            end.to not_change(Hmis::Ce::Opportunity, :count)
+          end
+        end
+
+        context 'and other unit is occupied' do
+          let!(:occupancy) { create(:hmis_unit_occupancy, unit: unit) }
+          it 'raises an error when trying to mark too many units' do
+            variables = { unitIds: [one_br_unit2.id] }
+            expect do
+              expect_gql_error(
+                post_graphql(**variables) { mutation },
+                message: /Cannot mark 1 1 Bedroom Apartment units as available because of overlapping legacy Referral Postings. At most 0 1 Bedroom Apartment units can be marked available at this time./,
+              )
+            end.to not_change(Hmis::Ce::Opportunity, :count)
+          end
+        end
       end
 
       context 'when referral postings have other statuses' do
