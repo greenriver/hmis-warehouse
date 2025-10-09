@@ -171,7 +171,7 @@ jobs:
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           BROWSERLESS_TOKEN: some-token
-          CHROME_URL: http://chrome:3333
+          BROWSERLESS_URL: ws://chrome:3333/chrome
           TODO_OR_DIE_LOG_ONLY: true
         run:
           # Are you looking to run the system tests locally? See:

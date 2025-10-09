@@ -26,7 +26,8 @@ x-app: &app
     CHROMEDRIVER_VERSION: 79.0.3945.36
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
-    CHROME_URL: http://chrome:3333
+    BROWSERLESS_URL: ws://chrome:3333/chrome
+    BROWSERLESS_TOKEN: ${BROWSERLESS_TOKEN:-some-token}
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
 
@@ -248,7 +249,7 @@ services:
       - 6379
 
   chrome:
-    image: browserless/chrome:latest
+    image: ghcr.io/browserless/chromium@sha256:615699913df92b5f0cdaa2873f92d70c87df43c14f6a54aabc53a418ba48fa86
     profiles: ["test"]
     ports:
       - "3333:3333"
@@ -260,9 +261,10 @@ services:
     environment:
       # By default, it uses 3000, which is typically used by Rails.
       PORT: 3333
-      # Set connection timeout to avoid timeout exception during debugging
-      # https://docs.browserless.io/docs/docker.html#connection-timeout
-      CONNECTION_TIMEOUT: 600000
+      # Set timeout to avoid timeout exception during debugging
+      # https://docs.browserless.io/baas/migrate
+      TIMEOUT: 600000
+      TOKEN: "some-token"
 
   sftp:
     container_name: hmis-warehouse-sftp

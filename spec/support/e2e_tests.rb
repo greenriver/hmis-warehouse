@@ -51,7 +51,7 @@ module E2eTests
       # It could be useful to be able to configure this path from the outside (e.g., on CI).
       ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
-      raise "can't connect to chrome on #{ENV['CHROME_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
+      raise "can't connect to chrome on #{ENV['BROWSERLESS_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
 
       remote_options = RemoteChrome.options
       ::Capybara.register_driver(DRIVER_NAME) do |app|
@@ -74,7 +74,7 @@ module E2eTests
   module RemoteChrome
     # @return [String, nil]
     def self.url
-      base_url = ENV['CHROME_URL']
+      base_url = ENV['BROWSERLESS_URL']
       token = ENV['BROWSERLESS_TOKEN']
 
       return base_url if base_url.blank? || token.blank?
@@ -105,7 +105,7 @@ module E2eTests
     def self.options
       # Check whether the remote chrome is running and configure the Capybara
       # driver for it.
-      connected? ? { url: url } : {}
+      connected? ? { ws_url: url } : {}
     end
 
     # Whether or not the socket could be connected

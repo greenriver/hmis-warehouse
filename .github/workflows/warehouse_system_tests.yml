@@ -162,7 +162,7 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
           BROWSERLESS_TOKEN: some-token
-          CHROME_URL: http://chrome:3333
+          BROWSERLESS_URL: ws://chrome:3333/chrome
           TODO_OR_DIE_LOG_ONLY: true
         run: bundle exec rspec spec/system/rails --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
 
