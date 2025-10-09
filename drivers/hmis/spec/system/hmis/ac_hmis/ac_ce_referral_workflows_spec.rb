@@ -55,6 +55,61 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     mui_radio_choose 'Yes, continue', from: 'Continue with Referral?'
   end
 
+  # Shared method for navigating around the referral as a provider and validating functionality
+  def confirm_provider_functionality(client_name:, previous_step_name:, previous_step_content:, previous_note_text:)
+    click_link 'Dashboard'
+    expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
+    expect(page).to have_content('Provider Outcome Assigned Today')
+    expect(page).to have_content(client_name)
+
+    # Provider can view the referral from the project referrals table
+    visit "/projects/#{target_project.id}/ce#referrals"
+    expect(page).to have_content('Displaying 1 of 1 referral')
+    expect(page).to have_content(client_name)
+    expect(page).to have_content('Assigned')
+    click_link client_name
+
+    # Can view previous steps completed by the admin
+    click_link "View step: #{previous_step_name}"
+    expect(page).to have_content('Completed Today by Alexandra Admin')
+    expect(page).to have_content(previous_step_content)
+    click_link 'Back to All Tasks'
+
+    with_referral_panel_open('Activity') do
+      # Can see the previously submitted note
+      expect(page).to have_content(previous_note_text)
+      # Can submit a new note
+      add_referral_note(note_text: 'Everything is good')
+    end
+
+    expect(page).not_to have_button('Contacts') # Can't view contacts
+
+    # Provider step is available
+    expect(page).to have_content('Provider Outcome Available Today Assigned to you')
+  end
+
+  # Shared method for the CE staff completing final Confirm Success step to approve the referral
+  def complete_ce_staff_confirm_success_step(client_name, unit)
+    referral = Hmis::Ce::Referral.sole
+    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
+    expect(page).to have_content('Enrolled')
+    expect(page).to have_content('Confirm Success Available Today')
+
+    complete_ce_step('Confirm Success') do
+      fill_in_step_with_notes(notes: 'Everything is good')
+    end
+
+    expect(page).to have_content('Referral Complete')
+    expect(page).to have_content("#{client_name} has been accepted to #{unit.name}")
+
+    expect(referral.reload.status).to eq('accepted')
+    expect(referral.target_enrollment).to be_present
+    expect(referral.target_enrollment.current_unit).to eq(unit)
+
+    event = referral.source_enrollment.events.sole
+    expect(event.referral_result).to eq(1) # successful referral: client accepted
+  end
+
   describe 'direct referrals with admin assign workflow' do
     let!(:admin_assign_workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already
 
@@ -97,35 +152,26 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       expect(page).to have_content('Referral for Dan D')
       assign_referral_contacts({ 'Project Staff': ['Paul Provider'] })
 
+      with_referral_panel_open('Activity') do
+        add_referral_note(note_text: 'Hi Paul, this is a directly assigned referral')
+      end
+
       # Provider opens referral and completes the Provider Outcome task
       with_user_impersonated(provider.id) do
-        # Provider can view the referral from their dashboard
-        click_link 'Dashboard'
-        expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
-        expect(page).to have_content('Dan D')
+        confirm_provider_functionality(
+          client_name: 'Dan D',
+          previous_step_name: 'Admin Assign',
+          previous_step_content: 'Direct referral for Dan D to Family Shelter',
+          previous_note_text: 'Hi Paul, this is a directly assigned referral',
+        )
 
-        # Provider can view the referral from the project referrals table
-        visit "/projects/#{target_project.id}/ce#referrals"
-        expect(page).to have_content('Displaying 1 of 1 referral')
-        expect(page).to have_content('Dan D')
-        expect(page).to have_content('Assigned')
-        click_link 'Dan D'
-
-        # Provider can see the previously completed Admin Assign task
-        click_link 'View step: Admin Assign'
-        expect(page).to have_content('Direct referral for Dan D to Family Shelter')
-        click_link 'Back to All Tasks'
-
-        # Provider can see Details panel
+        # Provider can see other household members on Details panel
         with_referral_panel_open('Details') do
-          find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
+          find("[role='button']", text: 'Source Enrollment Details').click
           expect(page).to have_content('Household Members')
           expect(page).to have_content('Dan D (HoH)') # Head of household
           expect(page).to have_content('Jane D (Child)') # Household member
         end
-
-        # Provider accepts the referral
-        expect(page).to have_content('Provider Outcome Available Today Assigned to you')
 
         complete_ce_step('Provider Outcome') do
           fill_in_step_with_notes(notes: 'Provider accepts direct referral')
@@ -162,23 +208,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       end
 
       # CE Staff completes the Confirm Success step
-      visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
-      expect(page).to have_content('Enrolled')
-      expect(page).to have_content('Confirm Success Available Today')
-
-      complete_ce_step('Confirm Success') do
-        fill_in_step_with_notes(notes: 'Direct referral completed successfully')\
-      end
-
-      expect(page).to have_content('Referral Complete')
-      expect(page).to have_content("Dan D has been accepted to #{unit.name}")
-      expect(referral.reload.status).to eq('accepted')
-
-      # CE event was created on source enrollment
-      event = referral.source_enrollment.events.sole
-      expect(event.event).to eq(10) # referral to ES event type
-      expect(event.location_crisis_or_ph_housing).to eq(target_project.id.to_s)
-      expect(event.referral_result).to eq(1) # successful referral: client accepted
+      complete_ce_staff_confirm_success_step('Dan D', unit)
     end
   end
 
@@ -240,7 +270,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     end
 
     # Shared method for progressing the referral through the initial steps and assigning the provider
-    def complete_ce_staff_initial_steps
+    def ce_staff_complete_initial_steps
       # Navigate to unit group and verify eligible clients appear
       visit "/projects/#{target_project.id}/unit/#{unit.id}"
       click_link 'Eligible Clients'
@@ -303,7 +333,8 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).not_to have_content('Alice A')
       end
 
-      visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}") # Navigate back to the referral
+      # As the CE staff, navigate back to the referral and assign Paul Provider as the provider contact
+      visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
       assign_referral_contacts({ 'Project Staff': ['Paul Provider'] })
 
       with_referral_panel_open('Activity') do
@@ -311,65 +342,25 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       end
     end
 
-    # Shared method for the CE staff completing final steps to approve the referral
-    def complete_ce_staff_final_steps
-      referral = Hmis::Ce::Referral.sole
-      visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
-
-      complete_ce_step('Confirm Success') do
-        fill_in_step_with_notes(notes: 'Everything is good')
-      end
-
-      expect(page).to have_content('Referral Complete')
-      expect(page).to have_content("Alice A has been accepted to #{unit.name}")
-
-      expect(referral.reload.status).to eq('accepted')
-      expect(referral.target_enrollment).to be_present
-      expect(referral.target_enrollment.current_unit).to eq(unit)
-
-      event = referral.source_enrollment.events.sole
-      expect(event.referral_result).to eq(1) # successful referral: client accepted
-    end
-
-    # Shared method for navigating around the referral as a provider and validating functionality
-    def confirm_provider_functionality
-      click_link 'Dashboard'
-      expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
-      expect(page).to have_content('Provider Outcome Assigned Today')
-      expect(page).to have_content('Alice A')
-
-      # Click into the referral, view previous steps
-      click_link 'Provider Outcome'
-      click_link 'View step: Initial Review' # Can view previous steps completed by the admin
-      expect(page).to have_content('Referral for Alice A is in progress') # Can see the previously submitted values
-      click_link 'Back to All Tasks'
-
-      with_referral_panel_open('Activity') do
-        # Can see the previously submitted note
-        expect(page).to have_content('Hello Paul, this referral is in your court now')
-        # Can submit a new note
-        add_referral_note(note_text: 'Everything is good')
-      end
-
-      expect(page).not_to have_button('Contacts') # Can't view contacts
-
-      with_referral_panel_open('Details') do
-        expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
-        find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
-        expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
-      end
-    end
-
     it 'completes the happy path' do
-      complete_ce_staff_initial_steps
+      ce_staff_complete_initial_steps
 
       # Impersonate Paul Provider and verify they can see the referral
       with_user_impersonated(provider.id) do
-        confirm_provider_functionality
+        confirm_provider_functionality(
+          client_name: 'Alice A',
+          previous_step_name: 'Initial Review',
+          previous_step_content: 'Referral for Alice A is in progress',
+          previous_note_text: 'Hello Paul, this referral is in your court now',
+        )
 
-        # Provider approves the referral
-        expect(page).to have_content('Provider Outcome Available Today Assigned to you')
+        with_referral_panel_open('Details') do
+          expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
+          find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
+          expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
+        end
 
+        # Provider accepts the referral
         complete_ce_step('Provider Outcome') do
           fill_in_step_with_notes(notes: 'Provider approves')
           mui_radio_choose 'Accept - Add to Project', from: 'Decision'
@@ -381,19 +372,28 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).not_to have_button('Start step: Confirm Success')
       end
 
-      complete_ce_staff_final_steps
+      complete_ce_staff_confirm_success_step('Alice A', unit)
     end
 
     it 'completes the denial -> send back path' do
-      complete_ce_staff_initial_steps
+      ce_staff_complete_initial_steps
 
       # Impersonate Paul Provider and verify they can see the referral
       with_user_impersonated(provider.id) do
-        confirm_provider_functionality
+        confirm_provider_functionality(
+          client_name: 'Alice A',
+          previous_step_name: 'Initial Review',
+          previous_step_content: 'Referral for Alice A is in progress',
+          previous_note_text: 'Hello Paul, this referral is in your court now',
+        )
+
+        with_referral_panel_open('Details') do
+          expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
+          find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
+          expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
+        end
 
         # Provider denies the referral
-        expect(page).to have_content('Provider Outcome Available Today Assigned to you')
-
         complete_ce_step('Provider Outcome') do
           fill_in_step_with_notes(notes: 'Provider declines')
           mui_radio_choose 'Decline - Submit Referral for Denial Review', from: 'Decision'
@@ -424,19 +424,22 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         expect(page).to have_content('Confirm Success Available Today')
       end
 
-      complete_ce_staff_final_steps
+      complete_ce_staff_confirm_success_step('Alice A', unit)
     end
 
     it 'completes the change provider outcome => denied path' do
-      complete_ce_staff_initial_steps
+      ce_staff_complete_initial_steps
 
       # Impersonate Paul Provider and verify they can see the referral
       with_user_impersonated(provider.id) do
-        confirm_provider_functionality
+        confirm_provider_functionality(
+          client_name: 'Alice A',
+          previous_step_name: 'Initial Review',
+          previous_step_content: 'Referral for Alice A is in progress',
+          previous_note_text: 'Hello Paul, this referral is in your court now',
+        )
 
         # Provider denies the referral
-        expect(page).to have_content('Provider Outcome Available Today Assigned to you')
-
         complete_ce_step('Provider Outcome') do
           fill_in_step_with_notes(notes: 'Provider approves')
           mui_radio_choose 'Accept - Add to Project', from: 'Decision'
