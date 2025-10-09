@@ -32,6 +32,9 @@ module GrdaWarehouse
     has_one_attached :careplan_logo do |attachable|
       attachable.variant :thumb, resize_to_limit: [100, 100]
     end
+    has_one_attached :hmis_logo do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100]
+    end
 
     # Max 1 theme per HMIS origin
     validates_uniqueness_of :hmis_origin,
@@ -66,6 +69,12 @@ module GrdaWarehouse
       active_theme.careplan_logo
     end
 
+    def self.hmis_logo
+      theme = active_theme
+      theme.set_theme_default_logo! unless theme.logo.attached?
+      theme.logo
+    end
+
     def self.active_theme
       where(client: ENV.fetch('CLIENT')).first_or_create
     end
@@ -75,6 +84,13 @@ module GrdaWarehouse
       return unless logo_file_exists?
 
       logo.attach(logo_default)
+    end
+
+    def set_theme_default_hmis_logo!
+      return if hmis_logo.attached?
+      return unless logo_file_exists?
+
+      hmis_logo.attach(logo_default)
     end
 
     def set_theme_default_print_logo!
@@ -102,6 +118,10 @@ module GrdaWarehouse
 
     def self.encoded_careplan_logo
       Base64.strict_encode64(active_theme.careplan_logo.download)
+    end
+
+    def self.encoded_hmis_logo
+      Base64.strict_encode64(active_theme.hmis_logo.download)
     end
 
     private def find_logo_path(logo_name)
