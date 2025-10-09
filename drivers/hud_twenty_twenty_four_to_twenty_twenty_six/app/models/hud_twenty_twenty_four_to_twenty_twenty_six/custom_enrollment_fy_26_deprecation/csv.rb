@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module HudTwentyTwentyFourToTwentyTwentySix
-  module CustomSexualOrientation
+  module CustomEnrollmentFy26Deprecation
     class Csv < Transforms
       include HudTwentyTwentyFourToTwentyTwentySix::Kiba::CsvBase
     end

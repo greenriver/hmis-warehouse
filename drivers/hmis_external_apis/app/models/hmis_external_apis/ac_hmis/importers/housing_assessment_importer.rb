@@ -79,7 +79,8 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     tuples << ['housing_needs_homeless_duration', 'A year or more'] if waitlist.chronically_homeless == 'Yes' # infer to keep chronicity true when opened for editing
 
     # Note: Assessment is present in the export file, so we can assume the client is Eligible, Posted to the waitlist, and authorized.
-    tuples << ['housing_needs_result_type', 'Eligible'] # TODO: may need to add/change depending on #8129
+    tuples << ['housing_needs_result_type', 'Eligible']
+    tuples << ['housing_needs_eligible_project_types', 'PH_RRH']
     tuples << ['housing_needs_post_referrals_to_waitlist', 'Yes']
 
     tuples << ['housing_needs_ami', waitlist.income_percentage_ami]
@@ -197,7 +198,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def create_ce_enrollment(waitlist)
-    hmis_client = find_and_update_hmis_client(waitlist) || create_hmis_client(waitlist)
+    hmis_client = find_hmis_client(waitlist) || create_hmis_client(waitlist)
     deterministic_id = waitlist.hud_id
 
     # remove existing enrollment if it exists
@@ -235,17 +236,30 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     ActiveRecord::Base.record_timestamps = true
   end
 
-  # TODO: if not found by MCI Unique ID, should we try to look up by MCI ID?
-  def find_and_update_hmis_client(waitlist)
+  def find_hmis_client(waitlist)
     # client_id is the MCI Unique ID
     mci_scope = HmisExternalApis::ExternalId.
       where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE).
       where(value: waitlist.client_id)
 
     client = Hmis::Hud::Client.joins(:ac_hmis_mci_unique_id).merge(mci_scope).first
-    return nil unless client
+    if client
+      log_info("Found client with MCI Unique ID #{waitlist.client_id}: #{client.id}")
+      return client
+    end
 
-    log_info("Found client with MCI Unique ID #{waitlist.client_id}: #{client.id}")
+    # If not found by MCI Unique ID, look up by MCI ID. This would be needed if the client exists in HMIS
+    # because they were referred from LINK, but they don't have an MCI Unique ID. When Link sends a referral
+    # "posting" for a new client, we generate a new Client record with an MCI ID. We don't create an MCI Unique ID at that time,
+    # and the MCI Unique ID won't get created until/unless the client has any enrollments. (Unenrolled clients
+    # are not exported in HMIS export, so Data Warehouse API won't provide MCI Unique IDs for those clients.)
+    found_mci_ids = HmisExternalApis::ExternalId.mci_ids.where(value: waitlist.client_mci_id).to_a
+    return nil unless found_mci_ids.size == 1 # if multiple, can't be sure which one to update, don't use
+
+    client = found_mci_ids.first.source
+    return nil unless client.ac_hmis_mci_unique_id.nil? # if they already have an MCI Unique ID, don't use, something is off
+
+    log_info("Found client with MCI ID #{waitlist.client_mci_id}: #{client.id}")
     client
   end
 
@@ -628,9 +642,9 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
         when 'SRO'
           'SRO'
         when 'Households without Children'
-          'Households Without Children' # match casing in assessment
+          'Households without Children' # match assessment pick_list_options
         when 'Households with Children'
-          'Households With Children' # match casing in assessment
+          'Households with Children' # match assessment pick_list_options
         end
         # Note: 0, 5, and x+crib are not supported, we do not store them
       end.compact.uniq.sort

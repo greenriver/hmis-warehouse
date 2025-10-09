@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Provides a list of projects that belong to to the selected
 # data sources and organizations
 # optionally, limits the list to only those a user can see
@@ -32,7 +34,7 @@ module Api
             o_name_at_ds = "#{o_name} at #{ds_name}"
             @data[[o_id, o_name_at_ds]] ||= []
 
-            p_name += " (#{HudUtility2024.brief_project_type_with_sub_type(type, rrh_sub_type)})" if HudUtility2024.brief_project_type_with_sub_type(type).present?
+            p_name += " (#{HudHelper.util.brief_project_type_with_sub_type(type, rrh_sub_type)})" if HudHelper.util.brief_project_type_with_sub_type(type).present?
             @data[[o_id, o_name_at_ds]] << [
               p_name,
               id,
@@ -88,12 +90,12 @@ module Api
     end
 
     private def project_types
-      return HudUtility2024.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
+      return HudHelper.util.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
 
       @project_types ||= begin
         types = []
 
-        project_type_to_id = HudUtility2024.performance_reporting.merge(HudUtility2024.residential_project_type_numbers_by_code)
+        project_type_to_id = HudHelper.util.performance_reporting.merge(HudHelper.util.residential_project_type_numbers_by_code)
         if project_params[:project_types].present?
           project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
             types += project_type_to_id[type]

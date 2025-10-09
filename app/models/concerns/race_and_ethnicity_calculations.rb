@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module RaceAndEthnicityCalculations
   extend ActiveSupport::Concern
 
@@ -18,7 +20,7 @@ module RaceAndEthnicityCalculations
   end
 
   def race_col_lookup
-    HudUtility2024.races.map { |k, _| [k.underscore, k] }.to_h
+    HudHelper.util.races.map { |k, _| [k.underscore, k] }.to_h
   end
 
   private def pluck_to_hash(columns, scope)
@@ -90,6 +92,6 @@ module RaceAndEthnicityCalculations
   end
 
   private def race_ethnicity_combinations
-    HudUtility2024.race_ethnicity_combinations
+    HudHelper.util.race_ethnicity_combinations
   end
 end

@@ -157,6 +157,54 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         expect(Hmis::Ce::Match::CandidatePool.exists?(active_pool.id)).to be_truthy
       end
     end
+
+    context 'with closed projects' do
+      let!(:closed_project) { create(:hmis_hud_project, organization: organization, operating_end_date: 1.day.ago) }
+      let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: closed_project) }
+      let!(:unit_group) { create(:hmis_unit_group, project: closed_project) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: create(:hmis_unit, unit_group: unit_group), candidate_pool: nil) }
+
+      before do
+        # Add rules to the closed project's unit group
+        create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'closed_project_eligible = 1')
+        create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'closed_project_score')
+      end
+
+      it 'does not create candidate pools for closed projects' do
+        expect { described_class.call }.not_to change(Hmis::Ce::Match::CandidatePool, :count)
+      end
+
+      it 'does not associate unit groups from closed projects with candidate pools' do
+        described_class.call
+        expect(unit_group.reload.candidate_pool_id).to be_nil
+      end
+
+      it 'does not backfill opportunities from closed projects' do
+        described_class.call
+        opportunity.reload
+        expect(opportunity.candidate_pool_id).to be_nil
+      end
+
+      it 'excludes closed projects even when scoped to specific unit groups' do
+        expect { described_class.call(unit_group_ids: [unit_group.id]) }.
+          not_to change(Hmis::Ce::Match::CandidatePool, :count)
+        expect(unit_group.reload.candidate_pool_id).to be_nil
+      end
+
+      it 'only processes open projects when both open and closed projects exist' do
+        # Create unit group in open project for comparison
+        open_unit_group = create(:hmis_unit_group, project: project)
+        create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project)
+        create(:hmis_ce_eligibility_requirement, owner: open_unit_group, expression: 'open_project_eligible = 1')
+        create(:hmis_ce_priority_scheme, owner: open_unit_group, expression: 'open_project_score')
+
+        expect { described_class.call }.to change(Hmis::Ce::Match::CandidatePool, :count).from(0).to(1)
+
+        # Only the open project's unit group should be associated with a pool
+        expect(open_unit_group.reload.candidate_pool).to be_present
+        expect(unit_group.reload.candidate_pool_id).to be_nil
+      end
+    end
   end
 
   describe 'locking behavior' do

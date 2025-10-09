@@ -490,7 +490,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     describe 'Gender Fields' do
-      (::HudUtility2024.gender_fields - [:GenderNone]).each do |col|
+      (::HudHelper.util('2024').gender_fields - [:GenderNone]).each do |col|
         it "uses newest known gender value for #{col}" do
           destination_client.update(col => 1)
           source_1.update(col => 1, DateUpdated: 2.days.ago)
@@ -895,7 +895,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     describe 'Gender Fields' do
-      (::HudUtility2024.gender_fields - [:GenderNone]).each do |col|
+      (::HudHelper.util('2024').gender_fields - [:GenderNone]).each do |col|
         it "overwrites nil #{col} if something is non-blank" do
           source_1.update(col => nil, DateUpdated: 3.days.ago)
           source_2.update(col => 99, DateUpdated: 2.days.ago)
@@ -1076,6 +1076,52 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
         expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
         cleanup.add_missing_ages_to_service_history
+      end
+    end
+  end
+
+  describe 'clean_coordinated_entry_records' do
+    let(:dry_run) { false }
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new(dry_run: dry_run) }
+    let!(:destination_client) { create(:grda_warehouse_hud_client) }
+    let!(:ce_client_proxy) { create(:hmis_ce_client_proxy, client: destination_client) }
+    let!(:ce_candidate) { create(:hmis_ce_match_candidate, client_proxy: ce_client_proxy) }
+    let!(:ce_candidate_event) { create(:hmis_ce_match_candidate_event, client_proxy: ce_client_proxy, candidate_pool: ce_candidate.candidate_pool) }
+
+    before do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      cleanup.instance_variable_set(:@clients, [destination_client.id])
+    end
+
+    it 'deletes CE ClientProxies for destination clients when HMIS is enabled' do
+      expect do
+        cleanup.send(:clean_coordinated_entry_records)
+      end.to change(
+        Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
+      ).from(1).to(0)
+    end
+
+    it 'deletes CE Candidates and Candidate Events for destination clients when HMIS is enabled' do
+      expect do
+        cleanup.send(:clean_coordinated_entry_records)
+      end.to change(
+        Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
+      ).from(1).to(0).and change(
+        Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: ce_client_proxy.id), :count
+      ).from(1).to(0)
+    end
+
+    context 'when dry_run is true' do
+      let(:dry_run) { true }
+      it 'does not delete records' do
+        expect do
+          cleanup.send(:clean_coordinated_entry_records)
+        end.to not_change(
+          Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
+        ).from(1).and not_change(
+          Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
+        ).from(1)
       end
     end
   end

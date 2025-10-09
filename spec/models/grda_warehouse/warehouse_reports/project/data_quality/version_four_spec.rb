@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 include ArelHelper
 
@@ -5,9 +13,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
   # NOTE: The date range of the report is limited and will not include everyone in the import file
   describe 'project data quality V4' do
     before(:all) do
+      GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4',
         version: 'AutoMigrate',
+        stop_version: '2024',
       )
     end
     after(:all) do
@@ -124,8 +134,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
       end
 
       it 'exits to ph' do
-        source_clients = exiting_clients.where(ex_t[:Destination].in(HudUtility2024.permanent_destinations))
-        exits = @report.enrollments.exited.where(destination_id: HudUtility2024.permanent_destinations)
+        source_clients = exiting_clients.where(ex_t[:Destination].in(HudHelper.util.permanent_destinations))
+        exits = @report.enrollments.exited.where(destination_id: HudHelper.util.permanent_destinations)
         expect(source_clients.count).to eq exits.count
       end
 

@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Household::Coc
   extend ActiveSupport::Concern
 
@@ -20,7 +22,7 @@ module PerformanceDashboard::Household::Coc
     coc_buckets.map do |key|
       [
         key,
-        HudUtility2024.coc_name(key),
+        HudHelper.util.coc_name(key),
       ]
     end.to_h
   end

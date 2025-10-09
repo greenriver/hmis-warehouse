@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Code initially written for and funded by Delaware Health and Social Services.
 # Used and modified with permission.
 #
@@ -32,43 +34,42 @@ module GrdaWarehouse
       end
 
       VARSETS = [
-        VarSet.new(general_type: 'POP', census_group: 'P1'     , subcategory: '*'                      ), # Total population
-        VarSet.new(general_type: 'POP', census_group: 'P3'     , subcategory: '*'                      ), # Racial population
-        VarSet.new(general_type: 'POP', census_group: 'P4'     , subcategory: '*'                      ), # hispanic/not-hispanic population
+        VarSet.new(general_type: 'POP', census_group: 'P1', subcategory: '*'), # Total population
+        VarSet.new(general_type: 'POP', census_group: 'P3', subcategory: '*'), # Racial population
+        VarSet.new(general_type: 'POP', census_group: 'P4', subcategory: '*'), # hispanic/not-hispanic population
 
         # sex by age for 2010 census
-        VarSet.new(general_type: 'POP', census_group: 'P12A'   , subcategory: 'WHITE'                  ),
-        VarSet.new(general_type: 'POP', census_group: 'P12B'   , subcategory: 'BLACK'                  ),
-        VarSet.new(general_type: 'POP', census_group: 'P12C'   , subcategory: 'NATIVE_AMERICAN'        ),
-        VarSet.new(general_type: 'POP', census_group: 'P12D'   , subcategory: 'ASIAN'                  ),
-        VarSet.new(general_type: 'POP', census_group: 'P12E'   , subcategory: 'PACIFIC_ISLANDER'       ),
-        VarSet.new(general_type: 'POP', census_group: 'P12F'   , subcategory: 'OTHER_RACE'             ),
-        VarSet.new(general_type: 'POP', census_group: 'P12G'   , subcategory: 'MULTI_RACIAL'           ),
-        VarSet.new(general_type: 'POP', census_group: 'P12H'   , subcategory: 'HISPANIC'               ),
-        VarSet.new(general_type: 'POP', census_group: 'P12I'   , subcategory: 'NOT_HISPANIC'           ), # white alone, not hispanic
+        VarSet.new(general_type: 'POP', census_group: 'P12A', subcategory: 'WHITE'),
+        VarSet.new(general_type: 'POP', census_group: 'P12B', subcategory: 'BLACK'),
+        VarSet.new(general_type: 'POP', census_group: 'P12C', subcategory: 'NATIVE_AMERICAN'),
+        VarSet.new(general_type: 'POP', census_group: 'P12D', subcategory: 'ASIAN'),
+        VarSet.new(general_type: 'POP', census_group: 'P12E', subcategory: 'PACIFIC_ISLANDER'),
+        VarSet.new(general_type: 'POP', census_group: 'P12F', subcategory: 'OTHER_RACE'),
+        VarSet.new(general_type: 'POP', census_group: 'P12G', subcategory: 'MULTI_RACIAL'),
+        VarSet.new(general_type: 'POP', census_group: 'P12H', subcategory: 'HISPANIC'),
+        VarSet.new(general_type: 'POP', census_group: 'P12I', subcategory: 'NOT_HISPANIC'), # white alone, not hispanic
 
         # Sex by age acs (i.e. within the subcategory, broken out into sex and age-ranges at the same time)
-        VarSet.new(general_type: 'POP', census_group: 'B01001A', subcategory: 'WHITE'                  ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001B', subcategory: 'BLACK'                  ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001C', subcategory: 'NATIVE_AMERICAN'        ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001D', subcategory: 'ASIAN'                  ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001E', subcategory: 'PACIFIC_ISLANDER'       ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001F', subcategory: 'OTHER_RACE'             ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001G', subcategory: 'MULTI_RACIAL'           ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001H', subcategory: 'NOT_HISPANIC'           ),
-        VarSet.new(general_type: 'POP', census_group: 'B01001I', subcategory: 'HISPANIC'               ), # ACS and sf1 have switched semantics for I and H. Very confusing.
+        VarSet.new(general_type: 'POP', census_group: 'B01001A', subcategory: 'WHITE'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001B', subcategory: 'BLACK'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001C', subcategory: 'NATIVE_AMERICAN'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001D', subcategory: 'ASIAN'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001E', subcategory: 'PACIFIC_ISLANDER'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001F', subcategory: 'OTHER_RACE'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001G', subcategory: 'MULTI_RACIAL'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001H', subcategory: 'NOT_HISPANIC'),
+        VarSet.new(general_type: 'POP', census_group: 'B01001I', subcategory: 'HISPANIC'), # ACS and sf1 have switched semantics for I and H. Very confusing.
 
-
-        VarSet.new(general_type: 'POP', census_group: 'P12'    , subcategory: '*'                      ), # Sex by age for whole population decennial
-        VarSet.new(general_type: 'POP', census_group: 'B01001' , subcategory: '*'                      ), # Sex by age
-        VarSet.new(general_type: 'POP', census_group: 'B02001' , subcategory: '*'                      ), # Racial populations
-        VarSet.new(general_type: 'POP', census_group: 'B01003' , subcategory: '*'                      ), # total population
-      ]
+        VarSet.new(general_type: 'POP', census_group: 'P12', subcategory: '*'), # Sex by age for whole population decennial
+        VarSet.new(general_type: 'POP', census_group: 'B01001', subcategory: '*'), # Sex by age
+        VarSet.new(general_type: 'POP', census_group: 'B02001', subcategory: '*'), # Racial populations
+        VarSet.new(general_type: 'POP', census_group: 'B01003', subcategory: '*'), # total population
+      ].freeze
 
       def link_up!
-        #return if _no_work?
+        # return if _no_work?
 
-        Rails.logger.info "Naming the variables we care about"
+        Rails.logger.info 'Naming the variables we care about'
 
         CensusVariable.transaction do
           CensusVariable.where.not(dataset: 'imputed').update_all(internal_name: nil)
@@ -93,7 +94,7 @@ module GrdaWarehouse
 
       # Wrangle variations across years and datasets into a standard way to
       # refer to the variables we care about
-      def make_internal_name(cv, varset)
+      def make_internal_name(cv, varset) # rubocop:disable Naming/MethodParameterName
         starting = cv.label.
           sub(/Total:?!!/, '').
           sub(/Estimate!!/, '').
@@ -102,18 +103,18 @@ module GrdaWarehouse
 
         middle = \
           case varset.subcategory
-        when 'POVERTY_STATUS_BY_AGE'
-          starting.
-            sub(/income.in.the.past.12.months.at.or.above.poverty.level/i, 'AT_OR_ABOVE_POVERTY_LEVEL').
-            sub(/income.in.the.past.12.months.below.poverty.level/i, 'BELOW_POVERTY_LEVEL')
-        when 'MEDIAN_HOUSEHOLD_INCOME'
-          starting.sub(/MEDIAN.HOUSEHOLD.+INFLATION.ADJUSTED.DOLLARS./i, 'AMOUNT')
-        when 'YEAR_BUILT'
-          starting.
-            sub(/built./i, '')
-        else
-          starting.sub(/MEDIAN_AGE_BOTH_SEXES/i, 'MEDIAN_AGE_TOTAL')
-        end
+          when 'POVERTY_STATUS_BY_AGE'
+            starting.
+              sub(/income.in.the.past.12.months.at.or.above.poverty.level/i, 'AT_OR_ABOVE_POVERTY_LEVEL').
+              sub(/income.in.the.past.12.months.below.poverty.level/i, 'BELOW_POVERTY_LEVEL')
+          when 'MEDIAN_HOUSEHOLD_INCOME'
+            starting.sub(/MEDIAN.HOUSEHOLD.+INFLATION.ADJUSTED.DOLLARS./i, 'AMOUNT')
+          when 'YEAR_BUILT'
+            starting.
+              sub(/built./i, '')
+          else
+            starting.sub(/MEDIAN_AGE_BOTH_SEXES/i, 'MEDIAN_AGE_TOTAL')
+          end
 
         name = middle.
           gsub(/[^A-Z0-9:*]/, '_').
@@ -121,17 +122,15 @@ module GrdaWarehouse
           sub(/^_/, '').
           gsub(/:_/, ':')
 
-        full_name = ("#{varset.general_type}::#{varset.subcategory}::"+name).
+        full_name = ("#{varset.general_type}::#{varset.subcategory}::" + name).
           split(/:/).
           reject { |token| token.blank? || token == '*' }.
           join('::')
 
-        if !full_name.match?(CensusVariable::VALID_NAME)
-          raise "#{full_name} is not a valid name. Fix the crazy logic above and update 'spec/models/us_census_api/census_variable_spec.rb'"
-        end
+        raise "#{full_name} is not a valid name. Fix the crazy logic above and update 'spec/models/us_census_api/census_variable_spec.rb'" unless full_name.match?(CensusVariable::VALID_NAME)
 
         full_name
       end
+    end
   end
-end
 end
