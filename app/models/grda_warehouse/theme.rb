@@ -71,8 +71,9 @@ module GrdaWarehouse
 
     def self.hmis_logo
       theme = active_theme
-      theme.set_theme_default_logo! unless theme.logo.attached?
-      theme.logo
+      # Use the default logo of no HMIS logo has been defined
+      theme.set_theme_default_logo! unless theme.hmis_logo.attached?
+      theme.hmis_logo
     end
 
     def self.active_theme
