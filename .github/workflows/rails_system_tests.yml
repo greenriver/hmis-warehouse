@@ -63,16 +63,6 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
-      chrome:
-        image: ghcr.io/browserless/chromium@sha256:615699913df92b5f0cdaa2873f92d70c87df43c14f6a54aabc53a418ba48fa86 # v2.37.0
-        ports:
-          - 3333:3333
-        env:
-          # See: https://docs.browserless.io/docs/docker.html#changed-parameters
-          TOKEN: "some-token" # v2 requires a token
-          TZ: "America/New_York"
-          PORT: 3333
-          TIMEOUT: 600000 # v2 renamed from CONNECTION_TIMEOUT
 
     env:
       CLIENT: test
@@ -170,8 +160,7 @@ jobs:
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
-          BROWSERLESS_TOKEN: some-token
-          BROWSERLESS_URL: ws://chrome:3333/chrome
+          CHROMIUM_PATH: /usr/bin/chromium
           TODO_OR_DIE_LOG_ONLY: true
         run:
           # Are you looking to run the system tests locally? See:

@@ -2,7 +2,6 @@
 
 require 'capybara'
 require 'capybara/cuprite'
-require 'uri'
 
 # See documentation in: spec/support/E2E_README.md
 # credit:
@@ -51,90 +50,36 @@ module E2eTests
       # It could be useful to be able to configure this path from the outside (e.g., on CI).
       ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
-      raise "can't connect to chrome on #{ENV['BROWSERLESS_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
-
-      remote_options = RemoteChrome.options
       ::Capybara.register_driver(DRIVER_NAME) do |app|
         ::Capybara::Cuprite::Driver.new(
           app,
           **{
             extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
             window_size: [1200, 1600],
-            browser_options: RemoteChrome.connected? ? { 'no-sandbox' => nil } : {},
+            browser_options: { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil },
             headless: ENV.fetch('CI', 'true') == 'true',
             js_errors: true,
             logger: FerrumLogger.new,
             inspector: true,
-          }.merge(remote_options),
+            browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
+          },
         )
       end
     end
   end
 
-  module RemoteChrome
-    # @return [String, nil]
-    def self.url
-      base_url = ENV['BROWSERLESS_URL']
-      token = ENV['BROWSERLESS_TOKEN']
-
-      return base_url if base_url.blank? || token.blank?
-
-      uri = URI.parse(base_url)
-      params = URI.decode_www_form(String(uri.query))
-      params.reject! { |key, _| key == 'token' }
-      params << ['token', token]
-      uri.query = URI.encode_www_form(params)
-      uri.to_s
-    end
-
-    # Current port
-    # @return Integer
-    def self.port
-      URI.parse(url).yield_self(&:port)
-    end
-
-    # Current host
-    # @return [String, nil]
-    def self.host
-      URI.parse(url).yield_self(&:host) if url
-    end
-
-    # Returns a hash with a :url key / value if a remote chrome url is found.
-    # @return [Hash{:url => String, nil}]
-    #
-    def self.options
-      # Check whether the remote chrome is running and configure the Capybara
-      # driver for it.
-      connected? ? { ws_url: url } : {}
-    end
-
-    # Whether or not the socket could be connected
-    # @return [Boolean]
-    def self.connected?
-      if url.nil?
-        false
-      else
-        Socket.tcp(host, port, connect_timeout: 5).close
-        true
-      end
-    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, SocketError
-      false
-    end
-  end
 
   module CupriteHelpers
     # Pauses the current driver
     # @return [nil]
     def pause
-      inspector_url = RemoteChrome.url || 'http://localhost:3333'
-      $stdout.puts "🔎 Open Chrome inspector at #{inspector_url}"
+      $stdout.puts "🔎 Pausing browser for inspection"
       page.driver.pause
     end
 
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
-      inspector_url = RemoteChrome.url || 'http://localhost:3333'
-      $stdout.puts "🔎 Open Chrome inspector at #{inspector_url}"
+      $stdout.puts "🔎 Pausing browser for inspection"
       if binding
         return binding.pry if defined?(Pry)
 
