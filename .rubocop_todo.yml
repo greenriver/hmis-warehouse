@@ -4096,7 +4096,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hud_hic/config/routes.rb'
     - 'drivers/hud_hic/extensions/hud_reports/universe_member_extension.rb'
     - 'drivers/hud_lsa/app/models/hud_lsa.rb'
-    - 'drivers/hud_lsa/app/models/hud_lsa/filters/lsa_filter.rb'
     - 'drivers/hud_lsa/app/models/hud_lsa/fy2022/report.rb'
     - 'drivers/hud_lsa/app/models/hud_lsa/fy2022/summary_result.rb'
     - 'drivers/hud_lsa/app/models/hud_lsa/fy2023/report.rb'
