@@ -3996,7 +3996,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
-  alcoholDrugUseDisorderFam: NoYesMissing
+  alcoholDrugUseDisorderFam: NoYesReasonsForMissingData
   annualPercentAmi: AnnualPercentAMI
   assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
@@ -4061,9 +4061,9 @@ type Enrollment {
   id: ID!
   inProgress: Boolean!
   incarceratedAdult: IncarceratedAdult
-  incarceratedParent: NoYesMissing
+  incarceratedParent: NoYesReasonsForMissingData
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
-  insufficientIncome: NoYesMissing
+  insufficientIncome: NoYesReasonsForMissingData
   intakeAssessment: Assessment
   juvenileJusticeMonths: Int
   juvenileJusticeYears: RHYNumberofYears
@@ -4077,7 +4077,7 @@ type Enrollment {
   lockVersion: Int!
   losUnderThreshold: NoYesMissing
   mentalHealthConsultation: MentalHealthConsultation
-  mentalHealthDisorderFam: NoYesMissing
+  mentalHealthDisorderFam: NoYesReasonsForMissingData
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInAddresses: [ClientAddress!]!
   moveInDate: ISO8601Date
@@ -4090,7 +4090,7 @@ type Enrollment {
   openEnrollmentSummary: [EnrollmentSummary!]!
   organizationName: String!
   percentAmi: PercentAMI
-  physicalDisabilityFam: NoYesMissing
+  physicalDisabilityFam: NoYesReasonsForMissingData
   preferredLanguage: PreferredLanguage
   preferredLanguageDifferent: String
   previousStreetEssh: NoYesMissing
@@ -4123,7 +4123,7 @@ type Enrollment {
   timeToHousingLoss: TimeToHousingLoss
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   translationNeeded: NoYesReasonsForMissingData
-  unemploymentFam: NoYesMissing
+  unemploymentFam: NoYesReasonsForMissingData
   user: ApplicationUser
   vamcStation: VamcStationNumber
   youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
