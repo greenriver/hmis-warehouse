@@ -17,7 +17,7 @@ class Hmis::SessionsController < Devise::SessionsController
   before_action :authenticate_with_2fa, only: [:create], if: -> { two_factor_enabled? }
 
   # Minimum required login processing time for ALL login attempts (seconds)
-  MIN_REQ_LOGIN_TIME = 2
+  MIN_REQ_LOGIN_TIME = 1
 
   # GET /hmis/login
   def new
@@ -129,12 +129,6 @@ class Hmis::SessionsController < Devise::SessionsController
 
   private def failure_response(type)
     render status: 401, json: { error: { type: type, message: I18n.t("devise.failure.#{type}") } }
-  end
-
-  private def authentication_strategy
-    return :otp if user_params[:otp_attempt].present?
-
-    :password
   end
 
   private def handle_failed_authentication
