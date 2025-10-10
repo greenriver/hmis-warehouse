@@ -3530,7 +3530,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/spec/requests/hmis/reminder_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/service_type_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/unassign_staff_spec.rb'
-    - 'drivers/hmis/spec/requests/hmis/update_form_definition_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/update_relationship_to_ho_h_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/user_audit_history_spec.rb'
     - 'drivers/hmis/spec/support/ac_hmis_loader_helpers.rb'
