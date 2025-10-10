@@ -15,6 +15,8 @@ RSpec.describe PerformanceMeasurement::WarehouseReports::StaticSpmsController, t
 
   before do
     sign_in user
+    allow(controller).to receive(:report_visible?).and_return(true)
+    allow(controller).to receive(:require_can_view_any_reports!).and_return(true)
   end
 
   describe 'POST #create' do
