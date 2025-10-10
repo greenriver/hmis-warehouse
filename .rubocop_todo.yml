@@ -2525,7 +2525,6 @@ Style/FrozenStringLiteralComment:
     - 'bin/yarn'
     - 'config/deploy/docker/check_ram'
     - 'config/deploy/docker/clear_cache'
-    - 'config/deploy/docker/deploy'
     - 'config/deploy/docker/lib/blue_green.rb'
     - 'config/deploy/docker/lib/cron_installer.rb'
     - 'config/deploy/docker/lib/cronjob.rb'
