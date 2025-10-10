@@ -16,13 +16,13 @@ class PublicLogosController < ApplicationController
 
     return unless stale?(etag: blob.checksum, last_modified: blob.created_at, public: true)
 
-    data = memory_cache.fetch("public_logo_#{blob.checksum}", expires_in: 2.hours) do
+    data = self.class.memory_cache.fetch("public_logo_#{blob.checksum}", expires_in: 24.hours) do
       file.download
     end
     send_data(data, type: blob.content_type, filename: blob.filename.to_s, disposition: 'inline')
   end
 
-  private def memory_cache
+  def self.memory_cache
     @memory_cache ||= ActiveSupport::Cache::MemoryStore.new
   end
 end
