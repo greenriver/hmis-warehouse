@@ -17,12 +17,13 @@ module Mutations
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
 
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_update_form?(new_role: input.role)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_manage_form?
 
       raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
+      raise 'not allowed to change role' if input.role.present? && input.role != definition.role
 
-      # This mutation can be used to update the definition or the title/role, which is why definition is optional.
+      # This mutation can be used to update the definition or the title, which is why definition is optional.
       definition.assign_attributes(**input.to_attributes) unless input.to_attributes.blank?
 
       # This definition could be coming from one of two places:
