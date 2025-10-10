@@ -1,8 +1,4 @@
 
 = f.error_notification
 
-= f.input :first_name
-= f.input :last_name
-= f.input :email
-
-
+= f.association :user, collection: GrdaWarehouse::Contact::Project.available_users(@entity, include_current: include_current), label_method: :name_with_email, value_method: :id, include_blank: true, as: :select_two, required: true, selected: f.object.user_id

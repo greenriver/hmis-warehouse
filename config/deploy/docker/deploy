@@ -2,6 +2,7 @@
 
 require_relative 'lib/command_args'
 require_relative 'lib/deployer'
+require 'active_support/all'
 
 args = CommandArgs.new
 

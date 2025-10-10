@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Organizations
   class ContactsController < ApplicationController
     include Contacts
@@ -19,6 +21,10 @@ module Organizations
 
     def organization_scope
       GrdaWarehouse::Hud::Organization
+    end
+
+    def contact_path_base
+      :organization
     end
   end
 end
