@@ -180,12 +180,12 @@ module Types
     field :juvenile_justice_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
     field :juvenile_justice_months, Integer, null: true
     # R13
-    field :unemployment_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :unemployment_fam, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :insufficient_income, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     # V6
     field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true
     # V7

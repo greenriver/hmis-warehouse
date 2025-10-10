@@ -11,26 +11,29 @@
 .row
   .col-sm-12
     - if @contacts.present?
-      %table.table.table-sm
-        %thead
-          %tr
-            %th
-              Name
-            %th
-              Email
-            %th
-        %tbody
-          - @contacts.each do |contact|
+      .card.c-card-overflow-inherit
+        %table.table.table-striped
+          %thead
             %tr
-              %td
-                = link_to edit_organization_contact_path(@entity, contact) do
-                  = contact.full_name
-              %td
-                = contact.email
-              %td
-                = link_to organization_contact_path(@entity, contact), method: :delete, class: 'btn btn-default', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
-                  %span.icon-cross
-                  Delete
+              %th
+                Name
+              %th
+                Email
+              %th
+          %tbody
+            - @contacts.each do |contact|
+              %tr
+                %td
+                  = link_to edit_organization_contact_path(@entity, contact) do
+                    = contact.full_name
+                %td
+                  = contact.email
+                %td
+                  :ruby
+                    items = []
+                    items << { link_to: { path: edit_organization_contact_path(@entity, contact)}, icon: 'pencil', label: 'Edit Contact' }
+                    items << { link_to: { path: organization_contact_path(@entity, contact), method: :delete, data: {confirm: "Do you really want to delete contact #{contact.full_name}"}}, icon: 'cross', label: 'Delete' }
+                  = action_menu_or_button(items: items)
     - else
       %p
         No organization contacts on file.

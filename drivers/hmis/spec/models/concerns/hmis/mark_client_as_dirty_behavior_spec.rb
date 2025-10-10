@@ -34,6 +34,15 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
         create model_factory, client: c1, data_source: ds1, **model_attrs
       end.to change { Hmis::Ce::ChangeMarker.where(trackable: destination_client).dirty.count }.by(1)
     end
+
+    it "marks destination client dirty when #{model_factory} is destroyed" do
+      model = create model_factory, client: c1, data_source: ds1, **model_attrs
+      Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+
+      expect do
+        model.destroy!
+      end.to change { Hmis::Ce::ChangeMarker.where(trackable: destination_client).dirty.count }.by(1)
+    end
   end
 
   include_examples 'marks client as dirty', :hmis_custom_assessment

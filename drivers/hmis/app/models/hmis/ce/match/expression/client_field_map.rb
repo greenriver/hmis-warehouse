@@ -97,11 +97,24 @@ module Hmis::Ce::Match::Expression
 
     def open_referral_project_types_field
       {
-        query: ->(clients) { project_types_query(clients, Hmis::Ce::Referral.active, :target_project) },
+        query: ->(clients) do
+          # Get project types from CE referrals
+          ce_referrals_result = project_types_query(clients, Hmis::Ce::Referral.active, :target_project)
+
+          # Get project types from legacy referrals
+          legacy_referrals_scope = HmisExternalApis::AcHmis::ReferralHouseholdMember.joins(:postings).
+            merge(HmisExternalApis::AcHmis::ReferralPosting.active)
+          legacy_referrals_result = project_types_query(clients, legacy_referrals_scope, postings: :project)
+
+          # Merge results from both referral types
+          ce_referrals_result.merge(legacy_referrals_result) { |_key, values1, values2| (values1 + values2).uniq.sort }
+        end,
         format_for_display: method(:format_project_types),
       }
     end
 
+    # Returns a hash mapping client IDs to arrays of project type IDs
+    # @return [Hash{Integer => Array<Integer>}] e.g. { 123 => [1, 3, 13], 456 => [2, 4], 789 => [] }
     def project_types_query(clients, scope, project_association)
       client_ids = clients.pluck(:id)
       values = scope.joins(client: :warehouse_client_source).

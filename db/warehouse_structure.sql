@@ -1,7 +1,7 @@
--- \restrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
+-- \restrict 9i7asgXsvdSK3II1pMD7a2crn7XfukLy5GvEcSvD16rwcsmuwJVPN2rZEd8IN7U
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1312,6 +1312,7 @@ CREATE VIEW analytics.clients AS
     "NameDataQuality",
     "SSNDataQuality",
     "DOBDataQuality",
+    "Sex",
     "AmIndAKNative",
     "Asian",
     "BlackAfAmerican",
@@ -2861,7 +2862,9 @@ CREATE TABLE public."Enrollment" (
 --
 
 CREATE VIEW analytics.enrollments AS
- SELECT "EnrollmentID",
+ SELECT id,
+    data_source_id,
+    "EnrollmentID",
     "PersonalID",
     "ProjectID",
     "EntryDate",
@@ -2939,14 +2942,6 @@ CREATE VIEW analytics.enrollments AS
     "CoercedToContinueWork",
     "LaborExploitPastThreeMonths",
     "HPScreeningScore",
-    "VAMCStation_deleted",
-    "DateCreated",
-    "DateUpdated",
-    "UserID",
-    "DateDeleted",
-    "ExportID",
-    data_source_id,
-    id,
     "LOSUnderThreshold",
     "PreviousStreetESSH",
     "UrgentReferral",
@@ -2977,7 +2972,6 @@ CREATE VIEW analytics.enrollments AS
     last_locality,
     last_zipcode,
     source_hash,
-    pending_date_deleted,
     "SexualOrientationOther",
     history_generated_on,
     original_household_id,
@@ -2998,10 +2992,14 @@ CREATE VIEW analytics.enrollments AS
     "PreferredLanguage",
     "PreferredLanguageDifferent",
     "VAMCStation",
-    lock_version,
-    project_pk
+    "MentalHealthConsultation",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID"
    FROM public."Enrollment"
-  WHERE ("DateDeleted" IS NULL);
+  WHERE (("DateDeleted" IS NULL) AND ("ProjectID" IS NOT NULL));
 
 
 --
@@ -3805,6 +3803,40 @@ CREATE VIEW analytics.hmis_staff_assignments AS
     hmis_staff_assignments.deleted_at
    FROM (public.hmis_staff_assignments
      LEFT JOIN public.hmis_staff_assignment_relationships ON ((hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id)));
+
+
+--
+-- Name: hud_list_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_list_items (
+    id bigint NOT NULL,
+    list_name character varying NOT NULL,
+    method_name character varying NOT NULL,
+    list_number character varying NOT NULL,
+    label character varying NOT NULL,
+    code character varying NOT NULL,
+    fiscal_year integer NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hud_list_items; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hud_list_items AS
+ SELECT id,
+    list_name,
+    method_name,
+    list_number,
+    label,
+    code,
+    fiscal_year
+   FROM public.hud_list_items
+  WHERE (active = true);
 
 
 --
@@ -8789,12 +8821,13 @@ CREATE TABLE public.contacts (
     id integer NOT NULL,
     type character varying NOT NULL,
     entity_id integer NOT NULL,
-    email character varying NOT NULL,
+    email character varying,
     first_name character varying,
     last_name character varying,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_id bigint
 );
 
 
@@ -25336,6 +25369,25 @@ ALTER SEQUENCE public.hud_create_logs_id_seq OWNED BY public.hud_create_logs.id;
 
 
 --
+-- Name: hud_list_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_list_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_list_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_list_items_id_seq OWNED BY public.hud_list_items.id;
+
+
+--
 -- Name: hud_lsa_summary_results; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -27672,7 +27724,10 @@ CREATE TABLE public.ma_yya_report_clients (
     first_prevention_date_in_last_year date,
     first_homeless_date date,
     first_homeless_date_in_last_year date,
-    latest_homeless_entry_date date
+    latest_homeless_entry_date date,
+    report_id bigint,
+    project_id bigint,
+    enrollment_id bigint
 );
 
 
@@ -36888,6 +36943,13 @@ ALTER TABLE ONLY public.hud_create_logs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: hud_list_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_list_items ALTER COLUMN id SET DEFAULT nextval('public.hud_list_items_id_seq'::regclass);
+
+
+--
 -- Name: hud_lsa_summary_results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -41408,6 +41470,14 @@ ALTER TABLE ONLY public.hud_chronics
 
 ALTER TABLE ONLY public.hud_create_logs
     ADD CONSTRAINT hud_create_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_list_items hud_list_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_list_items
+    ADD CONSTRAINT hud_list_items_pkey PRIMARY KEY (id);
 
 
 --
@@ -62949,6 +63019,13 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
+-- Name: index_contacts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contacts_on_user_id ON public.contacts USING btree (user_id);
+
+
+--
 -- Name: index_csg_engage_program_mappings_on_program_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66943,6 +67020,13 @@ CREATE INDEX index_hud_create_logs_on_imported_at ON public.hud_create_logs USIN
 --
 
 CREATE INDEX index_hud_dq_client_liv_sit ON public.hud_report_dq_living_situations USING btree (hud_report_dq_client_id);
+
+
+--
+-- Name: index_hud_list_items_on_year_list_and_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hud_list_items_on_year_list_and_code ON public.hud_list_items USING btree (fiscal_year, list_number, code);
 
 
 --
@@ -75767,11 +75851,18 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
+-- \unrestrict 9i7asgXsvdSK3II1pMD7a2crn7XfukLy5GvEcSvD16rwcsmuwJVPN2rZEd8IN7U
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251007133153'),
+('20251007130048'),
+('20251003200049'),
+('20251003192404'),
+('20251003190848'),
+('20251003190528'),
+('20251002195913'),
 ('20250926075333'),
 ('20250923120000'),
 ('20250921222539'),

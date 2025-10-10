@@ -4,21 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-    HmisUtil::JsonForms.seed_all
-  end
-  after(:all) do
-    cleanup_test_environment
-    Hmis::Form::Definition.delete_all
-    Hmis::Form::Instance.delete_all
-  end
-
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
