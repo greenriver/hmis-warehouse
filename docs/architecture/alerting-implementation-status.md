@@ -1,11 +1,11 @@
 # Alert Configuration System - Implementation Status
 
-**Last Updated:** 2025-10-08
+**Last Updated:** 2025-10-10
 **Related Architecture:** See `alerting.md` for full design documentation
 
-## Current Status: Phase 3 (Code Migration) - Partially Complete
+## Current Status: Phase 3 (Code Migration) - User Alerts Complete
 
-The core infrastructure is deployed and functional. System alert subscriptions are working on the user edit page. Remaining work focuses on extending to organization/project contacts.
+The core infrastructure is deployed and functional. System alert subscriptions are working on the user edit page with full audit history tracking. Remaining work focuses on extending to organization/project contacts.
 
 ---
 
@@ -50,7 +50,9 @@ All migrations are in `db/warehouse/migrate/`:
    - Join model between contacts and alert definitions
    - Uses explicit `foreign_key: :contact_id, inverse_of:` to avoid Rails inferring wrong FK from Base class
    - Includes `migrate_user_notification_preferences!` class method for data migration
-   - ✅ Status: Complete
+   - **PaperTrail tracking enabled** with `referenced_user_id` metadata for audit history
+   - Includes `describe_changes` method to format subscription changes for display
+   - ✅ Status: Complete with audit tracking
 
 3. **`app/models/grda_warehouse/contact/user.rb`**
    - New contact type for user-level system alerts
@@ -128,6 +130,26 @@ All migrations are in `db/warehouse/migrate/`:
    - Existing methods already using scopes: `pending_account_submitted`, `new_account_created`
    - ✅ Status: Complete
 
+#### User Audit History
+
+1. **`app/models/user_edit_history/user_version_change_summary.rb`**
+   - Added `DEPRECATED_NOTIFICATION_COLUMNS` constant mapping old boolean fields to alert names
+   - Implemented `deprecated_notification_message` method to format old column changes
+   - Updated `details` method to display subscription changes as "Subscribed/Unsubscribed to alert: [Name]"
+   - ✅ Status: Complete
+
+2. **`app/models/user_edit_history/versions.rb`**
+   - Added `MAX_VERSIONS_PER_DATABASE = 1000` constant for performance tuning
+   - Updated `version_scope` to merge versions from both primary and warehouse databases
+   - Fetches 1000 most recent records per database, sorts by `created_at` descending
+   - Returns array (not scope) since merging across different database connections
+   - ✅ Status: Complete
+
+3. **`app/views/admin/edit_histories/show.haml`**
+   - Removed `.order()` call since `version_scope` returns pre-sorted array
+   - Updated to work with array pagination via `render_paginated_list`
+   - ✅ Status: Complete
+
 ---
 
 ## 🔄 In Progress / Blocked
@@ -155,54 +177,11 @@ grep -r "receive_account_request_notifications" app/
 
 **Action:** Update any remaining code to use new scopes or subscription checks.
 
-#### 2. Update User Audit History for Alert Subscription Changes
-
-**File:** `app/models/user_edit_history/user_version_change_summary.rb`
-
-**Problem:** The user audit page currently tracks changes to notification boolean columns (lines 42-51 in VISIBLE_FIELDS_VALUES). Now that subscriptions are stored in the `contact_alert_subscriptions` join table (warehouse database), we need to maintain audit visibility of these changes.
-
-**Current audit tracking:**
-- `notify_on_anomaly_identified` (line 42)
-- `notify_on_client_added` (line 43)
-- `notify_on_new_account` (line 44)
-- `notify_on_vispdat_completed` (line 45)
-- `receive_account_request_notifications` (line 50)
-- `receive_file_upload_notifications` (line 51)
-
-**Solution options:**
-
-1. **PaperTrail on ContactAlertSubscription model**
-   - Add `has_paper_trail` to `GrdaWarehouse::ContactAlertSubscription`
-   - Track subscription create/destroy events separately
-   - Display these changes in user audit history by joining versions
-
-2. **Custom change tracking in User save callback**
-   - After save, compare old/new alert subscriptions
-   - Create custom PaperTrail metadata entry for User version
-   - Format changes to match existing audit display
-
-3. **Keep old boolean columns temporarily**
-   - Maintain boolean columns as computed/cached values
-   - Update columns when subscriptions change
-   - Continue using existing audit system until Phase 5 removal
-
-**Action needed:**
-1. Review user audit page to understand how version changes are displayed
-2. Choose appropriate solution (recommend option 1 for clean separation)
-3. Implement PaperTrail tracking on ContactAlertSubscription
-4. Update user audit view to show subscription changes alongside user changes
-5. Test that subscription changes appear in audit history
-
-**Files to review:**
-- `app/models/user_edit_history/user_version_change_summary.rb` (lines 42-51)
-- User audit view (likely `app/views/admin/users/edit.haml` or similar)
-- Controller that displays audit history
-
-**Priority:** Medium-High - Important for audit trail compliance and admin oversight.
+**Priority:** Low - All known references have been updated. This is for cleanup/verification.
 
 ### Phase 3: UI - Organization/Project Contact Forms
 
-#### 3. Add Contact Relationships Summary to User Page (Optional)
+#### 2. Add Contact Relationships Summary to User Page (Optional)
 
 **File:** `app/views/admin/users/edit.haml`
 
@@ -212,7 +191,7 @@ Currently commented out on lines 11-13. This would show a read-only summary of a
 
 **Priority:** Low - Nice to have, but not required for core functionality.
 
-#### 4. Update Organization Contacts Form
+#### 3. Update Organization Contacts Form
 
 **Files to update:**
 - `app/controllers/organizations_contacts_controller.rb` (or similar)
@@ -225,7 +204,7 @@ Currently commented out on lines 11-13. This would show a read-only summary of a
 
 **Priority:** Medium - Required for organization-level alerts, but system alerts are working.
 
-#### 5. Update Project Contacts Form
+#### 4. Update Project Contacts Form
 
 **Files to update:**
 - `app/controllers/projects_contacts_controller.rb` (or similar)
@@ -240,7 +219,7 @@ Currently commented out on lines 11-13. This would show a read-only summary of a
 
 ### Phase 4: Deprecation (Future Release)
 
-#### 6. Add Deprecation Warnings to Old Columns
+#### 5. Add Deprecation Warnings to Old Columns
 
 **Migration:** Create `deprecate_user_notification_columns.rb`
 
@@ -252,7 +231,7 @@ Add column comments indicating deprecation (see `alerting.md` lines 365-403).
 
 ### Phase 5: Cleanup (Far Future Release)
 
-#### 7. Remove Old Boolean Columns
+#### 6. Remove Old Boolean Columns
 
 **Migration:** Create `remove_deprecated_user_notification_columns.rb`
 
@@ -277,6 +256,8 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
 - [x] User edit form saves system alert subscriptions
 - [x] Visibility checks work correctly (OKTA, can_edit_vspdat?, etc.)
 - [x] Mailer methods use new scopes
+- [x] PaperTrail tracking on ContactAlertSubscription
+- [x] Audit history displays subscription changes (both old boolean and new subscription format)
 
 ### ⏳ Remaining Testing Areas
 
@@ -341,6 +322,21 @@ All Contact subclasses now have `belongs_to :entity, polymorphic: true`.
 3. Controller builds system_contact if nil before rendering form
 4. Strong parameters accept `system_contact_attributes: [:id, alert_definition_ids: []]`
 
+### Audit History Cross-Database Merging
+
+**Problem:** User edit history needs to show versions from both primary database (User changes) and warehouse database (alert subscription changes)
+
+**Solution:** Fetch from both databases and merge in Ruby:
+1. Query `GrPaperTrail::Version` (primary DB) limited to 1000 most recent records
+2. Query `GrdaWarehouse::Version` (warehouse DB) limited to 1000 most recent records
+3. Merge arrays and sort by `created_at` descending
+4. Return array (not scope) for pagination via `pagy_array`
+5. Use `MAX_VERSIONS_PER_DATABASE` constant (1000) for easy tuning
+
+**Why not SQL UNION?** Cannot UNION across different database connections in PostgreSQL.
+
+**Performance:** Acceptable for user audit history (typically <100 records per user, max 2000 total).
+
 ---
 
 ## 📚 Key Files Reference
@@ -368,6 +364,12 @@ All Contact subclasses now have `belongs_to :entity, polymorphic: true`.
 
 ### Mailers
 - `app/mailers/notify_user.rb` - All notification emails (✅ updated)
+
+### Audit History
+- `app/models/user_edit_history/user_version_change_summary.rb` - Formats changes for display (✅ updated)
+- `app/models/user_edit_history/versions.rb` - Fetches versions from both databases (✅ updated)
+- `app/models/user_edit_history/display_item.rb` - Wraps version for display (✅ accepts both version types)
+- `app/views/admin/edit_histories/show.haml` - User audit history page (✅ updated)
 
 ### Migrations
 - `db/warehouse/migrate/20251008131232_create_alert_definitions.rb`

@@ -8,6 +8,9 @@
 
 # helper class for the user edit history page
 class UserEditHistory::Versions
+  # Maximum number of versions to fetch per database to prevent memory issues
+  MAX_VERSIONS_PER_DATABASE = 1_000
+
   attr_reader :user
   def initialize(user)
     @user = user
@@ -17,14 +20,37 @@ class UserEditHistory::Versions
   # * exclude login activity; it's too chatty for the history
   # * include changes made to the user record itself (or the hmis user alias)
   # * include changes to objects that reference this user (roles, groups, etc)
+  # * include alert subscription changes (via referenced_user_id from warehouse DB)
+  #
+  # Note: Returns an array of versions from both primary and warehouse databases,
+  # sorted by created_at (most recent first). This is intentionally not a scope
+  # since we're merging across different database connections.
+  #
+  # Limited to MAX_VERSIONS_PER_DATABASE most recent records per database to prevent memory issues.
   def version_scope
     pt_a = GrPaperTrail::Version.arel_table
-    scope = GrPaperTrail::Version.where(
+
+    # Versions from primary database (User, Hmis::User, etc.)
+    primary_versions = GrPaperTrail::Version.where(
       pt_a[:item_id].eq(user.id).and(pt_a[:item_type].in([User.sti_name, Hmis::User.sti_name])).
       or(pt_a[:referenced_user_id].eq(user.id)),
-    )
+    ).where.not(
+      id: login_version_scope.select(:id),
+    ).order(
+      created_at: :desc,
+      id: :desc,
+    ).limit(MAX_VERSIONS_PER_DATABASE)
 
-    scope.where.not(id: login_version_scope.select(:id))
+    # Versions from warehouse database (alert subscriptions, etc.)
+    warehouse_versions = GrdaWarehouse::Version.where(
+      referenced_user_id: user.id,
+    ).order(
+      created_at: :desc,
+      id: :desc,
+    ).limit(MAX_VERSIONS_PER_DATABASE)
+
+    # Merge and sort by created_at (most recent first), then by id for stability
+    (primary_versions.to_a + warehouse_versions.to_a).sort_by { |v| [-v.created_at.to_i, -v.id] }
   end
 
   def wrap_display_versions(versions)

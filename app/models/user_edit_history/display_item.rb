@@ -14,7 +14,7 @@ class UserEditHistory::DisplayItem
   # version is instance of GrPaperTrail::Version
   # users_by_id is preloaded user hash {id => user}
   def initialize(version, users_by_id)
-    raise ArgumentError unless version.is_a?(GrPaperTrail::Version)
+    raise ArgumentError unless version.is_a?(GrPaperTrail::Version) || version.is_a?(GrdaWarehouse::Version)
 
     @version = version
 
