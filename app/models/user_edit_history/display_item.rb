@@ -34,16 +34,14 @@ class UserEditHistory::DisplayItem
       # * could fail to deserialize yaml
       # * could fail during computed fallback when reifying old records
       changeset = version.changes_with_computed_fallback unless @error
-    rescue StandardError => e
-      Rails.logger.error "DisplayItem: Error getting changeset: #{e.class}: #{e.message}\n#{e.backtrace[0..5].join("\n")}"
+    rescue StandardError
       @error = true
     end
 
     begin
       # could fail when loading associated records or processing changes
       @changes = klass.describe_changes(version, changeset) unless @error
-    rescue StandardError => e
-      Rails.logger.error "DisplayItem: Error in describe_changes: #{e.class}: #{e.message}\n#{e.backtrace[0..5].join("\n")}"
+    rescue StandardError
       @error = true
     end
   end
