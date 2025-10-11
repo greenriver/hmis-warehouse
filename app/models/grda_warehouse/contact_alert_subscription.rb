@@ -40,18 +40,15 @@ module GrdaWarehouse
 
       case version.event
       when 'create'
-        subscription = version.reify || find_by(id: version.item_id)
-        alert_name = subscription&.alert_definition&.name || 'Unknown Alert'
+        alert_name = alert_name_from_version(version, changeset)
         ["Subscribed to alert: #{alert_name}"]
       when 'destroy'
-        subscription = version.reify
-        alert_name = subscription&.alert_definition&.name || 'Unknown Alert'
+        alert_name = alert_name_from_version(version, changeset)
         ["Unsubscribed from alert: #{alert_name}"]
       when 'update'
         changes = []
         if changeset.key?('active')
-          subscription = version.reify || find_by(id: version.item_id)
-          alert_name = subscription&.alert_definition&.name || 'Unknown Alert'
+          alert_name = alert_name_from_version(version, changeset)
           _from, to = changeset['active']
           if to
             changes << "Re-activated subscription to alert: #{alert_name}"
@@ -63,6 +60,26 @@ module GrdaWarehouse
       else
         []
       end
+    end
+
+    # Extract alert name from version, trying multiple approaches
+    def self.alert_name_from_version(version, changeset)
+      # Try to get alert_definition_id from changeset first
+      if changeset.key?('alert_definition_id')
+        alert_definition_id = changeset['alert_definition_id'].last
+        definition = GrdaWarehouse::AlertDefinition.find_by(id: alert_definition_id) if alert_definition_id
+        return definition.name if definition
+      end
+
+      # Try to load from the reified object or current record
+      begin
+        subscription = version.reify || find_by(id: version.item_id)
+        return subscription.alert_definition.name if subscription&.alert_definition
+      rescue StandardError
+        # Fall through to Unknown Alert
+      end
+
+      'Unknown Alert'
     end
 
     # Migrate existing user notification preferences to alert subscriptions

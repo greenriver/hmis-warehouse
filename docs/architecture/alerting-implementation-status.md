@@ -259,6 +259,76 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
 - [x] PaperTrail tracking on ContactAlertSubscription
 - [x] Audit history displays subscription changes (both old boolean and new subscription format)
 
+### ✅ Test Files Created/Updated
+
+#### Model Specs
+
+1. **`spec/models/grda_warehouse/contact_alert_subscription_spec.rb`** (Created)
+   - Tests PaperTrail tracking (creation, update, destruction)
+   - Tests `referenced_user_id` metadata is set correctly
+   - Tests `describe_changes` method for all event types:
+     - Subscription creation: "Subscribed to alert: [Name]"
+     - Subscription destruction: "Unsubscribed from alert: [Name]"
+     - Subscription deactivation: "Deactivated subscription to alert: [Name]"
+     - Subscription reactivation: "Re-activated subscription to alert: [Name]"
+   - Tests `user_id_for_audit` method for User contacts vs other contact types
+
+2. **`spec/models/user_edit_history/versions_spec.rb`** (Updated)
+   - Added `#version_scope cross-database merging` describe block
+   - Tests version_scope returns an array (not a scope)
+   - Tests versions from both databases are included
+   - Tests sorting by created_at descending
+   - Tests `MAX_VERSIONS_PER_DATABASE` limit is respected
+   - Creates test data in both primary database (GrPaperTrail::Version) and warehouse database (GrdaWarehouse::Version)
+
+3. **`spec/models/user_edit_history/user_version_change_summary_spec.rb`** (Updated)
+   - Added `deprecated notification columns` context
+   - Iterates over all columns in `DEPRECATED_NOTIFICATION_COLUMNS` constant
+   - Tests true→false shows as "Unsubscribed from alert: [Name]"
+   - Tests false→true shows as "Subscribed to alert: [Name]"
+   - Ensures deprecated columns are displayed as alert subscriptions
+
+#### Request Specs
+
+4. **`spec/requests/admin/edit_histories_spec.rb`** (Created)
+   - Tests `GET /admin/users/:user_id/edit_history` endpoint
+   - **Context: "with mixed version types"**
+     - Creates both user change versions (primary DB) and subscription change versions (warehouse DB)
+     - Tests both types are displayed in the page
+     - Tests pagination elements are present
+     - Tests sorting (subscription changes appear before older user changes)
+   - **Context: "with deprecated notification column changes"**
+     - Simulates old-style boolean column changes (e.g., `notify_on_new_account`)
+     - Tests they are displayed as "Subscribed to alert: New Account Creation"
+     - Tests old column names are NOT shown in output
+   - **Context: "with large number of changes"**
+     - Stubs `MAX_VERSIONS_PER_DATABASE` to 5
+     - Creates 10 versions to test limit enforcement
+     - Verifies the page respects the version limit
+   - **Context: "without audit permission"**
+     - Tests access is denied when `can_audit_users?` returns false
+
+#### Factory Files
+
+5. **`spec/factories/grda_warehouse/contact/base.rb`** (Updated)
+   - Added `factory :grda_warehouse_contact_user` for User contacts
+   - Sets proper `entity_type` and `entity_id` associations
+
+6. **`spec/factories/grda_warehouse/alert_definitions.rb`** (Created)
+   - Factory for creating `GrdaWarehouse::AlertDefinition` records
+   - Uses sequences for unique `code` and `name` values
+   - Sets default attributes: `category: 'system'`, `active: true`
+
+7. **`spec/factories/grda_warehouse/contact_alert_subscriptions.rb`** (Created)
+   - Factory for creating `GrdaWarehouse::ContactAlertSubscription` records
+   - Associations: `contact` (factory: grda_warehouse_contact_user), `alert_definition`
+   - Default: `active: true`
+
+8. **`spec/factories/grda_warehouse/versions.rb`** (Created)
+   - Factory for creating `GrdaWarehouse::Version` records manually
+   - Required because PaperTrail is disabled in test environment
+   - Allows explicit creation of audit trail records for testing
+
 ### ⏳ Remaining Testing Areas
 
 - [ ] Organization contact form displays and saves alert subscriptions

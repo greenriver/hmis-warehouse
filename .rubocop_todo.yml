@@ -4780,8 +4780,6 @@ Style/FrozenStringLiteralComment:
     - 'spec/models/test_empty_job_spec.rb'
     - 'spec/models/uniq_names_spec.rb'
     - 'spec/models/user_edit_history/display_item_spec.rb'
-    - 'spec/models/user_edit_history/user_version_change_summary_spec.rb'
-    - 'spec/models/user_edit_history/versions_spec.rb'
     - 'spec/models/user_group_spec.rb'
     - 'spec/requests/account_emails_controller_spec.rb'
     - 'spec/requests/account_passwords_controller_spec.rb'
