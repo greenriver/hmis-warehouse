@@ -19,21 +19,29 @@ graph TB
     end
 
     subgraph "Docker Container"
-        RSpec["RSpec Test"]
-        Capybara["Capybara"]
-        Cuprite["Cuprite Driver"]
-        Chromium["Chromium<br/>(headless)"]
-        Proxy["Debug Proxy<br/>(port 9222)"]
-        DevToolsPort["DevTools Protocol<br/>(port 9223)"]
-        Rails["Rails Server<br/>(port 4444)"]
-        Vite["Vite Preview<br/>(port 5173)"]
+        subgraph "Test Infrastructure"
+            RSpec["RSpec Test"]
+            Capybara["Capybara"]
+            Cuprite["Cuprite Driver"]
+            Chromium["Chromium<br/>(headless)"]
+        end
+
+        subgraph "Application Under Test"
+            Vite["Vite Preview<br/>(HMIS Frontend)<br/>port 5173"]
+            Rails["Rails Server<br/>(Backend API)<br/>port 4444"]
+        end
+
+        subgraph "Debugging Tools"
+            Proxy["Debug Proxy<br/>(port 9222)"]
+            DevToolsPort["DevTools Protocol<br/>(port 9223)"]
+        end
 
         RSpec --> Capybara
         Capybara --> Cuprite
         Cuprite --> Chromium
-        Chromium --> |HTTP| Vite
-        Vite --> |GraphQL API| Rails
-        Chromium -.-> |debugging| DevToolsPort
+        Chromium --> |loads page| Vite
+        Vite --> |API calls| Rails
+        Chromium -.-> |when debugging| DevToolsPort
         DevToolsPort -.-> Proxy
     end
 
@@ -45,13 +53,15 @@ graph TB
     style Proxy fill:#fff4e6
     style DevToolsPort fill:#fff4e6
     style Chromium fill:#f0f0f0
+    style Vite fill:#e8f5e9
+    style Rails fill:#e8f5e9
 ```
 
 **Key Components:**
 - **RSpec + Capybara + Cuprite**: Test framework that controls the browser
 - **Chromium**: Headless browser that executes the tests
-- **Vite Preview**: Serves the compiled frontend (port 5173)
-- **Rails Server**: Backend API (port 4444)
+- **Vite Preview**: Serves the compiled HMIS frontend (port 5173)
+- **Rails Server**: Backend GraphQL API (port 4444)
 - **Debug Proxy**: Exposes Chromium's DevTools for inspection (port 9222 → 9223)
 
 ## Develop E2E Tests Locally
