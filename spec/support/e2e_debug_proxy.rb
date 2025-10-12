@@ -3,7 +3,7 @@
 require 'socket'
 
 # Exposes Chromium's loopback-only DevTools socket on a host-accessible port so
-# Capybara + Cuprite can be inspected from outside the container. Chromium 130+
+# Capybara + Cuprite can be inspected from outside the container. Chromium 136+
 # ignores the legacy remote-debugging-address flag, so we bridge traffic using a
 # lightweight TCP proxy instead of depending on additional system services.
 
