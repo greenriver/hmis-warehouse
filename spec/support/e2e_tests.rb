@@ -112,16 +112,16 @@ module E2eTests
         return nil unless remote_port
 
         value = ENV['CHROME_DEBUGGING_PROXY_PORT']
-        return remote_port + 1 if value.blank?
+        return remote_port - 1 if value.blank?
 
         Integer(value, 10)
       rescue ArgumentError
         Kernel.warn("Invalid CHROME_DEBUGGING_PROXY_PORT: #{value.inspect}")
-        remote_port + 1
+        remote_port - 1
       end
 
       def ensure_proxy_port_env(proxy_port, remote_port)
-        return if proxy_port.nil? || proxy_port == remote_port
+        return if proxy_port.nil? || proxy_port == remote_port || proxy_port < 1
 
         ENV['CHROME_DEBUGGING_PROXY_PORT'] = proxy_port.to_s if ENV['CHROME_DEBUGGING_PROXY_PORT'].blank?
       end

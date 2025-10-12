@@ -77,7 +77,8 @@ services:
     environment:
       <<: *env
       CHROMIUM_PATH: /usr/bin/chromium
-      CHROME_DEBUGGING_PORT: ${CHROME_DEBUGGING_PORT:-9222}
+      CHROME_DEBUGGING_PORT: ${CHROME_DEBUGGING_PORT:-9223}
+      CHROME_DEBUGGING_PROXY_PORT: ${CHROME_DEBUGGING_PROXY_PORT:-9222}
 
   console:
     <<: *backend

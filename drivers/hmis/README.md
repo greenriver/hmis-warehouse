@@ -39,9 +39,9 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 1. Open a Docker shell.
     ```bash
     docker compose run --rm \
-      --env CHROME_DEBUGGING_PORT=${CHROME_DEBUGGING_PORT:-9222} \
-      --env CHROME_DEBUGGING_PROXY_PORT=${CHROME_DEBUGGING_PROXY_PORT:-9223} \
-      --publish ${CHROME_DEBUGGING_PROXY_PORT:-9223}:${CHROME_DEBUGGING_PROXY_PORT:-9223} \
+      --env CHROME_DEBUGGING_PORT=${CHROME_DEBUGGING_PORT:-9223} \
+      --env CHROME_DEBUGGING_PROXY_PORT=${CHROME_DEBUGGING_PROXY_PORT:-9222} \
+      --publish ${CHROME_DEBUGGING_PROXY_PORT:-9222}:${CHROME_DEBUGGING_PROXY_PORT:-9222} \
       shell  # `dcr shell --publish ...` if you have that alias
     ```
 
@@ -78,14 +78,14 @@ To inspect the page in a browser while debugging, you can run the test with the 
 
 1.  Set the `CHROME_DEBUGGING_PORT` in your `.env.local` file or export it in your shell:
     ```bash
-    export CHROME_DEBUGGING_PORT=9222
+    export CHROME_DEBUGGING_PORT=9223
     ```
 
 2.  Run your test as usual. When the `debug` statement is hit, you'll see a message in the console with a URL.
 
-3.  In your host Chrome browser, open `chrome://inspect` and add the target `localhost:9223` (or the value of `CHROME_DEBUGGING_PROXY_PORT` if you set it differently) if it is not already present. The paused pages will appear under "Remote Target"—click "inspect" to attach Chrome DevTools to the live session.
+3.  In your host Chrome browser, open `chrome://inspect`. The paused pages should appear automatically under "Remote Target"—click "inspect" to attach Chrome DevTools to the live session.
 
-    Note: The proxy port defaults to `CHROME_DEBUGGING_PORT + 1` (9223 if debugging port is 9222).
+    Note: The proxy defaults to port 9222 (Chrome's default discovery port), which is `CHROME_DEBUGGING_PORT - 1`. If you need to use a different port (e.g., due to conflicts), set `CHROME_DEBUGGING_PROXY_PORT` explicitly and add that target manually in `chrome://inspect`.
 
 
 #### Other Debugging Tips
