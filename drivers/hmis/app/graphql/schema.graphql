@@ -4802,6 +4802,7 @@ type FilesPaginated {
 FormDefinition
 """
 type FormDefinition {
+  access: FormDefinitionAccess!
   cacheKey: ID!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
@@ -4818,6 +4819,13 @@ type FormDefinition {
   title: String!
   updatedBy: ApplicationUser
   version: ID!
+}
+
+type FormDefinitionAccess {
+  canDuplicateForm: Boolean!
+  canManageForm: Boolean!
+  canPublishForm: Boolean!
+  id: ID!
 }
 
 type FormDefinitionForJsonResult {
@@ -4877,7 +4885,9 @@ type FormIdentifier {
 }
 
 type FormIdentifierAccess {
+  canDuplicateForm: Boolean!
   canManageForm: Boolean!
+  canPublishForm: Boolean!
   id: ID!
 }
 

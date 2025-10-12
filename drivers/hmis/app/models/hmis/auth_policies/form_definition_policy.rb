@@ -16,6 +16,11 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
     context.user.can_manage_forms_for_role?(resource.role)
   end
 
+  def can_duplicate_form?
+    # Users can duplicate forms even if they are managed in version control or admin-editable-only
+    context.user.can_manage_forms_for_role?(resource.role)
+  end
+
   def can_publish_form?
     # Currently same as can_manage_form?, but may diverge in the future
     can_manage_form?

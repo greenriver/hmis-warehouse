@@ -11,6 +11,8 @@ module Types
     skip_activity_log
     description 'Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier'
 
+    include Types::Forms::FormAccess
+
     # object is a Hmis::Form::Definition, but this schema type is a little funny because it doesn't
     # correspond to ONE FormDefinition -- it corresponds to a form _identifier_, such as `spdat`, which
     # can have published, draft, and retired versions. This is to match the frontend mental model,
@@ -31,10 +33,6 @@ module Types
     field :display_version, Types::Forms::FormDefinition, null: false, description: 'Form version to use for display in the configuration tool interface. The form itself may be draft, status, or retired.'
     field :managed_in_version_control, Boolean, null: false, description: 'Whether this form is managed in version control. If true, it should not be edited in the configuration tool.'
     field :admin_editable_only, Boolean, null: false, description: 'Whether this form is locked for editing by non-admins'
-
-    access_field do
-      field :can_manage_form, Boolean, null: false
-    end
 
     def id
       # Cache by identifier, not underlying object id, because ids change over time with new versions
@@ -58,12 +56,6 @@ module Types
       # Unlike the published and draft versions, it can't be nil.
       # If there exists a published version corresponding to this identifier, use it; otherwise, return the latest
       published_version || all_versions.first
-    end
-
-    def access
-      {
-        can_manage_form: policy_for(object, policy_type: :form_definition).can_manage_form?,
-      }
     end
   end
 end
