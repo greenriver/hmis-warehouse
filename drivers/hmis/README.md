@@ -38,7 +38,10 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 1. Open a Docker shell.
     ```bash
-    docker compose run --rm --service-ports shell  # `dcr shell --service-ports` if you have that alias
+    docker compose run --rm \
+      --env CHROME_DEBUGGING_PORT=${CHROME_DEBUGGING_PORT:-9222} \
+      --publish ${CHROME_DEBUGGING_PORT:-9222}:${CHROME_DEBUGGING_PORT:-9222} \
+      shell  # `dcr shell --publish ...` if you have that alias
     ```
 
 2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. This script will start the vite "preview" process
@@ -92,7 +95,10 @@ This script is designed to be run as part of a CI pipeline. It clones the fronte
 
 1. Open a Docker shell.
     ```bash
-    docker compose run --rm --service-ports shell  # `dcr shell --service-ports` if you have that alias
+    docker compose run --rm \
+      --env CHROME_DEBUGGING_PORT=${CHROME_DEBUGGING_PORT:-9222} \
+      --publish ${CHROME_DEBUGGING_PORT:-9222}:${CHROME_DEBUGGING_PORT:-9222} \
+      shell  # `dcr shell --publish ...` if you have that alias
     ```
 
 2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test:
