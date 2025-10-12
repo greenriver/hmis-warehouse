@@ -52,6 +52,10 @@ services:
     profiles:
       - manual
     command: /bin/bash
+    ports:
+      - "${CHROME_DEBUGGING_PORT:-9222}:${CHROME_DEBUGGING_PORT:-9222}"
+    expose:
+      - "${CHROME_DEBUGGING_PORT:-9222}"
     depends_on:
       db:
         condition: service_healthy
@@ -77,6 +81,11 @@ services:
     environment:
       <<: *env
       CHROMIUM_PATH: /usr/bin/chromium
+      CHROME_DEBUGGING_PORT: ${CHROME_DEBUGGING_PORT:-9222}
+    ports:
+      - "${CHROME_DEBUGGING_PORT:-9222}:${CHROME_DEBUGGING_PORT:-9222}"
+    expose:
+      - "${CHROME_DEBUGGING_PORT:-9222}"
 
   console:
     <<: *backend

@@ -2,6 +2,7 @@
 
 require 'capybara'
 require 'capybara/cuprite'
+require 'uri'
 
 # See documentation in: spec/support/E2E_README.md
 # credit:
@@ -56,11 +57,13 @@ module E2eTests
           **{
             extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
             window_size: [1200, 1600],
-            browser_options: { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil },
-            headless: ENV.fetch('CI', 'true') == 'true',
+            browser_options: { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil }.tap do |opts|
+              opts['remote-debugging-port'] = ENV['CHROME_DEBUGGING_PORT'] if ENV['CHROME_DEBUGGING_PORT']
+            end,
+            headless: ENV.fetch('HEADLESS', 'true') == 'true',
             js_errors: true,
             logger: FerrumLogger.new,
-            inspector: true,
+            inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
             browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
           },
         )
@@ -78,7 +81,12 @@ module E2eTests
 
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
-      $stdout.puts '🔎 Pausing browser for inspection'
+      if ENV['CHROME_DEBUGGING_PORT']
+        $stdout.puts "🔎 Open Chrome inspector at http://#{chrome_debugging_host}:#{ENV['CHROME_DEBUGGING_PORT']}"
+      else
+        $stdout.puts '🔎 Pausing browser for inspection'
+      end
+
       if binding
         return binding.pry if defined?(Pry)
 
@@ -86,6 +94,22 @@ module E2eTests
       end
 
       page.driver.pause
+    end
+
+    private
+
+    def chrome_debugging_host
+      return ENV['CHROME_DEBUGGING_HOST'].presence if ENV['CHROME_DEBUGGING_HOST'].present?
+
+      docker_host = ENV['DOCKER_HOST']
+      return 'localhost' if docker_host.blank?
+
+      uri = URI.parse(docker_host)
+      return uri.host if uri.respond_to?(:host) && uri.host.present?
+
+      docker_host.match?(/\A[\w.\-]+\z/) ? docker_host : 'localhost'
+    rescue URI::InvalidURIError
+      'localhost'
     end
   end
 

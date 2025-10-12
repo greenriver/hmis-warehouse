@@ -38,7 +38,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 1. Open a Docker shell.
     ```bash
-    docker compose run --rm shell  # `dcr shell` if you have that alias
+    docker compose run --rm --service-ports shell  # `dcr shell --service-ports` if you have that alias
     ```
 
 2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. This script will start the vite "preview" process
@@ -49,7 +49,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 3. In a new tab, enter the same Docker shell where you are running the frontend:
     ```bash
-    docker exec -it $(docker ps -aqf "name=^hmis-warehouse_shell_run" | head -1) /bin/bash
+    docker exec -it $(docker ps -aqf "name=^hmis-warehouse-shell-run" | head -1) /bin/bash
     ```
     Note: If that doesn't work for you, just pull the the Container ID from `docker ps` and pass that instead of the `$()` clause.
 
@@ -61,9 +61,28 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 ### Debugging
 The `debug` helper, defined in [e2e_tests.rb](e2e_tests.rb), enables pausing the driver and inspecting what is going on at the moment.
-- Add `debug` on its own line. The test will pause execution at that line and output "Cuprite execution paused" to stdout.
+- Add `debug` on its own line. The test will pause execution at that line.
 
-Other debugging tips:
+#### Interactive Browser Session
+
+To inspect the page in a browser while debugging, you can run the test with the `CHROME_DEBUGGING_PORT` environment variable. This allows you to connect to the Chromium instance running inside the Docker container.
+
+1.  Set the `CHROME_DEBUGGING_PORT` in your `.env.local` file or export it in your shell:
+    ```bash
+    export CHROME_DEBUGGING_PORT=9222
+    ```
+
+2.  Optionally, for some graphical debuggers, you may need to run in headful mode:
+    ```bash
+    export HEADLESS=false
+    ```
+
+3.  Run your test as usual. When the `debug` statement is hit, you'll see a message in the console with a URL.
+
+4.  Open that URL (e.g., `http://localhost:9222`) in a Chrome-based browser on your host machine to access the Chrome DevTools and interact with the live session.
+
+
+#### Other Debugging Tips
 - Use `byebug`
 - Use `print page.body` to print the page contents at a given point
 
@@ -73,7 +92,7 @@ This script is designed to be run as part of a CI pipeline. It clones the fronte
 
 1. Open a Docker shell.
     ```bash
-    docker compose run --rm shell  # `dcr shell` if you have that alias
+    docker compose run --rm --service-ports shell  # `dcr shell --service-ports` if you have that alias
     ```
 
 2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test:
