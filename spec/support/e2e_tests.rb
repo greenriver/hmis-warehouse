@@ -2,6 +2,7 @@
 
 require 'capybara'
 require 'capybara/cuprite'
+require 'socket'
 require 'uri'
 
 # See documentation in: spec/support/E2E_README.md
@@ -21,55 +22,202 @@ module E2eTests
   DRIVER_NAME = :cuprite_remote
 
   module Setup
-    # The setup to be run prior to the test suite
-    def self.perform(
-      default_max_wait_time: 20,
-      default_normalize_ws: true,
-      automatic_label_click: true,
-      enable_aria_label: true
-    )
-      # where the rails server runs
-      ::Capybara.server_host = '0.0.0.0'
-      ::Capybara.server_port = '4444' # override dynamic port
+    class << self
+      # The setup to be run prior to the test suite
+      def perform(
+        default_max_wait_time: 20,
+        default_normalize_ws: true,
+        automatic_label_click: true,
+        enable_aria_label: true
+      )
+        # where the rails server runs
+        ::Capybara.server_host = '0.0.0.0'
+        ::Capybara.server_port = '4444' # override dynamic port
 
-      # In Rails 6.1+ the following line should be enough
-      ::Capybara.app_host = CAPYBARA_APP_HOST
+        # In Rails 6.1+ the following line should be enough
+        ::Capybara.app_host = CAPYBARA_APP_HOST
 
-      # Don't wait too long in `have_xyz` matchers
-      ::Capybara.default_max_wait_time = default_max_wait_time
+        # Don't wait too long in `have_xyz` matchers
+        ::Capybara.default_max_wait_time = default_max_wait_time
 
-      ::Capybara.enable_aria_label = enable_aria_label
+        ::Capybara.enable_aria_label = enable_aria_label
 
-      ::Capybara.automatic_label_click = automatic_label_click
+        ::Capybara.automatic_label_click = automatic_label_click
 
-      ::Capybara.ignore_hidden_elements = true
+        ::Capybara.ignore_hidden_elements = true
 
-      # Normalizes whitespaces when using `has_text?` and similar matchers
-      ::Capybara.default_normalize_ws = default_normalize_ws
+        # Normalizes whitespaces when using `has_text?` and similar matchers
+        ::Capybara.default_normalize_ws = default_normalize_ws
 
-      # Where to store system tests artifacts (e.g. screenshots, downloaded files, etc.).
-      # It could be useful to be able to configure this path from the outside (e.g., on CI).
-      ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
+        # Where to store system tests artifacts (e.g. screenshots, downloaded files, etc.).
+        # It could be useful to be able to configure this path from the outside (e.g., on CI).
+        ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
-      ::Capybara.register_driver(DRIVER_NAME) do |app|
-        ::Capybara::Cuprite::Driver.new(
-          app,
-          **{
-            extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
-            window_size: [1200, 1600],
-            browser_options: { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil }.tap do |opts|
-              next unless ENV['CHROME_DEBUGGING_PORT'].present?
+        remote_port = debugging_remote_port
+        proxy_port = debugging_proxy_port(remote_port)
+        ensure_proxy_port_env(proxy_port, remote_port)
 
-              opts['remote-debugging-port'] = ENV['CHROME_DEBUGGING_PORT']
-              opts['remote-debugging-address'] = '0.0.0.0'
-            end,
-            headless: ENV.fetch('HEADLESS', 'true') == 'true',
-            js_errors: true,
-            logger: FerrumLogger.new,
-            inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
-            browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
-          },
-        )
+        driver_options = cuprite_options(remote_port)
+
+        ::Capybara.register_driver(DRIVER_NAME) do |app|
+          ::Capybara::Cuprite::Driver.new(app, **driver_options)
+        end
+
+        DebugProxy.start(remote_port: remote_port, proxy_port: proxy_port)
+      end
+
+      private
+
+      def cuprite_options(remote_port)
+        {
+          extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
+          window_size: [1200, 1600],
+          browser_options: browser_options(remote_port),
+          headless: ENV.fetch('HEADLESS', 'true') == 'true',
+          js_errors: true,
+          logger: FerrumLogger.new,
+          inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
+          browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
+        }
+      end
+
+      def browser_options(remote_port)
+        options = { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil }
+        options['remote-debugging-port'] = remote_port if remote_port
+        options
+      end
+
+      def debugging_remote_port
+        value = ENV['CHROME_DEBUGGING_PORT']
+        return nil if value.blank?
+
+        Integer(value, 10)
+      rescue ArgumentError
+        Kernel.warn("Invalid CHROME_DEBUGGING_PORT: #{value.inspect}")
+        nil
+      end
+
+      def debugging_proxy_port(remote_port)
+        return nil unless remote_port
+
+        value = ENV['CHROME_DEBUGGING_PROXY_PORT']
+        return remote_port + 1 if value.blank?
+
+        Integer(value, 10)
+      rescue ArgumentError
+        Kernel.warn("Invalid CHROME_DEBUGGING_PROXY_PORT: #{value.inspect}")
+        remote_port + 1
+      end
+
+      def ensure_proxy_port_env(proxy_port, remote_port)
+        return if proxy_port.nil? || proxy_port == remote_port
+
+        ENV['CHROME_DEBUGGING_PROXY_PORT'] = proxy_port.to_s if ENV['CHROME_DEBUGGING_PROXY_PORT'].blank?
+      end
+    end
+  end
+
+  module DebugProxy
+    class << self
+      def start(remote_port:, proxy_port:)
+        return unless remote_port
+        return if proxy_port.nil? || proxy_port == remote_port
+
+        mutex.synchronize do
+          return if active_proxy?(remote_port, proxy_port)
+
+          stop_proxy
+
+          @proxy_thread = Thread.new do
+            Thread.current.report_on_exception = false
+            run_proxy(remote_port, proxy_port)
+          end
+
+          @proxy_thread.abort_on_exception = false
+          @active_remote_port = remote_port
+          @active_proxy_port = proxy_port
+        end
+      end
+
+      private
+
+      def active_proxy?(remote_port, proxy_port)
+        @proxy_thread&.alive? && @active_remote_port == remote_port && @active_proxy_port == proxy_port
+      end
+
+      def run_proxy(remote_port, proxy_port)
+        server = TCPServer.new('0.0.0.0', proxy_port)
+        @server = server
+        Kernel.warn("Cuprite debug proxy forwarding 0.0.0.0:#{proxy_port} -> 127.0.0.1:#{remote_port}")
+
+        loop do
+          client = server.accept
+          spawn_proxy_session(client, remote_port)
+        end
+      rescue Errno::EADDRINUSE => e
+        Kernel.warn("Cuprite debug proxy could not bind: #{e.message}")
+      rescue StandardError => e
+        Kernel.warn("Cuprite debug proxy halted: #{e.class}: #{e.message}")
+      ensure
+        safe_close(@server)
+        @server = nil
+      end
+
+      def spawn_proxy_session(client_socket, remote_port)
+        Thread.new do
+          Thread.current.report_on_exception = false
+
+          begin
+            target_socket = TCPSocket.new('127.0.0.1', remote_port)
+          rescue StandardError => e
+            Kernel.warn("Cuprite debug proxy connection failed: #{e.class}: #{e.message}")
+            safe_close(client_socket)
+            next
+          end
+
+          forward_io(client_socket, target_socket)
+        end
+      end
+
+      def forward_io(client_socket, target_socket)
+        threads = []
+        threads << Thread.new { copy_stream(client_socket, target_socket) }
+        threads << Thread.new { copy_stream(target_socket, client_socket) }
+        threads.each { |t| t.report_on_exception = false }
+        threads.each(&:join)
+      ensure
+        safe_close(client_socket)
+        safe_close(target_socket)
+      end
+
+      def copy_stream(source, destination)
+        IO.copy_stream(source, destination)
+      rescue IOError, SystemCallError
+        # ignore
+      ensure
+        begin
+          destination.flush
+        rescue IOError, SystemCallError
+          # ignore
+        end
+      end
+
+      def safe_close(socket)
+        socket&.close unless socket&.closed?
+      rescue IOError, SystemCallError
+        # ignore
+      end
+
+      def stop_proxy
+        safe_close(@server)
+        @proxy_thread&.kill
+        @proxy_thread = nil
+        @active_remote_port = nil
+        @active_proxy_port = nil
+      end
+
+      def mutex
+        @mutex ||= Mutex.new
       end
     end
   end
@@ -85,7 +233,8 @@ module E2eTests
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
       if ENV['CHROME_DEBUGGING_PORT']
-        $stdout.puts "🔎 Open Chrome inspector at http://#{chrome_debugging_host}:#{ENV['CHROME_DEBUGGING_PORT']}"
+        $stdout.puts "🔎 Open Chrome inspector at http://#{chrome_debugging_host}:#{chrome_debugging_port}"
+        $stdout.puts "   (Cuprite WS endpoint: #{cuprite_ws_endpoint})" if cuprite_ws_endpoint.present?
       else
         $stdout.puts '🔎 Pausing browser for inspection'
       end
@@ -113,6 +262,16 @@ module E2eTests
       docker_host.match?(/\A[\w.\-]+\z/) ? docker_host : 'localhost'
     rescue URI::InvalidURIError
       'localhost'
+    end
+
+    def chrome_debugging_port
+      ENV['CHROME_DEBUGGING_PROXY_PORT'].presence || ENV['CHROME_DEBUGGING_PORT']
+    end
+
+    def cuprite_ws_endpoint
+      page.driver&.browser&.process&.ws_url
+    rescue StandardError
+      nil
     end
   end
 

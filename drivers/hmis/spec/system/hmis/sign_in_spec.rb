@@ -24,7 +24,6 @@ RSpec.feature 'HMIS Sign In', type: :system do
     before(:each) { sign_in(hmis_user) }
 
     it 'Loads client search' do
-      debug
       expect(page).to have_content 'Clients'
     end
 
