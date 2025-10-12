@@ -58,7 +58,10 @@ module E2eTests
             extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
             window_size: [1200, 1600],
             browser_options: { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil }.tap do |opts|
-              opts['remote-debugging-port'] = ENV['CHROME_DEBUGGING_PORT'] if ENV['CHROME_DEBUGGING_PORT']
+              next unless ENV['CHROME_DEBUGGING_PORT'].present?
+
+              opts['remote-debugging-port'] = ENV['CHROME_DEBUGGING_PORT']
+              opts['remote-debugging-address'] = '0.0.0.0'
             end,
             headless: ENV.fetch('HEADLESS', 'true') == 'true',
             js_errors: true,
