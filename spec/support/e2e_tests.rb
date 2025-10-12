@@ -53,6 +53,8 @@ module E2eTests
         # It could be useful to be able to configure this path from the outside (e.g., on CI).
         ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
+        verify_chromium_installation!
+
         remote_port, _proxy_port = debugging_ports
         driver_options = cuprite_options(remote_port)
 
@@ -70,12 +72,19 @@ module E2eTests
 
       private
 
+      def verify_chromium_installation!
+        chromium_path = ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium')
+        return if File.executable?(chromium_path)
+
+        raise "Chromium not found at #{chromium_path}. Please install Chromium or set CHROMIUM_PATH."
+      end
+
       def cuprite_options(remote_port)
         {
           extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
           window_size: [1200, 1600],
           browser_options: browser_options(remote_port),
-          headless: ENV.fetch('HEADLESS', 'true') == 'true',
+          headless: true,
           js_errors: true,
           logger: FerrumLogger.new,
           inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
@@ -170,7 +179,7 @@ module E2eTests
 
     def cuprite_ws_endpoint
       page.driver&.browser&.process&.ws_url
-    rescue StandardError
+    rescue NoMethodError
       nil
     end
   end

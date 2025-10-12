@@ -30,6 +30,12 @@ module E2eTests
         end
       end
 
+      def stop
+        mutex.synchronize do
+          stop_proxy
+        end
+      end
+
       private
 
       def active_proxy?(remote_port, proxy_port)
