@@ -2,8 +2,8 @@
 
 require 'capybara'
 require 'capybara/cuprite'
-require 'socket'
 require 'uri'
+require_relative 'e2e_debug_proxy'
 
 # See documentation in: spec/support/E2E_README.md
 # credit:
@@ -53,17 +53,19 @@ module E2eTests
         # It could be useful to be able to configure this path from the outside (e.g., on CI).
         ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
-        remote_port = debugging_remote_port
-        proxy_port = debugging_proxy_port(remote_port)
-        ensure_proxy_port_env(proxy_port, remote_port)
-
+        remote_port, _proxy_port = debugging_ports
         driver_options = cuprite_options(remote_port)
 
         ::Capybara.register_driver(DRIVER_NAME) do |app|
           ::Capybara::Cuprite::Driver.new(app, **driver_options)
         end
+      end
 
-        DebugProxy.start(remote_port: remote_port, proxy_port: proxy_port)
+      def debugging_ports
+        remote_port = debugging_remote_port
+        proxy_port = debugging_proxy_port(remote_port)
+        ensure_proxy_port_env(proxy_port, remote_port)
+        [remote_port, proxy_port]
       end
 
       private
@@ -117,111 +119,6 @@ module E2eTests
     end
   end
 
-  module DebugProxy
-    class << self
-      def start(remote_port:, proxy_port:)
-        return unless remote_port
-        return if proxy_port.nil? || proxy_port == remote_port
-
-        mutex.synchronize do
-          return if active_proxy?(remote_port, proxy_port)
-
-          stop_proxy
-
-          @proxy_thread = Thread.new do
-            Thread.current.report_on_exception = false
-            run_proxy(remote_port, proxy_port)
-          end
-
-          @proxy_thread.abort_on_exception = false
-          @active_remote_port = remote_port
-          @active_proxy_port = proxy_port
-        end
-      end
-
-      private
-
-      def active_proxy?(remote_port, proxy_port)
-        @proxy_thread&.alive? && @active_remote_port == remote_port && @active_proxy_port == proxy_port
-      end
-
-      def run_proxy(remote_port, proxy_port)
-        server = TCPServer.new('0.0.0.0', proxy_port)
-        @server = server
-        Kernel.warn("Cuprite debug proxy forwarding 0.0.0.0:#{proxy_port} -> 127.0.0.1:#{remote_port}")
-
-        loop do
-          client = server.accept
-          spawn_proxy_session(client, remote_port)
-        end
-      rescue Errno::EADDRINUSE => e
-        Kernel.warn("Cuprite debug proxy could not bind: #{e.message}")
-      rescue StandardError => e
-        Kernel.warn("Cuprite debug proxy halted: #{e.class}: #{e.message}")
-      ensure
-        safe_close(@server)
-        @server = nil
-      end
-
-      def spawn_proxy_session(client_socket, remote_port)
-        Thread.new do
-          Thread.current.report_on_exception = false
-
-          begin
-            target_socket = TCPSocket.new('127.0.0.1', remote_port)
-          rescue StandardError => e
-            Kernel.warn("Cuprite debug proxy connection failed: #{e.class}: #{e.message}")
-            safe_close(client_socket)
-            next
-          end
-
-          forward_io(client_socket, target_socket)
-        end
-      end
-
-      def forward_io(client_socket, target_socket)
-        threads = []
-        threads << Thread.new { copy_stream(client_socket, target_socket) }
-        threads << Thread.new { copy_stream(target_socket, client_socket) }
-        threads.each { |t| t.report_on_exception = false }
-        threads.each(&:join)
-      ensure
-        safe_close(client_socket)
-        safe_close(target_socket)
-      end
-
-      def copy_stream(source, destination)
-        IO.copy_stream(source, destination)
-      rescue IOError, SystemCallError
-        # ignore
-      ensure
-        begin
-          destination.flush
-        rescue IOError, SystemCallError
-          # ignore
-        end
-      end
-
-      def safe_close(socket)
-        socket&.close unless socket&.closed?
-      rescue IOError, SystemCallError
-        # ignore
-      end
-
-      def stop_proxy
-        safe_close(@server)
-        @proxy_thread&.kill
-        @proxy_thread = nil
-        @active_remote_port = nil
-        @active_proxy_port = nil
-      end
-
-      def mutex
-        @mutex ||= Mutex.new
-      end
-    end
-  end
-
   module CupriteHelpers
     # Pauses the current driver
     # @return [nil]
@@ -233,6 +130,9 @@ module E2eTests
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
       if ENV['CHROME_DEBUGGING_PORT']
+        remote_port, proxy_port = Setup.debugging_ports
+        DebugProxy.start(remote_port: remote_port, proxy_port: proxy_port)
+
         $stdout.puts "🔎 Open Chrome inspector at http://#{chrome_debugging_host}:#{chrome_debugging_port}"
         $stdout.puts "   (Cuprite WS endpoint: #{cuprite_ws_endpoint})" if cuprite_ws_endpoint.present?
       else

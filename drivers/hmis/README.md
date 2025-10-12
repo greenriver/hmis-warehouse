@@ -45,17 +45,22 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
       shell  # `dcr shell --publish ...` if you have that alias
     ```
 
-2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. This script will start the vite "preview" process
+2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. The `--dev` flag keeps the frontend server running in the foreground for development.
 
     ```bash
     BRANCH_NAME=release-X ./bin/run_hmis_system_tests.sh --dev
     ```
 
-3. In a new tab, enter the same Docker shell where you are running the frontend:
+    You can specify multiple fallback branches separated by colons, although this is mostly used in CI to guess at the right branch:
+    ```bash
+    BRANCH_NAME=my-feature-branch:main ./bin/run_hmis_system_tests.sh --dev
+    ```
+
+3. In a new terminal tab, enter the same Docker _container_ where you are running the frontend (opening a new shell session):
     ```bash
     docker exec -it $(docker ps -aqf "name=^hmis-warehouse-shell-run" | head -1) /bin/bash
     ```
-    Note: If that doesn't work for you, just pull the the Container ID from `docker ps` and pass that instead of the `$()` clause.
+    Note: If that doesn't work for you, get the Container ID from `docker ps` and pass that instead of the `$()` clause.
 
 4. Run the rspec test(s) in that container:
     ```bash
@@ -64,7 +69,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 
 ### Debugging
-The `debug` helper, defined in [e2e_tests.rb](e2e_tests.rb), enables pausing the driver and inspecting what is going on at the moment.
+The `debug` helper, defined in [spec/support/e2e_tests.rb](../../spec/support/e2e_tests.rb), enables pausing the driver and inspecting what is going on at the moment.
 - Add `debug` on its own line. The test will pause execution at that line.
 
 #### Interactive Browser Session
@@ -76,14 +81,11 @@ To inspect the page in a browser while debugging, you can run the test with the 
     export CHROME_DEBUGGING_PORT=9222
     ```
 
-2.  Optionally, for some graphical debuggers, you may need to run in headful mode:
-    ```bash
-    export HEADLESS=false
-    ```
+2.  Run your test as usual. When the `debug` statement is hit, you'll see a message in the console with a URL.
 
-3.  Run your test as usual. When the `debug` statement is hit, you'll see a message in the console with a URL.
+3.  In your host Chrome browser, open `chrome://inspect` and add the target `localhost:9223` (or the value of `CHROME_DEBUGGING_PROXY_PORT` if you set it differently) if it is not already present. The paused pages will appear under "Remote Target"—click "inspect" to attach Chrome DevTools to the live session.
 
-4.  In your host Chrome browser, open `chrome://inspect` and add the target `localhost:9223` if it is not already present. The paused pages will appear under "Remote Target"—click "inspect" to attach Chrome DevTools to the live session.
+    Note: The proxy port defaults to `CHROME_DEBUGGING_PORT + 1` (9223 if debugging port is 9222).
 
 
 #### Other Debugging Tips
@@ -94,16 +96,14 @@ To inspect the page in a browser while debugging, you can run the test with the 
 
 This script is designed to be run as part of a CI pipeline. It clones the frontend repo into a temporary directory, serves the frontend using yarn preview, runs the system tests against that frontend, and then shuts everything down and cleans up after the tests finish running.
 
-1. Open a Docker shell.
-    ```bash
-    docker compose run --rm \
-      --env CHROME_DEBUGGING_PORT=${CHROME_DEBUGGING_PORT:-9222} \
-      --env CHROME_DEBUGGING_PROXY_PORT=${CHROME_DEBUGGING_PROXY_PORT:-9223} \
-      --publish ${CHROME_DEBUGGING_PROXY_PORT:-9223}:${CHROME_DEBUGGING_PROXY_PORT:-9223} \
-      shell  # `dcr shell --publish ...` if you have that alias
-    ```
+1. Open a Docker shell (use the same command from [Develop E2E Tests Locally](#develop-e2e-tests-locally) above, or just `docker compose run --rm shell` if you don't need debugging).
 
 2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test:
     ```bash
     BRANCH_NAME=branch-name-to-test ./bin/run_hmis_system_tests.sh
+    ```
+
+    The script supports fallback branches (useful for testing feature branches that might not exist in all repos):
+    ```bash
+    BRANCH_NAME=my-feature-branch:main ./bin/run_hmis_system_tests.sh
     ```
