@@ -132,5 +132,17 @@ RSpec.feature 'CE Unit Management', type: :system do
     expect(page).to have_content('Bob B')     # score 8
     expect(page).to have_content('Carol C')   # score 6
     expect(page).not_to have_content('Dan D') # score 3 (ineligible)
+
+    # Start referral for the top prioritized client (Alice A)
+    click_button 'Start Referral for Alice A'
+    all('input[type=radio]', visible: :all).first.click # Select the first source enrollment
+    click_button 'Create Referral' # Confirm in dialog
+    expect(page).to have_content('Referral for Alice A')
+
+    referral = Hmis::Ce::Referral.sole
+    expect(referral.status).to eq('initialized') # Status is initialized because the basic factory workflow template doesn't have a "start" event
+    expect(referral.client).to eq(client1)
+    expect(referral.referred_by).to eq(admin)
+    expect(referral.referral_origin).to eq('waitlist')
   end
 end
