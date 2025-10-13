@@ -145,9 +145,8 @@ RSpec.shared_context 'SystemSpecHelper' do
     checkbox_label.find('input[type="checkbox"]', visible: :all).click
   end
 
-  # Impersonate the given user by making an API call to the impersonation endpoint.
-  # Instead of navigating to the Admin page and impersonating the user manually,
-  # just make the API call directly using JS fetch, then reload the page.
+  # Impersonate the given user by making an API call to the impersonation endpoint using JS fetch,
+  # instead of navigating to the Admin page and impersonating the user manually.
   # (impersonate_hmis_user can't be used directly outside of the impersonations controller)
   def with_user_impersonated(user_id)
     user = Hmis::User.find(user_id)

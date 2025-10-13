@@ -23,8 +23,8 @@ RSpec.feature 'CE Direct Referrals', type: :system do
   end
 
   after(:all) do
-    # Clean up data source after deleting dependent records.
-    # It's not auto-cleaned up because it's created in before(:all) and not in a fixture
+    # Clean up data source and workflow definition related records, since they were created in before(:all) and not in fixtures.
+    # This helps avoid downstream issues in later tests.
     Hmis::WorkflowDefinition::Flow.delete_all
     Hmis::WorkflowDefinition::Node.delete_all
     Hmis::WorkflowDefinition::Swimlane.delete_all
