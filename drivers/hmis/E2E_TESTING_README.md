@@ -100,8 +100,11 @@ graph TB
 
 ## Debugging
 
-The `debug` helper, defined in [spec/support/e2e_tests.rb](../../spec/support/e2e_tests.rb), enables pausing the driver and inspecting what is going on at the moment.
-- Add `debug` on its own line. The test will pause execution at that line.
+The `debug` helper, defined in [spec/support/e2e_tests.rb](../../spec/support/e2e_tests.rb), has two modes:
+
+- **Browser Inspection**: Add `debug` on its own line. The test will pause execution, allowing you to inspect the page in a browser. See [Interactive Browser Session](#interactive-browser-session) for details.
+- **Ruby REPL**: Add `debug(binding)`. This will open a `byebug` session for interactive debugging within the test's execution context.
+
 
 ### Interactive Browser Session
 
@@ -120,7 +123,6 @@ To inspect the page in a browser while debugging, you can run the test with the 
 
 
 ### Other Debugging Tips
-- Use `byebug`
 - Use `print page.body` to print the page contents at a given point
 
 ## Run Full E2E Test Suite Locally
