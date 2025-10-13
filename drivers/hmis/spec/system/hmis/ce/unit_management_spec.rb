@@ -12,6 +12,60 @@ require_relative '../../../support/ce_system_test_helper'
 RSpec.feature 'CE Unit Management', type: :system do
   include_context 'ce system test helper'
 
+  # Create clients that fulfill the pool requirements (score > 5)
+  let!(:client1) do
+    client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'A')
+    assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
+    create(
+      :hmis_custom_data_element,
+      owner: assessment,
+      data_element_definition: score_cded,
+      value_string: '10',
+      data_source: ds1,
+    )
+    client
+  end
+
+  let!(:client2) do
+    client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Bob', last_name: 'B')
+    assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
+    create(
+      :hmis_custom_data_element,
+      owner: assessment,
+      data_element_definition: score_cded,
+      value_string: '8',
+      data_source: ds1,
+    )
+    client
+  end
+
+  let!(:client3) do
+    client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Carol', last_name: 'C')
+    assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
+    create(
+      :hmis_custom_data_element,
+      owner: assessment,
+      data_element_definition: score_cded,
+      value_string: '6',
+      data_source: ds1,
+    )
+    client
+  end
+
+  # Create a client that doesn't meet requirements (score <= 5)
+  let!(:ineligible_client) do
+    client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Dan', last_name: 'D')
+    assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
+    create(
+      :hmis_custom_data_element,
+      owner: assessment,
+      data_element_definition: score_cded,
+      value_string: '3',
+      data_source: ds1,
+    )
+    client
+  end
+
   it 'admin creates units, provider creates opportunities' do
     visit "/projects/#{target_project.id}/units"
     click_link 'Manage Unit Group SROs'
@@ -66,5 +120,17 @@ RSpec.feature 'CE Unit Management', type: :system do
     # Admin can see the waitlist
     click_link 'Eligible Clients'
     expect(page).to have_content('The eligible client list for this unit has not been generated yet.')
+
+    # Call the prioritization engine, then reload
+    Hmis::Ce::Match::Engine.call(score_pool)
+    score_pool.update!(candidates_generated_at: Time.current)
+    visit current_path
+    click_link 'Eligible Clients'
+
+    # Verify eligible clients are shown (ordered by priority score descending)
+    expect(page).to have_content('Alice A') # score 10
+    expect(page).to have_content('Bob B')     # score 8
+    expect(page).to have_content('Carol C')   # score 6
+    expect(page).not_to have_content('Dan D') # score 3 (ineligible)
   end
 end

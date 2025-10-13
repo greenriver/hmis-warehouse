@@ -11,10 +11,8 @@ require 'rails_helper'
 # Shared context for CE system tests.
 # Sets up a correctly configured target project and admin/provider users with example permissions.
 RSpec.shared_context 'ce system test helper' do
-  include_context 'hmis base setup'
-
+  # Use find_or_create_by since some tests create the data source in a before(:all) block for performance reasons.
   let!(:ds1) { GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS') }
-  let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
 
   let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3, with_coc: true) } # PSH
   let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, supports_waitlist_referrals: true, receives_direct_referrals: true) }
@@ -56,8 +54,9 @@ RSpec.shared_context 'ce system test helper' do
     )
   end
 
-  # Eligibility and prioritization fixtures. Note that the rules defined here are not actually used to generate the pool (that's tested elsewhere, outside of system tests).
-  # But rules are present anyway so that the waitlist appears correctly in the UI.
+  # Eligibility and prioritization fixtures.
+  # These rules are not actually used to generate the pool (that's tested elsewhere, outside of system tests).
+  # But rules must be present so that the waitlist appears correctly in the UI.
   let!(:eligibility_rule) { create(:hmis_ce_match_rule, owner: target_project, rule_type: 'eligibility_requirement', expression: 'cde.custom_assessment.score != NULL AND cde.custom_assessment.score > 5') }
   let!(:priority_rule) { create(:hmis_ce_match_rule, owner: target_project, rule_type: 'priority_scheme', expression: 'cde.custom_assessment.score', priority_rank: 1) }
   let!(:form_definition) { create(:hmis_form_definition, identifier: 'score_assessment', role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
@@ -65,6 +64,7 @@ RSpec.shared_context 'ce system test helper' do
   let!(:score_pool) { create :hmis_ce_match_candidate_pool, requirement_expression: 'cde.custom_assessment.score != NULL AND cde.custom_assessment.score > 5', priority_expression: '{cde.custom_assessment.score}' }
 
   let!(:sro_type) { create(:hmis_unit_type, description: 'SRO') }
+  let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
   let!(:unit_group) { create(:hmis_unit_group, project: target_project, name: 'SROs', workflow_template: workflow_template, candidate_pool: score_pool) }
 
   before do

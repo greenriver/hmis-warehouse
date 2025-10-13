@@ -302,7 +302,7 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
-      # Determine if CDEDs should be generated and validated
+      # Generate and validate CDEDs if this isn't a test env, OR if it is a test env but enable_cded_generation_in_test flag is true.
       should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
 
       if should_generate_cdeds
@@ -321,7 +321,7 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        skip_cded_validation: !should_generate_cdeds, # skip validation if we didnt generate them
+        skip_cded_validation: !should_generate_cdeds, # skip validation if we didn't generate CDEDs
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 

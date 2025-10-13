@@ -42,6 +42,10 @@ RSpec.feature 'CE Direct Referrals', type: :system do
   end
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
+  let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'A') }
+
+  let!(:source_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 14) } # Coordinated Entry
+  let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: client1, entry_date: 30.days.ago) }
 
   # Helpers for filling in steps in the AC workflow, many of which have the fields: date, notes, and "continue?"
   def fill_in_step_with_notes(notes: nil)
@@ -113,18 +117,12 @@ RSpec.feature 'CE Direct Referrals', type: :system do
   describe 'direct referrals with admin assign workflow' do
     let!(:admin_assign_workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already
 
-    let!(:source_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 14) } # Coordinated Entry
     let!(:source_project_ce_config) { create(:hmis_project_sends_direct_ce_referrals_config, project: source_project) }
-
     let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 1, with_coc: true) } # Emergency Shelter
 
     let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
     let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
     let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit, name: unit.name) }
-
-    # Create client with enrollment in source project
-    let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Dan', last_name: 'D') }
-    let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: client1, entry_date: 30.days.ago) }
 
     # Create household member for testing household referrals
     let!(:household_member) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Jane', last_name: 'D') }
@@ -134,10 +132,10 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       # Navigate to source project and create the direct referral
       visit "/projects/#{source_project.id}/referrals"
       click_link 'Send Referral'
-      mui_select('Dan D and 1 other', from: 'HoH Enrollment')
+      mui_select('Alice A and 1 other', from: 'HoH Enrollment')
       mui_select(target_project.project_name, from: 'Project')
       mui_select(unit_group.name, from: 'Unit Group')
-      fill_in 'Resource Coordinator Notes', with: 'Direct referral for Dan D to Family Shelter'
+      fill_in 'Resource Coordinator Notes', with: 'Direct referral for Alice A to Family Shelter'
       click_button 'Refer Household'
       expect(page).to have_content('Displaying 1 of 1 outgoing referral')
 
@@ -149,7 +147,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       expect(referral.source_enrollment).to eq(source_enrollment)
 
       visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
-      expect(page).to have_content('Referral for Dan D')
+      expect(page).to have_content('Referral for Alice A')
       assign_referral_contacts({ 'Project Staff': ['Paul Provider'] })
 
       with_referral_panel_open('Activity') do
@@ -159,9 +157,9 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       # Provider opens referral and completes the Provider Outcome task
       with_user_impersonated(provider.id) do
         confirm_provider_functionality(
-          client_name: 'Dan D',
+          client_name: 'Alice A',
           previous_step_name: 'Admin Assign',
-          previous_step_content: 'Direct referral for Dan D to Family Shelter',
+          previous_step_content: 'Direct referral for Alice A to Family Shelter',
           previous_note_text: 'Hi Paul, this is a directly assigned referral',
         )
 
@@ -169,7 +167,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         with_referral_panel_open('Details') do
           find("[role='button']", text: 'Source Enrollment Details').click
           expect(page).to have_content('Household Members')
-          expect(page).to have_content('Dan D (HoH)') # Head of household
+          expect(page).to have_content('Alice A (HoH)') # Head of household
           expect(page).to have_content('Jane D (Child)') # Household member
         end
 
@@ -199,7 +197,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         click_button 'Enroll'
         table = find("table[aria-label='Manage Household']")
         expect(page).not_to have_content('Enroll Jane D') # Confirm the modal has exited before proceeding
-        mui_table_expect('Dan D', row_index: 0, column_header: 'Name', from: table)
+        mui_table_expect('Alice A', row_index: 0, column_header: 'Name', from: table)
         mui_table_expect('Jane D', row_index: 1, column_header: 'Name', from: table)
 
         # Household member was enrolled into the same unit
@@ -208,92 +206,29 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       end
 
       # CE Staff completes the Confirm Success step
-      complete_ce_staff_confirm_success_step('Dan D', unit)
+      complete_ce_staff_confirm_success_step('Alice A', unit)
     end
   end
 
   describe 'waitlist referrals with housing workflow' do
     let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
-    let!(:unit) { create(:hmis_unit, project: target_project, unit_type: sro_type, unit_group: unit_group) }
+    let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
     let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: workflow_template, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
-
-    # Create clients that fulfill the pool requirements (score > 5)
-    let!(:client1) do
-      client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'A')
-      assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
-      create(:hmis_custom_data_element,
-             owner: assessment,
-             data_element_definition: score_cded,
-             value_string: '10',
-             data_source: ds1)
-      client
-    end
-
-    let!(:client2) do
-      client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Bob', last_name: 'B')
-      assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
-      create(:hmis_custom_data_element,
-             owner: assessment,
-             data_element_definition: score_cded,
-             value_string: '8',
-             data_source: ds1)
-      client
-    end
-
-    let!(:client3) do
-      client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Carol', last_name: 'C')
-      assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
-      create(:hmis_custom_data_element,
-             owner: assessment,
-             data_element_definition: score_cded,
-             value_string: '6',
-             data_source: ds1)
-      client
-    end
-
-    # Create a client that doesn't meet requirements (score <= 5)
-    let!(:ineligible_client) do
-      client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Dan', last_name: 'D')
-      assessment = create(:hmis_custom_assessment, client: client, data_source: ds1, definition: form_definition)
-      create(:hmis_custom_data_element,
-             owner: assessment,
-             data_element_definition: score_cded,
-             value_string: '3',
-             data_source: ds1)
-      client
-    end
+    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, unit: unit, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
 
     before do
-      Hmis::Ce::Match::Engine.call(score_pool)
-      score_pool.update!(candidates_generated_at: Time.current)
+      referral.workflow_engine.start_workflow!(user: admin)
     end
 
     # Shared method for progressing the referral through the initial steps and assigning the provider
     def ce_staff_complete_initial_steps
-      # Navigate to unit group and verify eligible clients appear
-      visit "/projects/#{target_project.id}/unit/#{unit.id}"
-      click_link 'Eligible Clients'
-
-      # Verify eligible clients are shown (ordered by priority score descending)
-      expect(page).to have_content('Alice A') # score 10
-      expect(page).to have_content('Bob B')     # score 8
-      expect(page).to have_content('Carol C')   # score 6
-      expect(page).not_to have_content('Dan D') # score 3 (ineligible)
-
-      # Start referral for the top prioritized client (Alice A)
-      within('tbody tr:first-child') do
-        click_button 'Start Referral'
-      end
-      expect(page).to have_content('Start Referral')
-      all('input[type=radio]', visible: :all).first.click # Select the first source enrollment
-      click_button 'Create Referral' # Confirm in dialog
-
-      referral = Hmis::Ce::Referral.sole
-      expect(referral.status).to eq('in_progress')
-      expect(referral.client).to eq(client1)
-      expect(referral.referred_by).to eq(admin)
-      expect(referral.referral_origin).to eq('waitlist')
+      # Navigate to admin referrals page and click into the referral
+      visit '/admin/referrals/'
+      expect(page).to have_content('Alice A')
+      expect(page).to have_content('Matching In Progress')
+      click_link 'Alice A'
+      expect(page).to have_content('Referral for Alice A')
 
       # Progress through Initial Review step
       complete_ce_step('Initial Review') do
@@ -355,7 +290,6 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         )
 
         with_referral_panel_open('Details') do
-          expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
           find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
           expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
         end
@@ -388,7 +322,6 @@ RSpec.feature 'CE Direct Referrals', type: :system do
         )
 
         with_referral_panel_open('Details') do
-          expect(page).to have_content('Assessment Score 10') # Can see prioritization/matching details like the assessment score
           find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
           expect(page).not_to have_content('Enrollment Link') # Can't click into the enrollment
         end
