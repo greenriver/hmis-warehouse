@@ -44,7 +44,7 @@ module Types
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
     field :priority_schemes, [HmisSchema::CeMatchRule], null: true
-    field :workflow_template_name, String, null: true, deprecation_reason: 'Use workflow templates on unit group'
+    field :workflow_template_name, String, null: true, deprecation_reason: 'Unused on frontend. Use workflow template fields on unit group'
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 

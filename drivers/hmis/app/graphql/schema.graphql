@@ -12817,7 +12817,7 @@ type Unit {
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
-  workflowTemplateName: String @deprecated(reason: "Use workflow templates on unit group")
+  workflowTemplateName: String @deprecated(reason: "Unused on frontend. Use workflow template fields on unit group")
 }
 
 enum UnitFilterOptionStatus {
