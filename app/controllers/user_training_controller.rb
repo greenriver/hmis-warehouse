@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class UserTrainingController < ApplicationController
   def set_lms_info
     @courses = current_user.required_training_courses
@@ -49,7 +51,7 @@ class UserTrainingController < ApplicationController
           lms.reset_user_progress(config, course_id) if lms.training_expired?(config, course_id)
 
           completed_on = lms.complete?(config, course_id)
-          if completed_on.present?
+          if lms.valid_date?(completed_on)
             lms.log_course_completion(config, course_id, completed_on)
             current_user.update(training_completed: true, last_training_completed: completed_on.to_date)
           else
