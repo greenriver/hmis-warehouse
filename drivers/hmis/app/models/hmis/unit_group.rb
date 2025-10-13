@@ -68,6 +68,12 @@ module Hmis
       units.receiving_referrals.count
     end
 
+    def template_for_direct_referrals
+      # Default to workflow_template if direct_referral_workflow_template is not found.
+      # This is for backwards compatibility while we switch over.
+      direct_referral_workflow_template || workflow_template
+    end
+
     private
 
     def project_is_not_changed
