@@ -95,7 +95,7 @@ module Hmis
 
       # The template must have a direct_referral_form_definition for the direct referral initiator to fill out.
       # If this is nil, that indicates the structure is invalid.
-      return unless direct_referral_workflow_template.direct_referral_form_definition.present?
+      return if direct_referral_workflow_template.direct_referral_form_definition.present?
 
       errors.add(:direct_referral_workflow_template_identifier, 'structure is not valid for direct referrals')
     end
