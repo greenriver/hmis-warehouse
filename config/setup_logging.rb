@@ -100,29 +100,26 @@ class SetupLogging
     config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
       payload = event.payload || raise('Lograge event payload missing')
-      request = payload[:request]
 
-      server_protocol = request&.protocol.presence || payload[:server_protocol]
-      host = request&.host.presence || payload[:host]
-      request_id = payload[:request_id] || payload.fetch(:headers, {})['action_dispatch.request_id']
-      trace_id = request.headers['HTTP_X_AMZN_TRACE_ID']
+      request_id = payload[:request_id] || payload.dig(:headers, 'action_dispatch.request_id')
+      trace_id = payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID')
 
       # sanitize untrusted values
       sanitizer = SANITIZER
       result = {
         request_time: Time.current, # Server timestamp (trusted)
-        server_protocol: server_protocol, # From Rack env; trusted when present
-        host: sanitizer.call(host), # From Host header; untrusted
+        server_protocol: sanitizer.call(payload[:server_protocol]),
+        host: sanitizer.call(payload[:host]), # From Host header; untrusted
         remote_ip: payload[:remote_ip], # Trusted: computed by Rails
         ip: payload[:ip], # Trusted: computed by Rails
         remote_addr: payload[:remote_addr], # Trusted: socket level
         session_id: payload[:session_id], # Rack session; trusted
         user_id: payload[:user_id], # App assigned; trusted
         pid: payload[:pid], # Raw payload PID; trusted if present
-        request_id: request_id, # Rails request UUID; trusted
+        request_id: sanitizer.call(request_id), # Rails request UUID; trusted
         request_start: sanitizer.call(payload[:request_start]), # Header supplied; untrusted
         x_forwarded_for: sanitizer.call(payload[:x_forwarded_for]),
-        exception: payload[:exception]&.first, # Raised error class; trusted
+        exception: sanitizer.call(payload[:exception]&.first)
         x_amzn_trace_id: sanitizer.call(trace_id), # AWS trace header; untrusted
       }.merge(STANDARD_TAGS)
       result.compact_blank!

@@ -35,12 +35,12 @@ module Logging
 
     def sanitize(value, current_depth:)
       case value
+      when String
+        sanitize_string(value)
       when Hash
         sanitize_hash(value, current_depth: current_depth)
       when Array
         sanitize_array(value, current_depth: current_depth)
-      when String
-        sanitize_string(value)
       else
         value
       end
