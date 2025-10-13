@@ -16,8 +16,8 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1) }
   let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: client) }
 
-  let!(:unit_group) { create(:hmis_unit_group, project: project, direct_referral_workflow_template: workflow_template) }
-  let!(:unit) { create(:hmis_unit, unit_group: unit_group) }
+  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
+  let!(:unit) { create(:hmis_unit, unit_group: unit_group, project: project) }
   let!(:target_opportunity) { create(:hmis_ce_opportunity, project: project, unit: unit) }
 
   let!(:target_project_ce_config) { create(:hmis_project_ce_config, project: project, receives_direct_referrals: true) }
@@ -141,6 +141,21 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
           referral_data = result.dig('data', 'createDirectCeReferral', 'referral')
           expect(referral_data).to be_nil
         end.not_to change(Hmis::Ce::Referral, :count)
+      end
+    end
+
+    context 'when the unit group has a direct referral workflow template' do
+      let!(:direct_referral_workflow_template) { create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: ds1) }
+      let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template, direct_referral_workflow_template: direct_referral_workflow_template) }
+
+      it 'creates the referral with the correct template' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+        end.to change(Hmis::Ce::Referral, :count).by(1)
+
+        referral = Hmis::Ce::Referral.last
+        expect(referral.workflow_template).to eq(direct_referral_workflow_template)
       end
     end
   end
