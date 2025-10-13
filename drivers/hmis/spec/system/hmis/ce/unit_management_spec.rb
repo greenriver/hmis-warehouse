@@ -66,7 +66,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     client
   end
 
-  it 'admin creates units, provider creates opportunities' do
+  it 'admin creates units, provider creates opportunities, admin starts referral' do
     visit "/projects/#{target_project.id}/units"
     click_link 'Manage Unit Group SROs'
     expect(page).to have_content('No units.')
