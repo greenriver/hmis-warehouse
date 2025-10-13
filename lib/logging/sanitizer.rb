@@ -14,10 +14,10 @@
 #
 module Logging
   class Sanitizer
-    DEFAULT_MAX_STRING_LENGTH = 500
-    DEFAULT_MAX_ARRAY_ITEMS = 10
-    DEFAULT_MAX_HASH_ITEMS = 50
-    DEFAULT_MAX_DEPTH = 3
+    DEFAULT_MAX_STRING_LENGTH = 1_000
+    DEFAULT_MAX_ARRAY_ITEMS = 100
+    DEFAULT_MAX_HASH_ITEMS = 100
+    DEFAULT_MAX_DEPTH = 5
 
     def initialize(max_string_length: DEFAULT_MAX_STRING_LENGTH, max_array_items: DEFAULT_MAX_ARRAY_ITEMS, max_hash_items: DEFAULT_MAX_HASH_ITEMS, max_depth: DEFAULT_MAX_DEPTH)
       @max_string_length = max_string_length
@@ -34,8 +34,6 @@ module Logging
     private
 
     def sanitize(value, current_depth:)
-      return nil if value.blank? && value != false
-
       case value
       when Hash
         sanitize_hash(value, current_depth: current_depth)
@@ -53,14 +51,14 @@ module Logging
       # Remove null bytes and control characters (except newlines/tabs)
       str = str.tr("\u0000-\u0008\u000B-\u001F\u007F", '')
       # Truncate with indicator
-      str.length > @max_string_length ? str.truncate(@max_string_length, omission: '...[TRUNCATED]') : str
+      str.length >= @max_string_length ? str.truncate(@max_string_length, omission: '...[TRUNCATED]') : str
     end
 
     def sanitize_array(array, current_depth:)
       return '[MAX_DEPTH]' if current_depth >= @max_depth
 
       items = array.take(@max_array_items).map { |item| sanitize(item, current_depth: current_depth + 1) }
-      items << "...[\#{array.size - @max_array_items} more items]" if array.size > @max_array_items
+      items << "...[#{array.size - @max_array_items} more items]" if array.size > @max_array_items
       items
     end
 
@@ -73,7 +71,8 @@ module Logging
       original_hash.each do |key, value|
         break if result.size >= @max_hash_items
 
-        result[key] = sanitize(value, current_depth: current_depth + 1)
+        sanitized_key = sanitize(key, current_depth: current_depth + 1)
+        result[sanitized_key] = sanitize(value, current_depth: current_depth + 1)
       end
 
       result[:_truncated] = "#{original_hash.size - @max_hash_items} items hidden" if original_hash.size > @max_hash_items

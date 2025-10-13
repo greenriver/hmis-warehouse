@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
+require 'logging/sanitizer'
+
 # Logging config in one place instead of six
 
 class SetupLogging
   attr_accessor :config
 
+  SANITIZER = Logging::Sanitizer.new
   STANDARD_TAGS = {
     gr_client: 'openpath',
 
@@ -104,7 +107,8 @@ class SetupLogging
       request_id = payload[:request_id] || payload.fetch(:headers, {})['action_dispatch.request_id']
       trace_id = request.headers['HTTP_X_AMZN_TRACE_ID']
 
-      sanitizer = Logging::Sanitizer.new
+      # sanitize untrusted values
+      sanitizer = SANITIZER
       result = {
         request_time: Time.current, # Server timestamp (trusted)
         server_protocol: server_protocol, # From Rack env; trusted when present

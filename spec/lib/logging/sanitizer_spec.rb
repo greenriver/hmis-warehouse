@@ -46,11 +46,11 @@ RSpec.describe Logging::Sanitizer do
     end
 
     it 'honors max depth when nested hashes exceed depth' do
-      overrides[:max_depth] = 1
+      overrides[:max_depth] = 2
 
-      sanitized = sanitizer.call([{ foo: { bar: 'baz' } }])
+      sanitized = sanitizer.call([{ foo: { bar: 'baz' } }, { fiz: 'bang' }])
 
-      expect(sanitized).to eq('[MAX_DEPTH]')
+      expect(sanitized).to eq([{ foo: '[MAX_DEPTH]' }, { fiz: 'bang' }])
     end
   end
 
@@ -78,7 +78,7 @@ RSpec.describe Logging::Sanitizer do
     end
 
     it 'preserves hash order for deterministic logging' do
-      ordered_hash = ActiveSupport::OrderedHash.new
+      ordered_hash = {}
       ordered_hash[:first] = 'one'
       ordered_hash[:second] = 'two'
 
