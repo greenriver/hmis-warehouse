@@ -36,6 +36,10 @@ RSpec.describe SetupLogging do
         def initialize(env)
           @env = env
         end
+
+        def [](key)
+          @env[key]
+        end
       end.new(headers_env)
     end
 

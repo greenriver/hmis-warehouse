@@ -74,6 +74,7 @@ class SetupLogging
     def call(severity, time, program_name, message)
       @tags ||= {}
       message = '' if message.blank?
+      # prevent logging a severity level for an empty message
       severity = '' if message.blank?
       program_name = '' if program_name.blank?
 
@@ -97,27 +98,29 @@ class SetupLogging
     config.lograge.custom_options = ->(event) do
       payload = event.payload || raise('Lograge event payload missing')
       request = payload[:request]
-      headers_env = request&.headers&.env || {}
-
-      ip_data = payload.slice(:remote_ip, :ip, :remote_addr, :x_forwarded_for)
 
       server_protocol = request&.protocol.presence || payload[:server_protocol]
       host = request&.host.presence || payload[:host]
       request_id = payload[:request_id] || payload.fetch(:headers, {})['action_dispatch.request_id']
-      trace_id = headers_env['HTTP_X_AMZN_TRACE_ID']
+      trace_id = request.headers['HTTP_X_AMZN_TRACE_ID']
 
+      sanitizer = Logging::Sanitizer.new
       result = {
         request_time: Time.current, # Server timestamp (trusted)
         server_protocol: server_protocol, # From Rack env; trusted when present
-        host: host, # From Host header; untrusted
+        host: sanitizer.call(host), # From Host header; untrusted
+        remote_ip: payload[:remote_ip], # Trusted: computed by Rails
+        ip: payload[:ip], # Trusted: computed by Rails
+        remote_addr: payload[:remote_addr], # Trusted: socket level
         session_id: payload[:session_id], # Rack session; trusted
         user_id: payload[:user_id], # App assigned; trusted
         pid: payload[:pid], # Raw payload PID; trusted if present
         request_id: request_id, # Rails request UUID; trusted
-        request_start: payload[:request_start], # Header supplied; untrusted
+        request_start: sanitizer.call(payload[:request_start]), # Header supplied; untrusted
+        x_forwarded_for: sanitizer.call(payload[:x_forwarded_for]),
         exception: payload[:exception]&.first, # Raised error class; trusted
-        x_amzn_trace_id: trace_id, # AWS trace header; untrusted
-      }.merge(ip_data).merge(STANDARD_TAGS)
+        x_amzn_trace_id: sanitizer.call(trace_id), # AWS trace header; untrusted
+      }.merge(STANDARD_TAGS)
       result.compact_blank!
       result
     end
