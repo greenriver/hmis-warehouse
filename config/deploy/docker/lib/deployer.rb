@@ -7,6 +7,7 @@ require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
 require_relative 'blue_green'
 require 'shellwords'
+require 'active_support/all'
 
 class Deployer
   include AwsSdkHelpers::Helpers
