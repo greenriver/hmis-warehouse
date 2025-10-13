@@ -19,8 +19,6 @@ module Hmis::Ce
     has_many :categories, through: :categorizations
     belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
-    has_one :workflow_template, through: :unit_group, class_name: 'Hmis::WorkflowDefinition::Template'
-    has_one :direct_referral_workflow_template, through: :unit_group, class_name: 'Hmis::WorkflowDefinition::Template'
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
 
