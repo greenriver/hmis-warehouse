@@ -96,6 +96,7 @@ graph TB
     ```bash
     HOSTNAME=`hostname` RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec -f d -P "drivers/hmis/spec/system/hmis/*"
     ```
+    Note: `CAPYBARA_APP_HOST` is set to the container's internal hostname to ensure Capybara can connect to the Vite server.
 
 
 ## Debugging
@@ -103,7 +104,7 @@ graph TB
 The `debug` helper, defined in [spec/support/e2e_tests.rb](../../spec/support/e2e_tests.rb), has two modes:
 
 - **Browser Inspection**: Add `debug` on its own line. The test will pause execution, allowing you to inspect the page in a browser. See [Interactive Browser Session](#interactive-browser-session) for details.
-- **Ruby REPL**: Add `debug(binding)`. This will open a `byebug` session for interactive debugging within the test's execution context.
+- **Ruby REPL**: Add `debug(binding)`. This will open a `pry` (or `irb`) session for interactive debugging within the test's execution context.
 
 
 ### Interactive Browser Session
