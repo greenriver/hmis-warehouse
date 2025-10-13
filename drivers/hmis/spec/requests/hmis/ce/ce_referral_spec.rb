@@ -24,6 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             targetProjectName
             access {
               canViewTargetProject
+              canCreateReferralNote
             }
             targetEnrollment {
               id
@@ -368,6 +369,47 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'ceReferral', 'targetEnrollment')).to be_nil
           end
+        end
+      end
+
+      describe 'note creation permission' do
+        shared_examples 'checks canCreateReferralNote permission' do |expected_value|
+          it "returns #{expected_value} for canCreateReferralNote" do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            access = result.dig('data', 'ceReferral', 'access')
+            expect(access['canCreateReferralNote']).to eq(expected_value)
+          end
+        end
+
+        context 'when user can perform any referral tasks' do
+          let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks, :can_view_project]) }
+
+          include_examples 'checks canCreateReferralNote permission', true
+        end
+
+        context 'when user can perform own referral tasks' do
+          let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_own_referral_tasks, :can_view_project]) }
+
+          context 'and user is not assigned' do
+            include_examples 'checks canCreateReferralNote permission', false
+          end
+
+          context 'and user is assigned' do
+            before do
+              referral.participants.create!(swimlane: case_manager_swimlane, user: hmis_user)
+              referral.workflow_engine.assign_task!(referral.workflow_engine.active_steps.first)
+            end
+
+            include_examples 'checks canCreateReferralNote permission', true
+          end
+        end
+
+        context 'when user can only view referrals but cannot perform tasks' do
+          let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_view_project]) }
+
+          include_examples 'checks canCreateReferralNote permission', false
         end
       end
     end

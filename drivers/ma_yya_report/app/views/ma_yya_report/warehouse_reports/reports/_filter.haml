@@ -5,7 +5,7 @@
         = f.input :start, as: :date_picker
       .col-sm-3
         = f.input :end, as: :date_picker
-      .col-sm-3
+      .col-sm-6
         = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: true, placeholder: 'Choose CoCs' }, label: 'CoC Codes', hint: 'If any  CoC Codes are selected, Project CoC, Enrollment, and Inventory records will be limited to those with the chosen CoC Codes.'
     .row
       .col-sm-6

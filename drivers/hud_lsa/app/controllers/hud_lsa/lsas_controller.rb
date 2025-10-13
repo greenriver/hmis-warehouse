@@ -144,11 +144,13 @@ module HudLsa
             filter.coc_code = cocs.try(&:first)
             filter.coc_codes = cocs
             filter.report_version = options['report_version'].presence || default_report_version
+            filter.project_type_codes = options['project_type_codes'].presence || []
           else
             filter.on = nil
             filter.start = default_start_date
             filter.end = default_end_date
             filter.report_version = default_report_version
+            filter.project_type_codes = []
           end
         end
         # Override with params if set
