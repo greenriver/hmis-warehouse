@@ -83,12 +83,10 @@ module Types
     def can_be_marked_available
       return false unless Hmis::Ce.configuration.enabled? # CE must be enabled
 
-      workflow_template = load_ar_association(unit_group, :workflow_template)&.name
-      direct_referral_workflow_template = load_ar_association(unit_group, :direct_referral_workflow_template)&.name
-      # todo @martha - config/validation to ensure everything lines up? you should only be able to save the one depending on the project config
-      # both frontend and backend should validate that
-      # and here the validation should line up
+      workflow_template = load_ar_association(unit_group, :workflow_template)
+      direct_referral_workflow_template = load_ar_association(unit_group, :direct_referral_workflow_template)
       return false unless workflow_template || direct_referral_workflow_template # Must have a workflow template
+
       return false if latest_opportunity&.active? # Must not have an active opportunity
 
       # MAY have current occupants; see #7537
