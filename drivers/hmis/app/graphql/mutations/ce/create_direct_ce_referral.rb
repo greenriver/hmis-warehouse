@@ -48,7 +48,7 @@ module Mutations
           return { errors: errors }
         end
 
-        workflow_template = opportunity.template_for_direct_referrals
+        workflow_template = opportunity.unit_group.template_for_direct_referrals
         raise "No workflow template for direct referrals configured. Opportunity: #{opportunity.id}" unless workflow_template
 
         instance = workflow_template.instances.create!
