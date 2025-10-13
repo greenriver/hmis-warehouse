@@ -119,7 +119,7 @@ class SetupLogging
         request_id: sanitizer.call(request_id), # Rails request UUID; trusted
         request_start: sanitizer.call(payload[:request_start]), # Header supplied; untrusted
         x_forwarded_for: sanitizer.call(payload[:x_forwarded_for]),
-        exception: sanitizer.call(payload[:exception]&.first)
+        exception: sanitizer.call(payload[:exception]&.first),
         x_amzn_trace_id: sanitizer.call(trace_id), # AWS trace header; untrusted
       }.merge(STANDARD_TAGS)
       result.compact_blank!
