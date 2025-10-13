@@ -53,7 +53,7 @@ RSpec.describe Hmis::UnitGroup, type: :model do
       direct_referral_workflow_template = create(:hmis_workflow_definition_template, data_source: project.data_source, status: 'published', template_type: 'ce_referral')
       unit_group.direct_referral_workflow_template = direct_referral_workflow_template
       expect(unit_group).not_to be_valid
-      expect(unit_group.errors[:direct_referral_workflow_template_identifier]).to include('workflow template structure is not valid for direct referrals')
+      expect(unit_group.errors[:direct_referral_workflow_template_identifier]).to include('structure is not valid for direct referrals')
     end
 
     it 'accepts valid workflow template' do
