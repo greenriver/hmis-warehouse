@@ -2,6 +2,8 @@
 
 require 'capybara'
 require 'capybara/cuprite'
+require 'uri'
+require_relative 'e2e_debug_proxy'
 
 # See documentation in: spec/support/E2E_README.md
 # credit:
@@ -20,94 +22,109 @@ module E2eTests
   DRIVER_NAME = :cuprite_remote
 
   module Setup
-    # The setup to be run prior to the test suite
-    def self.perform(
-      default_max_wait_time: 20,
-      default_normalize_ws: true,
-      automatic_label_click: true,
-      enable_aria_label: true
-    )
-      # where the rails server runs
-      ::Capybara.server_host = '0.0.0.0'
-      ::Capybara.server_port = '4444' # override dynamic port
+    class << self
+      # The setup to be run prior to the test suite
+      def perform(
+        default_max_wait_time: 20,
+        default_normalize_ws: true,
+        automatic_label_click: true,
+        enable_aria_label: true
+      )
+        # where the rails server runs
+        ::Capybara.server_host = '0.0.0.0'
+        ::Capybara.server_port = '4444' # override dynamic port
 
-      # In Rails 6.1+ the following line should be enough
-      ::Capybara.app_host = CAPYBARA_APP_HOST
+        # In Rails 6.1+ the following line should be enough
+        ::Capybara.app_host = CAPYBARA_APP_HOST
 
-      # Don't wait too long in `have_xyz` matchers
-      ::Capybara.default_max_wait_time = default_max_wait_time
+        # Don't wait too long in `have_xyz` matchers
+        ::Capybara.default_max_wait_time = default_max_wait_time
 
-      ::Capybara.enable_aria_label = enable_aria_label
+        ::Capybara.enable_aria_label = enable_aria_label
 
-      ::Capybara.automatic_label_click = automatic_label_click
+        ::Capybara.automatic_label_click = automatic_label_click
 
-      ::Capybara.ignore_hidden_elements = true
+        ::Capybara.ignore_hidden_elements = true
 
-      # Normalizes whitespaces when using `has_text?` and similar matchers
-      ::Capybara.default_normalize_ws = default_normalize_ws
+        # Normalizes whitespaces when using `has_text?` and similar matchers
+        ::Capybara.default_normalize_ws = default_normalize_ws
 
-      # Where to store system tests artifacts (e.g. screenshots, downloaded files, etc.).
-      # It could be useful to be able to configure this path from the outside (e.g., on CI).
-      ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
+        # Where to store system tests artifacts (e.g. screenshots, downloaded files, etc.).
+        # It could be useful to be able to configure this path from the outside (e.g., on CI).
+        ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
-      raise "can't connect to chrome on #{ENV['CHROME_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
+        verify_chromium_installation!
 
-      remote_options = RemoteChrome.options
-      ::Capybara.register_driver(DRIVER_NAME) do |app|
-        ::Capybara::Cuprite::Driver.new(
-          app,
-          **{
-            extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
-            window_size: [1200, 1600],
-            browser_options: RemoteChrome.connected? ? { 'no-sandbox' => nil } : {},
-            headless: ENV.fetch('CI', 'true') == 'true',
-            js_errors: true,
-            logger: FerrumLogger.new,
-            inspector: true,
-          }.merge(remote_options),
-        )
+        remote_port, _proxy_port = debugging_ports
+        driver_options = cuprite_options(remote_port)
+
+        ::Capybara.register_driver(DRIVER_NAME) do |app|
+          ::Capybara::Cuprite::Driver.new(app, **driver_options)
+        end
       end
-    end
-  end
 
-  module RemoteChrome
-    # @return [String, nil]
-    def self.url
-      ENV['CHROME_URL']
-    end
-
-    # Current port
-    # @return Integer
-    def self.port
-      URI.parse(url).yield_self(&:port)
-    end
-
-    # Current host
-    # @return [String, nil]
-    def self.host
-      URI.parse(url).yield_self(&:host) if url
-    end
-
-    # Returns a hash with a :url key / value if a remote chrome url is found.
-    # @return [Hash{:url => String, nil}]
-    #
-    def self.options
-      # Check whether the remote chrome is running and configure the Capybara
-      # driver for it.
-      connected? ? { url: url } : {}
-    end
-
-    # Whether or not the socket could be connected
-    # @return [Boolean]
-    def self.connected?
-      if url.nil?
-        false
-      else
-        Socket.tcp(host, port, connect_timeout: 5).close
-        true
+      def debugging_ports
+        remote_port = debugging_remote_port
+        proxy_port = debugging_proxy_port(remote_port)
+        ensure_proxy_port_env(proxy_port, remote_port)
+        [remote_port, proxy_port]
       end
-    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, SocketError
-      false
+
+      private
+
+      def verify_chromium_installation!
+        chromium_path = ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium')
+        return if File.executable?(chromium_path)
+
+        raise "Chromium not found at #{chromium_path}. Please install Chromium or set CHROMIUM_PATH."
+      end
+
+      def cuprite_options(remote_port)
+        {
+          extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
+          window_size: [1200, 1600],
+          browser_options: browser_options(remote_port),
+          headless: true,
+          js_errors: true,
+          logger: FerrumLogger.new,
+          inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
+          browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
+        }
+      end
+
+      def browser_options(remote_port)
+        options = { 'no-sandbox' => nil, 'disable-dev-shm-usage' => nil }
+        options['remote-debugging-port'] = remote_port if remote_port
+        options
+      end
+
+      def debugging_remote_port
+        value = ENV['CHROME_DEBUGGING_PORT']
+        return nil if value.blank?
+
+        Integer(value, 10)
+      rescue ArgumentError
+        Kernel.warn("Invalid CHROME_DEBUGGING_PORT: #{value.inspect}")
+        nil
+      end
+
+      def debugging_proxy_port(remote_port)
+        return nil unless remote_port
+
+        value = ENV['CHROME_DEBUGGING_PROXY_PORT']
+        return remote_port - 1 if value.blank?
+
+        Integer(value, 10)
+      rescue ArgumentError
+        Kernel.warn("Invalid CHROME_DEBUGGING_PROXY_PORT: #{value.inspect}")
+        remote_port - 1
+      end
+
+      def ensure_proxy_port_env(proxy_port, remote_port)
+        return if proxy_port.nil? || proxy_port == remote_port || proxy_port < 1
+
+        ENV['CHROME_DEBUGGING_PROXY_PORT'] = proxy_port.to_s if ENV['CHROME_DEBUGGING_PROXY_PORT'].blank?
+      end
     end
   end
 
@@ -115,12 +132,22 @@ module E2eTests
     # Pauses the current driver
     # @return [nil]
     def pause
+      $stdout.puts '🔎 Pausing browser for inspection'
       page.driver.pause
     end
 
     # Opens a debug session via Pry if defined, else uses Irb.
     def debug(binding = nil)
-      $stdout.puts '🔎 Open Chrome inspector at http://localhost:3333'
+      if ENV['CHROME_DEBUGGING_PORT']
+        remote_port, proxy_port = Setup.debugging_ports
+        DebugProxy.start(remote_port: remote_port, proxy_port: proxy_port)
+
+        $stdout.puts "🔎 Open Chrome inspector at http://#{chrome_debugging_host}:#{chrome_debugging_port}"
+        $stdout.puts "   (Cuprite WS endpoint: #{cuprite_ws_endpoint})" if cuprite_ws_endpoint.present?
+      else
+        $stdout.puts '🔎 Pausing browser for inspection'
+      end
+
       if binding
         return binding.pry if defined?(Pry)
 
@@ -128,6 +155,32 @@ module E2eTests
       end
 
       page.driver.pause
+    end
+
+    private
+
+    def chrome_debugging_host
+      return ENV['CHROME_DEBUGGING_HOST'].presence if ENV['CHROME_DEBUGGING_HOST'].present?
+
+      docker_host = ENV['DOCKER_HOST']
+      return 'localhost' if docker_host.blank?
+
+      uri = URI.parse(docker_host)
+      return uri.host if uri.respond_to?(:host) && uri.host.present?
+
+      docker_host.match?(/\A[\w.\-]+\z/) ? docker_host : 'localhost'
+    rescue URI::InvalidURIError
+      'localhost'
+    end
+
+    def chrome_debugging_port
+      ENV['CHROME_DEBUGGING_PROXY_PORT'].presence || ENV['CHROME_DEBUGGING_PORT']
+    end
+
+    def cuprite_ws_endpoint
+      page.driver&.browser&.process&.ws_url
+    rescue NoMethodError
+      nil
     end
   end
 
