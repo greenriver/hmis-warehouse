@@ -18,9 +18,19 @@ FactoryBot.define do
     status { 'open' }
     project { association :hmis_hud_project, data_source: data_source }
 
-    unit do
-      unit_group = association :hmis_unit_group, project: project, workflow_template_identifier: workflow_template.identifier
-      association :hmis_unit, project: project, unit_group: unit_group
+    # Hooks to make the Opportunity factory return a valid opportunity *both* when creating (saving) a record *and* when just building it:
+
+    # In an after(:build) hook, create the associated unit and unit group. (All opportunities should have units and all units are now in groups)
+    after(:build) do |opportunity, evaluator|
+      next if opportunity.unit.present?
+
+      ug = build(:hmis_unit_group, project: opportunity.project, workflow_template: evaluator.workflow_template)
+      opportunity.unit = build(:hmis_unit, project: opportunity.project, unit_group: ug)
+    end
+
+    # In a before(:save) hook, save the unit, so the opportunity validations pass
+    before(:create) do |opportunity|
+      opportunity.unit.save!
     end
   end
 end
