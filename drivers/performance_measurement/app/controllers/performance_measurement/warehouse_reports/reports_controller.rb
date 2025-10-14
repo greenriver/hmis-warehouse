@@ -110,7 +110,8 @@ module PerformanceMeasurement::WarehouseReports
 
     def provider_comparisons
       @report = report_class.find(params[:id].to_i)
-      @provider_comparison = PerformanceMeasurement::ProviderComparison.new(@report, current_user)
+      active_project_list = params[:active_project_list]&.to_sym || :my_projects
+      @provider_comparison = PerformanceMeasurement::ProviderComparison.new(@report, current_user, active_project_list: active_project_list)
       render :show
     end
 

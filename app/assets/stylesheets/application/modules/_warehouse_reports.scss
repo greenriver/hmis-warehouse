@@ -321,6 +321,16 @@
   position: absolute;
 }
 
+.performance-measurement--td-status {
+  &.success {
+    background-color: var(--brand-success-lll);
+  }
+
+  &.danger {
+    background-color: var(--brand-danger-lll);
+  }
+}
+
 .street-2-home-summary {
   text-align: center;
   padding: 2rem;

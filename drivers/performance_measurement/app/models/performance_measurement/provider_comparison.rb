@@ -8,10 +8,11 @@
 
 module PerformanceMeasurement
   class ProviderComparison
-    attr_accessor :report, :user
-    def initialize(report, user)
+    attr_accessor :report, :user, :active_project_list
+    def initialize(report, user, active_project_list: :my_projects)
       self.report = report
       self.user = user
+      self.active_project_list = active_project_list.to_sym
     end
 
     def categories
@@ -55,8 +56,7 @@ module PerformanceMeasurement
       table_data[:projects] = {}
       default_details = definition[:details].each_with_object({}) { |d, h| h[d] = {} }
       definition[:details].each do |detail|
-        my_projects = report.my_projects(user, detail)
-        my_projects.each do |project_id, result|
+        project_list(user, detail).each do |project_id, result|
           # Initialize project with empty hashes for all details if not already set
           table_data[:projects][project_id] ||= {
             project_name: result.hud_project.name(user, include_project_type: true),
@@ -76,11 +76,22 @@ module PerformanceMeasurement
       table_data
     end
 
+    def project_list(user, detail)
+      case @active_project_list
+      when :my_projects
+        report.my_projects(user, detail)
+      when :all_projects
+        report.project_details(user, detail)
+      else
+        raise "Unknown project list: #{@active_project_list}"
+      end
+    end
+
     def decorator(result)
       return '' if result.blank?
-      return 'bg-success' if result.passed
+      return 'performance-measurement--td-status success' if result.passed
 
-      'bg-danger'
+      'performance-measurement--td-status danger'
     end
 
     private def es_category
