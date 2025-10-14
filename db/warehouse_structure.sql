@@ -2526,7 +2526,7 @@ CREATE VIEW analytics.data_sources AS
     authoritative,
     authoritative_type,
     obey_consent,
-    hmis
+    hmis AS hmis_url
    FROM public.data_sources
   WHERE (deleted_at IS NULL);
 

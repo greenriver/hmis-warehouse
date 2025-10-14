@@ -1,5 +1,5 @@
 SELECT
-  id, name, short_name, last_imported_at, source_type, visible_in_window, authoritative, authoritative_type, obey_consent, hmis
+  id, name, short_name, last_imported_at, source_type, visible_in_window, authoritative, authoritative_type, obey_consent, hmis as hmis_url
 FROM
   data_sources
 WHERE
