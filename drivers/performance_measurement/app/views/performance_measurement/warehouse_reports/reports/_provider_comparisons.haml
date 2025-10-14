@@ -29,8 +29,14 @@
             %thead
               %tr
                 %th
+                - table[:headers].group_by { |detail, header| header[:category] }.each.with_index do |(category, grouped_headers), index|
+                  - class_name = "performance-measurement--highlight-light-#{index + 1}"
+                  %th{colspan: grouped_headers.size, class: class_name}
+                    %h3= category
+              %tr
+                %th
                 - table[:headers].each do |detail, header|
-                  %th= header
+                  %th= header[:title]
             %tbody
               %tr
                 %td Goal or Target

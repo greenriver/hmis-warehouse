@@ -266,6 +266,11 @@
       color: darken($color, 60%);
     }
   }
+
+  th.performance-measurement--highlight-light-#{$i} {
+    background: lighten($color, 5%) !important;
+    color: darken($color, 60%) !important;
+  }
 }
 
 .performance-measurement__collapsiblePanel {

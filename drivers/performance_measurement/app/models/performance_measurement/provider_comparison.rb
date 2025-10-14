@@ -34,7 +34,10 @@ module PerformanceMeasurement
       # Headers
       table_data[:headers] = {}
       definition[:details].each do |detail|
-        table_data[:headers][detail] = report.detail_title_for(detail)
+        table_data[:headers][detail] = {
+          title: report.detail_title_for(detail),
+          category: report.detail_category_for(detail),
+        }
       end
       # Fill in the system-wide data
       table_data[:system] = {}
