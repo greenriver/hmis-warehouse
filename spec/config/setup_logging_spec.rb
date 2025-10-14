@@ -57,6 +57,8 @@ RSpec.describe SetupLogging do
     let(:event_payload) do
       {
         request: request,
+        host: 'example.org',
+        server_protocol: 'https://',
         headers: { 'action_dispatch.request_id' => 'req-123' },
         remote_ip: 'event-remote-ip',
         ip: 'event-client-ip',
@@ -91,6 +93,8 @@ RSpec.describe SetupLogging do
       let(:event_payload) do
         {
           request: request,
+          host: 'example.org',
+          server_protocol: 'https://',
           headers: { 'action_dispatch.request_id' => 'req-123' },
           remote_ip: nil,
           ip: '',
