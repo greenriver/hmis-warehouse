@@ -14,7 +14,7 @@
 #
 module Logging
   class Sanitizer
-    DEFAULT_MAX_STRING_LENGTH = 1_000
+    DEFAULT_MAX_STRING_LENGTH = 2_000
     DEFAULT_MAX_ARRAY_ITEMS = 100
     DEFAULT_MAX_HASH_ITEMS = 100
     DEFAULT_MAX_DEPTH = 5
@@ -49,7 +49,8 @@ module Logging
     def sanitize_string(value)
       str = value.to_s
       # Remove null bytes and control characters (except newlines/tabs)
-      str = str.tr("\u0000-\u0008\u000B-\u001F\u007F", '')
+      # str = str.tr("\u0000-\u0008\u000B-\u001F\u007F", '')
+      str = str.gsub(/[\p{Cntrl}&&[^\t\n]]/, '')
       # Truncate with indicator
       str.length >= @max_string_length ? str.truncate(@max_string_length, omission: '...[TRUNCATED]') : str
     end
@@ -65,17 +66,16 @@ module Logging
     def sanitize_hash(hash, current_depth:)
       return '[MAX_DEPTH]' if current_depth >= @max_depth
 
-      original_hash = hash.to_h
       result = {}
 
-      original_hash.each do |key, value|
+      hash.each do |key, value|
         break if result.size >= @max_hash_items
 
         sanitized_key = sanitize(key, current_depth: current_depth + 1)
         result[sanitized_key] = sanitize(value, current_depth: current_depth + 1)
       end
 
-      result[:_truncated] = "#{original_hash.size - @max_hash_items} items hidden" if original_hash.size > @max_hash_items
+      result[:_truncated] = "#{hash.size - @max_hash_items} items hidden" if hash.size > @max_hash_items
       result
     end
   end
