@@ -63,14 +63,6 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
-      chrome:
-        image: index.docker.io/browserless/chrome@sha256:efac47cfff3830d9a50b27d29f8bbb61949058ae336c823fbe9bd3c0d1debcc8 # 1-chrome-stable
-        ports:
-          - 3333:3333
-        env:
-          TZ: "America/New_York"
-          PORT: 3333
-          CONNECTION_TIMEOUT: 600000
 
     env:
       CLIENT: test
@@ -160,7 +152,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: local_secret_key
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
-          CHROME_URL: http://chrome:3333
+          CHROMIUM_PATH: /usr/bin/chromium
           TODO_OR_DIE_LOG_ONLY: true
         run: bundle exec rspec spec/system/rails --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
 
