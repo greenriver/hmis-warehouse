@@ -25,7 +25,6 @@ module LogRagePayloadBehavior
     payload[:request_id] = request.uuid
     # Upstream request start timestamp when provided by load balancers
     payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
-    # Authenticated HMIS/Warehouse user (when available)
-    payload[:user_id] = current_app_user&.id if defined?(current_app_user)
+    # note, payload[:user_id] is set in the warehouse and hmis base controller which override this method
   end
 end
