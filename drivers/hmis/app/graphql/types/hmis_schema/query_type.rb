@@ -568,9 +568,8 @@ module Types
       target_project = unit_group.project # does not need to be viewable by current user
       access_denied! unless target_project.receives_direct_ce_referrals?
 
-      workflow_template = unit_group.template_for_direct_referrals
-      definition = workflow_template&.direct_referral_form_definition
-      raise "Workflow template invalid or not found. unit group id: #{target_unit_group_id}" unless definition
+      definition = unit_group.direct_referral_form_definition
+      raise "Form definition for direct referrals invalid or not found. unit group id: #{target_unit_group_id}" unless definition
 
       definition
     end
