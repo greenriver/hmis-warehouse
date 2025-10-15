@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreatePctpNeeds < ActiveRecord::Migration[6.1]
   def change
     create_table :pctp_needs do |t|

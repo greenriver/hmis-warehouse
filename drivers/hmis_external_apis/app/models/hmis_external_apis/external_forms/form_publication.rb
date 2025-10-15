@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # track external publication of a form definition
 module HmisExternalApis::ExternalForms
   class FormPublication < ::HmisExternalApis::HmisExternalApisBase

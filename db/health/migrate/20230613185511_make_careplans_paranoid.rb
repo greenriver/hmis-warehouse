@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MakeCareplansParanoid < ActiveRecord::Migration[6.1]
   def change
     add_column :pctp_careplans, :deleted_at, :timestamp

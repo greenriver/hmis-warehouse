@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class IneligiblePatientMailer < HealthMailer
   def patients_with_eligibility_problems(care_coordinator_email:, ineligible_patient_ids:, non_aco_patient_ids:)
     @ineligible_ids = ineligible_patient_ids

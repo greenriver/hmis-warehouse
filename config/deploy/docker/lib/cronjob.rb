@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # An abstraction around a kubernetes cronjob
 # https://github.com/k8s-ruby/k8s-ruby
 class Cronjob

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddEnableAutoDeduplicationConfig < ActiveRecord::Migration[7.0]
   def change
     add_column :configs, :enable_auto_deduplication, :boolean, default: true

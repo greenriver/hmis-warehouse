@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects!, only: [:update]
   before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]

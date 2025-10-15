@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # GrdaWarehouse::EnrollmentChangeHistory
 #
 # Audit system that tracks changes to enrollment data over time to support data quality monitoring and troubleshooting.

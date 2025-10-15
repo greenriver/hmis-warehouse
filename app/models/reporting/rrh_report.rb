@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: Installation on mac
 # TODO: Add the following to the developer setup once we know it works
 # xcode-select --install

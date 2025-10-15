@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'aws-sdk-s3'
 class AwsS3
   attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key, :client

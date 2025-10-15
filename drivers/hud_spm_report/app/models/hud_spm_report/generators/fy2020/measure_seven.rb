@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Measure 7: Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing
 module HudSpmReport::Generators::Fy2020
   class MeasureSeven < Base

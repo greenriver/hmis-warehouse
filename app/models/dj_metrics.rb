@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # https://github.com/prometheus/client_ruby
 #
 # This is run by a rails (the delayed job worker) AND by a standalone roda

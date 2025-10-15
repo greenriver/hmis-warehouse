@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::Form
   RecordType = Struct.new(:id, :owner_type, :processor_name, keyword_init: true) do
     extend Enumerable

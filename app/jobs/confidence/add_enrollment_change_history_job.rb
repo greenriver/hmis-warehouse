@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Snapshot client enrollment histories for auditing
 # * note this job seems to stop and re-queue itself frequently, probably to free worker processes
 module Confidence

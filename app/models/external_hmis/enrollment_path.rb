@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ExternalHmis::EnrollmentPath
   ##
   # Generates a url path for linking to an enrollment in an external HMIS.  This should be used

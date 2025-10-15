@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClaimsReporting::Calculators
   class CovidVaccinationStatus
     DATA_FIELDS = [:member_id, :service_start_date, :procedure_code].freeze
