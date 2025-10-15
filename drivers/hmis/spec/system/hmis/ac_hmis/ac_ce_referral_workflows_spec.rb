@@ -433,7 +433,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         end
 
         expect(page).to have_content('Denial Review Available Today')
-        expect(page).to have_content('Denial Pending')
+        expect(referral.reload.custom_status.name).to eq('Denial Pending')
       end
 
       complete_ce_step('Denial Review') do
