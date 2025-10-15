@@ -227,7 +227,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         mui_select('Alice A and 1 other', from: 'HoH Enrollment')
 
         # The project should not appear in the dropdown choices
-        project_choices = get_mui_select_choices(select_label: 'Project')
+        project_choices = mui_select_option_list(from: 'Project')
         expect(project_choices).not_to include(match(/#{non_receiving_project.project_name}/))
       end
     end
@@ -248,7 +248,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         mui_select(target_project.project_name, from: 'Project')
 
         # The unit group should appear in choices but with "0 available" and be disabled
-        unit_group_choices = get_mui_select_choices(select_label: 'Unit Group')
+        unit_group_choices = mui_select_option_list(from: 'Unit Group')
         expect(unit_group_choices).to include(match(/#{unavailable_unit_group.name}\s+0 available/))
         option = mui_find_select_option(unavailable_unit_group.name, from: 'Unit Group')
         expect(option['aria-disabled']).to eq('true')
