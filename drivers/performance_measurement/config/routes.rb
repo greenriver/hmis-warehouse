@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 BostonHmis::Application.routes.draw do
   namespace :performance_measurement do
     namespace :warehouse_reports do
@@ -12,6 +14,7 @@ BostonHmis::Application.routes.draw do
         get 'clients/:key/:project_id', to: 'reports#clients', as: :clients
         member do
           get 'equity_analysis', to: 'reports#equity_analysis', as: :equity_analysis
+          get 'provider_comparisons', to: 'reports#provider_comparisons', as: :provider_comparisons
         end
       end
       resources :goal_configs, except: [:show] do
