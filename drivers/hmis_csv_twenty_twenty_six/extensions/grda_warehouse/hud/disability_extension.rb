@@ -11,8 +11,8 @@ module HmisCsvTwentyTwentySix::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2026, class_name: '::HmisCsvTwentyTwentySix::Importer::Disability', primary_key: [:DisabilitiesID, :data_source_id], query_constraints: [:DisabilitiesID, :data_source_id]
-      has_many :loaded_items_2026, class_name: '::HmisCsvTwentyTwentySix::Loader::Disability', primary_key: [:DisabilitiesID, :data_source_id], query_constraints: [:DisabilitiesID, :data_source_id]
+      has_many :imported_items_2026, class_name: '::HmisCsvTwentyTwentySix::Importer::Disability', primary_key: [:DisabilitiesID, :data_source_id], foreign_key: [:DisabilitiesID, :data_source_id]
+      has_many :loaded_items_2026, class_name: '::HmisCsvTwentyTwentySix::Loader::Disability', primary_key: [:DisabilitiesID, :data_source_id], foreign_key: [:DisabilitiesID, :data_source_id]
     end
   end
 end

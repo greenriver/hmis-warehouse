@@ -11,8 +11,8 @@ module HmisCsvTwentyTwentySix::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2026, class_name: '::HmisCsvTwentyTwentySix::Importer::AssessmentQuestion', primary_key: [:AssessmentQuestionID, :data_source_id], query_constraints: [:AssessmentQuestionID, :data_source_id]
-      has_many :loaded_items_2026, class_name: '::HmisCsvTwentyTwentySix::Loader::AssessmentQuestion', primary_key: [:AssessmentQuestionID, :data_source_id], query_constraints: [:AssessmentQuestionID, :data_source_id]
+      has_many :imported_items_2026, class_name: '::HmisCsvTwentyTwentySix::Importer::AssessmentQuestion', primary_key: [:AssessmentQuestionID, :data_source_id], foreign_key: [:AssessmentQuestionID, :data_source_id]
+      has_many :loaded_items_2026, class_name: '::HmisCsvTwentyTwentySix::Loader::AssessmentQuestion', primary_key: [:AssessmentQuestionID, :data_source_id], foreign_key: [:AssessmentQuestionID, :data_source_id]
     end
   end
 end
