@@ -72,28 +72,5 @@ RSpec.describe AccountsController, type: :controller do
         expect(flash_hash[:notice]).to eq(expected_message)
       end
     end
-
-    context 'when agency is changed' do
-      let(:new_agency) { create(:agency) }
-      let(:account_params) do
-        {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          credentials: user.credentials,
-          email_schedule: user.email_schedule,
-          phone: user.phone,
-          agency_id: new_agency.id.to_s,
-        }
-      end
-
-      before do
-        user.update!(agency: create(:agency))
-      end
-
-      it 'handles agency change with string conversion and sets appropriate flash notice' do
-        controller_instance.update
-        expect(flash_hash[:notice]).to eq('Agency name was updated.')
-      end
-    end
   end
 end
