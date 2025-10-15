@@ -284,7 +284,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -3566,7 +3566,8 @@ CREATE TABLE public.hmis_form_definitions (
     deleted_at timestamp without time zone,
     external_form_object_key character varying,
     backup_definition jsonb,
-    managed_in_version_control boolean DEFAULT false
+    managed_in_version_control boolean DEFAULT false,
+    admin_editable_only boolean DEFAULT false
 );
 
 
@@ -76070,6 +76071,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251002195913'),
 ('20250926075333'),
 ('20250923120000'),
+('20250921222539'),
 ('20250920182921'),
 ('20250904184751'),
 ('20250904183709'),
@@ -76284,4 +76286,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-
