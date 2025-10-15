@@ -8,7 +8,7 @@
 
 module PerformanceMeasurement::WarehouseReports
   class StaticSpmsController < ApplicationController
-    # include WarehouseReportAuthorization
+    include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     include ArelHelper
     before_action :set_goal
@@ -66,6 +66,11 @@ module PerformanceMeasurement::WarehouseReports
         fields << method
       end
       params.require(:spm).permit(*fields)
+    end
+
+    def related_report
+      url = 'performance_measurement/warehouse_reports/goal_configs'
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
 
     private def flash_interpolation_options

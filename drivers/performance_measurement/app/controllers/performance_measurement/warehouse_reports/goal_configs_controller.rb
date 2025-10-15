@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement::WarehouseReports
   class GoalConfigsController < ApplicationController
     include WarehouseReportAuthorization
@@ -71,6 +73,7 @@ module PerformanceMeasurement::WarehouseReports
         :label,
         :active,
         :equity_analysis_visible,
+        :provider_comparisons_visible,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p
