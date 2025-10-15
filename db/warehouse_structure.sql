@@ -1,4 +1,4 @@
--- \restrict 7rcuMwTImAP6DWenjyB14BDbrDiNcex1mclVKVpsJdR6s9zEMfSlWybqt6ZtrTO
+-- \restrict NL1BEL4AzRNLH9FINFIC39nqNFE6Sio66EoA1mcvaJ6uYxi5RQTNc4c79kieP5u
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -2525,7 +2525,8 @@ CREATE VIEW analytics.data_sources AS
     visible_in_window,
     authoritative,
     authoritative_type,
-    obey_consent
+    obey_consent,
+    hmis AS hmis_url
    FROM public.data_sources
   WHERE (deleted_at IS NULL);
 
@@ -5868,6 +5869,76 @@ ALTER SEQUENCE public.administrative_events_id_seq OWNED BY public.administrativ
 
 
 --
+-- Name: alert_definitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.alert_definitions (
+    id bigint NOT NULL,
+    code character varying NOT NULL,
+    name character varying NOT NULL,
+    category character varying NOT NULL,
+    description text,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN alert_definitions.code; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.alert_definitions.code IS 'Unique identifier (e.g., ''new_account'')';
+
+
+--
+-- Name: COLUMN alert_definitions.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.alert_definitions.name IS 'Display name (e.g., ''New Account Creation'')';
+
+
+--
+-- Name: COLUMN alert_definitions.category; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.alert_definitions.category IS 'Grouping category (e.g., ''system'', ''data_quality'')';
+
+
+--
+-- Name: COLUMN alert_definitions.description; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.alert_definitions.description IS 'Human-readable description';
+
+
+--
+-- Name: COLUMN alert_definitions.active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.alert_definitions.active IS 'Enable/disable without deletion';
+
+
+--
+-- Name: alert_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.alert_definitions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: alert_definitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.alert_definitions_id_seq OWNED BY public.alert_definitions.id;
+
+
+--
 -- Name: anomalies; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -8813,6 +8884,46 @@ ALTER SEQUENCE public.configs_id_seq OWNED BY public.configs.id;
 
 
 --
+-- Name: contact_alert_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.contact_alert_subscriptions (
+    id bigint NOT NULL,
+    contact_id bigint NOT NULL,
+    alert_definition_id bigint NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN contact_alert_subscriptions.active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.contact_alert_subscriptions.active IS 'Enable/disable subscription';
+
+
+--
+-- Name: contact_alert_subscriptions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.contact_alert_subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: contact_alert_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.contact_alert_subscriptions_id_seq OWNED BY public.contact_alert_subscriptions.id;
+
+
+--
 -- Name: contacts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -8826,7 +8937,8 @@ CREATE TABLE public.contacts (
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    user_id bigint
+    user_id bigint,
+    entity_type character varying
 );
 
 
@@ -34171,6 +34283,13 @@ ALTER TABLE ONLY public.administrative_events ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: alert_definitions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_definitions ALTER COLUMN id SET DEFAULT nextval('public.alert_definitions_id_seq'::regclass);
+
+
+--
 -- Name: anomalies id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -34686,6 +34805,13 @@ ALTER TABLE ONLY public.cohorts ALTER COLUMN id SET DEFAULT nextval('public.coho
 --
 
 ALTER TABLE ONLY public.configs ALTER COLUMN id SET DEFAULT nextval('public.configs_id_seq'::regclass);
+
+
+--
+-- Name: contact_alert_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contact_alert_subscriptions ALTER COLUMN id SET DEFAULT nextval('public.contact_alert_subscriptions_id_seq'::regclass);
 
 
 --
@@ -38289,6 +38415,14 @@ ALTER TABLE ONLY public.administrative_events
 
 
 --
+-- Name: alert_definitions alert_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_definitions
+    ADD CONSTRAINT alert_definitions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: anomalies anomalies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -38894,6 +39028,14 @@ ALTER TABLE ONLY public.cohorts
 
 ALTER TABLE ONLY public.configs
     ADD CONSTRAINT configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contact_alert_subscriptions contact_alert_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contact_alert_subscriptions
+    ADD CONSTRAINT contact_alert_subscriptions_pkey PRIMARY KEY (id);
 
 
 --
@@ -62123,6 +62265,20 @@ CREATE INDEX index_administrative_events_on_deleted_at ON public.administrative_
 
 
 --
+-- Name: index_alert_definitions_on_category; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alert_definitions_on_category ON public.alert_definitions USING btree (category);
+
+
+--
+-- Name: index_alert_definitions_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_alert_definitions_on_code ON public.alert_definitions USING btree (code);
+
+
+--
 -- Name: index_anomalies_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63005,10 +63161,38 @@ CREATE INDEX index_cohorts_on_project_group_id ON public.cohorts USING btree (pr
 
 
 --
+-- Name: index_contact_alert_subscriptions_on_alert_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contact_alert_subscriptions_on_alert_definition_id ON public.contact_alert_subscriptions USING btree (alert_definition_id);
+
+
+--
+-- Name: index_contact_alert_subscriptions_on_contact_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contact_alert_subscriptions_on_contact_id ON public.contact_alert_subscriptions USING btree (contact_id);
+
+
+--
+-- Name: index_contact_alerts_on_contact_and_definition; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_contact_alerts_on_contact_and_definition ON public.contact_alert_subscriptions USING btree (contact_id, alert_definition_id);
+
+
+--
 -- Name: index_contacts_on_entity_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_contacts_on_entity_id ON public.contacts USING btree (entity_id);
+
+
+--
+-- Name: index_contacts_on_entity_type_and_entity_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contacts_on_entity_type_and_entity_id ON public.contacts USING btree (entity_type, entity_id);
 
 
 --
@@ -74960,6 +75144,14 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 
 --
+-- Name: contact_alert_subscriptions fk_rails_2e7796da07; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contact_alert_subscriptions
+    ADD CONSTRAINT fk_rails_2e7796da07 FOREIGN KEY (alert_definition_id) REFERENCES public.alert_definitions(id);
+
+
+--
 -- Name: ce_referral_notes fk_rails_31c91759f7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75752,6 +75944,14 @@ ALTER TABLE ONLY public.ce_referrals
 
 
 --
+-- Name: contact_alert_subscriptions fk_rails_e2462552bc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contact_alert_subscriptions
+    ADD CONSTRAINT fk_rails_e2462552bc FOREIGN KEY (contact_id) REFERENCES public.contacts(id);
+
+
+--
 -- Name: wfd_flows fk_rails_e4de2aca14; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75851,12 +76051,16 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict 7rcuMwTImAP6DWenjyB14BDbrDiNcex1mclVKVpsJdR6s9zEMfSlWybqt6ZtrTO
+-- \unrestrict NL1BEL4AzRNLH9FINFIC39nqNFE6Sio66EoA1mcvaJ6uYxi5RQTNc4c79kieP5u
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251014152145'),
 ('20251010182635'),
+('20251008151928'),
+('20251008131833'),
+('20251008131232'),
 ('20251007133153'),
 ('20251007130048'),
 ('20251003200049'),
