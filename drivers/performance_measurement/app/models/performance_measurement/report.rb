@@ -23,7 +23,7 @@ module PerformanceMeasurement
 
     include ::WarehouseReports::Publish
 
-    attr_accessor :households
+    attr_accessor :households, :include_in_published_version, :include_in_summary_only_version
 
     belongs_to :user
     belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
@@ -245,6 +245,10 @@ module PerformanceMeasurement
 
     def can_see_client_details?(user)
       user.can_access_some_version_of_clients?
+    end
+
+    def show_tabs?
+      goal_config.present? && (goal_config.equity_analysis_visible || goal_config.provider_comparisons_visible) && !include_in_published_version
     end
 
     private def create_universe

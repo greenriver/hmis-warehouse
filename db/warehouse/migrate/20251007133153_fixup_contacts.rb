@@ -17,8 +17,8 @@ class FixupContacts < ActiveRecord::Migration[7.1]
       now = Time.current
       GrdaWarehouse::Contact::Base.find_each do |contact|
         # We only ever send email to people with valid accounts, so we'll delete any that would never work
-        id = users[contact.email]
-        puts "Contact #{contact.id} has email #{contact.email} and user #{id}"
+        id = users[contact[:email]]
+        puts "Contact #{contact.id} has email #{contact[:email]} and user #{id}"
         contact.update(deleted_at: now) unless id
 
         puts "Updating contact #{contact.id} to user #{id}"

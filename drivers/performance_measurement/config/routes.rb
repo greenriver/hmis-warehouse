@@ -14,6 +14,7 @@ BostonHmis::Application.routes.draw do
         get 'clients/:key/:project_id', to: 'reports#clients', as: :clients
         member do
           get 'equity_analysis', to: 'reports#equity_analysis', as: :equity_analysis
+          get 'provider_comparisons', to: 'reports#provider_comparisons', as: :provider_comparisons
         end
       end
       resources :goal_configs, except: [:show] do

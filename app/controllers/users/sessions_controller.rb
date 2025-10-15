@@ -27,7 +27,7 @@ class Users::SessionsController < Devise::SessionsController
   def end_time_log
     # Wait a semi-random length of time to return after a login attempt to prevent using login time analysis to enumerate valid usernames.
     # We want to make sure valid and invalid username attempts all take the same minimum amount of time to process and then add a random salt.
-    elapsed = Time.now - @session_create_timestamp
+    elapsed = Time.current - @session_create_timestamp
     wait_time = MIN_REQ_LOGIN_TIME - elapsed + rand(0.5..1)
     sleep(wait_time) if wait_time.positive? && elapsed < MIN_REQ_LOGIN_TIME
   end
