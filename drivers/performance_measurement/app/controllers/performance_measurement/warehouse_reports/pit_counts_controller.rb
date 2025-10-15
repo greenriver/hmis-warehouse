@@ -8,7 +8,7 @@
 
 module PerformanceMeasurement::WarehouseReports
   class PitCountsController < ApplicationController
-    # include WarehouseReportAuthorization
+    include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     include ArelHelper
     before_action :set_goal
@@ -46,6 +46,11 @@ module PerformanceMeasurement::WarehouseReports
         :unsheltered,
         :sheltered,
       )
+    end
+
+    def related_report
+      url = 'performance_measurement/warehouse_reports/goal_configs'
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
 
     private def flash_interpolation_options

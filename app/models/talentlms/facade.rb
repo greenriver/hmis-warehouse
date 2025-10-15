@@ -216,6 +216,8 @@ module Talentlms
     # @param course_id [Integer] the id of the course
     # @return [CompletedTraining] the completed training data, nil if completion could not be logged
     def log_course_completion(api, course_id, completion_date)
+      return nil unless valid_date?(completion_date)
+
       login = local_login(api)
       return nil if login.nil?
 
@@ -363,6 +365,47 @@ module Talentlms
 
     def self.expiration_duration_label
       expiration_duration_period.to_s.capitalize
+    end
+
+    private def parse_lms_date(value)
+      string = value.to_s.strip
+      return nil if string.blank?
+
+      # Known formats from TalentLMS
+      formats = [
+        ['%d/%m/%Y, %H:%M:%S', DateTime],
+        ['%d/%m/%Y', Date],
+        ['%m/%d/%Y, %I:%M:%S %p', DateTime],
+        ['%m/%d/%Y', Date],
+      ]
+
+      formats.each do |format, parser|
+        return parser.strptime(string, format)
+      rescue ArgumentError
+        next
+      end
+
+      DateTime.parse(string)
+    rescue ArgumentError
+      nil
+    end
+
+    def valid_date?(value)
+      return true if value.is_a?(Date) || value.is_a?(DateTime)
+
+      return false unless value.present?
+
+      # Validate that the date is within a reasonable range
+      date_string = value.to_s.strip
+      parsed_date = parse_lms_date(date_string)
+      return false unless parsed_date
+
+      date_value = parsed_date.to_date
+      return false unless date_value.between?(Date.new(2010, 1, 1), Date.tomorrow)
+
+      true
+    rescue ArgumentError, TypeError
+      false
     end
   end
 end

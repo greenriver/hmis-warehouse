@@ -73,6 +73,7 @@ module PerformanceMeasurement::WarehouseReports
         :label,
         :active,
         :equity_analysis_visible,
+        :provider_comparisons_visible,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p

@@ -13,6 +13,7 @@ module Types
     skip_activity_log
     description 'FormDefinition'
 
+    include Types::Forms::FormAccess
     include Types::Admin::HasFormRules
 
     available_filter_options do
