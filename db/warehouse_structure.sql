@@ -2525,7 +2525,8 @@ CREATE VIEW analytics.data_sources AS
     visible_in_window,
     authoritative,
     authoritative_type,
-    obey_consent
+    obey_consent,
+    hmis AS hmis_url
    FROM public.data_sources
   WHERE (deleted_at IS NULL);
 
@@ -75855,6 +75856,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251014152145'),
 ('20251007133153'),
 ('20251007130048'),
 ('20251003200049'),
