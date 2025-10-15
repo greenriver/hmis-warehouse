@@ -4703,8 +4703,6 @@ Style/FrozenStringLiteralComment:
     - 'spec/factories/reports/lsa/reports.rb'
     - 'spec/factories/reports/system_performance/reports.rb'
     - 'spec/factories/roles.rb'
-    - 'spec/factories/talentlms/courses.rb'
-    - 'spec/factories/talentlms/logins.rb'
     - 'spec/factories/test_jobs.rb'
     - 'spec/factories/user_groups.rb'
     - 'spec/factories/users.rb'
