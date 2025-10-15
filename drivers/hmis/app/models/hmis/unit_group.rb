@@ -101,9 +101,9 @@ module Hmis
     end
 
     def validate_template(template, field_name)
+      validate_field_stable_once_set(field_name)
       return unless template
 
-      validate_field_stable_once_set(field_name)
       errors.add(field_name, 'must be published') unless template.published?
       errors.add(field_name, 'must belong to the same data source') if template.data_source_id != project.data_source_id
       errors.add(field_name, 'must have a template type of ce_referral') unless template.template_type&.to_s == 'ce_referral'

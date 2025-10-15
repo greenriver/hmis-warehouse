@@ -82,6 +82,7 @@ module Types
 
     def can_be_marked_available
       return false unless Hmis::Ce.configuration.enabled? # CE must be enabled
+      return false unless unit_group # TODO(#8157) - remove
 
       workflow_template = load_ar_association(unit_group, :workflow_template)
       direct_referral_workflow_template = load_ar_association(unit_group, :direct_referral_workflow_template)

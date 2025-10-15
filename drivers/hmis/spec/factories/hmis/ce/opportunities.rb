@@ -30,7 +30,9 @@ FactoryBot.define do
 
     # In a before(:save) hook, save the unit, so the opportunity validations pass
     before(:create) do |opportunity|
-      opportunity.unit.save!
+      opportunity.project.save! unless opportunity.project.persisted?
+      opportunity.unit.unit_group.save! unless opportunity.unit.unit_group.nil? || opportunity.unit.unit_group.persisted?
+      opportunity.unit.save! unless opportunity.unit.persisted?
     end
   end
 end
