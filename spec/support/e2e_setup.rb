@@ -65,6 +65,19 @@ RSpec.shared_context 'SystemSpecHelper' do
     find('li[role=option]', text: choice).trigger(:click)
   end
 
+  def mui_select(choice, from:)
+    option = mui_find_select_option(choice, from: from)
+    option.trigger(:click)
+  end
+
+  def mui_find_select_option(choice, from:)
+    label = find('label', text: from)
+    scroll_to(label, align: :center)
+    id = label['for']
+    find("[id='#{id}']").click
+    find('li[role=option]', text: choice)
+  end
+
   # Given the label for a MUI select (dropdown) element, get the choices in the list
   def mui_select_option_list(from:)
     label_element = find('label', text: from)

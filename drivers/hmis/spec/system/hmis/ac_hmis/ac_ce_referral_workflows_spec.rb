@@ -214,6 +214,46 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       # CE Staff completes the Confirm Success step
       complete_ce_staff_confirm_success_step('Alice A', unit)
     end
+
+    context 'when a project does not receive referrals' do
+      let!(:non_receiving_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 1, with_coc: true) }
+      let!(:non_receiving_unit_group) { create(:hmis_unit_group, project: non_receiving_project, workflow_template: admin_assign_workflow_template) }
+      let!(:non_receiving_unit) { create(:hmis_unit, project: non_receiving_project, unit_group: non_receiving_unit_group) }
+
+      it 'does not appear in direct referral list' do
+        # Navigate to source project and try to create a referral
+        visit "/projects/#{source_project.id}/referrals"
+        click_link 'Send Referral'
+        mui_select('Alice A and 1 other', from: 'HoH Enrollment')
+
+        # The project should not appear in the dropdown choices
+        project_choices = get_mui_select_choices(select_label: 'Project')
+        expect(project_choices).not_to include(match(/#{non_receiving_project.project_name}/))
+      end
+    end
+
+    context 'when target project has a UnitGroup with no availability' do
+      let!(:unavailable_unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
+      let!(:unit_without_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
+      let!(:unit_with_closed_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
+      let!(:unit_with_locked_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
+      let!(:closed_opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit_with_closed_opportunity, status: 'closed') }
+      let!(:locked_opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit_with_locked_opportunity, status: 'locked') }
+
+      it 'cannot be referred to' do
+        # Navigate to source project and try to create a referral
+        visit "/projects/#{source_project.id}/referrals"
+        click_link 'Send Referral'
+        mui_select('Alice A and 1 other', from: 'HoH Enrollment')
+        mui_select(target_project.project_name, from: 'Project')
+
+        # The unit group should appear in choices but with "0 available" and be disabled
+        unit_group_choices = get_mui_select_choices(select_label: 'Unit Group')
+        expect(unit_group_choices).to include(match(/#{unavailable_unit_group.name}\s+0 available/))
+        option = mui_find_select_option(unavailable_unit_group.name, from: 'Unit Group')
+        expect(option['aria-disabled']).to eq('true')
+      end
+    end
   end
 
   describe 'waitlist referrals with housing workflow' do
