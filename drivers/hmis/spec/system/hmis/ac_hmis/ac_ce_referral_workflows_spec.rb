@@ -25,20 +25,19 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   after(:all) do
     # Clean up data source and workflow definition related records, since they were created in before(:all) and not in fixtures.
     # This helps avoid downstream issues in later tests.
-    Hmis::WorkflowDefinition::Flow.delete_all
-    Hmis::WorkflowDefinition::Node.delete_all
-    Hmis::WorkflowDefinition::Swimlane.delete_all
-    Hmis::WorkflowDefinition::Template.delete_all
+    ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
+    end
     Hmis::Ce::CustomReferralStatus.delete_all
-    GrdaWarehouse::DataSource.hmis.delete_all
+    GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost').delete
+
+    # Cleanup seeded referral step forms that were created in before(:all)
+    forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
+    forms.each { |form| form.custom_data_element_definitions.delete_all }
+    forms.delete_all
 
     # Return enrollment form to normal. (See comment about form cleanup in rails_helper.rb)
     HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
-
-    # Cleanup seeded referral step forms that were created in before(:all)
-    Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP).delete_all
-    Hmis::Hud::CustomDataElementDefinition.delete_all
-    Hmis::Hud::CustomDataElement.delete_all
   end
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
