@@ -15,6 +15,7 @@ module Admin
       @theme.set_theme_default_css!
       @theme.set_theme_default_logo!
       @theme.set_theme_default_print_logo!
+      @theme.set_theme_default_hmis_logo!
     end
 
     def update
@@ -37,6 +38,7 @@ module Admin
         :logo,
         :print_logo,
         :careplan_logo,
+        :hmis_logo,
       )
     end
 

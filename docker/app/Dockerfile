@@ -135,6 +135,7 @@ RUN apt-get update && apt-get upgrade -y \
   postgresql-client \
   postgresql-server-dev-all \
   ripgrep \
+  pinentry-tty \
   shared-mime-info \
   software-properties-common \
   tar \

@@ -15,7 +15,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:fd1) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: Hmis::Form::Definition::DRAFT }
   let!(:fd2) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT }
-  let!(:fd3) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT }
   let!(:fd3) { create :hmis_form_definition, role: :CLIENT }
 
   before(:each) do
@@ -82,25 +81,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('errors', 0, 'message')).to eq('only allowed to modify draft forms')
   end
 
-  it 'should work when updating title and role' do
-    input = { title: 'a new title!', role: 'SERVICE' }
+  it 'should work when updating title' do
+    input = { title: 'a new title!' }
     _response, result = post_graphql(id: fd1.id, input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
     expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
     expect(result.dig('data', 'updateFormDefinition', 'formDefinition', 'title')).to eq('a new title!')
-    expect(result.dig('data', 'updateFormDefinition', 'formDefinition', 'role')).to eq('SERVICE')
   end
 
   it 'should error when the user does not have permission' do
     remove_permissions(access_control, :can_administrate_config)
-    input = { role: 'CLIENT' } # The new role is invalid
-    expect_access_denied post_graphql(id: fd1.id, input: input) { mutation }
-
-    input = { title: 'anything' } # The existing role is invalid
+    input = { title: 'anything' } # Can't update fd3 (CLIENT role) without can_administrate_config
     expect_access_denied post_graphql(id: fd3.id, input: input) { mutation }
 
     remove_permissions(access_control, :can_manage_forms)
-    input = { title: 'a new title!' }
+    input = { title: 'a new title!' } # Can't update any forms (even CUSTOM_ASSESSMENT role) without can_manage_forms
     expect_access_denied post_graphql(id: fd1.id, input: input) { mutation }
   end
 end

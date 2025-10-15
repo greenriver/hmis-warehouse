@@ -12,15 +12,6 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::Form::Definition, type: :model do
   include_context 'hmis base setup'
 
-  before(:all) do
-    cleanup_test_environment
-    Hmis::Form::Definition.delete_all
-    Hmis::Form::Instance.delete_all
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 7 }

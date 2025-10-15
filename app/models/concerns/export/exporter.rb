@@ -80,7 +80,7 @@ module Export::Exporter
 
     def setup_enforce_project_date_scope
       setup_export
-      @export.update(options: { enforce_project_date_scope: true })
+      @export.update(options: @export.options.merge({ enforce_project_date_scope: true }))
     end
 
     def hmis_class_for(klass)

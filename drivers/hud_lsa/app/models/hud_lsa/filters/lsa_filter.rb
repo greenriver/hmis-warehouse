@@ -25,6 +25,9 @@ module HudLsa::Filters
       filters[:coc_code] = filters[:coc_code].reject(&:blank?).first if filters[:coc_code].is_a?(Array)
       super
 
+      # don't use deafault project type codes, we need them for the form select, but don't want to enforce
+      # any defaults
+      self.project_type_codes = normalize_input_array(filters[:project_type_codes], &:to_s)
       filters = filters.to_h.with_indifferent_access
 
       # Support the HIC
