@@ -13,7 +13,9 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   let(:project) { create :hmis_hud_project, data_source: data_source }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }
   let(:swimlane) { create :hmis_workflow_definition_swimlane, template: workflow_template }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+  let(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
+  let(:unit) { create(:hmis_unit, unit_group: unit_group, project: project) }
+  let(:opportunity) { create :hmis_ce_opportunity, unit: unit }
   let(:workflow_instance) { workflow_template.instances.create! }
   let(:referral) do
     create(
@@ -102,7 +104,8 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
 
         context 'and user is not a participant, but participates on this swimlane on a different referral' do
           # Set up referral to another opportunity, and assign `user` as a participant to the same swimlane that is shared for the template
-          let(:opportunity2) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+          let(:unit2) { create(:hmis_unit, unit_group: unit_group, project: project) }
+          let(:opportunity2) { create :hmis_ce_opportunity, unit: unit2 }
           let(:workflow_instance2) { workflow_template.instances.create! }
           let!(:referral2) do
             create(

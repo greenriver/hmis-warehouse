@@ -189,7 +189,9 @@ module Types
     end
 
     def target_project_id
-      load_ar_association(object, :opportunity).project_id
+      opportunity = load_ar_association(object, :opportunity)
+      project = load_ar_association(opportunity, :project)
+      project.id
     end
 
     def target_project_name
