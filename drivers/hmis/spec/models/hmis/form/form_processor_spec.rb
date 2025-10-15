@@ -872,7 +872,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       let!(:hud_values) { complete_hud_values.merge('currentUnit' => unit.id) }
 
       context 'with closed opportunity' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :closed) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, status: :closed) }
 
         it 'assigns the unit as usual' do
           expect do
@@ -883,7 +883,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
 
       context 'with open opportunity' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, status: :open) }
 
         it 'raises an error' do
           expect do
@@ -893,7 +893,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
 
       context 'with locked opportunity' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked, data_source: ds1) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, status: :locked) }
 
         it 'raises an error' do
           expect do

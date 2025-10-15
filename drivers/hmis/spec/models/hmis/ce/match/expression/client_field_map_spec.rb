@@ -166,11 +166,11 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
         before do
           ds1 = client1.data_source
           project1 = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
-          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, target_project: project1, status: 'in_progress')
+          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, project: project1, status: 'in_progress')
 
           ds2 = client2.data_source
           project2 = create(:hmis_hud_project, project_type: 2, data_source: ds2) # TH
-          create(:hmis_ce_referral, client: client2, data_source: client2.data_source, target_project: project2, status: 'rejected') # not active
+          create(:hmis_ce_referral, client: client2, data_source: client2.data_source, project: project2, status: 'rejected') # not active
         end
 
         it 'returns project types for active CE referrals' do
@@ -215,7 +215,7 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
           legacy_project = create(:hmis_hud_project, project_type: 13, data_source: ds1) # RRH
 
           # CE referral
-          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, target_project: ce_project, status: 'in_progress')
+          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, project: ce_project, status: 'in_progress')
 
           # Legacy referral
           referral = create(:hmis_external_api_ac_hmis_referral)
@@ -226,7 +226,7 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
           project2 = create(:hmis_hud_project, project_type: 2, data_source: ds2) # TH
 
           # Only CE referral for client2
-          create(:hmis_ce_referral, client: client2, data_source: client2.data_source, target_project: project2, status: 'in_progress')
+          create(:hmis_ce_referral, client: client2, data_source: client2.data_source, project: project2, status: 'in_progress')
         end
 
         it 'returns project types from both CE and legacy referrals, deduplicated' do
@@ -242,7 +242,7 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
           project1 = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
 
           # Both CE and legacy referrals to the same project type
-          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, target_project: project1, status: 'in_progress')
+          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, project: project1, status: 'in_progress')
 
           referral = create(:hmis_external_api_ac_hmis_referral)
           create(:hmis_external_api_ac_hmis_referral_household_member, referral: referral, client: client1)

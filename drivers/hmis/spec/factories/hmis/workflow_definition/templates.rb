@@ -18,10 +18,16 @@ FactoryBot.define do
           name: 'Start',
         )
 
-        user_task = create(
+        task_1 = create(
           :hmis_workflow_definition_user_task,
           template: template,
           name: 'Review Application',
+        )
+
+        task_2 = create(
+          :hmis_workflow_definition_user_task,
+          template: template,
+          name: 'Provider Accepts',
         )
 
         end_event = create(
@@ -31,8 +37,9 @@ FactoryBot.define do
         )
 
         # Connect the nodes with flows
-        start_event.connect_to!(user_task)
-        user_task.connect_to!(end_event)
+        start_event.connect_to!(task_1)
+        task_1.connect_to!(task_2)
+        task_2.connect_to!(end_event)
       end
     end
   end

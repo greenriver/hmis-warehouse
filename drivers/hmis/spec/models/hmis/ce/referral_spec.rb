@@ -57,7 +57,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     context 'when there is an existing referral' do
       let(:workflow_template) { opportunity.unit_group.workflow_template }
       let!(:workflow_instance) { workflow_template.instances.create! }
-      let!(:existing) { create(:hmis_ce_referral, workflow_instance: workflow_instance) }
+      let!(:existing) { create(:hmis_ce_referral, workflow_instance: workflow_instance, data_source: data_source) }
 
       it 'does not allow creating a new referral with the same instance' do
         referral = build(:hmis_ce_referral, workflow_instance: workflow_instance)
