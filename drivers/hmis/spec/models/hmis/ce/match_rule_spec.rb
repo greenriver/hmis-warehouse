@@ -8,8 +8,8 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
   let!(:project1) { create :hmis_hud_project, organization: organization, project_type: 0 }
   let!(:project2) { create :hmis_hud_project, organization: organization, project_type: 5 }
   let!(:project3) { create :hmis_hud_project, data_source: organization.data_source }
-  let!(:unit_1a) { create(:hmis_unit_in_group, project: project1) }
-  let!(:unit_2a) { create(:hmis_unit_in_group, project: project2) }
+  let!(:unit_1a) { create(:hmis_unit, project: project1) }
+  let!(:unit_2a) { create(:hmis_unit, project: project2) }
   let(:opportunity_1a) { create(:hmis_ce_opportunity, workflow_template: template, project: project1, unit: unit_1a) }
   let(:opportunity_1b) { create(:hmis_ce_opportunity, workflow_template: template, project: project1) }
   let(:opportunity_2) { create(:hmis_ce_opportunity, workflow_template: template, project: project2) }

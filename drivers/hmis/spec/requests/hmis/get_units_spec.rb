@@ -117,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the unit belongs to a unit group' do
-      let!(:unit) { create(:hmis_unit_in_group, project: project) }
+      let!(:unit) { create(:hmis_unit, project: project) }
 
       it 'returns the unit with its group name' do
         response, result = post_graphql(id: project.id) { query }
@@ -128,7 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'acceptingCeReferrals logic' do
-      let!(:unit) { create(:hmis_unit_in_group, project: project) }
+      let!(:unit) { create(:hmis_unit, project: project) }
       before(:each) do
         allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
       end

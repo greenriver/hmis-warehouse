@@ -16,7 +16,7 @@ FactoryBot.define do
       workflow_template { build :hmis_workflow_definition_template, data_source: data_source }
     end
 
-    opportunity { association :hmis_ce_opportunity, project: project, workflow_template: workflow_template, data_source: data_source }
+    opportunity { association :hmis_ce_opportunity, unit: association(:hmis_unit, project: project, unit_group: association(:hmis_unit_group, project: project, workflow_template: workflow_template)) }
     workflow_instance { association :hmis_workflow_execution_instance, template: workflow_template }
     client { association :hmis_hud_client_with_warehouse_client, data_source: data_source }
     referred_by { association :hmis_user, data_source: data_source }

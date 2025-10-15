@@ -415,8 +415,9 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
     end
 
     context 'when referral has an enrollment with a unit assignment' do
-      let!(:unit) { create :hmis_unit, project: project }
-      let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template, unit: unit }
+      let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
+      let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+      let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
 
       it 'deletes the enrollment and frees up the unit' do
         referral.reload
