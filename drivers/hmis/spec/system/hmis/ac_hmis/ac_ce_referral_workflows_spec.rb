@@ -9,11 +9,11 @@
 require 'rails_helper'
 require_relative '../../../support/ce_system_test_helper'
 
-RSpec.feature 'CE Direct Referrals', type: :system do
+RSpec.feature 'AC CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
   before(:all) do
-    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS')
 
     HmisUtil::JsonForms.new(env_key: 'allegheny', enable_cded_generation_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
