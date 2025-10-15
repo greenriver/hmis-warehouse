@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class UserTrainingController < ApplicationController
   def set_lms_info
     @courses = current_user.required_training_courses
@@ -20,7 +22,8 @@ class UserTrainingController < ApplicationController
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
     if !lms.any_training_required?
-      redirect_to after_sign_in_path_for(current_user)
+      redirect_to safe_training_redirect_path
+      return
     else
 
       begin
@@ -33,7 +36,7 @@ class UserTrainingController < ApplicationController
           config_logins[config.id] = lms.login(config)
         end
 
-        # Check each course traininig for progress/expiration
+        # Check each course training for progress/expiration
         courses.each do |course|
           config = course.config
           course_id = course.courseid
@@ -49,7 +52,7 @@ class UserTrainingController < ApplicationController
           lms.reset_user_progress(config, course_id) if lms.training_expired?(config, course_id)
 
           completed_on = lms.complete?(config, course_id)
-          if completed_on.present?
+          if lms.valid_date?(completed_on)
             lms.log_course_completion(config, course_id, completed_on)
             current_user.update(training_completed: true, last_training_completed: completed_on.to_date)
           else
@@ -87,5 +90,25 @@ class UserTrainingController < ApplicationController
         render 'error'
       end
     end
+  end
+
+  # Figure out where we are going after login
+  # stored_location_for is provided by Devise
+  # after_sign_in_path_for is provided by ApplicationController
+  def safe_training_redirect_path
+    path = stored_location_for(:user).presence || after_sign_in_path_for(current_user)
+    return fallback_redirect_path if training_path?(path)
+
+    path
+  end
+
+  def training_path?(path)
+    URI.parse(path).path == user_training_path
+  rescue URI::InvalidURIError
+    false
+  end
+
+  def fallback_redirect_path
+    current_user.my_root_path || root_path
   end
 end

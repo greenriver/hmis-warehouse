@@ -30,7 +30,7 @@ module GrdaWarehouse::Contact
     end
 
     def email
-      user&.email || email
+      user&.email || self[:email]
     end
 
     def full_name
