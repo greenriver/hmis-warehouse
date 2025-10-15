@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class Hmis::Hud::Project < Hmis::Hud::Base
   self.table_name = :Project
@@ -17,7 +17,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_paper_trail(meta: { project_id: :id })
 
-  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
+  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
@@ -132,7 +132,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   scope :matching_search_term, ->(search_term) do
     return none unless search_term.present?
 
-    search_term.strip!
+    search_term = search_term.strip
     query = "%#{search_term.split(/\W+/).join('%')}%"
 
     where(

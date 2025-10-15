@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 namespace :grda_warehouse do
   def self.safely_execute(&block)
