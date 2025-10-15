@@ -66,8 +66,8 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 
   # Given the label for a MUI select (dropdown) element, get the choices in the list
-  def get_mui_select_choices(select_label:)
-    label_element = find('label', text: select_label)
+  def mui_select_option_list(from:)
+    label_element = find('label', text: from)
     scroll_to(label_element, align: :center)
     id = label_element['for']
     select_element = find("[id='#{id}']")

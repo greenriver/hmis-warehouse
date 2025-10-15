@@ -13,7 +13,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
   before(:all) do
-    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS')
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true)
 
     HmisUtil::JsonForms.new(env_key: 'allegheny', enable_cded_generation_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
@@ -147,6 +147,13 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
 
       visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
       expect(page).to have_content('Referral for Alice A')
+
+      with_referral_panel_open('Contacts') do
+        user_options = mui_select_option_list(from: 'Project Staff')
+        expect(user_options).to include('Paul Provider')
+        expect(user_options).not_to include('Oliver Other')
+      end
+
       assign_referral_contacts({ 'Project Staff': ['Paul Provider'] })
 
       with_referral_panel_open('Activity') do
