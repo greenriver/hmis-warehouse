@@ -1,11 +1,11 @@
 # Alert Configuration System - Implementation Status
 
-**Last Updated:** 2025-10-10
+**Last Updated:** 2025-10-16
 **Related Architecture:** See `alerting.md` for full design documentation
 
-## Current Status: Phase 3 (Code Migration) - User Alerts Complete
+## Current Status: Phase 3 Complete - All UI Implementation Done
 
-The core infrastructure is deployed and functional. System alert subscriptions are working on the user edit page with full audit history tracking. Remaining work focuses on extending to organization/project contacts.
+The core infrastructure is deployed and functional. System alert subscriptions are working on the user edit page with full audit history tracking. Organization and project contact alert subscriptions are fully implemented with form UI, persistence, and index display.
 
 ---
 
@@ -121,6 +121,27 @@ All migrations are in `db/warehouse/migrate/`:
 
 ### Code Migration (Phase 3)
 
+#### Code Reference Verification
+
+**Verified (2025-10-16):** All remaining references to old boolean notification columns are acceptable:
+
+**In Controllers (Strong Parameters Only):**
+- `app/controllers/admin/users_controller.rb` - Lines 397-402
+- `app/controllers/users/invitations_controller.rb` - Lines 113-117
+- **Status:** These are intentionally kept in strong parameters for backward compatibility during migration
+- **Action Required:** None - this is expected and safe
+
+**In Models (Migration & Audit Support):**
+- `app/models/grda_warehouse/contact_alert_subscription.rb` - Migration mapping
+- `app/models/user_edit_history/user_version_change_summary.rb` - Deprecated column display
+- **Status:** Required for data migration and audit history display
+- **Action Required:** None - these are part of the migration strategy
+
+**In Application Code:**
+- ✅ No active usage of old boolean columns found in business logic
+- ✅ All mailers using new scopes
+- ✅ All forms using new system_contact nested attributes
+
 #### Mailer Updates
 
 1. **`app/mailers/notify_user.rb`**
@@ -158,30 +179,56 @@ None currently - all assigned work is complete.
 
 ---
 
-## ⏳ Remaining Work
-
-### Phase 3: Complete Code Migration
-
-#### 1. Find and Update Any Remaining Direct Column References
-
-**Search for old column usage:**
-```bash
-# Search for any remaining references to old boolean columns
-grep -r "notify_on_new_account" app/
-grep -r "receive_file_upload_notifications" app/
-grep -r "notify_on_vispdat_completed" app/
-grep -r "notify_on_client_added" app/
-grep -r "notify_on_anomaly_identified" app/
-grep -r "receive_account_request_notifications" app/
-```
-
-**Action:** Update any remaining code to use new scopes or subscription checks.
-
-**Priority:** Low - All known references have been updated. This is for cleanup/verification.
-
 ### Phase 3: UI - Organization/Project Contact Forms
 
-#### 2. Add Contact Relationships Summary to User Page (Optional)
+#### 1. ✅ Update Organization Contacts Form
+
+**Files updated:**
+- `app/controllers/concerns/contacts.rb` - Shared concern for both organization and project contacts
+- `app/views/organizations/contacts/_form.haml` - Organization contact form
+- `app/views/organizations/contacts/edit.haml` - Sets `contact_editable: false` to prevent user changes
+- `app/views/organizations/contacts/index.haml` - Added "Alert Subscriptions" column
+
+**Changes completed:**
+1. ✅ Updated controller strong parameters to accept `alert_definition_ids: []`
+2. ✅ Added `load_alert_definitions` before_action to load non-system alerts grouped by category
+3. ✅ Added alert subscription section to form using `pretty_boolean_group` input with hints
+4. ✅ Shows alerts grouped by category (excludes 'system' category)
+5. ✅ Contact user not editable from edit screen
+6. ✅ Index page shows comma-separated list of alert subscriptions
+
+**Status:** Complete
+
+#### 2. ✅ Update Project Contacts Form
+
+**Files updated:**
+- `app/controllers/concerns/contacts.rb` - Shared concern (same as organization)
+- `app/views/projects/contacts/_form.haml` - Project contact form
+- `app/views/projects/contacts/edit.haml` - Sets `contact_editable: false` to prevent user changes
+- `app/views/projects/contacts/index.haml` - Added "Alert Subscriptions" column
+
+**Changes completed:**
+1. ✅ Updated controller strong parameters to accept `alert_definition_ids: []` (shared with organization)
+2. ✅ Added alert subscription section to form using `pretty_boolean_group` input with hints
+3. ✅ Shows alerts grouped by category (excludes 'system' category)
+4. ✅ Contact user not editable from edit screen
+5. ✅ Index page shows comma-separated list of alert subscriptions
+
+**Status:** Complete
+
+#### 3. ✅ Updated PrettyBooleanGroupInput for Hints
+
+**File updated:**
+- `app/inputs/pretty_boolean_group_input.rb`
+
+**Changes completed:**
+1. ✅ Enhanced to support per-item hints via third element in collection array
+2. ✅ Renders hints with `c-checkbox__hint` class matching `pretty_boolean` input style
+3. ✅ Updated style guide to show examples with hints
+
+**Status:** Complete
+
+#### 4. Add Contact Relationships Summary to User Page (Optional)
 
 **File:** `app/views/admin/users/edit.haml`
 
@@ -191,35 +238,13 @@ Currently commented out on lines 11-13. This would show a read-only summary of a
 
 **Priority:** Low - Nice to have, but not required for core functionality.
 
-#### 3. Update Organization Contacts Form
+**Status:** Not started
 
-**Files to update:**
-- `app/controllers/organizations_contacts_controller.rb` (or similar)
-- `app/views/organizations/contacts/_form.haml`
-
-**Changes needed:**
-1. Update controller strong parameters to accept `alert_definition_ids: []`
-2. Add alert subscription section to form (see `alerting.md` lines 547-582)
-3. Show alerts grouped by category (exclude 'system' category)
-
-**Priority:** Medium - Required for organization-level alerts, but system alerts are working.
-
-#### 4. Update Project Contacts Form
-
-**Files to update:**
-- `app/controllers/projects_contacts_controller.rb` (or similar)
-- `app/views/projects/contacts/_form.haml`
-
-**Changes needed:**
-1. Mirror organization form structure
-2. Update controller strong parameters to accept `alert_definition_ids: []`
-3. Add alert subscription section to form
-
-**Priority:** Medium - Required for project-level alerts, but system alerts are working.
+## ⏳ Remaining Work
 
 ### Phase 4: Deprecation (Future Release)
 
-#### 5. Add Deprecation Warnings to Old Columns
+#### 4. Add Deprecation Warnings to Old Columns
 
 **Migration:** Create `deprecate_user_notification_columns.rb`
 
@@ -231,7 +256,7 @@ Add column comments indicating deprecation (see `alerting.md` lines 365-403).
 
 ### Phase 5: Cleanup (Far Future Release)
 
-#### 6. Remove Old Boolean Columns
+#### 5. Remove Old Boolean Columns
 
 **Migration:** Create `remove_deprecated_user_notification_columns.rb`
 
@@ -256,6 +281,7 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
 - [x] User edit form saves system alert subscriptions
 - [x] Visibility checks work correctly (OKTA, can_edit_vspdat?, etc.)
 - [x] Mailer methods use new scopes
+- [x] Mailer specs updated to use new factory traits
 - [x] PaperTrail tracking on ContactAlertSubscription
 - [x] Audit history displays subscription changes (both old boolean and new subscription format)
 
@@ -329,14 +355,34 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
    - Required because PaperTrail is disabled in test environment
    - Allows explicit creation of audit trail records for testing
 
+9. **`spec/factories/users.rb`** (Updated)
+   - Added trait `:subscribed_to_vispdat_completed` - Creates user with VI-SPDAT alert subscription
+   - Added trait `:subscribed_to_client_added` - Creates user with client added alert subscription
+   - Added trait `:subscribed_to_anomaly_identified` - Creates user with anomaly alert subscription
+   - Each trait:
+     - Creates/finds the appropriate AlertDefinition
+     - Creates system contact via `user.system_contact!`
+     - Creates ContactAlertSubscription linking contact to alert
+
+#### Mailer Specs
+
+10. **`spec/mailers/notify_user_spec.rb`** (Updated)
+    - Updated to use new factory traits instead of boolean flags
+    - Changed `create :user, notify_on_vispdat_completed: true` to `create :user, :subscribed_to_vispdat_completed`
+    - Changed `create :user, notify_on_client_added: true` to `create :user, :subscribed_to_client_added`
+    - All 22 examples passing:
+      - VI-SPDAT notification tests (8 examples)
+      - Client added notification tests (14 examples)
+    - ✅ Status: Complete
+
 ### ⏳ Remaining Testing Areas
 
-- [ ] Organization contact form displays and saves alert subscriptions
-- [ ] Project contact form displays and saves alert subscriptions
+- [x] Organization contact form displays and saves alert subscriptions
+- [x] Project contact form displays and saves alert subscriptions
 - [ ] Data migration script successfully migrates existing preferences
 - [ ] Cross-database query performance is acceptable
 - [ ] System tests for complete user workflows
-- [ ] Integration tests for organization/project contact workflows
+- [x] Request tests for organization contact workflows (spec/requests/organizations_contacts_spec.rb)
 
 ---
 
@@ -423,14 +469,22 @@ All Contact subclasses now have `belongs_to :entity, polymorphic: true`.
 
 ### Controllers
 - `app/controllers/admin/users_controller.rb` - User management (✅ updated)
-- `app/controllers/organizations_contacts_controller.rb` - Org contacts (⏳ needs update)
-- `app/controllers/projects_contacts_controller.rb` - Project contacts (⏳ needs update)
+- `app/controllers/concerns/contacts.rb` - Shared concern for org/project contacts (✅ updated)
+- `app/controllers/organizations_contacts_controller.rb` - Org contacts (✅ uses Contacts concern)
+- `app/controllers/projects_contacts_controller.rb` - Project contacts (✅ uses Contacts concern)
 
 ### Views
 - `app/views/admin/users/_form_fields.haml` - User form (✅ updated)
 - `app/views/admin/users/_contact_relationships.haml` - Summary partial (⏳ not created yet)
-- `app/views/organizations/contacts/_form.haml` - Org contact form (⏳ needs update)
-- `app/views/projects/contacts/_form.haml` - Project contact form (⏳ needs update)
+- `app/views/organizations/contacts/_form.haml` - Org contact form (✅ updated)
+- `app/views/organizations/contacts/edit.haml` - Org contact edit (✅ updated)
+- `app/views/organizations/contacts/index.haml` - Org contacts index (✅ updated)
+- `app/views/projects/contacts/_form.haml` - Project contact form (✅ updated)
+- `app/views/projects/contacts/edit.haml` - Project contact edit (✅ updated)
+- `app/views/projects/contacts/index.haml` - Project contacts index (✅ updated)
+
+### Inputs
+- `app/inputs/pretty_boolean_group_input.rb` - Multi-select checkbox/radio input (✅ updated for hints)
 
 ### Mailers
 - `app/mailers/notify_user.rb` - All notification emails (✅ updated)

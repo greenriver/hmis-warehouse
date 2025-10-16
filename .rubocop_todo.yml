@@ -1404,7 +1404,6 @@ Style/FrozenStringLiteralComment:
     - 'app/inputs/collection_select_input.rb'
     - 'app/inputs/grouped_select_two_input.rb'
     - 'app/inputs/numeric_input.rb'
-    - 'app/inputs/pretty_boolean_group_input.rb'
     - 'app/inputs/pretty_boolean_input.rb'
     - 'app/inputs/read_only_input.rb'
     - 'app/inputs/string_input.rb'

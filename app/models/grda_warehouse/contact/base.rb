@@ -19,14 +19,14 @@ module GrdaWarehouse::Contact
     pii_attr :last_name
     pii_attr :email
 
-    belongs_to :user, optional: true
+    belongs_to :user, optional: true, class_name: '::User'
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_many :report_tokens, foreign_key: :contact_id, class_name: 'GrdaWarehouse::ReportToken'
     has_many :contact_alert_subscriptions, dependent: :destroy, foreign_key: :contact_id, inverse_of: :contact
     has_many :alert_definitions, through: :contact_alert_subscriptions
 
     def self.available_users(entity, include_current: false)
-      scope = User.active.not_system.order(last_name: :asc, first_name: :asc)
+      scope = ::User.active.not_system.order(last_name: :asc, first_name: :asc)
       scope = scope.where.not(id: entity.contacts.pluck(:user_id)) unless include_current
       scope
     end
