@@ -25,6 +25,12 @@ module GrdaWarehouse::Contact
     has_many :contact_alert_subscriptions, dependent: :destroy, foreign_key: :contact_id, inverse_of: :contact
     has_many :alert_definitions, through: :contact_alert_subscriptions
 
+    scope :system_contacts, -> { where(type: 'GrdaWarehouse::Contact::User') }
+    scope :not_system_contacts, -> { where.not(type: 'GrdaWarehouse::Contact::User') }
+    scope :active_subscriptions, -> do
+      joins(:contact_alert_subscriptions).merge(GrdaWarehouse::ContactAlertSubscription.active)
+    end
+
     def self.available_users(entity, include_current: false)
       scope = ::User.active.not_system.order(last_name: :asc, first_name: :asc)
       scope = scope.where.not(id: entity.contacts.pluck(:user_id)) unless include_current

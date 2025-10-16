@@ -41,6 +41,13 @@ module Admin
       @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
       @user.build_system_contact if @user.system_contact.nil?
       @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
+
+      # Preload all contacts with their entities and alert definitions for contact relationships display
+      @user_contacts = @user.contacts.not_system_contacts.
+        active_subscriptions.
+        includes(:entity, :alert_definitions).
+        order(type: :asc).
+        to_a
     end
 
     def unlock

@@ -35,8 +35,8 @@ class User < ApplicationRecord
 
   has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', dependent: :destroy
 
-  has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :entity_id
-  has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :entity_id
+  has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
+  has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
 
   accepts_nested_attributes_for :system_contact
 

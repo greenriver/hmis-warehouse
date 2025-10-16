@@ -62,6 +62,8 @@
                 input_html: { multiple: true, checked: @user.system_contact&.alert_definition_ids&.include?(alert.id) },
                 checked_value: alert.id,
                 unchecked_value: nil
+    - unless @user.new_record?
+      = render 'contact_relationships'
     .form--expiration
       %h3 Account Life-cycle
       .well

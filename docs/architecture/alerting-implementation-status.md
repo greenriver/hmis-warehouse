@@ -49,10 +49,13 @@ All migrations are in `db/warehouse/migrate/`:
 2. **`app/models/grda_warehouse/contact_alert_subscription.rb`**
    - Join model between contacts and alert definitions
    - Uses explicit `foreign_key: :contact_id, inverse_of:` to avoid Rails inferring wrong FK from Base class
-   - Includes `migrate_user_notification_preferences!` class method for data migration
+   - **Data migration methods:**
+     - `migrate_user_notification_preferences!` - Main migration method that calls both sub-methods
+     - `migrate_user_system_alerts!` - Migrates user-level system alert preferences from old boolean columns
+     - `migrate_project_and_organization_contacts!` - Subscribes all existing project/organization contacts to data quality reports
    - **PaperTrail tracking enabled** with `referenced_user_id` metadata for audit history
    - Includes `describe_changes` method to format subscription changes for display
-   - ✅ Status: Complete with audit tracking
+   - ✅ Status: Complete with audit tracking and data quality migration
 
 3. **`app/models/grda_warehouse/contact/user.rb`**
    - New contact type for user-level system alerts
@@ -100,6 +103,8 @@ All migrations are in `db/warehouse/migrate/`:
 - **TaskQueue Job:** Added to `config/application.rb` as `config.queued_tasks[:migrate_user_notification_preferences]`
 - Calls `GrdaWarehouse::AlertDefinition.seed_initial_definitions`
 - Calls `GrdaWarehouse::ContactAlertSubscription.migrate_user_notification_preferences!`
+  - `migrate_user_system_alerts!` - Migrates user-level system alert preferences from old boolean columns
+  - `migrate_project_and_organization_contacts!` - Subscribes all existing project/organization contacts to data quality reports
 - ✅ Status: Configured (needs to be run in production)
 
 ### UI Implementation
@@ -228,17 +233,22 @@ None currently - all assigned work is complete.
 
 **Status:** Complete
 
-#### 4. Add Contact Relationships Summary to User Page (Optional)
+#### 4. ✅ Add Contact Relationships Summary to User Page
 
-**File:** `app/views/admin/users/edit.haml`
+**Files updated:**
+- `app/controllers/admin/users_controller.rb` - Updated `edit` action to preload contacts
+- `app/views/admin/users/edit.haml` - Added contact relationships partial
+- `app/views/admin/users/_contact_relationships.haml` - Created new partial (NEW)
 
-Currently commented out on lines 11-13. This would show a read-only summary of all contacts and their alert subscriptions.
+**Changes completed:**
+1. ✅ Controller preloads all user contacts with entities and alert definitions in single query
+2. ✅ Partial displays system contact, organization contacts, and project contacts
+3. ✅ Shows active alert subscriptions for each contact relationship
+4. ✅ Provides "Edit" links to respective organization/project contact edit pages
+5. ✅ Uses preloaded data to avoid N+1 queries
+6. ✅ Groups and filters contacts in memory for efficiency
 
-**Action:** Implement `app/views/admin/users/_contact_relationships.haml` partial as described in `alerting.md` lines 500-544.
-
-**Priority:** Low - Nice to have, but not required for core functionality.
-
-**Status:** Not started
+**Status:** Complete
 
 ## ⏳ Remaining Work
 
@@ -289,7 +299,7 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
 
 #### Model Specs
 
-1. **`spec/models/grda_warehouse/contact_alert_subscription_spec.rb`** (Created)
+1. **`spec/models/grda_warehouse/contact_alert_subscription_spec.rb`** (Updated)
    - Tests PaperTrail tracking (creation, update, destruction)
    - Tests `referenced_user_id` metadata is set correctly
    - Tests `describe_changes` method for all event types:
@@ -298,6 +308,14 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
      - Subscription deactivation: "Deactivated subscription to alert: [Name]"
      - Subscription reactivation: "Re-activated subscription to alert: [Name]"
    - Tests `user_id_for_audit` method for User contacts vs other contact types
+   - **Tests `migrate_project_and_organization_contacts!` method:**
+     - Subscribes all project contacts to data quality reports
+     - Subscribes all organization contacts to data quality reports
+     - Handles mixed contact types
+     - Is idempotent (safe to run multiple times)
+     - Handles missing alert definition gracefully
+   - Tests `migrate_user_notification_preferences!` calls both migration methods
+   - All 15 examples passing
 
 2. **`spec/models/user_edit_history/versions_spec.rb`** (Updated)
    - Added `#version_scope cross-database merging` describe block
