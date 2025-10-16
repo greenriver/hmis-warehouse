@@ -96,7 +96,7 @@ Rails.application.configure do
   config.force_ssl = false
 
   # Enable asset compilation for system tests
-  if ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true'
+  if ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true' || ENV['RUN_SYSTEM_TESTS'] == 'true'
     config.assets.compile = true
     config.assets.check_precompiled_asset = false
     config.assets.digest = false
