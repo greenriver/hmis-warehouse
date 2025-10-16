@@ -2,6 +2,6 @@
 - input_attrs[:pattern] = input_pattern if input_pattern.present?
 %label{for:html_id, class: required && 'required'}= label
 %input.form-control{input_attrs}
-.invalid-feedback{style: "display: none;"}= input_invalid_feedback
+.invalid-feedback= input_invalid_feedback
 - if input_helper
   .form-text.small.text-muted= input_helper

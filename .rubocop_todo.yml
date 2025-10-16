@@ -3894,7 +3894,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/unit_availability_sync.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/config.rb'
-    - 'drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_generator.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_publication.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_submission.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/hmis_external_apis_base.rb'
