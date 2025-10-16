@@ -22,13 +22,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID' # Invalid enum representation
 
-  before(:all) do
-    cleanup_test_environment
-    ::HmisUtil::JsonForms.seed_all
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
+  # before(:all) do
+  #   # cleanup_test_environment
+  #   ::HmisUtil::JsonForms.seed_all
+  # end
+  # after(:all) do
+  #   # cleanup_test_environment
+  # end
 
   describe 'IncomeBenefit processor' do
     it 'succeeds if overall is YES and sources are specified (income)' do
@@ -903,7 +903,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
         context 'and active referral for a different client' do
           let(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
-          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: c2) }
+          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: c2, data_source: ds1) }
           it 'raises an error' do
             expect do
               process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
@@ -912,7 +912,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end
 
         context 'and active referral for the same client' do
-          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: e1.client) }
+          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: e1.client, data_source: ds1) }
 
           it 'allows assignment' do
             expect do
@@ -924,7 +924,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         context 'and active referral for a client in same household' do
           let(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
           let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: e1.household_id }
-          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: c2, target_enrollment: e2) }
+          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: c2, target_enrollment: e2, data_source: ds1) }
 
           it 'allows assignment' do
             expect do
