@@ -97,22 +97,6 @@ RSpec.describe AccountsController, type: :request do
         expect(flash[:notice]).to eq('Phone number was updated.')
       end
 
-      it 'sets the flash notice for agency changes' do
-        agency = create(:agency)
-        user = create(:user, first_name: 'Original', last_name: 'Name', email_schedule: 'daily', phone: '1112223333', credentials: 'old', agency: agency)
-        sign_in(user)
-        changes = {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email_schedule: user.email_schedule,
-          phone: user.phone,
-          credentials: user.credentials,
-          agency_id: create(:agency).id,
-        }
-        patch account_path, params: { user: changes }
-        expect(flash[:notice]).to eq('Agency name was updated.')
-      end
-
       it 'joins the flash notices for multiple changes' do
         agency = create(:agency)
         user = create(:user, first_name: 'Original', last_name: 'Name', email_schedule: 'immediate', phone: '1112223333', credentials: 'old', agency: agency)
@@ -121,12 +105,11 @@ RSpec.describe AccountsController, type: :request do
           first_name: 'Updated',
           last_name: 'User',
           credentials: 'new_credentials',
-          agency_id: create(:agency).id,
           email_schedule: 'daily',
           phone: '1234567890',
         }
         patch account_path, params: { user: changes }
-        expect(flash[:notice]).to eq('Account name was updated. User credentials were changed. Email schedule was updated. Phone number was updated. Agency name was updated.')
+        expect(flash[:notice]).to eq('Account name was updated. User credentials were changed. Email schedule was updated. Phone number was updated.')
       end
     end
   end

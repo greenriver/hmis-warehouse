@@ -25,7 +25,7 @@ require_relative '../lib/util/rails_trusted_proxies_config'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -125,6 +125,10 @@ module BostonHmis
 
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
+
+    # Maintain Rails 7.0 behavior for specific settings
+    config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
+    config.active_record.default_column_serializer = YAML # Keep historic behavior
 
     # Extension points
     config.sub_populations = {}

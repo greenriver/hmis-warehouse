@@ -21,7 +21,7 @@ module ValidationLoader
 
         # -1 means all project types are applicable
         project_types = if row['Applicable project types'] == '-1'
-          HudUtility2026.project_types.keys.freeze
+          HudHelper.util('2026').project_types.keys.freeze
         else
           row['Applicable project types'].split(',').map(&:to_i)
         end

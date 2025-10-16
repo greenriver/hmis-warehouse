@@ -312,7 +312,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   # TODO: START_ACL remove after migration to ACLs
-  def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
+  def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicatePrefix,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -343,7 +343,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  def self.has_access_to_data_source_through_organizations(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
+  def self.has_access_to_data_source_through_organizations(user, q, qc) # rubocop:disable Naming/PredicatePrefix,Naming/MethodParameterName
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -379,7 +379,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  def self.has_access_to_data_source_through_projects(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
+  def self.has_access_to_data_source_through_projects(user, q, qc) # rubocop:disable Naming/PredicatePrefix,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
@@ -658,7 +658,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     "/tmp/uploaded#{file_path}"
   end
 
-  def has_data? # rubocop:disable Naming/PredicateName
+  def has_data? # rubocop:disable Naming/PredicatePrefix
     exports.any? || (hmis? && organizations.any?)
   end
 

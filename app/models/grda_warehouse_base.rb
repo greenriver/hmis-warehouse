@@ -25,7 +25,7 @@ class GrdaWarehouseBase < ActiveRecord::Base
   end
 
   # default colocated versions table for warehouse records
-  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicateName
+  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicatePrefix
     versions = options.fetch(:versions, {}).merge(class_name: 'GrdaWarehouse::Version')
     skip = options.fetch(:skip, [:lock_version])
     super(options.merge(versions: versions, skip: skip))

@@ -1,17 +1,17 @@
-name: Warehouse System Tests
+name: ActiveRecord Smoke Test
 
 on:
   pull_request:
     branches:
-      - "*"
-      - "**/*"
+      - '*'
+      - '**/*'
 concurrency:
-  group: ${{ github.ref }}-warehouse-system-tests
+  group: ${{ github.ref }}-active-record-smoke-test
   cancel-in-progress: true
 
 jobs:
-  system_tests:
-    name: Warehouse System Tests
+  smoke_test:
+    name: ActiveRecord Smoke Test
 
     runs-on: ubuntu-24.04
     container: ruby:3.4.5-slim-bookworm
@@ -51,7 +51,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         ports:
-          - "2222:22"
+          - '2222:22'
 
       minio:
         image: ghcr.io/greenriver/openpath-minio:1.0
@@ -62,7 +62,15 @@ jobs:
           MINIO_ACCESS_KEY: local_access_key
           MINIO_SECRET_KEY: local_secret_key
         ports:
-          - "9000:9000"
+          - '9000:9000'
+      chrome:
+        image: index.docker.io/browserless/chrome@sha256:efac47cfff3830d9a50b27d29f8bbb61949058ae336c823fbe9bd3c0d1debcc8 # 1-chrome-stable
+        ports:
+          - 3333:3333
+        env:
+          TZ: "America/New_York"
+          PORT: 3333
+          CONNECTION_TIMEOUT: 600000
 
     env:
       CLIENT: test
@@ -116,13 +124,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: "Container Setup"
+      - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
           additional_packages: libpq-dev chromium chromium-common
 
-      - name: "App setup"
+      - name: 'App setup'
         run: |
           cp config/secrets.yml.sample config/secrets.yml
           mkdir app/assets/stylesheets/theme/styles
@@ -131,8 +139,6 @@ jobs:
           cp config/database.yml.ci config/database.yml
 
       - name: Prepare test db
-        env:
-          TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
           bin/db_prep
@@ -142,27 +148,16 @@ jobs:
           chmod 600 ~/.pgpass
 
       - name: Precompile assets
-        env:
-          TODO_OR_DIE_LOG_ONLY: true
         run: bundle exec rails assets:precompile
 
-      - name: Run warehouse system tests
+      - name: Run ActiveRecord smoke test
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
-          CHROMIUM_PATH: /usr/bin/chromium
+          CHROME_URL: http://chrome:3333
           TODO_OR_DIE_LOG_ONLY: true
-        run: bundle exec rspec spec/system/rails --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
-
-      - name: Archive artifacts
-        if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
-        with:
-          if-no-files-found: ignore
-          name: artifacts-warehouse-system-tests
-          path: |
-            tmp/rspec_profiles/
-            tmp/capybara/screenshots/
-            var/deprecations/*.yml
+          SKIP_AREL_SQL_LITERAL_INITIALIZER: 1
+        run:
+          bundle exec rspec spec/models/active_record_extended_merge_regression_spec.rb -fd --fail-fast=$MAX_FAILURES --color

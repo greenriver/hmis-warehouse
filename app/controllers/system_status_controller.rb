@@ -81,28 +81,28 @@ class SystemStatusController < ActionController::Base
 
     app = 'unknown'
     begin
-      app = ApplicationRecord.connection.migration_context.current_version
+      app = ApplicationRecord.connection_pool.migration_context.current_version
     rescue StandardError
       app = 'unknown'
     end
 
     warehouse = 'unknown'
     begin
-      warehouse = GrdaWarehouseBase.connection.migration_context.current_version
+      warehouse = GrdaWarehouseBase.connection_pool.migration_context.current_version
     rescue StandardError
       warehouse = 'unknown'
     end
 
     reporting = 'unknown'
     begin
-      reporting = ReportingBase.connection.migration_context.current_version
+      reporting = ReportingBase.connection_pool.migration_context.current_version
     rescue StandardError
       reporting = 'unknown'
     end
 
     health = 'unknown'
     begin
-      health = HealthBase.connection.migration_context.current_version
+      health = HealthBase.connection_pool.migration_context.current_version
     rescue StandardError
       health = 'unknown'
     end

@@ -44,7 +44,7 @@ module GrdaWarehouse
       where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user, permission: :can_upload_hud_zips).select(:id))
     end
 
-    def has_import_log? # rubocop:disable Naming/PredicateName
+    def has_import_log? # rubocop:disable Naming/PredicatePrefix
       @has_import_log ||= GrdaWarehouse::ImportLog.where.not(completed_at: nil).
         where(data_source_id: data_source_id, completed_at: completed_at).
         exists?
