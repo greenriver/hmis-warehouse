@@ -260,8 +260,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
     let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: workflow_template, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
-    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, unit: unit, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
+    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
 
     before do
       referral.workflow_engine.start_workflow!(user: admin)
