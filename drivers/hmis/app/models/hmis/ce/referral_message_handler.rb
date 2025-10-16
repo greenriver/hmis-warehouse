@@ -139,7 +139,14 @@ module Hmis::Ce
     def mark_client_dirty(client)
       raise ArgumentError unless client.is_a?(Hmis::Hud::Client)
 
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: [client.id])
+      # With current setup, destination client will always exist by the time a referral is created, accepted, or rejected.
+      # This will need to be adjusted in the future to support VSP
+      raise ArgumentError unless client.destination_client.present?
+
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version(
+        'GrdaWarehouse::Hud::Client',
+        trackable_ids: [client.destination_client.id],
+      )
     end
   end
 end

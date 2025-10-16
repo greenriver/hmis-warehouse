@@ -326,6 +326,7 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       )
     end
 
+    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=5A606727-DCC6-477E-BCAB6FCC078237F2
     it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,

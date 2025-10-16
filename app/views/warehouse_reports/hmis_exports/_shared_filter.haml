@@ -2,9 +2,15 @@
 .well
   .row
     .col-sm-3
-      = f.input :start_date, as: :date_picker
+      - if local_assigns[:edit_mode]
+        = f.input :start_date, as: :date_picker, disabled: true, input_html: { value: local_assigns[:recurrence]&.options&.dig('start_date') || f.object.start_date }
+      - else
+        = f.input :start_date, as: :date_picker
     .col-sm-3
-      = f.input :end_date, as: :date_picker
+      - if local_assigns[:edit_mode]
+        = f.input :end_date, as: :date_picker, disabled: true, input_html: { value: local_assigns[:recurrence]&.options&.dig('end_date') || f.object.end_date }
+      - else
+        = f.input :end_date, as: :date_picker
     .col-sm-3
       = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: true, placeholder: 'Choose CoCs' }, label: 'CoC Codes', hint: 'If any  CoC Codes are selected, Project CoC, Enrollment, and Inventory records will be limited to those with the chosen CoC Codes.'
     .col-sm-3
