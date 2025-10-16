@@ -74,6 +74,16 @@ module Hmis
       direct_referral_workflow_template || workflow_template
     end
 
+    # Form definition to use for direct referrals to this Unit Group, if any.
+    # Returns nil if no form definition is found
+    # Raises if there are 2+ entry user tasks, which indicates misconfiguration
+    def direct_referral_form_definition
+      entry_user_tasks = template_for_direct_referrals&.entry_user_tasks || []
+      raise "Expected exactly 1 entry user task for direct referral form definition. Unit group #{id}" if entry_user_tasks.count > 1
+
+      entry_user_tasks.first&.form_definition
+    end
+
     private
 
     def project_is_not_changed
@@ -94,8 +104,7 @@ module Hmis
       validate_template(direct_referral_workflow_template, :direct_referral_workflow_template_identifier)
 
       # The template must have a direct_referral_form_definition for the direct referral initiator to fill out.
-      # If this is nil, that indicates the structure is invalid.
-      return if direct_referral_workflow_template.direct_referral_form_definition.present?
+      return if direct_referral_form_definition.present?
 
       errors.add(:direct_referral_workflow_template_identifier, 'structure is not valid for direct referrals')
     end

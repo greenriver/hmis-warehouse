@@ -158,12 +158,14 @@ class Dba::DatabaseBloat
         options = "--no-superuser-check -U #{escaped_username} -d #{escaped_database} -h #{escaped_host} -p #{escaped_port} -t #{escaped_schema}.#{escaped_table}"
 
         # In order to support multiple versions of pg_repack, we need to use the version-specific binary
-        cmd = "#{escaped_binary} #{options}"
+        # Use bash's 'exec -a' to override argv[0] (the program name) to avoid version mismatch errors
+        # The pg_repack extension checks that argv[0] matches 'pg_repack', so we use exec -a to set it
+        # This allows us to use versioned binaries like 'pg_repack-1.5.2' while reporting as 'pg_repack'
+        bash_cmd = "exec -a pg_repack #{escaped_binary} #{options}"
+        cmd = ['bash', '-c', bash_cmd]
 
-        raise 'version of pg_repack needs to match that in the database'
-
-        Rails.logger.info("Repacking #{row['tblname']}") # rubocop:disable Lint/UnreachableCode
-        system(cmd)
+        Rails.logger.info("Repacking #{row['tblname']} with binary: #{binary}")
+        system(*cmd)
 
         raise 'running repack failed.' if $?.exitstatus != 0 # rubocop:disable Style/SpecialGlobalVars
 
