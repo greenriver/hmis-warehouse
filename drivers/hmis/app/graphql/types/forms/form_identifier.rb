@@ -4,10 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Types
   class Forms::FormIdentifier < Types::BaseObject
     skip_activity_log
     description 'Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier'
+
+    include Types::Forms::FormAccess
 
     # object is a Hmis::Form::Definition, but this schema type is a little funny because it doesn't
     # correspond to ONE FormDefinition -- it corresponds to a form _identifier_, such as `spdat`, which
@@ -28,6 +32,7 @@ module Types
     field :all_versions, Types::Forms::FormDefinition.page_type, null: false
     field :display_version, Types::Forms::FormDefinition, null: false, description: 'Form version to use for display in the configuration tool interface. The form itself may be draft, status, or retired.'
     field :managed_in_version_control, Boolean, null: false, description: 'Whether this form is managed in version control. If true, it should not be edited in the configuration tool.'
+    field :admin_editable_only, Boolean, null: false, description: 'Whether this form is locked for editing by non-admins'
 
     def id
       # Cache by identifier, not underlying object id, because ids change over time with new versions

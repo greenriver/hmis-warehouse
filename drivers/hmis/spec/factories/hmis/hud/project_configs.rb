@@ -43,4 +43,9 @@ FactoryBot.define do
       config.config_options = options.to_json
     end
   end
+
+  factory :hmis_project_sends_direct_ce_referrals_config, class: 'Hmis::ProjectSendsDirectCeReferralsConfig' do
+    created_at { Time.current }
+    updated_at { Time.current }
+  end
 end
