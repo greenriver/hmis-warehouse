@@ -1,10 +1,10 @@
 = render 'chosen_universe'
-= render 'report_tabs' if !@default_goal.nil? && @default_goal.equity_analysis_visible && ! @include_in_published_version
+= render 'report_tabs' if @report.show_tabs?
 = render 'summary'
-= render 'rows', pdf: false unless @include_in_summary_only_version
+= render 'rows', pdf: false unless @report.include_in_summary_only_version
 
-- unless @include_in_summary_only_version
-  = content_for :page_js do 
+- unless @report.include_in_summary_only_version
+  = content_for :page_js do
     :javascript
       $(document).ready(function() {
         $('.j-summary-row').addClass('cursor-pointer');

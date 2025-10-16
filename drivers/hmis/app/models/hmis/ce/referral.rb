@@ -227,10 +227,11 @@ module Hmis::Ce
     end
 
     def consistent_data_source
-      msg = 'must be in same data source as target project'
+      msg = 'must be in same data source'
 
-      data_source = target_project.data_source
+      data_source = workflow_template.data_source
 
+      errors.add(:opportunity, msg) unless data_source == opportunity.data_source
       errors.add(:client, msg) unless data_source == client.data_source
       errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source # need this?
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity

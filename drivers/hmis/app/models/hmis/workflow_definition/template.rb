@@ -14,6 +14,8 @@ module Hmis::WorkflowDefinition
     has_many :flows, class_name: 'Hmis::WorkflowDefinition::Flow', dependent: :destroy
     has_many :instances, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :restrict_with_exception, foreign_key: 'template_id'
     has_many :swimlanes, class_name: 'Hmis::WorkflowDefinition::Swimlane', dependent: :restrict_with_exception, foreign_key: 'template_id'
+    has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: 'workflow_template_identifier', primary_key: 'identifier', dependent: :nullify
+    has_many :direct_referral_unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: 'direct_referral_workflow_template_identifier', primary_key: 'identifier', dependent: :nullify
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     validates :name, presence: true
