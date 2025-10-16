@@ -6,10 +6,8 @@
 
 # frozen_string_literal: true
 
-FactoryBot.define do
-  factory :talentlms_login, class: 'Talentlms::Login' do
-    lms_user_id { 1 }
-    association :user
-    association :config, factory: :talentlms_config
+class AddAdminEditableOnlyToFormDefinition < ActiveRecord::Migration[7.0]
+  def change
+    add_column :hmis_form_definitions, :admin_editable_only, :boolean, default: false, null: false
   end
 end

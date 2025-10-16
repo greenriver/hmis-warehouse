@@ -6,10 +6,8 @@
 
 # frozen_string_literal: true
 
-FactoryBot.define do
-  factory :talentlms_login, class: 'Talentlms::Login' do
-    lms_user_id { 1 }
-    association :user
-    association :config, factory: :talentlms_config
+class UpdateAnalyticsDataSourcesToVersion2 < ActiveRecord::Migration[7.1]
+  def change
+    update_view 'analytics.data_sources', version: 2, revert_to_version: 1
   end
 end

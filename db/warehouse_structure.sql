@@ -1,4 +1,4 @@
--- \restrict mJMPC2snCarzfLMQlZkOQP6omZze7FfzUdOhVI8YQFN35dt5xgDg2PEogbpscL0
+-- \restrict xiir9IDy69vz4Wgf31v3hHwRyXVNZ1M6bi9cYD3OgIX86ZtJ21yYhiwxHuRRL7E
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -2525,7 +2525,8 @@ CREATE VIEW analytics.data_sources AS
     visible_in_window,
     authoritative,
     authoritative_type,
-    obey_consent
+    obey_consent,
+    hmis AS hmis_url
    FROM public.data_sources
   WHERE (deleted_at IS NULL);
 
@@ -3565,7 +3566,8 @@ CREATE TABLE public.hmis_form_definitions (
     deleted_at timestamp without time zone,
     external_form_object_key character varying,
     backup_definition jsonb,
-    managed_in_version_control boolean DEFAULT false
+    managed_in_version_control boolean DEFAULT false,
+    admin_editable_only boolean DEFAULT false NOT NULL
 );
 
 
@@ -76050,11 +76052,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict mJMPC2snCarzfLMQlZkOQP6omZze7FfzUdOhVI8YQFN35dt5xgDg2PEogbpscL0
+-- \unrestrict xiir9IDy69vz4Wgf31v3hHwRyXVNZ1M6bi9cYD3OgIX86ZtJ21yYhiwxHuRRL7E
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251014152145'),
 ('20251010182635'),
 ('20251008151928'),
 ('20251008131833'),
@@ -76068,6 +76071,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251002195913'),
 ('20250926075333'),
 ('20250923120000'),
+('20250921222539'),
 ('20250920182921'),
 ('20250904184751'),
 ('20250904183709'),

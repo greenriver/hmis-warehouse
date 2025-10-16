@@ -6,10 +6,8 @@
 
 # frozen_string_literal: true
 
-FactoryBot.define do
-  factory :talentlms_login, class: 'Talentlms::Login' do
-    lms_user_id { 1 }
-    association :user
-    association :config, factory: :talentlms_config
+class AddProviderComparisonConfig < ActiveRecord::Migration[7.1]
+  def change
+    add_column :performance_measurement_goals, :provider_comparisons_visible, :boolean, null: false, default: false
   end
 end
