@@ -375,10 +375,43 @@ Drop deprecated columns from `users` table (see `alerting.md` lines 405-432).
       - Client added notification tests (14 examples)
     - ✅ Status: Complete
 
+11. **`spec/mailers/project_data_quality_report_mailer_spec.rb`** (Created)
+    - Comprehensive test coverage for Data Quality Report mailer and subscription filtering
+    - **Direct mailer tests** (tests mailer method in isolation):
+      - Tests with project contacts, organization contacts, project group reports
+      - Verifies email sending, report token creation, sent_at timestamp updates
+      - Comment explains these bypass subscription checks since they call mailer directly
+    - **Subscription filtering tests** (tests send_notifications method):
+      - Only sends to subscribed contacts
+      - Does not send to unsubscribed contacts
+      - Handles mixed scenarios (some subscribed, some not)
+      - Handles missing alert definitions
+      - Respects notify_contacts flag
+      - Only marks notifications as sent if subscribed contacts exist
+    - All 14 examples passing
+    - ✅ Status: Complete
+
+#### Data Quality Report Implementation
+
+12. **`app/models/grda_warehouse/warehouse_reports/project/data_quality/base.rb`** (Updated)
+    - Modified `send_notifications` method to filter by 'data_quality_report' alert subscription
+    - Gets all contacts (project, organization, project_group, organization_project_group)
+    - Filters to only subscribed contacts using `contact.subscribed_to?('data_quality_report')`
+    - Only marks report as sent if there were subscribed contacts
+    - Uses alert code strings consistently throughout
+    - ✅ Status: Complete
+
+13. **`app/mailers/project_data_quality_report_mailer.rb`** (Existing)
+    - Mailer sends to any contact passed to it (subscription filtering happens in send_notifications)
+    - Creates report tokens for authentication
+    - Updates sent_at timestamp
+    - ✅ Status: Verified working with subscription system
+
 ### ⏳ Remaining Testing Areas
 
 - [x] Organization contact form displays and saves alert subscriptions
 - [x] Project contact form displays and saves alert subscriptions
+- [x] Data quality report emails filtered by alert subscriptions
 - [ ] Data migration script successfully migrates existing preferences
 - [ ] Cross-database query performance is acceptable
 - [ ] System tests for complete user workflows
@@ -488,6 +521,8 @@ All Contact subclasses now have `belongs_to :entity, polymorphic: true`.
 
 ### Mailers
 - `app/mailers/notify_user.rb` - All notification emails (✅ updated)
+- `app/mailers/project_data_quality_report_mailer.rb` - Data quality report notifications (✅ working with subscriptions)
+- `app/models/grda_warehouse/warehouse_reports/project/data_quality/base.rb` - Report generation and notification sending (✅ updated for subscriptions)
 
 ### Audit History
 - `app/models/user_edit_history/user_version_change_summary.rb` - Formats changes for display (✅ updated)

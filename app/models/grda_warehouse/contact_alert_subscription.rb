@@ -84,6 +84,12 @@ module GrdaWarehouse
 
     # Migrate existing user notification preferences to alert subscriptions
     def self.migrate_user_notification_preferences!
+      migrate_user_system_alerts!
+      migrate_project_and_organization_contacts!
+    end
+
+    # Migrate user-level system alert preferences from old boolean columns
+    def self.migrate_user_system_alerts!
       mappings = {
         'notify_on_new_account' => 'new_account',
         'notify_on_vispdat_completed' => 'vispdat_completed',
@@ -117,6 +123,29 @@ module GrdaWarehouse
             contact.contact_alert_subscriptions.find_or_create_by!(attrs)
           end
         end
+      end
+    end
+
+    # Subscribe all existing project and organization contacts to data quality reports
+    # This ensures existing contacts continue to receive reports they were getting before
+    def self.migrate_project_and_organization_contacts!
+      data_quality_definition = AlertDefinition.find_by(code: 'data_quality_report')
+      return unless data_quality_definition
+
+      # Subscribe all project contacts
+      GrdaWarehouse::Contact::Project.find_each do |contact|
+        contact.contact_alert_subscriptions.find_or_create_by!(
+          alert_definition_id: data_quality_definition.id,
+          active: true,
+        )
+      end
+
+      # Subscribe all organization contacts
+      GrdaWarehouse::Contact::Organization.find_each do |contact|
+        contact.contact_alert_subscriptions.find_or_create_by!(
+          alert_definition_id: data_quality_definition.id,
+          active: true,
+        )
       end
     end
   end

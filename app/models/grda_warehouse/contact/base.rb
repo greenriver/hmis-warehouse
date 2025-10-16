@@ -53,18 +53,18 @@ module GrdaWarehouse::Contact
       contact_alert_subscriptions.
         joins(:alert_definition).
         where(active: true).
-        merge(AlertDefinition.active)
+        merge(GrdaWarehouse::AlertDefinition.active)
     end
 
     # Subscribe to an alert by code
     def subscribe_to!(alert_definition_code)
-      definition = AlertDefinition.active.find_by!(code: alert_definition_code)
+      definition = GrdaWarehouse::AlertDefinition.active.find_by!(code: alert_definition_code)
       contact_alert_subscriptions.find_or_create_by!(alert_definition: definition)
     end
 
     # Unsubscribe from an alert by code
     def unsubscribe_from!(alert_definition_code)
-      definition = AlertDefinition.find_by!(code: alert_definition_code)
+      definition = GrdaWarehouse::AlertDefinition.find_by!(code: alert_definition_code)
       contact_alert_subscriptions.where(alert_definition: definition).destroy_all
     end
   end

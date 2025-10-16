@@ -2083,7 +2083,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/grda_warehouse/warehouse_reports/exports/ad_hoc_anon.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_chronic_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_four.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project_contact.rb'
     - 'app/models/grda_warehouse/warehouse_reports/report_definitions_user.rb'
