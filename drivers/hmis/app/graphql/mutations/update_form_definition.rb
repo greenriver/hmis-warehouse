@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class UpdateFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
@@ -14,18 +16,14 @@ module Mutations
     def resolve(id:, input:)
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
-      raise 'not allowed' if definition.managed_in_version_control?
 
-      # The UI currently does allow changing the form role, so we make this permission check twice:
-      # - to confirm the user has permission to manage the role from the input (in case it's changing)
-      # - to confirm the user has permission to manage forms for the original role (from the definition)
-      access_denied! if input.role && !current_user.can_manage_forms_for_role?(input.role)
-      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_manage_form?
 
       raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
+      raise 'not allowed to change role' if input.role.present? && input.role != definition.role
 
-      # This mutation can be used to update the definition or the title/role, which is why definition is optional.
+      # This mutation can be used to update the definition or the title, which is why definition is optional.
       definition.assign_attributes(**input.to_attributes) unless input.to_attributes.blank?
 
       # This definition could be coming from one of two places:
