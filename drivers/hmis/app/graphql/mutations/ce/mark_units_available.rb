@@ -51,7 +51,6 @@ module Mutations
         unit: unit,
         project: unit.project,
         name: opportunity_name,
-        workflow_template_identifier: workflow_template.identifier,
         candidate_pool_id: unit_group.candidate_pool_id,
         assignment_rules: rule_resolver.rules_for_unit_group(unit_group).map(&:attributes),
       )

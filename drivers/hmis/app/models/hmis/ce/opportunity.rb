@@ -4,6 +4,8 @@
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
+    self.ignored_columns += ['workflow_template_identifier'] # TODO - remove after migration 20251002192540 is run
+
     acts_as_paranoid
     has_paper_trail
     include SimpleStateMachine
@@ -11,11 +13,6 @@ module Hmis::Ce
     belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
     has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
-    belongs_to :workflow_template,
-               -> { published },
-               foreign_key: 'workflow_template_identifier',
-               primary_key: 'identifier',
-               class_name: 'Hmis::WorkflowDefinition::Template'
 
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
@@ -23,7 +20,6 @@ module Hmis::Ce
     belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
-    has_many :swimlanes, through: :workflow_template, class_name: 'Hmis::WorkflowDefinition::Swimlane'
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit
@@ -150,12 +146,6 @@ module Hmis::Ce
       return unless conflicting_opportunity_exists
 
       errors.add(:unit, 'can only have one open or locked opportunity')
-    end
-
-    def consistent_data_source
-      return if project.data_source == workflow_template.data_source
-
-      errors.add(:project, 'must be in same data source as workflow template')
     end
   end
 end
