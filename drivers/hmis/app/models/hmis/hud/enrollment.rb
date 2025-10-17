@@ -483,7 +483,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       # Check if the enrollment being assigned is for the same client that is actively referred to this unit
       is_same_client = opportunity.active_referral&.client == client
       # Check if the enrollment being assigned belongs to the same household as the active referral's target enrollment
-      is_same_household = opportunity.active_referral&.target_enrollment&.household_id == household_id
+      # Reload because if we are assigning multiple household members in one transaction, the target enrollment may have been updated since the referral was last loaded into memory.
+      is_same_household = opportunity.active_referral&.reload&.target_enrollment&.household_id == household_id
       raise 'Cannot assign to a unit with locked opportunity' unless is_same_client || is_same_household
     end
 
