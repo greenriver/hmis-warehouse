@@ -171,7 +171,9 @@ module HmisExternalApis::ExternalForms
     def render_form_group(node:, &block)
       return context.capture(&block) if parent_node && parent_node['component'] == 'INPUT_GROUP'
 
-      context.render_form_group(needs_validation: node['required'], &block)
+      # Node needs validation if it is required or if it is a date
+      needs_validation = node['required'] || node['type'] == 'DATE'
+      context.render_form_group(needs_validation: needs_validation, &block)
     end
 
     def render_dependent_item_wrapper(node, &block)
