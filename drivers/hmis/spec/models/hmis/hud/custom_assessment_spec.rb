@@ -6,6 +6,7 @@
 
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
+require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
   before(:all) do
@@ -16,6 +17,16 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
   end
 
   include_context 'hmis base setup'
+
+  it_behaves_like 'enrollment related versioned model' do
+    let(:build_record) do
+      -> { create(:hmis_custom_assessment) }
+    end
+
+    let(:update_attributes_for_versioning) do
+      ->(record) { record.update!(assessment_date: 1.week.ago) }
+    end
+  end
 
   describe 'destroying WIP assessment' do
     let!(:assessment) { create(:hmis_wip_custom_assessment) }
