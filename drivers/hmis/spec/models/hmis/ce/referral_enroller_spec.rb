@@ -550,5 +550,43 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           and change(unit, :occupied?).from(true).to(false)
       end
     end
+
+    context 'when referral has household member enrollments' do
+      let!(:source_project) { create :hmis_hud_project, data_source: ds1 }
+
+      let!(:spouse) { create :hmis_hud_client, data_source: ds1 }
+      let!(:child) { create :hmis_hud_client, data_source: ds1 }
+
+      let!(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, relationship_to_hoh: 1 }
+      let!(:source_spouse_enrollment) { create :hmis_hud_enrollment, project: source_project, client: spouse, relationship_to_hoh: 3, household_id: source_enrollment.household_id }
+      let!(:source_child_enrollment) { create :hmis_hud_enrollment, project: source_project, client: child, relationship_to_hoh: 2, household_id: source_enrollment.household_id }
+
+      before do
+        referral.update!(source_enrollment: source_enrollment)
+      end
+
+      it 'deletes all household member enrollments' do
+        expect do
+          engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
+          referral.reload
+        end.to change(Hmis::Hud::Enrollment, :count).by(-3).
+          and change(referral, :target_enrollment).from(target_enrollment).to(nil).
+          and change(change_provider_outcome_step, :status).to('completed')
+
+        expect(Hmis::Hud::Enrollment.where(project: project, client: [client, spouse, child])).all to be_deleted
+      end
+
+      it 'does not delete enrollments if any have had intake completed' do
+        enrollment = Hmis::Hud::Enrollment.find_by(project: project, client: spouse)
+        enrollment.save_not_in_progress!
+
+        expect do
+          engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
+          referral.reload
+        end.not_to change(Hmis::Hud::Enrollment, :count).
+          and not_to change(referral, :target_enrollment).
+            and not_to change(change_provider_outcome_step, :status)
+      end
+    end
   end
 end

@@ -76,20 +76,28 @@ module Hmis::Ce
       end
     end
 
-    def delete_wip_enrollment(_message) # todo @martha - needs to be updated
+    def delete_wip_enrollment(_message)
       enrollment = referral.target_enrollment
       return unless enrollment
 
-      unless enrollment.in_progress?
-        message = "target enrollment #{enrollment.id} has already had intake completed, unable to perform delete_wip_enrollment message"
+      # Get all household member enrollments that were created together
+      household_enrollments = enrollment.household_members
+
+      # Check if all household member enrollments are still WIP
+      # If any have had intake completed, we cannot delete
+      if household_enrollments.not_in_progress.any?
+        message = "unable to perform delete_wip_enrollment: household #{enrollment.household_id} has enrollment(s) with completed intake. Referral #{referral.id}"
         raise message if Rails.env.development?
 
         Sentry.capture_message(message)
         return # in non-dev env: return, we are unable to perform the action
       end
 
+      # Clear the referral association
       referral.update!(target_enrollment: nil)
-      enrollment.destroy!
+
+      # Delete all household member enrollments
+      household_enrollments.each(&:destroy!)
     end
 
     # Sets the Move-In Date on the target enrollment, based on a date value collected on the step form.
