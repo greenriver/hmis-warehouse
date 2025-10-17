@@ -228,7 +228,7 @@ module Hmis::Ce
     def consistent_data_source
       msg = 'must be in same data source'
 
-      data_source = workflow_template.data_source
+      data_source = workflow_instance.template.data_source
 
       errors.add(:opportunity, msg) unless data_source == opportunity.data_source
       errors.add(:client, msg) unless data_source == client.data_source
