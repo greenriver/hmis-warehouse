@@ -33,9 +33,16 @@ module Hmis
                class_name: 'Hmis::WorkflowDefinition::Template',
                optional: true
 
+    # The workflow template to use for direct referrals to Units belonging to this Unit Group
+    belongs_to :direct_referral_workflow_template,
+               -> { latest_versions }, # choose the most recent version of the template
+               foreign_key: :direct_referral_workflow_template_identifier,
+               primary_key: :identifier,
+               class_name: 'Hmis::WorkflowDefinition::Template',
+               optional: true
+
     validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false, message: 'must be unique in the project' }
-    validate :workflow_template_is_valid
-    validate :workflow_template_is_stable
+    validate :validate_workflow_templates
     validate :project_is_not_changed, on: :update
     validate :unit_type_is_stable, on: :update
 
@@ -61,6 +68,22 @@ module Hmis
       units.receiving_referrals.count
     end
 
+    def template_for_direct_referrals
+      # Default to workflow_template if direct_referral_workflow_template is not found.
+      # This is for backwards compatibility while we switch over.
+      direct_referral_workflow_template || workflow_template
+    end
+
+    # Form definition to use for direct referrals to this Unit Group, if any.
+    # Returns nil if no form definition is found
+    # Raises if there are 2+ entry user tasks, which indicates misconfiguration
+    def direct_referral_form_definition
+      entry_user_tasks = template_for_direct_referrals&.entry_user_tasks || []
+      raise "Expected exactly 1 entry user task for direct referral form definition. Unit group #{id}" if entry_user_tasks.count > 1
+
+      entry_user_tasks.first&.form_definition
+    end
+
     private
 
     def project_is_not_changed
@@ -73,26 +96,40 @@ module Hmis
       end
     end
 
-    def workflow_template_is_valid
-      return unless workflow_template
+    def validate_workflow_templates
+      validate_template(workflow_template, :workflow_template_identifier)
 
-      errors.add(:workflow_template_identifier, 'must be published') unless workflow_template.published?
-      errors.add(:workflow_template_identifier, 'must belong to the same data source') if workflow_template.data_source_id != project.data_source_id
-      errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') unless workflow_template.template_type&.to_s == 'ce_referral'
+      return unless direct_referral_workflow_template.present?
+
+      validate_template(direct_referral_workflow_template, :direct_referral_workflow_template_identifier)
+
+      # The template must have a direct_referral_form_definition for the direct referral initiator to fill out.
+      return if direct_referral_form_definition.present?
+
+      errors.add(:direct_referral_workflow_template_identifier, 'structure is not valid for direct referrals')
     end
 
-    def workflow_template_is_stable
-      return unless workflow_template_identifier_changed?
-      return if workflow_template_identifier_was.nil?
+    def validate_template(template, field_name)
+      validate_field_stable_once_set(field_name)
+      return unless template
 
-      errors.add(:workflow_template_identifier, 'cannot be changed once set')
+      errors.add(field_name, 'must be published') unless template.published?
+      errors.add(field_name, 'must belong to the same data source') if template.data_source_id != project.data_source_id
+      errors.add(field_name, 'must have a template type of ce_referral') unless template.template_type&.to_s == 'ce_referral'
+    end
+
+    def validate_field_stable_once_set(field_name, error_field_name = field_name)
+      changed_method = "#{field_name}_changed?"
+      was_method = "#{field_name}_was"
+
+      return unless send(changed_method)
+      return if send(was_method).nil?
+
+      errors.add(error_field_name, 'cannot be changed once set')
     end
 
     def unit_type_is_stable
-      return unless unit_type_id_changed?
-      return if unit_type_id_was.nil?
-
-      errors.add(:unit_type_id, 'cannot be changed once set')
+      validate_field_stable_once_set(:unit_type_id, :unit_type)
     end
   end
 end
