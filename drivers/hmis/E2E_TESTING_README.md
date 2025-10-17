@@ -94,7 +94,7 @@ graph TB
 
 4. Run the rspec test(s) in that container:
     ```bash
-    HOSTNAME=`hostname` RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec -f d -P "drivers/hmis/spec/system/hmis/*"
+    HOSTNAME=`hostname` RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec -f d -P "drivers/hmis/spec/system/**/*_spec.rb"
     ```
     Note: `CAPYBARA_APP_HOST` is set to the container's internal hostname to ensure Capybara can connect to the Vite server.
 
