@@ -22,13 +22,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID' # Invalid enum representation
 
-  # before(:all) do
-  #   # cleanup_test_environment
-  #   ::HmisUtil::JsonForms.seed_all
-  # end
-  # after(:all) do
-  #   # cleanup_test_environment
-  # end
+  before(:all) do
+    cleanup_test_environment
+    ::HmisUtil::JsonForms.seed_all
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
 
   describe 'IncomeBenefit processor' do
     it 'succeeds if overall is YES and sources are specified (income)' do

@@ -13,7 +13,7 @@ FactoryBot.define do
     transient do
       data_source { build :hmis_data_source }
       project { build :hmis_hud_project, data_source: data_source }
-      workflow_template { build :hmis_workflow_definition_template, data_source: data_source }
+      workflow_template { create :hmis_workflow_definition_template, data_source: data_source }
     end
 
     opportunity { association :hmis_ce_opportunity, project: project, workflow_template: workflow_template, data_source: data_source }
