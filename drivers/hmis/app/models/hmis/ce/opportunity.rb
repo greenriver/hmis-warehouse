@@ -4,6 +4,8 @@
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
+    self.ignored_columns += ['workflow_template_identifier'] # TODO - remove after migration 20251002192540 is run
+
     acts_as_paranoid
     has_paper_trail
     include SimpleStateMachine
