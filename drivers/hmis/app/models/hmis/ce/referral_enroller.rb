@@ -74,6 +74,10 @@ module Hmis::Ce
       hoh_target_enrollment.save_new_enrollment! # Saves as WIP or non-WIP, depending on auto-enter rules in the project
       referral.update!(target_enrollment: hoh_target_enrollment)
 
+      # Reload the unit's latest opportunity, so that when assigning unit for the other hhm,
+      # the "active referral" is fresh and we know that they are members of the same household
+      unit.latest_opportunity&.reload
+
       # Assign the rest of the household members and save
       enrollments.each do |enrollment|
         enrollment.assign_unit(unit: unit, start_date: entry_date, user: message.user)
