@@ -26,18 +26,19 @@ module Hmis::Ce
       coc_code_arg = message.step&.submitted_values&.fetch(COC_CODE_LINK_ID, nil)
       coc_code = project.determine_coc_code(coc_code_arg: coc_code_arg)
 
-      # clients_to_enroll is a map of Hmis::Hud::Client to their Relationship to HoH, including the referred client (HoH).
+      # clients_to_enroll maps Hmis::Hud::Client to their integer Relationship to HoH. It includes the referred client (HoH)
       clients_to_enroll = get_clients_to_enroll(referral.source_enrollment)
 
       # Generate a new household ID for the target enrollment household
       new_household_id = Hmis::Hud::Base.generate_uuid
       hud_user = Hmis::Hud::User.from_user(message.user)
       entry_date = Date.current
+      # TODO(#7537) - prevent conflicting unit occupancy
       unit = referral.opportunity.unit
 
       validation_errors = []
 
-      # If there are household members to enroll, create enrollments for all of them
+      # Create new enrollments for all household members
       enrollments = clients_to_enroll.map do |client, relationship_to_hoh|
         enrollment = Hmis::Hud::Enrollment.new(
           client: client,
@@ -51,7 +52,7 @@ module Hmis::Ce
 
         raise 'referral generated invalid enrollment' unless enrollment.valid?
 
-        # Validate entry date
+        # Collect entry date validations, which may indicate that the client is already enrolled at the project.
         entry_date_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment)
         entry_date_errors.reject!(&:warning?)
         validation_errors.concat(entry_date_errors)
@@ -59,17 +60,21 @@ module Hmis::Ce
         enrollment
       end
 
+      # Raise an exception if there are any entry date validation errors.
+      # Future improvement would be to return this as a validation error instead of raising
       error_out(validation_errors.map(&:full_message).join(', ')) unless validation_errors.empty?
 
-      # Save the HoH's (referred client's) enrollment and associate it with the referral.
-      # Do this before saving the hh member enrollments, so that assign_unit validations pass.
+      # Assign the HoH's (referred client's) enrollment to the unit and save.
+      # Do this before saving the other hh member enrollments, so that assign_unit validations pass.
       hoh_target_enrollment = enrollments.find { |e| e.client == referral.client }
       enrollments.delete(hoh_target_enrollment) # Remove from list so it's not saved again below
       hoh_target_enrollment.assign_unit(unit: unit, start_date: entry_date, user: message.user)
+
+      # Save the HoH's (referred client's) enrollment and associate it with the referral.
       hoh_target_enrollment.save_new_enrollment! # Saves as WIP or non-WIP, depending on auto-enter rules in the project
       referral.update!(target_enrollment: hoh_target_enrollment)
 
-      # Assign household members and save
+      # Assign the rest of the household members and save
       enrollments.each do |enrollment|
         enrollment.assign_unit(unit: unit, start_date: entry_date, user: message.user)
         enrollment.save_new_enrollment!
@@ -80,17 +85,15 @@ module Hmis::Ce
       enrollment = referral.target_enrollment
       return unless enrollment
 
-      # Get all household member enrollments that were created together
-      household_enrollments = enrollment.household_members
-
-      # Check if all household member enrollments are still WIP
+      # Get all household member enrollments and check if any are not still WIP.
       # If any have had intake completed, we cannot delete
+      household_enrollments = enrollment.household_members
       if household_enrollments.not_in_progress.any?
         message = "unable to perform delete_wip_enrollment: household #{enrollment.household_id} has enrollment(s) with completed intake. Referral #{referral.id}"
-        raise message if Rails.env.development? || Rails.env.test?
+        raise message if Rails.env.development?
 
         Sentry.capture_message(message)
-        return # in non-dev/test env: return, we are unable to perform the action
+        return # in non-dev env: return, we are unable to perform the action
       end
 
       # Clear the referral association
@@ -134,16 +137,16 @@ module Hmis::Ce
     private
 
     # Get the list of clients to enroll in the target project.
-    # Returns a map of Hmis::Hud::Client to integer values representing the Relationship to HoH.
+    # Returns a map of Hmis::Hud::Client to their integer Relationship to HoH values.
     def get_clients_to_enroll(source_enrollment)
-      clients_to_enroll = { referral.client => 1 }
+      clients_to_enroll = { referral.client => 1 } # HoH
 
       # If no source enrollment, only enroll the referred client.
       # (Not yet relevant in practice, but db col is nullable to accommodate future flexibility)
       return clients_to_enroll unless source_enrollment
 
       # If the source enrollment is exited from the household, only enroll the referred client.
-      # (Edge case: If the whole household has been exited, household members won't be enrolled.)
+      # (Edge case: This also means if the whole household has been exited together, only the referred client will be enrolled, not their household members.)
       return clients_to_enroll if source_enrollment.exit&.present?
 
       # Add all non-exited household members from the source enrollment (including incomplete/WIP enrollments)

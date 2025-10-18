@@ -559,8 +559,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       expect do
         engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
         referral.reload
-      end.to raise_error(/unable to perform delete_wip_enrollment/).
-        and not_change(Hmis::Hud::Enrollment, :count).
+      end.to not_change(Hmis::Hud::Enrollment, :count).
         and not_change(referral, :target_enrollment)
     end
 
