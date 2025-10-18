@@ -7263,7 +7263,7 @@ CREATE TABLE public.ce_opportunities (
     id bigint NOT NULL,
     candidate_pool_id bigint,
     project_id bigint NOT NULL,
-    workflow_template_identifier character varying NOT NULL,
+    workflow_template_identifier character varying,
     name character varying NOT NULL,
     status character varying NOT NULL,
     expires_at timestamp(6) without time zone,
@@ -24797,7 +24797,8 @@ CREATE TABLE public.hmis_unit_groups (
     deleted_at timestamp without time zone,
     candidate_pool_id bigint,
     ce_event_type integer,
-    unit_type_id bigint
+    unit_type_id bigint,
+    direct_referral_workflow_template_identifier character varying
 );
 
 
@@ -76057,6 +76058,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251016184716'),
 ('20251014152145'),
 ('20251010182635'),
 ('20251008151928'),
@@ -76069,6 +76071,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251003190848'),
 ('20251003190528'),
 ('20251002195913'),
+('20251002192539'),
 ('20250926075333'),
 ('20250923120000'),
 ('20250921222539'),

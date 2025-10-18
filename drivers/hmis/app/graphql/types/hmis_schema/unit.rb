@@ -44,7 +44,7 @@ module Types
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
     field :priority_schemes, [HmisSchema::CeMatchRule], null: true
-    field :workflow_template_name, String, null: true
+    field :workflow_template_name, String, null: true, deprecation_reason: 'Unused on frontend. Use workflow template fields on unit group'
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
@@ -82,7 +82,12 @@ module Types
 
     def can_be_marked_available
       return false unless Hmis::Ce.configuration.enabled? # CE must be enabled
-      return false unless workflow_template_name # Must have a workflow template
+      return false unless unit_group # TODO(#8157) - remove
+
+      workflow_template = load_ar_association(unit_group, :workflow_template)
+      direct_referral_workflow_template = load_ar_association(unit_group, :direct_referral_workflow_template)
+      return false unless workflow_template || direct_referral_workflow_template # Must have a workflow template
+
       return false if latest_opportunity&.active? # Must not have an active opportunity
 
       # MAY have current occupants; see #7537

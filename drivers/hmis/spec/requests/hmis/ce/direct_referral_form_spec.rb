@@ -70,7 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: nil) }
 
       it 'raises API error' do
-        expect_gql_error(post_graphql(**variables) { query }, message: 'Workflow template invalid or not found')
+        expect_gql_error(post_graphql(**variables) { query }, message: 'Form definition for direct referrals invalid or not found')
       end
     end
   end

@@ -56,6 +56,7 @@ class Hmis::Unit < Hmis::HmisBase
   before_destroy :ensure_no_locked_opportunities
 
   validate :unit_group_has_one_unit_type # TODO(#8157) - remove
+  validate :validate_consistent_project
 
   # close open opportunities before deleting unit
   def close_open_opportunities
@@ -171,5 +172,12 @@ class Hmis::Unit < Hmis::HmisBase
     return if existing_unit_types.include?(unit_type)
 
     errors.add(:unit_type_id, "must be consistent with unit group's existing type")
+  end
+
+  def validate_consistent_project
+    return if unit_group.nil? # TODO(#8157) remove
+    return if project == unit_group.project
+
+    errors.add(:project, "must be same as unit group's project")
   end
 end
