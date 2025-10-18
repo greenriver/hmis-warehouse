@@ -87,10 +87,10 @@ module Hmis::Ce
       # If any have had intake completed, we cannot delete
       if household_enrollments.not_in_progress.any?
         message = "unable to perform delete_wip_enrollment: household #{enrollment.household_id} has enrollment(s) with completed intake. Referral #{referral.id}"
-        raise message if Rails.env.development?
+        raise message if Rails.env.development? || Rails.env.test?
 
         Sentry.capture_message(message)
-        return # in non-dev env: return, we are unable to perform the action
+        return # in non-dev/test env: return, we are unable to perform the action
       end
 
       # Clear the referral association
