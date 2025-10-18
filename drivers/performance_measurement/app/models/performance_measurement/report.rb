@@ -248,7 +248,7 @@ module PerformanceMeasurement
     end
 
     def show_tabs?
-      goal_config.present? && (goal_config.equity_analysis_visible || goal_config.provider_comparisons_visible) && !include_in_published_version
+      goal_config.present? && (goal_config.global_equity_analysis_visible? || goal_config.global_provider_comparisons_visible?) && !include_in_published_version
     end
 
     private def create_universe
