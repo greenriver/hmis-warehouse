@@ -48,7 +48,9 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
   end
 
   # Create opportunity and referral
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: template }
+  let(:unit_group) { create :hmis_unit_group, project: project, workflow_template: template }
+  let(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+  let(:opportunity) { create :hmis_ce_opportunity, unit: unit }
   let(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
   let(:workflow_instance) { template.instances.create! }
   let!(:referral) do
