@@ -16,9 +16,7 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1) }
   let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: client) }
 
-  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
-  let!(:unit) { create(:hmis_unit, unit_group: unit_group, project: project) }
-  let!(:target_opportunity) { create(:hmis_ce_opportunity, project: project, unit: unit) }
+  let!(:referral) { nil }
 
   let!(:target_project_ce_config) { create(:hmis_project_ce_config, project: project, receives_direct_referrals: true) }
 
