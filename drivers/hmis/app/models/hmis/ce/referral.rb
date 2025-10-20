@@ -233,7 +233,7 @@ module Hmis::Ce
 
       errors.add(:opportunity, msg) unless data_source == opportunity.data_source
       errors.add(:client, msg) unless data_source == client.data_source
-      errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source # need this?
+      errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity
 
       errors.add(:custom_status, msg) if custom_status && data_source != custom_status.data_source

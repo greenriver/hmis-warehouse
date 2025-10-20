@@ -955,19 +955,20 @@ CREATE TABLE public.hmis_roles (
     can_view_limited_enrollment_details boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
-    can_configure_data_collection boolean DEFAULT false,
     can_audit_enrollments boolean DEFAULT false,
-    can_manage_scan_cards boolean DEFAULT false,
+    can_configure_data_collection boolean DEFAULT false,
     can_view_client_alerts boolean DEFAULT false,
     can_manage_client_alerts boolean DEFAULT false,
+    can_manage_scan_cards boolean DEFAULT false,
     can_manage_external_form_submissions boolean DEFAULT false,
-    can_view_client_name boolean DEFAULT false,
     can_view_client_contact_info boolean DEFAULT false,
+    can_view_client_name boolean DEFAULT false,
     can_view_client_photo boolean DEFAULT false,
     can_manage_forms boolean DEFAULT false,
     can_administrate_config boolean DEFAULT false,
-    can_view_units boolean DEFAULT false,
     can_manage_units boolean DEFAULT false,
+    can_view_units boolean DEFAULT false,
+    can_manage_inventory boolean DEFAULT false,
     can_view_enrollment_location_map boolean DEFAULT false,
     can_view_prioritized_client_lists boolean DEFAULT false,
     can_start_referrals boolean DEFAULT false,
@@ -1308,6 +1309,37 @@ CREATE SEQUENCE public.login_activities_id_seq
 --
 
 ALTER SEQUENCE public.login_activities_id_seq OWNED BY public.login_activities.id;
+
+
+--
+-- Name: marthas; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.marthas (
+    id bigint NOT NULL,
+    my_integer integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: marthas_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.marthas_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: marthas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.marthas_id_seq OWNED BY public.marthas.id;
 
 
 --
@@ -2789,6 +2821,13 @@ ALTER TABLE ONLY public.login_activities ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: marthas id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marthas ALTER COLUMN id SET DEFAULT nextval('public.marthas_id_seq'::regclass);
+
+
+--
 -- Name: messages id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3222,6 +3261,14 @@ ALTER TABLE ONLY public.links
 
 ALTER TABLE ONLY public.login_activities
     ADD CONSTRAINT login_activities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: marthas marthas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marthas
+    ADD CONSTRAINT marthas_pkey PRIMARY KEY (id);
 
 
 --
@@ -4239,6 +4286,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250507192058'),
 ('20250501151733'),
 ('20250501135342'),
+('20250325200239'),
 ('20250218131829'),
 ('20250217181347'),
 ('20250208211846'),
@@ -4279,6 +4327,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240311135958'),
 ('20240305160215'),
 ('20240301173438'),
+('20240229184109'),
 ('20240212150622'),
 ('20240124173020'),
 ('20240123160215'),

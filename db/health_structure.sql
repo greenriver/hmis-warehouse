@@ -1,8 +1,3 @@
--- \restrict d5jKJWDEudoxJPrGSz5tZm6Uzta7TBQwE87T7bBcMqO6SLKXLgGZD2agahItER2
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -8979,8 +8974,6 @@ ALTER TABLE ONLY public.team_members
 --
 -- PostgreSQL database dump complete
 --
-
--- \unrestrict d5jKJWDEudoxJPrGSz5tZm6Uzta7TBQwE87T7bBcMqO6SLKXLgGZD2agahItER2
 
 SET search_path TO "$user", public;
 
