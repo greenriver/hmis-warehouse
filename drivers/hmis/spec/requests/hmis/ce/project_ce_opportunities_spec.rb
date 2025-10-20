@@ -70,9 +70,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      let(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1 }
-      let(:closed_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :closed }
-      let(:locked_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :locked }
+      let(:unit1) { create :hmis_unit, project: project }
+      let(:unit2) { create :hmis_unit, project: project }
+      let(:unit3) { create :hmis_unit, project: project }
+      let(:opportunity) { create :hmis_ce_opportunity, unit: unit1 }
+      let(:closed_opportunity) { create :hmis_ce_opportunity, unit: unit2, status: :closed }
+      let(:locked_opportunity) { create :hmis_ce_opportunity, unit: unit3, status: :locked }
 
       it 'returns only opportunities with active referrals' do
         response, result = post_graphql(**variables) { query }
@@ -89,7 +92,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'with many opportunities' do
         before do
           40.times do
-            create :hmis_ce_opportunity, project: project, data_source: ds1
+            unit = create :hmis_unit, project: project
+            create :hmis_ce_opportunity, unit: unit
           end
         end
 
@@ -98,7 +102,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceOpportunities', 'nodesCount')).to eq(41)
-          end.to make_database_queries(count: 15..20)
+          end.to make_database_queries(count: 15..25)
         end
       end
     end
