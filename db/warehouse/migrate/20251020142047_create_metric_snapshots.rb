@@ -67,6 +67,12 @@ class CreateMetricSnapshots < ActiveRecord::Migration[7.1]
       # Create partitions for last 3 years + next 10 years (13 years = 52 quarterly partitions)
       # This avoids needing maintenance tasks to create future partitions
       create_quarterly_partitions(3.years.ago, 10.years.from_now)
+
+      # Create default partition for any dates outside the range
+      # This is useful for tests and for data older than 3 years
+      execute <<-SQL
+        CREATE TABLE metric_snapshots_default PARTITION OF metric_snapshots DEFAULT;
+      SQL
     end
   end
 

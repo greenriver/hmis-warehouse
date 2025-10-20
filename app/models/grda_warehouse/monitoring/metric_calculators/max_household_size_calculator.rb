@@ -45,7 +45,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         description: 'Tracks the largest household size across all enrollments. Household size is calculated as the count of members for each unique [data_source_id, HouseholdID] combination. Creates new snapshot on any change.',
         entity_type: 'GrdaWarehouse::Hud::Client',
         calculator_class: name,
-        category: 'demographics',
+        category: 'household_calculations',
         count_change_threshold: 1,
         percent_change_threshold: nil,
         active: true,

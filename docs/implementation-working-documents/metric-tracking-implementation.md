@@ -321,12 +321,39 @@ The system has been successfully deployed and run with production data:
 - Verified threshold-based snapshot creation works correctly
 - Confirmed 3-year retention cleanup runs properly
 
+### Recent Updates (2025-01-20)
+
+**Threshold Logic Enhancement:**
+- Fixed threshold detection to use AND logic when both count and percent thresholds are configured
+- Added comprehensive tests verifying AND behavior prevents false positives
+- Updated collector to properly handle all three threshold scenarios
+
+**Household Size Calculators:**
+- Implemented `MinHouseholdSizeCalculator` and `MaxHouseholdSizeCalculator`
+- Efficient batch processing with two-query approach:
+  1. Count members per `[data_source_id, HouseholdID]`
+  2. Lookup household memberships per client
+- Correctly handles cross-data-source household isolation
+- Creates new snapshot on any change (threshold = 1)
+- Added 16 comprehensive test cases covering all edge cases
+
+**Factories:**
+- Created factories for all monitoring models
+- Separated `WarehouseClientsProcessed` factory into its own file
+- All factories include frozen string literal comments
+
+**Design Decisions Documented:**
+- Entity type remains `GrdaWarehouse::Hud::Client` (not `WarehouseClientsProcessed`)
+- Rationale: Users conceptualize metrics in terms of clients, not processed records
+- Collection logic already filters to clients with processed records
+
 ### Next Steps
 
 1. **Monitor daily collections**: Check `metric_calculation_runs` table for statistics
-2. **Add new calculators**: Follow the pattern in `HomelessDaysLastThreeYearsCalculator`
+2. **Add new calculators**: Follow the pattern in household size calculators
 3. **Phase 4: Query Interface**: Implement `HasMetricSnapshots` concern when ready to expose metrics
 4. **Alerting**: Build change-based alerts using snapshot data
+5. **Run MetricDefinition.maintain!**: Ensure new household size metrics are registered
 
 ---
 

@@ -57,7 +57,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
     it 'creates metric definitions from available calculators' do
       expect do
         described_class.maintain!
-      end.to change(described_class, :count).by(1)
+      end.to change(described_class, :count).by(3)
     end
 
     it 'is idempotent' do

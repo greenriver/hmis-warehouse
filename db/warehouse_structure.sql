@@ -1,4 +1,4 @@
--- \restrict SsSbtv1O4KyDaG4inp3orc5xkmxiltsbSUYGBApHscOvlxDzqe1fBdPkZkqKfZc
+-- \restrict iDOQFR07iSgWhKdyGikFFIv3OBkSzHbIVp5IfYQpPsU7Gs9JSioFXCcajLgyNdz
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -29186,6 +29186,25 @@ CREATE TABLE public.metric_snapshots_2035_q4 (
 
 
 --
+-- Name: metric_snapshots_default; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.metric_snapshots_default (
+    id bigint DEFAULT nextval('public.metric_snapshots_id_seq'::regclass) NOT NULL,
+    entity_type character varying NOT NULL,
+    entity_id bigint NOT NULL,
+    metric_definition_id bigint NOT NULL,
+    initial_observation_date date NOT NULL,
+    current_observation_date date NOT NULL,
+    initial_value bigint NOT NULL,
+    current_value bigint NOT NULL,
+    calculation_version character varying(20),
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: new_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -35310,6 +35329,13 @@ ALTER TABLE ONLY public.metric_snapshots ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER TABLE ONLY public.metric_snapshots ATTACH PARTITION public.metric_snapshots_2035_q4 FOR VALUES FROM ('2035-10-01') TO ('2036-01-01');
+
+
+--
+-- Name: metric_snapshots_default; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metric_snapshots ATTACH PARTITION public.metric_snapshots_default DEFAULT;
 
 
 --
@@ -44176,6 +44202,14 @@ ALTER TABLE ONLY public.metric_snapshots_2035_q3
 
 ALTER TABLE ONLY public.metric_snapshots_2035_q4
     ADD CONSTRAINT metric_snapshots_2035_q4_pkey PRIMARY KEY (id, initial_observation_date);
+
+
+--
+-- Name: metric_snapshots_default metric_snapshots_default_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metric_snapshots_default
+    ADD CONSTRAINT metric_snapshots_default_pkey PRIMARY KEY (id, initial_observation_date);
 
 
 --
@@ -76315,6 +76349,34 @@ CREATE INDEX metric_snapshots_2035_q4_metric_definition_id_current_obser_idx ON 
 
 
 --
+-- Name: metric_snapshots_default_entity_type_entity_id_metric_defi_idx1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX metric_snapshots_default_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_default USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
+
+
+--
+-- Name: metric_snapshots_default_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX metric_snapshots_default_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_default USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
+
+
+--
+-- Name: metric_snapshots_default_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX metric_snapshots_default_entity_type_entity_id_metric_defin_idx ON public.metric_snapshots_default USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
+
+
+--
+-- Name: metric_snapshots_default_metric_definition_id_current_obser_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX metric_snapshots_default_metric_definition_id_current_obser_idx ON public.metric_snapshots_default USING btree (metric_definition_id, current_observation_date);
+
+
+--
 -- Name: nc_user_source_slug_uniq_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -79017,6 +79079,41 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 
 
 --
+-- Name: metric_snapshots_default_entity_type_entity_id_metric_defi_idx1; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_default_entity_type_entity_id_metric_defi_idx1;
+
+
+--
+-- Name: metric_snapshots_default_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_default_entity_type_entity_id_metric_defi_idx2;
+
+
+--
+-- Name: metric_snapshots_default_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_metric_snapshots_unique ATTACH PARTITION public.metric_snapshots_default_entity_type_entity_id_metric_defin_idx;
+
+
+--
+-- Name: metric_snapshots_default_metric_definition_id_current_obser_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_metric_snapshots_for_cleanup ATTACH PARTITION public.metric_snapshots_default_metric_definition_id_current_obser_idx;
+
+
+--
+-- Name: metric_snapshots_default_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshots_default_pkey;
+
+
+--
 -- Name: service_history_services_2000_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -81632,7 +81729,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict SsSbtv1O4KyDaG4inp3orc5xkmxiltsbSUYGBApHscOvlxDzqe1fBdPkZkqKfZc
+-- \unrestrict iDOQFR07iSgWhKdyGikFFIv3OBkSzHbIVp5IfYQpPsU7Gs9JSioFXCcajLgyNdz
 
 SET search_path TO "$user", public;
 

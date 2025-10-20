@@ -181,6 +181,8 @@ module GrdaWarehouse::Monitoring::Tasks
           @run_stats[:snapshots_created] += 1
         elsif current_snapshot
           # Value within threshold - update current_value and extend current_observation_date
+          # Store original date before modifying for bulk update
+          current_snapshot.instance_variable_set(:@original_current_observation_date, current_snapshot.current_observation_date)
           current_snapshot.current_value = calculated_value
           current_snapshot.current_observation_date = @calculation_date
           snapshots_to_update << current_snapshot
@@ -311,13 +313,41 @@ module GrdaWarehouse::Monitoring::Tasks
     def update_snapshots(snapshots)
       return if snapshots.empty?
 
-      GrdaWarehouse::Monitoring::MetricSnapshot.import(
-        snapshots,
-        on_duplicate_key_update: {
-          conflict_target: [:id],
-          columns: [:current_value, :current_observation_date, :updated_at],
-        },
-      )
+      # Build bulk UPDATE using natural composite key
+      # We use the natural key (entity_type, entity_id, metric_definition_id, initial_observation_date)
+      # along with the OLD current_observation_date to match existing records
+      updated_at = Time.current.strftime('%Y-%m-%d %H:%M:%S')
+
+      # Create VALUES rows for bulk update using natural key
+      # Note: We use the original current_observation_date to match the existing row
+      values_list = snapshots.map do |s|
+        # Get the original current_observation_date that we stored before modification
+        original_date = s.instance_variable_get(:@original_current_observation_date)
+        original_date_str = original_date.strftime('%Y-%m-%d')
+
+        "('#{s.entity_type}', #{s.entity_id}, #{s.metric_definition_id}, " \
+          "'#{s.initial_observation_date.strftime('%Y-%m-%d')}', '#{original_date_str}', " \
+          "#{s.current_value}, '#{s.current_observation_date.strftime('%Y-%m-%d')}')"
+      end.join(',')
+
+      sql = <<~SQL
+        UPDATE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}
+        SET
+          current_value = v.new_current_value::integer,
+          current_observation_date = v.new_current_observation_date::date,
+          updated_at = '#{updated_at}'
+        FROM (VALUES #{values_list}) AS v(
+          entity_type, entity_id, metric_definition_id, initial_observation_date,
+          old_current_observation_date, new_current_value, new_current_observation_date
+        )
+        WHERE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_type = v.entity_type
+          AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_id = v.entity_id
+          AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.metric_definition_id = v.metric_definition_id
+          AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.initial_observation_date = v.initial_observation_date::date
+          AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.current_observation_date = v.old_current_observation_date::date
+      SQL
+
+      ActiveRecord::Base.connection.execute(sql)
     end
 
     def cleanup_old_snapshots
