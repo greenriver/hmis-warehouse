@@ -57,8 +57,8 @@ module HudSpmReport::Generators::Fy2026
       prepare_table(
         table_name,
         {
-          2 => 'Persons in ES-EE, ES-NbN, and SH',
-          3 => 'Persons in ES-EE, ES-NbN, SH, and TH',
+          1 => 'Persons in ES-EE, ES-NbN, and SH',
+          2 => 'Persons in ES-EE, ES-NbN, SH, and TH',
         },
         COLUMNS,
         external_row_label: true,
@@ -112,8 +112,8 @@ module HudSpmReport::Generators::Fy2026
       prepare_table(
         table_name,
         {
-          2 => 'Persons in ES-EE, ES-NbN, SH, and PH',
-          3 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
+          1 => 'Persons in ES-EE, ES-NbN, SH, and PH',
+          2 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
         },
         COLUMNS,
         external_row_label: true,
