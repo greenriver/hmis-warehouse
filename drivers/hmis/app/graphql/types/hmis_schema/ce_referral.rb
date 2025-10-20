@@ -251,7 +251,7 @@ module Types
     end
 
     def access
-      project_id = load_ar_association(object, :opportunity).project_id
+      project_id = load_ar_association(object, :target_project).id
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
       source_enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
       referral_policy = policy_for(object, policy_type: :ce_referral)
