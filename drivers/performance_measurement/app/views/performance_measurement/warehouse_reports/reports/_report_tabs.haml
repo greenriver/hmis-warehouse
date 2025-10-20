@@ -1,9 +1,9 @@
 %ul.nav.nav-tabs
   %li.nav_item
     = link_to 'Summary', performance_measurement_warehouse_reports_report_path(@report), class: action_name == 'show' ? 'active nav-link' : 'nav-link'
-  - if @report.goal_config.equity_analysis_visible
+  - if @report.goal_config.global_equity_analysis_visible?
     %li.nav_item
       = link_to 'Equity Analysis', equity_analysis_performance_measurement_warehouse_reports_report_path(@report), class: action_name == 'equity_analysis' ? 'active nav-link' : 'nav-link'
-  - if @report.goal_config.provider_comparisons_visible
+  - if @report.goal_config.global_provider_comparisons_visible?
     %li.nav_item
       = link_to 'Provider Comparisons', provider_comparisons_performance_measurement_warehouse_reports_report_path(@report), class: action_name == 'provider_comparisons' ? 'active nav-link' : 'nav-link'

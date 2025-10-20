@@ -53,6 +53,18 @@ module PerformanceMeasurement
       goals.group_by(&:coc_name)
     end
 
+    def global_equity_analysis_visible?
+      default_goal.equity_analysis_visible
+    end
+
+    def global_provider_comparisons_visible?
+      default_goal.provider_comparisons_visible
+    end
+
+    def default_goal
+      @default_goal ||= self.class.default_goal
+    end
+
     def duplicate!
       new_goal = dup
       new_goal.active = true
