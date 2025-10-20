@@ -2477,7 +2477,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/talentlms/config.rb'
     - 'app/models/talentlms/course.rb'
     - 'app/models/talentlms/login.rb'
-    - 'app/models/task_queue.rb'
     - 'app/models/token.rb'
     - 'app/models/translation.rb'
     - 'app/models/two_factors_memorized_device.rb'

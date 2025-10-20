@@ -4,496 +4,339 @@
 
 This document provides a step-by-step implementation plan for the metric tracking system described in [/docs/architecture/metric-tracking.md](../architecture/metric-tracking.md).
 
-## Implementation Phases
+## Key Design Decisions
 
-### Phase 1: Foundation (Sprint 1)
+### Range-Based Sparse Storage
+Each snapshot represents a time range where a metric value stays within the configured threshold:
+- `initial_observation_date`: When this value range started
+- `current_observation_date`: When this value was last calculated/verified
+- `initial_value`: Count value when first observed
+- `current_value`: Count value as of last verification (updated daily)
 
-Create database schema and base models.
+**Benefits:**
+- Stable clients with minimal change = few snapshots (cheap storage)
+- Volatile clients with frequent changes = many snapshots (more expensive but captures change history)
+- Can detect spikes by looking at snapshot duration and value change
+- Supports linear interpolation for charting
 
-**Goals:**
-- Set up database tables
-- Create base model classes
-- Implement calculator pattern
-- Deploy without affecting existing functionality
+### Calculation Run Tracking
+Separate table tracks high-level statistics about each daily collection run:
+- Entities evaluated
+- Snapshots created vs updated
+- Error counts
+- Runtime information
+
+### Simple 3-Year Retention
+Delete any snapshot where `current_observation_date < 3 years ago`. Since stable clients naturally have few snapshots, no graduated retention policy is needed.
+
+### Table Partitioning
+Partition by `initial_observation_date` with quarterly partitions for efficient archival and query performance. Partitions are created upfront for past 3 years and future 10 years to avoid maintenance overhead.
+
+## Implementation Status
+
+### ✅ Phase 1: Foundation - COMPLETED
+
+Created database schema and base models.
+
+**Completed:**
+- ✅ Database tables with range-based storage
+- ✅ Base model classes with `GrdaWarehouse::Monitoring` namespace
+- ✅ Calculator pattern implemented
+- ✅ Calculation run tracking added
+- ✅ All migrations applied successfully
+
+**Implementation Notes:**
+- All code includes Green River copyright notices
+- Using ActiveRecord 7.1 migrations with `--database=warehouse`
+- Simplified initial scope: VALID_CATEGORIES = `['days_homeless_in_the_last_three_years']`
+- All scopes use ActiveRecord syntax (not Arel or string interpolation)
+- Removed interpolation and charting methods (`value_on_date`, `spike?`) to keep code minimal
+- Fixed PostgreSQL partitioning unique constraint to include partition key
+- Fixed quarter calculation in partition creation (manual calculation instead of strftime)
 
 **Tasks:**
 
-#### 1.1 Create Metric Definitions Migration
+#### 1.1 Create Metric Definitions Migration ✅
 
-```ruby
-# db/migrate/YYYYMMDDHHMMSS_create_metric_definitions.rb
+**Status:** Completed and applied
 
-class CreateMetricDefinitions < ActiveRecord::Migration[7.0]
-  def change
-    create_table :metric_definitions, comment: 'Catalog of available metrics and calculation rules' do |t|
-      t.string :name, null: false, limit: 100, comment: 'Unique identifier (e.g., days_homeless_last_three_years)'
-      t.string :display_name, null: false, comment: 'Human-readable name for UI'
-      t.text :description, comment: 'Detailed description of what this metric measures'
-      t.string :entity_type, null: false, comment: 'Entity class this metric applies to (e.g., GrdaWarehouse::Hud::Client)'
-      t.string :calculator_class, null: false, comment: 'Ruby class that implements calculation logic'
-      t.string :value_type, null: false, default: 'integer', comment: 'Data type: integer, float, string, boolean, json'
-      t.string :category, limit: 50, comment: 'Grouping category for UI organization'
-      t.integer :calculation_window_days, comment: 'Lookback period in days (e.g., 1095 for 3 years)'
-      t.integer :count_change_threshold, comment: 'Only record snapshot if value changes by at least this amount (sparse storage)'
-      t.decimal :percent_change_threshold, precision: 5, scale: 2, comment: 'Only record snapshot if value changes by at least this percentage (sparse storage)'
-      t.boolean :active, default: true, null: false, comment: 'Whether this metric is actively being calculated'
+**File:** [db/warehouse/migrate/20251020141816_create_metric_definitions.rb](/Users/elliot/Sites/op/hmis-warehouse/db/warehouse/migrate/20251020141816_create_metric_definitions.rb)
 
-      t.timestamps
+Creates the catalog table for metric definitions with fields for name, calculator class, thresholds, and configuration.
 
-      t.index [:entity_type, :name], unique: true, name: 'index_metric_defs_on_entity_and_name'
-      t.index :active
-      t.index :category
-    end
-  end
-end
-```
+#### 1.2 Create Metric Snapshots Migration (with Partitioning) ✅
 
-**Run:** `dcr shell bundle exec rails db:migrate`
+**Status:** Completed and applied
 
-#### 1.2 Create Metric Snapshots Migration
+**File:** [db/warehouse/migrate/20251020142047_create_metric_snapshots.rb](/Users/elliot/Sites/op/hmis-warehouse/db/warehouse/migrate/20251020142047_create_metric_snapshots.rb)
 
-```ruby
-# db/migrate/YYYYMMDDHHMMSS_create_metric_snapshots.rb
+Creates the partitioned table for storing metric snapshots with:
+- Range-based sparse storage (`initial_observation_date`, `current_observation_date`)
+- Quarterly partitions (3 years past + 10 years future = 52 partitions)
+- Unique constraint includes partition key per PostgreSQL requirement
+- Quarter calculation uses manual logic: `(quarter_start.month / 3.0).ceil`
 
-class CreateMetricSnapshots < ActiveRecord::Migration[7.0]
-  def change
-    create_table :metric_snapshots, comment: 'Time-series snapshots of metric values (sparse storage)' do |t|
-      t.references :entity, polymorphic: true, null: false, comment: 'Entity being measured'
-      t.references :metric_definition, null: false, foreign_key: true, comment: 'Which metric this snapshot is for'
-      t.date :snapshot_date, null: false, comment: 'Date this snapshot was taken'
+#### 1.3 Create Metric Calculation Runs Migration ✅
 
-      t.bigint :value_integer, comment: 'Value storage for integer metrics'
-      t.decimal :value_float, precision: 20, scale: 6, comment: 'Value storage for float metrics'
-      t.string :value_string, limit: 500, comment: 'Value storage for string metrics'
-      t.boolean :value_boolean, comment: 'Value storage for boolean metrics'
-      t.jsonb :value_json, comment: 'Value storage for JSON metrics'
+**Status:** Completed and applied
 
-      t.string :calculation_version, limit: 20, comment: 'Version of calculator that produced this value'
+**File:** [db/warehouse/migrate/20251020142304_create_metric_calculation_runs.rb](/Users/elliot/Sites/op/hmis-warehouse/db/warehouse/migrate/20251020142304_create_metric_calculation_runs.rb)
 
-      t.timestamps
+Creates tracking table for calculation runs with high-level summary statistics (entities evaluated, snapshots created/updated, error counts).
 
-      t.index [:entity_type, :entity_id, :metric_definition_id, :snapshot_date],
-              unique: true,
-              name: 'index_metric_snapshots_unique'
-      t.index :snapshot_date
-      t.index [:metric_definition_id, :snapshot_date]
-      t.index [:entity_type, :entity_id, :snapshot_date]
-      t.index [:entity_type, :entity_id, :metric_definition_id, :snapshot_date],
-              name: 'index_metric_snapshots_for_time_series'
-    end
-  end
-end
-```
+#### 1.4 Create Base Models ✅
 
-**Run:** `dcr shell bundle exec rails db:migrate`
+**Status:** Completed
 
-#### 1.3 Create Base Models
+Models created with `GrdaWarehouse::Monitoring` namespace:
 
-**File:** `app/models/grda_warehouse/metric_definition.rb`
+- **[MetricDefinition](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_definition.rb)**: Catalog of available metrics with simplified `VALID_CATEGORIES = ['days_homeless_in_the_last_three_years']`
+- **[MetricSnapshot](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_snapshot.rb)**: Time-series snapshots using ActiveRecord range syntax, removed charting methods
+- **[MetricCalculationRun](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_calculation_run.rb)**: Calculation run tracking
 
-```ruby
-module GrdaWarehouse
-  class MetricDefinition < GrdaWarehouseBase
-    VALID_CATEGORIES = %w[
-      housing
-      services
-      demographics
-      assessments
-      data_quality
-      utilization
-      import
-    ].freeze
+#### 1.5 Create Base Calculator ✅
 
-    VALID_VALUE_TYPES = %w[
-      integer
-      float
-      string
-      boolean
-      json
-    ].freeze
+**Status:** Completed
 
-    has_many :metric_snapshots, dependent: :destroy
+**File:** [app/models/grda_warehouse/monitoring/metric_calculators/base_calculator.rb](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_calculators/base_calculator.rb)
 
-    validates :name, presence: true, uniqueness: { scope: :entity_type }
-    validates :entity_type, presence: true
-    validates :calculator_class, presence: true
-    validates :value_type, inclusion: { in: VALID_VALUE_TYPES }
-    validates :category, inclusion: { in: VALID_CATEGORIES }, allow_nil: true
-
-    scope :active, -> { where(active: true) }
-    scope :for_entity_type, ->(type) { where(entity_type: type) }
-    scope :by_category, ->(category) { where(category: category) }
-
-    # Instantiate calculator for given entity
-    def calculator_for(entity, snapshot_date)
-      calculator_class.constantize.new(entity, snapshot_date)
-    end
-
-    # Calculate and return value
-    def calculate_value(entity, snapshot_date)
-      calculator_for(entity, snapshot_date).calculate
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_snapshot.rb`
-
-```ruby
-module GrdaWarehouse
-  class MetricSnapshot < GrdaWarehouseBase
-    belongs_to :entity, polymorphic: true
-    belongs_to :metric_definition
-
-    validates :snapshot_date, uniqueness: {
-      scope: [:entity_type, :entity_id, :metric_definition_id]
-    }
-
-    # Polymorphic value accessor
-    def value
-      case metric_definition.value_type
-      when 'integer' then value_integer
-      when 'float' then value_float
-      when 'string' then value_string
-      when 'boolean' then value_boolean
-      when 'json' then value_json
-      end
-    end
-
-    def value=(val)
-      case metric_definition.value_type
-      when 'integer' then self.value_integer = val
-      when 'float' then self.value_float = val
-      when 'string' then self.value_string = val
-      when 'boolean' then self.value_boolean = val
-      when 'json' then self.value_json = val
-      end
-    end
-
-    # Scopes
-    scope :for_date_range, ->(start_date, end_date) {
-      where(snapshot_date: start_date..end_date)
-    }
-
-    scope :for_entity, ->(entity) {
-      where(entity_type: entity.class.name, entity_id: entity.id)
-    }
-
-    scope :for_metric, ->(metric_definition) {
-      where(metric_definition_id: metric_definition.id)
-    }
-
-    scope :latest_for_entities, ->(entity_type, entity_ids) {
-      where(entity_type: entity_type, entity_id: entity_ids)
-        .select('DISTINCT ON (entity_id, metric_definition_id) *')
-        .order(:entity_id, :metric_definition_id, snapshot_date: :desc)
-    }
-
-    scope :weekly_anchors, ->(anchor_day = 3) {
-      where('EXTRACT(DOW FROM snapshot_date) = ?', anchor_day)
-    }
-  end
-end
-```
-
-#### 1.4 Create Base Calculator
-
-**File:** `app/models/grda_warehouse/metric_calculators/base_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    class BaseCalculator
-      attr_reader :entity, :snapshot_date
-
-      def initialize(entity, snapshot_date)
-        @entity = entity
-        @snapshot_date = snapshot_date
-      end
-
-      # Subclasses must implement
-      def calculate
-        raise NotImplementedError, "#{self.class} must implement #calculate"
-      end
-
-      # Return calculation version
-      def version
-        '1.0.0'
-      end
-
-      # Helper: get lookback window
-      def lookback_window
-        metric_definition&.calculation_window_days&.days || 3.years
-      end
-
-      def lookback_start_date
-        snapshot_date - lookback_window
-      end
-
-      private
-
-      def metric_definition
-        @metric_definition ||= GrdaWarehouse::MetricDefinition.find_by(
-          calculator_class: self.class.name
-        )
-      end
-    end
-  end
-end
-```
-
-**Verification:**
-- Models load without errors: `dcr shell bundle exec rails runner "puts GrdaWarehouse::MetricDefinition.name"`
-- Migrations applied: Check `schema.rb` includes new tables
+Base class for all metric calculators with `calculate` method, versioning support, and lookback window helpers.
 
 ---
 
-### Phase 2: Client Calculators (Sprint 1-2)
+### ✅ Phase 2: Client Calculators - COMPLETED
 
-Implement the 8 initial client metric calculators.
+Implemented metric calculators for client entities with efficient batch processing.
 
-#### 2.1 Create Calculator Directory Structure
+**Completed:**
+- ✅ `HomelessDaysLastThreeYearsCalculator` with batch support
+- ✅ `MinHouseholdSizeCalculator` with batch support
+- ✅ `MaxHouseholdSizeCalculator` with batch support
+- ✅ Efficient single-query batch calculation for 5,000+ entities
+- ✅ Returns nil for clients without data (no false positives)
+- ✅ Comprehensive test coverage
+
+#### 2.1 HomelessDaysLastThreeYears Calculator ✅
+
+**Status:** Completed
+
+**File:** [app/models/grda_warehouse/monitoring/metric_calculators/homeless_days_last_three_years_calculator.rb](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_calculators/homeless_days_last_three_years_calculator.rb)
+
+**Data Source:**
+- Table: `GrdaWarehouse::WarehouseClientsProcessed`
+- Columns: `client_id`, `days_homeless_last_three_years`
+
+**Implementation Notes:**
+- Uses single SQL query for batch calculation (5,000 entities per batch)
+- Returns hash of `{ client_id => value }` only for clients with data
+- Clients without processed records return nil (no snapshot created)
+- Self-configures with `metric_definition_attributes` class method
+- Creates new snapshot when count changes by 30 or more
+
+#### 2.2 Household Size Calculators ✅
+
+**Status:** Completed
+
+**Files:**
+- [app/models/grda_warehouse/monitoring/metric_calculators/min_household_size_calculator.rb](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_calculators/min_household_size_calculator.rb)
+- [app/models/grda_warehouse/monitoring/metric_calculators/max_household_size_calculator.rb](/Users/elliot/Sites/op/hmis-warehouse/app/models/grda_warehouse/monitoring/metric_calculators/max_household_size_calculator.rb)
+
+**Data Source:**
+- Table: `GrdaWarehouse::Hud::Enrollment`
+- Groups by: `[data_source_id, HouseholdID]` to count household members
+
+**Implementation Notes:**
+- Both calculators use efficient batch processing
+- First query: count members per `[data_source_id, HouseholdID]` combination
+- Second query: lookup which households each client belongs to
+- Returns min/max household sizes across all client enrollments
+- Correctly handles households spanning multiple data sources
+- Creates new snapshot on any change (`count_change_threshold: 1`)
+- Comprehensive test coverage (16 test cases covering edge cases)
+
+**Design Decision:**
+Split into two separate calculators (min and max) rather than one calculator returning both values, since each snapshot can only store a single integer value.
+
+#### 2.3 Additional Calculators (Future)
+
+Additional calculators (e.g., enrollment counts, service counts) will be implemented as needed based on usage patterns.
+
+---
+
+### ✅ Phase 3: Collection System - COMPLETED
+
+Implemented efficient batch collection system with threshold-based snapshot creation.
+
+**Completed:**
+- ✅ `MetricSnapshotCollector` service with 5,000 entity batch processing
+- ✅ `CollectClientMetricsJob` for background execution
+- ✅ Integrated with hourly rake task (runs at 2:00 AM via `COLLECTION_HOUR`)
+- ✅ Threshold-based snapshot creation (only create new snapshot on significant change)
+- ✅ Range-based sparse storage (updates extend `current_observation_date`)
+- ✅ 3-year retention cleanup
+- ✅ Bulk insert/update using activerecord-import gem
+- ✅ Comprehensive test coverage for thresholds, cleanup, and statistics
+
+**Implementation Notes:**
+- Uses `find_or_create_by!` for `MetricCalculationRun` to support reruns
+- Explicitly specifies columns in import (excluding id) for partitioned table compatibility
+- Errors log but don't halt batch processing; job retry handles failures
+- Tracks detailed statistics: entities evaluated, metrics calculated, snapshots created/updated, errors
+
+**Threshold Logic:**
+- When only `count_change_threshold` is specified: creates new snapshot if count change exceeds threshold
+- When only `percent_change_threshold` is specified: creates new snapshot if percent change exceeds threshold
+- When BOTH thresholds are specified: requires BOTH to be met (AND logic) before creating new snapshot
+- This prevents false positives where small absolute changes in large values would trigger alerts
+
+---
+
+### Phase 4: Query Interface (Not Started)
+
+**Status:** Pending
+
+**Planned:** HasMetricSnapshots concern for easy metric access from entity models
+
+---
+
+### ✅ Phase 5: Metric Definition Maintenance - COMPLETED
+
+Implemented self-configuring metric definitions with TaskQueue initialization.
+
+**Completed:**
+- ✅ `MetricDefinition.maintain!` method for self-registration
+- ✅ Calculators define their own configuration via `metric_definition_attributes`
+- ✅ `available_calculators` array for easy extension
+- ✅ TaskQueue integration for one-time initialization
+- ✅ Centralized task registration in `TaskQueue.register_tasks`
+- ✅ Cleaned up queued tasks from `application.rb`
+- ✅ Created `config/initializers/task_queue.rb` to avoid Zeitwerk conflicts
+
+**Implementation Notes:**
+- `MetricDefinition::COLLECTION_HOUR = 2` (runs at 2:00 AM)
+- `maintain!` is idempotent - safe to run multiple times
+- Each calculator class self-describes with name, thresholds, display_name, etc.
+- Initialization runs once via TaskQueue on application startup
+
+---
+
+## Test Coverage
+
+Comprehensive test suite covering all components of the metrics system:
+
+### Model Tests
+
+**[spec/models/grda_warehouse/monitoring/metric_definition_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/models/grda_warehouse/monitoring/metric_definition_spec.rb)**
+- Validations (name, entity_type, calculator_class, category uniqueness)
+- `maintain!` method (creates definitions, idempotent)
+- `calculator_for` instantiation
+- `calculate_value` delegation
+
+**[spec/models/grda_warehouse/monitoring/metric_snapshot_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/models/grda_warehouse/monitoring/metric_snapshot_spec.rb)**
+- Validations (required dates and values)
+- Scopes (for_entity, for_metric, active_as_of, current, stale)
+- `duration_days` calculation
+- `total_change` calculation (positive and negative)
+
+### Calculator Tests
+
+**[spec/models/grda_warehouse/monitoring/metric_calculators/homeless_days_last_three_years_calculator_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/models/grda_warehouse/monitoring/metric_calculators/homeless_days_last_three_years_calculator_spec.rb)**
+- Instance `calculate` method (nil for missing data, returns value, handles zero)
+- Batch `calculate_batch` method (returns hash, uses single query, handles missing data)
+- `metric_definition_attributes` (returns required attributes, includes display name)
+
+**[spec/models/grda_warehouse/monitoring/metric_calculators/min_household_size_calculator_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/models/grda_warehouse/monitoring/metric_calculators/min_household_size_calculator_spec.rb)**
+- Returns empty hash for clients without enrollments
+- Returns min size for single household
+- Returns min size for household with multiple members
+- Returns minimum across multiple households
+- Correctly handles households spanning multiple data sources
+- Processes multiple clients in batch
+
+**[spec/models/grda_warehouse/monitoring/metric_calculators/max_household_size_calculator_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/models/grda_warehouse/monitoring/metric_calculators/max_household_size_calculator_spec.rb)**
+- Returns empty hash for clients without enrollments
+- Returns max size for single household
+- Returns max size for household with multiple members
+- Returns maximum across multiple households
+- Correctly handles households spanning multiple data sources
+- Processes multiple clients in batch
+
+### Collection Tests
+
+**[spec/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector_spec.rb)**
+- `run_daily_collection` creates calculation run record
+- Creates snapshots for entities with data
+- Records statistics (entities evaluated, snapshots created)
+- Reuses calculation run record on reruns
+- Threshold detection (single threshold):
+  - Updates existing snapshot when below threshold
+  - Creates new snapshot when above threshold
+- Threshold detection (both thresholds configured):
+  - Updates when count met but percent not met (AND logic)
+  - Updates when percent met but count not met (AND logic)
+  - Creates new snapshot only when BOTH thresholds met
+- Cleanup: deletes snapshots older than 3 years
+
+### Factory Tests
+
+**[spec/factories/grda_warehouse/monitoring.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/factories/grda_warehouse/monitoring.rb)**
+- Factory for `MetricDefinition` with sensible defaults
+- Factory for `MetricSnapshot` with required associations
+- Factory for `MetricCalculationRun` with default statistics
+
+**[spec/factories/grda_warehouse/warehouse_clients_processed.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/factories/grda_warehouse/warehouse_clients_processed.rb)**
+- Factory for `WarehouseClientsProcessed` for testing calculators
+
+### Running Tests
 
 ```bash
-mkdir -p app/models/grda_warehouse/metric_calculators/client
+# Run all monitoring tests
+dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/
+
+# Run specific test files
+dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/metric_definition_spec.rb
+dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/metric_snapshot_spec.rb
+dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/metric_calculators/
+dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/tasks/
 ```
-
-#### 2.2 Implement Client Calculators
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/homeless_days_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class HomelessDaysCalculator < BaseCalculator
-        def calculate
-          GrdaWarehouse::ServiceHistoryService
-            .where(client_id: entity.id)
-            .where(date: lookback_start_date..snapshot_date)
-            .where(homeless: true)
-            .select(:date)
-            .distinct
-            .count
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/source_client_count_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class SourceClientCountCalculator < BaseCalculator
-        def calculate
-          entity.source_clients.count
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/max_household_size_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class MaxHouseholdSizeCalculator < BaseCalculator
-        def calculate
-          household_sizes = GrdaWarehouse::ServiceHistoryEnrollment
-            .where(client_id: entity.id)
-            .where('first_date_in_program <= ?', snapshot_date)
-            .where('last_date_in_program >= ? OR last_date_in_program IS NULL', lookback_start_date)
-            .joins(
-              <<-SQL
-                INNER JOIN service_history_enrollments AS household_members
-                ON household_members.household_id = service_history_enrollments.household_id
-                AND household_members.data_source_id = service_history_enrollments.data_source_id
-                AND household_members.project_id = service_history_enrollments.project_id
-              SQL
-            )
-            .group(:household_id, :data_source_id, :project_id)
-            .count('DISTINCT household_members.client_id')
-
-          household_sizes.values.max || 0
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/min_household_size_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class MinHouseholdSizeCalculator < BaseCalculator
-        def calculate
-          household_sizes = GrdaWarehouse::ServiceHistoryEnrollment
-            .where(client_id: entity.id)
-            .where('first_date_in_program <= ?', snapshot_date)
-            .where('last_date_in_program >= ? OR last_date_in_program IS NULL', lookback_start_date)
-            .joins(
-              <<-SQL
-                INNER JOIN service_history_enrollments AS household_members
-                ON household_members.household_id = service_history_enrollments.household_id
-                AND household_members.data_source_id = service_history_enrollments.data_source_id
-                AND household_members.project_id = service_history_enrollments.project_id
-              SQL
-            )
-            .group(:household_id, :data_source_id, :project_id)
-            .count('DISTINCT household_members.client_id')
-
-          household_sizes.values.min || 0
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/enrollment_count_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class EnrollmentCountCalculator < BaseCalculator
-        def calculate
-          GrdaWarehouse::ServiceHistoryEnrollment
-            .where(client_id: entity.id)
-            .where('first_date_in_program <= ?', snapshot_date)
-            .where('last_date_in_program >= ? OR last_date_in_program IS NULL', lookback_start_date)
-            .count
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/unique_projects_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class UniqueProjectsCalculator < BaseCalculator
-        def calculate
-          GrdaWarehouse::ServiceHistoryEnrollment
-            .where(client_id: entity.id)
-            .where('first_date_in_program <= ?', snapshot_date)
-            .where('last_date_in_program >= ? OR last_date_in_program IS NULL', lookback_start_date)
-            .select(:project_id, :data_source_id)
-            .distinct
-            .count
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/current_living_situation_count_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class CurrentLivingSituationCountCalculator < BaseCalculator
-        def calculate
-          GrdaWarehouse::Hud::CurrentLivingSituation
-            .joins(enrollment: :client)
-            .where('Client.id IN (?)', entity.source_clients.pluck(:id))
-            .where(InformationDate: lookback_start_date..snapshot_date)
-            .count
-        end
-      end
-    end
-  end
-end
-```
-
-**File:** `app/models/grda_warehouse/metric_calculators/client/service_count_calculator.rb`
-
-```ruby
-module GrdaWarehouse
-  module MetricCalculators
-    module Client
-      class ServiceCountCalculator < BaseCalculator
-        def calculate
-          GrdaWarehouse::ServiceHistoryService
-            .where(client_id: entity.id)
-            .where(date: lookback_start_date..snapshot_date)
-            .count
-        end
-      end
-    end
-  end
-end
-```
-
-#### 2.3 Test Calculators
-
-Create RSpec tests for each calculator:
-
-**File:** `spec/models/grda_warehouse/metric_calculators/client/homeless_days_calculator_spec.rb`
-
-```ruby
-require 'rails_helper'
-
-RSpec.describe GrdaWarehouse::MetricCalculators::Client::HomelessDaysCalculator do
-  let(:client) { create(:grda_warehouse_hud_client) }
-  let(:snapshot_date) { Date.current }
-  let(:calculator) { described_class.new(client, snapshot_date) }
-
-  describe '#calculate' do
-    context 'with no services' do
-      it 'returns 0' do
-        expect(calculator.calculate).to eq(0)
-      end
-    end
-
-    context 'with homeless services in last 3 years' do
-      before do
-        # Create test data
-        create(:service_history_service,
-          client: client,
-          date: 30.days.ago,
-          homeless: true
-        )
-        create(:service_history_service,
-          client: client,
-          date: 60.days.ago,
-          homeless: true
-        )
-      end
-
-      it 'returns count of distinct homeless service days' do
-        expect(calculator.calculate).to eq(2)
-      end
-    end
-
-    # Add more test cases
-  end
-end
-```
-
-**Run tests:** `dcr spec bundle exec rspec spec/models/grda_warehouse/metric_calculators/`
 
 ---
 
-### Phase 3: Collection System (Sprint 2)
+## System Ready for Production
 
-Build the batch collection and retention system.
+The metric tracking system is now fully implemented and tested:
+
+✅ **Database schema** - Partitioned tables with range-based sparse storage
+✅ **Calculator pattern** - Self-configuring with batch support
+✅ **Collection system** - Efficient batch processing with thresholds
+✅ **Initialization** - TaskQueue integration for metric definitions
+✅ **Scheduling** - Hourly rake task runs at 2:00 AM
+✅ **Test coverage** - Comprehensive specs for all components
+
+### First Production Run
+
+The system has been successfully deployed and run with production data:
+- Processed all destination clients with processed service history records
+- Created initial metric snapshots
+- Verified threshold-based snapshot creation works correctly
+- Confirmed 3-year retention cleanup runs properly
+
+### Next Steps
+
+1. **Monitor daily collections**: Check `metric_calculation_runs` table for statistics
+2. **Add new calculators**: Follow the pattern in `HomelessDaysLastThreeYearsCalculator`
+3. **Phase 4: Query Interface**: Implement `HasMetricSnapshots` concern when ready to expose metrics
+4. **Alerting**: Build change-based alerts using snapshot data
+
+---
+
+## Original Implementation Plan
+
+The sections below contain the original detailed implementation plan. Sections marked as completed above have been implemented with the noted modifications.
+
+---
+
+### Original Phase 3 Specification: Collection System
 
 #### 3.1 Create Collector Service
 
@@ -504,44 +347,81 @@ module GrdaWarehouse
   module Tasks
     class MetricSnapshotCollector
       BATCH_SIZE = 5_000
-      DAILY_RETENTION_DAYS = 30
-      WEEKLY_ANCHOR_DAY = 3  # Wednesday
 
       def self.run_daily_collection(
         entity_type:,
-        snapshot_date: Date.current,
+        calculation_date: Date.current,
         entity_ids: nil,
         metric_names: nil
       )
         new(
           entity_type: entity_type,
-          snapshot_date: snapshot_date,
+          calculation_date: calculation_date,
           entity_ids: entity_ids,
           metric_names: metric_names
         ).run
       end
 
-      def initialize(entity_type:, snapshot_date:, entity_ids: nil, metric_names: nil)
+      def initialize(entity_type:, calculation_date:, entity_ids: nil, metric_names: nil)
         @entity_type = entity_type
-        @snapshot_date = snapshot_date
+        @calculation_date = calculation_date
         @entity_ids = entity_ids
         @metric_names = metric_names
+        @run_stats = {
+          entities_evaluated: 0,
+          metrics_calculated: 0,
+          snapshots_created: 0,
+          snapshots_updated: 0,
+          errors: 0
+        }
       end
 
       def run
-        metrics = load_metrics
-        entities = load_entities
+        run_record = create_run_record
 
-        Rails.logger.info "Collecting #{metrics.count} metrics for #{entities.count} #{@entity_type} records"
+        begin
+          metrics = load_metrics
+          entities = load_entities
 
-        entities.in_groups_of(BATCH_SIZE, false) do |entity_batch|
-          collect_batch(entity_batch, metrics)
+          Rails.logger.info "Collecting #{metrics.count} metrics for #{entities.count} #{@entity_type} records"
+
+          entities.in_groups_of(BATCH_SIZE, false) do |entity_batch|
+            collect_batch(entity_batch, metrics)
+          end
+
+          cleanup_old_snapshots
+          complete_run_record(run_record, 'completed')
+
+        rescue => e
+          Rails.logger.error "Metric collection failed: #{e.message}\n#{e.backtrace.join("\n")}"
+          complete_run_record(run_record, 'failed', e.message)
+          raise
         end
-
-        cleanup_old_snapshots
       end
 
       private
+
+      def create_run_record
+        GrdaWarehouse::MetricCalculationRun.create!(
+          entity_type: @entity_type,
+          calculation_date: @calculation_date,
+          started_at: Time.current,
+          status: 'running'
+        )
+      end
+
+      def complete_run_record(run_record, status, error_message = nil)
+        run_record.update!(
+          completed_at: Time.current,
+          status: status,
+          error_message: error_message,
+          entities_evaluated_count: @run_stats[:entities_evaluated],
+          metrics_calculated_count: @run_stats[:metrics_calculated],
+          snapshots_created_count: @run_stats[:snapshots_created],
+          snapshots_updated_count: @run_stats[:snapshots_updated],
+          calculation_errors_count: @run_stats[:errors]
+        )
+      end
 
       def load_metrics
         scope = GrdaWarehouse::MetricDefinition
@@ -566,12 +446,12 @@ module GrdaWarehouse
       def get_active_entities(entity_class)
         case @entity_type
         when 'GrdaWarehouse::Hud::Client'
-          lookback = @snapshot_date - 3.years
+          lookback = @calculation_date - 3.years
           entity_class
             .destination
             .joins(:service_history_services)
             .where('service_history_services.date >= ?', lookback)
-            .where('service_history_services.date <= ?', @snapshot_date)
+            .where('service_history_services.date <= ?', @calculation_date)
             .distinct
         when 'GrdaWarehouse::Hud::Project'
           entity_class.viewable
@@ -583,112 +463,165 @@ module GrdaWarehouse
       end
 
       def collect_batch(entities, metrics)
-        snapshots = []
+        @run_stats[:entities_evaluated] += entities.count
+
+        # Load all current snapshots for this batch to minimize queries
+        current_snapshots = load_current_snapshots_for_batch(entities, metrics)
+
+        snapshots_to_create = []
+        snapshots_to_update = []
 
         entities.each do |entity|
           metrics.each do |metric|
-            snapshot = calculate_snapshot(entity, metric)
-            snapshots << snapshot if snapshot
+            @run_stats[:metrics_calculated] += 1
+
+            begin
+              process_metric_for_entity(
+                entity,
+                metric,
+                current_snapshots,
+                snapshots_to_create,
+                snapshots_to_update
+              )
+            rescue => e
+              Rails.logger.error "Failed to calculate #{metric.name} for #{entity.class.name}##{entity.id}: #{e.message}"
+              @run_stats[:errors] += 1
+            end
           end
         end
 
-        import_snapshots(snapshots)
+        # Bulk create and update
+        import_snapshots(snapshots_to_create)
+        update_snapshots(snapshots_to_update)
       end
 
-      def calculate_snapshot(entity, metric)
-        calculator = metric.calculator_for(entity, @snapshot_date)
-        new_value = calculator.calculate
+      def load_current_snapshots_for_batch(entities, metrics)
+        entity_ids = entities.map(&:id)
+        metric_ids = metrics.map(&:id)
 
-        # Sparse storage: only record if value changed significantly
-        return nil unless should_record_snapshot?(entity, metric, new_value)
-
-        snapshot = GrdaWarehouse::MetricSnapshot.new(
-          entity: entity,
-          metric_definition: metric,
-          snapshot_date: @snapshot_date,
-          calculation_version: calculator.version
-        )
-
-        snapshot.value = new_value
-        snapshot
-
-      rescue => e
-        Rails.logger.error "Failed to calculate #{metric.name} for #{entity.class.name}##{entity.id}: #{e.message}"
-        nil
+        # Find the most recent snapshot for each entity/metric combination
+        GrdaWarehouse::MetricSnapshot
+          .where(entity_type: @entity_type, entity_id: entity_ids)
+          .where(metric_definition_id: metric_ids)
+          .where('current_observation_date >= ?', @calculation_date - 1.day)
+          .order(:entity_id, :metric_definition_id, current_observation_date: :desc)
+          .select('DISTINCT ON (entity_id, metric_definition_id) *')
+          .index_by { |s| [s.entity_id, s.metric_definition_id] }
       end
 
-      def should_record_snapshot?(entity, metric, new_value)
-        # Find most recent snapshot for this entity/metric
-        previous_snapshot = GrdaWarehouse::MetricSnapshot
-          .where(
-            entity_type: entity.class.name,
-            entity_id: entity.id,
-            metric_definition: metric
-          )
-          .where('snapshot_date < ?', @snapshot_date)
-          .order(snapshot_date: :desc)
-          .first
+      def process_metric_for_entity(entity, metric, current_snapshots, snapshots_to_create, snapshots_to_update)
+        calculator = metric.calculator_for(entity, @calculation_date)
+        calculated_value = calculator.calculate
 
-        # Always record first snapshot (establish baseline)
-        return true unless previous_snapshot
+        current_snapshot = current_snapshots[[entity.id, metric.id]]
 
-        previous_value = previous_snapshot.value
+        if should_create_new_snapshot?(metric, current_snapshot, calculated_value)
+          # Significant change detected - create new snapshot
+          snapshot = build_new_snapshot(entity, metric, calculated_value, calculator.version)
+          snapshots_to_create << snapshot
+          @run_stats[:snapshots_created] += 1
+        elsif current_snapshot
+          # Value within threshold - update current_value and extend current_observation_date
+          current_snapshot.current_value = calculated_value
+          current_snapshot.current_observation_date = @calculation_date
+          snapshots_to_update << current_snapshot
+          @run_stats[:snapshots_updated] += 1
+        else
+          # First time calculating this metric for this entity
+          snapshot = build_new_snapshot(entity, metric, calculated_value, calculator.version)
+          snapshots_to_create << snapshot
+          @run_stats[:snapshots_created] += 1
+        end
+      end
+
+      def should_create_new_snapshot?(metric, current_snapshot, calculated_value)
+        # No current snapshot = first time, create new
+        return true unless current_snapshot
+
+        # Compare calculated value to initial_value (baseline)
+        # This detects threshold crossings from the baseline
+        baseline_value = current_snapshot.initial_value
 
         # Handle nil/null values
-        return true if new_value.nil? != previous_value.nil?
-        return false if new_value.nil? && previous_value.nil?
+        return true if calculated_value.nil? != baseline_value.nil?
+        return false if calculated_value.nil? && baseline_value.nil?
 
-        # If no thresholds specified, always record (dense storage)
+        # If no thresholds specified, create new snapshot on any change
         count_threshold = metric.count_change_threshold
         percent_threshold = metric.percent_change_threshold
-        return true if count_threshold.nil? && percent_threshold.nil?
+        return calculated_value != baseline_value if count_threshold.nil? && percent_threshold.nil?
 
-        # Calculate change
-        change = (new_value - previous_value).abs
+        # Calculate change from baseline
+        change = (calculated_value - baseline_value).abs
 
         # Check count threshold
         return true if count_threshold && change >= count_threshold
 
         # Check percent threshold
-        if percent_threshold && previous_value != 0
-          percent_change = (change.to_f / previous_value.abs * 100)
+        if percent_threshold && baseline_value != 0
+          percent_change = (change.to_f / baseline_value.abs * 100)
           return true if percent_change >= percent_threshold
         end
 
-        # No threshold met, don't record
+        # No threshold crossed, update existing snapshot
         false
+      end
+
+      def build_new_snapshot(entity, metric, value, calculation_version)
+        GrdaWarehouse::MetricSnapshot.new(
+          entity: entity,
+          metric_definition: metric,
+          initial_observation_date: @calculation_date,
+          current_observation_date: @calculation_date,
+          initial_value: value,
+          current_value: value,
+          calculation_version: calculation_version
+        )
       end
 
       def import_snapshots(snapshots)
         return if snapshots.empty?
 
-        snapshots.group_by { |s| s.metric_definition.value_type }.each do |value_type, typed_snapshots|
-          value_column = "value_#{value_type}"
+        GrdaWarehouse::MetricSnapshot.import(
+          snapshots,
+          on_duplicate_key_update: {
+            conflict_target: [
+              :entity_type,
+              :entity_id,
+              :metric_definition_id,
+              :current_observation_date
+            ],
+            columns: [
+              :initial_value,
+              :current_value,
+              :calculation_version,
+              :updated_at
+            ]
+          }
+        )
+      end
 
-          GrdaWarehouse::MetricSnapshot.import(
-            typed_snapshots,
-            on_duplicate_key_update: {
-              conflict_target: [:entity_type, :entity_id, :metric_definition_id, :snapshot_date],
-              columns: [
-                value_column.to_sym,
-                :calculation_version,
-                :updated_at
-              ]
-            }
-          )
-        end
+      def update_snapshots(snapshots)
+        return if snapshots.empty?
+
+        # Bulk update current_value and current_observation_date
+        GrdaWarehouse::MetricSnapshot.import(
+          snapshots,
+          on_duplicate_key_update: {
+            conflict_target: [:id],
+            columns: [:current_value, :current_observation_date, :updated_at]
+          }
+        )
       end
 
       def cleanup_old_snapshots
-        cutoff_date = @snapshot_date - DAILY_RETENTION_DAYS.days
+        cutoff_date = @calculation_date - 3.years
 
         deleted_count = GrdaWarehouse::MetricSnapshot
-          .where(entity_type: @entity_type)
-          .where('snapshot_date < ?', cutoff_date)
-          .where('EXTRACT(DOW FROM snapshot_date) != ?', WEEKLY_ANCHOR_DAY)
+          .where('current_observation_date < ?', cutoff_date)
           .delete_all
 
-        Rails.logger.info "Cleaned up #{deleted_count} old #{@entity_type} snapshots (preserved Wednesdays)"
+        Rails.logger.info "Cleaned up #{deleted_count} snapshots with current_observation_date before #{cutoff_date}"
       end
     end
   end
@@ -703,10 +636,10 @@ end
 class CollectClientMetricsJob < ApplicationJob
   queue_as :default
 
-  def perform(snapshot_date = Date.current)
+  def perform(calculation_date = Date.current)
     GrdaWarehouse::Tasks::MetricSnapshotCollector.run_daily_collection(
       entity_type: 'GrdaWarehouse::Hud::Client',
-      snapshot_date: snapshot_date
+      calculation_date: calculation_date
     )
   end
 end
@@ -718,10 +651,10 @@ end
 class CollectProjectMetricsJob < ApplicationJob
   queue_as :default
 
-  def perform(snapshot_date = Date.current)
+  def perform(calculation_date = Date.current)
     GrdaWarehouse::Tasks::MetricSnapshotCollector.run_daily_collection(
       entity_type: 'GrdaWarehouse::Hud::Project',
-      snapshot_date: snapshot_date
+      calculation_date: calculation_date
     )
   end
 end
@@ -733,10 +666,10 @@ end
 class CollectDataSourceMetricsJob < ApplicationJob
   queue_as :default
 
-  def perform(snapshot_date = Date.current)
+  def perform(calculation_date = Date.current)
     GrdaWarehouse::Tasks::MetricSnapshotCollector.run_daily_collection(
       entity_type: 'GrdaWarehouse::DataSource',
-      snapshot_date: snapshot_date
+      calculation_date: calculation_date
     )
   end
 end
@@ -755,15 +688,15 @@ end
 Or configure via cron, Sidekiq scheduler, or your scheduling system.
 
 **Test manually:**
-```ruby
+```bash
 dcr shell bundle exec rails runner "CollectClientMetricsJob.perform_now"
 ```
 
 ---
 
-### Phase 4: Query Interface (Sprint 3)
+### Original Phase 4 Specification: Query Interface
 
-Add concern and query methods for easy metric access.
+Add concern for easy metric access.
 
 #### 4.1 Create HasMetricSnapshots Concern
 
@@ -780,7 +713,7 @@ module HasMetricSnapshots
       dependent: :destroy
   end
 
-  # Get latest value for a metric
+  # Get value on a specific date
   def metric_value(metric_name, as_of_date: Date.current)
     metric_def = GrdaWarehouse::MetricDefinition.find_by(
       name: metric_name,
@@ -791,85 +724,32 @@ module HasMetricSnapshots
 
     snapshot = metric_snapshots
       .where(metric_definition: metric_def)
-      .where('snapshot_date <= ?', as_of_date)
-      .order(snapshot_date: :desc)
+      .active_as_of(as_of_date)
       .first
 
-    snapshot&.value
+    return nil unless snapshot
+
+    snapshot.value_on_date(as_of_date)
   end
 
-  # Get time series for a metric
-  def metric_time_series(
-    metric_name,
-    start_date: 90.days.ago,
-    end_date: Date.current
-  )
-    metric_def = GrdaWarehouse::MetricDefinition.find_by(
-      name: metric_name,
-      entity_type: self.class.name
-    )
-
-    return [] unless metric_def
-
-    metric_snapshots
-      .where(metric_definition: metric_def)
-      .where('snapshot_date >= ?', start_date)
-      .where('snapshot_date <= ?', end_date)
-      .order(:snapshot_date)
-      .pluck(:snapshot_date, value_column_for_metric(metric_def))
-  end
-
-  # Detect change in a metric
+  # Detect significant change in metric
   def metric_change(metric_name, days_back: 1)
-    metric_def = GrdaWarehouse::MetricDefinition.find_by(
-      name: metric_name,
-      entity_type: self.class.name
-    )
+    current_value = metric_value(metric_name, as_of_date: Date.current)
+    past_value = metric_value(metric_name, as_of_date: days_back.days.ago.to_date)
 
-    return nil unless metric_def
+    return nil if current_value.nil? || past_value.nil?
 
-    snapshots = metric_snapshots
-      .where(metric_definition: metric_def)
-      .order(snapshot_date: :desc)
-      .limit(days_back + 1)
-
-    return nil if snapshots.count < 2
-
-    current = snapshots.first.value
-    previous = snapshots[days_back].value
-
-    case metric_def.value_type
-    when 'integer', 'float'
-      current - previous
-    when 'boolean'
-      current != previous
-    else
-      nil
-    end
+    current_value - past_value
   end
 
-  # Get all metrics as hash
+  # Get all current metrics as hash
   def all_metrics(as_of_date: Date.current)
     metric_snapshots
       .joins(:metric_definition)
-      .where('snapshot_date <= ?', as_of_date)
-      .select('DISTINCT ON (metric_definition_id) *')
-      .order(:metric_definition_id, snapshot_date: :desc)
+      .active_as_of(as_of_date)
       .each_with_object({}) do |snapshot, hash|
-        hash[snapshot.metric_definition.name] = snapshot.value
+        hash[snapshot.metric_definition.name] = snapshot.value_on_date(as_of_date)
       end
-  end
-
-  private
-
-  def value_column_for_metric(metric_def)
-    case metric_def.value_type
-    when 'integer' then :value_integer
-    when 'float' then :value_float
-    when 'string' then :value_string
-    when 'boolean' then :value_boolean
-    when 'json' then :value_json
-    end
   end
 end
 ```
@@ -888,139 +768,11 @@ module GrdaWarehouse::Hud
 end
 ```
 
-#### 4.3 Add Batch Query Methods to MetricSnapshot
-
-**File:** `app/models/grda_warehouse/metric_snapshot.rb` (additions)
-
-```ruby
-# Add these class methods to existing model
-
-class << self
-  # Get latest values for a metric across multiple entities
-  def latest_values_for(metric_name:, entity_type:, entity_ids: nil, as_of_date: Date.current)
-    metric_def = GrdaWarehouse::MetricDefinition.find_by(
-      name: metric_name,
-      entity_type: entity_type
-    )
-
-    return {} unless metric_def
-
-    scope = where(metric_definition: metric_def)
-      .where(entity_type: entity_type)
-      .where('snapshot_date <= ?', as_of_date)
-
-    scope = scope.where(entity_id: entity_ids) if entity_ids.present?
-
-    scope
-      .select("DISTINCT ON (entity_id) entity_id, snapshot_date, #{value_column_name(metric_def)}")
-      .order(:entity_id, snapshot_date: :desc)
-      .each_with_object({}) do |snapshot, hash|
-        hash[snapshot.entity_id] = snapshot.value
-      end
-  end
-
-  # Find entities where metric changed significantly
-  def entities_with_change(
-    metric_name:,
-    entity_type:,
-    threshold:,
-    days_back: 1,
-    as_of_date: Date.current
-  )
-    metric_def = GrdaWarehouse::MetricDefinition.find_by(
-      name: metric_name,
-      entity_type: entity_type
-    )
-
-    return [] unless metric_def
-    return [] unless ['integer', 'float'].include?(metric_def.value_type)
-
-    value_col = value_column_name(metric_def)
-    comparison_date = as_of_date - days_back.days
-
-    # Self-join to compare current vs previous
-    current = arel_table
-    previous = arel_table.alias('previous_snapshots')
-
-    query = current
-      .project(current[:entity_id])
-      .join(previous)
-      .on(
-        current[:entity_id].eq(previous[:entity_id])
-        .and(current[:metric_definition_id].eq(previous[:metric_definition_id]))
-        .and(current[:entity_type].eq(previous[:entity_type]))
-      )
-      .where(current[:metric_definition_id].eq(metric_def.id))
-      .where(current[:entity_type].eq(entity_type))
-      .where(current[:snapshot_date].eq(as_of_date))
-      .where(previous[:snapshot_date].eq(comparison_date))
-      .where(
-        Arel::Nodes::NamedFunction.new('ABS', [
-          current[value_col].-(previous[value_col])
-        ]).gteq(threshold)
-      )
-
-    where(entity_id: connection.select_values(query.to_sql))
-      .where(snapshot_date: as_of_date)
-      .where(metric_definition: metric_def)
-      .includes(:entity)
-      .map(&:entity)
-  end
-
-  # Aggregate metrics across entities
-  def aggregate_metric(
-    metric_name:,
-    entity_type:,
-    aggregation: :sum,
-    as_of_date: Date.current,
-    entity_ids: nil
-  )
-    metric_def = GrdaWarehouse::MetricDefinition.find_by(
-      name: metric_name,
-      entity_type: entity_type
-    )
-
-    return nil unless metric_def
-
-    value_col = value_column_name(metric_def)
-
-    scope = where(metric_definition: metric_def)
-      .where(entity_type: entity_type)
-      .where('snapshot_date <= ?', as_of_date)
-
-    scope = scope.where(entity_id: entity_ids) if entity_ids.present?
-
-    latest_snapshots = scope
-      .select("DISTINCT ON (entity_id) entity_id, #{value_col}")
-      .order(:entity_id, snapshot_date: :desc)
-
-    case aggregation
-    when :sum
-      connection.select_value("SELECT SUM(#{value_col}) FROM (#{latest_snapshots.to_sql}) AS latest")
-    when :avg
-      connection.select_value("SELECT AVG(#{value_col}) FROM (#{latest_snapshots.to_sql}) AS latest")
-    when :min
-      connection.select_value("SELECT MIN(#{value_col}) FROM (#{latest_snapshots.to_sql}) AS latest")
-    when :max
-      connection.select_value("SELECT MAX(#{value_col}) FROM (#{latest_snapshots.to_sql}) AS latest")
-    when :count
-      latest_snapshots.count
-    end
-  end
-
-  private
-
-  def value_column_name(metric_def)
-    "value_#{metric_def.value_type}"
-  end
-end
-```
-
 ---
 
-### Phase 5: Seed Initial Metrics (Sprint 3)
+### Original Phase 5 Specification: Seed Initial Metrics
 
-Create metric definitions for the 8 client metrics.
+Create metric definitions for client metrics.
 
 #### 5.1 Create Seed File
 
@@ -1043,7 +795,6 @@ module Seeds
           description: 'Total days with homeless services in the last 3 years (includes ES, SO, SH, TH)',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::HomelessDaysCalculator',
-          value_type: 'integer',
           category: 'housing',
           calculation_window_days: 1095,
           count_change_threshold: 5,
@@ -1056,7 +807,6 @@ module Seeds
           description: 'Number of source client records merged into this destination client',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::SourceClientCountCalculator',
-          value_type: 'integer',
           category: 'data_quality',
           calculation_window_days: nil,
           count_change_threshold: 1,
@@ -1069,7 +819,6 @@ module Seeds
           description: 'Largest household size client has been part of (last 3 years)',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::MaxHouseholdSizeCalculator',
-          value_type: 'integer',
           category: 'demographics',
           calculation_window_days: 1095,
           count_change_threshold: 1,
@@ -1082,7 +831,6 @@ module Seeds
           description: 'Smallest household size client has been part of (last 3 years)',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::MinHouseholdSizeCalculator',
-          value_type: 'integer',
           category: 'demographics',
           calculation_window_days: 1095,
           count_change_threshold: 1,
@@ -1095,7 +843,6 @@ module Seeds
           description: 'Number of enrollments in the last 3 years',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::EnrollmentCountCalculator',
-          value_type: 'integer',
           category: 'services',
           calculation_window_days: 1095,
           count_change_threshold: 1,
@@ -1108,7 +855,6 @@ module Seeds
           description: 'Number of distinct projects served in during the last 3 years',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::UniqueProjectsCalculator',
-          value_type: 'integer',
           category: 'services',
           calculation_window_days: 1095,
           count_change_threshold: 1,
@@ -1121,7 +867,6 @@ module Seeds
           description: 'Number of current living situation assessments recorded (last 3 years)',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::CurrentLivingSituationCountCalculator',
-          value_type: 'integer',
           category: 'assessments',
           calculation_window_days: 1095,
           count_change_threshold: 1,
@@ -1134,7 +879,6 @@ module Seeds
           description: 'Total number of service records (last 3 years)',
           entity_type: 'GrdaWarehouse::Hud::Client',
           calculator_class: 'GrdaWarehouse::MetricCalculators::Client::ServiceCountCalculator',
-          value_type: 'integer',
           category: 'services',
           calculation_window_days: 1095,
           count_change_threshold: 10,
@@ -1184,7 +928,7 @@ dcr shell bundle exec rails runner "require './db/seeds/metric_definitions'; See
 
 ---
 
-### Phase 6: Initial Data Collection (Sprint 3-4)
+### Original Phase 6 Specification: Initial Data Collection
 
 Run first collection and verify data.
 
@@ -1199,7 +943,7 @@ sample_ids = GrdaWarehouse::Hud::Client.destination.limit(100).pluck(:id)
 # Run collection for sample
 GrdaWarehouse::Tasks::MetricSnapshotCollector.run_daily_collection(
   entity_type: 'GrdaWarehouse::Hud::Client',
-  snapshot_date: Date.current,
+  calculation_date: Date.current,
   entity_ids: sample_ids
 )
 
@@ -1217,19 +961,13 @@ puts "Enrollments: #{client.metric_value('enrollment_count_last_three_years')}"
 ```bash
 # Via job (recommended)
 dcr shell bundle exec rails runner "CollectClientMetricsJob.perform_now"
-
-# Or directly
-dcr shell bundle exec rails runner "
-  GrdaWarehouse::Tasks::MetricSnapshotCollector.run_daily_collection(
-    entity_type: 'GrdaWarehouse::Hud::Client'
-  )
-"
 ```
 
 **Monitor:**
 - Check logs for progress
 - Watch `metric_snapshots` table row count
 - Verify no errors in calculation
+- Review `metric_calculation_runs` table for statistics
 
 #### 6.3 Verify Data Quality
 
@@ -1241,93 +979,93 @@ SELECT
   COUNT(*) as snapshot_count
 FROM metric_snapshots ms
 JOIN metric_definitions md ON md.id = ms.metric_definition_id
-WHERE ms.snapshot_date = CURRENT_DATE
+WHERE ms.current_observation_date = CURRENT_DATE
 GROUP BY md.id, md.name, md.display_name
 ORDER BY md.name;
 
 -- Check value distribution
 SELECT
   md.name,
-  MIN(ms.value_integer) as min_value,
-  AVG(ms.value_integer) as avg_value,
-  MAX(ms.value_integer) as max_value
+  MIN(ms.current_value) as min_value,
+  AVG(ms.current_value) as avg_value,
+  MAX(ms.current_value) as max_value
 FROM metric_snapshots ms
 JOIN metric_definitions md ON md.id = ms.metric_definition_id
-WHERE ms.snapshot_date = CURRENT_DATE
-  AND md.value_type = 'integer'
+WHERE ms.current_observation_date = CURRENT_DATE
 GROUP BY md.name
 ORDER BY md.name;
+
+-- Check calculation run statistics
+SELECT
+  calculation_date,
+  status,
+  entities_evaluated_count,
+  snapshots_created_count,
+  snapshots_updated_count,
+  calculation_errors_count,
+  completed_at - started_at as duration
+FROM metric_calculation_runs
+ORDER BY calculation_date DESC
+LIMIT 10;
+
+-- Verify partitions were created
+SELECT
+  schemaname,
+  tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE tablename LIKE 'metric_snapshots_%'
+ORDER BY tablename;
 ```
 
 ---
 
-### Phase 7: Historical Backfill (Optional, Sprint 4)
+### Original Phase 7 Specification: Testing & Validation
 
-Backfill historical data for trend analysis.
+#### 7.1 Test Scenarios for Range-Based Storage
 
-#### 7.1 Create Backfill Script
+Document key test scenarios to ensure sparse storage works correctly:
 
-**File:** `lib/tasks/backfill_metrics.rake`
+**Test Case 1: Value Stays Within Threshold**
+- Days 1-60: value fluctuates 100-104 (threshold = 5)
+- Expected: One snapshot with initial=100, current=104, spanning 60 days
+- Verify: No false positive alerts
 
-```ruby
-namespace :metrics do
-  desc 'Backfill historical metric snapshots'
-  task :backfill, [:start_date, :end_date] => :environment do |t, args|
-    start_date = Date.parse(args[:start_date])
-    end_date = Date.parse(args[:end_date] || Date.current.to_s)
+**Test Case 2: Temporary Spike**
+- Days 1-30: value = 100
+- Day 31: value = 200 (spike)
+- Days 32-60: value = 100 (recovery)
+- Expected: Three snapshots
+  1. initial=100, current=104, days 1-30
+  2. initial=200, current=200, day 31 (duration=0, identified as spike)
+  3. initial=100, current=102, days 32-60
 
-    puts "Backfilling metrics from #{start_date} to #{end_date}"
+**Test Case 3: Gradual Drift**
+- Days 1-5: 100, 101, 102, 103, 104
+- Day 6: 106 (crosses threshold from initial 100)
+- Expected: Two snapshots
+  1. initial=100, current=104, days 1-5
+  2. initial=106, current=106, day 6
 
-    (start_date..end_date).each do |date|
-      # Skip weekends to reduce load (optional)
-      next if date.saturday? || date.sunday?
+**Test Case 4: Client Becomes Inactive**
+- Days 1-30: active, value stable
+- Days 31-90: not in active query
+- Day 91: active again, different value
+- Expected: `current_observation_date` stops at day 30, can detect staleness
 
-      puts "\nProcessing #{date}..."
+#### 7.2 Unit Tests
 
-      CollectClientMetricsJob.perform_now(date)
-
-      # Add delay to avoid overwhelming database (optional)
-      sleep 5
-    end
-
-    puts "\nBackfill complete!"
-  end
-end
-```
-
-#### 7.2 Run Backfill
-
-```bash
-# Backfill last 30 days
-dcr shell bundle exec rails metrics:backfill[2025-01-01,2025-01-31]
-
-# Or incrementally
-dcr shell bundle exec rails metrics:backfill[2025-01-01,2025-01-07]
-dcr shell bundle exec rails metrics:backfill[2025-01-08,2025-01-14]
-# ...
-```
-
-**Note:** Backfill can be time-consuming for large date ranges. Consider:
-- Running off-hours
-- Limiting to specific client cohorts first
-- Monitoring database load
-
----
-
-### Phase 8: Testing & Validation (Throughout)
-
-#### 8.1 Unit Tests
-
-Test calculators, models, and concern methods:
+Test calculators and models:
 
 ```bash
 dcr spec bundle exec rspec spec/models/grda_warehouse/metric_calculators/
 dcr spec bundle exec rspec spec/models/grda_warehouse/metric_definition_spec.rb
 dcr spec bundle exec rspec spec/models/grda_warehouse/metric_snapshot_spec.rb
+dcr spec bundle exec rspec spec/models/grda_warehouse/metric_calculation_run_spec.rb
 dcr spec bundle exec rspec spec/models/concerns/has_metric_snapshots_spec.rb
 ```
 
-#### 8.2 Integration Tests
+#### 7.3 Integration Tests
 
 Test full collection flow:
 
@@ -1338,7 +1076,8 @@ require 'rails_helper'
 RSpec.describe CollectClientMetricsJob do
   let!(:client) { create(:grda_warehouse_hud_client) }
   let!(:metric_definition) do
-    create(:metric_definition,
+    create(
+      :metric_definition,
       name: 'days_homeless_last_three_years',
       entity_type: 'GrdaWarehouse::Hud::Client',
       calculator_class: 'GrdaWarehouse::MetricCalculators::Client::HomelessDaysCalculator'
@@ -1350,116 +1089,13 @@ RSpec.describe CollectClientMetricsJob do
       described_class.perform_now
     }.to change { GrdaWarehouse::MetricSnapshot.count }
   end
-end
-```
 
-#### 8.3 Performance Tests
-
-Monitor query performance:
-
-```ruby
-# spec/performance/metric_queries_spec.rb
-require 'rails_helper'
-
-RSpec.describe 'Metric Query Performance' do
-  before do
-    # Create test data
-    100.times { create(:metric_snapshot) }
-  end
-
-  it 'retrieves latest value quickly' do
-    client = GrdaWarehouse::Hud::Client.first
-
-    time = Benchmark.realtime do
-      client.metric_value('days_homeless_last_three_years')
-    end
-
-    expect(time).to be < 0.05  # 50ms threshold
+  it 'creates calculation run record' do
+    expect {
+      described_class.perform_now
+    }.to change { GrdaWarehouse::MetricCalculationRun.count }.by(1)
   end
 end
-```
-
----
-
-### Phase 9: Documentation & Training (Sprint 4-5)
-
-#### 9.1 Add Inline Documentation
-
-Document usage in models:
-
-```ruby
-# app/models/grda_warehouse/hud/client.rb
-
-module GrdaWarehouse::Hud
-  class Client < GrdaWarehouseBase
-    include HasMetricSnapshots
-
-    # Example usage:
-    #
-    #   client = GrdaWarehouse::Hud::Client.find(123)
-    #
-    #   # Get current metric value
-    #   homeless_days = client.metric_value('days_homeless_last_three_years')
-    #
-    #   # Get time series for charting
-    #   data = client.metric_time_series('days_homeless_last_three_years', start_date: 90.days.ago)
-    #
-    #   # Detect change
-    #   change = client.metric_change('days_homeless_last_three_years', days_back: 7)
-
-    # ... rest of model
-  end
-end
-```
-
-#### 9.2 Create Usage Examples
-
-**File:** `docs/examples/metric_tracking_usage.md`
-
-```markdown
-# Metric Tracking Usage Examples
-
-## Single Client Queries
-
-### Get Latest Metric Value
-client = GrdaWarehouse::Hud::Client.find(123)
-homeless_days = client.metric_value('days_homeless_last_three_years')
-
-### Get Time Series for Chart
-time_series = client.metric_time_series(
-  'days_homeless_last_three_years',
-  start_date: 90.days.ago
-)
-# => [[Date, value], [Date, value], ...]
-
-### Detect Change
-weekly_change = client.metric_change('days_homeless_last_three_years', days_back: 7)
-# => 5 (increased by 5 days)
-
-## Batch Queries
-
-### Get Values for Multiple Clients
-values = GrdaWarehouse::MetricSnapshot.latest_values_for(
-  metric_name: 'days_homeless_last_three_years',
-  entity_type: 'GrdaWarehouse::Hud::Client',
-  entity_ids: [123, 456, 789]
-)
-# => {123 => 45, 456 => 67, 789 => 12}
-
-### Find Clients with Significant Changes
-clients = GrdaWarehouse::MetricSnapshot.entities_with_change(
-  metric_name: 'days_homeless_last_three_years',
-  entity_type: 'GrdaWarehouse::Hud::Client',
-  threshold: 30,
-  days_back: 7
-)
-
-### Aggregate Across Population
-total = GrdaWarehouse::MetricSnapshot.aggregate_metric(
-  metric_name: 'days_homeless_last_three_years',
-  entity_type: 'GrdaWarehouse::Hud::Client',
-  aggregation: :sum
-)
 ```
 
 ---
@@ -1472,37 +1108,32 @@ total = GrdaWarehouse::MetricSnapshot.aggregate_metric(
 - [ ] All models created with tests passing
 - [ ] Calculator classes implemented and tested
 - [ ] Collection system tested with sample data
-- [ ] Retention logic verified
+- [ ] Retention logic verified (3-year cutoff)
 - [ ] Query methods tested
 - [ ] Documentation complete
 
 ### Initial Deployment
 
 - [ ] Deploy migrations (non-breaking)
+- [ ] Verify partitions created correctly
 - [ ] Deploy model code
 - [ ] Seed metric definitions
 - [ ] Verify no errors in application
 
 ### Data Collection Start
 
-- [ ] Run initial collection manually
+- [ ] Run initial collection manually on sample
 - [ ] Verify data quality
 - [ ] Monitor performance metrics
+- [ ] Run full collection
 - [ ] Enable scheduled collection
 - [ ] Monitor for 1 week
-
-### Backfill (Optional)
-
-- [ ] Test backfill on sample date range
-- [ ] Run full backfill during off-hours
-- [ ] Verify historical data
 
 ### Go Live
 
 - [ ] Enable query methods in application code
-- [ ] Add UI components (charts, reports)
-- [ ] Train users on new features
 - [ ] Monitor usage and performance
+- [ ] Track calculation run statistics
 
 ---
 
@@ -1530,6 +1161,17 @@ total = GrdaWarehouse::MetricSnapshot.aggregate_metric(
 - Check if metrics are marked `active: true`
 - Verify entity is included in active entity query
 - Check logs for calculation errors
+- Review `metric_calculation_runs` for error counts
+
+**Issue: Too many snapshots (storage growing too fast)**
+- Review threshold settings - may be too sensitive
+- Check for metrics with no thresholds (creating snapshots on every change)
+- Verify cleanup is running (check `current_observation_date < 3 years ago`)
+
+**Issue: Partitioning errors on inserts**
+- Check that partition exists for the `initial_observation_date` being inserted
+- If inserting data beyond 10 years in the future, create additional partitions manually
+- Query existing partitions: `SELECT tablename FROM pg_tables WHERE tablename LIKE 'metric_snapshots_%' ORDER BY tablename`
 
 ---
 
@@ -1537,35 +1179,38 @@ total = GrdaWarehouse::MetricSnapshot.aggregate_metric(
 
 ### Regular Tasks
 
-- **Monitor collection job**: Ensure runs daily without errors
+- **Monitor collection job**: Ensure runs daily without errors via `metric_calculation_runs`
 - **Check disk space**: Monitor `metric_snapshots` table size
 - **Verify data quality**: Spot-check metric values
-- **Review performance**: Monitor query times
+- **Review performance**: Monitor query times and calculation duration
 
 ### Periodic Tasks
 
+- **Monitor partition availability**: Around year 2032, need to create additional quarterly partitions
 - **Add new metrics**: Follow extensibility pattern
-- **Archive old data**: Beyond retention policy if needed
 - **Update calculators**: Version and migrate when logic changes
+- **Drop very old partitions**: If retaining data beyond 3 years, manually drop ancient partitions to free space
 
 ---
 
-## Success Metrics
+## Storage Estimates
 
-Track these to measure implementation success:
+With range-based sparse storage:
 
-- **Collection completion time** (target: < 60 seconds for 200k clients)
-- **Query performance** (target: < 50ms for single value retrieval)
-- **Storage growth** (target: ~300 MB/month for 200k clients × 8 metrics)
-- **Error rate** (target: < 0.1% failed calculations)
-- **User adoption** (track usage of metric query methods)
+- **Stable client** (3 years, 2-3 changes): 2-3 snapshots per metric
+- **Moderately stable** (3 years, monthly changes): ~36 snapshots per metric
+- **Volatile client** (3 years, weekly changes): ~150 snapshots per metric
+
+**Example: 200k clients × 8 metrics over 3 years**
+- Assuming 70% stable, 25% moderate, 5% volatile
+- Estimated total: ~30-50 million rows
+- Storage: ~3-5 GB (very manageable)
 
 ---
 
 ## Next Steps After Implementation
 
-1. **Alert Integration**: Use metrics for change-based alerts
-2. **Reporting**: Build dashboards showing metric trends
-3. **API Endpoints**: Expose metrics via REST API
-4. **Additional Entity Types**: Extend to projects, organizations
-5. **Predictive Analytics**: Use historical data for forecasting
+1. **Alert Integration**: Use metrics for change-based alerts (detect spikes via `spike?` method)
+2. **Reporting**: Build dashboards showing metric trends (using linear interpolation)
+3. **Additional Entity Types**: Extend to projects, data sources
+4. **Charting**: Implement time series visualization with interpolation
