@@ -238,7 +238,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     describe 'when the opportunity has several referrals' do
       let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
-      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit, workflow_template: workflow_template }
+      let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: candidate_pool, unit: unit }
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
       let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
       let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
@@ -257,7 +257,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has no candidates' do
-      let(:empty_pool_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1 }
+      let(:unit) { create :hmis_unit, project: project }
+      let(:empty_pool_opportunity) { create :hmis_ce_opportunity, unit: unit }
 
       let(:empty_pool_variables) do
         {
@@ -295,7 +296,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has some candidates the current user lacks permission to view' do
       let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
-      let(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool_with_anonymous }
+      let(:unit) { create :hmis_unit, project: project }
+      let(:opportunity) { create :hmis_ce_opportunity, unit: unit, candidate_pool: candidate_pool_with_anonymous }
 
       let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
       let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
