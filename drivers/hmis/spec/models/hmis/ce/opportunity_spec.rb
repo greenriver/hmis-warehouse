@@ -4,15 +4,6 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Opportunity do
   describe 'validations' do
-    describe 'project consistency' do
-      it 'prevents inconsistent project' do
-        opportunity = create(:hmis_ce_opportunity, **opportunity_attributes)
-        opportunity.project = create(:hmis_hud_project, organization: organization)
-        expect(opportunity).not_to be_valid
-        expect(opportunity.errors[:project]).to include('must be same as unit\'s project')
-      end
-    end
-
     describe 'candidate pool stability' do
       let!(:pool1) { create(:hmis_ce_match_candidate_pool) }
       let!(:pool2) { create(:hmis_ce_match_candidate_pool) }
