@@ -40,6 +40,10 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
+  # consistent time for avoid failures when run across day boundaries
+  before(:each)  { freeze_time }
+  after(:each) { travel_back }
+
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
   let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'A') }
 
