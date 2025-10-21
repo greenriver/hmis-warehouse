@@ -16,6 +16,10 @@ module Types
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
     field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Most recent snapshot of client attributes', default_value: {}
 
+    available_filter_options do
+      arg :exclude_recently_declined_from_unit_group, [ID], required: false
+    end
+
     def destination_client_id
       destination_client.id
     end

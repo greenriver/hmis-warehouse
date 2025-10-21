@@ -13,7 +13,12 @@ module Types
     field :status, HmisSchema::Enums::CeOpportunityStatus, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
-    field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
+    field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false do
+      # Use a custom filter type, not just the default filters_argument for CeCandidate. This enables us to:
+      # - accept a custom filter, "exclude_recently_declined", on the opportunity's candidate query. (The user sees a boolean checkbox in the UI.)
+      # - when passing that filter along to the CeCandidate field, pass *this* opportunity's unit_group_id as the filter value.
+      argument :filters, HmisSchema::CeOpportunityCandidatesFilterOptions, required: false
+    end
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :project_id, ID, null: false
@@ -50,10 +55,18 @@ module Types
       Hmis::Ce::Match::Candidate.for_opportunity(object).find_by(id: id)
     end
 
-    def candidates # not for batch
+    def candidates(filters: nil) # not for batch
       return Hmis::Ce::Match::Candidate.none unless policy_for(object, policy_type: :ce_opportunity).can_view_candidates?
 
-      Hmis::Ce::Match::Candidate.for_opportunity(object).prioritized
+      scope = Hmis::Ce::Match::Candidate.for_opportunity(object)
+
+      # Transform boolean filter into the unit-group-specific filter
+      if filters&.exclude_recently_declined && object.unit_group
+        candidate_filters = OpenStruct.new(exclude_recently_declined_from_unit_group: [object.unit_group.id])
+        scope = scope.apply_filters(candidate_filters)
+      end
+
+      scope.prioritized
     end
 
     def referral

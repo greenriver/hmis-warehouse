@@ -24,5 +24,9 @@ module Hmis::Ce::Match
 
       opportunity.candidate_pool.candidates
     end
+
+    def self.apply_filters(input)
+      Hmis::Filter::CeCandidateFilter.new(input).filter_scope(self)
+    end
   end
 end
