@@ -493,7 +493,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
     opportunity = active_referral ? active_referral.opportunity : unit.latest_opportunity
-    active_referral ||= opportunity.active_referral
+    active_referral ||= opportunity&.active_referral
     raise 'Cannot assign directly to a unit receiving referrals' if opportunity&.open?
 
     if opportunity&.locked?
