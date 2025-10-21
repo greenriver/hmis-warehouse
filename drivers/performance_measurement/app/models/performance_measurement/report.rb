@@ -967,11 +967,11 @@ module PerformanceMeasurement
       extras
     end
 
-    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
+    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2026::MeasureSeven::PERMANENT_DESTINATIONS
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [nil]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
-      HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
+      HudSpmReport::Generators::Fy2026::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
     ).freeze
 
     private def summary_calculations
@@ -990,8 +990,12 @@ module PerformanceMeasurement
         {
           key: :retention_or_positive_destination,
           value_calculation: ->(client, variant_name) {
+            # The following two checks confirm known destination values for 7a.1 C2 and 7b.1 C2 so they are safe
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
+            # When looking at data from 7b.2, we also include "stayers" which are denoted by an empty destination, to avoid counting other random clients, we need to limit to those that were in the 7b.2 universe.
+            # This is an attribute to note if the client was in the universe for 7b.2 C2
+            return false unless client.included_in_ph_permanent_or_stayer
             return true if PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
 
             false
@@ -1204,7 +1208,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
+              # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/measure_seven.rb
               # represents institutional and permanent destinations for 7a.1 C3 and C4
               return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
 
@@ -1266,6 +1270,7 @@ module PerformanceMeasurement
               {
                 project_id: spm_enrollment.enrollment.project.id,
                 for_question: :moved_in_destination,
+                included_in_ph_permanent_or_stayer: true,
               }
             },
             ->(spm_enrollment) {
