@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
@@ -61,6 +63,26 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
 
   it 'uploads move in addresses' do
     subject.perform('move_in_address_export')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads ce referrals' do
+    subject.perform('ce_referrals')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads ce referral tasks' do
+    subject.perform('ce_referral_tasks')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads waitlist events' do
+    subject.perform('waitlist_events_export')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads current waitlists' do
+    subject.perform('current_waitlists_export')
     expect(subject.state).to eq(:success)
   end
 end
