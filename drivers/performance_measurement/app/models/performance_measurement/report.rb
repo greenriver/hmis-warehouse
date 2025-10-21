@@ -372,6 +372,7 @@ module PerformanceMeasurement
                   period: variant_name,
                   household_type: household_type_for_spm(member),
                 )
+                report_client.included_in_ph_permanent_or_stayer = pc_data[:included_in_ph_permanent_or_stayer]
                 project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
               end
 
