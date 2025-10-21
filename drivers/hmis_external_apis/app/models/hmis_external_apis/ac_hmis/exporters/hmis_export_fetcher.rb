@@ -22,7 +22,7 @@ module HmisExternalApis::AcHmis::Exporters
     def run!(start_date: 3.years.ago.to_date)
       data_source = HmisExternalApis::AcHmis.data_source
       user = User.system_user
-      version = '2024'
+      version = '2026'
 
       filter = ::Filters::HmisExport.new(
         data_source_ids: [data_source.id],
