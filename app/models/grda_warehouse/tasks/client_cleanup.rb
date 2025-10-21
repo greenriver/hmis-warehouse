@@ -464,28 +464,8 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
-    # FIXME 8156
-    # def choose_best_ssn(dest_attr, source_clients, use_oldest: true)
-    #   GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: use_oldest)
-    # end
-    def choose_best_ssn dest_attr, source_clients
-      # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
-      non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
-      if non_blank_ssn.any?
-        best = nil
-        [1, 2, 8, 9, 99].each do |dq_value|
-          best = non_blank_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
-          break if best.present?
-        end
-        best = non_blank_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
-
-        dest_attr[:SSN] = best[:SSN]
-        dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
-      elsif dest_attr[:SSN].present?
-        dest_attr[:SSN] = nil
-        dest_attr[:SSNDataQuality] = 99
-      end
-      dest_attr
+    def choose_best_ssn(dest_attr, source_clients)
+      GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr, source_clients: source_clients)
     end
 
     # Set the veteran status based on the calculation in VeteranStatusCalculator
