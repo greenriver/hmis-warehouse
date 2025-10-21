@@ -53,7 +53,7 @@ module HudSpmReport::Generators::Fy2026
           2 => 'Universe: Persons who exit Street Outreach',
           3 => 'Of persons above, those who exited to specific homeless, temporary, and institutional destinations',
           4 => 'Of the persons above, those who exited to permanent housing destinations',
-          5 => '% Successful exits (SO)',
+          5 => '% Successful exits',
         },
         COLUMNS,
       )
@@ -83,7 +83,7 @@ module HudSpmReport::Generators::Fy2026
         {
           2 => 'Universe: Persons in ES-EE, ES-NbN, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
           3 => 'Of the persons above, those who exited to permanent housing destinations',
-          4 => '% Successful exits (ES-EE, ES-NbN, SH, TH, and PH-RRH)',
+          4 => '% Successful exits',
         },
         COLUMNS,
       )
@@ -108,7 +108,7 @@ module HudSpmReport::Generators::Fy2026
         {
           2 => 'Universe: Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
           3 => 'Of persons above, those who remained in applicable PH projects and those who exited to permanent housing destinations',
-          4 => '% Successful exits/retention (PH excluding RRH)',
+          4 => '% Successful exits/retention',
         },
         COLUMNS,
       )
