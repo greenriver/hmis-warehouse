@@ -3927,7 +3927,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis_external_apis/spec/factories/external_ids.rb'
     - 'drivers/hmis_external_apis/spec/factories/inbound_api_configurations.rb'
     - 'drivers/hmis_external_apis/spec/factories/internal_systems.rb'
-    - 'drivers/hmis_external_apis/spec/jobs/hmis_external_apis/ac_hmis/data_warehouse_upload_job_spec.rb'
     - 'drivers/hmis_external_apis/spec/jobs/hmis_external_apis/ac_hmis/warehouse_changes_job_spec.rb'
     - 'drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/client_involvement_spec.rb'
     - 'drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/data_warehouse_api_spec.rb'
