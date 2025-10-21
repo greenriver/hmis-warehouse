@@ -464,7 +464,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     unit_type.track_availability(project_id: project_id, user_id: user_id)
   end
 
-  def assign_unit(unit:, start_date:, user:)
+  # Assigns a unit to this enrollment, building a new unit occupancy record. The enrollment must be saved to persist the assignment.
+  #
+  # This method handles the business logic for unit assignment including:
+  # - Validating that the enrollment isn't already assigned to a different unit
+  # - Ensuring the unit isn't occupied by a different household
+  # - Checking opportunity/referral states to prevent invalid assignments
+  # - Tracking unit availability changes
+  #
+  # @param unit [Hmis::Unit] The unit to assign to this enrollment
+  # @param start_date [Date] The date when occupancy begins
+  # @param user [Hmis::Hud::User] The user performing the assignment (for audit tracking)
+  # @param active_referral [Hmis::Ce::Referral, nil] Optional referral context for the assignment.
+  #   This parameter enables the caller to pass the unit's active referral (to avoid caching issues when assigning multiple household members at once).
+  #   If not provided, this method will query to check whether the unit has an active referral.
+  def assign_unit(unit:, start_date:, user:, active_referral: nil)
+    raise "Active referral unit is incorrect #{active_referral.opportunity.unit.id} != #{unit.id}" if active_referral.present? && active_referral.opportunity.unit != unit
+
     current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
     # ignore: this enrollment is already assigned to this unit
     return if current_occupancy.present? && current_occupancy.unit == unit
@@ -476,14 +492,15 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     occupants = unit.occupants_on(start_date)
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
-    opportunity = unit.latest_opportunity
+    opportunity = active_referral ? active_referral.opportunity : unit.latest_opportunity
+    active_referral ||= opportunity.active_referral
     raise 'Cannot assign directly to a unit receiving referrals' if opportunity&.open?
 
     if opportunity&.locked?
       # Check if the enrollment being assigned is for the same client that is actively referred to this unit
-      is_same_client = opportunity.active_referral&.client == client
+      is_same_client = active_referral&.client == client
       # Check if the enrollment being assigned belongs to the same household as the active referral's target enrollment
-      is_same_household = opportunity.active_referral&.target_enrollment&.household_id == household_id
+      is_same_household = active_referral&.target_enrollment&.household_id == household_id
       raise 'Cannot assign to a unit with locked opportunity' unless is_same_client || is_same_household
     end
 
