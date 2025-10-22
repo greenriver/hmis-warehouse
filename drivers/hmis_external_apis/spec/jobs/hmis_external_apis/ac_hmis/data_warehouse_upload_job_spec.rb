@@ -65,4 +65,24 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
     subject.perform('move_in_address_export')
     expect(subject.state).to eq(:success)
   end
+
+  it 'uploads ce referrals' do
+    subject.perform('ce_referrals')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads ce referral tasks' do
+    subject.perform('ce_referral_tasks')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads waitlist events' do
+    subject.perform('waitlist_events_export')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads current waitlists' do
+    subject.perform('current_waitlists_export')
+    expect(subject.state).to eq(:success)
+  end
 end
