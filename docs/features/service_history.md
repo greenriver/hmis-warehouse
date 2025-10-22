@@ -89,18 +89,61 @@ This flattened data structure is used for:
 -   Accurately calculating length of stay.
 -   Reporting on client activity over time.
 
+## Cached Service History Data (`WarehouseClientsProcessed`)
+
+While Service History provides the day-by-day foundation, many features don't query it directly. Instead, they rely on **pre-computed aggregations** stored in the `WarehouseClientsProcessed` table for performance.
+
+### What Gets Cached
+
+The `WarehouseClientsProcessed` table stores aggregated metrics for each client, including:
+
+- **`last_homeless_date`**: Most recent date with a homeless service from `ServiceHistoryService`
+- **`first_homeless_date`**: First date with a homeless service
+- **`homeless_days`**: Total count of days homeless
+- **`last_chronic_date`**: Most recent date when client was chronically homeless
+- **`days_homeless_last_three_years`**: Days homeless within the last 3 years
+- **`literally_homeless_last_three_years`**: Days literally homeless within the last 3 years
+- **`last_intentional_contacts`**: JSON array of the most recent intentional contacts, including:
+  - Current Living Situations (CLS) from any enrollment in the last 3 years
+  - CE Events from any enrollment in the last 3 years
+  - Referral Events from any enrollment in the last 3 years
+  - Custom services
+- **`last_exit_destination`**: Most recent exit destination
+
+### When the Cache Is Updated
+
+The cache is updated automatically by:
+
+1. **Daily Import Job**: `RunDailyImportsJob` automatically updates cached counts for all clients (from the past year) after service history generation completes
+2. **Daily Cohort Preparation**: `Cohort.prepare_active_cohorts` runs nightly (via the `warm_cohort_cache` rake task) and updates cached data for all clients on active cohorts
+3. **On-Demand Jobs**:
+   - `AddCohortClientsJob` updates the cache when clients are added to cohorts
+   - `UpdateWarehouseClientsCachesJob` can be queued for specific client sets
+
+**Important**: The cache update happens **after** service history is generated as part of the daily import process. For immediate updates, use `UpdateWarehouseClientsCachesJob.perform_later(client_ids: [ids])` rather than directly calling model methods.
+
+### Features That Use Cached Data
+
+The cached data in `WarehouseClientsProcessed` is used by:
+
+- **Cohorts**: To determine client inactivity (checks `last_homeless_date` and `last_intentional_contacts` against the cohort's `days_of_inactivity` threshold)
+- **CAS (Coordinated Access System)**: To determine if clients are actively homeless for eligibility
+- **Reports**: Various reports use the cached metrics for performance
+- **Client Dashboards**: Display last service dates and activity metrics
+
 ## Troubleshooting
 
 ### Incorrect or Missing Service History Data
 
-If client data appears to be incorrect in reports or features like Cohorts (e.g., a client in an Entry/Exit program appears inactive or is missing expected daily service records), the issue is likely related to stale service history data.
+If client data appears to be incorrect in reports or features like Cohorts (e.g., a client in an Entry/Exit program appears inactive or is missing expected daily service records), the issue could be related to either stale service history data **or** outdated cached data.
 
 **Common scenarios:**
 
 1. **Project configuration was changed** (e.g., ProjectType changed from Night-by-Night to Entry/Exit)
    - Most project configuration changes (ProjectType, project moves, homeless status) are handled automatically by the daily `ProjectCleanup` task
-   - If you need immediate results, you can manually invalidate enrollments using the [Manual Rebuild Process](#manual-rebuild-process) section below
+   - If you need immediate results, you can manually invalidate enrollments using the [Manual Rebuild Process](#manual-rebuild-process) section above
    - Some settings (TrackingMethod, contact extrapolation) still require manual invalidation
+   - **After fixing service history**, queue a cache update: `UpdateWarehouseClientsCachesJob.perform_later(client_ids: affected_client_ids)`
 
 2. **Enrollment created before service history was fully implemented**
    - Some older enrollments may never have had service history generated
@@ -114,6 +157,11 @@ If client data appears to be incorrect in reports or features like Cohorts (e.g.
    - Client merges should automatically invalidate affected enrollments
    - If issues persist after a merge, manually invalidate the affected client's enrollments
 
+5. **Service history is correct but cohorts show incorrect activity status**
+   - The cached data in `WarehouseClientsProcessed` may be stale
+   - Queue a cache update: `UpdateWarehouseClientsCachesJob.perform_later(client_ids: affected_client_ids)`
+   - Or wait for the nightly import job to automatically update all cached counts
+
 ## Related Code
 
 -   **Service History Enrollment Model:** `app/models/grda_warehouse/service_history_enrollment.rb`
@@ -122,6 +170,12 @@ If client data appears to be incorrect in reports or features like Cohorts (e.g.
     -   `rebuild_service_history!` - Main method that determines whether to rebuild or patch
     -   `calculate_hash` - Computes the hash used for change detection
     -   `invalidate_source_data!` - Clears the cached hash to force a rebuild
+-   **Cached Aggregations:** `app/models/grda_warehouse/warehouse_clients_processed.rb`
+    -   Stores aggregated data like `last_homeless_date`, `last_intentional_contacts`, and homeless day counts
+    -   Updated automatically by `RunDailyImportsJob` after service history generation
+-   **Cache Update Job:** `app/jobs/update_warehouse_clients_caches_job.rb`
+    -   Queue this job to update cached counts for specific clients: `UpdateWarehouseClientsCachesJob.perform_later(client_ids: [ids])`
+    -   Uses advisory locking to prevent concurrent updates
 -   **Project Cleanup Task:** `app/models/grda_warehouse/tasks/project_cleanup.rb`
     -   Runs daily to detect and fix project configuration mismatches
     -   `should_update_type?` - Detects ProjectType mismatches

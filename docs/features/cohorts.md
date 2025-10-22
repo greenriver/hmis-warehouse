@@ -25,7 +25,40 @@ Cohorts can be customized to tailor the view to specific needs.
 
 ## Client Activity and Status
 
-A client's activity status within a cohort is determined by their Service History, which provides a day-by-day record of their enrollments and services.
+A client's activity status within a cohort is determined by two mechanisms:
+
+### 1. The `active` Boolean Field
+
+Each `CohortClient` record has an `active` boolean field that can be set manually or by system processes. This field is used to filter clients into different tabs (e.g., "Active Clients" vs "Inactive Clients"). The field can be updated by:
+- Auto-maintained cohorts when clients no longer meet enrollment criteria
+- Manual updates by users
+- System processes that maintain cohorts
+
+### 2. Calculated Inactivity Based on Service History
+
+Cohorts can detect when a client has become **inactive** due to lack of recent services, which is separate from the `active` boolean. This is controlled by the `days_of_inactivity` setting on each cohort.
+
+**How it works:**
+
+1. **Service History Foundation**: Service History generates daily `ServiceHistoryService` records for each client's enrollments (see [Service History documentation](./service_history.md))
+
+2. **Cached Aggregation**: A nightly job aggregates service history data into the `WarehouseClientsProcessed` table, computing:
+   - `last_homeless_date`: Most recent date with a homeless service
+   - `last_intentional_contacts`: JSON array of recent intentional contacts (bed nights, case management, assessments, etc.)
+
+3. **Inactivity Detection**: When displaying cohort clients, the system checks:
+   ```ruby
+   # A client is inactive if their last activity was more than N days ago
+   last_activity = [last_homeless_date, last_intentional_contact].max
+   inactive = (Date.current - cohort.days_of_inactivity.days) > last_activity
+   ```
+
+4. **Visual Indicators**: Inactive clients show a warning icon in the cohort view, and some system cohorts automatically remove clients who become inactive.
+
+**Important Notes:**
+- The `active` boolean and calculated inactivity are **independent** - a client can be marked `active: true` but still be considered inactive due to no recent services
+- Auto-maintained system cohorts (like "Currently Homeless") may automatically remove clients when they become inactive
+- The cached data in `WarehouseClientsProcessed` is updated nightly via `Cohort.prepare_active_cohorts`, so changes in service history may not immediately affect inactivity calculations
 
 For a detailed explanation of how the Service History is generated and how it impacts client activity, please see the [Service History documentation](./service_history.md).
 
