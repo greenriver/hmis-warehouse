@@ -33,13 +33,25 @@ Service history will automatically regenerate when any of the following source d
 
 The hash calculation includes these fields to detect changes. When `rebuild_service_history!` is called on an enrollment, it compares the current hash with the stored `processed_as` value. If they differ, a full rebuild occurs.
 
+### Automatic Rebuild via Daily Project Cleanup Task
+
+A daily `ProjectCleanup` task automatically detects and fixes several types of project-related inconsistencies:
+
+-   **ProjectType changes:** When a project's `ProjectType` changes or doesn't match service history, the task automatically invalidates all enrollments for that project to trigger a rebuild
+-   **Project moves:** When a project is moved to a different organization, associated service history is invalidated and rebuilt
+-   **Homeless status mismatches:** When the `homeless` or `literally_homeless` flags in service history don't match what they should be for the project's type (checked for the last 2 years), enrollments are invalidated
+-   **Project name changes:** Project names in service history are automatically updated when they don't match the source
+
+The cleanup task runs on all projects daily and then processes the invalidated enrollments.
+
 ### What Does NOT Automatically Trigger Rebuilds
 
-Some changes require **manual intervention** to invalidate and rebuild service history:
+Some changes still require **manual intervention** to invalidate and rebuild service history:
 
--   **Project configuration changes:** Changes to a project's `ProjectType` (e.g., switching from Night-by-Night to Entry/Exit), `TrackingMethod`, or contact extrapolation settings
+-   **TrackingMethod changes:** Changes to a project's tracking method
+-   **Contact extrapolation settings:** Changes to project-specific contact extrapolation configuration
 -   **System configuration changes:** Global settings like `so_day_as_month`
--   **Data corrections:** When historical enrollments are back-corrected after service history was already generated
+-   **Data corrections:** When historical enrollments are back-corrected after service history was already generated (though the daily cleanup task may eventually catch these if they cause mismatches)
 
 ### Manual Rebuild Process
 
@@ -86,8 +98,9 @@ If client data appears to be incorrect in reports or features like Cohorts (e.g.
 **Common scenarios:**
 
 1. **Project configuration was changed** (e.g., ProjectType changed from Night-by-Night to Entry/Exit)
-   - Service history will not automatically rebuild when project settings change
-   - See the [Manual Rebuild Process](#manual-rebuild-process) section above to invalidate and rebuild enrollments for the affected project
+   - Most project configuration changes (ProjectType, project moves, homeless status) are handled automatically by the daily `ProjectCleanup` task
+   - If you need immediate results, you can manually invalidate enrollments using the [Manual Rebuild Process](#manual-rebuild-process) section below
+   - Some settings (TrackingMethod, contact extrapolation) still require manual invalidation
 
 2. **Enrollment created before service history was fully implemented**
    - Some older enrollments may never have had service history generated
@@ -109,3 +122,9 @@ If client data appears to be incorrect in reports or features like Cohorts (e.g.
     -   `rebuild_service_history!` - Main method that determines whether to rebuild or patch
     -   `calculate_hash` - Computes the hash used for change detection
     -   `invalidate_source_data!` - Clears the cached hash to force a rebuild
+-   **Project Cleanup Task:** `app/models/grda_warehouse/tasks/project_cleanup.rb`
+    -   Runs daily to detect and fix project configuration mismatches
+    -   `should_update_type?` - Detects ProjectType mismatches
+    -   `fix_project_type` - Invalidates enrollments when project type changes
+    -   `homeless_mismatch?` - Detects homeless status inconsistencies
+    -   `invalidate_service_for_moved_projects` - Handles projects moved to different organizations
