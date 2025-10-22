@@ -34,6 +34,7 @@
 module HmisExternalApis::AcHmis
   class Aha
     SYSTEM_ID = 'ac_hmis_aha'
+    AHA_GENERATOR = 'AHA'
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
@@ -75,10 +76,12 @@ module HmisExternalApis::AcHmis
         end
       end
 
-      highest_score_object = score_objects.compact.max_by(&:score)
-      return nil if highest_score_object.nil? || highest_score_object.score&.negative?
+      highest_aha_score = score_objects.compact.
+        filter { |score_object| score_object.generator == AHA_GENERATOR }.
+        max_by(&:score)
+      return nil if highest_aha_score.nil? || highest_aha_score.score&.negative?
 
-      highest_score_object
+      highest_aha_score
     end
 
     def self.enabled?
