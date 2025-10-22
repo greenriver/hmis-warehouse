@@ -491,9 +491,8 @@ module UserConcern
           or(arel_table[:last_name].matches("#{term}%")).
           or(arel_table[:email].matches("#{term}%"))
 
-        User.where(prefix_condition)
+        where(prefix_condition)
       end.inject(&:or)
-
       if sort_by_best_match
         sql = <<-SQL.squish
           similarity(
