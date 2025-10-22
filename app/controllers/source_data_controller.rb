@@ -29,11 +29,23 @@ class SourceDataController < ApplicationController
   def show
     @type = params[:type] if valid_class(params[:type]).present?
     @data_source = @item.data_source
-    return unless RailsDrivers.loaded.include?(:hmis_csv_importer)
+    if @data_source.hmis?
+      show_hmis_data
+    else
+      show_imported_data
+    end
+  end
 
+  private def show_hmis_data
+    @imported = @csv = false
+    @hmis = true
+    @hmis_url = @data_source.hmis_url_for(@item, user: current_user)
+  end
+
+  private def show_imported_data
     @importers = HmisCsvImporter::Importer::ImporterLog.without_phase_metrics.
       where(data_source_id: @item.data_source_id).
-      order(created_at: :desc).
+      order(created_at: :desc, id: :desc).
       first(10)
     return unless @importers.present?
 
@@ -41,15 +53,8 @@ class SourceDataController < ApplicationController
       [@item.imported_item_type(importer.id), importer&.created_at]
     end
 
-    # Only show current data for HMIS records
-    if @data_source.hmis
-      @imported = @csv = false
-      @hmis = true
-      @hmis_url = @data_source.hmis_url_for(@item, user: current_user)
-      return
-    end
-
     @year = @item.imported_item_type(@importer.id)
+    # This isn't HMIS-managed data, show import info
     @imported = @item.send("imported_items_#{@year}").order(importer_log_id: :desc).first
     @csv = @item.send("loaded_items_#{@year}").with_deleted.order(loader_id: :desc).first
   end
