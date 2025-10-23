@@ -6,6 +6,7 @@ The Service History subsystem provides a flattened, day-by-day representation of
 
 -   **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record, we add an `exit` record when the enrollment closes, and we occasionally keep a `first` record for legacy compatibility. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
 -   **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It contains both source services and synthetic days that are implied by enrollment rules (for example, extrapolated bed nights or contacts).
+-   **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that mirrors `ServiceHistoryService` for read-heavy reporting use cases. It allows downstream jobs to snapshot service history data without hammering the live partitions.
 
 ## Service History Generation
 
@@ -16,6 +17,51 @@ The generation logic differs based on the program type:
 -   **Night-by-Night (NBN) Programs:** A `ServiceHistoryService` record is created for each specific service date recorded in the source data (e.g., a bed night service).
 -   **Entry/Exit Programs:** For programs like Entry/Exit shelters, Transitional Housing, and Permanent Housing, the system builds `ServiceHistoryService` records for each day from the client's entry date through the day before their exit date. When the entry and exit dates are the same we include that day. For ongoing enrollments, we extend the services through the latest date covered by the source export (or today, if the enrollment is managed in the operational HMIS).
 -   **Street Outreach & Contact Extrapolation:** Street Outreach projects can create synthetic daily services from contact records. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand recorded contacts to fill the remainder of the month so that downstream reporting sees continuous engagement.
+
+## Storage & Performance Considerations
+
+ The `service_history_services` dataset is among the largest tables in the warehouse regardless of installation scale. To keep inserts fast and maintenance manageable, we physically shard it by year. PostgreSQL trigger logic (see `db/warehouse_structure.sql`) routes each new service day into the correct annual partition (`service_history_services_2000`, `service_history_services_2001`, …, `service_history_services_2050`) with an overflow table (`service_history_services_remainder`) for out-of-range data. Queries continue to reference the parent `service_history_services` relation, but PostgreSQL prunes to the relevant partitions based on date filters.
+
+For analytic workloads that benefit from a consistent snapshot, we expose the `service_history_services_materialized` relation. The `GrdaWarehouse::ServiceHistoryServiceMaterialized` model manages that materialized view, including `refresh!` (to repopulate it) and `rebuild!` (to drop, recreate, and reindex). A notifier-backed `double_check_materialized_view` helper compares recent homeless dates between the live partitions and the materialized copy so we can detect drift.
+
+### Data Flow Overview
+
+```mermaid
+flowchart TD
+  subgraph SourceData
+    A[HUD CSV imports]
+    B[Operational HMIS]
+  end
+
+  subgraph ServiceHistoryGeneration
+    C["ServiceHistoryEnrollment<br/>rebuild_service_history!"]
+    D["ServiceHistoryService<br/>(partitioned parent)"]
+  end
+
+  subgraph WarehouseStorage
+    E["Yearly partitions<br/>service_history_services_YYYY"]
+    F[Overflow table]
+  end
+
+  subgraph ReadOptimization
+    G["Materialized view<br/>service_history_services_materialized"]
+  end
+
+  subgraph DownstreamConsumers
+    I["WarehouseClientsProcessed<br/>cached aggregates"]
+    J[Cohorts & reports]
+  end
+
+  A --> C
+  B --> C
+  C --> D
+  D --> E
+  D --> F
+  D -. refresh! .-> G
+  D --> I
+  G --> I
+  I --> J
+```
 
 ## When Service History Records Are Updated
 
@@ -43,15 +89,6 @@ A daily `ProjectCleanup` task automatically detects and fixes several types of p
 -   **Project name changes:** Project names in service history are automatically updated when they don't match the source
 
 The cleanup task runs on all projects daily and then processes the invalidated enrollments.
-
-### What Does NOT Automatically Trigger Rebuilds
-
-Some changes still require **manual intervention** to invalidate and rebuild service history:
-
--   **TrackingMethod changes:** Changes to a project's tracking method
--   **Contact extrapolation settings:** Changes to project-specific contact extrapolation configuration
--   **System configuration changes:** Global settings like `so_day_as_month`
--   **Data corrections:** When historical enrollments are back-corrected after service history was already generated (though the daily cleanup task may eventually catch these if they cause mismatches)
 
 ### Manual Rebuild Process
 
@@ -130,37 +167,6 @@ The cached data in `WarehouseClientsProcessed` is used by:
 - **CAS (Coordinated Access System)**: To determine if clients are actively homeless for eligibility
 - **Reports**: Various reports use the cached metrics for performance
 - **Client Dashboards**: Display last service dates and activity metrics
-
-## Troubleshooting
-
-### Incorrect or Missing Service History Data
-
-If client data appears to be incorrect in reports or features like Cohorts (e.g., a client in an Entry/Exit program appears inactive or is missing expected daily service records), the issue could be related to either stale service history data **or** outdated cached data.
-
-**Common scenarios:**
-
-1. **Project configuration was changed** (e.g., ProjectType changed from Night-by-Night to Entry/Exit)
-   - Most project configuration changes (ProjectType, project moves, homeless status) are handled automatically by the daily `ProjectCleanup` task
-   - If you need immediate results, you can manually invalidate enrollments using the [Manual Rebuild Process](#manual-rebuild-process) section above
-   - Some settings (TrackingMethod, contact extrapolation) still require manual invalidation
-   - **After fixing service history**, queue a cache update: `UpdateWarehouseClientsCachesJob.perform_later(client_ids: affected_client_ids)`
-
-2. **Enrollment created before service history was fully implemented**
-   - Some older enrollments may never have had service history generated
-   - Call `rebuild_service_history!` on the enrollment or invalidate the entire project
-
-3. **Data import completed but service history generation failed or is still pending**
-   - Check for pending jobs in the background processing queue
-   - Manually queue unprocessed enrollments: `GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!`
-
-4. **Client merge or data correction occurred**
-   - Client merges should automatically invalidate affected enrollments
-   - If issues persist after a merge, manually invalidate the affected client's enrollments
-
-5. **Service history is correct but cohorts show incorrect activity status**
-   - The cached data in `WarehouseClientsProcessed` may be stale
-   - Queue a cache update: `UpdateWarehouseClientsCachesJob.perform_later(client_ids: affected_client_ids)`
-   - Or wait for the nightly import job to automatically update all cached counts
 
 ## Related Code
 

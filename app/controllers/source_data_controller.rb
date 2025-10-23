@@ -54,7 +54,6 @@ class SourceDataController < ApplicationController
     end
 
     @year = @item.imported_item_type(@importer.id)
-    # This isn't HMIS-managed data, show import info
     @imported = @item.send("imported_items_#{@year}").order(importer_log_id: :desc).first
     @csv = @item.send("loaded_items_#{@year}").with_deleted.order(loader_id: :desc).first
   end
