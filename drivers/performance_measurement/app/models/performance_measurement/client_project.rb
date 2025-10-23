@@ -11,6 +11,8 @@ module PerformanceMeasurement
     self.table_name = :pm_client_projects
     acts_as_paranoid
 
+    attr_accessor :included_in_ph_permanent_or_stayer
+
     belongs_to :client, primary_key: [:client_id, :report_id], query_constraints: [:client_id, :report_id], optional: true
     belongs_to :project, primary_key: [:project_id, :report_id], query_constraints: [:project_id, :report_id], optional: true
     has_many :hud_projects, through: :project

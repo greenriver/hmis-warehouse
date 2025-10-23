@@ -60,5 +60,35 @@ module GrdaWarehouse
       # When impersonating a user, whodunnit is recorded as "<true_user> as <current_user>"
       /^(\d+) as (\d+)$/
     end
+
+    # Fallback for old versions that didn't include changes
+    protected def computed_changeset
+      version = self
+      changed = {}
+
+      current = version.reify
+      return changed unless current
+
+      if current.present? && version.event != 'destroy'
+        if version.previous.present? && version.previous.object.present?
+          previous = version.previous.reify
+          changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
+          changed_attr.each do |name|
+            changed[name] = [previous[name], current[name]]
+          end
+        else
+          # A create - so, all attributes are new
+          current.attributes.each do |name, value|
+            changed[name] = [nil, value]
+          end
+        end
+      elsif current.present?
+        # Describe a destroy as setting all attributes to nil
+        current.attributes.each do |name, value|
+          changed[name] = [value, nil]
+        end
+      end
+      changed
+    end
   end
 end
