@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module GrdaWarehouse::Contact
-  class Organization < Base
+  class User < Base
     belongs_to :entity, polymorphic: true
   end
 end

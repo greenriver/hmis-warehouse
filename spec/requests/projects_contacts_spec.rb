@@ -6,7 +6,7 @@ RSpec.describe 'Projects contacts', type: :request do
   let(:user) { create(:acl_user) }
   let(:role) { create(:role, can_view_imports: true) }
   let(:collection) { create(:collection, collection_type: 'Projects') }
-  let(:project) { create(:hud_project) }
+  let!(:project) { create(:hud_project) }
 
   before do
     collection.set_viewables(projects: [project.id])
@@ -40,7 +40,7 @@ RSpec.describe 'Projects contacts', type: :request do
 
   describe 'PATCH /projects/:project_id/contacts/:id' do
     it 'updates the project contact and redirects to the contacts index' do
-      contact = create(:grda_warehouse_contact_project, entity_id: project.id)
+      contact = create(:grda_warehouse_contact_project, entity: project)
       new_user = create(:user)
 
       patch(
@@ -62,7 +62,7 @@ RSpec.describe 'Projects contacts', type: :request do
 
   describe 'DELETE /projects/:project_id/contacts/:id' do
     it 'soft deletes the project contact and redirects to the contacts index' do
-      contact = create(:grda_warehouse_contact_project, entity_id: project.id)
+      contact = create(:grda_warehouse_contact_project, entity: project)
 
       expect do
         delete project_contact_path(project, contact)
