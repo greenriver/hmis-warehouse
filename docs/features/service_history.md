@@ -6,7 +6,7 @@ The Service History subsystem provides a flattened, day-by-day representation of
 
 -   **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record, we add an `exit` record when the enrollment closes, and we occasionally keep a `first` record for legacy compatibility. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
 -   **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It contains both source services and synthetic days that are implied by enrollment rules (for example, extrapolated bed nights or contacts).
--   **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that mirrors `ServiceHistoryService` for read-heavy reporting use cases. It allows downstream jobs to snapshot service history data without hammering the live partitions.
+-   **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that flattens the sharded `service_history_services` partitions for per-client and ad-hoc analytic queries. Historically we lean on it when time-sharded tables make targeted lookups expensive.
 
 ## Service History Generation
 
@@ -22,7 +22,7 @@ The generation logic differs based on the program type:
 
  The `service_history_services` dataset is among the largest tables in the warehouse regardless of installation scale. To keep inserts fast and maintenance manageable, we physically shard it by year. PostgreSQL trigger logic (see `db/warehouse_structure.sql`) routes each new service day into the correct annual partition (`service_history_services_2000`, `service_history_services_2001`, …, `service_history_services_2050`) with an overflow table (`service_history_services_remainder`) for out-of-range data. Queries continue to reference the parent `service_history_services` relation, but PostgreSQL prunes to the relevant partitions based on date filters.
 
-For analytic workloads that benefit from a consistent snapshot, we expose the `service_history_services_materialized` relation. The `GrdaWarehouse::ServiceHistoryServiceMaterialized` model manages that materialized view, including `refresh!` (to repopulate it) and `rebuild!` (to drop, recreate, and reindex). A notifier-backed `double_check_materialized_view` helper compares recent homeless dates between the live partitions and the materialized copy so we can detect drift.
+For analytic workloads that benefit from a consistent snapshot—and to avoid the cross-partition overhead of per-client lookups—we expose the `service_history_services_materialized` relation. The `GrdaWarehouse::ServiceHistoryServiceMaterialized` model manages that materialized view, including `refresh!` (to repopulate it) and `rebuild!` (to drop, recreate, and reindex). A notifier-backed `double_check_materialized_view` helper compares recent homeless dates between the live partitions and the materialized copy so we can detect drift. Future work (see ADR 0006) explores replacing daily rows with period-based ranges, which could eliminate the need for this materialized view entirely.
 
 ### Data Flow Overview
 
