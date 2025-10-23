@@ -68,7 +68,7 @@ module Hmis::Ce
       # Do this before saving the other hh member enrollments, so that assign_unit validations pass.
       hoh_target_enrollment = enrollments.find { |e| e.client == referral.client }
       enrollments.delete(hoh_target_enrollment) # Remove from list so it's not saved again below
-      hoh_target_enrollment.assign_unit(unit: unit, start_date: entry_date, user: message.user)
+      hoh_target_enrollment.assign_unit(unit: unit, start_date: entry_date, user: message.user, active_referral: referral)
 
       # Save the HoH's (referred client's) enrollment and associate it with the referral.
       hoh_target_enrollment.save_new_enrollment! # Saves as WIP or non-WIP, depending on auto-enter rules in the project
