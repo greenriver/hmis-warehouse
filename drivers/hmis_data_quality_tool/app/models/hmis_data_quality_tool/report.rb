@@ -766,10 +766,7 @@ module HmisDataQualityTool
     end
 
     private def client_ids_for_project(project)
-      # Use Enrollment model directly instead of the filtered enrollments association to include all clients,
-      # regardless of user permissions. This allows DQ issues to be seen for clients the user cannot individually
-      # access.
-      @client_ids_per_project ||= Enrollment.where(report_id: id).pluck(:project_id, :destination_client_id).group_by(&:shift)
+      @client_ids_per_project ||= enrollments.pluck(:project_id, :destination_client_id).group_by(&:shift)
       @client_ids_per_project[project.id]&.flatten
     end
 

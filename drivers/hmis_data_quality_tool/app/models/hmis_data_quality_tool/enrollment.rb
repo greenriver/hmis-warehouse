@@ -201,15 +201,6 @@ module HmisDataQualityTool
       headers.select { |k, _| k.in?(columns) }
     end
 
-    def download_value(key)
-      translator = self.class.detail_headers[key][:translator]
-      value = public_send(key)
-      return translator.call(value) if translator.present?
-      return value == true ? 'Yes' : 'No' if value.in?([true, false])
-
-      value
-    end
-
     # Instance method so we can take advantage of caching
     def report_item_fields_from_enrollment(report_items:, enrollment:, report:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # we only need to do the calculations once, the values will be the same for any enrollment,
