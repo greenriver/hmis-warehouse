@@ -20,26 +20,26 @@ class Hmis::Filter::CeCandidateFilter < Hmis::Filter::BaseFilter
 
   def exclude_recently_declined_from_unit_group(scope)
     with_filter(scope, :exclude_recently_declined_from_unit_group) do
-      # find all opportunities in this unit group (including for deleted units)
-      opportunities_in_excluded_groups = Hmis::Ce::Opportunity.
+      # Find all opportunities in the unit groups specified (including for deleted units)
+      opportunity_ids = Hmis::Ce::Opportunity.
         joins(unit: :unit_group).
-        where(ug_t[:id].in(input.exclude_recently_declined_from_unit_group))
+        where(ug_t[:id].in(input.exclude_recently_declined_from_unit_group)).
+        select(:id)
 
       # Get most recent declined referral per client to any of these opportunities
-      # { client_id => most_recent_declined_at, ... }
+      # { source_client_id => most_recent_decline_timestamp }
       most_recent_declines = Hmis::Ce::Referral.rejected.
-        where(opportunity_id: opportunities_in_excluded_groups.select(:id)).
+        where(opportunity_id: opportunity_ids).
         group(:client_id).
         maximum(:completed_at)
 
-      declined_source_clients = Hmis::Hud::Client.where(id: most_recent_declines.keys)
-
-      hmis_to_dest_client_map = declined_source_clients.
+      # Map source to destination clients. { source_client_id => dest_client_id }
+      source_to_dest_client_map = Hmis::Hud::Client.where(id: most_recent_declines.keys).
         joins(:warehouse_client_source).
         pluck(:id, wc_t[:destination_id]).
         to_h
 
-      # form identifiers that are referenced in candidate pool criteria
+      # Form identifiers that are referenced in candidate pool criteria for these unit groups
       candidate_pools = Hmis::Ce::Match::CandidatePool.
         joins(:unit_groups).
         where(ug_t[:id].in(input.exclude_recently_declined_from_unit_group)).
@@ -47,27 +47,28 @@ class Hmis::Filter::CeCandidateFilter < Hmis::Filter::BaseFilter
       form_identifiers = candidate_pools.flat_map(&:relevant_form_definition_identifiers).uniq
 
       # Get most recent assessment date per client
-      # Returns hash: { destination_client_id => max_date_updated_timestamp }
+      # { destination_client_id => max_date_updated_timestamp }
       most_recent_assessment_dates = Hmis::DestinationClientLatestAssessment.
-        where(destination_client_id: hmis_to_dest_client_map.values).
+        where(destination_client_id: source_to_dest_client_map.values).
         where(form_identifier: form_identifiers).
         group(:destination_client_id).
         joins(:custom_assessment).
         maximum(cas_t[:date_updated])
 
-      # exclude clients who have been declined, except those who have since been re-assessed
-      client_ids_to_exclude = most_recent_declines.select do |hmis_client_id, decline_date|
-        destination_client_id = hmis_to_dest_client_map[hmis_client_id]
-        next unless destination_client_id
-
+      # Exclude clients who have been declined, except those who have since been re-assessed
+      excluded_destination_client_ids = most_recent_declines.filter_map do |source_client_id, decline_date|
+        destination_client_id = source_to_dest_client_map[source_client_id]
         assessment_date = most_recent_assessment_dates[destination_client_id]
-        assessment_date.nil? || assessment_date <= decline_date
-      end.keys
 
-      excluded_destination_client_ids = hmis_to_dest_client_map.values_at(*client_ids_to_exclude).compact
+        # Skip (don't exclude) client who has an assessment date more recent than their decline date
+        next nil if assessment_date.present? && assessment_date >= decline_date
+
+        destination_client_id
+      end
       return scope if excluded_destination_client_ids.blank?
 
-      scope.joins(:client_proxy).
+      scope.
+        joins(:client_proxy).
         where.not(Hmis::Ce::ClientProxy.arel_table[:client_id].in(excluded_destination_client_ids))
     end
   end
