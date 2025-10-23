@@ -333,6 +333,8 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          table: '3.2',
+          cell: 'C2',
           pit_types: [:unsheltered, :sheltered],
         },
         count_of_sheltered_homeless_clients: {
@@ -351,6 +353,8 @@ module PerformanceMeasurement::Details
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are sheltered homeless as reported in HMIS (in ES and TH projects) and seen within the report range and comparison range.',
           calculation_column: :served_on_pit_date_sheltered,
           measure: 'Measure 3',
+          table: '3.2',
+          cell: 'C2',
           detail_columns: [
             'served_on_pit_date',
             'served_on_pit_date_sheltered',
