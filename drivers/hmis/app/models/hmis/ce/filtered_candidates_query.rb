@@ -6,21 +6,20 @@
 
 # frozen_string_literal: true
 
-# usage:
-# Hmis::Ce::FilteredCandidatesQuery.
-#   new(candidate_scope: scope, exclude_recently_declined_from_unit_group_ids: []).
-#   resolve
 module Hmis::Ce
   class FilteredCandidatesQuery
     include ::Hmis::Concerns::HmisArelHelper
 
-    def initialize(candidate_scope:, exclude_recently_declined_from_unit_group_ids:)
-      @base_candidate_scope = candidate_scope
-      @unit_groups_ids = exclude_recently_declined_from_unit_group_ids
+    # todo @martha - add spec test if exclude recently declined is false but there is a recently declined candidate
+    def initialize(opportunity:, exclude_recently_declined: false)
+      @opportunity = opportunity
+      @unit_group_id = opportunity.unit_group.id
+      @exclude_recently_declined = exclude_recently_declined
+      @base_candidate_scope = Hmis::Ce::Match::Candidate.for_opportunity(opportunity).prioritized
     end
 
     def resolve
-      return @base_candidate_scope if @unit_groups_ids.blank?
+      return @base_candidate_scope unless @exclude_recently_declined
 
       # { source_client_id => most_recent_decline_timestamp }
       most_recent_declines = fetch_most_recent_declines
@@ -47,10 +46,10 @@ module Hmis::Ce
     private
 
     def fetch_most_recent_declines
-      # Find all opportunities in the unit groups specified (including for deleted units)
+      # Find all opportunities in this opportunity's unit group (including for deleted units)
       opportunity_ids = Hmis::Ce::Opportunity.
         joins(unit: :unit_group).
-        where(ug_t[:id].in(@unit_groups_ids)).
+        where(ug_t[:id].eq(@unit_group_id)).
         select(:id)
 
       # Get most recent declined referral per client to any of these opportunities
@@ -71,7 +70,7 @@ module Hmis::Ce
       # Form identifiers that are referenced in candidate pool criteria for these unit groups
       candidate_pools = Hmis::Ce::Match::CandidatePool.
         joins(:unit_groups).
-        where(ug_t[:id].in(@unit_groups_ids)).
+        where(ug_t[:id].eq(@unit_group_id)).
         distinct
       form_identifiers = candidate_pools.flat_map(&:relevant_form_definition_identifiers).uniq
 
