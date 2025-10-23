@@ -89,7 +89,7 @@ module Hmis::Ce
         assessment_date = most_recent_assessment_dates[destination_client_id]
 
         # Skip (don't exclude) client who has an assessment date more recent than their decline date
-        next nil if assessment_date.present? && assessment_date >= decline_date
+        next nil if assessment_date.present? && assessment_date > decline_date
 
         destination_client_id
       end
