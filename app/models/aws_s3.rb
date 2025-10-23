@@ -58,8 +58,7 @@ class AwsS3
         force_path_style: true, # don't force dns hoop jumping
         endpoint: ENV.fetch('MINIO_ENDPOINT'),
         region: region,
-        access_key_id: access_key_id,
-        secret_access_key: secret_access_key,
+        credentials: Aws::Credentials.new(access_key_id, secret_access_key),
       }
     else
       # if we are assuming a role, set that up
@@ -168,13 +167,12 @@ class AwsS3
   end
 
   def put(file_name:, prefix:)
-    name = "#{prefix}/#{File.basename(file_name)}"
-    obj = @bucket.object(name)
-    if Rails.env.development? || Rails.env.test?
-      obj.upload_file(file_name)
-    else
-      obj.upload_file(file_name, server_side_encryption: 'AES256')
-    end
+    key = "#{prefix}/#{File.basename(file_name)}"
+    params = {}
+    params[:server_side_encryption] = 'AES256' unless Rails.env.development? || Rails.env.test?
+
+    tm = Aws::S3::TransferManager.new(client: client)
+    tm.upload_file(file_name, bucket: bucket_name, key: key, **params)
   end
 
   def store(content:, name:, content_type: nil)
