@@ -120,9 +120,18 @@ class Dba::DatabaseBloat
     run(sql)
   end
 
+  def pg_repack_supported?
+    [ApplicationRecord, GrdaWarehouseBase, ReportingBase].include?(ar_base_class)
+  end
+
   # This is like a vacuum full, but orchestrated by pg_repack which doesn't
   # acquire exclusive locks on the table
   def repack!
+    unless pg_repack_supported?
+      Rails.logger.info "Skipping pg_repack for #{ar_base_class} - not supported"
+      return
+    end
+
     catch(:enough) do
       port = ar_base_class.connection_db_config.configuration_hash[:port].presence || '5432'
       host = File.exist?(ar_base_class.connection_db_config.configuration_hash[:host].to_s) ? CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) : ar_base_class.connection_db_config.configuration_hash[:host]
@@ -149,12 +158,14 @@ class Dba::DatabaseBloat
         options = "--no-superuser-check -U #{escaped_username} -d #{escaped_database} -h #{escaped_host} -p #{escaped_port} -t #{escaped_schema}.#{escaped_table}"
 
         # In order to support multiple versions of pg_repack, we need to use the version-specific binary
-        cmd = "#{escaped_binary} #{options}"
+        # Use bash's 'exec -a' to override argv[0] (the program name) to avoid version mismatch errors
+        # The pg_repack extension checks that argv[0] matches 'pg_repack', so we use exec -a to set it
+        # This allows us to use versioned binaries like 'pg_repack-1.5.2' while reporting as 'pg_repack'
+        bash_cmd = "exec -a pg_repack #{escaped_binary} #{options}"
+        cmd = ['bash', '-c', bash_cmd]
 
-        raise 'version of pg_repack needs to match that in the database'
-
-        Rails.logger.info("Repacking #{row['tblname']}") # rubocop:disable Lint/UnreachableCode
-        system(cmd)
+        Rails.logger.info("Repacking #{row['tblname']} with binary: #{binary}")
+        system(*cmd)
 
         raise 'running repack failed.' if $?.exitstatus != 0 # rubocop:disable Style/SpecialGlobalVars
 
@@ -176,6 +187,11 @@ class Dba::DatabaseBloat
   # Ensure the pg_repack extension is installed in the database and the version of the pg_repack extension matches the version of the pg_repack binary.
   # This will raise an error if the pg_repack extension is not installed or the version of the pg_repack extension does not match the version of the pg_repack binary.
   def ensure_matching_pg_repack_versions!
+    unless pg_repack_supported?
+      Rails.logger.info "Skipping pg_repack version check for #{ar_base_class} - not supported"
+      return
+    end
+
     db_version = pg_repack_db_version
     raise "pg_repack extension is not installed in this database (#{ar_base_class}). Run CREATE EXTENSION pg_repack;" if db_version.nil?
 

@@ -103,8 +103,9 @@ export default class extends Controller {
 
   enableFancySelect() {
     let $select = $(this.elementTarget);
+    let $modalParent = $(this.element).closest('.modal');
     let options = {
-      dropdownParent: $(this.element)
+      dropdownParent: $modalParent.length ? $modalParent : $(this.element)
     };
 
     if (this.elementTarget.classList.contains('select2-parenthetical-when-selected')) {

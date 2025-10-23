@@ -19,7 +19,7 @@ module HudLsa
     end
 
     private def report_source
-      ::HudLsa::Generators::Fy2024::Lsa
+      ::HudLsa::Generators::Fy2026::Lsa
     end
 
     def new
@@ -67,7 +67,7 @@ module HudLsa
       @report ||= report_class.new(options: { user_id: current_user.id, start: default_start_date, end: default_end_date })
     end
 
-    private def report_class
+    def report_class
       @report_class ||= active_version
     end
     helper_method :report_class
@@ -144,11 +144,13 @@ module HudLsa
             filter.coc_code = cocs.try(&:first)
             filter.coc_codes = cocs
             filter.report_version = options['report_version'].presence || default_report_version
+            filter.project_type_codes = options['project_type_codes'].presence || []
           else
             filter.on = nil
             filter.start = default_start_date
             filter.end = default_end_date
             filter.report_version = default_report_version
+            filter.project_type_codes = []
           end
         end
         # Override with params if set
@@ -179,13 +181,14 @@ module HudLsa
       {
         'FY 2022' => { slug: :fy2022, active: false },
         'FY 2023' => { slug: :fy2023, active: false },
-        'FY 2024' => { slug: :fy2024, active: true },
+        'FY 2024' => { slug: :fy2024, active: false },
+        'FY 2026' => { slug: :fy2026, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2024
+      "fy#{HudHelper.current_version}".to_sym
     end
 
     private def filter_class
@@ -197,6 +200,7 @@ module HudLsa
         fy2022: HudLsa::Generators::Fy2022::Lsa,
         fy2023: HudLsa::Generators::Fy2023::Lsa,
         fy2024: HudLsa::Generators::Fy2024::Lsa,
+        fy2026: HudLsa::Generators::Fy2026::Lsa,
       }
     end
 

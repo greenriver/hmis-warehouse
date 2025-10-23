@@ -124,6 +124,21 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       expect(joins).to be_empty
     end
 
+    context 'with custom assessment fields' do
+      let!(:destination_data_source) { create(:destination_data_source) }
+      let!(:form_definition) { create(:hmis_form_definition, identifier: 'housing_assessment') }
+
+      it 'collects required joins for assessment metadata fields' do
+        result = described_class.call(
+          "custom_assessment.housing_assessment.assessment_date > '2024-12-01'",
+          field_map,
+        )
+
+        flattened_joins = result.joins.flatten
+        expect(flattened_joins).to include({ destination_client_latest_assessments: :custom_assessment })
+      end
+    end
+
     context 'with fields that cannot be resolved into SQL' do
       it 'handles a simple comparison with an unresolvable field' do
         result = described_class.call('unresolvable_field = 1', field_map)

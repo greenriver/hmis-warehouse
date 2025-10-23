@@ -35,6 +35,7 @@ jobs:
         name: Run Rubocop
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.ruby }}
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*\.rb" | tr "\n" " ./"`

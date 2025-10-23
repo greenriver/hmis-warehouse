@@ -802,7 +802,7 @@ module UserConcern
     end
 
     def all_access_group_ids
-      access_groups.pluck(:id) + [access_group.id]
+      (access_groups.pluck(:id) + [access_group.id]).compact
     end
 
     private def viewable(model)
