@@ -131,7 +131,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    context 'filtering by exclude_recently_declined' do
+    describe 'filtering by exclude_recently_declined' do
       let(:variables) do
         {
           opportunityId: opportunity.id,
@@ -166,7 +166,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
-      # todo @martha - test n+1 queries
+      context 'with many declines' do
+        before do
+          # create 20 declined clients
+          20.times do |i|
+            client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+            create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client.destination_client, priority_score: 50)
+
+            other_unit = create(:hmis_unit_in_group, project: p1, unit_group: unit_group)
+            other_opportunity = create(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool, unit: other_unit)
+            create(:hmis_ce_referral, data_source: ds1, client: client, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago)
+
+            # re-assess half of them
+            if i.even?
+              enrollment = create(:hmis_hud_enrollment, client: client, data_source: ds1)
+              create(:hmis_custom_assessment, definition: form_definition, client: client, enrollment: enrollment, date_updated: 1.hour.ago)
+            end
+          end
+        end
+
+        it 'does not cause n+1' do
+          expect do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+            expect(candidates.size).to eq(12) # 2 original clients from fixtures + 10 clients who were declined but reassessed
+          end.to make_database_queries(count: 30..35)
+        end
+      end
     end
   end
 end
