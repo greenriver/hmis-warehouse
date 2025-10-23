@@ -14,6 +14,10 @@ RSpec.feature 'Bulk Services behavior', type: :system do
   include_context 'hmis base setup'
   include_context 'hmis service setup'
 
+  # consistent time for avoid failures when run across day boundaries
+  before(:each)  { freeze_time }
+  after(:each) { travel_back }
+
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
 
   let!(:access_control) { create_access_control(hmis_user, p1) }

@@ -71,7 +71,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
         unit.reload
         expect(unit.latest_opportunity.candidate_pool).to eq(pool)
-        expect(unit.latest_opportunity.workflow_template).to eq(template)
+        expect(unit.latest_opportunity.unit_group.workflow_template).to eq(template)
       end
 
       context 'with assignment rules' do

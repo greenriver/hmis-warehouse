@@ -42,6 +42,7 @@ class AccountsController < ApplicationController
         :email_schedule,
         :otp_required_for_login,
         :credentials,
+        :theme,
       )
   end
 

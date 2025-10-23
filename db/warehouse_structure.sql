@@ -1,4 +1,4 @@
--- \restrict NL1BEL4AzRNLH9FINFIC39nqNFE6Sio66EoA1mcvaJ6uYxi5RQTNc4c79kieP5u
+-- \restrict xiir9IDy69vz4Wgf31v3hHwRyXVNZ1M6bi9cYD3OgIX86ZtJ21yYhiwxHuRRL7E
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -284,7 +284,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -3567,7 +3567,7 @@ CREATE TABLE public.hmis_form_definitions (
     external_form_object_key character varying,
     backup_definition jsonb,
     managed_in_version_control boolean DEFAULT false,
-    admin_editable_only boolean DEFAULT false
+    admin_editable_only boolean DEFAULT false NOT NULL
 );
 
 
@@ -7263,7 +7263,7 @@ CREATE TABLE public.ce_opportunities (
     id bigint NOT NULL,
     candidate_pool_id bigint,
     project_id bigint NOT NULL,
-    workflow_template_identifier character varying NOT NULL,
+    workflow_template_identifier character varying,
     name character varying NOT NULL,
     status character varying NOT NULL,
     expires_at timestamp(6) without time zone,
@@ -24797,7 +24797,8 @@ CREATE TABLE public.hmis_unit_groups (
     deleted_at timestamp without time zone,
     candidate_pool_id bigint,
     ce_event_type integer,
-    unit_type_id bigint
+    unit_type_id bigint,
+    direct_referral_workflow_template_identifier character varying
 );
 
 
@@ -76052,11 +76053,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict NL1BEL4AzRNLH9FINFIC39nqNFE6Sio66EoA1mcvaJ6uYxi5RQTNc4c79kieP5u
+-- \unrestrict xiir9IDy69vz4Wgf31v3hHwRyXVNZ1M6bi9cYD3OgIX86ZtJ21yYhiwxHuRRL7E
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251016184716'),
 ('20251014152145'),
 ('20251010182635'),
 ('20251008151928'),
@@ -76069,6 +76071,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251003190848'),
 ('20251003190528'),
 ('20251002195913'),
+('20251002192539'),
 ('20250926075333'),
 ('20250923120000'),
 ('20250921222539'),
@@ -76286,3 +76289,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

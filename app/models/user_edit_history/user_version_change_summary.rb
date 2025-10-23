@@ -60,6 +60,16 @@ class UserEditHistory::UserVersionChangeSummary
     'updated_at',
   ].to_set.freeze
 
+  # Map old notification boolean columns to alert names for cleaner display
+  DEPRECATED_NOTIFICATION_COLUMNS = {
+    'notify_on_anomaly_identified' => 'Anomaly Identified',
+    'notify_on_client_added' => 'Client Added',
+    'notify_on_new_account' => 'New Account Creation',
+    'notify_on_vispdat_completed' => 'VI-SPDAT Completed',
+    'receive_account_request_notifications' => 'Account Request',
+    'receive_file_upload_notifications' => 'File Upload',
+  }.freeze
+
   # helper class for to better organize summarization conditions
   ChangePattern = Struct.new(:value, :event, :match_keys, :match, keyword_init: true) do
     def matches?(version, changeset)
@@ -155,8 +165,13 @@ class UserEditHistory::UserVersionChangeSummary
     changeset.map do |field, values|
       next if field =~ /\A(id|updated_at|created_at)\z/
 
-      from, to = values
-      "Changed #{field.humanize.titleize}: from #{render_changed_value(field, from)} to #{render_changed_value(field, to)}."
+      if DEPRECATED_NOTIFICATION_COLUMNS.key?(field)
+        alert_name = DEPRECATED_NOTIFICATION_COLUMNS[field]
+        deprecated_notification_message(alert_name, values)
+      else
+        from, to = values
+        "Changed #{field.humanize.titleize}: from #{render_changed_value(field, from)} to #{render_changed_value(field, to)}."
+      end
     end.compact
   end
 
@@ -165,5 +180,13 @@ class UserEditHistory::UserVersionChangeSummary
     return 'NULL' if value.nil?
 
     field.in?(VISIBLE_FIELDS_VALUES) ? "\"#{value}\"" : '<redacted>'
+  end
+
+  # format message for deprecated notification boolean columns
+  def deprecated_notification_message(alert_name, values)
+    _from, to = values
+    return "Subscribed to alert: #{alert_name}" if to
+
+    "Unsubscribed from alert: #{alert_name}"
   end
 end

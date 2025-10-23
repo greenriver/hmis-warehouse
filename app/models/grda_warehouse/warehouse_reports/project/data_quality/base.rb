@@ -422,11 +422,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def send_notifications
       return unless notify_contacts
 
-      contacts = project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts
-      contacts.index_by(&:email).values.each do |contact|
+      # Get alert definition for data quality reports
+      alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: 'data_quality_report')
+      return unless alert_definition
+
+      # Get all contacts and filter to those subscribed to data quality report alerts
+      all_contacts = project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts
+      subscribed_contacts = all_contacts.select do |contact|
+        contact.subscribed_to?('data_quality_report')
+      end
+
+      # Send emails to unique contacts (by email)
+      subscribed_contacts.index_by(&:email).values.each do |contact|
         ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
       end
-      notifications_sent
+      notifications_sent if subscribed_contacts.any?
     end
 
     def notify_requestor

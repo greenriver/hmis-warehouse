@@ -12,7 +12,7 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     radio_group = template.content_tag(:div) do
       current_value = object.send(attribute_name)
       template.concat(@builder.hidden_field(attribute_name, name: "#{object_name}[#{attribute_name}][]", value: ''))
-      collection.each do |label, value, _|
+      collection.each do |label, value, hint|
         name = "#{object_name}[#{attribute_name}]"
         if options[:multiple]
           checked = current_value.present? && value.in?(current_value)
@@ -39,14 +39,16 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
           end
           template.concat(internal)
         else
-          label_text_el = template.content_tag(:span, label, class: 'c-checkbox__label ml-6')
+          label_text_el = template.content_tag(:span, label)
+          hint_text_el = hint.present? ? template.content_tag(:span, hint, class: 'c-checkbox__hint') : ''
+          label_and_hint = template.content_tag(:span, label_text_el + hint_text_el, class: 'c-checkbox__label')
           checkbox_classes = ['c-checkbox']
           checkbox_classes << 'mb-2' if options[:multiple]
           checkbox_classes << 'c-checkbox--round' unless options[:multiple]
           template.concat(
             template.content_tag(:div, class: checkbox_classes) do
               template.send(tag_name, name, value, checked, merged_input_options.merge(id: id)) +
-              template.content_tag(:label, label_text_el, for: id)
+              template.content_tag(:label, label_and_hint, for: id)
             end,
           )
         end

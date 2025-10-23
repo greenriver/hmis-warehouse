@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -122,6 +128,48 @@ RSpec.describe UserEditHistory::UserVersionChangeSummary do
     context 'with invalid version' do
       it 'raises ArgumentError' do
         expect { summary.perform(Object.new, {}) }.to raise_error(ArgumentError)
+      end
+    end
+
+    context 'deprecated notification columns' do
+      described_class::DEPRECATED_NOTIFICATION_COLUMNS.each do |column, alert_name|
+        context "when #{column} changes to true" do
+          let(:version) do
+            create(
+              :gr_paper_trail_version,
+              item: user,
+              event: 'update',
+              object_changes: {
+                column => [false, true],
+                'updated_at' => [1.day.ago, Time.current],
+              }.to_yaml,
+            )
+          end
+
+          it "shows as subscription to #{alert_name}" do
+            expect(summary.perform(version, version.changeset)).
+              to eq(["Subscribed to alert: #{alert_name}"])
+          end
+        end
+
+        context "when #{column} changes to false" do
+          let(:version) do
+            create(
+              :gr_paper_trail_version,
+              item: user,
+              event: 'update',
+              object_changes: {
+                column => [true, false],
+                'updated_at' => [1.day.ago, Time.current],
+              }.to_yaml,
+            )
+          end
+
+          it "shows as unsubscription from #{alert_name}" do
+            expect(summary.perform(version, version.changeset)).
+              to eq(["Unsubscribed from alert: #{alert_name}"])
+          end
+        end
       end
     end
   end
