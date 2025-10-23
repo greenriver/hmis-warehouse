@@ -88,6 +88,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
 
+    # One of the candidates has been declined from another opportunity in the same unit group
+    let!(:other_unit) { create(:hmis_unit_in_group, project: p1, unit_group: unit_group) }
+    let!(:other_opportunity) { create(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool, unit: other_unit) }
+    let!(:declined_referral) { create(:hmis_ce_referral, data_source: ds1, client: client_1, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago) }
+
     it 'returns candidates in prioritized order' do
       response, result = post_graphql(**variables) { query }
       expect(response.status).to eq(200), result.inspect
@@ -100,7 +105,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       candidates = candidates_data['nodes']
       expect(candidates.size).to eq(3)
 
-      # Verify candidates are returned in priority order (highest to lowest)
+      # Verify all candidates are returned in priority order (highest to lowest)
+      # (Even declined candidate, since the filter exclude_recently_declined was not set)
       expect(candidates[0]).to include(
         'id' => candidate2.id.to_s,
         'priorityScores' => [100],
@@ -138,10 +144,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           filters: { excludeRecentlyDeclined: true },
         }
       end
-
-      let!(:other_unit) { create(:hmis_unit_in_group, project: p1, unit_group: unit_group) }
-      let!(:other_opportunity) { create(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool, unit: other_unit) }
-      let!(:declined_referral) { create(:hmis_ce_referral, data_source: ds1, client: client_1, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago) }
 
       it 'does not return declined client' do
         response, result = post_graphql(**variables) { query }

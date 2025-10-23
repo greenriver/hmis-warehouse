@@ -10,7 +10,6 @@ module Hmis::Ce
   class FilteredCandidatesQuery
     include ::Hmis::Concerns::HmisArelHelper
 
-    # todo @martha - add spec test if exclude recently declined is false but there is a recently declined candidate
     def initialize(opportunity:, exclude_recently_declined: false)
       @opportunity = opportunity
       @unit_group_id = opportunity.unit_group.id
