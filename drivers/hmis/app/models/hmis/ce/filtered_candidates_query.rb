@@ -24,11 +24,11 @@ module Hmis::Ce
 
       # { source_client_id => most_recent_decline_timestamp }
       most_recent_declines = fetch_most_recent_declines
-      return @base_candidates if most_recent_declines.blank?
+      return @base_candidate_scope if most_recent_declines.blank?
 
       # { source_client_id => dest_client_id }
       source_to_dest_client_map = map_source_to_dest_clients(most_recent_declines.keys)
-      return @base_candidates if source_to_dest_client_map.blank? # unexpected
+      return @base_candidate_scope if source_to_dest_client_map.blank? # unexpected
 
       # { dest_client_id => most_recent_assessment_update_timestamp }
       most_recent_assessment_dates = fetch_most_recent_assessment_dates(source_to_dest_client_map.values)
