@@ -109,13 +109,15 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 
   def mui_table_expect(expected, row_index:, column_header:, from:)
+    # Wait for table to have rows before proceeding
+    expect(from).to have_css('tbody tr', minimum: row_index + 1)
+
     header_cells = from.all('thead th')
     column_index = header_cells.find_index { |cell| !!cell.text.match(column_header) }
     expect(column_index).not_to be_nil
 
     rows = from.all('tbody tr')
-    row = rows[row_index]
-    cell = row.all('td')[column_index]
+    cell = rows[row_index].all('td')[column_index]
     expect(cell.text).to match(expected)
   end
 

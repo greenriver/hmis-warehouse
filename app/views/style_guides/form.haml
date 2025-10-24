@@ -58,11 +58,18 @@
               %h4 Normal Select
               = f.input :sel,  collection: collection, hint: 'This is a hint', label: 'Example Label'
 
-              %h4 "Pretty" boolean
+              %h4 "Pretty" boolean (simple)
               = f.input :is_currently_youth, as: :pretty_boolean, disabled: false, label: 'Example Label', hint: 'This is a hint'
 
               %h4 "Pretty" Radio Buttons
               = f.input :radio_buttons, collection: collection, as: :pretty_boolean_group
+
+              %h4 "Pretty" Checkboxes (multiple selection)
+              = f.input :checkboxes_pretty, collection: collection, as: :pretty_boolean_group, multiple: true
+
+              %h4 "Pretty" Checkboxes with hints (multiple selection)
+              - collection_with_hints = [['Option 1', 'one', 'This is a hint for option 1'], ['Option 2', 'two', 'This is a hint for option 2'], ['Option 3', 'three', 'This is a hint for option 3']]
+              = f.input :checkboxes_with_hints, collection: collection_with_hints, as: :pretty_boolean_group, multiple: true
 
               %h4 Normal boolean
               = f.input :is_currently_normal_youth, as: :boolean, disabled: false, hint: 'This is a hint'

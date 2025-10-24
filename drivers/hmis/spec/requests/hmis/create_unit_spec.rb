@@ -106,7 +106,7 @@ RSpec.describe 'Create Units Mutation', type: :request do
     end
 
     context 'no direct association, but existing units in the group have that type' do
-      let!(:existing_unit) { create(:hmis_unit, unit_type: existing_unit_type, unit_group: unit_group) }
+      let!(:existing_unit) { create(:hmis_unit, unit_type: existing_unit_type, unit_group: unit_group, project: p1) }
 
       include_examples 'returns unit type consistency error'
     end

@@ -25,6 +25,8 @@ module Types
     field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :workflow_template_identifier, String, null: true
     field :workflow_template_name, String, null: true
+    field :direct_referral_workflow_template_identifier, String, null: true
+    field :direct_referral_workflow_template_name, String, null: true
     field :ce_event_type, HmisSchema::Enums::Hud::EventType, null: true
     # TODO(#7538) resolve default contacts for workflow template
 
@@ -43,6 +45,10 @@ module Types
 
     def workflow_template_name
       object.workflow_template&.name
+    end
+
+    def direct_referral_workflow_template_name
+      object.direct_referral_workflow_template&.name
     end
 
     def units(**args)
