@@ -3961,7 +3961,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/homeless_summary_report/app/models/homeless_summary_report.rb'
     - 'drivers/homeless_summary_report/app/models/homeless_summary_report/client.rb'
     - 'drivers/homeless_summary_report/app/models/homeless_summary_report/document_exports/report_export.rb'
-    - 'drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb'
     - 'drivers/homeless_summary_report/app/models/homeless_summary_report/result.rb'
     - 'drivers/homeless_summary_report/config/initializers/homeless_summary_report.rb'
     - 'drivers/homeless_summary_report/config/routes.rb'

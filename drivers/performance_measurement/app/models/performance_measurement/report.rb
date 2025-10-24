@@ -1102,7 +1102,7 @@ module PerformanceMeasurement
     # to extract and how to transform it for the dashboard.
     #
     # Each entry in the array contains:
-    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D2'])
+    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D3'])
     #   - title: Description of the data
     #   - measure: Associated SPM measure
     #   - questions: Client field mappings with:
@@ -1160,7 +1160,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'D2']],
+          cells: [['1a', 'D3']],
           title: 'Length of Time Homeless in ES, SH, TH',
           measure: :m1,
           history_source: :m1_history,
@@ -1172,7 +1172,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'D2']],
+          cells: [['1b', 'D3']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           measure: :m1,
           history_source: :m1_history,

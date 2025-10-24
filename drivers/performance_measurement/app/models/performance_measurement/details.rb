@@ -552,7 +552,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
           table: '1a',
-          cell: 'D2',
+          cell: 'D3',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -573,7 +573,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
           table: '1a',
-          cell: 'G2',
+          cell: 'G3',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -594,7 +594,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th_ph,
           measure: 'Measure 1',
           table: '1b',
-          cell: 'D2',
+          cell: 'D3',
           detail_columns: [
             'days_homeless_es_sh_th_ph',
           ],
@@ -614,7 +614,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th_ph,
           measure: 'Measure 1',
           table: '1b',
-          cell: 'G2',
+          cell: 'G3',
           detail_columns: [
             'days_homeless_es_sh_th_ph',
           ],

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'memery'
 
 # Useful notes for testing
@@ -680,25 +682,25 @@ module HomelessSummaryReport
     def spm_fields
       {
         m1a_es_sh_days: {
-          cells: [['1a', 'B1']],
+          cells: [['1a', 'B2']],
           value_accessor: lambda(&:days_homeless),
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
-          cells: [['1a', 'B2']],
+          cells: [['1a', 'B3']],
           value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
-          cells: [['1b', 'B1']],
+          cells: [['1b', 'B2']],
           value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
-          cells: [['1b', 'B2']],
+          cells: [['1b', 'B3']],
           value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
