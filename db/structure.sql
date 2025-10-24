@@ -1,3 +1,8 @@
+-- \restrict MjcG1RJIpQWm6lAEaIkOlVbbndht0bVybWjmu9DaWafuEWEDmcvpcBjPJtJQ4Dm
+
+-- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -2479,7 +2484,8 @@ CREATE TABLE public.users (
     superset_roles jsonb DEFAULT '[]'::jsonb,
     talent_lms_email character varying,
     training_courses jsonb,
-    custom_session_invalidator character varying
+    custom_session_invalidator character varying,
+    theme character varying DEFAULT 'legacy'::character varying
 );
 
 
@@ -4228,10 +4234,16 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
+-- \unrestrict MjcG1RJIpQWm6lAEaIkOlVbbndht0bVybWjmu9DaWafuEWEDmcvpcBjPJtJQ4Dm
+
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251016194806'),
 ('20251001174258'),
+('20250918155525'),
+('20250918155524'),
+('20250918155523'),
 ('20250909182836'),
 ('20250727131402'),
 ('20250618150200'),

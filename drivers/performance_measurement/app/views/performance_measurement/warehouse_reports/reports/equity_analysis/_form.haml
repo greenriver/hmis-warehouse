@@ -22,6 +22,6 @@
         = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, as: :select_two, label_method: :first, value_method: :last, include_blank: false, label: 'View Data By'
   .d-flex.mt-4
     .pr-4
-      = f.submit 'Update Report'
+      = f.submit 'Update Report', class: 'btn btn-primary'
     - if @equity_filters.present?
       = link_to 'Clear Report', url, class: 'btn btn-secondary'

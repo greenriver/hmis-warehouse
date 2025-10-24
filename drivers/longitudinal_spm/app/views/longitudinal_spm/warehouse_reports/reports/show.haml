@@ -26,6 +26,8 @@
           = "Table #{table}:"
           = @report.spm_describe(table)
           = @report.spm_describe(table, cell)
+          - project_types = @report.project_types_for_table(table)
+          = "(#{project_types})" if project_types.present?
         .chart{id: "spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"}
         = content_for :page_js do
           :javascript
