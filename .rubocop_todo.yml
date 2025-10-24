@@ -3850,7 +3850,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/document_exports/report_chart_pdf_export.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/document_exports/report_export.rb'
-    - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/dq_concern.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/goal.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/informational_table.rb'
     - 'drivers/hmis_data_quality_tool/config/initializers/hmis_data_quality_tool_feature.rb'
