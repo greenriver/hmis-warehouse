@@ -17,7 +17,7 @@ module PerformanceMeasurement
       '1a' => ['D2', 'G2'],
       '1b' => ['D2', 'G2'],
       '2a and 2b' => ['B7', 'C7', 'E7', 'I7'],
-      # '3.2' => ['C2'], # actually using the PIT counts
+      '3.2' => ['C2'],
       '4.1' => ['C2', 'C3'],
       '4.2' => ['C2', 'C3'],
       '4.3' => ['C2', 'C3'],

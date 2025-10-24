@@ -181,5 +181,11 @@ module BostonHmis
     config.queued_tasks[:initialize_hud_list_items_table] = -> do
       GrdaWarehouse::HudListItem.maintain!
     end
+
+    # Migrate existing user notification preferences to alert subscriptions
+    config.queued_tasks[:migrate_user_notification_preferences] = -> do
+      GrdaWarehouse::AlertDefinition.seed_initial_definitions
+      GrdaWarehouse::ContactAlertSubscription.migrate_user_notification_preferences!
+    end
   end
 end
