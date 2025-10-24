@@ -40,6 +40,10 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
+  # consistent time for avoid failures when run across day boundaries
+  before(:each)  { freeze_time }
+  after(:each) { travel_back }
+
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
   let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'A') }
 
@@ -193,22 +197,11 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         expect(target_enrollment.project).to eq(target_project)
         expect(target_enrollment.current_unit).to eq(unit)
 
-        # Provider can add household members to the target enrollment
-        visit "/client/#{client1.id}/enrollments/#{target_enrollment.id}/household"
-        find("[role='button']", text: 'Add Household Member').click
-        fill_in 'Search for Client', with: 'Jane D'
-        click_button 'Search'
-        click_button 'Add to Household'
-        mui_select 'Child', from: 'Relationship to HoH'
-        click_button 'Enroll'
-        table = find("table[aria-label='Manage Household']")
-        expect(page).not_to have_content('Enroll Jane D') # Confirm the modal has exited before proceeding
-        mui_table_expect('Alice A', row_index: 0, column_header: 'Name', from: table)
-        mui_table_expect('Jane D', row_index: 1, column_header: 'Name', from: table)
-
-        # Household member was enrolled into the same unit
-        expect(target_enrollment.reload.household_members.count).to eq(2)
-        expect(target_enrollment.household_members.all.map(&:current_unit)).to eq([unit, unit])
+        # Household members from the source enrollment are enrolled into the target enrollment
+        expect(target_enrollment.household_members.count).to eq(2)
+        household_member_enrollment = target_enrollment.household_members.find_by(client: household_member)
+        expect(household_member_enrollment.relationship_to_hoh).to eq(2)
+        expect(household_member_enrollment.current_unit).to eq(unit)
       end
 
       # CE Staff completes the Confirm Success step
