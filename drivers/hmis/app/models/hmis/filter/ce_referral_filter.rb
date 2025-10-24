@@ -15,6 +15,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_referral_statuses)).
       yield_self(&method(:with_projects)).
       yield_self(&method(:with_project_types)).
+      yield_self(&method(:with_organizations)).
       yield_self(&method(:with_workflow_template_identifiers)).
       yield_self(&method(:on_current_task_since)).
       yield_self(&method(:with_origin)).
@@ -39,6 +40,12 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   def with_project_types(scope)
     with_filter(scope, :project_type) do
       scope.joins(:target_project).where(p_t[:project_type].in(input.project_type))
+    end
+  end
+
+  def with_organizations(scope)
+    with_filter(scope, :organization) do
+      scope.joins(target_project: :organization).where(o_t[:id].in(input.organization))
     end
   end
 
