@@ -14,15 +14,16 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
       @form_definition_identifier = form_definition_identifier
       raw_rows = read_file_rows(filename)
       column_names = raw_rows.shift.map { |col| col.to_s.downcase.strip }
-      raise unless column_names.sort == COLUMN_NAMES.sort # allow any order
+      missing_columns = COLUMN_NAMES - column_names
+      raise "Missing required columns: #{missing_columns.join(', ')}" if missing_columns.present?
 
       waitlists = build_waitlists(raw_rows, column_names)
 
       waitlists.group_by(&:household_id).each do |household_id, household_members|
-        next if waitlists.size == 1 # skip single-member households, they should already have been processed
+        next if household_members.size == 1 # skip single-member households, they should already have been processed
 
         hoh_row = household_members.find(&:hoh?)
-        raise "No HoH found for household #{household_id}" unless hoh
+        raise "No HoH found for household #{household_id}" unless hoh_row
 
         # Find the HoH Enrollment in the CE project. It should exist because it should have been created
         # by the HousingAssessmentImporter on 10/1 import.
@@ -61,11 +62,12 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
 
       raise "Row #{row_number} has #{row_values.size} columns; expected #{header_row.size}" if row_values.size != header_row.size
 
-      attrs = header_row.zip(row_values).to_h.symbolize_keys
+      attrs = header_row.zip(row_values).to_h.symbolize_keys.slice(*COLUMN_SYMBOLS)
       waitlist = Waitlist.new(attrs, row_number: row_number)
       raise "Row #{row_number} is invalid" unless waitlist.valid?
 
       client_id = waitlist.client_id
+
       existing = by_client_id[client_id]
       if existing.nil?
         by_client_id[client_id] = waitlist
@@ -117,7 +119,10 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
       project_id: hmis_ce_project.project_id,
       source_hash: 'WAITLIST_HOUSEHOLD_MEMBERS_IMPORTER', # to help identify these if we need to clean them up. maybe unset after import is done and validated
     )
-    enrollment.save!
+    without_record_timestamps do
+      enrollment.save!
+    end
+    enrollment
   end
 
   def ensure_intake_assessment!(waitlist, enrollment)
@@ -126,7 +131,9 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     intake = enrollment.build_synthetic_intake_assessment
     intake.date_created = waitlist.date_created
     intake.date_updated = waitlist.date_updated
-    intake.save!
+    without_record_timestamps do
+      intake.save!
+    end
   end
 
   # COPIED FROM HousingAssessmentImporter, no changes needed!
@@ -215,10 +222,6 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     @hmis_data_source ||= GrdaWarehouse::DataSource.hmis.sole
   end
 
-  def form_definition
-    @form_definition ||= Hmis::Form::Definition.published.where(identifier: @form_definition_identifier).first!
-  end
-
   def system_hud_user
     @system_hud_user ||= Hmis::Hud::User.system_user(data_source_id: hmis_data_source.id)
   end
@@ -239,6 +242,14 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     end
   end
 
+  def without_record_timestamps
+    previous = ActiveRecord::Base.record_timestamps
+    ActiveRecord::Base.record_timestamps = false
+    yield
+  ensure
+    ActiveRecord::Base.record_timestamps = previous
+  end
+
   # Note: cred does not have to be active, to support running in lower environments where these integrations may be turned off
   def mci_creds
     @mci_creds ||= GrdaWarehouse::RemoteCredential.where(slug: HmisExternalApis::AcHmis::Mci::SYSTEM_ID).sole
@@ -246,10 +257,6 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
 
   def mci_uniq_creds
     @mci_uniq_creds ||= GrdaWarehouse::RemoteCredential.where(slug: HmisExternalApis::AcHmis::DataWarehouseApi::SYSTEM_ID).sole
-  end
-
-  def cded_lookup
-    @cded_lookup ||= form_definition.custom_data_element_definitions.index_by(&:key)
   end
 
   COLUMN_NAMES = [
@@ -260,8 +267,10 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     'client_mci_id', # non-unique mci id
     'date_created',
     'date_updated',
+    'household_id',
+    'relationship_type_desc',
+    'assessment_date', # use for tie-breaker on duplicate rows
     # Assessment-related columns are ignored in this importer, we are only adding household member Clients/Enrollments
-    # 'assessment_date',
     # 'chronically_homeless',
     # 'aha_score',
     # 'alt_aha_score',
@@ -294,7 +303,8 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     Rails.logger.info(msg)
   end
 
-  Row = Struct.new(*COLUMN_NAMES.map(&:to_sym))
+  COLUMN_SYMBOLS = COLUMN_NAMES.map(&:to_sym).freeze
+  Row = Struct.new(*COLUMN_SYMBOLS, keyword_init: true)
   class Waitlist
     attr_accessor :row_number, :raw_values
 
@@ -378,6 +388,7 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
       :client_last_name,
       :chronically_homeless,
       :client_mci_id,
+      :household_id,
       # :anyone_in_household_service_in_military,
       # :anyone_in_household_megans_law,
       # :anyone_in_household_disability,
