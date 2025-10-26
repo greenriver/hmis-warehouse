@@ -1,6 +1,6 @@
 # Cohorts
 
-The Cohorts feature is a tool for grouping, tracking, and visualizing client data. It allows users to create custom lists of clients based on specific criteria, which can then be used for case management, reporting, and in-depth data analysis.
+The Cohorts feature is a tool for grouping, tracking, and visualizing client data. It allows users to create custom lists of clients based on specific criteria, which can then be used for case management, reporting, and in-depth data analysis. Many communities use this feature to support By-Name-Lists or BNL.
 
 ## Key Concepts
 
@@ -13,14 +13,14 @@ The Cohorts feature is a tool for grouping, tracking, and visualizing client dat
 
 ## Permissions & Access
 
-Access to cohorts is controlled by user roles and ACL collections. Users need cohort view permissions (for example, `can_view_cohorts` or the equivalent ACL collection) to see cohorts in the UI. Editing or managing cohort membership requires the stronger cohort participation permission (`can_participate_in_cohorts`). Users without the necessary permissions will not see cohorts listed, even if the cohort itself is active.
+Access to cohorts is controlled by permissions. For details, see the `cohort_*` roles defined in `app/models/role.rb`. Users without the necessary permissions will not see cohorts listed, even if the cohort itself is active.
 
 ## Configurable Views
 
 Cohorts can be customized to tailor the view to specific needs.
 
 - **Custom Columns:** Users can select which columns of data to display for the clients in a cohort. This can range from basic demographic information to complex calculated fields like "days homeless in the last three years."
-- **Tabs:** Cohorts can have multiple tabs, each providing a different filtered view of the client list. For example, a cohort might have separate tabs for "Active Clients," "Inactive Clients," and "Recently Exited Clients."
+- **Tabs:** Cohorts can have multiple tabs, each providing a different filtered view of the client list. For example, a cohort might have separate tabs for "Active Clients," "Inactive Clients," and "Recently Exited Clients.". There is no currently no user interface for managing these tabs; we rely on engineers to manually configure tabs.
 - **Thresholds:** Users can define visual thresholds to highlight clients who meet certain criteria. For example, a row might be colored red if a client has been homeless for more than a year.
 
 ## Client Activity and Status
@@ -36,7 +36,9 @@ Each `CohortClient` record has an `active` boolean field that can be set manuall
 
 ### 2. Calculated Inactivity Based on Service History
 
-Cohorts can detect when a client has become **inactive** due to lack of recent services, which is separate from the `active` boolean. This is controlled by the `days_of_inactivity` setting on each cohort.
+Cohorts can detect when a client has become **inactive** due to lack of recent services, which is separate from the `active` boolean. This is controlled by the `days_of_inactivity` setting on each cohort; admin staff may adjust this threshold
+
+Inactivity does not remove a client from the cohort but may remove them from certain tools that use cohort inclusion to make decisions. For instance, CAS will ignore clients who do not meet the activity threshold for a given cohort.
 
 **How it works:**
 
@@ -58,7 +60,7 @@ Cohorts can detect when a client has become **inactive** due to lack of recent s
 **Important Notes:**
 - The `active` boolean and calculated inactivity are **independent** - a client can be marked `active: true` but still be considered inactive due to no recent services
 - Auto-maintained system cohorts (like "Currently Homeless") may automatically remove clients when they become inactive
-- The cached data in `WarehouseClientsProcessed` is updated nightly via `Cohort.prepare_active_cohorts`, so changes in service history may not immediately affect inactivity calculations
+- The cached data in `WarehouseClientsProcessed` is periodically via `Cohort.prepare_active_cohorts`. So changes in service history may not immediately affect cohorts.
 
 For a detailed explanation of how the Service History is generated and how it impacts client activity, please see the [Service History documentation](./service_history.md).
 

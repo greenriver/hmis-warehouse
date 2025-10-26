@@ -1,11 +1,11 @@
 # Service History
 
-The Service History subsystem provides a flattened, day-by-day representation of a client's journey through various programs. It is a primary source for some many reports and data analysis.
+The Service History subsystem provides a flattened, day-by-day representation of a client's journey through various programs. It is a primary source for many reports and data analysis.
 
 ## Key Models
 
--   **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record, we add an `exit` record when the enrollment closes, and we occasionally keep a `first` record for legacy compatibility. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
--   **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It contains both source services and synthetic days that are implied by enrollment rules (for example, extrapolated bed nights or contacts).
+-   **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record and we add an `exit` record when the enrollment closes. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
+-   **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It represents days for both source services and synthetic days representing CLS in Street Outreach programs. This is time-series data; it is extremely large and partitioned by year to keep it manageable.
 -   **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that flattens the sharded `service_history_services` partitions for per-client and ad-hoc analytic queries. Historically we lean on it when time-sharded tables make targeted lookups expensive.
 
 ## Service History Generation
@@ -23,6 +23,8 @@ The generation logic differs based on the program type:
  The `service_history_services` dataset is among the largest tables in the warehouse regardless of installation scale. To keep inserts fast and maintenance manageable, we physically shard it by year. PostgreSQL trigger logic (see `db/warehouse_structure.sql`) routes each new service day into the correct annual partition (`service_history_services_2000`, `service_history_services_2001`, …, `service_history_services_2050`) with an overflow table (`service_history_services_remainder`) for out-of-range data. Queries continue to reference the parent `service_history_services` relation, but PostgreSQL prunes to the relevant partitions based on date filters.
 
 For analytic workloads that benefit from a consistent snapshot—and to avoid the cross-partition overhead of per-client lookups—we expose the `service_history_services_materialized` relation. The `GrdaWarehouse::ServiceHistoryServiceMaterialized` model manages that materialized view, including `refresh!` (to repopulate it) and `rebuild!` (to drop, recreate, and reindex). A notifier-backed `double_check_materialized_view` helper compares recent homeless dates between the live partitions and the materialized copy so we can detect drift. Future work (see ADR 0006) explores replacing daily rows with period-based ranges, which could eliminate the need for this materialized view entirely.
+
+There are some guard rails in place so we don't generate service back to the year 100 or far into the future.
 
 ### Data Flow Overview
 
@@ -152,7 +154,7 @@ The `WarehouseClientsProcessed` table stores aggregated metrics for each client,
 The cache is updated automatically by:
 
 1. **Daily Import Job**: `RunDailyImportsJob` automatically updates cached counts for all clients (from the past year) after service history generation completes
-2. **Daily Cohort Preparation**: `Cohort.prepare_active_cohorts` runs nightly (via the `warm_cohort_cache` rake task) and updates cached data for all clients on active cohorts
+2. **Daily Cohort Preparation**: `Cohort.prepare_active_cohorts` runs nightly (via the `warm_cohort_cache` rake task) and updates the cache for a set of clients who are on the cohort prior to updating the cohort-level cache so it can have the most accurate information and ensure the cache has been created for the particular clients.
 3. **On-Demand Jobs**:
    - `AddCohortClientsJob` updates the cache when clients are added to cohorts
    - `UpdateWarehouseClientsCachesJob` can be queued for specific client sets
@@ -179,6 +181,8 @@ The cached data in `WarehouseClientsProcessed` is used by:
 -   **Cached Aggregations:** `app/models/grda_warehouse/warehouse_clients_processed.rb`
     -   Stores aggregated data like `last_homeless_date`, `last_intentional_contacts`, and homeless day counts
     -   Updated automatically by `RunDailyImportsJob` after service history generation
+-   **Daily Import Job:** `app/jobs/importing/run_daily_imports_job.rb`
+    -   Coordinates daily data import, service history generation, and cache updates.
 -   **Cache Update Job:** `app/jobs/update_warehouse_clients_caches_job.rb`
     -   Queue this job to update cached counts for specific clients: `UpdateWarehouseClientsCachesJob.perform_later(client_ids: [ids])`
     -   Uses advisory locking to prevent concurrent updates
