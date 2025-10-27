@@ -35,6 +35,21 @@ class User < ApplicationRecord
 
   has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', dependent: :destroy
 
+  has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
+  has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
+
+  accepts_nested_attributes_for :system_contact
+
+  # Ensure system_contact has proper entity attributes before validation
+  before_validation :set_system_contact_entity, if: -> { system_contact.present? }
+
+  private def set_system_contact_entity
+    system_contact.entity_type = 'User'
+    system_contact.entity_id = id
+    system_contact.user_id = id
+    system_contact.type = 'GrdaWarehouse::Contact::User'
+  end
+
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
   # of their roles
@@ -293,5 +308,33 @@ class User < ApplicationRecord
   #
   def client_view_accessor
     @client_view_accessor ||= GrdaWarehouse::SourceClientViewAccessor.new(user: self)
+  end
+
+  # Get or create the user's system contact for managing alert subscriptions
+  def system_contact!
+    system_contact || contacts.create!(
+      type: 'GrdaWarehouse::Contact::User',
+      entity_id: id,
+      entity_type: 'User',
+      user_id: id,
+    )
+  end
+
+  # Aggregate all alert subscriptions across all contact types
+  def all_alert_subscriptions
+    GrdaWarehouse::ContactAlertSubscription.
+      joins(:contact).
+      where(contacts: { user_id: id }).
+      active
+  end
+
+  # Check if user is subscribed to a system alert
+  def subscribed_to_system_alert?(alert_code)
+    system_contact&.subscribed_to?(alert_code) || false
+  end
+
+  # Subscribe to a system alert (creates system contact if needed)
+  def subscribe_to_system_alert!(alert_code)
+    system_contact!.subscribe_to!(alert_code)
   end
 end

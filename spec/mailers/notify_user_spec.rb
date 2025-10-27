@@ -1,8 +1,16 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe NotifyUser, type: :mailer do
   let(:vispdat) { create :vispdat, user_id: completed_by.id }
-  let(:user) { create :user, notify_on_vispdat_completed: true }
+  let(:user) { create :user, :subscribed_to_vispdat_completed }
   let(:completed_by) { create :user }
   let(:vispdat_mail) { NotifyUser.vispdat_completed(vispdat.id) }
   let(:vispdat_mail_body) { vispdat_mail.body.encoded }
@@ -42,7 +50,7 @@ RSpec.describe NotifyUser, type: :mailer do
     end
 
     context 'and no users to notify' do
-      let(:user) { create :user, notify_on_vispdat_completed: false }
+      let(:user) { create :user }
 
       before(:each) do
         user
@@ -57,7 +65,7 @@ RSpec.describe NotifyUser, type: :mailer do
     end
 
     context 'and no active users to notify' do
-      let(:user) { create :user, notify_on_vispdat_completed: true, active: false }
+      let(:user) { create :user, :subscribed_to_vispdat_completed, active: false }
 
       before(:each) do
         user
@@ -89,9 +97,9 @@ RSpec.describe NotifyUser, type: :mailer do
 
   describe 'when client added' do
     context 'and users to notify' do
-      let(:user) { create :user, notify_on_client_added: true }
+      let(:user) { create :user, :subscribed_to_client_added }
       let(:client) { create :grda_warehouse_hud_client, creator_id: user.id }
-      let(:other_user) { create :user, notify_on_client_added: true }
+      let(:other_user) { create :user, :subscribed_to_client_added }
 
       context 'and send_notifications not set' do
         before(:each) do

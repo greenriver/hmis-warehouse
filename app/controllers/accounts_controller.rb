@@ -20,6 +20,7 @@ class AccountsController < ApplicationController
     changed_notes << 'Email schedule was updated.' if @user.email_schedule != account_params[:email_schedule]
     changed_notes << 'Phone number was updated.' if @user.phone != account_params[:phone]
     changed_notes << 'Agency name was updated.' if @user.agency_id.to_s != account_params[:agency].to_s && account_params[:agency].present?
+    changed_notes << 'Theme was updated.' if @user.theme != account_params[:theme]
 
     if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')
@@ -42,6 +43,7 @@ class AccountsController < ApplicationController
         :email_schedule,
         :otp_required_for_login,
         :credentials,
+        :theme,
       )
   end
 

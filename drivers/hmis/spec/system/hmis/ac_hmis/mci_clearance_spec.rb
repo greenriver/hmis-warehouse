@@ -7,8 +7,7 @@
 # frozen_string_literal: false
 
 require 'rails_helper'
-require_relative '../../requests/hmis/login_and_permissions'
-require_relative '../../support/hmis_base_setup'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.feature 'Assessment definition selection', type: :system do
   include_context 'hmis base setup'

@@ -19,7 +19,7 @@
         = f.input :label, hint: 'Provide a short note about this particular goal'
         = f.input :active, as: :pretty_boolean, label: 'Active Goal?', hint: 'If this box is checked, future reports will run against this goal configuration.'
     .d-flex
-      .ml-auto.mt-4= f.submit 'Update Goal'
+      .ml-auto.mt-4= f.submit 'Update Goal', class: 'btn btn-primary'
   %h2 PIT Counts
   .well
     = render 'pit_counts'
@@ -51,4 +51,4 @@
                         %strong= title
                       .col-sm-6= description % { goal: @goal[key] }
   .d-flex
-    .ml-auto.mt-4= f.submit 'Update Goal'
+    .ml-auto.mt-4= f.submit 'Update Goal', class: 'btn btn-primary'

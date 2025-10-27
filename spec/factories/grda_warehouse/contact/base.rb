@@ -8,12 +8,20 @@ FactoryBot.define do
 
   factory :grda_warehouse_contact_organization, class: 'GrdaWarehouse::Contact::Organization' do
     association :user
-    association :Organization, factory: :hud_organization
+    association :entity, factory: :hud_organization
+    entity_type { 'GrdaWarehouse::Hud::Organization' }
+    entity_id { entity.id }
   end
 
   factory :grda_warehouse_contact_project, class: 'GrdaWarehouse::Contact::Project' do
     association :user
-    association :project, factory: :hud_project
-    entity_id { project.id }
+    association :entity, factory: :hud_project
+    entity_id { entity.id }
+  end
+
+  factory :grda_warehouse_contact_user, class: 'GrdaWarehouse::Contact::User' do
+    association :user
+    entity_type { 'User' }
+    entity_id { user.id }
   end
 end

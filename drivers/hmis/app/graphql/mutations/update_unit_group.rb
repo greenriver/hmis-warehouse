@@ -24,6 +24,7 @@ module Mutations
       unit_group.assign_attributes(
         name: input.name,
         workflow_template_identifier: input.workflow_template_identifier,
+        direct_referral_workflow_template_identifier: input.direct_referral_workflow_template_identifier,
         ce_event_type: input.ce_event_type,
       )
 

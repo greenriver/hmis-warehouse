@@ -146,6 +146,121 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       end
     end
 
+    describe 'enrolling household members from source enrollment' do
+      let!(:source_project) { create :hmis_hud_project, data_source: ds1 }
+
+      let!(:spouse) { create :hmis_hud_client, data_source: ds1 }
+      let!(:child) { create :hmis_hud_client, data_source: ds1 }
+
+      let!(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, relationship_to_hoh: 1 }
+      let!(:source_spouse_enrollment) { create :hmis_hud_enrollment, project: source_project, client: spouse, relationship_to_hoh: 3, household_id: source_enrollment.household_id }
+      let!(:source_child_enrollment) { create :hmis_hud_enrollment, project: source_project, client: child, relationship_to_hoh: 2, household_id: source_enrollment.household_id }
+
+      before do
+        referral.update!(source_enrollment: source_enrollment)
+      end
+
+      it 'creates enrollments for all household members with correct relationships' do
+        expect do
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
+          referral.reload
+        end.to change(Hmis::Hud::Enrollment, :count).by(3)
+
+        # Verify the referred client (HoH) enrollment
+        referred_enrollment = referral.target_enrollment
+        expect(referred_enrollment.client).to eq(client)
+        expect(referred_enrollment.relationship_to_hoh).to eq(1)
+        expect(referred_enrollment.project).to eq(project)
+
+        # Verify spouse enrollment
+        spouse_enrollment = Hmis::Hud::Enrollment.find_by(client: spouse, household_id: referred_enrollment.household_id)
+        expect(spouse_enrollment.relationship_to_hoh).to eq(3) # Spouse relationship carried over
+        expect(spouse_enrollment.project).to eq(project)
+
+        # Verify child enrollment
+        child_enrollment = Hmis::Hud::Enrollment.find_by(client: child, household_id: referred_enrollment.household_id)
+        expect(child_enrollment.relationship_to_hoh).to eq(2) # Child relationship carried over
+        expect(child_enrollment.project).to eq(project)
+
+        # Verify unit occupancy
+        expect(opportunity.unit.occupied?).to be_truthy
+        expect(opportunity.unit.current_occupants).to contain_exactly(referred_enrollment, spouse_enrollment, child_enrollment)
+      end
+
+      context 'when referred client is no longer HoH in source household' do
+        # referred client is now 3 (spouse)
+        let!(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, relationship_to_hoh: 3 }
+        # spouse is now 1 (HoH)
+        let!(:source_spouse_enrollment) { create :hmis_hud_enrollment, project: source_project, client: spouse, relationship_to_hoh: 1, household_id: source_enrollment.household_id }
+
+        it 'creates enrollments with referred client as HoH and other relationships set to 99' do
+          expect do
+            engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
+            referral.reload
+          end.to change(Hmis::Hud::Enrollment, :count).by(3)
+
+          # Verify the referred client becomes HoH in target household
+          referred_enrollment = referral.target_enrollment
+          expect(referred_enrollment.client).to eq(client)
+          expect(referred_enrollment.relationship_to_hoh).to eq(1)
+
+          # Verify original HoH enrollment has relationship set to 99
+          spouse_enrollment = Hmis::Hud::Enrollment.find_by(client: spouse, household_id: referred_enrollment.household_id)
+          expect(spouse_enrollment.relationship_to_hoh).to eq(99) # Data not collected
+
+          # Verify child enrollment has relationship set to 99
+          child_enrollment = Hmis::Hud::Enrollment.find_by(client: child, household_id: referred_enrollment.household_id)
+          expect(child_enrollment.relationship_to_hoh).to eq(99) # Data not collected
+        end
+      end
+
+      context 'when referred client has been exited from source household' do
+        # referred client is exited from source household
+        let!(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, relationship_to_hoh: 3, exit_date: 1.week.ago }
+        # spouse is not exited, so they are now the HoH
+        let!(:source_spouse_enrollment) { create :hmis_hud_enrollment, project: source_project, client: spouse, relationship_to_hoh: 1, household_id: source_enrollment.household_id }
+
+        it 'only creates enrollment for referred client' do
+          expect do
+            engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
+            referral.reload
+          end.to change(Hmis::Hud::Enrollment, :count).by(1)
+
+          # Only the client is enrolled, not the spouse and child
+          expect(Hmis::Hud::Enrollment.where(project: project).map(&:client)).to contain_exactly(client)
+        end
+      end
+
+      context 'when source household includes WIP/incomplete enrollments' do
+        let!(:source_spouse_enrollment) { create :hmis_hud_wip_enrollment, project: source_project, client: spouse, relationship_to_hoh: 3, household_id: source_enrollment.household_id }
+        let!(:source_child_enrollment) { create :hmis_hud_wip_enrollment, project: source_project, client: child, relationship_to_hoh: 2, household_id: source_enrollment.household_id }
+
+        it 'enrolls WIP household members as well' do
+          expect do
+            engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
+            referral.reload
+          end.to change(Hmis::Hud::Enrollment, :count).by(3)
+
+          # All 3 are enrolled, even though the spouse and child both had WIP enrollments in the source project
+          expect(Hmis::Hud::Enrollment.where(project: project).map(&:client)).to contain_exactly(client, spouse, child)
+        end
+      end
+
+      context 'when source household has exited members' do
+        let!(:source_spouse_enrollment) { create :hmis_hud_enrollment, exit_date: 1.week.ago, project: source_project, client: spouse, relationship_to_hoh: 3, household_id: source_enrollment.household_id }
+
+        it 'does not enroll exited members' do
+          expect do
+            engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
+            referral.reload
+          end.to change(Hmis::Hud::Enrollment, :count).by(2)
+
+          # Only the client and child are enrolled, since the spouse was exited
+          expect(Hmis::Hud::Enrollment.where(project: project).map(&:client)).to contain_exactly(client, child)
+        end
+      end
+    end
+
     describe 'workflow with side effect that creates a move-in date' do
       let(:move_in_date_link_id) { Hmis::Ce::ReferralEnroller::MOVE_IN_DATE_LINK_ID }
       let!(:move_in_date_form_def) do
@@ -324,6 +439,27 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
   end
 
   describe 'workflow with side effect that deletes a WIP enrollment' do
+    let!(:source_project) { create :hmis_hud_project, data_source: ds1 }
+
+    let!(:spouse) { create :hmis_hud_client, data_source: ds1 }
+    let!(:child) { create :hmis_hud_client, data_source: ds1 }
+
+    let!(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, relationship_to_hoh: 1 }
+    let!(:source_spouse_enrollment) { create :hmis_hud_enrollment, project: source_project, client: spouse, relationship_to_hoh: 3, household_id: source_enrollment.household_id }
+    let!(:source_child_enrollment) { create :hmis_hud_enrollment, project: source_project, client: child, relationship_to_hoh: 2, household_id: source_enrollment.household_id }
+
+    let!(:referral) do
+      create(
+        :hmis_ce_referral,
+        opportunity: opportunity,
+        workflow_instance: workflow_instance,
+        client: client,
+        referred_by: hmis_user,
+        status: 'initialized',
+        source_enrollment: source_enrollment,
+      )
+    end
+
     let!(:provider_acceptance_task) do
       create(
         :hmis_workflow_definition_user_task,
@@ -395,23 +531,36 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       current_step
     end
 
-    context 'when referral has a WIP enrollment' do
-      it 'deletes the enrollment and clears the referral association' do
+    it 'deletes the target enrollment and household members, and clears the referral association' do
+      referral.reload
+      enrollment = referral.target_enrollment
+      expect(enrollment).to be_present
+      expect(enrollment.in_progress?).to be_truthy
+
+      expect do
+        engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
         referral.reload
-        enrollment = referral.target_enrollment
-        expect(enrollment).to be_present
-        expect(enrollment.in_progress?).to be_truthy
+      end.to change(Hmis::Hud::Enrollment, :count).by(-3).
+        and change(referral, :target_enrollment).from(enrollment).to(nil).
+        and change(change_provider_outcome_step, :status).to('completed')
 
-        expect do
-          engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
-          referral.reload
-        end.to change(Hmis::Hud::Enrollment, :count).by(-1).
-          and change(referral, :target_enrollment).from(enrollment).to(nil).
-          and change(change_provider_outcome_step, :status).to('completed')
+      # Verify the enrollment was deleted
+      expect(enrollment.reload.date_deleted).not_to be_nil
+    end
 
-        # Verify the enrollment was deleted
-        expect(enrollment.reload.date_deleted).not_to be_nil
-      end
+    it 'does not delete if the target enrollment is not WIP' do
+      referral.reload
+      enrollment = referral.target_enrollment
+      expect(enrollment).to be_present
+      expect(enrollment.in_progress?).to be_truthy
+
+      enrollment.save_not_in_progress!
+
+      expect do
+        engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
+        referral.reload
+      end.to not_change(Hmis::Hud::Enrollment, :count).
+        and not_change(referral, :target_enrollment)
     end
 
     context 'when referral has an enrollment with a unit assignment' do
@@ -430,7 +579,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           engine.complete_step!(change_provider_outcome_step, user: hmis_user, submitted_values: {})
           referral.reload
           unit.reload
-        end.to change(Hmis::Hud::Enrollment, :count).by(-1).
+        end.to change(Hmis::Hud::Enrollment, :count).by(-3).
           and change(referral, :target_enrollment).from(enrollment).to(nil).
           and change(unit, :occupied?).from(true).to(false)
       end
