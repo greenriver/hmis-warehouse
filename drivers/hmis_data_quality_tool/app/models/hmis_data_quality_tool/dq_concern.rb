@@ -53,9 +53,24 @@ module HmisDataQualityTool::DqConcern
       headers.select { |k, _| k.in?(columns) }
     end
 
-    def download_value(key)
+    def transform_value(key, value, pii_policy)
+      case key
+      when /.*first_name$/, /.*last_name$/, /.*middle_name$/, /.*full_name$/, /.*brief_name$/
+        GrdaWarehouse::PiiProvider.viewable_name(value, policy: pii_policy)
+      when /^dob$/
+        GrdaWarehouse::PiiProvider.viewable_dob(value, policy: pii_policy)
+      when /^ssn$/
+        GrdaWarehouse::PiiProvider.viewable_ssn(value, policy: pii_policy)
+      when /.*hiv_aids/
+        GrdaWarehouse::PiiProvider.viewable_hiv_status(value, policy: pii_policy)
+      else
+        value
+      end
+    end
+
+    def download_value(key, pii_policy:)
       translator = self.class.detail_headers[key][:translator]
-      value = public_send(key)
+      value = transform_value(key, public_send(key), pii_policy)
       return translator.call(value) if translator.present?
       return value == true ? 'Yes' : 'No' if value.in?([true, false])
 
