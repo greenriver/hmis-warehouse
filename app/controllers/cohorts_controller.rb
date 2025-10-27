@@ -208,6 +208,8 @@ class CohortsController < ApplicationController
       :assessment_trigger,
       :tag_id,
       :project_group_id,
+      :automation_sub_population,
+      :automation_hoh_only,
       :enforce_project_visibility_on_cells,
       user_ids: [], # TODO: START_ACL remove when ACL transition complete
       participant_ids: [],

@@ -45,7 +45,11 @@
       - elsif @cohort.auto_maintained?
         .none-found
           %p
-            Clients will be populated based on enrollments in the #{@cohort.project_group.name} project group.
+            - descriptions = @cohort.automation_scope_descriptions
+            - if descriptions.any?
+              Clients will be populated based on #{descriptions.to_sentence}.
+            - else
+              Clients will be populated automatically based on the configured automation criteria.
             %br
             If you just created this cohort, clients will be added within a bit, refresh to check.
 

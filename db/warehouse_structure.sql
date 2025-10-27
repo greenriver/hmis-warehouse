@@ -1,4 +1,4 @@
--- \restrict xiir9IDy69vz4Wgf31v3hHwRyXVNZ1M6bi9cYD3OgIX86ZtJ21yYhiwxHuRRL7E
+-- \restrict 8GtuuQevzPuTWWfgltw0Wxsx0qdffqEfdQJ36H8KLkvS200kiPrBUnJeAecomER
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -1804,7 +1804,9 @@ CREATE TABLE public.cohorts (
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
     project_group_id bigint,
     enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL,
-    expose_inactive_on_client_dashboard boolean DEFAULT false
+    expose_inactive_on_client_dashboard boolean DEFAULT false,
+    automation_sub_population character varying,
+    automation_hoh_only boolean DEFAULT false
 );
 
 
@@ -76053,11 +76055,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict xiir9IDy69vz4Wgf31v3hHwRyXVNZ1M6bi9cYD3OgIX86ZtJ21yYhiwxHuRRL7E
+-- \unrestrict 8GtuuQevzPuTWWfgltw0Wxsx0qdffqEfdQJ36H8KLkvS200kiPrBUnJeAecomER
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251027202455'),
 ('20251016184716'),
 ('20251014152145'),
 ('20251010182635'),

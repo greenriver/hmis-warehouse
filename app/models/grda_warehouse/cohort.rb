@@ -15,6 +15,7 @@ module GrdaWarehouse
     include AccessGroups # TODO: START_ACL remove this after permission migration is complete
     include EntityAccess
     include Memery
+    # FIXME, routes shouldn't be included in a model like this
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid
@@ -23,6 +24,7 @@ module GrdaWarehouse
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
+    validates :automation_sub_population, inclusion: { in: ->(_) { AvailableSubPopulations.available_sub_populations.values.map(&:to_s) }, allow_blank: true, message: 'is not a valid sub-population' }
     serialize :column_state, type: Array
 
     after_create :maintain_system_group
@@ -73,7 +75,11 @@ module GrdaWarehouse
     end
 
     scope :auto_maintained, -> do
-      where.not(project_group_id: nil)
+      table = arel_table
+      predicate = table[:project_group_id].not_eq(nil).
+        or(table[:automation_sub_population].not_eq(nil)).
+        or(table[:automation_hoh_only].eq(true))
+      where(predicate)
     end
 
     scope :viewable_by, ->(user) do
@@ -153,6 +159,10 @@ module GrdaWarehouse
       tab = cohort_tabs.find_by(name: population)
       # If the source of the clients on this tab looks for deleted clients
       tab&.base_scope == 'only_deleted'
+    end
+
+    def available_sub_populations
+      AvailableSubPopulations.available_sub_populations
     end
 
     private def active_tab(user, population)
@@ -337,7 +347,11 @@ module GrdaWarehouse
 
     # Attr Accessors
     available_columns.each do |column|
-      attr_accessor column.column
+      accessor_name = column.column.to_s
+      # guard against this legacy foot gun
+      raise("Skipping attr_accessor for Cohort##{accessor_name} – conflicts with actual column") if column_names.include?(accessor_name)
+
+      attr_accessor accessor_name
     end
 
     def self.sort_directions
@@ -597,7 +611,31 @@ module GrdaWarehouse
     end
 
     def auto_maintained?
-      project_group.present?
+      automation_filter_configured?
+    end
+
+    def automation_filter_configured?
+      project_group_id.present? || automation_sub_population.present? || automation_hoh_only
+    end
+
+    def automation_sub_population_label
+      return if automation_sub_population.blank?
+
+      available_sub_populations.find do |_label, key|
+        key.to_s == automation_sub_population.to_s
+      end&.first || automation_sub_population.to_s.humanize
+    end
+
+    def automation_scope_descriptions
+      [].tap do |descriptions|
+        descriptions << "projects in the #{project_group.name} project group" if project_group.present?
+
+        if (label = automation_sub_population_label).present?
+          descriptions << "clients in the #{label} sub-population"
+        end
+
+        descriptions << 'clients who are Heads of Household' if automation_hoh_only?
+      end
     end
 
     def selected_project_group_viewable_by(user)
@@ -621,14 +659,32 @@ module GrdaWarehouse
       return unless auto_maintained?
 
       existing_client_ids = cohort_clients.pluck(:client_id)
-      incoming_client_ids = project_group.clients.
-        joins(:warehouse_client_source).
-        merge(GrdaWarehouse::Hud::Enrollment.open_on_date(Date.current)).
-        pluck(wc_t[:destination_id])
+      filter = build_automation_filter
+      # Note that we are using ServiceHistoryEnrollment here, but that model represents a denormalized
+      # view of enrollments that makes it easy to query for clients based on a variety of criteria
+      # and the resulting client_ids are for the `clients` table (GrdaWarehouse::Hud::Client)
+      incoming_client_ids = filter.apply_criteria(
+        GrdaWarehouse::ServiceHistoryEnrollment.all,
+        tags: [:warehouse, :client, :hud],
+        report_scope_source: nil,
+      ).pluck(:client_id).uniq
+
       to_remove = existing_client_ids - incoming_client_ids
       to_add = incoming_client_ids - existing_client_ids
-      remove_clients(to_remove, 'No longer enrolled in project group')
-      add_clients(to_add, 'Enrolled in project group')
+      remove_clients(to_remove, 'Client no longer matches automation criteria')
+      add_clients(to_add, 'Client matches automation criteria')
+    end
+
+    private def build_automation_filter
+      filter = ::Filters::FilterBase.new
+      filter.user_id = User.setup_system_user.id
+      filter.start = Date.current - 1.year
+      filter.end = Date.current + 1.year
+      filter.project_group_ids = [project_group_id] if project_group_id.present?
+      filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
+      filter.hoh_only = automation_hoh_only
+      filter.require_service_during_range = false
+      filter
     end
 
     private def add_clients(client_ids, reason)

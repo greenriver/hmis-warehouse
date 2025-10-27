@@ -75,13 +75,13 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       client: client,
       project: project,
       data_source: data_source,
-      entry_date: entry_date,
-      date_to_street_essh: date_to_street_essh,
-      relationship_to_ho_h: relationship_to_ho_h,
-      household_id: household_id,
-      living_situation: living_situation,
-      move_in_date: move_in_date,
-      enrollment_coc: project.project_cocs.min_by(&:id).coc_code,
+      EntryDate: entry_date,
+      DateToStreetESSH: date_to_street_essh,
+      RelationshipToHoH: relationship_to_ho_h,
+      HouseholdID: household_id,
+      LivingSituation: living_situation,
+      MoveInDate: move_in_date,
+      EnrollmentCoC: project.project_cocs.min_by(&:id).coc_code,
     )
 
     if exit_date.present?
