@@ -88,10 +88,8 @@ module Hmis::Ce
         destination_client_id = source_to_dest_client_map[source_client_id]
         assessment_date = most_recent_assessment_dates[destination_client_id]
 
-        # Skip (don't exclude) client who has an assessment date more recent than their decline date
-        next nil if assessment_date.present? && assessment_date > decline_date
-
-        destination_client_id
+        # Exclude client that have not been re-assessed since their decline. 
+        destination_client_id if assessment_date.blank? || assessment_date <= decline_date
       end
     end
 
