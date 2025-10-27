@@ -14,7 +14,6 @@ module LsaSqlServer
 
     def steps
       @steps ||= [
-        'lib/rds_sql_server/lsa/fy2026/sample_code/03_01a LSA Parameters and Metadata-Annual Systemwide.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/03_02 to 03_06 HMIS Households and Enrollments.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/04_01 Get Project Records.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/04_02 to 04_07 Get Other PDDEs.sql',
@@ -43,7 +42,7 @@ module LsaSqlServer
       when :lsa
         run_query('lib/rds_sql_server/lsa/fy2026/sample_code/03_01a LSA Parameters and Metadata-Annual Systemwide.sql')
       when :hic
-        run_query('lib/rds_sql_server/lsa/fy2026/sample_code/03_01b LSA Parameters and Metadata for HIC.sql')
+        run_query('lib/rds_sql_server/lsa/fy2026/sample_code/03_01c LSA Parameters and Metadata-HIC.sql')
       end
     end
 
