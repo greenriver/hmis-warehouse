@@ -137,6 +137,95 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when the opportunity has no candidates' do
+      let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: nil) }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: nil, unit: unit }
+
+      it 'returns an empty candidates array' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+
+        expect(candidates).to be_an(Array)
+        expect(candidates).to be_empty
+      end
+    end
+
+    context 'when the opportunity has many candidates' do
+      before do
+        50.times do
+          client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+          create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client.destination_client, priority_score: rand(80..100))
+        end
+      end
+
+      it 'queries the db a reasonable amount' do
+        expect do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(53)
+        end.to make_database_queries(count: 20..30)
+      end
+    end
+
+    context 'when the opportunity has some candidates the current user lacks permission to view' do
+      let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
+      let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
+      let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: candidate_pool_with_anonymous) }
+      let(:opportunity) { create :hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool_with_anonymous }
+
+      let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+      let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+
+      let!(:project_access_control) do
+        create_access_control(
+          hmis_user,
+          permissioned_project,
+          with_permission: [
+            :can_view_clients,
+            :can_view_client_name,
+            :can_view_project,
+            :can_view_enrollment_details,
+          ],
+        )
+      end
+
+      let!(:permissioned_client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Permission Yes', last_name: 'Yep') }
+      let!(:permissioned_enrollment) { create(:hmis_hud_enrollment, client: permissioned_client, project: permissioned_project, data_source: ds1) }
+      let!(:anonymous_client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Permission No', last_name: 'Nope') }
+      let!(:anonymous_enrollment) { create(:hmis_hud_enrollment, client: anonymous_client, project: other_project, data_source: ds1) }
+
+      let!(:permissioned_candidate) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool_with_anonymous,
+          client: permissioned_client.destination_client,
+          priority_score: 80,
+        )
+      end
+      let!(:anonymous_candidate) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool_with_anonymous,
+          client: anonymous_client.destination_client,
+          priority_score: 100,
+        )
+      end
+
+      it 'returns some candidates without clients' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+
+        expect(candidates).to contain_exactly(
+          a_hash_including('id' => permissioned_candidate.id.to_s, 'clientName' => 'Permission Yes Yep'),
+          a_hash_including('id' => anonymous_candidate.id.to_s, 'clientName' => "Candidate #{anonymous_candidate.id}"),
+        )
+      end
+    end
+
     describe 'filtering by exclude_recently_declined' do
       let(:variables) do
         {
