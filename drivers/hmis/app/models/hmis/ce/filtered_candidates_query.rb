@@ -83,12 +83,11 @@ module Hmis::Ce
     end
 
     def determine_client_ids_to_exclude(most_recent_declines, most_recent_assessment_dates, source_to_dest_client_map)
-      # Exclude clients who have been declined, except those who have since been re-assessed
       most_recent_declines.filter_map do |source_client_id, decline_date|
         destination_client_id = source_to_dest_client_map[source_client_id]
         assessment_date = most_recent_assessment_dates[destination_client_id]
 
-        # Exclude client that have not been re-assessed since their decline. 
+        # Exclude this client, unless they have been reassessed since the decline
         destination_client_id if assessment_date.blank? || assessment_date <= decline_date
       end
     end
