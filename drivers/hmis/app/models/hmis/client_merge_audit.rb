@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::ClientMergeAudit < Hmis::HmisBase
   belongs_to :actor, class_name: 'Hmis::User'
   has_many :client_merge_histories, class_name: 'Hmis::ClientMergeHistory', inverse_of: :client_merge_audit
@@ -12,6 +14,11 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
 
   has_one :most_recent_merge_history, -> { order(updated_at: :desc) }, class_name: 'Hmis::ClientMergeHistory'
   has_one :retained_client, class_name: 'Hmis::Hud::Client', through: :most_recent_merge_history
+
+  scope :viewable_by, ->(user) do
+    # Ability to merge clients is a global permission, but make the change with lower churn yada yada
+    joins(:retained_client).merge(Hmis::Hud::Client.viewable_by(user))
+  end
 
   def self.apply_filters(input)
     Hmis::Filter::ClientMergeAuditFilter.new(input).filter_scope(self)
