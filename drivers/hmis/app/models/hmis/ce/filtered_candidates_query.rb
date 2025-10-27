@@ -7,18 +7,18 @@
 # frozen_string_literal: true
 
 module Hmis::Ce
-  # Query for Coordinated Entry opportunity candidates with an option to filter 
+  # Query for Coordinated Entry opportunity candidates with an option to filter
   # clients who have recently declined a referral.
   #
-  # This filter identifies clients who have been declined from any opportunity within 
+  # This filter identifies clients who have been declined from any opportunity within
   # the same unit group as the target opportunity.
   #
-  # An exception is made for clients who have been re-assessed since their most 
+  # An exception is made for clients who have been re-assessed since their most
   # recent decline. Since a re-assessment may change their eligibility, they are
   # included in the candidate list regardless of the recent decline.
   #
   class FilteredCandidatesQuery
-    include ::Hmis::Concerns::HmisArelHelper
+    def arel = Hmis::ArelHelper.instance
 
     def initialize(opportunity:, exclude_recently_declined: false)
       @opportunity = opportunity
@@ -58,7 +58,7 @@ module Hmis::Ce
       # Find all opportunities in this opportunity's unit group (including for deleted units)
       opportunity_ids = Hmis::Ce::Opportunity.
         joins(unit: :unit_group).
-        where(ug_t[:id].eq(@unit_group_id)).
+        where(arel.ug_t[:id].eq(@unit_group_id)).
         select(:id)
 
       # Get most recent declined referral per client to any of these opportunities
@@ -71,7 +71,7 @@ module Hmis::Ce
     def map_source_to_dest_clients(source_client_ids)
       Hmis::Hud::Client.where(id: source_client_ids).
         joins(:warehouse_client_source).
-        pluck(:id, wc_t[:destination_id]).
+        pluck(:id, arel.wc_t[:destination_id]).
         to_h
     end
 
@@ -79,7 +79,7 @@ module Hmis::Ce
       # Form identifiers that are referenced in candidate pool criteria for these unit groups
       candidate_pools = Hmis::Ce::Match::CandidatePool.
         joins(:unit_groups).
-        where(ug_t[:id].eq(@unit_group_id)).
+        where(arel.ug_t[:id].eq(@unit_group_id)).
         distinct
       form_identifiers = candidate_pools.flat_map(&:relevant_form_definition_identifiers).uniq
 
@@ -89,7 +89,7 @@ module Hmis::Ce
         where(form_identifier: form_identifiers).
         group(:destination_client_id).
         joins(:custom_assessment).
-        maximum(cas_t[:date_updated])
+        maximum(arel.cas_t[:date_updated])
     end
 
     def determine_client_ids_to_exclude(most_recent_declines, most_recent_assessment_dates, source_to_dest_client_map)
