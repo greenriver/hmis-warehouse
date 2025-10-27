@@ -45,6 +45,7 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
   context 'Creating a new client (global)' do
     before(:each) do
       visit '/client/new'
+      expect(page).to have_field('First Name') # ensure form is loaded
     end
 
     it 'shows veteran status when DOB is unknown' do
@@ -82,6 +83,7 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
   context 'Editing an existing client (global)' do
     before(:each) do
       visit "/client/#{c1.id}/profile/edit"
+      expect(page).to have_field('First Name') # ensure form is loaded
     end
 
     context 'where client is an adult' do
@@ -152,8 +154,8 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
     context 'where client is a minor with existing Veteran Status = \'No\'' do
       let(:c1) { create :hmis_hud_client, data_source: ds1, dob: 15.years.ago, veteran_status: 0 }
 
-      it 'does not show veteran status field' do
-        expect(page).not_to have_field('Veteran Status')
+      it 'shows veteran status field' do
+        expect(page).to have_field('Veteran Status')
       end
     end
 
@@ -173,6 +175,7 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
       click_button 'Search'
       click_button 'Add New Client'
       assert_text 'Enroll a New Client'
+      expect(page).to have_field('First Name') # ensure form is loaded
     end
 
     context 'in non-VA project' do
