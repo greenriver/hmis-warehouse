@@ -28,6 +28,10 @@ module PerformanceMeasurement::Details
       detail_for(key)[:title]
     end
 
+    def detail_specific_target_for(key)
+      detail_for(key)[:specific_target]
+    end
+
     def detail_category_for(key)
       detail_for(key)[:category]
     end
@@ -1057,6 +1061,14 @@ module PerformanceMeasurement::Details
           ],
         },
       }
+      # Populate specific_target from the bolded phrase inside goal_description (e.g., **no more than %{goal} days**)
+      @detail_hash.each do |_key, data|
+        gd = data[:goal_description]
+        next unless gd
+
+        target = gd[/\*\*(.+?)\*\*/, 1]
+        data[:specific_target] = target if target
+      end
     end
 
     private def detail_columns_for(key:, period: 'reporting')

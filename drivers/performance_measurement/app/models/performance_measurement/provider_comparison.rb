@@ -35,7 +35,8 @@ module PerformanceMeasurement
       table_data[:headers] = {}
       definition[:details].each do |detail|
         table_data[:headers][detail] = {
-          title: report.detail_title_for(detail),
+          title: report.detail_specific_target_for(detail),
+          tooltip: report.detail_title_for(detail),
           category: report.detail_category_for(detail),
         }
       end
