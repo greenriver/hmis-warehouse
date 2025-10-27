@@ -10,6 +10,6 @@ module Types
   class HmisSchema::CeOpportunityCandidatesFilterOptions < Types::BaseInputObject
     graphql_name 'CeOpportunityCandidatesFilterOptions'
 
-    argument :exclude_recently_declined, Boolean, required: false, default_value: false
+    argument :exclude_declined_clients, Boolean, required: false, default_value: false
   end
 end

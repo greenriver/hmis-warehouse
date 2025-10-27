@@ -15,8 +15,8 @@ module Types
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false do
       # Use a custom filter type for opportunity candidates, instead of the usual pattern of defining CeCandidateFilters.
-      # This enables us to accept a filter "exclude_recently_declined" on the opportunity candidates query,
-      # and filter candidates by whether they have recently been declined from other opportunities in this opportunity's unit group.
+      # This enables us to accept a filter "exclude_declined_clients" on the opportunity candidates query,
+      # and filter candidates by whether they have been declined from other opportunities in this opportunity's unit group.
       argument :filters, HmisSchema::CeOpportunityCandidatesFilterOptions, required: false
     end
 
@@ -60,7 +60,7 @@ module Types
 
       Hmis::Ce::FilteredCandidatesQuery.new(
         opportunity: object,
-        exclude_recently_declined: filters&.exclude_recently_declined,
+        exclude_declined_clients: filters&.exclude_declined_clients,
       ).resolve
     end
 

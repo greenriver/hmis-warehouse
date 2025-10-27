@@ -20,15 +20,15 @@ module Hmis::Ce
   class FilteredCandidatesQuery
     def arel = Hmis::ArelHelper.instance
 
-    def initialize(opportunity:, exclude_recently_declined: false)
+    def initialize(opportunity:, exclude_declined_clients: false)
       @opportunity = opportunity
       @unit_group_id = opportunity.unit_group.id
-      @exclude_recently_declined = exclude_recently_declined
+      @exclude_declined_clients = exclude_declined_clients
       @base_candidate_scope = Hmis::Ce::Match::Candidate.for_opportunity(opportunity).prioritized
     end
 
     def resolve
-      return @base_candidate_scope unless @exclude_recently_declined
+      return @base_candidate_scope unless @exclude_declined_clients
 
       # { source_client_id => most_recent_decline_timestamp }
       most_recent_declines = fetch_most_recent_declines

@@ -106,7 +106,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(candidates.size).to eq(3)
 
       # Verify all candidates are returned in priority order (highest to lowest)
-      # (Even declined candidate, since the filter exclude_recently_declined was not set)
+      # (Even declined candidate, since the filter exclude_declined_clients was not set)
       expect(candidates[0]).to include(
         'id' => candidate2.id.to_s,
         'priorityScores' => [100],
@@ -226,11 +226,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    describe 'filtering by exclude_recently_declined' do
+    describe 'filtering by exclude_declined_clients' do
       let(:variables) do
         {
           opportunityId: opportunity.id,
-          filters: { excludeRecentlyDeclined: true },
+          filters: { excludeDeclinedClients: true },
         }
       end
 

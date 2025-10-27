@@ -963,7 +963,7 @@ type CeOpportunity {
 }
 
 input CeOpportunityCandidatesFilterOptions {
-  excludeRecentlyDeclined: Boolean = false
+  excludeDeclinedClients: Boolean = false
 }
 
 input CeOpportunityFilterOptions {
