@@ -11,7 +11,6 @@
         .btn-group.mb-3{role: 'group'}
           = link_to 'My Projects', provider_comparisons_performance_measurement_warehouse_reports_report_path(@provider_comparison.report, active_project_list: :my_projects), class: "btn btn-sm #{@provider_comparison.active_project_list == :my_projects ? 'btn-primary' : 'btn-outline-primary'}"
           = link_to 'All Projects', provider_comparisons_performance_measurement_warehouse_reports_report_path(@provider_comparison.report, active_project_list: :all_projects), class: "btn btn-sm #{@provider_comparison.active_project_list == :all_projects ? 'btn-primary' : 'btn-outline-primary'}"
-
         %h5.card-title.mt-4 Jump to Category
         %nav
           %ul.nav.nav-pills.flex-column
@@ -20,9 +19,15 @@
                 = link_to category_name, "##{category_name.parameterize}", class: 'nav-link'
 
   .col-sm-9
-    - @provider_comparison.categories.each_key do |category_name|
+    - @provider_comparison.categories.each_key.with_index do |category_name, index|
       .page-break-after.mb-6{id: category_name.parameterize}
-        %h2.mb-0.p-6= category_name
+        .d-flex
+          %h2.mb-0.pb-6= category_name
+          - if index.zero?
+            .ms-auto
+              = link_to provider_comparisons_performance_measurement_warehouse_reports_report_path(@provider_comparison.report, active_project_list: @provider_comparison.active_project_list, format: :xlsx), class: 'btn btn-outline-secondary' do
+                %i.icon-file-excel
+                Download Excel
         - table = @provider_comparison.table(category_name)
         .card
           %table.table.table-striped
@@ -50,4 +55,8 @@
                 %tr
                   %td= data[:project_name]
                   - data[:values].each do |detail, result|
-                    %td{class: result[:decorator]}= "#{result[:value]} #{result[:unit]}"
+                    %td{class: result[:decorator]}
+                      - if result[:display_value].present?
+                        = result[:display_value]
+                      - else
+                        = 'N/A'

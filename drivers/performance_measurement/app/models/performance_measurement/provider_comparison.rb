@@ -53,6 +53,7 @@ module PerformanceMeasurement
           goal_description: report.detail_specific_target_for(detail),
           tooltip: report.detail_goal_description_for(detail),
           decorator: decorator(result),
+          decorator_bg_color: decorator_bg_color(result),
         }
       end
       # Fill in the project-level data
@@ -68,12 +69,14 @@ module PerformanceMeasurement
           }
 
           table_data[:projects][project_id][:values][detail] = {
-            value: result.primary_value,
+            value: result.primary_value.presence,
             unit: result.primary_unit,
             passed: result.passed,
             goal: result.goal,
             goal_progress: result.goal_progress,
             decorator: decorator(result),
+            decorator_bg_color: decorator_bg_color(result),
+            display_value: "#{result.primary_value} #{result.primary_unit}",
           }
         end
       end
@@ -96,6 +99,15 @@ module PerformanceMeasurement
       return 'performance-measurement--td-status success' if result.passed
 
       'performance-measurement--td-status danger'
+    end
+
+    def decorator_bg_color(result)
+      return nil if result.blank?
+      # Matches HTML intent of success/danger backgrounds
+      # success → --brand-success-lll, danger → --brand-danger-lll
+      return 'E0F5EE' if result.passed
+
+      'EEA6AA'
     end
 
     private def es_category
