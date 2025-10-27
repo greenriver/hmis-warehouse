@@ -15,6 +15,11 @@ module PerformanceMeasurement
       self.active_project_list = active_project_list.to_sym
     end
 
+    # Hex colors used for Excel fills to mirror UI status colors
+    SUCCESS_HEX = 'E0F5EE'
+    WARNING_HEX = 'FFEFC7'
+    DANGER_HEX = 'EEA6AA'
+
     def categories
       {
         'Emergency Shelters' => es_category,
@@ -52,8 +57,8 @@ module PerformanceMeasurement
           goal_progress: result.goal_progress,
           goal_description: report.detail_specific_target_for(detail),
           tooltip: report.detail_goal_description_for(detail),
-          decorator: decorator(result),
-          decorator_bg_color: decorator_bg_color(result),
+          decorator: decorator(result, detail),
+          decorator_bg_color: decorator_bg_color(result, detail),
         }
       end
       # Fill in the project-level data
@@ -74,8 +79,8 @@ module PerformanceMeasurement
             passed: result.passed,
             goal: result.goal,
             goal_progress: result.goal_progress,
-            decorator: decorator(result),
-            decorator_bg_color: decorator_bg_color(result),
+            decorator: decorator(result, detail),
+            decorator_bg_color: decorator_bg_color(result, detail),
             display_value: "#{result.primary_value} #{result.primary_unit}",
           }
         end
@@ -94,20 +99,45 @@ module PerformanceMeasurement
       end
     end
 
-    def decorator(result)
+    def decorator(result, detail)
       return '' if result.blank?
       return 'performance-measurement--td-status success' if result.passed
+      return 'performance-measurement--td-status warning' if approaching?(result, detail)
 
       'performance-measurement--td-status danger'
     end
 
-    def decorator_bg_color(result)
+    def decorator_bg_color(result, detail)
       return nil if result.blank?
       # Matches HTML intent of success/danger backgrounds
       # success → --brand-success-lll, danger → --brand-danger-lll
-      return 'E0F5EE' if result.passed
+      return SUCCESS_HEX if result.passed
 
-      'EEA6AA'
+      return DANGER_HEX unless approaching?(result, detail)
+
+      # warning → --brand-warning-lll (approximate hex)
+      WARNING_HEX
+    end
+
+    private def approaching?(result, detail)
+      threshold_fraction = report.goal_config&.approaching_threshold_fraction
+      return false unless threshold_fraction&.positive?
+
+      goal_value = result.goal
+      primary_value = result.primary_value
+      return false unless goal_value.present? && primary_value.present?
+
+      direction = report.detail_goal_direction(detail).to_s.strip
+      case direction
+      when '>'
+        # Failed but within threshold below the goal
+        primary_value < goal_value && primary_value >= goal_value * (1.0 - threshold_fraction)
+      when '<'
+        # Failed but within threshold above the goal
+        primary_value > goal_value && primary_value <= goal_value * (1.0 + threshold_fraction)
+      else
+        false
+      end
     end
 
     private def es_category

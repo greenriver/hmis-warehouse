@@ -1,5 +1,37 @@
 wb = xlsx_package.workbook
 
+# Add a summary sheet first, mirroring key info from the HTML version
+wb.add_worksheet(name: 'Report Summary') do |sheet|
+  title = sheet.styles.add_style(sz: 14, b: true)
+  header = sheet.styles.add_style(sz: 12, b: true)
+  wrap = sheet.styles.add_style(alignment: { wrap_text: true, vertical: :top })
+  # simple fill utility
+  fill_cache = {}
+  get_fill = ->(hex) do
+    next nil if hex.blank?
+
+    fill_cache[hex] ||= sheet.styles.add_style(bg_color: hex)
+  end
+
+  sheet.add_row(['Report Summary'], style: title)
+  sheet.add_row([])
+
+  # Chosen Universe details
+  sheet.add_row(['Chosen Universe'], style: header)
+  sheet.add_row(['Option', 'Selection'], style: header)
+  @provider_comparison.report.filter.selected_params_for_display.each do |label, value|
+    display = value.is_a?(Array) ? value.join(', ') : value.to_s
+    sheet.add_row([label, display], style: [nil, wrap])
+  end
+  sheet.add_row([])
+
+  # Color Key
+  sheet.add_row(['Color Key'], style: header)
+  sheet.add_row(['Passed', ' '], style: [nil, get_fill.call(PerformanceMeasurement::ProviderComparison::SUCCESS_HEX)])
+  sheet.add_row(['Approaching threshold', ' '], style: [nil, get_fill.call(PerformanceMeasurement::ProviderComparison::WARNING_HEX)])
+  sheet.add_row(['Failed', ' '], style: [nil, get_fill.call(PerformanceMeasurement::ProviderComparison::DANGER_HEX)])
+end
+
 # Build one worksheet per category mirroring the HTML provider comparisons table
 @provider_comparison.categories.each do |category_name, _definition|
   table = @provider_comparison.table(category_name)
@@ -21,7 +53,7 @@ wb = xlsx_package.workbook
     # First header row: category group headings (blank first cell)
     # Compute grouped headers by category label
     grouped = table[:headers].group_by { |(_detail, h)| h[:category] }
-    header_row = ['']
+    header_row = [sheet_name]
     grouped.each_value do |grouped_headers|
       header_row << grouped_headers.first.last[:category]
       # Fill remaining span with blanks to mimic colspan
