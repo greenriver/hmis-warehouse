@@ -77,34 +77,34 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
 
       it 'does not count SO enrollment information in days or averages' do
         # Check measure 1a average and median
-        answer_b1 = @report.answer(question: '1a', cell: 'B1')
-        answer_d1 = @report.answer(question: '1a', cell: 'D1')
-        answer_g1 = @report.answer(question: '1a', cell: 'G1')
+        answer_b2 = @report.answer(question: '1a', cell: 'B2')
+        answer_d2 = @report.answer(question: '1a', cell: 'D2')
+        answer_g2 = @report.answer(question: '1a', cell: 'G2')
 
         # Only ES clients should be counted
-        expect(answer_b1.summary.to_i).to eq(1)
+        expect(answer_b2.summary.to_i).to eq(1)
 
         # Average should only reflect ES time
         expected_days = 44
-        expect(answer_d1.summary.to_f).to eq(expected_days)
+        expect(answer_d2.summary.to_f).to eq(expected_days)
 
         # Median should only reflect ES time
-        expect(answer_g1.summary.to_i).to eq(expected_days)
+        expect(answer_g2.summary.to_i).to eq(expected_days)
 
         # Check measure 1b average and median
-        answer_b1_1b = @report.answer(question: '1b', cell: 'B1')
-        answer_d1_1b = @report.answer(question: '1b', cell: 'D1')
-        answer_g1_1b = @report.answer(question: '1b', cell: 'G1')
+        answer_b2_1b = @report.answer(question: '1b', cell: 'B2')
+        answer_d2_1b = @report.answer(question: '1b', cell: 'D2')
+        answer_g2_1b = @report.answer(question: '1b', cell: 'G2')
 
         # Only ES clients should be counted
-        expect(answer_b1_1b.summary.to_i).to eq(1)
+        expect(answer_b2_1b.summary.to_i).to eq(1)
 
         # Average should reflect ES time plus self-reported time
         expected_days_1b = 61
-        expect(answer_d1_1b.summary.to_f).to eq(expected_days_1b)
+        expect(answer_d2_1b.summary.to_f).to eq(expected_days_1b)
 
         # Median should reflect ES time plus self-reported time
-        expect(answer_g1_1b.summary.to_i).to eq(expected_days_1b)
+        expect(answer_g2_1b.summary.to_i).to eq(expected_days_1b)
       end
     end
 
@@ -145,21 +145,21 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         # Verify that the appropriate metrics were calculated
-        answer_b1 = @report.answer(question: '1b', cell: 'B1')
-        answer_d1 = @report.answer(question: '1b', cell: 'D1')
-        answer_g1 = @report.answer(question: '1b', cell: 'G1')
+        answer_b2 = @report.answer(question: '1b', cell: 'B2')
+        answer_d2 = @report.answer(question: '1b', cell: 'D2')
+        answer_g2 = @report.answer(question: '1b', cell: 'G2')
 
         # Should have a count of 1 person
-        expect(answer_b1.summary.to_i).to eq(1)
+        expect(answer_b2.summary.to_i).to eq(1)
 
         # Expected days homeless: Oct 15 to Jan 15 = 92 days
         expected_days = 92
 
         # Should have calculated the average length of time
-        expect(answer_d1.summary.to_f).to eq(expected_days)
+        expect(answer_d2.summary.to_f).to eq(expected_days)
 
         # Should have calculated the median length of time
-        expect(answer_g1.summary.to_i).to eq(expected_days)
+        expect(answer_g2.summary.to_i).to eq(expected_days)
 
         # Verify that the self-reported homelessness date is included
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -435,18 +435,18 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
 
       it 'correctly calculates average and median length of time homeless' do
         # Verify that the appropriate metrics were calculated
-        answer_b1 = @report.answer(question: '1b', cell: 'B1')
-        answer_d1 = @report.answer(question: '1b', cell: 'D1')
-        answer_g1 = @report.answer(question: '1b', cell: 'G1')
+        answer_b2 = @report.answer(question: '1b', cell: 'B2')
+        answer_d2 = @report.answer(question: '1b', cell: 'D2')
+        answer_g2 = @report.answer(question: '1b', cell: 'G2')
 
         # Should have a count of 3 people
-        expect(answer_b1.summary.to_i).to eq(3)
+        expect(answer_b2.summary.to_i).to eq(3)
 
         # Average should be (106 + 106 + 87) / 3 = 99.67 days
-        expect(answer_d1.summary.to_f).to be_within(1).of(99.67)
+        expect(answer_d2.summary.to_f).to be_within(1).of(99.67)
 
         # Median should be 106 days
-        expect(answer_g1.summary.to_i).to eq(106)
+        expect(answer_g2.summary.to_i).to eq(106)
       end
     end
   end
@@ -745,7 +745,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
         # This should include self-reported homeless time before the ES-NBN bed night
         expected_days = 227 # how many days?
         expect(episode.days_homeless).to eq(expected_days)
-        answer = @report.answer(question: '1b', cell: 'D1')
+        answer = @report.answer(question: '1b', cell: 'D2')
         expect(answer.summary.to_f).to eq(expected_days)
       end
     end
@@ -800,7 +800,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
         # - Plus time from NBN date_to_street_essh (2023-01-01) to the bed night (2023-08-15)
         expected_days = 3273 # how many days?
         expect(episode.days_homeless).to eq(expected_days)
-        answer = @report.answer(question: '1b', cell: 'D1')
+        answer = @report.answer(question: '1b', cell: 'D2')
         expect(answer.summary.to_f).to eq(expected_days)
       end
     end
@@ -863,7 +863,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
         expected_days = 478
 
         expect(episode.days_homeless).to eq(expected_days)
-        answer = @report.answer(question: '1b', cell: 'D1')
+        answer = @report.answer(question: '1b', cell: 'D2')
         expect(answer.summary.to_f).to eq(expected_days)
       end
     end

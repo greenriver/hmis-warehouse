@@ -110,13 +110,6 @@ module HmisDataQualityTool
     # load it multiple times
     def self.calculate(report_items:, report:)
       destinations_counted = {}
-      # We need to obey visibility restrictions on the source clients
-      all_source_client_ids = report.report_scope.joins(client: :warehouse_client_destination).
-        pluck(wc_t[:source_id])
-      visible_source_client_ids = GrdaWarehouse::Hud::Client.source_visible_to(
-        report.user,
-        client_ids: all_source_client_ids,
-      ).pluck(:id).to_set
       # Limit source clients to those with enrollments within the projects and range in the designated universe.
       # NOTE: this is a change for FY2024 where the LSA no longer includes multi-year DQ checks for clients
       client_ids_at_chosen_projects = GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
@@ -127,7 +120,6 @@ module HmisDataQualityTool
         intermediate = {}
         batch.each do |client|
           client.source_clients.each do |sc|
-            next unless visible_source_client_ids.include?(sc.id)
             next unless client_ids_at_chosen_projects.include?(sc.id)
 
             item = report_item_fields_from_client(

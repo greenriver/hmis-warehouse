@@ -38,7 +38,7 @@ RSpec.describe PerformanceMeasurement::WarehouseReports::StaticSpmsController, t
       new_spm = PerformanceMeasurement::StaticSpm.last
       expect(new_spm.report_start).to eq(Date.new(2024, 1, 1))
       # check one of the data values to make sure data is being saved
-      expect(new_spm.table_1a_cell_d2).to be_a(Float)
+      expect(new_spm.table_1a_cell_d3).to be_a(Float)
     end
   end
 

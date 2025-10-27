@@ -14,8 +14,8 @@ module PerformanceMeasurement
 
     belongs_to :goal
     KNOWN_SPM_CELLS = {
-      '1a' => ['D2', 'G2'],
-      '1b' => ['D2', 'G2'],
+      '1a' => ['D3', 'G3'],
+      '1b' => ['D3', 'G3'],
       '2a and 2b' => ['B7', 'C7', 'E7', 'I7'],
       '3.2' => ['C2'],
       '4.1' => ['C2', 'C3'],
