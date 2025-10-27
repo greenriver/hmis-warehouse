@@ -7,6 +7,16 @@
 # frozen_string_literal: true
 
 module Hmis::Ce
+  # Query for Coordinated Entry opportunity candidates with an option to filter 
+  # clients who have recently declined a referral.
+  #
+  # This filter identifies clients who have been declined from any opportunity within 
+  # the same unit group as the target opportunity.
+  #
+  # An exception is made for clients who have been re-assessed since their most 
+  # recent decline. Since a re-assessment may change their eligibility, they are
+  # included in the candidate list regardless of the recent decline.
+  #
   class FilteredCandidatesQuery
     include ::Hmis::Concerns::HmisArelHelper
 
