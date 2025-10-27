@@ -29,7 +29,11 @@ module PerformanceMeasurement::Details
     end
 
     def detail_specific_target_for(key)
-      detail_for(key)[:specific_target]
+      detail = detail_for(key)
+      template = detail[:specific_target]
+      return '' unless template
+
+      format(template, { goal: goal_config[detail[:goal_calculation]] })
     end
 
     def detail_category_for(key)

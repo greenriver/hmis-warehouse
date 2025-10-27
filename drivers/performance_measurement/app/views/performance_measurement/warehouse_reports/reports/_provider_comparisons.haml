@@ -37,11 +37,11 @@
                 %th
                 - table[:headers].each do |detail, header|
                   %th= header[:title]
-            %tbody
               %tr
-                %td Goal or Target
+                %th Goal or Target
                 - table[:system].each do |detail, data|
-                  %td= raw markdown.render(data[:goal_description])
+                  %td{ data: { 'bs-toggle' => :tooltip, 'bs-title' => raw(markdown.render(data[:tooltip])), 'bs-html' => 'true' }}= raw markdown.render(data[:goal_description])
+            %tbody
               %tr
                 %td System Level
                 - table[:system].each do |detail, data|
