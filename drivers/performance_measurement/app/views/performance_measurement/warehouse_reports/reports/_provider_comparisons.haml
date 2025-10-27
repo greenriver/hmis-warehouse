@@ -14,7 +14,7 @@
         %h5.card-title.mt-4 Jump to Category
         %nav
           %ul.nav.nav-pills.flex-column
-            - @provider_comparison.categories.each_key do |category_name|
+            - @provider_comparison.included_categories.each_key do |category_name|
               %li.nav-item
                 = link_to category_name, "##{category_name.parameterize}", class: 'nav-link'
 
@@ -32,7 +32,7 @@
           .c-color-key__title Failed
 
   .col-sm-9
-    - @provider_comparison.categories.each_key do |category_name|
+    - @provider_comparison.included_categories.each_key do |category_name|
       .page-break-after.mb-6{id: category_name.parameterize}
         %h2.mb-0.pb-6= category_name
         - table = @provider_comparison.table(category_name)

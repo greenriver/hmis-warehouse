@@ -428,8 +428,8 @@ module PerformanceMeasurement
             pc_data = {
               report_id: id,
               client_id: client_id,
-              # Attach the originating project's id for this summary calculation when available
-              project_id: project_client.try(:[], :project_id),
+              # Summary calculations are not tied to individual projects
+              project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
               household_type: project_client.try(:[], :household_type),
