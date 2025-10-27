@@ -36,7 +36,11 @@ module Hmis::Ce
 
       # { source_client_id => dest_client_id }
       source_to_dest_client_map = map_source_to_dest_clients(most_recent_declines.keys)
-      return @base_candidate_scope if source_to_dest_client_map.blank? # unexpected
+      # source_to_dest_client_map could be empty if a declined client had no destination client.
+      # For now, this could only happen with a direct referral, since candidacy for waitlists is destination client based.
+      # In the future, this could happen if we include more types of clients on waitlists, such as VSP clients.
+      # Either way, if we can't find the client to exclude, just return the original unfiltered scope.
+      return @base_candidate_scope if source_to_dest_client_map.blank?
 
       # { dest_client_id => most_recent_assessment_update_timestamp }
       most_recent_assessment_dates = fetch_most_recent_assessment_dates(source_to_dest_client_map.values)
