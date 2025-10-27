@@ -21,7 +21,6 @@ RSpec.describe PerformanceMeasurement::ProviderComparison, type: :model do
       PerformanceMeasurement::Result,
       passed: passed,
       goal: goal_value,
-      goal_progress: nil,
       primary_value: primary_value,
       primary_unit: '%',
     )
