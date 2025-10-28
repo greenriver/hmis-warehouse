@@ -13,7 +13,7 @@ FactoryBot.define do
     description { 'A test metric for unit tests' }
     entity_type { 'GrdaWarehouse::Hud::Client' }
     calculator_class { 'GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator' }
-    category { 'days_homeless_in_the_last_three_years' }
+    category { 'client_services' }
     count_change_threshold { 10 }
     percent_change_threshold { nil }
     active { true }

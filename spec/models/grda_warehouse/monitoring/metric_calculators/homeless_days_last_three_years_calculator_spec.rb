@@ -52,9 +52,9 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThr
   end
 
   describe '.calculate_batch' do
-    let(:client1) { create(:grda_warehouse_hud_client) }
-    let(:client2) { create(:grda_warehouse_hud_client) }
-    let(:client3) { create(:grda_warehouse_hud_client) }
+    let!(:client1) { create(:grda_warehouse_hud_client) }
+    let!(:client2) { create(:grda_warehouse_hud_client) }
+    let!(:client3) { create(:grda_warehouse_hud_client) }
     let(:entities) { [client1, client2, client3] }
 
     context 'when some clients have processed records' do
@@ -86,6 +86,9 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThr
       end
 
       it 'uses a single query' do
+        # Force entity creation before counting queries
+        entities
+
         expect do
           described_class.calculate_batch(entities, calculation_date)
         end.to make_database_queries(count: 1)

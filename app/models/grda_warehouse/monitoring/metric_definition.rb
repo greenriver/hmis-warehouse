@@ -58,7 +58,8 @@ module GrdaWarehouse::Monitoring
           name: attrs[:name],
           entity_type: attrs[:entity_type],
         ) do |metric|
-          metric.assign_attributes(attrs)
+          # alert_code is not a database column, exclude it from assignment
+          metric.assign_attributes(attrs.except(:alert_code))
         end
       end
     end
@@ -103,6 +104,64 @@ module GrdaWarehouse::Monitoring
       else
         'Entity'
       end
+    end
+
+    # Get alert code from calculator
+    # Returns nil if calculator doesn't specify an alert_code
+    def alert_code
+      attrs = calculator_class.constantize.metric_definition_attributes
+      attrs[:alert_code]
+    end
+
+    # Get threshold crossings grouped by alert code for a given calculation date
+    # Returns hash: { alert_code => { metric_display_name => { data: [...], total_count:, truncated: } } }
+    # Only includes metrics that have an alert_code defined
+    # Excludes initial observations (first snapshot for each entity/metric)
+    # Limits to 50 clients per metric to prevent overwhelming emails
+    def self.threshold_crossings_for_alerts(calculation_date, limit: 50)
+      results = {}
+
+      active.each do |metric|
+        next unless metric.alert_code # Skip metrics without alert codes
+
+        # Get all snapshots created on this date for this metric
+        snapshots = metric.metric_snapshots.
+          where(created_at: calculation_date.beginning_of_day..calculation_date.end_of_day)
+
+        crossings = []
+        snapshots.find_each do |snapshot|
+          # Find previous snapshot for this entity to exclude initial observations
+          previous_snapshot = metric.metric_snapshots.
+            where(entity_type: snapshot.entity_type, entity_id: snapshot.entity_id).
+            where(id: ..snapshot.id).
+            order(created_at: :desc).
+            second # Get second result (first is current snapshot)
+
+          next unless previous_snapshot # Skip if this is the initial observation
+
+          # Add crossing data
+          crossings << {
+            entity_id: snapshot.entity_id,
+            current_value: snapshot.value,
+            previous_value: previous_snapshot.value,
+          }
+        end
+
+        next if crossings.empty?
+
+        # Initialize nested structure if needed
+        results[metric.alert_code] ||= {}
+        total_count = crossings.count
+        truncated = total_count > limit
+
+        results[metric.alert_code][metric.display_name] = {
+          data: crossings.first(limit),
+          total_count: total_count,
+          truncated: truncated,
+        }
+      end
+
+      results
     end
   end
 end

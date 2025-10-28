@@ -30,7 +30,8 @@ module GrdaWarehouse
     def self.seed_initial_definitions
       initial_definitions.each do |attrs|
         find_or_create_by!(code: attrs[:code]) do |definition|
-          definition.assign_attributes(attrs)
+          # visibility_check is not a database column, exclude it from assignment
+          definition.assign_attributes(attrs.except(:visibility_check))
         end
       end
     end
@@ -77,6 +78,25 @@ module GrdaWarehouse
           name: 'Anomaly Identified',
           category: 'system',
           description: 'Notification when data anomalies are detected',
+        },
+        # Client Metric Alerts
+        {
+          code: 'metric_days_homeless_threshold',
+          name: 'Days Homeless Threshold Crossed',
+          category: 'system',
+          description: 'Notification when clients cross the threshold for days homeless in the last 3 years',
+          visibility_check: ->(_user) { GrdaWarehouse::Monitoring::MetricDefinition.active.exists?(name: 'days_homeless_last_three_years') },
+        },
+        {
+          code: 'metric_household_size_threshold',
+          name: 'Household Size Threshold Crossed',
+          category: 'system',
+          description: 'Notification when clients cross the threshold for household size changes',
+          visibility_check: lambda do |_user|
+            GrdaWarehouse::Monitoring::MetricDefinition.active.where(
+              name: ['min_household_size', 'max_household_size'],
+            ).exists?
+          end,
         },
         # Data Quality Category (Project/Org-level)
         {

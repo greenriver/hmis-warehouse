@@ -56,6 +56,9 @@ module GrdaWarehouse::Monitoring::Tasks
 
       cleanup_old_snapshots
       complete_run_record(run_record, 'completed')
+
+      # Trigger alert notifications for threshold crossings
+      NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date)
     end
 
     private
@@ -351,7 +354,7 @@ module GrdaWarehouse::Monitoring::Tasks
           AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.current_observation_date = v.old_current_observation_date::date
       SQL
 
-      ActiveRecord::Base.connection.execute(sql)
+      GrdaWarehouseBase.connection.execute(sql)
     end
 
     def cleanup_old_snapshots

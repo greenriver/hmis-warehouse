@@ -255,4 +255,24 @@ class NotifyUser < DatabaseMailer
 
     mail(to: @user.email, subject: 'You have received a Secure File')
   end
+
+  def metric_threshold_crossed(user_id:, alert_code:, crossings:, calculation_date:)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    @crossings = crossings
+    @calculation_date = calculation_date
+    @alert_code = alert_code
+
+    subject = case alert_code
+    when 'metric_days_homeless_threshold'
+      'Client Metric Alert: Days Homeless Threshold Crossed'
+    when 'metric_household_size_threshold'
+      'Client Metric Alert: Household Size Threshold Crossed'
+    else
+      'Client Metric Alert: Threshold Crossed'
+    end
+
+    mail(to: @user.email, subject: subject)
+  end
 end

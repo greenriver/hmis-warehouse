@@ -51,6 +51,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           entity_type: entity_type,
           calculation_date: calculation_date,
           entity_ids: [client1.id, client2.id],
+          metric_names: ['test_metric'],
         )
       end.to change(GrdaWarehouse::Monitoring::MetricCalculationRun, :count).by(1)
     end
@@ -61,6 +62,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           entity_type: entity_type,
           calculation_date: calculation_date,
           entity_ids: [client1.id, client2.id],
+          metric_names: ['test_metric'],
         )
       end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(2)
     end
@@ -70,6 +72,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         entity_type: entity_type,
         calculation_date: calculation_date,
         entity_ids: [client1.id, client2.id],
+        metric_names: ['test_metric'],
       )
 
       run = GrdaWarehouse::Monitoring::MetricCalculationRun.last
@@ -85,6 +88,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           entity_type: entity_type,
           calculation_date: calculation_date,
           entity_ids: [client1.id],
+          metric_names: ['test_metric'],
         )
       end
 
@@ -94,6 +98,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
             entity_type: entity_type,
             calculation_date: calculation_date,
             entity_ids: [client1.id],
+            metric_names: ['test_metric'],
           )
         end.not_to change(GrdaWarehouse::Monitoring::MetricCalculationRun, :count)
       end
@@ -125,6 +130,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
             entity_type: entity_type,
             calculation_date: calculation_date,
             entity_ids: [client1.id],
+            metric_names: ['test_metric'],
           )
         end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
 
@@ -150,6 +156,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
             entity_type: entity_type,
             calculation_date: calculation_date,
             entity_ids: [client1.id],
+            metric_names: ['test_metric'],
           )
         end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
 
@@ -200,8 +207,26 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
 
       context 'when count threshold met but percent threshold not met' do
         before do
-          # +35 count (above 30), but only +35% (below 20% would be +20)
-          processed3.update!(days_homeless_last_three_years: 135)
+          # Delete the snapshot created by outer before block and create a new one with correct baseline
+          # Need baseline large enough that +30 count is less than 20% change
+          # Baseline = 200, +35 count = 17.5% (below 20%), count threshold met (35 > 30)
+          # IMPORTANT: snapshot must be from yesterday or it won't be found as "current"
+          GrdaWarehouse::Monitoring::MetricSnapshot.
+            for_entity(client2).
+            for_metric(metric_with_both_thresholds).
+            delete_all
+
+          processed3.update!(days_homeless_last_three_years: 200)
+          create(
+            :grda_warehouse_monitoring_metric_snapshot,
+            entity: client2,
+            metric_definition: metric_with_both_thresholds,
+            initial_observation_date: 1.day.ago,
+            current_observation_date: 1.day.ago,
+            initial_value: 200,
+            current_value: 200,
+          )
+          processed3.update!(days_homeless_last_three_years: 235)
         end
 
         it 'updates existing snapshot without creating new one' do
@@ -210,16 +235,18 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
               entity_type: entity_type,
               calculation_date: calculation_date,
               entity_ids: [client2.id],
+              metric_names: ['test_metric_both'],
             )
           end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
 
           snapshot = GrdaWarehouse::Monitoring::MetricSnapshot.
             for_entity(client2).
             for_metric(metric_with_both_thresholds).
+            order(created_at: :desc).
             first
 
-          expect(snapshot.current_value).to eq(135)
-          expect(snapshot.initial_value).to eq(100)
+          expect(snapshot.current_value).to eq(235)
+          expect(snapshot.initial_value).to eq(200)
         end
       end
 
@@ -235,6 +262,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
               entity_type: entity_type,
               calculation_date: calculation_date,
               entity_ids: [client2.id],
+              metric_names: ['test_metric_both'],
             )
           end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
 
@@ -260,6 +288,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
               entity_type: entity_type,
               calculation_date: calculation_date,
               entity_ids: [client2.id],
+              metric_names: ['test_metric_both'],
             )
           end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
 
@@ -307,11 +336,12 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           entity_type: entity_type,
           calculation_date: calculation_date,
           entity_ids: [client1.id],
+          metric_names: ['test_metric'],
         )
       end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(0) # -1 old + 1 new = 0
 
-      expect(GrdaWarehouse::Monitoring::MetricSnapshot.exists?(old_snapshot.id)).to be false
-      expect(GrdaWarehouse::Monitoring::MetricSnapshot.exists?(recent_snapshot.id)).to be true
+      expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(id: old_snapshot.id).exists?).to be false
+      expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(id: recent_snapshot.id).exists?).to be true
     end
   end
 end

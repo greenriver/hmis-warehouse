@@ -8,6 +8,8 @@
 
 module GrdaWarehouse::Monitoring
   class MetricSnapshot < GrdaWarehouseBase
+    self.table_name = 'metric_snapshots'
+
     belongs_to :entity, polymorphic: true
     belongs_to :metric_definition,
                class_name: 'GrdaWarehouse::Monitoring::MetricDefinition'

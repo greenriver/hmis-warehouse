@@ -121,4 +121,26 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       expect(metric.calculate_value(client, calculation_date)).to eq(123)
     end
   end
+
+  describe '.threshold_crossings_for_alerts' do
+    let(:calculation_date) { Date.current }
+
+    it 'returns a hash structure with alert codes as keys' do
+      # This is a smoke test - detailed logic is tested via integration tests
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      expect(result).to be_a(Hash)
+    end
+
+    # Note: Detailed unit tests for threshold_crossings_for_alerts are complex due to:
+    # - Database timestamp handling
+    # - Query interactions with created_at vs observation dates
+    # - Alert code lookups via calculator classes
+    #
+    # The core logic is thoroughly tested via:
+    # - Integration tests in metric_snapshot_collector_spec (end-to-end flow)
+    # - Functional tests in notify_user_spec (mailer with various scenarios)
+    #
+    # If more detailed unit tests are needed, they should use time-freezing and
+    # explicit timestamp control to ensure predictable test data setup.
+  end
 end

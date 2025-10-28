@@ -44,6 +44,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         count_change_threshold: 30, # Alert if changes by 30+ days
         percent_change_threshold: nil,
         active: true,
+        alert_code: 'metric_days_homeless_threshold',
       }
     end
   end
