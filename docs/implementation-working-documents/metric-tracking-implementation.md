@@ -34,6 +34,13 @@ Partition by `initial_observation_date` with quarterly partitions for efficient 
 
 ## Implementation Status
 
+**Current State:** Core functionality complete with admin UI and charting. System is operational for production use.
+
+**Next Steps:**
+- Alert system integration (Phase 7)
+- Additional metrics as needed
+- HasMetricSnapshots concern for entity-level convenience methods
+
 ### ✅ Phase 1: Foundation - COMPLETED
 
 Created database schema and base models.
@@ -191,11 +198,30 @@ Implemented efficient batch collection system with threshold-based snapshot crea
 
 ---
 
-### Phase 4: Query Interface (Not Started)
+### Phase 4: Query Interface (Partially Complete)
 
-**Status:** Pending
+**Status:** Model-level methods implemented, entity concern pending
 
-**Planned:** HasMetricSnapshots concern for easy metric access from entity models
+**Completed:**
+- ✅ `MetricDefinition#threshold_crossing_data(days_back:)` - Chart data with initial observation exclusion
+- ✅ `MetricDefinition#entity_label` - Human-readable entity type labels
+- ✅ `MetricSnapshot` scopes: `for_entity`, `for_metric`, `active_as_of`, `current`, `stale`
+
+**Pending:**
+- `HasMetricSnapshots` concern for easy metric access from entity models
+- Convenience methods like `client.metric_value('days_homeless_last_three_years')`
+- Time series queries with interpolation
+- Change detection helpers
+
+**Usage Pattern (Current):**
+```ruby
+# Access via MetricDefinition
+metric = MetricDefinition.find_by(name: 'days_homeless_last_three_years')
+chart_data = metric.threshold_crossing_data(days_back: 90)
+
+# Access via MetricSnapshot scopes
+snapshots = MetricSnapshot.for_entity(client).for_metric(metric).current
+```
 
 ---
 
@@ -237,6 +263,85 @@ When implementing an admin interface for metric definitions:
 2. Allow users to modify thresholds, display names, active status, etc.
 3. User changes persist because `maintain!` doesn't update existing records
 4. New calculators appear automatically without manual registration
+
+---
+
+### ✅ Phase 6: Admin UI & Charts - COMPLETED
+
+Implemented CRUD interface for metric definitions and threshold crossing charts.
+
+**Completed:**
+- ✅ Admin controller with index, show, edit, update actions
+- ✅ Routes under `/admin/metric_definitions`
+- ✅ Menu integration in Warehouse Admin > Configuration > "Warehouse Metrics"
+- ✅ Index view with table grouped by category
+- ✅ Show view with metric details
+- ✅ Edit view with form for editable fields
+- ✅ Threshold crossing chart using Billboard.js
+- ✅ Stimulus controller for chart rendering
+- ✅ Fake data generator for development/testing
+
+**Implementation Files:**
+
+**Controller:**
+- `app/controllers/admin/metric_definitions_controller.rb`
+  - Permission: `can_edit_warehouse_alerts`
+  - Calls `maintain!` on index to ensure definitions are current
+  - Sets `@per_page_js` for chart JavaScript
+
+**Views:**
+- `app/views/admin/metric_definitions/index.haml` - Table view grouped by category
+- `app/views/admin/metric_definitions/show.haml` - Detail view with chart
+- `app/views/admin/metric_definitions/edit.haml` - Edit form
+
+**Model Methods:**
+- `MetricDefinition#threshold_crossing_data(days_back:)` - Query for chart data
+  - Excludes initial observations (first snapshot per entity/metric)
+  - Uses ActiveRecord with Arel for date casting
+  - Returns array of `[date_string, count]`
+- `MetricDefinition#entity_label` - Human-readable label for chart axis
+
+**JavaScript:**
+- `app/javascript/controllers/metric_threshold_chart_controller.js` - Stimulus controller
+- `app/javascript/metric_threshold_chart.js` - Entrypoint for esbuild
+- Uses Billboard.js bar chart with:
+  - Date on X-axis (timeseries, rotated labels)
+  - Entity count on Y-axis
+  - Flexible entity label (Client, Project, etc.)
+  - Tooltip with formatted date and count
+
+**Fake Data Generator:**
+- `BaseCalculator.generate_fake_data!(num_clients: 50, days_back: 90)`
+- Only runs in development/test environments
+- Uses real client IDs from database
+- Generates realistic values and threshold crossings
+- 70% stable clients (0-2 crossings), 30% volatile (5-10 crossings)
+- Bulk insert for efficiency
+
+**Usage in Rails console (development):**
+```ruby
+GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator.generate_fake_data!
+```
+
+**Editable Fields:**
+- Display Name
+- Description
+- Count Change Threshold
+- Percent Change Threshold
+- Active status
+
+**Read-Only Fields:**
+- Metric Name (from calculator)
+- Calculator Class (from calculator)
+- Entity Type (from calculator)
+- Category (from calculator)
+
+**Chart Features:**
+- Shows threshold crossings over last 90 days
+- Excludes initial observations
+- Flexible entity labeling for future entity types
+- Empty state when no data available
+- Page-specific JavaScript loading via `@per_page_js`
 
 ---
 
@@ -1255,9 +1360,87 @@ With range-based sparse storage:
 
 ---
 
-## Next Steps After Implementation
+## Next Steps
 
-1. **Alert Integration**: Use metrics for change-based alerts (detect spikes via `spike?` method)
-2. **Reporting**: Build dashboards showing metric trends (using linear interpolation)
-3. **Additional Entity Types**: Extend to projects, data sources
-4. **Charting**: Implement time series visualization with interpolation
+### Phase 7: Alert System Integration (Next Priority)
+
+**Goal:** Send alerts when clients cross metric thresholds
+
+**Implementation:**
+1. Create alert subscription system
+   - Users subscribe to specific metrics
+   - Configure alert delivery preferences (email, in-app notification)
+
+2. Detect threshold crossings during collection
+   - Query for new snapshots created today (excluding initial observations)
+   - Group by metric definition
+   - Generate alert batches
+
+3. Alert notification job
+   - Runs after daily collection completes
+   - Batches alerts per subscriber
+   - Includes links to client details and metric charts
+
+**Query Pattern:**
+```ruby
+# Find today's threshold crossings
+metric = MetricDefinition.find_by(name: 'days_homeless_last_three_years')
+crossings = metric.threshold_crossing_data(days_back: 1) # Today only
+
+# Get client details for alerts
+crossing_snapshots = metric.metric_snapshots
+  .where('DATE(created_at) = ?', Date.current)
+  .where.not(id: initial_snapshot_ids)
+  .includes(:entity)
+```
+
+### Future Enhancements
+
+1. **HasMetricSnapshots Concern** - Add convenience methods to entity models
+   ```ruby
+   client.metric_value('days_homeless_last_three_years')
+   client.metric_time_series('days_homeless_last_three_years', start_date:, end_date:)
+   ```
+
+2. **Additional Metrics** - Implement remaining planned client metrics:
+   - `source_client_count`
+   - `enrollment_count_last_three_years`
+   - `unique_projects_last_three_years`
+   - `current_living_situation_count`
+   - `service_count`
+
+3. **Additional Entity Types** - Extend to Projects, Data Sources, Organizations
+
+4. **Advanced Charting** - Time series with interpolation for detailed trend analysis
+
+5. **Metric Metadata** - Store additional context (JSONB column):
+   - Data quality flags
+   - Confidence scores
+   - Contributing factors for changes
+
+### Development/Testing Tools
+
+**Generate Fake Data:**
+```ruby
+# In Rails console (development only)
+GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator.generate_fake_data!(
+  num_clients: 50,
+  days_back: 90
+)
+```
+
+**Manually Run Collection:**
+```ruby
+# Run for specific date
+CollectClientMetricsJob.perform_now(calculation_date: Date.current)
+
+# Or via collector directly
+GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector.run_daily_collection(
+  entity_type: 'GrdaWarehouse::Hud::Client',
+  calculation_date: Date.current
+)
+```
+
+**Access Charts:**
+- Navigate to: Admin > Warehouse Admin > Configuration > Warehouse Metrics
+- Click metric name to view details and threshold crossing chart
