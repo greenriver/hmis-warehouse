@@ -5,7 +5,10 @@
 .d-flex
   %h1= content_for :title
   .ml-auto
-    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
+    - excel_download_path = nil
+    - if action_name == 'provider_comparisons'
+      - excel_download_path = provider_comparisons_performance_measurement_warehouse_reports_report_path(@report, active_project_list: @provider_comparison&.active_project_list || :my_projects, format: :xlsx)
+    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: excel_download_path
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 - if can_publish_reports?
   = render 'common/publish'

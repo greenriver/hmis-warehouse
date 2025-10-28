@@ -939,7 +939,7 @@ type CeOpportunitiesPaginated {
 type CeOpportunity {
   active: Boolean!
   candidateLookup(id: ID!): CeCandidate
-  candidates(limit: Int, offset: Int): CeCandidatesPaginated!
+  candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
@@ -960,6 +960,10 @@ type CeOpportunity {
   referral: CeReferral
   status: CeOpportunityStatus!
   unit: Unit
+}
+
+input CeOpportunityCandidatesFilterOptions {
+  excludeDeclinedClients: Boolean = false
 }
 
 input CeOpportunityFilterOptions {

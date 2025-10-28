@@ -428,6 +428,7 @@ module PerformanceMeasurement
             pc_data = {
               report_id: id,
               client_id: client_id,
+              # Summary calculations are not tied to individual projects
               project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
