@@ -16,7 +16,6 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   has_one :retained_client, class_name: 'Hmis::Hud::Client', through: :most_recent_merge_history
 
   scope :viewable_by, ->(user) do
-    # can_merge_clients? is typically a global permission, but just in case, filter to clients viewable by the current user
     joins(:retained_client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
