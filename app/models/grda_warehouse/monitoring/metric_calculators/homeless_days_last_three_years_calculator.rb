@@ -39,7 +39,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         display_name: 'Days Homeless (Last 3 Years)',
         description: 'Total days homeless in the last 3 years from warehouse_clients_processed',
         calculator_class: name,
-        category: 'days_homeless_in_the_last_three_years',
+        category: 'client_services',
         calculation_window_days: 1095, # 3 years
         count_change_threshold: 30, # Alert if changes by 30+ days
         percent_change_threshold: nil,

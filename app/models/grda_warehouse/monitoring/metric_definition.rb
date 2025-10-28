@@ -8,7 +8,7 @@
 
 module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase
-    VALID_CATEGORIES = ['days_homeless_in_the_last_three_years', 'household_calculations'].freeze
+    VALID_CATEGORIES = ['client_services', 'household_calculations'].freeze
     COLLECTION_HOUR = 2 # Hour of day (0-23) to run daily metric collection
 
     has_many :metric_snapshots,
@@ -59,6 +59,47 @@ module GrdaWarehouse::Monitoring
         ) do |metric|
           metric.assign_attributes(attrs)
         end
+      end
+    end
+
+    # Get chart data showing threshold crossings over time
+    # Returns array of [date_string, count] for days where entities crossed threshold
+    # Excludes initial observations (first snapshot for each entity/metric)
+    def threshold_crossing_data(days_back:)
+      start_date = days_back.days.ago.to_date
+      end_date = Date.current
+
+      # Find initial snapshot IDs (first snapshot for each entity/metric combination)
+      initial_snapshot_ids = metric_snapshots.
+        select('MIN(id)').
+        group(:entity_type, :entity_id, :metric_definition_id)
+
+      # Get non-initial snapshots created in the date range
+      # Group by creation date and count entities
+      crossings = metric_snapshots.
+        where('DATE(created_at) >= ?', start_date).
+        where('DATE(created_at) <= ?', end_date).
+        where.not(id: initial_snapshot_ids).
+        group('DATE(created_at)').
+        count
+
+      # Convert to array of [date_string, count] sorted by date
+      crossings.map { |date, count| [date.to_s, count] }.sort_by { |d| d[0] }
+    end
+
+    # Get human-readable entity label for chart axis
+    def entity_label
+      case entity_type
+      when 'GrdaWarehouse::Hud::Client'
+        'Client'
+      when 'GrdaWarehouse::Hud::Project'
+        'Project'
+      when 'GrdaWarehouse::DataSource'
+        'Data Source'
+      when 'GrdaWarehouse::Hud::Organization'
+        'Organization'
+      else
+        'Entity'
       end
     end
   end
