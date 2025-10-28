@@ -376,8 +376,8 @@ module Types
     def merge_audit_history(filters: nil)
       raise 'Access denied' unless current_user.can_merge_clients?
 
-      # can_merge_clients? is typically a global permission, but just in case, filter to clients viewable by the current user.
-      # This prevents the UI from crashing if the MergeAuditEvent GraphQL object is trying to resolve a client the user doesn't have permission to see.
+      # can_merge_clients is a global permission (not limited to specific clients), but MergeAuditEvent resolves
+      # the client record which requires object-level authorization. Filter by viewable_by to prevent authorization failures.
       scope = Hmis::ClientMergeAudit.viewable_by(current_user)
       scope = scope.apply_filters(filters) if filters
       scope.order(merged_at: :desc)
