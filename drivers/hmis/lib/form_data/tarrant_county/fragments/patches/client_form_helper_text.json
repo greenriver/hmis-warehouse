@@ -1,0 +1,14 @@
+[
+  {
+    "link_id": "race",
+    "helper_text": "More than one choice may be selected"
+  },
+  {
+    "link_id": "gender",
+    "helper_text": "More than one choice may be selected"
+  },
+  {
+    "link_id": "pronouns",
+    "helper_text": "More than one choice may be selected"
+  }
+]
