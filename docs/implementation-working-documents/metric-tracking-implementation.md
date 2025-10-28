@@ -34,12 +34,12 @@ Partition by `initial_observation_date` with quarterly partitions for efficient 
 
 ## Implementation Status
 
-**Current State:** Core functionality complete with admin UI and charting. System is operational for production use.
+**Current State:** Core functionality complete with admin UI, charting, and alert system. System is operational for production use.
 
 **Next Steps:**
-- Alert system integration (Phase 7)
 - Additional metrics as needed
 - HasMetricSnapshots concern for entity-level convenience methods
+- Enhanced reporting and analytics
 
 ### ✅ Phase 1: Foundation - COMPLETED
 
@@ -345,6 +345,117 @@ GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator.generate_fake_data!
 
 ---
 
+### ✅ Phase 7: Alert System Integration - COMPLETED
+
+Implemented notification system that sends alerts when clients cross metric thresholds.
+
+**Completed:**
+- ✅ Two new alert types for client metrics (days homeless and household size)
+- ✅ Automatic email notifications to subscribed users
+- ✅ Limit of 50 clients per metric in emails with truncation notice
+- ✅ Only non-initial observations trigger alerts (excludes baselines)
+- ✅ Admin-assigned subscriptions through existing user management UI
+- ✅ Alert definitions automatically seeded when viewing metric definitions
+- ✅ Comprehensive test coverage for mailer and alert logic
+
+**Implementation Notes:**
+- Uses existing `AlertDefinition` and `ContactAlertSubscription` infrastructure
+- Admins assign alert subscriptions to users (users cannot self-subscribe)
+- Alerts are "system" category notifications
+- Each metric calculator defines its `alert_code` for grouping
+- Alert job runs after daily metric collection completes
+- Visibility checks ensure alerts only show when metrics are active
+
+**Implementation Files:**
+
+**Alert Definitions:**
+- Updated `app/models/grda_warehouse/alert_definition.rb`
+  - Added `metric_days_homeless_threshold` alert
+  - Added `metric_household_size_threshold` alert
+  - Fixed `seed_initial_definitions` to exclude `visibility_check` from database assignment
+  - Visibility checks ensure alerts only show when corresponding metrics are active
+
+**Job:**
+- Created `app/jobs/notify_metric_threshold_crossings_job.rb`
+  - Queries threshold crossings grouped by alert code
+  - Finds subscribed users for each alert
+  - Sends batched notifications per user
+
+**Mailer:**
+- Updated `app/mailers/notify_user.rb`
+  - Added `metric_threshold_crossed` method
+  - Handles different alert codes with appropriate subjects
+  - Returns early for inactive users
+
+**Email Templates:**
+- Created `app/views/notify_user/metric_threshold_crossed.html.haml` - HTML email with table
+- Created `app/views/notify_user/metric_threshold_crossed.text.haml` - Plain text email
+- Both show client ID, previous value, current value, and change
+- Show truncation message when > 50 clients affected
+- Date formatting uses `strftime('%B %d, %Y')` for compatibility
+
+**Model Methods:**
+- Updated `app/models/grda_warehouse/monitoring/metric_definition.rb`
+  - Added `alert_code` instance method (retrieves from calculator)
+  - Added `threshold_crossings_for_alerts(calculation_date, limit: 50)` class method
+  - Queries snapshots created on given date
+  - Excludes initial observations (requires previous snapshot)
+  - Groups by alert code and metric name
+  - Returns hash with data, total_count, and truncated flag
+  - Updated `maintain!` to exclude `:alert_code` from database assignment
+
+**Calculator Updates:**
+- Updated three calculators to include `alert_code` in `metric_definition_attributes`:
+  - `homeless_days_last_three_years_calculator.rb` → `'metric_days_homeless_threshold'`
+  - `min_household_size_calculator.rb` → `'metric_household_size_threshold'`
+  - `max_household_size_calculator.rb` → `'metric_household_size_threshold'`
+
+**Integration:**
+- Updated `app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb`
+  - Calls `NotifyMetricThresholdCrossingsJob.perform_later` after collection completes
+  - Ensures alerts are sent for same-day threshold crossings
+
+**Admin UI:**
+- Updated `app/controllers/admin/metric_definitions_controller.rb`
+  - Calls `AlertDefinition.seed_initial_definitions` on index
+  - Ensures alert definitions are seeded when admins view metrics
+- Alert subscriptions appear automatically in user edit form under "System Notifications"
+
+**Bug Fixes:**
+- Fixed `AlertDefinition.seed_initial_definitions` to exclude `visibility_check` (not a column)
+- Fixed `MetricSnapshot` table name configuration (explicitly set to `'metric_snapshots'`)
+- Fixed `GrdaWarehouseBase.connection` usage (was `ActiveRecord::Base.connection`)
+- Fixed metric definition factory to use valid category (`'client_services'`)
+
+**Data Structure:**
+```ruby
+# threshold_crossings_for_alerts returns:
+{
+  'metric_days_homeless_threshold' => {
+    'Days Homeless (Last 3 Years)' => {
+      data: [
+        { entity_id: 123, current_value: 150, previous_value: 100 },
+        # ... up to 50 clients
+      ],
+      total_count: 75,    # Total clients affected
+      truncated: true     # True if > 50 clients
+    }
+  }
+}
+```
+
+**Usage Pattern:**
+1. Daily metric collection runs at 2:00 AM
+2. After collection completes, `NotifyMetricThresholdCrossingsJob` runs
+3. Job queries `MetricDefinition.threshold_crossings_for_alerts(Date.current)`
+4. For each alert code with crossings:
+   - Finds users subscribed to that alert
+   - Sends email with client details to each subscribed user
+5. Emails show up to 50 clients with previous/current values
+6. If more than 50, shows total count and truncation notice
+
+---
+
 ## Test Coverage
 
 Comprehensive test suite covering all components of the metrics system:
@@ -412,6 +523,18 @@ Comprehensive test suite covering all components of the metrics system:
 **[spec/factories/grda_warehouse/warehouse_clients_processed.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/factories/grda_warehouse/warehouse_clients_processed.rb)**
 - Factory for `WarehouseClientsProcessed` for testing calculators
 
+**[spec/mailers/notify_user_spec.rb](/Users/elliot/Sites/op/hmis-warehouse/spec/mailers/notify_user_spec.rb)** (15 new tests for metric alerts)
+- Email subject correctness for different alert types
+- Recipient handling (active vs inactive users)
+- Calculation date formatting in email body
+- Metric name inclusion
+- Client ID inclusion
+- Value change display (previous → current)
+- Client count display
+- Truncation handling (showing "first 50 of X clients")
+- Multiple metrics in the same alert
+- Different alert codes (days homeless vs household size)
+
 ### Running Tests
 
 ```bash
@@ -423,6 +546,9 @@ dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/metric_definiti
 dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/metric_snapshot_spec.rb
 dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/metric_calculators/
 dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/tasks/
+
+# Run mailer tests (includes metric threshold alerts)
+dcr spec bundle exec rspec spec/mailers/notify_user_spec.rb
 ```
 
 ---
@@ -446,7 +572,23 @@ The system has been successfully deployed and run with production data:
 - Verified threshold-based snapshot creation works correctly
 - Confirmed 3-year retention cleanup runs properly
 
-### Recent Updates (2025-01-20)
+### Recent Updates (2025-01-28)
+
+**Alert System Integration (Phase 7):**
+- Implemented complete notification system for metric threshold crossings
+- Two alert types: days homeless and household size thresholds
+- Email notifications to subscribed users with client details
+- Automatic alert definition seeding when viewing admin UI
+- Comprehensive test coverage (15 new mailer tests)
+- Handles large result sets (limits to 50 clients per email with truncation notice)
+
+**Bug Fixes:**
+- Fixed `AlertDefinition.seed_initial_definitions` to exclude non-column attributes
+- Fixed `MetricSnapshot` table name configuration for partitioned table
+- Fixed database connection usage for warehouse database
+- Fixed metric definition factory for test compatibility
+
+### Previous Updates (2025-01-20)
 
 **Threshold Logic Enhancement:**
 - Fixed threshold detection to use AND logic when both count and percent thresholds are configured
@@ -475,10 +617,10 @@ The system has been successfully deployed and run with production data:
 ### Next Steps
 
 1. **Monitor daily collections**: Check `metric_calculation_runs` table for statistics
-2. **Add new calculators**: Follow the pattern in household size calculators
-3. **Phase 4: Query Interface**: Implement `HasMetricSnapshots` concern when ready to expose metrics
-4. **Alerting**: Build change-based alerts using snapshot data
-5. **Run MetricDefinition.maintain!**: Ensure new household size metrics are registered
+2. **Monitor alert notifications**: Check that subscribed users receive emails after collection runs
+3. **Add new calculators**: Follow the pattern in household size calculators
+4. **Phase 4: Query Interface**: Implement `HasMetricSnapshots` concern when ready to expose metrics
+5. **Subscribe users to alerts**: Admins can assign alert subscriptions via user edit form
 
 ---
 
@@ -1361,38 +1503,6 @@ With range-based sparse storage:
 ---
 
 ## Next Steps
-
-### Phase 7: Alert System Integration (Next Priority)
-
-**Goal:** Send alerts when clients cross metric thresholds
-
-**Implementation:**
-1. Create alert subscription system
-   - Users subscribe to specific metrics
-   - Configure alert delivery preferences (email, in-app notification)
-
-2. Detect threshold crossings during collection
-   - Query for new snapshots created today (excluding initial observations)
-   - Group by metric definition
-   - Generate alert batches
-
-3. Alert notification job
-   - Runs after daily collection completes
-   - Batches alerts per subscriber
-   - Includes links to client details and metric charts
-
-**Query Pattern:**
-```ruby
-# Find today's threshold crossings
-metric = MetricDefinition.find_by(name: 'days_homeless_last_three_years')
-crossings = metric.threshold_crossing_data(days_back: 1) # Today only
-
-# Get client details for alerts
-crossing_snapshots = metric.metric_snapshots
-  .where('DATE(created_at) = ?', Date.current)
-  .where.not(id: initial_snapshot_ids)
-  .includes(:entity)
-```
 
 ### Future Enhancements
 
