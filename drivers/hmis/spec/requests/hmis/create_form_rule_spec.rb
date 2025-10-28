@@ -157,7 +157,3 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
     end
   end
 end
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
-end
