@@ -5,7 +5,7 @@ require 'rubyXL'
 class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
   def self.call(...) = new.call(...)
 
-  def call(filename, ce_project_id:, form_definition_identifier:, dry_run: true)
+  def call(filename, ce_project_id:, form_definition_identifier:, dry_run: true, raise_on_missing_hoh: true)
     raise 'Missing AC HMIS MCI credentials' unless mci_creds
     raise 'Missing AC HMIS MCI Unique ID credentials' unless mci_uniq_creds
 
@@ -27,14 +27,13 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
 
         # Find the HoH Enrollment in the CE project. It should exist because it should have been created
         # by the HousingAssessmentImporter on 10/1 import.
-        # TODO: have the job accept a flag for whether to raise or skip if not found. We may want to skip these (after investigating)
-        hoh_enrollment = find_hoh_enrollment(hoh_row, raise_on_missing: true)
+        hoh_enrollment = find_hoh_enrollment(hoh_row, raise_on_missing: raise_on_missing_hoh)
         next unless hoh_enrollment
 
         # Skip if the household already has multiple members. This indicates that a user has already manually updated the household,
         # so we shouldn't mess with the household composition at all.
         if hoh_enrollment.household_members.size > 1
-          log_info("Household #{household_id} (HouseholdID: #{hoh_enrollment.household_id}) already has multiple members. Skipping to avoid creating duplicate enrollments, since a user has already manually updated the household.")
+          log_info("[Row #{hoh_row.row_number}] Household #{household_id} (HouseholdID: #{hoh_enrollment.household_id}) already has multiple members. Skipping to avoid creating duplicate enrollments, since a user has already manually updated the household.")
           next
         end
 
@@ -42,8 +41,10 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
         # This process will look for existing clients, and create them if needed.
         household_members.reject(&:hoh?).each do |row|
           enrollment = create_ce_enrollment(row, hoh_enrollment: hoh_enrollment)
+          next unless enrollment
+
           ensure_intake_assessment!(row, enrollment)
-          log_info("Processed row #{row.row_number}. HUD ID: #{row.hud_id}, enrollment_id: #{enrollment.id}")
+          log_info("Processed row #{row.row_number}. HUD ID: #{row.hud_id}, enrollment_id: #{enrollment.id} added to household '#{hoh_enrollment.household_id}' (HoH Enrollment##{hoh_enrollment.id} Client##{hoh_enrollment.client.id})")
         end
       end
       raise ActiveRecord::Rollback if dry_run
@@ -84,17 +85,23 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
 
   # NEW
   def find_hoh_enrollment(waitlist, raise_on_missing: true)
-    # Try to find corresponding enrollment in the CE project.
-    # Look up by PersonalID because the HousingAssessmentImporter set a deterministic value for PersonalID. (See "hud_id" method and "create_hmis_client" method.)
+    # First, try to find the client (by MCI Unique ID or MCI ID)
+    found_client = find_hmis_client(waitlist)
+    # If found, use that clients PersonalID to look up the enrollment. Otherwise, use the waitlist's HUD ID.
+    # (because the HousingAssessmentImporter set a deterministic value for PersonalID. (See "hud_id" method and "create_hmis_client" method.)
+
+    hoh_personal_id = found_client&.personal_id || waitlist.hud_id
+
     found_enrollment = hmis_ce_project.enrollments.
       heads_of_households.
-      where(personal_id: waitlist.hud_id). # hud_id = Digest::MD5.hexdigest(raw_values.client_id.to_s)
+      where(personal_id: hoh_personal_id).
       max_by(&:entry_date)
 
     return found_enrollment if found_enrollment
 
-    log_info("No enrollment found for HoH on row #{waitlist.row_number}, client_id: #{waitlist.client_id}. Skipping.")
-    raise "No enrollment found for HoH on row #{waitlist.row_number}" if raise_on_missing
+    msg = "[Row #{waitlist.row_number}] No HoH enrollment found for client_id: #{waitlist.client_id}. Skipping."
+    log_info(msg)
+    raise msg if raise_on_missing
   end
 
   # NEW
@@ -105,7 +112,11 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     # Check if client is already enrolled in the CE project. We don't want to create duplicate enrollments
     already_enrolled = hmis_ce_project.enrollments.open_on_date.
       where(client: hmis_client).exists?
-    raise "Client #{hmis_client.id} already has an open enrollment in the project" if already_enrolled
+
+    if already_enrolled
+      log_info("[Row #{waitlist.row_number}] Client #{hmis_client.id} already has an open enrollment in the project in a different household. Not adding to household '#{hoh_enrollment.household_id}' (HoH Enrollment##{hoh_enrollment.id} Client##{hoh_enrollment.client.id})")
+      return
+    end
 
     enrollment = hmis_ce_project.enrollments.new(
       client: hmis_client,
@@ -120,7 +131,7 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
       source_hash: 'WAITLIST_HOUSEHOLD_MEMBERS_IMPORTER', # to help identify these if we need to clean them up. maybe unset after import is done and validated
     )
     without_record_timestamps do
-      enrollment.save!
+      enrollment.save! # this makes papertrail versions with null created_at which causes issues in audit UI, had to clean up manually
     end
     enrollment
   end
@@ -132,7 +143,7 @@ class HmisExternalApis::AcHmis::Importers::WaitlistHouseholdMembersImporter
     intake.date_created = waitlist.date_created
     intake.date_updated = waitlist.date_updated
     without_record_timestamps do
-      intake.save!
+      intake.save! # this makes papertrail versions with null created_at which causes issues in audit UI, had to clean up manually
     end
   end
 
