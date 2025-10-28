@@ -61,6 +61,18 @@ module PerformanceMeasurement
       default_goal.provider_comparisons_visible
     end
 
+    # Percentage (integer) used to mark values that are close to the goal as "approaching".
+    # Falls back to the default goal if not set for this CoC.
+    def calculated_approaching_threshold_percent
+      approaching_threshold_percent.presence || default_goal.approaching_threshold_percent
+    end
+
+    # Fraction (0.0..1.0) corresponding to approaching_threshold_percent.
+    # Returns 0.0 if not configured.
+    def approaching_threshold_fraction
+      (calculated_approaching_threshold_percent.to_f / 100.0).to_f
+    end
+
     def default_goal
       @default_goal ||= self.class.default_goal
     end

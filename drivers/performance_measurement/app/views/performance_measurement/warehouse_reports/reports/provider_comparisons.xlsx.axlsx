@@ -1,0 +1,96 @@
+wb = xlsx_package.workbook
+
+# Add a summary sheet first, mirroring key info from the HTML version
+wb.add_worksheet(name: 'Report Summary') do |sheet|
+  title = sheet.styles.add_style(sz: 14, b: true)
+  header = sheet.styles.add_style(sz: 12, b: true)
+  wrap = sheet.styles.add_style(alignment: { wrap_text: true, vertical: :top })
+  # simple fill utility
+  fill_cache = {}
+  get_fill = ->(hex) do
+    next nil if hex.blank?
+
+    fill_cache[hex] ||= sheet.styles.add_style(bg_color: hex)
+  end
+
+  sheet.add_row(['Report Summary'], style: title)
+  sheet.add_row([])
+
+  # Chosen Universe details
+  sheet.add_row(['Chosen Universe'], style: header)
+  sheet.add_row(['Option', 'Selection'], style: header)
+  @provider_comparison.report.filter.selected_params_for_display.each do |label, value|
+    display = value.is_a?(Array) ? value.join(', ') : value.to_s
+    sheet.add_row([label, display], style: [nil, wrap])
+  end
+  sheet.add_row([])
+
+  # Color Key
+  sheet.add_row(['Color Key'], style: header)
+  sheet.add_row(['Passed', ' '], style: [nil, get_fill.call(PerformanceMeasurement::ProviderComparison::SUCCESS_HEX)])
+  sheet.add_row(['Approaching threshold', ' '], style: [nil, get_fill.call(PerformanceMeasurement::ProviderComparison::WARNING_HEX)])
+  sheet.add_row(['Failed', ' '], style: [nil, get_fill.call(PerformanceMeasurement::ProviderComparison::DANGER_HEX)])
+end
+
+# Build one worksheet per category mirroring the HTML provider comparisons table
+@provider_comparison.categories.each do |category_name, _definition|
+  table = @provider_comparison.table(category_name)
+
+  sheet_name = category_name.slice(0, 30)
+  sheet_name = sheet_name.gsub(':', ' ')
+
+  wb.add_worksheet(name: sheet_name) do |sheet|
+    title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+    header = sheet.styles.add_style(b: true)
+    # Cache Excel fill styles by hex color so we can reuse and support future colors
+    fill_cache = {}
+    get_fill = ->(hex) do
+      next nil if hex.blank?
+
+      fill_cache[hex] ||= sheet.styles.add_style(bg_color: hex)
+    end
+
+    # First header row: category group headings (blank first cell)
+    # Compute grouped headers by category label
+    grouped = table[:headers].group_by { |(_detail, h)| h[:category] }
+    header_row = [sheet_name]
+    grouped.each_value do |grouped_headers|
+      header_row << grouped_headers.first.last[:category]
+      # Fill remaining span with blanks to mimic colspan
+      (grouped_headers.size - 1).times { header_row << '' }
+    end
+    sheet.add_row(header_row, style: title)
+
+    # Second header row: individual titles
+    titles_row = [''] + table[:headers].map { |_detail, h| h[:title] }
+    sheet.add_row(titles_row, style: header)
+
+    # Goal/Target row (uses specific_target as goal_description in HTML)
+    goal_row = ['Goal or Target']
+    table[:system].each do |_detail, data|
+      goal_row << data[:goal_description]
+    end
+    sheet.add_row(goal_row)
+
+    # System level row
+    system_row = ['System Level']
+    system_styles = [nil]
+    table[:system].each do |_detail, data|
+      system_row << "#{data[:value]} #{data[:unit]}".strip
+      system_styles << get_fill.call(data[:decorator_bg_color])
+    end
+    sheet.add_row(system_row, style: system_styles)
+
+    # Project rows
+    table[:projects].each do |_project_id, pdata|
+      row = [pdata[:project_name]]
+      row_styles = [nil]
+      pdata[:values].each do |_detail, result|
+        display_value = result[:display_value].presence || 'N/A'
+        row << display_value
+        row_styles << get_fill.call(result[:decorator_bg_color])
+      end
+      sheet.add_row(row, style: row_styles)
+    end
+  end
+end

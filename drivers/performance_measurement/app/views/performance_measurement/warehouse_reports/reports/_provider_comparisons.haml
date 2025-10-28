@@ -11,21 +11,33 @@
         .btn-group.mb-3{role: 'group'}
           = link_to 'My Projects', provider_comparisons_performance_measurement_warehouse_reports_report_path(@provider_comparison.report, active_project_list: :my_projects), class: "btn btn-sm #{@provider_comparison.active_project_list == :my_projects ? 'btn-primary' : 'btn-outline-primary'}"
           = link_to 'All Projects', provider_comparisons_performance_measurement_warehouse_reports_report_path(@provider_comparison.report, active_project_list: :all_projects), class: "btn btn-sm #{@provider_comparison.active_project_list == :all_projects ? 'btn-primary' : 'btn-outline-primary'}"
-
         %h5.card-title.mt-4 Jump to Category
         %nav
           %ul.nav.nav-pills.flex-column
-            - @provider_comparison.categories.each_key do |category_name|
+            - @provider_comparison.included_categories.each_key do |category_name|
               %li.nav-item
                 = link_to category_name, "##{category_name.parameterize}", class: 'nav-link'
 
+    .card.mb-4
+      .card-body
+        %h5.card-title Color Key
+        .c-color-key.mb-2
+          .c-color-key__swatch{ style: "background-color: var(--brand-success-lll);" }
+          .c-color-key__title Passed
+        .c-color-key.mb-2
+          .c-color-key__swatch{ style: "background-color: var(--brand-warning-lll);" }
+          .c-color-key__title Approaching threshold
+        .c-color-key
+          .c-color-key__swatch{ style: "background-color: var(--brand-danger-lll);" }
+          .c-color-key__title Failed
+
   .col-sm-9
-    - @provider_comparison.categories.each_key do |category_name|
+    - @provider_comparison.included_categories.each_key do |category_name|
       .page-break-after.mb-6{id: category_name.parameterize}
-        %h2.mb-0.p-6= category_name
+        %h2.mb-0.pb-6= category_name
         - table = @provider_comparison.table(category_name)
         .card
-          %table.table.table-striped
+          %table.table
             %thead
               %tr
                 %th
@@ -37,11 +49,11 @@
                 %th
                 - table[:headers].each do |detail, header|
                   %th= header[:title]
-            %tbody
               %tr
-                %td Goal or Target
+                %th Goal or Target
                 - table[:system].each do |detail, data|
-                  %td= raw markdown.render(data[:goal_description])
+                  %td{ data: { 'bs-toggle' => :tooltip, 'bs-title' => raw(markdown.render(data[:tooltip])), 'bs-html' => 'true' }}= raw markdown.render(data[:goal_description])
+            %tbody
               %tr
                 %td System Level
                 - table[:system].each do |detail, data|
@@ -50,4 +62,8 @@
                 %tr
                   %td= data[:project_name]
                   - data[:values].each do |detail, result|
-                    %td{class: result[:decorator]}= "#{result[:value]} #{result[:unit]}"
+                    %td{class: result[:decorator]}
+                      - if result[:display_value].present?
+                        = result[:display_value]
+                      - else
+                        = 'N/A'

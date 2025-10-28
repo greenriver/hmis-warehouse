@@ -8,6 +8,7 @@ module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     include ::Hmis::Hud::Concerns::FormSubmittable
     self.table_name = 'hmis_external_form_submissions'
+    has_paper_trail
 
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
     # Enrollment that was generated as a result of processing this form submission. Only applicable for certain external forms, like the PIT.
