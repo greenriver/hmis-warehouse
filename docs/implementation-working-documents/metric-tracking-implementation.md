@@ -201,22 +201,42 @@ Implemented efficient batch collection system with threshold-based snapshot crea
 
 ### ✅ Phase 5: Metric Definition Maintenance - COMPLETED
 
-Implemented self-configuring metric definitions with TaskQueue initialization.
+Implemented self-configuring metric definitions with automatic maintenance before each collection run.
 
 **Completed:**
 - ✅ `MetricDefinition.maintain!` method for self-registration
 - ✅ Calculators define their own configuration via `metric_definition_attributes`
 - ✅ `available_calculators` array for easy extension
-- ✅ TaskQueue integration for one-time initialization
-- ✅ Centralized task registration in `TaskQueue.register_tasks`
-- ✅ Cleaned up queued tasks from `application.rb`
-- ✅ Created `config/initializers/task_queue.rb` to avoid Zeitwerk conflicts
+- ✅ Automatic maintenance before each collection run
 
 **Implementation Notes:**
 - `MetricDefinition::COLLECTION_HOUR = 2` (runs at 2:00 AM)
 - `maintain!` is idempotent - safe to run multiple times
+- Uses `find_or_create_by!` to preserve user modifications to existing definitions
 - Each calculator class self-describes with name, thresholds, display_name, etc.
-- Initialization runs once via TaskQueue on application startup
+- Called at beginning of `MetricSnapshotCollector#run` to ensure definitions are current
+
+**Design Decision: When to Call maintain!**
+
+`maintain!` is called at the **beginning of each collection run** rather than via TaskQueue or at the end of runs:
+
+**Benefits:**
+- New calculators become available immediately after deployment (no app restart needed)
+- Fast and idempotent (only creates/updates changed definitions)
+- Runs before metrics are loaded, ensuring all calculators are registered
+
+**Preserves User Changes:**
+- Uses `find_or_create_by!` which only creates new definitions
+- Existing definitions are NOT updated, preserving manual modifications
+- This allows future admin UI to modify thresholds, display names, etc.
+
+**Future: Admin UI Integration**
+
+When implementing an admin interface for metric definitions:
+1. Call `maintain!` on index page load to ensure UI shows all available calculators
+2. Allow users to modify thresholds, display names, active status, etc.
+3. User changes persist because `maintain!` doesn't update existing records
+4. New calculators appear automatically without manual registration
 
 ---
 

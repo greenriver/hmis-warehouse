@@ -47,8 +47,6 @@ create_table :metric_definitions, comment: 'Catalog of available metrics and cal
   t.string :calculator_class, null: false, comment: 'Ruby class that implements calculation logic'
   t.integer :calculation_window_days, comment: 'Lookback period in days (e.g., 1095 for 3 years)'
 
-  t.string :value_type, null: false, default: 'integer', comment: 'Data type: integer, float, string, boolean, json'
-
   t.integer :count_change_threshold, comment: 'Only record snapshot if value changes by at least this amount (sparse storage)'
   t.decimal :percent_change_threshold, precision: 5, scale: 2, comment: 'Only record snapshot if value changes by at least this percentage (sparse storage)'
 
@@ -68,450 +66,261 @@ end
 - `name`: Unique identifier within entity type (used in code)
 - `entity_type`: What this metric applies to (Client, Project, etc.)
 - `calculator_class`: Ruby class that implements calculation logic
-- `value_type`: Data type for validation and polymorphic storage
 - `calculation_window_days`: Lookback period (e.g., 1095 days = 3 years)
 - `category`: Grouping for UI and reporting
 
+**Design Decision: Single Value Type**
+
+All metrics store integer values in a single column. This simplifies the schema and is appropriate since all current and planned metrics are count-based (days, enrollments, household sizes, etc.).
+
 #### Metric Snapshots Table (`metric_snapshots`)
 
-Stores daily snapshots of metric values with intelligent retention.
+Stores time-range snapshots using range-based sparse storage. Each snapshot represents a period where a metric value stayed within the configured threshold.
 
 ```ruby
-create_table :metric_snapshots, comment: 'Time-series snapshots of metric values (sparse storage)' do |t|
+create_table :metric_snapshots, comment: 'Time-series snapshots of metric values (range-based sparse storage)',
+             partition_by: { type: :range, key: :initial_observation_date } do |t|
   t.references :entity, polymorphic: true, null: false, comment: 'Entity being measured'
   t.references :metric_definition, null: false, foreign_key: true, comment: 'Which metric this snapshot is for'
-  t.date :snapshot_date, null: false, comment: 'Date this snapshot was taken'
 
-  t.bigint :value_integer, comment: 'Value storage for integer metrics'
-  t.decimal :value_float, precision: 20, scale: 6, comment: 'Value storage for float metrics'
-  t.string :value_string, limit: 500, comment: 'Value storage for string metrics'
-  t.boolean :value_boolean, comment: 'Value storage for boolean metrics'
-  t.jsonb :value_json, comment: 'Value storage for JSON metrics'
+  t.date :initial_observation_date, null: false, comment: 'Date this value range started'
+  t.date :current_observation_date, null: false, comment: 'Date this value was last calculated/verified'
+
+  t.integer :initial_value, null: false, comment: 'Value when first observed'
+  t.integer :current_value, null: false, comment: 'Value as of last verification (updated daily)'
 
   t.string :calculation_version, limit: 20, comment: 'Version of calculator that produced this value'
 
   t.timestamps
 
-  t.index [:entity_type, :entity_id, :metric_definition_id, :snapshot_date],
+  t.index [:entity_type, :entity_id, :metric_definition_id, :current_observation_date, :initial_observation_date],
           unique: true,
           name: 'index_metric_snapshots_unique'
-  t.index :snapshot_date
-  t.index [:metric_definition_id, :snapshot_date]
-  t.index [:entity_type, :entity_id, :snapshot_date]
-  t.index [:entity_type, :entity_id, :metric_definition_id, :snapshot_date],
-          name: 'index_metric_snapshots_for_time_series'
+  t.index [:metric_definition_id, :current_observation_date]
+  t.index [:entity_type, :entity_id, :current_observation_date]
 end
 ```
 
 **Design Decisions:**
 
-- **Sparse Storage**: Only record snapshots when values change significantly (see Sparse Storage Strategy)
-- **Polymorphic Storage**: Single `value_*` column used based on `value_type` (reduces NULL columns)
-- **No calculated_at field**: Use `created_at` timestamp (eliminates redundancy)
-- **Single table**: No separate weekly table (see Data Retention Strategy)
+- **Range-Based Sparse Storage**: Each snapshot represents a time range where values stayed within threshold
+  - `initial_observation_date`: When this value range started
+  - `current_observation_date`: When this value was last calculated (updated daily)
+  - `initial_value`: Count value when first observed
+  - `current_value`: Count value as of last verification
+- **Single Integer Value**: All metrics are count-based, eliminating need for multiple value columns
+- **Table Partitioning**: Partitioned by `initial_observation_date` with quarterly partitions
+  - Pre-created partitions: 3 years past + 10 years future
+  - Enables efficient archival and query performance
 - **Composite indexes**: Optimized for common query patterns (time series, change detection)
 
 ### Sparse Storage Strategy
 
 **Key Insight**: Most metrics don't change daily. Recording every value every day wastes massive storage.
 
-**Solution**: Only record a snapshot when the value changes by a meaningful amount.
+**Solution**: Use range-based sparse storage. Only create a new snapshot when the value changes beyond the configured threshold.
+
+#### Range-Based Sparse Storage
+
+Each snapshot represents a time range where a metric stayed within threshold:
+
+- **Stable periods**: One snapshot with `initial_observation_date` through `current_observation_date`
+- **Significant changes**: New snapshot created when threshold exceeded
+- **Daily updates**: Existing snapshots have `current_observation_date` and `current_value` updated daily
+
+**Benefits:**
+- Stable clients = few snapshots (cheap storage)
+- Volatile clients = many snapshots (captures change history)
+- Can detect spikes by analyzing snapshot duration and value change
 
 #### Change Detection Logic
 
 Each metric definition specifies threshold(s):
-- **`count_change_threshold`**: Record if value changed by at least N (e.g., 5 days)
-- **`percent_change_threshold`**: Record if value changed by at least N% (e.g., 10%)
-- If both specified, record if **either** threshold is met
-- If neither specified, record **every** calculation (dense storage)
+- **`count_change_threshold`**: Create new snapshot if value changed by at least N (e.g., 30 days)
+- **`percent_change_threshold`**: Create new snapshot if value changed by at least N% (e.g., 10%)
+- **Both specified**: Requires **both** thresholds met (AND logic) to prevent false positives
+- **Neither specified**: Create new snapshot on any change (dense storage)
 
-#### Implementation
+Implementation: See `GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector#should_create_new_snapshot?`
 
-```ruby
-def should_record_snapshot?(entity, metric_definition, new_value)
-  # Always record first snapshot
-  return true unless previous_snapshot = find_latest_snapshot(entity, metric_definition)
+#### Storage Efficiency
 
-  previous_value = previous_snapshot.value
+**Example: 200K clients × 3 metrics over 3 years**
 
-  # Handle nil/null values
-  return true if new_value.nil? != previous_value.nil?
-  return false if new_value.nil? && previous_value.nil?
+With range-based sparse storage:
+- **Stable client** (2-3 changes): 2-3 snapshots per metric
+- **Moderately stable** (monthly changes): ~36 snapshots per metric
+- **Volatile client** (weekly changes): ~150 snapshots per metric
 
-  # Check thresholds
-  count_threshold = metric_definition.count_change_threshold
-  percent_threshold = metric_definition.percent_change_threshold
-
-  # No thresholds = always record
-  return true if count_threshold.nil? && percent_threshold.nil?
-
-  change = (new_value - previous_value).abs
-
-  # Count threshold
-  if count_threshold && change >= count_threshold
-    return true
-  end
-
-  # Percent threshold
-  if percent_threshold && previous_value != 0
-    percent_change = (change.to_f / previous_value.abs * 100)
-    return true if percent_change >= percent_threshold
-  end
-
-  false
-end
-```
-
-#### Benefits
-
-**Storage Reduction Example** (200K clients, 8 metrics):
-
-Without sparse storage:
-- Daily (30 days): 200K × 8 × 30 = 48M rows
-- Weekly (5 years): 200K × 8 × 260 = 416M rows
-- **Total: 464M rows (~70 GB)**
-
-With sparse storage (assuming 10% change rate):
-- Daily (30 days): 200K × 8 × 30 × 0.10 = 4.8M rows
-- Weekly (5 years): 200K × 8 × 260 × 0.10 = 41.6M rows
-- **Total: 46.4M rows (~7 GB)**
-
-**90% storage reduction!**
+Assuming 70% stable, 25% moderate, 5% volatile:
+- **Estimated total: ~10-15 million rows** (vs 657M for dense daily storage)
+- **Storage: ~1-2 GB** (vs ~100 GB for dense storage)
+- **98%+ storage reduction!**
 
 #### Query Implications
 
-Since we only record changes, queries must handle gaps:
+Range-based storage requires queries to:
+- Find the snapshot active for a given date (where date is between `initial_observation_date` and `current_observation_date`)
+- Interpolate values for time series visualization
+- Analyze snapshot duration to detect stability vs volatility
 
-```ruby
-# Get current value (find most recent snapshot)
-def metric_value(metric_name, as_of_date: Date.current)
-  metric_snapshots
-    .where(metric_definition: metric_def)
-    .where('snapshot_date <= ?', as_of_date)
-    .order(snapshot_date: :desc)
-    .first
-    &.value
-end
-
-# Time series returns actual recorded values (with gaps)
-def metric_time_series(metric_name, start_date:, end_date:)
-  metric_snapshots
-    .where(metric_definition: metric_def)
-    .where(snapshot_date: start_date..end_date)
-    .order(:snapshot_date)
-    .pluck(:snapshot_date, :value)
-  # Returns: [[date1, value1], [date5, value2], [date12, value3], ...]
-  # UI can interpolate or show actual change points
-end
-```
+Implementation: See `GrdaWarehouse::Monitoring::MetricSnapshot` model scopes.
 
 #### Example Metric Configurations
 
-**Volatile Metrics** (record more frequently):
+**Days Homeless** (significant changes only):
 ```ruby
-# Days homeless - record every 5 day change
-count_change_threshold: 5
+count_change_threshold: 30
 percent_change_threshold: nil
+# Only creates new snapshot when days change by 30+
 ```
 
-**Stable Metrics** (record less frequently):
+**Household Size** (any change):
 ```ruby
-# Source client count - record every 1 client change
 count_change_threshold: 1
 percent_change_threshold: nil
-```
-
-**Percentage-based**:
-```ruby
-# Enrollment count - record 10% changes
-count_change_threshold: nil
-percent_change_threshold: 10.0
-```
-
-**Both thresholds**:
-```ruby
-# Service count - record if changes by 50 services OR 20%
-count_change_threshold: 50
-percent_change_threshold: 20.0
-```
-
-**Dense storage** (always record):
-```ruby
-# Critical metrics - record every day
-count_change_threshold: nil
-percent_change_threshold: nil
+# Creates new snapshot on any household size change
 ```
 
 ### Calculator Pattern
 
-Metrics are calculated by pluggable calculator classes following a standard interface:
+Metrics are calculated by pluggable calculator classes that follow a standard interface.
 
-```ruby
-# Base calculator class
-class GrdaWarehouse::MetricCalculators::BaseCalculator
-  attr_reader :entity, :snapshot_date
+**Base Class**: `GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator`
 
-  def initialize(entity, snapshot_date)
-    @entity = entity
-    @snapshot_date = snapshot_date
-  end
+**Key Features:**
+- **Self-Configuring**: Each calculator defines its own metric definition via `metric_definition_attributes` class method
+- **Batch Processing**: Calculators implement `calculate_batch(entities, calculation_date)` for efficient bulk calculation
+- **Versioning**: Track when calculation logic changes via `version` method
+- **Separation of Concerns**: Calculation logic isolated from storage
 
-  # Subclasses must implement
-  def calculate
-    raise NotImplementedError
-  end
-
-  # Version for tracking calculation logic changes
-  def version
-    '1.0.0'
-  end
-
-  # Helper methods
-  def lookback_window
-    metric_definition.calculation_window_days&.days || 3.years
-  end
-
-  def lookback_start_date
-    snapshot_date - lookback_window
-  end
-end
-
-# Example calculator
-class GrdaWarehouse::MetricCalculators::Client::HomelessDaysCalculator < BaseCalculator
-  def calculate
-    GrdaWarehouse::ServiceHistoryService
-      .where(client_id: entity.id)
-      .where(date: lookback_start_date..snapshot_date)
-      .where(homeless: true)
-      .select(:date)
-      .distinct
-      .count
-  end
-end
-```
+**Implemented Calculators:**
+- `HomelessDaysLastThreeYearsCalculator` - Uses `GrdaWarehouse::WarehouseClientsProcessed` table
+- `MinHouseholdSizeCalculator` - Analyzes enrollments across data sources
+- `MaxHouseholdSizeCalculator` - Analyzes enrollments across data sources
 
 **Benefits:**
-
-- **Separation of Concerns**: Calculation logic isolated from storage
-- **Testability**: Easy to unit test calculators independently
-- **Versioning**: Track when calculation logic changes
-- **Extensibility**: Add new metrics by creating calculator classes
+- Easy to unit test calculators independently
+- Add new metrics by creating calculator class and adding to `MetricDefinition::AVAILABLE_CALCULATORS`
+- Efficient batch processing handles 5,000+ entities per batch with single queries
 
 ## Data Collection Strategy
 
+**Implementation**: `GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector`
+
+**Job**: `CollectClientMetricsJob`
+
 ### Batch Processing
 
-Daily collection runs in batches to handle large datasets efficiently:
-
-```ruby
-# Process 5,000 entities per batch
-BATCH_SIZE = 5_000
-
-entities.in_groups_of(BATCH_SIZE, false) do |batch|
-  calculate_batch(batch, metrics)
-end
-```
-
-### Bulk Upserts
-
-Use `activerecord-import` gem for efficient batch inserts:
-
-```ruby
-GrdaWarehouse::MetricSnapshot.import(
-  snapshots,
-  on_duplicate_key_update: {
-    conflict_target: [:entity_type, :entity_id, :metric_definition_id, :snapshot_date],
-    columns: [:value_integer, :calculation_version, :updated_at]
-  }
-)
-```
+- Processes 5,000 entities per batch for efficient memory usage
+- Uses bulk imports via `activerecord-import` gem
+- Tracks statistics per run: entities evaluated, snapshots created/updated, errors
 
 ### Active Entity Filtering
 
 Only calculate metrics for entities with recent activity:
-
-```ruby
-# For clients: those with service activity in last 3 years
-GrdaWarehouse::Hud::Client
-  .destination  # Only consolidated destination clients
-  .joins(:service_history_services)
-  .where('service_history_services.date >= ?', 3.years.ago)
-  .where('service_history_services.date <= ?', snapshot_date)
-  .distinct
-```
+- **Clients**: Destination clients with service history in last 3 years
 
 ### Scheduled Execution
 
-Daily batch job runs at 2 AM (after overnight data imports):
+Runs hourly via rake task at 2:00 AM (configured via `MetricDefinition::COLLECTION_HOUR`)
 
-```ruby
-# config/schedule.rb
-every 1.day, at: '2:00 am' do
-  runner "CollectClientMetricsJob.perform_later"
-  runner "CollectProjectMetricsJob.perform_later"
-  runner "CollectDataSourceMetricsJob.perform_later"
-end
-```
+Integrated with TaskQueue for initialization: `MetricDefinition.maintain!` creates/updates metric definitions on startup
 
 ## Data Retention Strategy
 
-### Single-Table Retention with Weekly Anchors
+### Simple 3-Year Retention
 
-Instead of maintaining separate daily and weekly tables, we use a single table with intelligent cleanup:
+Delete any snapshot where `current_observation_date < 3 years ago`.
 
 **Retention Rules:**
-- Keep **all daily snapshots** for the last **30 days**
-- Keep **weekly snapshots** (every Wednesday) **indefinitely**
-- Delete all other snapshots older than 30 days
+- Keep **all snapshots** where `current_observation_date` is within the last **3 years**
+- Delete snapshots where last verification is older than 3 years
 
-**Cleanup Logic:**
-
-```ruby
-DAILY_RETENTION_DAYS = 30
-WEEKLY_ANCHOR_DAY = 3  # Wednesday (0=Sunday, 1=Monday, etc.)
-
-cutoff_date = Date.current - DAILY_RETENTION_DAYS.days
-
-# Delete snapshots older than 30 days, except Wednesdays
-GrdaWarehouse::MetricSnapshot
-  .where(entity_type: 'GrdaWarehouse::Hud::Client')
-  .where('snapshot_date < ?', cutoff_date)
-  .where('EXTRACT(DOW FROM snapshot_date) != ?', WEEKLY_ANCHOR_DAY)
-  .delete_all
-```
+**Cleanup**: Runs automatically during daily collection
 
 **Example Timeline:**
 
 ```
-Date        Retention Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Jan 1 Mon   Kept (within 30 days)
-Jan 2 Tue   Kept (within 30 days)
-Jan 3 Wed   Kept (weekly anchor)
-...
-Jan 31 Wed  Kept (weekly anchor)
-Feb 1 Thu   Kept (within 30 days)
-            Cleanup: Jan 1 deleted (>30 days, not Wed)
-Feb 2 Fri   Kept (within 30 days)
-            Cleanup: Jan 2 deleted (>30 days, not Wed)
-Feb 3 Sat   Kept (within 30 days)
-            Cleanup: Jan 3 KEPT (Wednesday!)
-            Cleanup: Jan 4 deleted (>30 days, not Wed)
+Snapshot Record                              Retention Status (as of Jan 1, 2025)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+initial: Jan 15, 2024                       Kept (current_observation_date within 3 years)
+current: Dec 28, 2024
+(stable period, 348 days)
+
+initial: Dec 29, 2024                       Kept (current_observation_date within 3 years)
+current: Jan 1, 2025
+(recent change)
+
+initial: Mar 1, 2021                        DELETED (current_observation_date > 3 years ago)
+current: Dec 31, 2021
+(old snapshot, no longer relevant)
 ```
 
+**Benefits:**
+- Simple, easy to understand policy
+- Range-based storage means stable clients naturally have few snapshots
+- Partitioning by quarter enables efficient archival and deletion
+- No complex graduated retention logic needed
+
 **Result:**
-- Daily granularity for recent data (trend analysis)
-- Weekly granularity for historical data (long-term tracking)
-- Single table to query (simplified logic)
+- Full history for 3 years (compliance and trend analysis)
+- Automatic cleanup keeps storage manageable
+- Storage naturally concentrates on volatile clients
 
 ### Storage Efficiency
 
-**For 200,000 clients × 8 metrics:**
-
-**Without sparse storage (dense):**
-- Last 30 days (all): 8 × 200,000 × 30 = 48M rows
-- Historical (Wednesdays): 8 × 200,000 × 260 weeks = 416M rows
-- **Total: 464M rows (~70 GB)**
-
-**With sparse storage (10% change rate):**
-- Last 30 days: 8 × 200,000 × 30 × 0.10 = 4.8M rows
-- Historical (Wednesdays): 8 × 200,000 × 260 × 0.10 = 41.6M rows
-- **Total: 46.4M rows (~7 GB)**
-
-**90% storage reduction!** Actual reduction depends on metric volatility and threshold settings.
-
-**With additional entity types (sparse):**
-- Projects (500 × 2 metrics × 0.10): ~3K rows/month
-- Data Sources (10 × 2 metrics × 0.10): ~60 rows/month
-
 Storage scales with: (entities × metrics × change_rate × retention_period)
+
+With range-based sparse storage:
+- **Stable clients** (few changes): Minimal snapshots, cheap to track
+- **Volatile clients** (frequent changes): More snapshots, but captures important change history
+- **Overall**: 98%+ reduction compared to dense daily storage
 
 ## Query Patterns & API
 
-### Instance Methods (via Concern)
+**Status**: Query interface not yet implemented (Phase 4)
 
-```ruby
-# Include in any model that has metrics
-module HasMetricSnapshots
-  extend ActiveSupport::Concern
+**Planned**: `HasMetricSnapshots` concern for easy metric access from entity models
 
-  included do
-    has_many :metric_snapshots, as: :entity
-  end
+**Current Access**: Direct queries via `GrdaWarehouse::Monitoring::MetricSnapshot` model
 
-  # Get latest value
-  def metric_value(metric_name, as_of_date: Date.current)
-    # Returns value for specified metric
-  end
+The model includes scopes for common query patterns:
+- `for_entity(entity)` - All snapshots for a specific entity
+- `for_metric(metric_definition)` - All snapshots for a specific metric
+- `active_as_of(date)` - Snapshots active on a given date
+- `current` - Snapshots still being updated (not stale)
+- `stale` - Snapshots that haven't been updated recently
 
-  # Get time series
-  def metric_time_series(metric_name, start_date: 90.days.ago, end_date: Date.current)
-    # Returns [[date, value], [date, value], ...]
-  end
+See `app/models/grda_warehouse/monitoring/metric_snapshot.rb` for implementation.
 
-  # Detect change
-  def metric_change(metric_name, days_back: 1)
-    # Returns numeric change or boolean for change detection
-  end
-
-  # Get all metrics as hash
-  def all_metrics(as_of_date: Date.current)
-    # Returns { 'metric_name' => value, ... }
-  end
-end
-
-# Usage:
-client = GrdaWarehouse::Hud::Client.find(123)
-homeless_days = client.metric_value('days_homeless_last_three_years')
-time_series = client.metric_time_series('days_homeless_last_three_years', start_date: 90.days.ago)
-weekly_change = client.metric_change('days_homeless_last_three_years', days_back: 7)
-```
-
-### Class Methods (Batch Queries)
-
-```ruby
-# Get latest values for metric across entities
-GrdaWarehouse::MetricSnapshot.latest_values_for(
-  metric_name: 'days_homeless_last_three_years',
-  entity_type: 'GrdaWarehouse::Hud::Client',
-  entity_ids: [123, 456, 789]
-)
-# => {123 => 45, 456 => 67, 789 => 12}
-
-# Find entities with significant changes
-GrdaWarehouse::MetricSnapshot.entities_with_change(
-  metric_name: 'days_homeless_last_three_years',
-  entity_type: 'GrdaWarehouse::Hud::Client',
-  threshold: 30,
-  days_back: 7
-)
-# => [#<Client id=456>, #<Client id=789>]
-
-# Aggregate across entities
-GrdaWarehouse::MetricSnapshot.aggregate_metric(
-  metric_name: 'days_homeless_last_three_years',
-  entity_type: 'GrdaWarehouse::Hud::Client',
-  aggregation: :sum  # or :avg, :min, :max, :count
-)
-# => 123456
-```
-
-## Initial Metrics
+## Implemented Metrics
 
 ### Client Metrics (3-year lookback window)
 
-| Metric Name | Display Name | Calculator | Description |
-|-------------|--------------|------------|-------------|
-| `days_homeless_last_three_years` | Days Homeless (Last 3 Years) | `HomelessDaysCalculator` | Total days with homeless services (ES, SO, SH, TH) |
-| `source_client_count` | Source Client Count | `SourceClientCountCalculator` | Number of source records merged into this client |
-| `max_household_size` | Maximum Household Size | `MaxHouseholdSizeCalculator` | Largest household client has been part of |
-| `min_household_size` | Minimum Household Size | `MinHouseholdSizeCalculator` | Smallest household client has been part of |
-| `enrollment_count_last_three_years` | Enrollment Count (Last 3 Years) | `EnrollmentCountCalculator` | Number of enrollments |
-| `unique_projects_last_three_years` | Unique Projects (Last 3 Years) | `UniqueProjectsCalculator` | Number of distinct projects served in |
-| `current_living_situation_count` | Current Living Situation Records | `CurrentLivingSituationCountCalculator` | Number of CLS assessments |
-| `service_count` | Service Count | `ServiceCountCalculator` | Total service records |
+| Metric Name | Display Name | Calculator | Threshold | Description |
+|-------------|--------------|------------|-----------|-------------|
+| `days_homeless_last_three_years` | Days Homeless (Last 3 Years) | `HomelessDaysLastThreeYearsCalculator` | 30 days | Total days homeless from service history |
+| `max_household_size` | Maximum Household Size | `MaxHouseholdSizeCalculator` | 1 | Largest household client has been part of |
+| `min_household_size` | Minimum Household Size | `MinHouseholdSizeCalculator` | 1 | Smallest household client has been part of |
 
-### Future Metrics (Examples)
+**Data Sources:**
+- Days homeless: `GrdaWarehouse::WarehouseClientsProcessed` table
+- Household sizes: `GrdaWarehouse::Hud::Enrollment` table, grouped by `[data_source_id, HouseholdID]`
+
+### Future Client Metrics
+
+Additional metrics to implement based on usage patterns:
+
+| Metric Name | Display Name | Description |
+|-------------|--------------|-------------|
+| `source_client_count` | Source Client Count | Number of source records merged into this client |
+| `enrollment_count_last_three_years` | Enrollment Count (Last 3 Years) | Number of enrollments |
+| `unique_projects_last_three_years` | Unique Projects (Last 3 Years) | Number of distinct projects served in |
+| `current_living_situation_count` | Current Living Situation Records | Number of CLS assessments |
+| `service_count` | Service Count | Total service records |
+
+### Future Entity Types
 
 **Project Metrics:**
 - `active_client_count` - Clients with services on snapshot date
@@ -527,259 +336,199 @@ GrdaWarehouse::MetricSnapshot.aggregate_metric(
 
 ## Performance Characteristics
 
-### Expected Runtime (200,000 clients, 8 metrics)
+### Expected Runtime (200,000 clients, 3 metrics)
 
 ```
 Operation                           Time
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Query active clients                ~5s
-Calculate 40 batches (5k each)     ~20s
-Bulk inserts                        ~5s
-Cleanup old snapshots               ~2s
+Calculate 40 batches (5k each)     ~15s
+Bulk inserts/updates                ~3s
+Cleanup old snapshots               ~1s
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total                              ~32s
+Total                              ~24s
 ```
 
-### Query Performance
-
-- **Single metric value**: <10ms (indexed lookup)
-- **Time series (90 days)**: <50ms (date range scan)
-- **Change detection**: <20ms (2 indexed lookups)
-- **Batch values (1000 entities)**: <200ms (DISTINCT ON)
-- **Aggregation (200k entities)**: <2s (full table scan with index)
+*Note: Actual runtime varies based on data volume and metric volatility*
 
 ### Optimization Techniques
 
-1. **Composite Indexes**: Cover common query patterns
-2. **DISTINCT ON**: PostgreSQL-specific efficient latest value queries
-3. **Batch Processing**: Limit memory usage with 5k batch size
-4. **Bulk Upserts**: Single transaction per batch
-5. **Service History Tables**: Pre-calculated denormalized data
-6. **Active Entity Filtering**: Only process clients with recent activity
+1. **Batch Processing**: Process 5,000 entities per batch to limit memory usage
+2. **Bulk Operations**: Use `activerecord-import` for efficient inserts/updates
+3. **Efficient Calculators**: Single-query batch calculation for all entities
+4. **Active Entity Filtering**: Only process clients with recent service history
+5. **Partitioned Tables**: Quarterly partitions improve query performance and archival
+6. **Composite Indexes**: Cover common query patterns for fast lookups
+7. **Sparse Storage**: Threshold-based snapshot creation minimizes writes
 
 ## Integration Points
 
-### Alert System Integration
+### Future: Alert System Integration
 
 Metrics can drive alerts through change detection:
+- Alert when homeless days increase significantly
+- Notify case managers of household composition changes
+- Track data quality metrics and flag issues
 
-```ruby
-# Example: Alert when homeless days increase by 30+
-class HomelessDaysIncreaseAlert
-  def check_client(client_id)
-    change = GrdaWarehouse::MetricSnapshot.detect_changes(
-      client_id,
-      'days_homeless_last_three_years',
-      threshold: 30
-    )
-
-    if change && change > 0
-      trigger_alert(
-        client_id: client_id,
-        message: "Client has #{change} additional homeless days"
-      )
-    end
-  end
-end
-```
-
-### Reporting Integration
+### Future: Reporting Integration
 
 Metrics provide time-series data for dashboards and reports:
-
-- Trend charts (Chart.js, D3.js)
-- Cohort analysis (compare metric trends across groups)
-- Change reports (entities with significant changes)
+- Trend charts showing metric evolution over time
+- Cohort analysis comparing metric trends across groups
+- Change reports highlighting entities with significant changes
 - Aggregate statistics (sum, average, percentiles)
 
-### API Integration
+### Future: API Integration
 
-Expose metrics via API endpoints:
-
-```ruby
-GET /api/v1/clients/:id/metrics
-GET /api/v1/clients/:id/metrics/:metric_name
-GET /api/v1/clients/:id/metrics/:metric_name/time_series
-```
+Expose metrics via API endpoints for external consumption
 
 ## Extensibility
 
 ### Adding a New Metric
 
-1. **Create Calculator Class**
-   ```ruby
-   class GrdaWarehouse::MetricCalculators::Client::NewMetricCalculator < BaseCalculator
-     def calculate
-       # Calculation logic
-     end
-   end
-   ```
+1. **Create Calculator Class** in `app/models/grda_warehouse/monitoring/metric_calculators/`
+   - Inherit from `BaseCalculator`
+   - Implement `calculate_batch(entities, calculation_date)` class method
+   - Define `metric_definition_attributes` class method with configuration
+   - Include batch processing for efficiency (single query for all entities)
 
-2. **Add Metric Definition**
-   ```ruby
-   GrdaWarehouse::MetricDefinition.create!(
-     name: 'new_metric',
-     display_name: 'New Metric',
-     entity_type: 'GrdaWarehouse::Hud::Client',
-     calculator_class: 'GrdaWarehouse::MetricCalculators::Client::NewMetricCalculator',
-     value_type: 'integer',
-     category: 'custom',
-     calculation_window_days: 365
-   )
-   ```
+2. **Register Calculator**
+   - Add to `AVAILABLE_CALCULATORS` array in `MetricDefinition`
 
-3. **Next Daily Run**: New metric automatically calculated for all active entities
+3. **Run Maintenance Task**
+   - `MetricDefinition.maintain!` will create the metric definition
+   - Or restart application (runs automatically via TaskQueue)
 
-**No schema changes required!**
+4. **Next Collection Run**: New metric automatically calculated for all active entities
+
+**No schema changes or manual database updates required!**
 
 ### Adding a New Entity Type
 
-1. **Include Concern**
-   ```ruby
-   class MyEntity < ApplicationRecord
-     include HasMetricSnapshots
-   end
-   ```
+1. **Create Calculators** for metrics applicable to this entity
 
-2. **Create Calculators** for metrics applicable to this entity
+2. **Update Active Entity Filtering** in `MetricSnapshotCollector#get_active_entities`
 
-3. **Add Collection Job**
-   ```ruby
-   class CollectMyEntityMetricsJob < ApplicationJob
-     def perform(snapshot_date = Date.current)
-       GrdaWarehouse::Tasks::MetricSnapshotCollector.run_daily_collection(
-         entity_type: 'MyEntity',
-         snapshot_date: snapshot_date
-       )
-     end
-   end
-   ```
+3. **Create Collection Job** (or extend existing job to handle multiple entity types)
 
 ## Testing Strategy
 
 ### Unit Tests
 
-- **Calculators**: Test calculation logic with known inputs
+- **Calculators**: Test calculation logic with known inputs, batch processing efficiency
 - **Models**: Test associations, validations, scopes
-- **Concerns**: Test metric accessor methods
+- **Threshold Logic**: Test AND logic when both count and percent thresholds configured
 
 ### Integration Tests
 
-- **Collection Flow**: End-to-end batch collection
-- **Data Retention**: Verify cleanup logic preserves correct records
-- **Query API**: Test time series, change detection, aggregations
+- **Collection Flow**: End-to-end batch collection with threshold detection
+- **Data Retention**: Verify 3-year cleanup preserves correct records
+- **Statistics Tracking**: Verify calculation run records track correct counts
 
-### Performance Tests
+**Test Location**: `spec/models/grda_warehouse/monitoring/`
 
-- **Benchmarks**: Measure collection time with realistic dataset sizes
-- **Query Performance**: Ensure queries remain fast as data grows
-- **Memory Usage**: Verify batch processing stays within limits
+**Run Tests**: `dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/`
 
 ## Key Design Decisions
 
-### 1. Polymorphic Entities
+### 1. Range-Based Sparse Storage
 
-**Decision**: Use polymorphic association for `entity`
-
-**Rationale**:
-- Supports multiple entity types without duplicate tables
-- Rails pattern (well-understood, good ORM support)
-- Enables code reuse through concerns
-
-**Trade-offs**:
-- Slightly less efficient joins (requires entity_type check)
-- Foreign key constraints require careful management
-
-### 2. Polymorphic Value Storage
-
-**Decision**: Multiple `value_*` columns instead of serialized column
+**Decision**: Each snapshot represents a time range where value stayed within threshold
 
 **Rationale**:
-- Type safety (database enforces integer, float constraints)
-- Query efficiency (can filter/aggregate on typed columns)
-- Index support (can index integer/float values)
-
-**Trade-offs**:
-- More NULL columns per row
-- Requires accessor methods to hide complexity
-
-### 3. Single Table Retention
-
-**Decision**: Keep daily and weekly snapshots in one table
-
-**Rationale**:
-- Simpler queries (no need to UNION daily + weekly tables)
-- Easier to understand and maintain
-- Cleanup handled by single DELETE query
-
-**Trade-offs**:
-- Slightly less efficient storage (weekly rows have same schema overhead as daily)
-- Cleanup must run carefully to preserve weekly anchors
-
-### 4. Calculator Pattern
-
-**Decision**: Separate calculator classes vs. inline calculation
-
-**Rationale**:
-- Testability (unit test calculators independently)
-- Versioning (track when calculation logic changes)
-- Reusability (calculators can be composed)
-- Maintainability (clear separation of concerns)
-
-**Trade-offs**:
-- More files/classes to manage
-- Slight performance overhead (class instantiation)
-
-### 5. Wednesday as Weekly Anchor
-
-**Decision**: Use Wednesday for weekly historical snapshots
-
-**Rationale**:
-- Mid-week (avoids weekend effects and Monday/Friday edge cases)
-- Consistent day-of-week for historical comparisons
-- Arbitrary but reasonable choice
-
-**Alternative**: Make configurable per metric definition
-
-### 6. Use created_at Instead of calculated_at
-
-**Decision**: Eliminate redundant calculated_at timestamp
-
-**Rationale**:
-- `created_at` already tracks when record was created
-- Reduces storage and index overhead
-- Simplifies schema
-
-**Trade-offs**:
-- Less explicit naming (must document that created_at = calculated_at)
-
-### 7. Sparse Storage with Change Thresholds
-
-**Decision**: Only record snapshots when values change by meaningful amounts
-
-**Rationale**:
-- Most metrics are stable day-to-day (e.g., client demographics, enrollment counts)
-- Recording every value every day wastes 90%+ of storage
+- Most metrics are stable day-to-day (stable clients have minimal changes)
+- Recording every value every day wastes 98%+ of storage
 - Focus on tracking actual changes (the interesting data)
-- Thresholds configurable per metric for flexibility
+- Can detect spikes by analyzing snapshot duration
 
 **Benefits**:
-- **90% storage reduction** for typical workloads
-- Faster queries (less data to scan)
-- Focus on meaningful changes (noise reduction)
-- Still preserves ability to do dense storage when needed
+- **98%+ storage reduction** for typical workloads
+- Naturally captures metric stability vs volatility
+- Efficient for both stable and changing metrics
 
 **Trade-offs**:
-- Query logic must handle gaps in time series
-- Need to track previous value to detect changes (one extra query per entity)
-- Slightly more complex collection logic
-- Time series visualizations need to interpolate or show step functions
+- Query logic must handle date ranges (between `initial_observation_date` and `current_observation_date`)
+- More complex collection logic (update existing vs create new)
+- Time series visualizations need to interpolate
 
-**Implementation Notes**:
-- Always record first snapshot (establish baseline)
-- Always record if value changes from NULL to non-NULL or vice versa
-- Use OR logic: record if count threshold OR percent threshold met
-- If no thresholds specified, default to dense storage (backward compatible)
+**Implementation**:
+- `initial_observation_date`: When value range started
+- `current_observation_date`: Updated daily while value stays within threshold
+- `initial_value` and `current_value`: Track value drift
+- New snapshot created when threshold exceeded
+
+### 2. Single Integer Value Column
+
+**Decision**: All metrics store integer values, no polymorphic value columns
+
+**Rationale**:
+- All current and planned metrics are count-based (days, enrollments, household sizes)
+- Simplifies schema and eliminates NULL columns
+- Database enforces type safety
+- Easy to query and aggregate
+
+**Trade-offs**:
+- If non-integer metrics needed in future, would require schema change
+- Acceptable given current requirements
+
+### 3. Table Partitioning
+
+**Decision**: Partition by `initial_observation_date` with quarterly partitions
+
+**Rationale**:
+- Enables efficient archival and deletion of old data
+- Improves query performance for date-range queries
+- Pre-create partitions (3 years past + 10 years future) to avoid maintenance
+
+**Trade-offs**:
+- Unique constraints must include partition key
+- Requires PostgreSQL 10+
+- More complex migration
+
+### 4. AND Logic for Dual Thresholds
+
+**Decision**: When both count and percent thresholds configured, require BOTH to be met
+
+**Rationale**:
+- Prevents false positives where small absolute changes in large values would trigger percent threshold
+- More conservative approach ensures significant changes only
+
+**Example**: If threshold is 30 days AND 10%:
+- Value 100 → 115: Change is 15 days (< 30), 15% → No new snapshot (count not met)
+- Value 100 → 135: Change is 35 days (> 30), 35% → New snapshot (both met)
+
+### 5. Self-Configuring Calculators
+
+**Decision**: Calculators define their own metric definitions via class methods
+
+**Rationale**:
+- Single source of truth for metric configuration
+- No separate seed files or manual database updates
+- Automatic registration via `MetricDefinition.maintain!`
+- Easy to add new metrics (create calculator + register)
+
+**Benefits**:
+- Eliminates configuration drift
+- Simplifies deployment (no seed step)
+- Clear documentation in calculator class
+
+### 6. Batch Processing with Single Queries
+
+**Decision**: Calculators implement `calculate_batch` that processes 5,000 entities with single query
+
+**Rationale**:
+- Dramatically faster than per-entity queries
+- Reduces database load
+- Enables collection to complete in minutes, not hours
+
+**Example**: Household size calculators use two queries for entire batch:
+1. Count members per `[data_source_id, HouseholdID]`
+2. Lookup households per client
+
+**Benefits**:
+- 5,000+ entities processed per batch
+- Sub-minute calculation times
+- Scalable to large datasets
 
 ## Migration Plan
 
@@ -787,76 +536,77 @@ See [implementation-working-documents/metric-tracking-implementation.md](../impl
 
 ## Future Enhancements
 
-### Metric Dependencies
+### Query Interface (Phase 4)
 
-Support metrics that depend on other metrics:
+Implement `HasMetricSnapshots` concern for easy metric access from entity models:
+- `client.metric_value('days_homeless_last_three_years')`
+- `client.metric_time_series('days_homeless_last_three_years', start_date:, end_date:)`
+- `client.metric_change('days_homeless_last_three_years', days_back: 7)`
 
-```ruby
-class DependentCalculator < BaseCalculator
-  depends_on :days_homeless_last_three_years, :enrollment_count_last_three_years
+### Additional Metrics
 
-  def calculate
-    homeless_days = dependencies[:days_homeless_last_three_years]
-    enrollments = dependencies[:enrollment_count_last_three_years]
+Implement remaining planned client metrics:
+- Enrollment counts
+- Unique projects served
+- Service counts
+- Current living situation assessments
+- Source client counts
 
-    # Calculate derived metric
-    homeless_days.to_f / enrollments if enrollments > 0
-  end
-end
-```
+### Alert System
+
+Use metrics for change-based alerting:
+- Detect significant increases in homeless days
+- Monitor household composition changes
+- Track data quality indicators
+
+### Reporting & Visualization
+
+Build dashboards showing:
+- Trend charts with interpolation
+- Cohort analysis across client groups
+- Change detection reports
+- Population-level aggregations
 
 ### Metric Metadata
 
-Store additional context with snapshots:
-
-```ruby
-add_column :metric_snapshots, :metadata, :jsonb
-```
-
-Examples:
+Store additional context with snapshots (JSONB column):
 - Data quality flags
 - Confidence scores
-- Contributing factors
-- Drill-down links
+- Contributing factors for changes
 
-### Real-Time Metrics
+### Additional Entity Types
 
-Support on-demand calculation for specific entities:
-
-```ruby
-client.calculate_metric('days_homeless_last_three_years', force: true)
-```
-
-### Metric Annotations
-
-Allow users to annotate significant changes:
-
-```ruby
-create_table :metric_annotations do |t|
-  t.references :metric_snapshot
-  t.references :user
-  t.text :note
-  t.timestamps
-end
-```
-
-### Predictive Metrics
-
-Use historical snapshots to train predictive models:
-
-```ruby
-class PredictedHomelessDaysCalculator < BaseCalculator
-  def calculate
-    historical_values = entity.metric_time_series('days_homeless_last_three_years')
-    model = load_trained_model
-    model.predict(historical_values)
-  end
-end
-```
+Extend to Projects, Data Sources, and Organizations with relevant metrics
 
 ## References
 
-- HUD Data Model: `/docs/hud_data_model.md`
-- Service History Tables: `app/models/grda_warehouse/service_history_service.rb`
+### Implementation Files
+
+**Models:**
+- `app/models/grda_warehouse/monitoring/metric_definition.rb`
+- `app/models/grda_warehouse/monitoring/metric_snapshot.rb`
+- `app/models/grda_warehouse/monitoring/metric_calculation_run.rb`
+
+**Calculators:**
+- `app/models/grda_warehouse/monitoring/metric_calculators/base_calculator.rb`
+- `app/models/grda_warehouse/monitoring/metric_calculators/homeless_days_last_three_years_calculator.rb`
+- `app/models/grda_warehouse/monitoring/metric_calculators/min_household_size_calculator.rb`
+- `app/models/grda_warehouse/monitoring/metric_calculators/max_household_size_calculator.rb`
+
+**Collection:**
+- `app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb`
+- `app/jobs/collect_client_metrics_job.rb`
+
+**Migrations:**
+- `db/warehouse/migrate/20251020141816_create_metric_definitions.rb`
+- `db/warehouse/migrate/20251020142047_create_metric_snapshots.rb`
+- `db/warehouse/migrate/20251020142304_create_metric_calculation_runs.rb`
+
+**Tests:**
+- `spec/models/grda_warehouse/monitoring/`
+
+### Related Documentation
+
+- Implementation Details: `docs/implementation-working-documents/metric-tracking-implementation.md`
 - Warehouse Clients Processed: `app/models/grda_warehouse/warehouse_clients_processed.rb`
-- Alert System: `/docs/architecture/alerting.md`
+- Service History: `app/models/grda_warehouse/service_history_service.rb`

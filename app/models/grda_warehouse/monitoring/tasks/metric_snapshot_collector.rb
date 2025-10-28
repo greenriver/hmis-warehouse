@@ -39,6 +39,10 @@ module GrdaWarehouse::Monitoring::Tasks
     end
 
     def run
+      # Ensure metric definitions are up-to-date before collection
+      # Uses find_or_create_by! so this is idempotent and preserves user changes
+      GrdaWarehouse::Monitoring::MetricDefinition.maintain!
+
       run_record = create_run_record
 
       metrics = load_metrics

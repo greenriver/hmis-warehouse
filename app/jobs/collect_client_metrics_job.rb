@@ -8,7 +8,7 @@
 
 class CollectClientMetricsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-  queue_with_priority 10
+  queue_with_priority 15
 
   def perform(calculation_date = Date.current)
     GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector.run_daily_collection(

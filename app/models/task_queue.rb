@@ -96,11 +96,6 @@ class TaskQueue < ApplicationRecord
       GrdaWarehouse::ContactAlertSubscription.migrate_user_notification_preferences!
     end
 
-    # Initialize metric definitions table with default metrics
-    config.queued_tasks[:initialize_metric_definitions] = -> do
-      GrdaWarehouse::Monitoring::MetricDefinition.maintain!
-    end
-
     # FIX for service history services change
     config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
       GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
