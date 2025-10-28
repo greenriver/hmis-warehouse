@@ -8,6 +8,7 @@
 
 module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase
+    include ArelHelper
     VALID_CATEGORIES = ['client_services', 'household_calculations'].freeze
     COLLECTION_HOUR = 2 # Hour of day (0-23) to run daily metric collection
 
@@ -69,18 +70,19 @@ module GrdaWarehouse::Monitoring
       start_date = days_back.days.ago.to_date
       end_date = Date.current
 
+      snapshot_table = GrdaWarehouse::Monitoring::MetricSnapshot.arel_table
+
       # Find initial snapshot IDs (first snapshot for each entity/metric combination)
       initial_snapshot_ids = metric_snapshots.
-        select('MIN(id)').
+        select(snapshot_table[:id].minimum).
         group(:entity_type, :entity_id, :metric_definition_id)
 
       # Get non-initial snapshots created in the date range
       # Group by creation date and count entities
       crossings = metric_snapshots.
-        where('DATE(created_at) >= ?', start_date).
-        where('DATE(created_at) <= ?', end_date).
+        where(created_at: start_date.beginning_of_day..end_date.end_of_day).
         where.not(id: initial_snapshot_ids).
-        group('DATE(created_at)').
+        group(Arel.sql('DATE(created_at)')).
         count
 
       # Convert to array of [date_string, count] sorted by date
