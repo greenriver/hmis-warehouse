@@ -55,12 +55,6 @@ class TaskQueue < ApplicationRecord
 
   # Register all one-time tasks that should be queued
   def self.register_tasks(config)
-    # FIX for service history services change
-    config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
-      GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
-      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
-    end
-
     # Fix for chronic calculator
     # Previously, imported data where the enrollment was in a literally homeless project
     # where the client would accumulate days between entry & exit that counted toward
@@ -105,6 +99,12 @@ class TaskQueue < ApplicationRecord
     # Initialize metric definitions table with default metrics
     config.queued_tasks[:initialize_metric_definitions] = -> do
       GrdaWarehouse::Monitoring::MetricDefinition.maintain!
+    end
+
+    # FIX for service history services change
+    config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
     end
   end
 end

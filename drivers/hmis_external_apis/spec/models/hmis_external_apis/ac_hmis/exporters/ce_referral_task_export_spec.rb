@@ -69,4 +69,16 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CeReferralTaskExport, type: 
     expect(row['Status']).to eq(step.status)
     expect(row['UpdatedByUserID']).to eq(hud_user.id.to_s)
   end
+
+  context 'when a client with a referral has been deleted' do
+    before do
+      client.destroy!
+    end
+
+    it 'succeeds' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+      expect(result.length).to eq(0)
+    end
+  end
 end

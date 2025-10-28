@@ -774,10 +774,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
           (Date.current + 1.year).end_of_year,
         ].min
       else
+        # If the data source is from an HMIS, we want to ignore any old export dates
+        return Date.current if data_source.hmis?
+
+        # If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
+        return Date.current unless export
+
         [
-          # Note: If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
-          export&.effective_export_end_date,
-          export&.ExportEndDate,
+          export.effective_export_end_date,
+          export.ExportEndDate,
           Date.current,
         ].compact.min.to_date
       end

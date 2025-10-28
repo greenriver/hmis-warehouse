@@ -86,12 +86,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'with opportunity backfilling' do
-      let!(:unit_group) { create(:hmis_unit_group, project: project) }
       let!(:opportunity_without_pool) do
         create(:hmis_ce_opportunity,
-               unit: create(:hmis_unit, unit_group: unit_group),
+               project: project,
+               data_source: project.data_source,
                candidate_pool: nil)
       end
+      let(:unit_group) { opportunity_without_pool.unit_group }
 
       it 'backfills the pool and rules for opportunities missing them' do
         [
@@ -114,8 +115,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'with stale tracking' do
-      let!(:unit_group) { create(:hmis_unit_group, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: create(:hmis_unit, unit_group: unit_group)) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, project: project, data_source: project.data_source) }
+      let(:unit_group) { opportunity.unit_group }
 
       it 'marks opportunity as stale when unit group pool changes and marks as clean when unit group pool reverts' do
         rule = create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
@@ -161,8 +162,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     context 'with closed projects' do
       let!(:closed_project) { create(:hmis_hud_project, organization: organization, operating_end_date: 1.day.ago) }
       let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: closed_project) }
-      let!(:unit_group) { create(:hmis_unit_group, project: closed_project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: create(:hmis_unit, unit_group: unit_group), candidate_pool: nil) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: nil, project: closed_project, data_source: closed_project.data_source) }
+      let(:unit_group) { opportunity.unit_group }
 
       before do
         # Add rules to the closed project's unit group

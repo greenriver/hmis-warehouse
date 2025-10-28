@@ -97,6 +97,9 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
           create(:hmis_ce_opportunity, candidate_pool: additional_pool)
           create(:hmis_ce_change_marker, trackable: additional_pool, current_version: 1, processed_version: 0)
         end
+
+        # Clear jobs enqueued during setup
+        clear_enqueued_jobs
       end
 
       it 'schedules next batch when wait_time is provided and dirty pools remain' do
@@ -130,6 +133,9 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
           create(:hmis_ce_opportunity, candidate_pool: additional_pool)
           create(:hmis_ce_change_marker, trackable: additional_pool, current_version: 1, processed_version: 0)
         end
+
+        # Clear jobs enqueued during setup
+        clear_enqueued_jobs
       end
 
       it 'does not schedule next batch even when wait_time is provided' do

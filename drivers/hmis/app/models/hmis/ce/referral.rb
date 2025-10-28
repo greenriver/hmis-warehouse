@@ -21,7 +21,7 @@ module Hmis::Ce
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
-    belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
+    belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :destroy
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote', dependent: :destroy
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant', dependent: :destroy
@@ -226,11 +226,11 @@ module Hmis::Ce
     end
 
     def consistent_data_source
-      msg = 'must be in same data source as opportunity'
+      msg = 'must be in same data source'
 
-      # Opportunity takes the workflow template data source as the "source of truth", so do the same here
-      data_source = opportunity.workflow_template.data_source
+      data_source = workflow_instance.template.data_source
 
+      errors.add(:opportunity, msg) unless data_source == opportunity.data_source
       errors.add(:client, msg) unless data_source == client.data_source
       errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity

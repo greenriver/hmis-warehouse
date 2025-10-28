@@ -17,7 +17,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   let(:user) { create(:hmis_user, data_source: data_source) }
   let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template, project: project) }
-  let(:instance) { opportunity.workflow_template.instances.create! }
+  let(:instance) { opportunity.unit_group.workflow_template.instances.create! }
   let(:referral) { create(:hmis_ce_referral, client: client, opportunity: opportunity, workflow_instance: instance, referred_by: user) }
   let(:engine) { referral.workflow_engine }
 
