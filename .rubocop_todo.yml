@@ -3240,7 +3240,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/app/graphql/sources/paper_trail_versions.rb'
     - 'drivers/hmis/app/graphql/sources/user_entity_access_source.rb'
     - 'drivers/hmis/app/graphql/types/admin/form_definition_input.rb'
-    - 'drivers/hmis/app/graphql/types/admin/form_rule_input.rb'
     - 'drivers/hmis/app/graphql/types/admin/has_form_rules.rb'
     - 'drivers/hmis/app/graphql/types/base64.rb'
     - 'drivers/hmis/app/graphql/types/base_access.rb'

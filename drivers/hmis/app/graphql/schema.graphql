@@ -5293,7 +5293,7 @@ input FormRuleFilterOptions {
 }
 
 input FormRuleInput {
-  activeStatus: ActiveStatus @deprecated(reason: "Use DeleteFormRule to deactivate instead. Rules are always active when created.")
+  activeStatus: ActiveStatus @deprecated(reason: "Rules are always active when created. This type is no longer used for updating a form rule. To deactivate, use DeleteFormRule mutation.")
   dataCollectedAbout: DataCollectedAbout
   funder: FundingSource
   organizationId: ID
