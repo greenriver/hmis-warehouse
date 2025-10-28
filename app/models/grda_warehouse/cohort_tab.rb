@@ -5,6 +5,7 @@
 ###
 
 module GrdaWarehouse
+  # @see docs/features/cohorts.md
   class CohortTab < GrdaWarehouseBase
     include ArelHelper
     acts_as_paranoid

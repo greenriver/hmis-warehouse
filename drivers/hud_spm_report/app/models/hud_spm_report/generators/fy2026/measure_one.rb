@@ -57,8 +57,8 @@ module HudSpmReport::Generators::Fy2026
       prepare_table(
         table_name,
         {
-          1 => 'Persons in ES-EE, ES-NbN, and SH',
-          2 => 'Persons in ES-EE, ES-NbN, SH, and TH',
+          2 => 'Persons in ES-EE, ES-NbN, and SH',
+          3 => 'Persons in ES-EE, ES-NbN, SH, and TH',
         },
         COLUMNS,
         external_row_label: true,
@@ -72,17 +72,17 @@ module HudSpmReport::Generators::Fy2026
 
       cell_universe = @report.universe(:m1a1).members
       persons, mean, median = compute_row(cell_universe)
-      answer = @report.answer(question: table_name, cell: :B1)
+      answer = @report.answer(question: table_name, cell: :B2)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
       # puts 'M1A B1'
       # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
       # write_detail(answer)
-      answer = @report.answer(question: table_name, cell: :D1)
+      answer = @report.answer(question: table_name, cell: :D2)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
       # write_detail(answer)
-      answer = @report.answer(question: table_name, cell: :G1)
+      answer = @report.answer(question: table_name, cell: :G2)
       answer.add_members(cell_universe)
       answer.update(summary: median)
       # write_detail(answer)
@@ -97,13 +97,13 @@ module HudSpmReport::Generators::Fy2026
 
       cell_universe = @report.universe(:m1a2).members
       persons, mean, median = compute_row(cell_universe)
-      answer = @report.answer(question: table_name, cell: :B2)
+      answer = @report.answer(question: table_name, cell: :B3)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
-      answer = @report.answer(question: table_name, cell: :D2)
+      answer = @report.answer(question: table_name, cell: :D3)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
-      answer = @report.answer(question: table_name, cell: :G2)
+      answer = @report.answer(question: table_name, cell: :G3)
       answer.add_members(cell_universe)
       answer.update(summary: median)
     end
@@ -112,8 +112,8 @@ module HudSpmReport::Generators::Fy2026
       prepare_table(
         table_name,
         {
-          1 => 'Persons in ES-EE, ES-NbN, SH, and PH',
-          2 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
+          2 => 'Persons in ES-EE, ES-NbN, SH, and PH',
+          3 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
         },
         COLUMNS,
         external_row_label: true,
@@ -130,16 +130,16 @@ module HudSpmReport::Generators::Fy2026
 
       cell_universe = @report.universe(:m1b1).members
       persons, mean, median = compute_row(cell_universe)
-      answer = @report.answer(question: table_name, cell: :B1)
+      answer = @report.answer(question: table_name, cell: :B2)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
       # puts 'M1B B1'
       # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
       # write_detail(answer)
-      answer = @report.answer(question: table_name, cell: :D1)
+      answer = @report.answer(question: table_name, cell: :D2)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
-      answer = @report.answer(question: table_name, cell: :G1)
+      answer = @report.answer(question: table_name, cell: :G2)
       answer.add_members(cell_universe)
       answer.update(summary: median)
 
@@ -154,15 +154,15 @@ module HudSpmReport::Generators::Fy2026
 
       cell_universe = @report.universe(:m1b2).members
       persons, mean, median = compute_row(cell_universe)
-      answer = @report.answer(question: table_name, cell: :B2)
+      answer = @report.answer(question: table_name, cell: :B3)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
       # puts 'M1B B2'
       # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
-      answer = @report.answer(question: table_name, cell: :D2)
+      answer = @report.answer(question: table_name, cell: :D3)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
-      answer = @report.answer(question: table_name, cell: :G2)
+      answer = @report.answer(question: table_name, cell: :G3)
       answer.add_members(cell_universe)
       answer.update(summary: median)
     end

@@ -44,7 +44,12 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
                 {
                   'score' => 8,
                   'metadata' => { 'alt_aha_flag' => 0 },
-                  'generator' => 'test_generator',
+                  'generator' => 'AHA',
+                },
+                {
+                  'score' => 10,
+                  'metadata' => { 'alt_aha_flag' => 0 },
+                  'generator' => 'MH-AHA',
                 },
               ],
             },
@@ -55,7 +60,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', { 'dw_client_id__dw_client_id__includes': mci_unique_id.value }).and_return(mock_response)
     end
 
-    it 'calls API with single MCI ID' do
+    it 'calls API and returns the highest AHA score, disregarding other generators' do
       result = aha.fetch_score(client)
       expect(result.score).to eq(8)
       expect(result.dw_client_id).to eq(mci_unique_id.value)
@@ -91,7 +96,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
                 {
                   'score' => 6,
                   'metadata' => { 'alt_aha_flag' => 0 },
-                  'generator' => 'test_generator',
+                  'generator' => 'AHA',
                 },
               ],
             },
@@ -101,7 +106,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
                 {
                   'score' => 9,
                   'metadata' => { 'alt_aha_flag' => 1 },
-                  'generator' => 'test_generator',
+                  'generator' => 'AHA',
                 },
               ],
             },

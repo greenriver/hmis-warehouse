@@ -747,7 +747,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # If we can't determine if we can see this in HMIS, just go ahead and show the link,
     # HMIS will handle access
     return url if perms.blank?
-    # If we can see this in HMIS, don't bother linking to it
+    # If we can't see this in HMIS, don't bother linking to it
     return nil unless hmis_user.permissions_for?(hmis_entity, *perms, mode: :all)
 
     url

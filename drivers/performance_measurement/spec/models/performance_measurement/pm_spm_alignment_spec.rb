@@ -126,7 +126,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'has the same average length of time homeless in both reports' do
       # SPM report average LOT homeless
-      spm_average = @spm_report.answer(question: '1a', cell: 'D2').summary
+      spm_average = @spm_report.answer(question: '1a', cell: 'D3').summary
 
       # PM report average LOT homeless
       pm_result = @pm_report.result_for(:length_of_homeless_time_homeless_average)
@@ -141,7 +141,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'has the same median length of time homeless in both reports' do
       # SPM report median LOT homeless
-      spm_median = @spm_report.answer(question: '1a', cell: 'G2').summary
+      spm_median = @spm_report.answer(question: '1a', cell: 'G3').summary
 
       # PM report median LOT homeless
       pm_result = @pm_report.result_for(:length_of_homeless_time_homeless_median)
@@ -156,7 +156,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'has the same client count in both reports' do
       # SPM report universe count
-      spm_client_count = @spm_report.answer(question: '1a', cell: 'B2').summary
+      spm_client_count = @spm_report.answer(question: '1a', cell: 'B3').summary
 
       # PM report client count
       pm_client_count = @pm_report.clients.count

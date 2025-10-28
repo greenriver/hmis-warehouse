@@ -40,9 +40,7 @@ module Mutations
 
       unit_group = unit.unit_group
       raise 'Unit must be in a Unit Group to be marked available' unless unit_group
-
-      workflow_template = unit_group.workflow_template
-      raise 'Unit Group has no Workflow Template' unless workflow_template
+      raise 'Unit Group has no Workflow Template' unless unit_group.workflow_template || unit_group.direct_referral_workflow_template
 
       unit_desc = unit.unit_type&.description
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
@@ -51,7 +49,6 @@ module Mutations
         unit: unit,
         project: unit.project,
         name: opportunity_name,
-        workflow_template_identifier: workflow_template.identifier,
         candidate_pool_id: unit_group.candidate_pool_id,
         assignment_rules: rule_resolver.rules_for_unit_group(unit_group).map(&:attributes),
       )

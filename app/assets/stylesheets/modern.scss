@@ -1,0 +1,53 @@
+// Asset Checksum Version Bump: 2
+// Use 'require' here to cut down on css reloading time.
+// Individual module files should @import 'helpers' at the top of the file
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Main Application Stylesheet
+//
+// This file is the primary entry point for the application's CSS.
+// It imports all necessary styles in a specific order.
+//
+// Order of imports:
+// 1. The application setup file (variables, functions, mixins). This outputs
+//    NO CSS but prepares all our tools.
+// 2. The full Bootstrap 5 framework, customized via our variables.
+// 3. All our custom components, layouts, and overrides.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// 1. Application Setup (Variables, Functions, Mixins)
+@import 'application/helpers';
+
+// 2. Vendor Libraries (Bootstrap is now the main one)
+@import 'application/vendor/bootstrap/index'; // This will now compile Bootstrap 5 CSS
+
+// NOTE: as this file is now type scss, we cannot use require, or require_tree, we need to use @import
+@import 'select2/dist/css/select2.min';
+@import 'select2-bootstrap';
+@import 'billboard.js/dist/billboard.min.css';
+@import 'jquery-ui/sortable';
+@import 'jquery-ui/slider';
+@import 'jquery-ui/autocomplete';
+@import 'leaflet/dist/leaflet';
+@import 'leaflet.markercluster/dist/MarkerCluster';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default';
+@import 'beautifymarker/leaflet-beautify-marker-icon';
+@import 'ag-grid-community/styles/ag-theme-balham.min.css';
+@import 'jquery.minicolors';
+
+// require datatables.net-bs5/css/dataTables.bootstrap5
+@import 'datatables_bootstrap';
+@import 'application/vendor/icons';
+@import '@eonasdan/tempus-dominus/dist/css/tempus-dominus';
+
+// 3. Application-specific Styles
+// Import all your components, layouts, pages, etc. in an explicit order.
+// This replaces `require_tree`. You will need to list your subdirectories here.
+@import 'modern/application/base/**/*';
+// @import 'application/elements/**/*';
+// @import 'application/objects/**/*';
+// @import 'application/components/**/*';
+// @import 'application/layouts/**/*';
+// @import 'application/modules/**/*';
+// @import 'application/overrides/**/*';
+// @import 'application/utilities/**/*';

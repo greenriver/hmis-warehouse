@@ -8,6 +8,8 @@
 module HmisExternalApis::ExternalForms
   class FormPublication < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_publications'
+    has_paper_trail
+
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
   end
 end

@@ -29,17 +29,19 @@
             - headers.each_value do |header|
               %th= header[:title]
         %tbody
+          - current_user.policy_context.preload_project_dependencies(@items.pluck(:project_id).uniq)
           - @items.each.with_index do |item, i|
+            - pii_policy = current_user.reporting_policy_for_project(project_id: item.project_id)
             %tr
               %th.table-dark= i + 1
               - data_source_link_available = item.data_source.present? && item.data_source.hmis_link_available?
               - headers.each_key do |k|
                 -# - value = item.public_send(k)
-                - value = item.download_value(k)
+                - value = item.download_value(k, pii_policy: pii_policy)
                 - formatted_value = formatted_cell(value)
                 %td
                   - if k.to_s == 'destination_client_id'
-                    = link_to appropriate_client_path(item[k]) do
+                    = link_to_if @report.can_see_client_details?(current_user), appropriate_client_path(item[k]) do
                       = value
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
                       %i.icon-info
