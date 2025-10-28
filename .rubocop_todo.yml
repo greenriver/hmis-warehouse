@@ -3210,7 +3210,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/app/graphql/mutations/delete_enrollment.rb'
     - 'drivers/hmis/app/graphql/mutations/delete_external_form_submission.rb'
     - 'drivers/hmis/app/graphql/mutations/delete_form_definition.rb'
-    - 'drivers/hmis/app/graphql/mutations/delete_form_rule.rb'
     - 'drivers/hmis/app/graphql/mutations/delete_funder.rb'
     - 'drivers/hmis/app/graphql/mutations/delete_hmis_participation.rb'
     - 'drivers/hmis/app/graphql/mutations/delete_inventory.rb'

@@ -19,7 +19,8 @@ module Mutations
 
       access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
 
-      instance.update!(active: false)
+      instance.active = false
+      instance.save!(validate: false) # skip validation to support removing an invalid instance
 
       { form_rule: instance }
     end
