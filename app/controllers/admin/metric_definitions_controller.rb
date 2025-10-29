@@ -15,7 +15,7 @@ module Admin
       # Ensure definitions are up-to-date
       GrdaWarehouse::Monitoring::MetricDefinition.maintain!
       # Ensure alert definitions are seeded
-      GrdaWarehouse::AlertDefinition.seed_initial_definitions
+      GrdaWarehouse::AlertDefinition.maintain!
 
       @metric_definitions = metric_definition_scope.
         order(:category, :name)

@@ -372,7 +372,7 @@ Implemented notification system that sends alerts when clients cross metric thre
 - Updated `app/models/grda_warehouse/alert_definition.rb`
   - Added `metric_days_homeless_threshold` alert
   - Added `metric_household_size_threshold` alert
-  - Fixed `seed_initial_definitions` to exclude `visibility_check` from database assignment
+  - Fixed `maintain!` to exclude `visibility_check` from database assignment
   - Visibility checks ensure alerts only show when corresponding metrics are active
 
 **Job:**
@@ -417,12 +417,12 @@ Implemented notification system that sends alerts when clients cross metric thre
 
 **Admin UI:**
 - Updated `app/controllers/admin/metric_definitions_controller.rb`
-  - Calls `AlertDefinition.seed_initial_definitions` on index
+  - Calls `AlertDefinition.maintain!` on index
   - Ensures alert definitions are seeded when admins view metrics
 - Alert subscriptions appear automatically in user edit form under "System Notifications"
 
 **Bug Fixes:**
-- Fixed `AlertDefinition.seed_initial_definitions` to exclude `visibility_check` (not a column)
+- Fixed `AlertDefinition.maintain!` to exclude `visibility_check` (not a column)
 - Fixed `MetricSnapshot` table name configuration (explicitly set to `'metric_snapshots'`)
 - Fixed `GrdaWarehouseBase.connection` usage (was `ActiveRecord::Base.connection`)
 - Fixed metric definition factory to use valid category (`'client_services'`)
@@ -583,7 +583,7 @@ The system has been successfully deployed and run with production data:
 - Handles large result sets (limits to 50 clients per email with truncation notice)
 
 **Bug Fixes:**
-- Fixed `AlertDefinition.seed_initial_definitions` to exclude non-column attributes
+- Fixed `AlertDefinition.maintain!` to exclude non-column attributes
 - Fixed `MetricSnapshot` table name configuration for partitioned table
 - Fixed database connection usage for warehouse database
 - Fixed metric definition factory for test compatibility

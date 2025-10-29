@@ -54,7 +54,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
     #
     # First, ensure metric definitions and alert definitions are seeded
     # GrdaWarehouse::Monitoring::MetricDefinition.maintain!
-    # GrdaWarehouse::AlertDefinition.seed_initial_definitions
+    # GrdaWarehouse::AlertDefinition.maintain!
     #
     # Generate fake data
     # stats = GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator.generate_fake_data!(num_clients: 50, days_back: 90)

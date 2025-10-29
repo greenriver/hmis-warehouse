@@ -187,7 +187,7 @@ RSpec.describe NotifyUser, type: :mailer do
   describe 'when metric threshold crossed' do
     before do
       # Seed alert definitions for metric threshold tests
-      GrdaWarehouse::AlertDefinition.seed_initial_definitions
+      GrdaWarehouse::AlertDefinition.maintain!
     end
 
     let(:calculation_date) { Date.current }

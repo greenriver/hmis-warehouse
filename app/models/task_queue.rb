@@ -92,7 +92,7 @@ class TaskQueue < ApplicationRecord
 
     # Migrate existing user notification preferences to alert subscriptions
     config.queued_tasks[:migrate_user_notification_preferences] = -> do
-      GrdaWarehouse::AlertDefinition.seed_initial_definitions
+      GrdaWarehouse::AlertDefinition.maintain!
       GrdaWarehouse::ContactAlertSubscription.migrate_user_notification_preferences!
     end
 
