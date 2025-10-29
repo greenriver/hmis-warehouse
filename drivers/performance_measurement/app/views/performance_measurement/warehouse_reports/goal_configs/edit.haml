@@ -18,6 +18,8 @@
         = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs(current_user), as: :select_two, include_blank: 'Default'
         = f.input :label, hint: 'Provide a short note about this particular goal'
         = f.input :active, as: :pretty_boolean, label: 'Active Goal?', hint: 'If this box is checked, future reports will run against this goal configuration.'
+      .col-sm-6
+        = f.input :approaching_threshold_percent, label: 'Approaching Threshold (%)', hint: 'This is only used on the "Provider Comparisons" tab.Percent distance from the goal to still mark as approaching (yellow). Blank indicates only red and green will be displayed.'
     .d-flex
       .ml-auto.mt-4= f.submit 'Update Goal', class: 'btn btn-primary'
   %h2 PIT Counts
