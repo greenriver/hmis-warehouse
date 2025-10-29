@@ -17,7 +17,9 @@ module Mutations
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
       engine = referral.workflow_engine
-      step = engine.active_steps.find(step_id)
+      step = Hmis::WorkflowExecution::Step.find(step_id)
+      raise 'step not found' unless engine.active_steps.include?(step)
+
       access_denied! unless policy_for(referral, policy_type: :ce_referral).can_perform?(step: step)
 
       referral.opportunity.with_lock do
