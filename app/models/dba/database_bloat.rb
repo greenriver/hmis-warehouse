@@ -152,10 +152,16 @@ class Dba::DatabaseBloat
         escaped_database = Shellwords.escape(database)
         escaped_host = Shellwords.escape(host)
         escaped_port = Shellwords.escape(port)
-        escaped_schema = Shellwords.escape(row['schemaname'])
-        escaped_table = Shellwords.escape(row['tblname'])
 
-        options = "--no-superuser-check -U #{escaped_username} -d #{escaped_database} -h #{escaped_host} -p #{escaped_port} -t #{escaped_schema}.#{escaped_table}"
+        # Quote PostgreSQL identifiers properly (double quotes for mixed case)
+        quoted_schema = quote_pg_identifier(row['schemaname'])
+        quoted_table = quote_pg_identifier(row['tblname'])
+
+        # Shell escape the quoted identifiers
+        escaped_quoted_schema = Shellwords.escape(quoted_schema)
+        escaped_quoted_table = Shellwords.escape(quoted_table)
+
+        options = "--no-superuser-check -U #{escaped_username} -d #{escaped_database} -h #{escaped_host} -p #{escaped_port} -t #{escaped_quoted_schema}.#{escaped_quoted_table}"
 
         # In order to support multiple versions of pg_repack, we need to use the version-specific binary
         # Use bash's 'exec -a' to override argv[0] (the program name) to avoid version mismatch errors
@@ -231,6 +237,20 @@ class Dba::DatabaseBloat
     result = always_run(sql)
     row = result.first
     row && row['extversion']
+  end
+
+  # Quote PostgreSQL identifiers that need it (mixed case, special characters, etc.)
+  # @param identifier [String] The identifier to quote
+  # @return [String] The properly quoted identifier
+  def quote_pg_identifier(identifier)
+    # PostgreSQL identifiers need quoting if they contain uppercase letters,
+    # start with a digit, or contain special characters
+    if identifier =~ /[^a-z_]/ || identifier =~ /^[0-9]/
+      # Double any existing double quotes and wrap in double quotes
+      '"' + identifier.gsub('"', '""') + '"'
+    else
+      identifier
+    end
   end
 
   # for finding bloat, etc. Harmless things only
