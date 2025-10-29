@@ -393,7 +393,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         end
         it 'includes clients without open referrals to PH (9) projects' do
           results = generate_candidates(pool)
-          expect(results).to contain_exactly(*clients_not_referred_to_ph.map { |c| c.destination_client.id })
+          expect(results).to eq(clients_not_referred_to_ph.map { |c| c.destination_client.id }.sort)
         end
       end
     end
