@@ -124,23 +124,359 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
 
   describe '.threshold_crossings_for_alerts' do
     let(:calculation_date) { Date.current }
+    let(:metric_with_alert) do
+      create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'days_homeless_last_three_years',
+        display_name: 'Days Homeless (Last 3 Years)',
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator',
+        active: true,
+      )
+    end
+    let(:metric_without_alert) do
+      create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'test_metric_no_alert',
+        display_name: 'Test Metric No Alert',
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator',
+        active: true,
+      )
+    end
+    let(:client1) { create(:grda_warehouse_hud_client) }
+    let(:client2) { create(:grda_warehouse_hud_client) }
 
     it 'returns a hash structure with alert codes as keys' do
-      # This is a smoke test - detailed logic is tested via integration tests
       result = described_class.threshold_crossings_for_alerts(calculation_date)
       expect(result).to be_a(Hash)
     end
 
-    # Note: Detailed unit tests for threshold_crossings_for_alerts are complex due to:
-    # - Database timestamp handling
-    # - Query interactions with created_at vs observation dates
-    # - Alert code lookups via calculator classes
-    #
-    # The core logic is thoroughly tested via:
-    # - Integration tests in metric_snapshot_collector_spec (end-to-end flow)
-    # - Functional tests in notify_user_spec (mailer with various scenarios)
-    #
-    # If more detailed unit tests are needed, they should use time-freezing and
-    # explicit timestamp control to ensure predictable test data setup.
+    it 'only includes metrics with alert codes' do
+      # Metric without alert code should be skipped
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_without_alert,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 100,
+        current_value: 100,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      expect(result).to be_empty
+    end
+
+    it 'filters snapshots by initial_observation_date matching calculation_date' do
+      # Prior snapshot - establishes baseline
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 100,
+        current_value: 100,
+      )
+
+      # Crossing on calculation_date
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 150,
+        current_value: 150,
+      )
+
+      # Crossing on different date - should be excluded
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client2,
+        initial_observation_date: calculation_date + 1.day,
+        current_observation_date: calculation_date + 1.day,
+        initial_value: 200,
+        current_value: 200,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+
+      expect(result['metric_days_homeless_threshold']).to be_present
+      crossings = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)'][:data]
+      expect(crossings.length).to eq(1)
+      expect(crossings.first[:entity_id]).to eq(client1.id)
+    end
+
+    it 'excludes first-time observations with no prior snapshots' do
+      # First snapshot for this entity - should be excluded as there is no baseline
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 150,
+        current_value: 150,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      expect(result).to be_empty
+    end
+
+    it 'includes previous value from prior snapshot' do
+      # Prior snapshot
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 100,
+        current_value: 120,
+      )
+
+      # Current snapshot crossing threshold
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 160,
+        current_value: 160,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      crossing = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)'][:data].first
+
+      expect(crossing[:current_value]).to eq(160)
+      expect(crossing[:previous_value]).to eq(120)
+    end
+
+    it 'groups crossings by alert code' do
+      # Create two metrics sharing the same alert code
+      household_min = create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'min_household_size',
+        display_name: 'Minimum Household Size',
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator',
+        active: true,
+      )
+
+      household_max = create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'max_household_size',
+        display_name: 'Maximum Household Size',
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::MaxHouseholdSizeCalculator',
+        active: true,
+      )
+
+      # Prior snapshots
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: household_min,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 2,
+        current_value: 2,
+      )
+
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: household_max,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 4,
+        current_value: 4,
+      )
+
+      # Current snapshots crossing threshold
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: household_min,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 1,
+        current_value: 1,
+      )
+
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: household_max,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 6,
+        current_value: 6,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+
+      # Both metrics should be under the same alert code
+      expect(result['metric_household_size_threshold']).to be_present
+      expect(result['metric_household_size_threshold'].keys).to contain_exactly(
+        'Minimum Household Size',
+        'Maximum Household Size',
+      )
+    end
+
+    it 'limits results to 50 per metric and marks as truncated' do
+      # Create prior snapshot
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 100,
+        current_value: 100,
+      )
+
+      # Create 55 clients with threshold crossings
+      clients = create_list(:grda_warehouse_hud_client, 55)
+      clients.each do |client|
+        # Prior snapshot
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          metric_definition: metric_with_alert,
+          entity: client,
+          initial_observation_date: calculation_date - 5.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+
+        # Crossing snapshot
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          metric_definition: metric_with_alert,
+          entity: client,
+          initial_observation_date: calculation_date,
+          current_observation_date: calculation_date,
+          initial_value: 150,
+          current_value: 150,
+        )
+      end
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      metric_data = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)']
+
+      expect(metric_data[:total_count]).to eq(55)
+      expect(metric_data[:data].length).to eq(50)
+      expect(metric_data[:truncated]).to be true
+    end
+
+    it 'does not truncate when results are under the limit' do
+      # Create prior snapshots for 3 clients
+      3.times do
+        client = create(:grda_warehouse_hud_client)
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          metric_definition: metric_with_alert,
+          entity: client,
+          initial_observation_date: calculation_date - 5.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          metric_definition: metric_with_alert,
+          entity: client,
+          initial_observation_date: calculation_date,
+          current_observation_date: calculation_date,
+          initial_value: 150,
+          current_value: 150,
+        )
+      end
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      metric_data = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)']
+
+      expect(metric_data[:total_count]).to eq(3)
+      expect(metric_data[:data].length).to eq(3)
+      expect(metric_data[:truncated]).to be false
+    end
+
+    it 'only includes active metrics' do
+      inactive_metric = create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'inactive_metric',
+        display_name: 'Inactive Metric',
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator',
+        active: false,
+      )
+
+      # Prior snapshot
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: inactive_metric,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 100,
+        current_value: 100,
+      )
+
+      # Crossing snapshot
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: inactive_metric,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 150,
+        current_value: 150,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      expect(result).to be_empty
+    end
+
+    it 'handles multiple crossings for the same entity/metric correctly' do
+      # First crossing period
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date - 10.days,
+        current_observation_date: calculation_date - 6.days,
+        initial_value: 100,
+        current_value: 100,
+      )
+
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 150,
+        current_value: 150,
+      )
+
+      # Another crossing on calculation_date
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 200,
+        current_value: 200,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      crossings = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)'][:data]
+
+      expect(crossings.length).to eq(1)
+      expect(crossings.first[:current_value]).to eq(200)
+      expect(crossings.first[:previous_value]).to eq(150)
+    end
   end
 end
