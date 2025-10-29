@@ -128,26 +128,46 @@ module GrdaWarehouse::Monitoring
       active.each do |metric|
         next unless metric.alert_code # Skip metrics without alert codes
 
-        # Get all snapshots created on this date for this metric
-        snapshots = metric.metric_snapshots.
-          where(created_at: calculation_date.beginning_of_day..calculation_date.end_of_day)
+        # Get all snapshots where the threshold crossing occurred on this date
+        current_snapshots = metric.metric_snapshots.
+          where(initial_observation_date: calculation_date).
+          order(:entity_id, :id).
+          to_a
 
+        next if current_snapshots.empty?
+
+        # Get all entity_ids that have crossings
+        entity_ids = current_snapshots.map(&:entity_id).uniq
+
+        # Load all snapshots for these entities in one query to avoid N+1
+        # We need all snapshots to find the previous one for each current snapshot
+        all_snapshots_for_entities = metric.metric_snapshots.
+          where(entity_type: metric.entity_type, entity_id: entity_ids).
+          order(:entity_id, :id).
+          to_a
+
+        # Group snapshots by entity_id for efficient lookup
+        snapshots_by_entity = all_snapshots_for_entities.group_by(&:entity_id)
+
+        # Build crossings array by finding previous snapshot for each current snapshot
         crossings = []
-        snapshots.find_each do |snapshot|
-          # Find previous snapshot for this entity to exclude initial observations
-          previous_snapshot = metric.metric_snapshots.
-            where(entity_type: snapshot.entity_type, entity_id: snapshot.entity_id).
-            where(id: ..snapshot.id).
-            order(created_at: :desc).
-            second # Get second result (first is current snapshot)
+        current_snapshots.each do |snapshot|
+          entity_snapshots = snapshots_by_entity[snapshot.entity_id] || []
 
-          next unless previous_snapshot # Skip if this is the initial observation
+          # Find the index of current snapshot in the entity's snapshot list
+          snapshot_index = entity_snapshots.index { |s| s.id == snapshot.id }
+
+          # Skip if this is the first snapshot (no previous snapshot exists)
+          next unless snapshot_index && snapshot_index > 0
+
+          # Get the previous snapshot
+          previous_snapshot = entity_snapshots[snapshot_index - 1]
 
           # Add crossing data
           crossings << {
             entity_id: snapshot.entity_id,
-            current_value: snapshot.value,
-            previous_value: previous_snapshot.value,
+            current_value: snapshot.initial_value,
+            previous_value: previous_snapshot.current_value,
           }
         end
 

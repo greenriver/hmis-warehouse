@@ -323,6 +323,7 @@ module GrdaWarehouse::Monitoring::Tasks
       # Build bulk UPDATE using natural composite key
       # We use the natural key (entity_type, entity_id, metric_definition_id, initial_observation_date)
       # along with the OLD current_observation_date to match existing records
+      conn = GrdaWarehouseBase.connection
       updated_at = Time.current.strftime('%Y-%m-%d %H:%M:%S')
 
       # Create VALUES rows for bulk update using natural key
@@ -332,9 +333,18 @@ module GrdaWarehouse::Monitoring::Tasks
         original_date = s.instance_variable_get(:@original_current_observation_date)
         original_date_str = original_date.strftime('%Y-%m-%d')
 
-        "('#{s.entity_type}', #{s.entity_id}, #{s.metric_definition_id}, " \
-          "'#{s.initial_observation_date.strftime('%Y-%m-%d')}', '#{original_date_str}', " \
-          "#{s.current_value}, '#{s.current_observation_date.strftime('%Y-%m-%d')}')"
+        # Use proper SQL escaping for all values
+        entity_type = conn.quote(s.entity_type)
+        entity_id = s.entity_id.to_i
+        metric_definition_id = s.metric_definition_id.to_i
+        initial_observation_date = conn.quote(s.initial_observation_date.strftime('%Y-%m-%d'))
+        old_current_observation_date = conn.quote(original_date_str)
+        new_current_value = s.current_value.to_i
+        new_current_observation_date = conn.quote(s.current_observation_date.strftime('%Y-%m-%d'))
+
+        "(#{entity_type}, #{entity_id}, #{metric_definition_id}, " \
+          "#{initial_observation_date}, #{old_current_observation_date}, " \
+          "#{new_current_value}, #{new_current_observation_date})"
       end.join(',')
 
       sql = <<~SQL
@@ -342,7 +352,7 @@ module GrdaWarehouse::Monitoring::Tasks
         SET
           current_value = v.new_current_value::integer,
           current_observation_date = v.new_current_observation_date::date,
-          updated_at = '#{updated_at}'
+          updated_at = #{conn.quote(updated_at)}
         FROM (VALUES #{values_list}) AS v(
           entity_type, entity_id, metric_definition_id, initial_observation_date,
           old_current_observation_date, new_current_value, new_current_observation_date
@@ -354,7 +364,7 @@ module GrdaWarehouse::Monitoring::Tasks
           AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.current_observation_date = v.old_current_observation_date::date
       SQL
 
-      GrdaWarehouseBase.connection.execute(sql)
+      conn.execute(sql)
     end
 
     def cleanup_old_snapshots

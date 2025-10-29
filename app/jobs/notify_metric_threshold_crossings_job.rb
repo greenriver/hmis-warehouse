@@ -19,17 +19,26 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
 
     # For each alert code, send notifications to subscribed users
     crossings_by_alert.each do |alert_code, crossings_by_metric|
-      # Find the alert definition
+      # Find the alert definition (warehouse database)
       alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
       next unless alert_definition
 
-      # Get all users subscribed to this alert
-      subscribed_users = User.active.joins(system_contact: :contact_alert_subscriptions).
-        where(
-          grda_warehouse_contact_alert_subscriptions: {
-            alert_definition_id: alert_definition.id,
-          },
-        ).distinct
+      # Get user IDs from contact_alert_subscriptions (warehouse database)
+      contact_ids = GrdaWarehouse::ContactAlertSubscription.
+        where(alert_definition_id: alert_definition.id).
+        pluck(:contact_id)
+
+      next if contact_ids.empty?
+
+      # Get user IDs from contacts (warehouse database)
+      user_ids = GrdaWarehouse::Contact::User.
+        where(id: contact_ids).
+        pluck(:user_id)
+
+      next if user_ids.empty?
+
+      # Get active users (app database)
+      subscribed_users = User.active.where(id: user_ids)
 
       # Send notification to each subscribed user
       subscribed_users.find_each do |user|
