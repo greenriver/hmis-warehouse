@@ -284,7 +284,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -7263,7 +7263,6 @@ CREATE TABLE public.ce_opportunities (
     id bigint NOT NULL,
     candidate_pool_id bigint,
     project_id bigint NOT NULL,
-    workflow_template_identifier character varying,
     name character varying NOT NULL,
     status character varying NOT NULL,
     expires_at timestamp(6) without time zone,
@@ -81740,6 +81739,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251020142304'),
 ('20251020142047'),
 ('20251020141816'),
+('20251016185810'),
 ('20251016184716'),
 ('20251014152145'),
 ('20251010182635'),
@@ -81971,4 +81971,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-
