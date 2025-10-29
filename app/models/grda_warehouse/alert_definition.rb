@@ -32,7 +32,7 @@ module GrdaWarehouse
       [:visibility_check, :email_subject]
     end
 
-    def self.maintain
+    def self.maintain!
       initial_definitions.each do |attrs|
         find_or_create_by!(code: attrs[:code]) do |definition|
           definition.assign_attributes(attrs.except(*non_database_attributes))
