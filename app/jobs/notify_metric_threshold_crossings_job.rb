@@ -38,7 +38,7 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
           alert_code: alert_code,
           crossings: crossings_by_metric,
           calculation_date: calculation_date,
-        ).deliver_later
+        ).deliver_now
       end
     end
   end

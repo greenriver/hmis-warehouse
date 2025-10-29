@@ -8,7 +8,7 @@
 
 module Admin
   class MetricDefinitionsController < ApplicationController
-    before_action :require_can_edit_warehouse_alerts! # TODO: Update permission
+    before_action :require_can_edit_warehouse_alerts!
     before_action :load_metric_definition, only: [:show, :edit, :update]
 
     def index

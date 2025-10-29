@@ -264,14 +264,8 @@ class NotifyUser < DatabaseMailer
     @calculation_date = calculation_date
     @alert_code = alert_code
 
-    subject = case alert_code
-    when 'metric_days_homeless_threshold'
-      'Client Metric Alert: Days Homeless Threshold Crossed'
-    when 'metric_household_size_threshold'
-      'Client Metric Alert: Household Size Threshold Crossed'
-    else
-      'Client Metric Alert: Threshold Crossed'
-    end
+    alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
+    subject = alert_definition&.email_subject || 'Client Metric Alert: Threshold Crossed'
 
     mail(to: @user.email, subject: subject)
   end

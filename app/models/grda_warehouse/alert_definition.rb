@@ -27,11 +27,15 @@ module GrdaWarehouse
     scope :by_category, ->(category) { where(category: category) }
     scope :system_alerts, -> { by_category('system') }
 
+    # Attributes in initial_definitions that are not database columns
+    def self.non_database_attributes
+      [:visibility_check, :email_subject]
+    end
+
     def self.seed_initial_definitions
       initial_definitions.each do |attrs|
         find_or_create_by!(code: attrs[:code]) do |definition|
-          # visibility_check is not a database column, exclude it from assignment
-          definition.assign_attributes(attrs.except(:visibility_check))
+          definition.assign_attributes(attrs.except(*non_database_attributes))
         end
       end
     end
@@ -83,6 +87,7 @@ module GrdaWarehouse
         {
           code: 'metric_days_homeless_threshold',
           name: 'Days Homeless Threshold Crossed',
+          email_subject: 'Client Metric Alert: Days Homeless Threshold Crossed',
           category: 'system',
           description: 'Notification when clients cross the threshold for days homeless in the last 3 years',
           visibility_check: ->(_user) { GrdaWarehouse::Monitoring::MetricDefinition.active.exists?(name: 'days_homeless_last_three_years') },
@@ -90,6 +95,7 @@ module GrdaWarehouse
         {
           code: 'metric_household_size_threshold',
           name: 'Household Size Threshold Crossed',
+          email_subject: 'Client Metric Alert: Household Size Threshold Crossed',
           category: 'system',
           description: 'Notification when clients cross the threshold for household size changes',
           visibility_check: lambda do |_user|
@@ -115,6 +121,12 @@ module GrdaWarehouse
       return true unless definition&.key?(:visibility_check)
 
       definition[:visibility_check].call(user)
+    end
+
+    # Get email subject for this alert type
+    def email_subject
+      definition = self.class.initial_definitions.find { |d| d[:code] == code }
+      definition&.dig(:email_subject) || "Alert: #{name}"
     end
 
     def subscribed_users

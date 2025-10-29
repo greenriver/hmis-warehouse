@@ -49,6 +49,11 @@ module GrdaWarehouse::Monitoring
       ]
     end
 
+    # Attributes in metric_definition_attributes that are not database columns
+    def self.non_database_attributes
+      [:alert_code]
+    end
+
     # Initialize default metric definitions
     # Called once via TaskQueue to populate the table
     def self.maintain!
@@ -58,8 +63,7 @@ module GrdaWarehouse::Monitoring
           name: attrs[:name],
           entity_type: attrs[:entity_type],
         ) do |metric|
-          # alert_code is not a database column, exclude it from assignment
-          metric.assign_attributes(attrs.except(:alert_code))
+          metric.assign_attributes(attrs.except(*non_database_attributes))
         end
       end
     end
