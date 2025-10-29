@@ -29,12 +29,12 @@ module Mutations
 
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
-        step = engine.active_steps.find_by(id: step_id)
-
-        errors.add :step_id, :invalid, full_message: HmisErrors::ApiError::STALE_OBJECT_ERROR unless step.present?
-        return { errors: errors } if errors.any?
-
+        step = engine.instance.steps.find_by(id: step_id)
+        access_denied! unless step.present?
         access_denied! unless policy_for(referral, policy_type: :ce_referral).can_perform?(step: step)
+
+        errors.add :step_id, :invalid, full_message: HmisErrors::ApiError::STALE_OBJECT_ERROR unless step.in_progress?
+        return { errors: errors } if errors.any?
 
         step.form_definition = form_definition
 
