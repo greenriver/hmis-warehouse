@@ -89,6 +89,13 @@ RSpec.shared_context 'SystemSpecHelper' do
     choices
   end
 
+  def mui_clear_select(from:)
+    label = find('label', text: from)
+    scroll_to(label, align: :center)
+    input_id = label['for']
+    find("[id='#{input_id}'] + div > button[aria-label='Clear']", visible: :all).trigger(:click)
+  end
+
   def mui_select_value_for(select_label)
     label = find('label', text: select_label)
     id = label['for']
