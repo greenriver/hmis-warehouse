@@ -3300,7 +3300,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/app/models/hmis/base_access_loader.rb'
     - 'drivers/hmis/app/models/hmis/ch_enrollment.rb'
     - 'drivers/hmis/app/models/hmis/client_alert.rb'
-    - 'drivers/hmis/app/models/hmis/client_merge_audit.rb'
     - 'drivers/hmis/app/models/hmis/client_merge_history.rb'
     - 'drivers/hmis/app/models/hmis/data_source_access_loader.rb'
     - 'drivers/hmis/app/models/hmis/enrollment_assessment_eligibility_list.rb'
