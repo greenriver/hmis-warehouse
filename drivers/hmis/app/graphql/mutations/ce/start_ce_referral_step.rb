@@ -16,12 +16,11 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
-      step = nil
-      referral.opportunity.with_lock do
-        engine = referral.workflow_engine
-        step = engine.active_steps.find(step_id)
-        access_denied! unless policy_for(referral, policy_type: :ce_referral).can_perform?(step: step)
+      engine = referral.workflow_engine
+      step = engine.active_steps.find(step_id)
+      access_denied! unless policy_for(referral, policy_type: :ce_referral).can_perform?(step: step)
 
+      referral.opportunity.with_lock do
         # Start step. Skip if step is in progress, which indicates that someone has already started this step.
         engine.start_step!(step, user: current_user) unless step.in_progress?
       end
