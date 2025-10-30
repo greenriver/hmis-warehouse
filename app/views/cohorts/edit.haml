@@ -51,11 +51,10 @@
           %p This is a system cohort.  Clients will be added and removed based on hard-coded logic.
         - else
           = f.input :project_group_id, collection: @cohort.project_group_options_for_select(current_user), as: :select_two, include_blank: 'Manually controlled (no project group)', hint: 'If you select a project group, this cohort will always contain clients with an open enrollment at a project contained in the group.  You will not be able to add and remove clients manually.'
-          .js-automation-options
-            = f.input :automation_sub_population, collection: @cohort.available_sub_populations, as: :select, include_blank: 'All clients', label: 'Limit to sub-population'
-            = f.input :automation_hoh_only, as: :pretty_boolean, label: 'Only include Heads of Household'
-            %p.form-text.text-muted Client membership is refreshed daily. Filters are applied together (e.g. project group AND sub-population).
-      %h3 Integrations
+          = f.input :automation_sub_population, collection: @cohort.available_sub_populations, as: :select, include_blank: 'All clients', label: 'Limit to sub-population'
+          = f.input :automation_hoh_only, as: :pretty_boolean, label: 'Only include Heads of Household'
+          %p.form-text.text-muted Client membership is refreshed daily. Filters are applied together (e.g. project group AND sub-population).
+    %h3 Integrations
       .well
         = f.input :show_on_client_dashboard, as: :pretty_boolean, label: 'Show cohort in client dashboard?'
         = f.input :expose_inactive_on_client_dashboard, as: :pretty_boolean, label: 'Even show this cohort on client dashboards if the cohort has been made inactive? By default, only active cohorts will be shown on the client dashboard.'

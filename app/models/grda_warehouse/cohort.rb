@@ -610,11 +610,8 @@ module GrdaWarehouse
       auto_maintained.find_each(&:maintain)
     end
 
+    # automation filter configured?
     def auto_maintained?
-      automation_filter_configured?
-    end
-
-    def automation_filter_configured?
       project_group_id.present? || automation_sub_population.present? || automation_hoh_only
     end
 
@@ -663,9 +660,11 @@ module GrdaWarehouse
       # Note that we are using ServiceHistoryEnrollment here, but that model represents a denormalized
       # view of enrollments that makes it easy to query for clients based on a variety of criteria
       # and the resulting client_ids are for the `clients` table (GrdaWarehouse::Hud::Client)
+      # Use the :warehouse criteria set so project-scoped filters (like project groups)
+      # stay active; :client/:hud-only tags skip project filters and admit unrelated clients.
       incoming_client_ids = filter.apply_criteria(
         GrdaWarehouse::ServiceHistoryEnrollment.all,
-        tags: [:warehouse, :client, :hud],
+        tags: [:warehouse],
         report_scope_source: nil,
       ).pluck(:client_id).uniq
 
@@ -678,8 +677,11 @@ module GrdaWarehouse
     private def build_automation_filter
       filter = ::Filters::FilterBase.new
       filter.user_id = User.setup_system_user.id
-      filter.start = Date.current - 1.year
-      filter.end = Date.current + 1.year
+      # Match the historic behavior of automation: include only clients with
+      # enrollments that are open today so we don't linger closed participants.
+      today = Date.current
+      filter.start = today
+      filter.end = today
       filter.project_group_ids = [project_group_id] if project_group_id.present?
       filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
       filter.hoh_only = automation_hoh_only
