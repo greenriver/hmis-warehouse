@@ -7,10 +7,10 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :default_course, class: 'Talentlms::Course' do
-    default { true }
-    name { 'Default Course' }
+  factory :talentlms_completed_training, class: 'Talentlms::CompletedTraining' do
+    association :login, factory: :talentlms_login
     association :config, factory: :talentlms_config
-    sequence(:courseid) { |n| n }
+    association :course, factory: :default_course
+    completion_date { Date.today }
   end
 end

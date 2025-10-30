@@ -4,6 +4,8 @@ gem 'rails', '~> 7.1.0'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
 
+gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680
+
 # No longer default gems
 gem 'irb'
 gem 'reline'

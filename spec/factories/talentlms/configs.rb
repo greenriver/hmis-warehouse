@@ -7,10 +7,8 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :default_course, class: 'Talentlms::Course' do
-    default { true }
-    name { 'Default Course' }
-    association :config, factory: :talentlms_config
-    sequence(:courseid) { |n| n }
+  factory :talentlms_config, class: 'Talentlms::Config' do
+    sequence(:subdomain) { |n| "training#{n}" }
+    api_key { 'test_key' }
   end
 end
