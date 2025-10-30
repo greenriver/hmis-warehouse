@@ -46,17 +46,7 @@ T2=$(date +%s)
 echo "...database materialize took $(expr $T2 - $T1) seconds"
 
 echo 'Generating .pgpass file from environment variables...'
-cat > ~/.pgpass << EOF
-${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}:*:${DATABASE_USER:-postgres}:${DATABASE_PASS:-postgres}
-${WAREHOUSE_DATABASE_HOST:-db}:${WAREHOUSE_DATABASE_PORT:-5432}:*:${WAREHOUSE_DATABASE_USER:-postgres}:${WAREHOUSE_DATABASE_PASS:-postgres}
-${HEALTH_DATABASE_HOST:-db}:${HEALTH_DATABASE_PORT:-5432}:*:${HEALTH_DATABASE_USER:-postgres}:${HEALTH_DATABASE_PASS:-postgres}
-${REPORTING_DATABASE_HOST:-db}:${REPORTING_DATABASE_PORT:-5432}:*:${REPORTING_DATABASE_USER:-postgres}:${REPORTING_DATABASE_PASS:-postgres}
-EOF
-
-if [ -n "$CAS_DATABASE_HOST" ]; then
-  echo "${CAS_DATABASE_HOST}:${CAS_DATABASE_PORT:-5432}:*:${CAS_DATABASE_USER:-postgres}:${CAS_DATABASE_PASS:-postgres}" >> ~/.pgpass
-fi
-
+bundle exec ./bin/generate_pgpass.rb > ~/.pgpass
 chmod 600 ~/.pgpass
 
 echo 'Setting Timezone'

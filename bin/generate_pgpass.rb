@@ -5,15 +5,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Only load dotenv in development (Docker containers have env vars already set)
-begin
-  require 'dotenv'
-  Dotenv.load('.env', '.env.local')
-rescue LoadError
-  # dotenv not available (e.g., in Docker production/staging containers)
-  # Environment variables are already set, so we can proceed
-end
-
 pgpass_entries = []
 
 # Primary database
