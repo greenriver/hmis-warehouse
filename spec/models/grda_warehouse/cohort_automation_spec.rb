@@ -295,6 +295,14 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
         expect(cohort.clients.pluck(:id)).not_to include(@client.destination_client.id)
       end
+
+      it 'records the automation timestamp when maintenance succeeds' do
+        cohort.update!(project_group: project_group)
+
+        expect do
+          cohort.maintain
+        end.to change { cohort.reload.automation_updated_at }.from(nil)
+      end
     end
 
     describe 'validations' do

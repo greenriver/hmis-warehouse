@@ -1,4 +1,4 @@
--- \restrict loeg9PhebbdMO1zDmOdcVuXT4p1egXUu4nGxKTpiEU85yZ8H1LKpZRzUYbOhqcW
+-- \restrict I5HiQHphQQ6XslzT0Rt7qMxnJPgXebBt814pdEKCAurynpQ7w3RyEXbnTcohSp6
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -1806,7 +1806,8 @@ CREATE TABLE public.cohorts (
     enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL,
     expose_inactive_on_client_dashboard boolean DEFAULT false,
     automation_sub_population character varying,
-    automation_hoh_only boolean DEFAULT false
+    automation_hoh_only boolean DEFAULT false,
+    automation_updated_at timestamp(6) without time zone
 );
 
 
@@ -81732,11 +81733,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict loeg9PhebbdMO1zDmOdcVuXT4p1egXUu4nGxKTpiEU85yZ8H1LKpZRzUYbOhqcW
+-- \unrestrict I5HiQHphQQ6XslzT0Rt7qMxnJPgXebBt814pdEKCAurynpQ7w3RyEXbnTcohSp6
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251030153000'),
 ('20251027202455'),
 ('20251027120000'),
 ('20251020142304'),

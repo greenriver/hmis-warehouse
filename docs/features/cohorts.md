@@ -8,7 +8,7 @@ The Cohorts feature is a tool for grouping, tracking, and visualizing client dat
 
 - **Types of Cohorts:**
   - **Manual Cohort:** A static list of clients that is managed manually. Users can add or remove clients as needed. This is useful for tracking specific groups of clients that don't fit into automated categories.
-- **Auto-Maintained Cohort:** A dynamic cohort where membership is determined by a client's enrollment in a `ProjectGroup`. Additional automation filters (Heads of Household, sub-populations, etc.) can be layered on, but only after a project group is selected. A scheduled maintenance job (`Cohort.maintain_auto_maintained!`) keeps these cohorts in sync, so changes in enrollment may take a short time to appear unless the job is triggered manually.
+- **Auto-Maintained Cohort:** A dynamic cohort where membership is determined by a client's enrollment in a `ProjectGroup`. Additional automation filters (Heads of Household, sub-populations, etc.) can be layered on, but only after a project group is selected. A scheduled maintenance job (`Cohort.maintain_auto_maintained!`) keeps these cohorts in sync; users with configuration access can also queue an on-demand refresh from the cohort page.
   - **System Cohort:** These are special, system-defined cohorts that are used for specific, built-in functionalities. They are not typically managed by end-users.
 
 ## Permissions & Access

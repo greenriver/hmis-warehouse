@@ -660,20 +660,26 @@ module GrdaWarehouse
     def maintain
       return unless auto_maintained?
 
-      existing_client_ids = cohort_clients.pluck(:client_id)
-      filter = build_automation_filter
-      # tags: [:warehouse] keeps the project, HoH, and sub-pop criteria active; other tag mixes drop one or the other.
-      incoming_client_ids = filter.apply_criteria(
-        GrdaWarehouse::ServiceHistoryEnrollment.all,
-        tags: [:warehouse],
-        report_scope_source: nil,
-        all_project_types: true,
-      ).pluck(:client_id).uniq
+      lock_name = [self.class.name, :maintain, id].join(':')
 
-      to_remove = existing_client_ids - incoming_client_ids
-      to_add = incoming_client_ids - existing_client_ids
-      remove_clients(to_remove, 'No longer matches automation criteria')
-      add_clients(to_add, 'Matches automation criteria')
+      self.class.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        existing_client_ids = cohort_clients.pluck(:client_id)
+        filter = build_automation_filter
+        # tags: [:warehouse] keeps the project, HoH, and sub-pop criteria active; other tag mixes drop one or the other.
+        incoming_client_ids = filter.apply_criteria(
+          GrdaWarehouse::ServiceHistoryEnrollment.all,
+          tags: [:warehouse],
+          report_scope_source: nil,
+          all_project_types: true,
+        ).pluck(:client_id).uniq
+
+        to_remove = existing_client_ids - incoming_client_ids
+        to_add = incoming_client_ids - existing_client_ids
+        remove_clients(to_remove, 'No longer matches automation criteria')
+        add_clients(to_add, 'Matches automation criteria')
+
+        update_column(:automation_updated_at, Time.current)
+      end
     end
 
     private def clear_automation_filters_without_project_group

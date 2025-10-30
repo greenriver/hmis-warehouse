@@ -77,4 +77,40 @@ RSpec.describe 'Cohorts#edit', type: :request do
       expect(cohort.automation_hoh_only).to be(false)
     end
   end
+
+  describe 'POST /cohorts/:id/maintain' do
+    let(:user) { create(:acl_user) }
+    let(:project_group) { create(:project_group) }
+    let(:auto_cohort) { create(:cohort, project_group: project_group) }
+    let(:manual_cohort) { create(:cohort) }
+    let(:cohort_role) { create(:cohort_manager) }
+    let(:all_cohorts_collection) { Collection.system_collection(:cohorts) }
+
+    before do
+      Collection.maintain_system_groups
+      setup_access_control(user, cohort_role, all_cohorts_collection)
+      sign_in user
+      Delayed::Job.delete_all
+    end
+
+    after { Delayed::Job.delete_all }
+
+    it 'runs maintenance for automated cohorts' do
+      expect do
+        post maintain_cohort_path(auto_cohort)
+      end.to change(Delayed::Job, :count).by(1)
+
+      expect(response).to redirect_to(cohort_path(auto_cohort))
+      expect(flash[:notice]).to eq('Cohort maintenance queued.')
+    end
+
+    it 'alerts when cohort is manual' do
+      expect do
+        post maintain_cohort_path(manual_cohort)
+      end.not_to change(Delayed::Job, :count)
+
+      expect(response).to redirect_to(cohort_path(manual_cohort))
+      expect(flash[:alert]).to eq('This cohort is manually maintained.')
+    end
+  end
 end
