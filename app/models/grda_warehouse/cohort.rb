@@ -29,7 +29,7 @@ module GrdaWarehouse
     serialize :column_state, type: Array
 
     after_create :maintain_system_group
-    before_validation :clear_automation_filters_without_project_group
+    before_save :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }
 
     has_many :cohort_tabs, dependent: :destroy
     has_many :cohort_clients, dependent: :destroy
@@ -661,8 +661,7 @@ module GrdaWarehouse
       return unless auto_maintained?
 
       lock_name = [self.class.name, :maintain, id].join(':')
-
-      self.class.with_advisory_lock(lock_name, timeout_seconds: 0) do
+      acquired = self.class.with_advisory_lock(lock_name, timeout_seconds: 0) do
         existing_client_ids = cohort_clients.pluck(:client_id)
         filter = build_automation_filter
         # tags: [:warehouse] keeps the project, HoH, and sub-pop criteria active; other tag mixes drop one or the other.
@@ -680,6 +679,8 @@ module GrdaWarehouse
 
         update_column(:automation_updated_at, Time.current)
       end
+
+      acquired
     end
 
     private def clear_automation_filters_without_project_group
