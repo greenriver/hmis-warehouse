@@ -8,14 +8,15 @@ The Cohorts feature is a tool for grouping, tracking, and visualizing client dat
 
 - **Types of Cohorts:**
   - **Manual Cohort:** A static list of clients that is managed manually. Users can add or remove clients as needed. This is useful for tracking specific groups of clients that don't fit into automated categories.
-  - **Auto-Maintained Cohort:** A dynamic cohort where membership is determined by a client's enrollment in a `ProjectGroup`. A scheduled maintenance job (`Cohort.maintain_auto_maintained!`) keeps these cohorts in sync, so changes in enrollment may take a short time to appear unless the job is triggered manually.
+- **Auto-Maintained Cohort:** A dynamic cohort where membership is determined by a client's enrollment in a `ProjectGroup`. Additional automation filters (Heads of Household, sub-populations, etc.) can be layered on, but only after a project group is selected. A scheduled maintenance job (`Cohort.maintain_auto_maintained!`) keeps these cohorts in sync, so changes in enrollment may take a short time to appear unless the job is triggered manually.
   - **System Cohort:** These are special, system-defined cohorts that are used for specific, built-in functionalities. They are not typically managed by end-users.
 
 ## Permissions & Access
 
 Access to cohorts is controlled by permissions. For details, see the `cohort_*` roles defined in `app/models/role.rb`. Users without the necessary permissions will not see cohorts listed, even if the cohort itself is active.
 
-## Configurable Views
+## Configurable Views & Automation Filters
+- **Automation Filters:** When a project group is chosen, editors can optionally limit membership further via Heads of Household or configured sub-populations. These filters are intentionally gated behind the project-group requirement so the resulting cohorts remain bounded to the relevant projects; without that guard, user-created automation could balloon to every client in the warehouse and exceed the ~1,000 client scale that the cohorts UI supports comfortably.
 
 Cohorts can be customized to tailor the view to specific needs.
 

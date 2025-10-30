@@ -186,18 +186,8 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         end.to change { described_class.auto_maintained.include?(cohort.reload) }.from(false).to(true)
       end
 
-      it 'includes cohorts with only a sub-population configured' do
-        expect do
-          cohort.update!(automation_sub_population: 'veterans')
-        end.to change { described_class.auto_maintained.include?(cohort.reload) }.from(false).to(true)
-      end
-
-      it 'includes cohorts with only hoh_only set' do
-        cohort.update!(project_group: nil, automation_sub_population: nil, automation_hoh_only: false)
-
-        expect do
-          cohort.update!(automation_hoh_only: true)
-        end.to change { described_class.auto_maintained.include?(cohort.reload) }.from(false).to(true)
+      it 'does not include cohorts without a project group' do
+        expect(described_class.auto_maintained).not_to include(cohort)
       end
     end
 
@@ -208,16 +198,8 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         end.to change { cohort.auto_maintained? }.from(false).to(true)
       end
 
-      it 'is true if sub_population is set' do
-        expect do
-          cohort.update!(automation_sub_population: 'veterans')
-        end.to change { cohort.auto_maintained? }.from(false).to(true)
-      end
-
-      it 'is true if hoh_only is set' do
-        expect do
-          cohort.update!(automation_hoh_only: true)
-        end.to change { cohort.auto_maintained? }.from(false).to(true)
+      it 'is false when project_group_id is not set' do
+        expect(cohort).not_to be_auto_maintained
       end
     end
 
@@ -317,14 +299,30 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
     describe 'validations' do
       it 'allows valid sub_population' do
+        cohort.project_group = project_group
         cohort.automation_sub_population = 'veterans'
         expect(cohort).to be_valid
       end
 
       it 'rejects invalid sub_population' do
+        cohort.project_group = project_group
         cohort.automation_sub_population = 'invalid_pop'
         expect(cohort).not_to be_valid
         expect(cohort.errors[:automation_sub_population]).to include('is not a valid sub-population')
+      end
+
+      it 'requires a project group when automation_sub_population is set' do
+        cohort.automation_sub_population = 'veterans'
+
+        expect(cohort).not_to be_valid
+        expect(cohort.errors[:project_group]).to include('must be selected when automation filters are configured')
+      end
+
+      it 'requires a project group when automation_hoh_only is true' do
+        cohort.automation_hoh_only = true
+
+        expect(cohort).not_to be_valid
+        expect(cohort.errors[:project_group]).to include('must be selected when automation filters are configured')
       end
     end
   end

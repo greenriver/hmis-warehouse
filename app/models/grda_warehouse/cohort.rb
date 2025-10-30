@@ -25,9 +25,11 @@ module GrdaWarehouse
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
     validates :automation_sub_population, inclusion: { in: ->(_) { AvailableSubPopulations.available_sub_populations.values.map(&:to_s) }, allow_blank: true, message: 'is not a valid sub-population' }
+    validate :require_project_group_for_automation
     serialize :column_state, type: Array
 
     after_create :maintain_system_group
+    before_validation :clear_automation_filters_without_project_group
 
     has_many :cohort_tabs, dependent: :destroy
     has_many :cohort_clients, dependent: :destroy
@@ -75,11 +77,7 @@ module GrdaWarehouse
     end
 
     scope :auto_maintained, -> do
-      table = arel_table
-      predicate = table[:project_group_id].not_eq(nil).
-        or(table[:automation_sub_population].not_eq(nil)).
-        or(table[:automation_hoh_only].eq(true))
-      where(predicate)
+      where.not(project_group_id: nil)
     end
 
     scope :viewable_by, ->(user) do
@@ -612,7 +610,7 @@ module GrdaWarehouse
 
     # automation filter configured?
     def auto_maintained?
-      project_group_id.present? || automation_sub_population.present? || automation_hoh_only
+      project_group.present?
     end
 
     def automation_sub_population_label
@@ -633,6 +631,13 @@ module GrdaWarehouse
 
         descriptions << 'clients who are Heads of Household' if automation_hoh_only?
       end
+    end
+
+    private def require_project_group_for_automation
+      return if project_group_id.present?
+      return unless automation_sub_population.present? || automation_hoh_only?
+
+      errors.add(:project_group, 'must be selected when automation filters are configured')
     end
 
     def selected_project_group_viewable_by(user)
@@ -662,12 +667,20 @@ module GrdaWarehouse
         GrdaWarehouse::ServiceHistoryEnrollment.all,
         tags: [:warehouse],
         report_scope_source: nil,
+        all_project_types: true,
       ).pluck(:client_id).uniq
 
       to_remove = existing_client_ids - incoming_client_ids
       to_add = incoming_client_ids - existing_client_ids
       remove_clients(to_remove, 'No longer matches automation criteria')
       add_clients(to_add, 'Matches automation criteria')
+    end
+
+    private def clear_automation_filters_without_project_group
+      return if project_group_id.present?
+
+      self.automation_sub_population = nil
+      self.automation_hoh_only = false
     end
 
     private def build_automation_filter
@@ -678,7 +691,9 @@ module GrdaWarehouse
       today = Date.current
       filter.start = today
       filter.end = today
-      filter.project_group_ids = [project_group_id] if project_group_id.present?
+      return filter unless project_group_id.present?
+
+      filter.project_group_ids = [project_group_id]
       filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
       filter.hoh_only = automation_hoh_only
       filter.require_service_during_range = false
