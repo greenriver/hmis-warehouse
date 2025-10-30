@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Cohorts#edit', type: :request do
+RSpec.describe CohortsController, type: :request do
   describe 'GET /cohorts/:id/edit' do
     let(:user) { create(:acl_user) }
     let(:cohort) { create(:cohort) }
@@ -46,9 +46,9 @@ RSpec.describe 'Cohorts#edit', type: :request do
           automation_sub_population: 'veterans',
           days_of_inactivity: cohort.days_of_inactivity,
           static_column_count: cohort.static_column_count,
-          user_ids: [''],
-          participant_ids: [''],
-          viewer_ids: [''],
+          user_ids: [],
+          participant_ids: [],
+          viewer_ids: [],
         },
       }
 

@@ -29,7 +29,7 @@ module GrdaWarehouse
     serialize :column_state, type: Array
 
     after_create :maintain_system_group
-    before_save :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }
+    before_validation :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }
 
     has_many :cohort_tabs, dependent: :destroy
     has_many :cohort_clients, dependent: :destroy

@@ -319,18 +319,18 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         expect(cohort.errors[:automation_sub_population]).to include('is not a valid sub-population')
       end
 
-      it 'requires a project group when automation_sub_population is set' do
+      it 'clears automation_sub_population when project group is removed' do
         cohort.automation_sub_population = 'veterans'
+        cohort.valid?
 
-        expect(cohort).not_to be_valid
-        expect(cohort.errors[:project_group]).to include('must be selected when automation filters are configured')
+        expect(cohort.automation_sub_population).to be_nil
       end
 
-      it 'requires a project group when automation_hoh_only is true' do
+      it 'clears automation_hoh_only when project group is removed' do
         cohort.automation_hoh_only = true
+        cohort.valid?
 
-        expect(cohort).not_to be_valid
-        expect(cohort.errors[:project_group]).to include('must be selected when automation filters are configured')
+        expect(cohort.automation_hoh_only).to be(false)
       end
     end
   end
