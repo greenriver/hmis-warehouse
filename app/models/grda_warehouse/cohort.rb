@@ -666,8 +666,8 @@ module GrdaWarehouse
 
       to_remove = existing_client_ids - incoming_client_ids
       to_add = incoming_client_ids - existing_client_ids
-      remove_clients(to_remove, 'Client no longer matches automation criteria')
-      add_clients(to_add, 'Client matches automation criteria')
+      remove_clients(to_remove, 'No longer matches automation criteria')
+      add_clients(to_add, 'Matches automation criteria')
     end
 
     private def build_automation_filter
