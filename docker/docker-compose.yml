@@ -228,7 +228,7 @@ services:
       - "9394"
     environment:
       <<: *env
-    hostname: warehouse.dev.test
+    hostname: internal-warehouse.dev.test
     depends_on:
       db:
         condition: service_healthy

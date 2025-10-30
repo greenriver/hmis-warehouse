@@ -79,4 +79,4 @@ upstreamConfig:
       path: /
       proxyWebSockets: true
       timeout: 30s
-      uri: http://internal.dev.test:3000
+      uri: http://internal-warehouse.dev.test:3000
