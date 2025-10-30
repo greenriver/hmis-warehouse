@@ -6,7 +6,7 @@ x-app: &app
     target: dev-build
     args:
       RUBY_VERSION: 3.3.8
-      BUNDLER_VERSION: '2.6.3'
+      BUNDLER_VERSION: "2.6.3"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
       BUILD_TAG: 3.3.8-slim-bookworm
@@ -24,8 +24,8 @@ x-app: &app
     PSQL_HISTFILE: /app/log/.psql_history
     EDITOR: vi
     CHROMEDRIVER_VERSION: 79.0.3945.36
-    GROVER_NO_SANDBOX: 'true'
-    BUNDLE_FORCE_RUBY_PLATFORM: 'true'
+    GROVER_NO_SANDBOX: "true"
+    BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
 
@@ -63,7 +63,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: '/usr/bin/entrypoint.spec.sh'
+    entrypoint: "/usr/bin/entrypoint.spec.sh"
     depends_on:
       db:
         condition: service_healthy
@@ -99,7 +99,7 @@ services:
   dj:
     <<: *backend
     command: ./bin/rake jobs:work
-    entrypoint: ''
+    entrypoint: ""
     depends_on:
       db:
         condition: service_healthy
@@ -113,7 +113,7 @@ services:
     <<: *backend
     profiles:
       - eks
-    entrypoint: 'tini -- /usr/bin/entrypoint.dj-eks-test.sh'
+    entrypoint: "tini -- /usr/bin/entrypoint.dj-eks-test.sh"
     command: "delayed_job run --pool=*:1"
     ports:
       # visit localhost:34533/metrics
@@ -146,6 +146,73 @@ services:
         condition: service_started
       minio:
         condition: service_started
+  oauth2-proxy:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`)
+      - traefik.http.routers.hmis-warehouse-oauth2.tls=true
+      - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
+    container_name: oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    command: --alpha-config /oauth2-proxy.yaml --config /oauth2-proxy.cfg
+    hostname: hmis-warehouse.dev.test
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy.cfg:/oauth2-proxy.cfg"
+      - "./docker/auth/dev.oauth2-proxy.yaml:/oauth2-proxy.yaml"
+    environment:
+      <<: *env
+      FQDN: hmis-warehouse.dev.test
+      VIRTUAL_HOST: hmis-warehouse.dev.test
+      VIRTUAL_PORT: 4180
+    ports:
+      - 4180:4180/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  dex-db-init:
+    image: postgres:17.5-bookworm
+    container_name: dex-db-init
+    command: >
+      bash -c "psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'dex'\" | grep -q 1 || psql -h db -U postgres -c 'CREATE DATABASE dex'"
+    environment:
+      PGPASSWORD: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  dex:
+    container_name: dex
+    # image: dexidp/dex:latest-alpine
+    image: ghcr.io/dexidp/dex:v2.44.0
+    command: dex serve /dex.yaml
+    hostname: dex
+    volumes:
+      - "./docker/auth/dev.dex.yaml:/dex.yaml"
+    environment:
+      FQDN: dex.dev.test
+      VIRTUAL_HOST: dex.dev.test
+      VIRTUAL_PORT: 4443
+      GITHUB_IDP_CLIENT_ID: ${GITHUB_IDP_CLIENT_ID:-}
+      GITHUB_IDP_CLIENT_SECRET: ${GITHUB_IDP_CLIENT_SECRET:-}
+    ports:
+      - 4443:4443/tcp
+    networks:
+      default:
+        aliases:
+          - dex.dev.test
+    depends_on:
+      db:
+        condition: "service_healthy"
+      dex-db-init:
+        condition: service_completed_successfully
+    # oauth2 proxy kept failing intermittently, added this health check
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "4443"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   web:
     <<: *backend
@@ -153,16 +220,6 @@ services:
     stdin_open: true
     tty: true
     command: bin/rails server -b 0.0.0.0
-    labels:
-      - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.op.entrypoints=web
-      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.services.op_https.loadbalancer.server.port=3000
-      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.routers.op_https.tls=true
-      - traefik.http.routers.op_https.entrypoints=web-secure
-      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
-      - traefik.http.routers.op.middlewares=op_https
     ports:
       - "3000"
       - "9394"
@@ -171,8 +228,7 @@ services:
       - "9394"
     environment:
       <<: *env
-      VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}
-      VIRTUAL_PORT: 3000
+    hostname: warehouse.dev.test
     depends_on:
       db:
         condition: service_healthy
@@ -182,6 +238,10 @@ services:
         condition: service_started
       yarn:
         condition: service_started
+      oauth2-proxy:
+        condition: service_started
+      dex:
+        condition: service_healthy
 
   # To transition from a previous major version to pg17, run `bash ./docker/pg17/upgrade.sh`
   db_previous:
