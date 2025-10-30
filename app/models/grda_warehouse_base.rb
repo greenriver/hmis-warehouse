@@ -25,7 +25,26 @@ class GrdaWarehouseBase < ActiveRecord::Base
   end
 
   # default colocated versions table for warehouse records
-  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicatePrefix
+  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicateName
+    # Detect duplicate has_paper_trail calls to prevent double version creation
+    # Check if paper_trail callbacks are already defined
+    if respond_to?(:paper_trail_options) && paper_trail_options.present?
+      message = "PaperTrail already enabled on #{name}. This will cause duplicate version records."
+      backtrace = caller.select { |line| line.include?(Rails.root.to_s) }.first(5)
+
+      raise StandardError, "#{message}\nCalled from:\n#{backtrace.join("\n")}" unless Rails.env.production?
+
+      # In production, log to Sentry but allow it to continue
+      Sentry.capture_message(
+        message,
+        level: :warning,
+        extra: {
+          model: name,
+          backtrace: backtrace,
+        },
+      )
+    end
+
     versions = options.fetch(:versions, {}).merge(class_name: 'GrdaWarehouse::Version')
     skip = options.fetch(:skip, [:lock_version])
     super(options.merge(versions: versions, skip: skip))

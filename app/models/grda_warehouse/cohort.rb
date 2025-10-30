@@ -9,6 +9,7 @@
 require 'memery'
 
 module GrdaWarehouse
+  # @see docs/features/cohorts.md
   class Cohort < GrdaWarehouseBase
     include ArelHelper
     include AccessGroups # TODO: START_ACL remove this after permission migration is complete

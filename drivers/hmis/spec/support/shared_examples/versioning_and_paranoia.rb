@@ -39,3 +39,23 @@ RSpec.shared_examples 'versioned model' do
     end
   end
 end
+
+RSpec.shared_examples 'enrollment related versioned model' do
+  # Include the base versioned model behavior
+  it_behaves_like 'versioned model'
+
+  describe 'version metadata' do
+    include_context 'with paper trail'
+
+    it 'stores enrollment_id, client_id, and project_id in version metadata' do
+      raise('define let(:build_record) to use enrollment related versioned model shared examples') unless defined?(build_record)
+
+      record = instance_exec(&build_record)
+
+      version = record.versions.order(:id).last
+      expect(version.enrollment_id).to eq(record.enrollment.id)
+      expect(version.client_id).to eq(record.client.id)
+      expect(version.project_id).to eq(record.project.id)
+    end
+  end
+end

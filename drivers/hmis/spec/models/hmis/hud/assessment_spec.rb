@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
+require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::Hud::Assessment, type: :model do
   before(:all) do
@@ -15,6 +16,16 @@ RSpec.describe Hmis::Hud::Assessment, type: :model do
   end
   after(:all) do
     cleanup_test_environment
+  end
+
+  it_behaves_like 'enrollment related versioned model' do
+    let(:build_record) do
+      -> { create(:hmis_hud_assessment) }
+    end
+
+    let(:update_attributes_for_versioning) do
+      ->(record) { record.update!(assessment_date: 1.week.ago) }
+    end
   end
 
   describe 'saved assessments' do

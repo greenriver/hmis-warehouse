@@ -10,6 +10,8 @@ module HmisExternalApis::AcHmis
   # Track local and synced changes
   class UnitAvailabilitySync < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_unit_availability_syncs'
+    has_paper_trail
+
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :unit_type, class_name: 'Hmis::UnitType'
     belongs_to :user, class_name: 'Hmis::User'
