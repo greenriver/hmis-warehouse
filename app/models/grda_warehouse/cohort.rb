@@ -657,11 +657,7 @@ module GrdaWarehouse
 
       existing_client_ids = cohort_clients.pluck(:client_id)
       filter = build_automation_filter
-      # Note that we are using ServiceHistoryEnrollment here, but that model represents a denormalized
-      # view of enrollments that makes it easy to query for clients based on a variety of criteria
-      # and the resulting client_ids are for the `clients` table (GrdaWarehouse::Hud::Client)
-      # Use the :warehouse criteria set so project-scoped filters (like project groups)
-      # stay active; :client/:hud-only tags skip project filters and admit unrelated clients.
+      # tags: [:warehouse] keeps the project, HoH, and sub-pop criteria active; other tag mixes drop one or the other.
       incoming_client_ids = filter.apply_criteria(
         GrdaWarehouse::ServiceHistoryEnrollment.all,
         tags: [:warehouse],
