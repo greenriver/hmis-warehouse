@@ -35,9 +35,11 @@ module HmisExternalApis::AcHmis
   class Aha
     SYSTEM_ID = 'ac_hmis_aha'
     AHA_GENERATOR = 'AHA'
+    VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
+    NoMciUniqueIdError = HmisErrors::ApiError.new(display_message: 'Client does not have an MCI unique ID')
 
     def fetch_score(client)
       # Collect MCI unique IDs for this client and all source clients with the same destination client
@@ -46,7 +48,7 @@ module HmisExternalApis::AcHmis
         c.ac_hmis_mci_unique_id&.value
       end.uniq
 
-      return nil if mci_uniq_ids.empty?
+      raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
       payload = if mci_uniq_ids.size > 1
         { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(',') }
@@ -76,10 +78,13 @@ module HmisExternalApis::AcHmis
         end
       end
 
+      # Find the highest AHA score
       highest_aha_score = score_objects.compact.
         filter { |score_object| score_object.generator == AHA_GENERATOR }.
         max_by(&:score)
-      return nil if highest_aha_score.nil? || highest_aha_score.score&.negative?
+
+      raise(Error, 'Response does not contain AHA score') unless highest_aha_score.present?
+      raise(Error, "AHA score is not valid: #{highest_aha_score.score}") unless VALID_AHA_SCORES.include?(highest_aha_score.score)
 
       highest_aha_score
     end
