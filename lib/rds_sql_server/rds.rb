@@ -8,17 +8,18 @@ require 'aws-sdk-glacier'
 class Rds
   attr_accessor :client
 
-  REGION             ||= 'us-east-1'
-  AVAILABILITY_ZONE  ||= 'us-east-1a'
-  USERNAME           ||= ENV.fetch('RDS_USERNAME')
-  PASSWORD           ||= ENV.fetch('RDS_PASSWORD')
-  DB_INSTANCE_CLASS  ||= ENV.fetch('RDS_DB_INSTANCE_CLASS')
-  DB_ENGINE          ||= ENV.fetch('RDS_DB_ENGINE')
-  SECURITY_GROUP_IDS ||= [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
-  DEFAULT_IDENTIFIER ||= ENV.fetch('RDS_IDENTIFIER') { 'testing' }
-  RDS_KMS_KEY_ID     ||= ENV.fetch('RDS_KMS_KEY_ID')
-  DB_SUBNET_GROUP    ||= ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
-  MAX_WAIT_TIME      ||= 1.hour
+  REGION              ||= 'us-east-1'
+  AVAILABILITY_ZONE   ||= 'us-east-1a'
+  USERNAME            ||= ENV.fetch('RDS_USERNAME')
+  PASSWORD            ||= ENV.fetch('RDS_PASSWORD')
+  DB_INSTANCE_CLASS   ||= ENV.fetch('RDS_DB_INSTANCE_CLASS')
+  DB_ENGINE           ||= ENV.fetch('RDS_DB_ENGINE')
+  SECURITY_GROUP_IDS  ||= [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
+  DEFAULT_IDENTIFIER  ||= ENV.fetch('RDS_IDENTIFIER') { 'testing' }
+  RDS_KMS_KEY_ID      ||= ENV.fetch('RDS_KMS_KEY_ID')
+  DB_SUBNET_GROUP     ||= ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
+  MAX_WAIT_TIME       ||= 1.hour
+  PUBLICLY_ACCESSIBLE ||= ENV.fetch('RDS_PUBLICLY_ACCESSIBLE') { 'false' }.to_s.downcase == 'true'
 
   NEVER_STARTING_STATUSES ||= [
     'deleting',
@@ -184,7 +185,7 @@ class Rds
       auto_minor_version_upgrade: true,
       preferred_backup_window: '06:14-06:44',
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
-      publicly_accessible: false,
+      publicly_accessible: PUBLICLY_ACCESSIBLE,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
       db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
