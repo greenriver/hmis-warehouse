@@ -185,7 +185,7 @@ class Rds
       preferred_backup_window: '06:14-06:44',
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
       # RDS being publicly available allows us to reach the database when running locally. This should always be false in deployed environments.
-      publicly_accessible: !(Rails.env.development? || Rails.env.test?),
+      publicly_accessible: Rails.env.development? || Rails.env.test?,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
       db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
