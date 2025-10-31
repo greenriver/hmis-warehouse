@@ -23,7 +23,7 @@ module PerformanceMeasurement
 
     include ::WarehouseReports::Publish
 
-    attr_accessor :households
+    attr_accessor :households, :include_in_published_version, :include_in_summary_only_version
 
     belongs_to :user
     belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
@@ -247,6 +247,10 @@ module PerformanceMeasurement
       user.can_access_some_version_of_clients?
     end
 
+    def show_tabs?
+      goal_config.present? && (goal_config.global_equity_analysis_visible? || goal_config.global_provider_comparisons_visible?) && !include_in_published_version
+    end
+
     private def create_universe
       clients.delete_all
       projects.delete_all
@@ -368,6 +372,7 @@ module PerformanceMeasurement
                   period: variant_name,
                   household_type: household_type_for_spm(member),
                 )
+                report_client.included_in_ph_permanent_or_stayer = pc_data[:included_in_ph_permanent_or_stayer]
                 project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
               end
 
@@ -423,6 +428,7 @@ module PerformanceMeasurement
             pc_data = {
               report_id: id,
               client_id: client_id,
+              # Summary calculations are not tied to individual projects
               project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
@@ -963,11 +969,11 @@ module PerformanceMeasurement
       extras
     end
 
-    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
+    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2026::MeasureSeven::PERMANENT_DESTINATIONS
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [nil]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
-      HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
+      HudSpmReport::Generators::Fy2026::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
     ).freeze
 
     private def summary_calculations
@@ -986,8 +992,12 @@ module PerformanceMeasurement
         {
           key: :retention_or_positive_destination,
           value_calculation: ->(client, variant_name) {
+            # The following two checks confirm known destination values for 7a.1 C2 and 7b.1 C2 so they are safe
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
+            # When looking at data from 7b.2, we also include "stayers" which are denoted by an empty destination, to avoid counting other random clients, we need to limit to those that were in the 7b.2 universe.
+            # This is an attribute to note if the client was in the universe for 7b.2 C2
+            return false unless client.included_in_ph_permanent_or_stayer
             return true if PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
 
             false
@@ -1098,7 +1108,7 @@ module PerformanceMeasurement
     # to extract and how to transform it for the dashboard.
     #
     # Each entry in the array contains:
-    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D2'])
+    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D3'])
     #   - title: Description of the data
     #   - measure: Associated SPM measure
     #   - questions: Client field mappings with:
@@ -1156,7 +1166,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'D2']],
+          cells: [['1a', 'D3']],
           title: 'Length of Time Homeless in ES, SH, TH',
           measure: :m1,
           history_source: :m1_history,
@@ -1168,7 +1178,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'D2']],
+          cells: [['1b', 'D3']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           measure: :m1,
           history_source: :m1_history,
@@ -1200,7 +1210,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
+              # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/measure_seven.rb
               # represents institutional and permanent destinations for 7a.1 C3 and C4
               return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
 
@@ -1262,6 +1272,7 @@ module PerformanceMeasurement
               {
                 project_id: spm_enrollment.enrollment.project.id,
                 for_question: :moved_in_destination,
+                included_in_ph_permanent_or_stayer: true,
               }
             },
             ->(spm_enrollment) {

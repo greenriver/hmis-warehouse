@@ -118,6 +118,12 @@
           "question": "dob",
           "operator": "EXISTS",
           "answer_boolean": false
+        },
+        {
+          "_comment": "show if veteran status response is YES/NO/DK/R, to support changing existing response when veteran status is present for minor",
+          "operator": "IN",
+          "question": "veteran_status",
+          "answer_codes": ["YES", "NO", "CLIENT_DOESN_T_KNOW", "CLIENT_PREFERS_NOT_TO_ANSWER"]
         }
       ]
     },

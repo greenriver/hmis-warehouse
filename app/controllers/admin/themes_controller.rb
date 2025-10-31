@@ -6,8 +6,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require_relative '../../../config/deploy/docker/lib/asset_compiler'
-
 module Admin
   class ThemesController < ApplicationController
     before_action :require_can_edit_theme!
@@ -17,6 +15,7 @@ module Admin
       @theme.set_theme_default_css!
       @theme.set_theme_default_logo!
       @theme.set_theme_default_print_logo!
+      @theme.set_theme_default_hmis_logo!
     end
 
     def update
@@ -39,6 +38,7 @@ module Admin
         :logo,
         :print_logo,
         :careplan_logo,
+        :hmis_logo,
       )
     end
 

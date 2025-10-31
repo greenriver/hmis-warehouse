@@ -115,11 +115,13 @@ module Hmis::Ce
         end
 
         # Acquire a blocking lock on this specific pool to prevent other jobs from processing it.
-        acquired_lock = pool.lock_for_processing(timeout_seconds: 60) do
+        acquired_lock = false
+        pool.lock_for_processing(timeout_seconds: 60) do
           log_info("Acquired pool lock for pool #{pool.id}, running match engine")
           Hmis::Ce::Match::Engine.call(pool, progress: @progress)
           marker.mark_processed
           log_info("Completed processing pool #{pool.id}")
+          acquired_lock = true
         end
 
         log_warning("Failed to acquire lock for pool #{pool.id} within timeout") unless acquired_lock

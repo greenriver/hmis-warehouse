@@ -58,11 +58,42 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 
   def mui_select(choice, from:)
+    option = mui_find_select_option(choice, from: from)
+    option.trigger(:click)
+  end
+
+  def mui_find_select_option(choice, from:)
     label = find('label', text: from)
     scroll_to(label, align: :center)
     id = label['for']
     find("[id='#{id}']").click
-    find('li[role=option]', text: choice).trigger(:click)
+    find('li[role=option]', text: choice)
+  end
+
+  # Given the label for a MUI select (dropdown) element, get the choices in the list
+  def mui_select_option_list(from:)
+    label_element = find('label', text: from)
+    scroll_to(label_element, align: :center)
+    id = label_element['for']
+    select_element = find("[id='#{id}']")
+
+    # Open the dropdown to make options visible
+    select_element.click
+
+    # Get all the option choices
+    choices = all('li[role=option]').map(&:text)
+
+    # Close the dropdown
+    find('body').send_keys(:escape)
+
+    choices
+  end
+
+  def mui_clear_select(from:)
+    label = find('label', text: from)
+    scroll_to(label, align: :center)
+    input_id = label['for']
+    find("[id='#{input_id}'] + div > button[aria-label='Clear']", visible: :all).trigger(:click)
   end
 
   def mui_select_value_for(select_label)
@@ -85,13 +116,15 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 
   def mui_table_expect(expected, row_index:, column_header:, from:)
+    # Wait for table to have rows before proceeding
+    expect(from).to have_css('tbody tr', minimum: row_index + 1)
+
     header_cells = from.all('thead th')
     column_index = header_cells.find_index { |cell| !!cell.text.match(column_header) }
     expect(column_index).not_to be_nil
 
     rows = from.all('tbody tr')
-    row = rows[row_index]
-    cell = row.all('td')[column_index]
+    cell = rows[row_index].all('td')[column_index]
     expect(cell.text).to match(expected)
   end
 
@@ -124,6 +157,51 @@ RSpec.shared_context 'SystemSpecHelper' do
   def mui_click_checkbox(label)
     checkbox_label = find('label', text: label, match: :prefer_exact)
     checkbox_label.find('input[type="checkbox"]', visible: :all).click
+  end
+
+  # Impersonate the given user by making an API call to the impersonation endpoint using JS fetch,
+  # instead of navigating to the Admin page and impersonating the user manually.
+  # (impersonate_hmis_user can't be used directly outside of the impersonations controller)
+  def with_user_impersonated(user_id)
+    user = Hmis::User.find(user_id)
+
+    # Make a POST request to start impersonation using JavaScript fetch
+    page.execute_script(<<~JS)
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      return fetch('/hmis/impersonations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ user_id: #{user.id} })
+      }).then(async (r) => {
+        const body = await r.text();
+        return { ok: r.ok, status: r.status, body: body };
+      });
+    JS
+
+    visit current_path # reload the page
+    expect(page).to have_content("Acting as #{user.full_name}")
+
+    begin
+      yield
+    ensure
+      # Stop impersonating by making a DELETE request
+      page.execute_script(<<~JS)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        return fetch('/hmis/impersonations', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+          }
+        }).then(r => r.ok);
+      JS
+
+      visit current_path # reload the page
+      expect(page).not_to have_content("Acting as #{user.full_name}")
+    end
   end
 
   def with_hidden

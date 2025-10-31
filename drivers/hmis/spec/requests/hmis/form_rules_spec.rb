@@ -19,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:assessment_rule) { create :hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: p1, active: true }
 
   let!(:service) { create :hmis_form_definition, identifier: 'test-service', role: :SERVICE }
-  let!(:service_rule) { create :hmis_form_instance, definition_identifier: 'test-service', entity: p1, active: true }
+  let!(:service_rule) { create :hmis_form_instance, definition_identifier: 'test-service', entity: p1, active: true, custom_service_category: create(:hmis_custom_service_category, data_source: ds1) }
 
   before(:each) do
     hmis_login(user)

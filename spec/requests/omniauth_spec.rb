@@ -21,5 +21,45 @@ if ENV['OKTA_DOMAIN'].present?
         expect(redir).to eq('http://www.example.com/users/auth/okta/callback')
       end
     end
+
+    describe 'okta callback' do
+      let(:user) { create(:user) }
+      let(:auth_hash) do
+        OmniAuth::AuthHash.new(
+          'provider' => 'wh_okta',
+          'uid' => '1234',
+          'info' => {
+            'email' => user.email,
+            'first_name' => user.first_name,
+            'last_name' => user.last_name,
+          },
+          'extra' => {
+            'raw_info' => {},
+          },
+          'credentials' => {},
+        )
+      end
+
+      before do
+        OmniAuth.config.test_mode = true
+        OmniAuth.config.mock_auth[:wh_okta] = auth_hash
+        Rails.application.env_config['omniauth.auth'] = auth_hash
+      end
+
+      after do
+        OmniAuth.config.test_mode = false
+        OmniAuth.config.mock_auth[:wh_okta] = nil
+      end
+
+      it 'successfully authenticates and creates login activity record' do
+        expect do
+          get '/users/auth/okta/callback'
+        end.to change(LoginActivity, :count).by(1)
+
+        activity = LoginActivity.where(user: user, scope: 'user', success: true).order(:created_at).sole
+        expect(activity).to have_attributes(user: user, success: true, scope: 'user')
+        expect(response).to have_http_status(:redirect)
+      end
+    end
   end
 end

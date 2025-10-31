@@ -31,10 +31,12 @@ module BostonHmis
     # encrypted credentials, it's not appropriate for an open-source project
     if File.exist?(Rails.root.join('config', 'secrets.yml'))
       config.secrets = config_for(:secrets) # loads from config/secrets.yml
-      config.secret_key_base = config.secrets[:secret_key_base]
+      if config.secrets.present?
+        config.secret_key_base = config.secrets[:secret_key_base]
 
-      def secrets
-        config.secrets
+        def secrets
+          config.secrets
+        end
       end
     end
 
@@ -173,6 +175,17 @@ module BostonHmis
     # Migrate from collections.coc_codes JSON column to using GrdaWarehouse::Lookups::CocCode
     config.queued_tasks[:migrate_collection_coc_codes] = -> do
       ::Collection.migrate_from_local_coc_codes
+    end
+
+    # Initial setup of HUD item lists
+    config.queued_tasks[:initialize_hud_list_items_table] = -> do
+      GrdaWarehouse::HudListItem.maintain!
+    end
+
+    # Migrate existing user notification preferences to alert subscriptions
+    config.queued_tasks[:migrate_user_notification_preferences] = -> do
+      GrdaWarehouse::AlertDefinition.seed_initial_definitions
+      GrdaWarehouse::ContactAlertSubscription.migrate_user_notification_preferences!
     end
   end
 end

@@ -464,6 +464,10 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
+    # FIXME 8156
+    # def choose_best_ssn(dest_attr, source_clients, use_oldest: true)
+    #   GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: use_oldest)
+    # end
     def choose_best_ssn dest_attr, source_clients
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }

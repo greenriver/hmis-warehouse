@@ -1,7 +1,17 @@
 
 = f.error_notification
+- if contact_editable
+  = f.association :user, collection: GrdaWarehouse::Contact::Organization.available_users(@entity, include_current: include_current), label_method: :name_with_email, value_method: :id, include_blank: true, as: :select_two, required: true, selected: f.object.user_id
+- else
+  %h3 Contact
+  %p= @contact.full_name_with_email
+  = f.input :user_id, as: :hidden
 
-= f.input :first_name
-= f.input :last_name
-= f.input :email
-
+- if @alert_definitions_by_category.present?
+  .form-group
+    %h3 Alert Subscriptions
+    %p.help-block Select which alerts this contact should receive for this organization
+    - @alert_definitions_by_category.each do |category, alerts|
+      .alert-category
+        %h5= category.titleize
+        = f.input :alert_definition_ids, collection: alerts.map { |a| [a.name, a.id, a.description] }, as: :pretty_boolean_group, multiple: true, label: false

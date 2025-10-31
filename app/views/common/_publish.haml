@@ -23,7 +23,7 @@
           = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
           .d-flex
             .ml-auto
-              = f.submit 'Publish', data: { confirm: @report.publish_warning }
+              = f.submit 'Publish', data: { confirm: @report.publish_warning }, class: 'btn btn-primary'
 = render 'common/panel_collapse',
   id: 'publish-info',
   title: 'Publishing'

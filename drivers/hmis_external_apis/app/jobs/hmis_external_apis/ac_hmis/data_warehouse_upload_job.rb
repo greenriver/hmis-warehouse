@@ -74,11 +74,10 @@ module HmisExternalApis::AcHmis
         'case_note_export',
         'unit_export',
         'custom_assessments_export',
-        # FIXME: these exporters are to be enabled manually
-        # 'ce_referrals',
-        # 'ce_referral_tasks',
-        # 'waitlist_events_export',
-        # 'current_waitlists_export',
+        'ce_referrals',
+        'ce_referral_tasks',
+        'waitlist_events_export',
+        'current_waitlists_export',
       ].freeze
     end
 

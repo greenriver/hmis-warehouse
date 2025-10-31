@@ -20,9 +20,6 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_report, except: [:index, :create, :details, :clients]
     before_action :set_pdf_export, only: [:show]
 
-    @include_in_published_version = false
-    @include_in_summary_only_version = false
-
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
       @filter.comparison_pattern = :prior_fiscal_year
@@ -40,6 +37,8 @@ module PerformanceMeasurement::WarehouseReports
       # Used for testing PDF generation
       # render 'show_pdf', layout: 'layouts/performance_report'
       @default_goal = PerformanceMeasurement::Goal.default_goal
+      @report.include_in_published_version = false
+      @report.include_in_summary_only_version = false
     end
 
     def create
@@ -107,6 +106,19 @@ module PerformanceMeasurement::WarehouseReports
         flash[:error] = @analysis_builder.valid? ? '' : 'There was an error building the equity analysis.'
       end
       render :show
+    end
+
+    def provider_comparisons
+      @report = report_class.find(params[:id].to_i)
+      active_project_list = params[:active_project_list]&.to_sym || :my_projects
+      @provider_comparison = PerformanceMeasurement::ProviderComparison.new(@report, current_user, active_project_list: active_project_list)
+      respond_to do |format|
+        format.html { render :show }
+        format.xlsx do
+          filename = "Provider-Comparisons-#{Date.current.to_fs(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def details_params

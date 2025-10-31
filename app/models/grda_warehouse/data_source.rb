@@ -316,7 +316,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
+    group_ids = user.all_access_group_ids
     group_id_query = if group_ids.empty?
       '0=1'
     else
@@ -348,7 +348,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
+    group_ids = user.all_access_group_ids
     group_id_query = if group_ids.empty?
       '0=1'
     else
@@ -384,7 +384,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
+    group_ids = user.all_access_group_ids
     group_id_query = if group_ids.empty?
       '0=1'
     else
@@ -747,7 +747,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # If we can't determine if we can see this in HMIS, just go ahead and show the link,
     # HMIS will handle access
     return url if perms.blank?
-    # If we can see this in HMIS, don't bother linking to it
+    # If we can't see this in HMIS, don't bother linking to it
     return nil unless hmis_user.permissions_for?(hmis_entity, *perms, mode: :all)
 
     url

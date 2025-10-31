@@ -13,8 +13,9 @@ module HmisUtil
 
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
-    def initialize(env_key: nil)
+    def initialize(env_key: nil, enable_cded_generation_in_test: false)
       @env_key = env_key if env_key.presence # allow override for testing
+      @enable_cded_generation_in_test = enable_cded_generation_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
     end
 
     def self.seed_all
@@ -35,6 +36,10 @@ module HmisUtil
     end
 
     protected
+
+    def enable_cded_generation_in_test?
+      @enable_cded_generation_in_test
+    end
 
     def env_key
       @env_key ||= if Rails.env.test?
@@ -299,8 +304,11 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
-      # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
-      unless Rails.env.test?
+      # Generate and validate CDEDs if this isn't a test env, OR if it is a test env but enable_cded_generation_in_test flag is true.
+      should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
+
+      if should_generate_cdeds
+        # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
         cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
           create_missing_mappings: false,
@@ -315,7 +323,7 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        skip_cded_validation: Rails.env.test?,
+        skip_cded_validation: !should_generate_cdeds, # skip validation if we didn't generate CDEDs
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 

@@ -162,20 +162,98 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
     end
 
     context 'for open_referral_project_types' do
-      before do
-        ds1 = client1.data_source
-        project1 = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
-        create(:hmis_ce_referral, client: client1, data_source: client1.data_source, target_project: project1, status: 'active')
+      context 'with CE referrals only' do
+        before do
+          ds1 = client1.data_source
+          project1 = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
+          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, project: project1, status: 'in_progress')
 
-        ds2 = client2.data_source
-        project2 = create(:hmis_hud_project, project_type: 2, data_source: ds2) # TH
-        create(:hmis_ce_referral, client: client2, data_source: client2.data_source, target_project: project2, status: 'rejected') # not active
+          ds2 = client2.data_source
+          project2 = create(:hmis_hud_project, project_type: 2, data_source: ds2) # TH
+          create(:hmis_ce_referral, client: client2, data_source: client2.data_source, project: project2, status: 'rejected') # not active
+        end
+
+        it 'returns project types for active CE referrals' do
+          result = field_map.client_query(all_destination_clients, 'open_referral_project_types')
+          expect(result[destination_client1.id]).to contain_exactly(3)
+          expect(result[destination_client2.id]).to be_empty
+        end
       end
 
-      it 'returns project types for active referrals' do
-        result = field_map.client_query(all_destination_clients, 'open_referral_project_types')
-        expect(result[destination_client1.id]).to contain_exactly(3)
-        expect(result[destination_client2.id]).to be_empty
+      context 'with legacy referrals only' do
+        before do
+          ds1 = client1.data_source
+          project1 = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
+          project2 = create(:hmis_hud_project, project_type: 13, data_source: ds1) # RRH
+
+          # Create legacy referral for client1, with both active and inactive postings
+          referral = create(:hmis_external_api_ac_hmis_referral)
+          create(:hmis_external_api_ac_hmis_referral_household_member, referral: referral, client: client1)
+          create(:hmis_external_api_ac_hmis_referral_posting, referral: referral, project: project1, status: 'assigned_status') # active
+          create(:hmis_external_api_ac_hmis_referral_posting, referral: referral, project: project2, status: 'denied_status') # not active
+
+          ds2 = client2.data_source
+          project3 = create(:hmis_hud_project, project_type: 2, data_source: ds2) # TH
+
+          # Create legacy referral for client2 with inactive posting
+          referral2 = create(:hmis_external_api_ac_hmis_referral)
+          create(:hmis_external_api_ac_hmis_referral_household_member, referral: referral2, client: client2)
+          create(:hmis_external_api_ac_hmis_referral_posting, referral: referral2, project: project3, status: 'accepted_status') # not active
+        end
+
+        it 'returns project types for active legacy referrals' do
+          result = field_map.client_query(all_destination_clients, 'open_referral_project_types')
+          expect(result[destination_client1.id]).to contain_exactly(3) # PSH is only active posting
+          expect(result[destination_client2.id]).to be_empty
+        end
+      end
+
+      context 'with both CE and legacy referrals' do
+        before do
+          ds1 = client1.data_source
+          ce_project = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
+          legacy_project = create(:hmis_hud_project, project_type: 13, data_source: ds1) # RRH
+
+          # CE referral
+          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, project: ce_project, status: 'in_progress')
+
+          # Legacy referral
+          referral = create(:hmis_external_api_ac_hmis_referral)
+          create(:hmis_external_api_ac_hmis_referral_household_member, referral: referral, client: client1)
+          create(:hmis_external_api_ac_hmis_referral_posting, referral: referral, project: legacy_project, status: 'accepted_pending_status') # active
+
+          ds2 = client2.data_source
+          project2 = create(:hmis_hud_project, project_type: 2, data_source: ds2) # TH
+
+          # Only CE referral for client2
+          create(:hmis_ce_referral, client: client2, data_source: client2.data_source, project: project2, status: 'in_progress')
+        end
+
+        it 'returns project types from both CE and legacy referrals, deduplicated' do
+          result = field_map.client_query(all_destination_clients, 'open_referral_project_types')
+          expect(result[destination_client1.id]).to contain_exactly(3, 13) # Both CE and legacy
+          expect(result[destination_client2.id]).to contain_exactly(2) # Only CE
+        end
+      end
+
+      context 'with duplicate project types across referral types' do
+        before do
+          ds1 = client1.data_source
+          project1 = create(:hmis_hud_project, project_type: 3, data_source: ds1) # PSH
+
+          # Both CE and legacy referrals to the same project type
+          create(:hmis_ce_referral, client: client1, data_source: client1.data_source, project: project1, status: 'in_progress')
+
+          referral = create(:hmis_external_api_ac_hmis_referral)
+          create(:hmis_external_api_ac_hmis_referral_household_member, referral: referral, client: client1)
+          create(:hmis_external_api_ac_hmis_referral_posting, referral: referral, project: project1, status: 'assigned_status')
+        end
+
+        it 'deduplicates project types when same type appears in both referral types' do
+          result = field_map.client_query(all_destination_clients, 'open_referral_project_types')
+          expect(result[destination_client1.id]).to contain_exactly(3) # Deduplicated
+          expect(result[destination_client2.id]).to be_empty
+        end
       end
     end
   end

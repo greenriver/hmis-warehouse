@@ -115,13 +115,16 @@ module HmisCsvTwentyTwentySix::Exporter
           exportable_files.each do |destination_class, opts|
             opts[:export] = @export
             options[:export] = @export
-            tmp_table_prefix = opts[:hmis_class].table_name.downcase
+            # Table names can't be longer than 63 characters, so we need to truncate the prefix
+            # we add roughly 13 characters below, so we'll truncate to 50 characters
+            tmp_table_prefix = opts[:hmis_class].table_name.downcase[0..50]
             dest_config = {
               hmis_class: opts[:hmis_class],
               destination_class: destination_class,
               output_file: File.join(@file_path, file_name_for(destination_class)),
             }
-            opts[:temp_class] = TempExport.create_temporary_table(table_name: "temp_export_#{tmp_table_prefix}_#{export.id}s", model_name: destination_class.temp_model_name)
+            tmp_table_name = "te_#{tmp_table_prefix}_#{export.id}s"[0..63]
+            opts[:temp_class] = TempExport.create_temporary_table(table_name: tmp_table_name, model_name: destination_class.temp_model_name)
             begin
               HmisCsvTwentyTwentySix::Exporter::KibaExport.export!(
                 options: options,

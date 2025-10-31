@@ -1,8 +1,13 @@
+# frozen_string_literal: true
+
+require 'logging/sanitizer'
+
 # Logging config in one place instead of six
 
 class SetupLogging
   attr_accessor :config
 
+  SANITIZER = Logging::Sanitizer.new
   STANDARD_TAGS = {
     gr_client: 'openpath',
 
@@ -14,6 +19,7 @@ class SetupLogging
     # Some Green River clients have multiple tenants running the same general
     # code (but with different databases or environment variables)
     tenant: ENV.fetch('CLIENT', 'unknown-client-set-CLIENT-env-var'),
+    rails_env: Rails.env, # Deployment environment; trusted
   }.freeze
 
   def initialize(config)
@@ -71,6 +77,7 @@ class SetupLogging
     def call(severity, time, program_name, message)
       @tags ||= {}
       message = '' if message.blank?
+      # prevent logging a severity level for an empty message
       severity = '' if message.blank?
       program_name = '' if program_name.blank?
 
@@ -92,25 +99,31 @@ class SetupLogging
     config.lograge.formatter = Lograge::Formatters::Json.new
     config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
-      {
-        request_time: Time.current,
-        # application: Rails.application.class,
-        server_protocol: event.payload[:server_protocol],
-        host: event.payload[:host],
-        remote_ip: event.payload[:remote_ip],
-        ip: event.payload[:ip],
-        remote_addr: event.payload[:remote_addr],
-        session_id: event.payload[:session_id],
-        user_id: event.payload[:user_id],
-        process_id: Process.pid,
-        pid: event.payload[:pid],
-        request_id: event.payload[:request_id] || event.payload[:headers]['action_dispatch.request_id'],
-        request_start: event.payload[:request_start],
-        x_forwarded_for: event.payload[:x_forwarded_for],
-        rails_env: Rails.env,
-        exception: event.payload[:exception]&.first,
-        x_amzn_trace_id: event.payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID'),
+      payload = event.payload || raise('Lograge event payload missing')
+
+      request_id = payload[:request_id] || payload.dig(:headers, 'action_dispatch.request_id')
+      trace_id = payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID')
+
+      # sanitize untrusted values
+      sanitizer = SANITIZER
+      result = {
+        request_time: Time.current, # Server timestamp (trusted)
+        server_protocol: sanitizer.call(payload[:server_protocol]),
+        host: sanitizer.call(payload[:host]), # From Host header; untrusted
+        remote_ip: payload[:remote_ip], # Trusted: computed by Rails
+        ip: payload[:ip], # Trusted: computed by Rails
+        remote_addr: payload[:remote_addr], # Trusted: socket level
+        session_id: payload[:session_id], # Rack session; trusted
+        user_id: payload[:user_id], # App assigned; trusted
+        pid: payload[:pid], # Raw payload PID; trusted if present
+        request_id: sanitizer.call(request_id), # Rails request UUID; trusted
+        request_start: sanitizer.call(payload[:request_start]), # Header supplied; untrusted
+        x_forwarded_for: sanitizer.call(payload[:x_forwarded_for]),
+        exception: sanitizer.call(payload[:exception]&.first),
+        x_amzn_trace_id: sanitizer.call(trace_id), # AWS trace header; untrusted
       }.merge(STANDARD_TAGS)
+      result.compact_blank!
+      result
     end
   end
 

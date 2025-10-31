@@ -939,7 +939,7 @@ type CeOpportunitiesPaginated {
 type CeOpportunity {
   active: Boolean!
   candidateLookup(id: ID!): CeCandidate
-  candidates(limit: Int, offset: Int): CeCandidatesPaginated!
+  candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
@@ -960,6 +960,10 @@ type CeOpportunity {
   referral: CeReferral
   status: CeOpportunityStatus!
   unit: Unit
+}
+
+input CeOpportunityCandidatesFilterOptions {
+  excludeDeclinedClients: Boolean = false
 }
 
 input CeOpportunityFilterOptions {
@@ -1090,6 +1094,11 @@ type CeReferral {
 
 type CeReferralAccess {
   canAssignReferralTasks: Boolean!
+
+  """
+  Whether or not the user can create a note on this referral at the top level, i.e., not tied to a specific task.
+  """
+  canCreateReferralNote: Boolean!
   canViewReferralDetails: Boolean!
   canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!
@@ -3991,7 +4000,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
-  alcoholDrugUseDisorderFam: NoYesMissing
+  alcoholDrugUseDisorderFam: NoYesReasonsForMissingData
   annualPercentAmi: AnnualPercentAMI
   assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
@@ -4056,9 +4065,9 @@ type Enrollment {
   id: ID!
   inProgress: Boolean!
   incarceratedAdult: IncarceratedAdult
-  incarceratedParent: NoYesMissing
+  incarceratedParent: NoYesReasonsForMissingData
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
-  insufficientIncome: NoYesMissing
+  insufficientIncome: NoYesReasonsForMissingData
   intakeAssessment: Assessment
   juvenileJusticeMonths: Int
   juvenileJusticeYears: RHYNumberofYears
@@ -4072,7 +4081,7 @@ type Enrollment {
   lockVersion: Int!
   losUnderThreshold: NoYesMissing
   mentalHealthConsultation: MentalHealthConsultation
-  mentalHealthDisorderFam: NoYesMissing
+  mentalHealthDisorderFam: NoYesReasonsForMissingData
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInAddresses: [ClientAddress!]!
   moveInDate: ISO8601Date
@@ -4085,7 +4094,7 @@ type Enrollment {
   openEnrollmentSummary: [EnrollmentSummary!]!
   organizationName: String!
   percentAmi: PercentAMI
-  physicalDisabilityFam: NoYesMissing
+  physicalDisabilityFam: NoYesReasonsForMissingData
   preferredLanguage: PreferredLanguage
   preferredLanguageDifferent: String
   previousStreetEssh: NoYesMissing
@@ -4118,7 +4127,7 @@ type Enrollment {
   timeToHousingLoss: TimeToHousingLoss
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   translationNeeded: NoYesReasonsForMissingData
-  unemploymentFam: NoYesMissing
+  unemploymentFam: NoYesReasonsForMissingData
   user: ApplicationUser
   vamcStation: VamcStationNumber
   youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
@@ -4797,6 +4806,7 @@ type FilesPaginated {
 FormDefinition
 """
 type FormDefinition {
+  access: FormDefinitionAccess!
   cacheKey: ID!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
@@ -4813,6 +4823,13 @@ type FormDefinition {
   title: String!
   updatedBy: ApplicationUser
   version: ID!
+}
+
+type FormDefinitionAccess {
+  canDuplicateForm: Boolean!
+  canManageForm: Boolean!
+  canPublishForm: Boolean!
+  id: ID!
 }
 
 type FormDefinitionForJsonResult {
@@ -4848,6 +4865,12 @@ type FormDefinitionsPaginated {
 Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier
 """
 type FormIdentifier {
+  access: FormIdentifierAccess!
+
+  """
+  Whether this form is locked for editing by non-admins
+  """
+  adminEditableOnly: Boolean!
   allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
 
   """
@@ -4863,6 +4886,13 @@ type FormIdentifier {
   """
   managedInVersionControl: Boolean!
   publishedVersion: FormDefinition
+}
+
+type FormIdentifierAccess {
+  canDuplicateForm: Boolean!
+  canManageForm: Boolean!
+  canPublishForm: Boolean!
+  id: ID!
 }
 
 input FormIdentifierFilterOptions {
@@ -5263,7 +5293,7 @@ input FormRuleFilterOptions {
 }
 
 input FormRuleInput {
-  activeStatus: ActiveStatus
+  activeStatus: ActiveStatus @deprecated(reason: "Rules are always active when created. This type is no longer used for updating a form rule. To deactivate, use DeleteFormRule mutation.")
   dataCollectedAbout: DataCollectedAbout
   funder: FundingSource
   organizationId: ID
@@ -7199,12 +7229,6 @@ type Mutation {
   ): UpdateClientImagePayload
   updateExternalFormSubmission(id: ID!, input: ExternalFormSubmissionInput!): UpdateExternalFormSubmissionPayload
   updateFormDefinition(id: ID!, input: FormDefinitionInput!): UpdateFormDefinitionPayload
-  updateFormRule(
-    """
-    Parameters for UpdateFormRule
-    """
-    input: UpdateFormRuleInput!
-  ): UpdateFormRulePayload @deprecated(reason: "Replaced with DeleteFormRule")
   updateProjectConfig(id: ID!, input: ProjectConfigInput!): UpdateProjectConfigPayload
 
   """
@@ -12805,14 +12829,12 @@ type Unit {
   name: String!
   occupancyStatus: UnitOccupancyStatus!
   occupants: [Enrollment!]!
-  priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
   project: Project
   unitGroup: UnitGroup
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
-  workflowTemplateName: String
 }
 
 enum UnitFilterOptionStatus {
@@ -12845,6 +12867,8 @@ type UnitGroup {
   """
   capacity: Int!
   ceEventType: EventType
+  directReferralWorkflowTemplateIdentifier: String
+  directReferralWorkflowTemplateName: String
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!
@@ -12859,6 +12883,7 @@ type UnitGroup {
 
 input UnitGroupInput {
   ceEventType: EventType
+  directReferralWorkflowTemplateIdentifier: String
   name: String
   projectId: ID
   workflowTemplateIdentifier: String
@@ -12967,30 +12992,6 @@ Autogenerated return type of UpdateFormDefinition.
 type UpdateFormDefinitionPayload {
   errors: [ValidationError!]!
   formDefinition: FormDefinition
-}
-
-"""
-Autogenerated input type of UpdateFormRule
-"""
-input UpdateFormRuleInput {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  id: ID!
-  input: FormRuleInput!
-}
-
-"""
-Autogenerated return type of UpdateFormRule.
-"""
-type UpdateFormRulePayload {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  errors: [ValidationError!]!
-  formRule: FormRule!
 }
 
 """

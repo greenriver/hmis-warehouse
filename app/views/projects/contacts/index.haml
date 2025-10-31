@@ -1,22 +1,26 @@
 - title = "Project Contacts for #{@entity.name(current_user, ignore_confidential_status: can_edit_projects?)}"
-- content_for :modal_title, title
+- content_for :title, title
 = render 'breadcrumbs'
 .row.mt-4.mb-2
-  .col-sm-12
-    = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary pull-right mb-2' do
+  .col-sm-8
+    %h1= title
+  .col-sm-4.d-flex
+    = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary mb-2 ml-auto' do
       %span.icon-plus
       Add a Contact
 .row
   .col-sm-12
     - if @contacts.present?
-      .table-responsive
-        %table.table.table-sm.table-striped
+      .card.c-card-overflow-inherit
+        %table.table.table-striped
           %thead
             %tr
               %th
                 Name
               %th
                 Email
+              %th
+                Alert Subscriptions
               %th
           %tbody
             - @contacts.each do |contact|
@@ -27,8 +31,15 @@
                 %td
                   = contact.email
                 %td
-                  = link_to project_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-secondary', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
-                    %span.icon-cross
-                    Delete
+                  - if contact.alert_definitions.any?
+                    = contact.alert_definitions.map(&:name).join(', ')
+                  - else
+                    %span.text-muted None
+                %td
+                  :ruby
+                    items = []
+                    items << { link_to: { path: edit_project_contact_path(@entity, contact)}, icon: 'pencil', label: 'Edit Contact' }
+                    items << { link_to: { path: project_contact_path(@entity, contact), method: :delete, data: {confirm: "Do you really want to delete contact #{contact.full_name}"}}, icon: 'cross', label: 'Delete' }
+                  = action_menu_or_button(items: items)
     - else
       .none-found No project contacts on file.

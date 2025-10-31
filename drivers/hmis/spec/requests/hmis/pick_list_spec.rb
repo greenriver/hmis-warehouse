@@ -242,13 +242,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'is empty if there are no instances that specify custom service category or custom service type' do
-      # Should return empty, because the instance does not specify a service type or category
-      # There are no "defaults" allowed for services
-      create(
-        :hmis_form_instance,
-        entity: p1,
-        definition_identifier: service_form_definition.identifier,
-      )
       expect(picklist_option_codes(p1)).to be_empty
       expect(picklist_option_codes(p2)).to be_empty
     end

@@ -1,36 +1,47 @@
 - title = "Contacts for #{@entity.OrganizationName}"
 - content_for :title, title
-%h1= title
 = render 'organizations/breadcrumbs'
 
 .row
-  .col-sm-12
-    = link_to new_organization_contact_path(@entity), class: 'btn btn-primary pull-right mb-2', data: {loads_in_pjax_modal: true} do
+  .col-sm-8
+    %h1= title
+  .col-sm-4.d-flex
+    = link_to new_organization_contact_path(@entity), class: 'btn btn-primary mb-2 ml-auto', data: {loads_in_pjax_modal: true} do
       %span.icon-plus
       Add a Contact
 .row
-  .col-sm-12
+  .col-sm-12.mt-4
     - if @contacts.present?
-      %table.table.table-sm
-        %thead
-          %tr
-            %th
-              Name
-            %th
-              Email
-            %th
-        %tbody
-          - @contacts.each do |contact|
+      .card.c-card-overflow-inherit
+        %table.table.table-striped
+          %thead
             %tr
-              %td
-                = link_to edit_organization_contact_path(@entity, contact) do
-                  = contact.full_name
-              %td
-                = contact.email
-              %td
-                = link_to organization_contact_path(@entity, contact), method: :delete, class: 'btn btn-default', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
-                  %span.icon-cross
-                  Delete
+              %th
+                Name
+              %th
+                Email
+              %th
+                Alert Subscriptions
+              %th
+          %tbody
+            - @contacts.each do |contact|
+              %tr
+                %td
+                  = link_to edit_organization_contact_path(@entity, contact) do
+                    = contact.full_name
+                %td
+                  = contact.email
+                %td
+                  - if contact.alert_definitions.any?
+                    = contact.alert_definitions.map(&:name).join(', ')
+                  - else
+                    %span.text-muted None
+                %td
+                  :ruby
+                    items = []
+                    items << { link_to: { path: edit_organization_contact_path(@entity, contact)}, icon: 'pencil', label: 'Edit Contact' }
+                    items << { link_to: { path: organization_contact_path(@entity, contact), method: :delete, data: {confirm: "Do you really want to delete contact #{contact.full_name}"}}, icon: 'cross', label: 'Delete' }
+                  = action_menu_or_button(items: items)
     - else
       %p
         No organization contacts on file.
