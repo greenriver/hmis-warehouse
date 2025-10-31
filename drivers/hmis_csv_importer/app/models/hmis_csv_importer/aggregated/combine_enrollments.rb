@@ -20,6 +20,17 @@ module HmisCsvImporter::Aggregated
       # NOTE: this operates on a single client at a single project, so there should be no overlapping enrollments
       # This will loop through all enrollments for a client and send back to the import tables any that overlap the import range
       # in an aggregated form.
+      #
+      # NOTE: Enabling this in the UI is not sufficient for this to begin working.  You also need to indicate which projects should be allowed to aggregate enrollments.
+      # You can enable aggregated enrollments for a project by calling `convert_to_aggregated!` on the project.
+      # Generally you'll want to do this for Night-by-Night ES projects.  To convert all
+      # Night-by-Night ES projects, you can use the following code:
+      #
+      # GrdaWarehouse::Hud::Project.es_nbn.find_each do |p|
+      #   puts "Converting project #{p.id} to aggregated"
+      #   p.convert_to_aggregated!
+      # end
+      #
       # NOTE: associated assessments (HealthAndDV, IncomeBenefit, etc.) will be imported for all enrollments
       # but won't be accessible via the UI.  The Exit assessment associated data will be from the initial exit
       # (tied to the initial enrollment) while the exit record will come from the final enrollment in the group.
@@ -224,7 +235,7 @@ module HmisCsvImporter::Aggregated
     end
 
     def self.description
-      'Replace multiple contiguous enrollments (the next entry falls immediately after the previous exit) with a single enrollment.'
+      'Replace multiple contiguous enrollments (the next entry falls immediately after the previous exit) with a single enrollment. NOTE: before enrollments will be aggregated, the projects must be setup to aggregate enrollments. At the moment, this must be done by your support team.'
     end
 
     def self.enable
