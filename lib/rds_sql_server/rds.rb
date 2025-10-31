@@ -19,7 +19,7 @@ class Rds
   RDS_KMS_KEY_ID      ||= ENV.fetch('RDS_KMS_KEY_ID')
   DB_SUBNET_GROUP     ||= ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME       ||= 1.hour
-  PUBLICLY_ACCESSIBLE ||= ENV.fetch('RDS_PUBLICLY_ACCESSIBLE') { 'false' }.to_s.downcase == 'true'
+  PUBLICLY_ACCESSIBLE ||= !(Rails.env.development? || Rails.env.test?)
 
   NEVER_STARTING_STATUSES ||= [
     'deleting',
