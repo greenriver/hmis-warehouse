@@ -458,14 +458,6 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_warehouse_alerts? }, # rubocop:disable Style/SymbolProc
-        path: admin_metric_definitions_path,
-        title: 'Warehouse Metrics',
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
         visible: ->(user) { user.can_manage_assessments? && GrdaWarehouse::Config.get(:eto_api_available) },
         path: admin_eto_api_assessments_path,
         title: 'ETO TouchPoints',

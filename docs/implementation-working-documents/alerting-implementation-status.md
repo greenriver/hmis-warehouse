@@ -101,7 +101,7 @@ All migrations are in `db/warehouse/migrate/`:
 ### Data Migration (Phase 2)
 
 - **TaskQueue Job:** Added to `config/application.rb` as `config.queued_tasks[:migrate_user_notification_preferences]`
-- Calls `GrdaWarehouse::AlertDefinition.maintain!`
+- Calls `GrdaWarehouse::AlertDefinition.seed_initial_definitions`
 - Calls `GrdaWarehouse::ContactAlertSubscription.migrate_user_notification_preferences!`
   - `migrate_user_system_alerts!` - Migrates user-level system alert preferences from old boolean columns
   - `migrate_project_and_organization_contacts!` - Subscribes all existing project/organization contacts to data quality reports

@@ -171,7 +171,7 @@ module GrdaWarehouse
     scope :by_category, ->(category) { where(category: category) }
     scope :system_alerts, -> { by_category('system') }
 
-    def self.maintain!
+    def self.seed_initial_definitions
       # See "Seed Data" section below
     end
   end
@@ -303,7 +303,7 @@ end
 ```ruby
 class SeedInitialAlertDefinitions < ActiveRecord::Migration[7.0]
   def up
-    GrdaWarehouse::AlertDefinition.maintain!
+    GrdaWarehouse::AlertDefinition.seed_initial_definitions
   end
 
   def down
