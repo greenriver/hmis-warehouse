@@ -45,6 +45,10 @@ bundle exec ./bin/materialize.database.yaml.rb
 T2=$(date +%s)
 echo "...database materialize took $(expr $T2 - $T1) seconds"
 
+echo 'Generating .pgpass file from environment variables...'
+bundle exec ./bin/generate_pgpass.rb > ~/.pgpass
+chmod 600 ~/.pgpass
+
 echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE >/etc/timezone
