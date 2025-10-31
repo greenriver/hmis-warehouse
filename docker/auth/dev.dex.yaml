@@ -29,6 +29,20 @@ connectors:
       clientID: ${GITHUB_IDP_CLIENT_ID}
       clientSecret: ${GITHUB_IDP_CLIENT_SECRET}
       redirectURI: http://dex.dev.test:4443/dex/callback
+  - type: oidc
+    id: zitadel
+    name: MHP Account
+    config:
+      issuer: http://zitadel.dev.test:8080
+      clientID: ${ZITADEL_IDP_CLIENT_ID}
+      clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
+      redirectURI: http://dex.dev.test:4443/dex/callback
+      useLoginAsID: true
+      scopes:
+        - openid
+        - email
+        - profile
+      getUserInfo: true
 staticClients:
   - id: hmis-warehouse
     name: "HMIS Warehouse"
