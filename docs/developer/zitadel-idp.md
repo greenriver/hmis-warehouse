@@ -16,4 +16,11 @@ This document does not cover installation of Zitadel but attempts to explain eno
 8. Add a **Redirect URI** that matches your configuration for Dex `http://dex.dev.test:4443/dex/callback`
 9. Add a **Post Logout URI**, generally this would be the homepage `https://hmis-warehouse.dev.test`
 10. Click **Continue**, click **Create**
-11. Copy the **ClientId** and **ClientSecret** values into your environment in `ZITADEL_IDP_CLIENT_ID` and `ZITADEL_IDP_CLIENT_SECRET`.  Is is most easily done by adding them to `.envrc`
+11. Copy the **ClientId** and **ClientSecret** values into your environment in `ZITADEL_IDP_CLIENT_ID` and `ZITADEL_IDP_CLIENT_SECRET`.  Is is most easily done by adding them to `.env.local`
+12. Click **Default Settings**
+13. Click **SMTP Provider**
+14. Click **Generic SMTP**
+15. Give it a name (mailhog)
+16. Host and Port: `mailhog:1025`, user: `local`, password: `local`, click **Continue**
+17. Sender Email Address: `noreply@zitadel.dev.test` Sender Name: `Zitadel Dev`, click **Continue**
+18. Click **Test**, you should receive a test message in Mailhog.  Click **Create**, Click **Activeate**

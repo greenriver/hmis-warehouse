@@ -31,7 +31,7 @@ connectors:
       redirectURI: http://dex.dev.test:4443/dex/callback
   - type: oidc
     id: zitadel
-    name: MHP Account
+    name: Open Path Account
     config:
       issuer: http://zitadel.dev.test:8080
       clientID: ${ZITADEL_IDP_CLIENT_ID}

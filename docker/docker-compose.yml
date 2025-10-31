@@ -1,3 +1,7 @@
+x-env-file: &env_file
+  - .env.development.local
+  - .env.local
+
 x-app: &app
   image: hmis-warehouse:5.2
   build:
@@ -29,9 +33,7 @@ x-app: &app
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
 
-  env_file:
-    - .env.development.local
-    - .env.local
+  env_file: *env_file
 
 x-backend: &backend
   <<: *app
@@ -189,14 +191,12 @@ services:
     hostname: dex
     volumes:
       - "./docker/auth/dev.dex.yaml:/dex.yaml"
+    env_file: *env_file
     environment:
+      <<: *env
       FQDN: dex.dev.test
       VIRTUAL_HOST: dex.dev.test
       VIRTUAL_PORT: 4443
-      GITHUB_IDP_CLIENT_ID: ${GITHUB_IDP_CLIENT_ID:-}
-      GITHUB_IDP_CLIENT_SECRET: ${GITHUB_IDP_CLIENT_SECRET:-}
-      ZITADEL_IDP_CLIENT_ID: ${ZITADEL_IDP_CLIENT_ID:-}
-      ZITADEL_IDP_CLIENT_SECRET: ${ZITADEL_IDP_CLIENT_SECRET:-}
     ports:
       - 4443:4443/tcp
     networks:
