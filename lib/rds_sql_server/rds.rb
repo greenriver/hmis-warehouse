@@ -19,7 +19,6 @@ class Rds
   RDS_KMS_KEY_ID      ||= ENV.fetch('RDS_KMS_KEY_ID')
   DB_SUBNET_GROUP     ||= ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME       ||= 1.hour
-  PUBLICLY_ACCESSIBLE ||= !(Rails.env.development? || Rails.env.test?)
 
   NEVER_STARTING_STATUSES ||= [
     'deleting',
@@ -185,7 +184,8 @@ class Rds
       auto_minor_version_upgrade: true,
       preferred_backup_window: '06:14-06:44',
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
-      publicly_accessible: PUBLICLY_ACCESSIBLE,
+      # RDS being publicly available allows us to reach the database when running locally. This should always be false in deployed environments.
+      publicly_accessible: !(Rails.env.development? || Rails.env.test?),
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
       db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
