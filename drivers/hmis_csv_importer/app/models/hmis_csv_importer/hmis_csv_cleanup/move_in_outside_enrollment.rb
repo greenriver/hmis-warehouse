@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvImporter::HmisCsvCleanup
   class MoveInOutsideEnrollment < Base
     def cleanup!
@@ -25,10 +27,17 @@ module HmisCsvImporter::HmisCsvCleanup
         enrollment_batch << enrollment
       end
 
+      # Deduplicate by conflict_target to avoid PostgreSQL cardinality violation
+      # Keep the last occurrence of each unique conflict target combination
+      conflict_keys = conflict_target(enrollment_source)
+      unique_batch = enrollment_batch.index_by do |enrollment|
+        conflict_keys.map { |key| enrollment.public_send(key) }
+      end.values
+
       enrollment_source.import(
-        enrollment_batch,
+        unique_batch,
         on_duplicate_key_update: {
-          conflict_target: conflict_target(enrollment_source),
+          conflict_target: conflict_keys,
           columns: [:MoveInDate, :source_hash],
         },
       )
