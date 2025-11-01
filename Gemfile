@@ -101,6 +101,8 @@ gem 'devise-security'
 gem 'devise-two-factor', '~> 4.1.1'
 gem 'rack-cors'
 gem 'doorkeeper'
+# Zitadel client is used for migrating users to Zitadel
+gem 'zitadel-client', require: false
 
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'

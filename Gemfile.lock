@@ -481,6 +481,8 @@ GEM
     encryptor (3.0.0)
     erubi (1.13.1)
     erubis (2.7.0)
+    ethon (0.15.0)
+      ffi (>= 1.15.0)
     excon (0.112.0)
     execjs (2.10.0)
     factory_bot (6.5.1)
@@ -1046,6 +1048,8 @@ GEM
     tiny_tds (3.2.1)
       bigdecimal (~> 3)
     todo_or_die (0.1.1)
+    typhoeus (1.5.0)
+      ethon (>= 0.9.0, < 0.16.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.4)
@@ -1111,6 +1115,11 @@ GEM
     yajl-ruby (1.4.3)
     yaml-safe_load_stream3 (0.1.2)
     zeitwerk (2.7.2)
+    zitadel-client (1.10.0)
+      oauth2 (~> 2.0)
+      typhoeus (~> 1.0, >= 1.0.1)
+      warning (~> 1.5.0)
+      zeitwerk (~> 2.5)
 
 PLATFORMS
   arm64-darwin-22
@@ -1351,6 +1360,7 @@ DEPENDENCIES
   yabeda-prometheus
   yabeda-puma-plugin
   yabeda-rails
+  zitadel-client
 
 CHECKSUMS
   abbrev (0.1.2) sha256=ad1b4eaaaed4cb722d5684d63949e4bde1d34f2a95e20db93aecfe7cbac74242
@@ -1502,6 +1512,7 @@ CHECKSUMS
   encryptor (3.0.0) sha256=abf23f94ab4d864b8cea85b43f3432044a60001982cda7c33c1cd90da8db1969
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   erubis (2.7.0) sha256=63653f5174a7997f6f1d6f465fbe1494dcc4bdab1fb8e635f6216989fb1148ba
+  ethon (0.15.0) sha256=0809805a035bc10f54162ca99f15ded49e428e0488bcfe1c08c821e18261a74d
   excon (0.112.0) sha256=daf9ac3a4c2fc9aa48383a33da77ecb44fa395111e973084d5c52f6f214ae0f0
   execjs (2.10.0) sha256=6bcb8be8f0052ff9d370b65d1c080f2406656e150452a0abdb185a133048450d
   factory_bot (6.5.1) sha256=40581ea7bec0aee05514b8f4f99ed477274bdf1884c1372de5209e60322d6ca9
@@ -1754,6 +1765,7 @@ CHECKSUMS
   tins (1.38.0) sha256=99acd138b73d5b1b2dd8e72f1707ac0905c8f63f729ddd7c746d2d3c3803886d
   tiny_tds (3.2.1) sha256=f0449ed23840c01b3470e1e28e7a839dad78426319136ff4c14d8af30a120778
   todo_or_die (0.1.1) sha256=0a3d51b664367e48d8c6c49c21aa111bc1bbea13a0cdfd9dd5fc2e2066df948b
+  typhoeus (1.5.0) sha256=120b67ed1ef515e6c0e938176db880f15b0916f038e78ce2a66290f3f1de3e3b
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   unicode-display_width (3.1.4) sha256=8caf2af1c0f2f07ec89ef9e18c7d88c2790e217c482bfc78aaa65eadd5415ac1
   unicode-emoji (4.0.4) sha256=2c2c4ef7f353e5809497126285a50b23056cc6e61b64433764a35eff6c36532a
@@ -1781,6 +1793,7 @@ CHECKSUMS
   yajl-ruby (1.4.3) sha256=8c974d9c11ae07b0a3b6d26efea8407269b02e4138118fbe3ef0d2ec9724d1d2
   yaml-safe_load_stream3 (0.1.2) sha256=fd4f63ffe57e65ec8fd5a314064151f843e83239ff87bfc6b2fdbdba81e7e481
   zeitwerk (2.7.2) sha256=842e067cb11eb923d747249badfb5fcdc9652d6f20a1f06453317920fdcd4673
+  zitadel-client (1.10.0) sha256=387b4701bf25356778dbaaf494c644ed074eb5ea04d79b33954ff1ea7ca4ea41
 
 BUNDLED WITH
    2.7.2

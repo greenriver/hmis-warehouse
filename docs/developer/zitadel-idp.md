@@ -24,3 +24,21 @@ This document does not cover installation of Zitadel but attempts to explain eno
 16. Host and Port: `mailhog:1025`, user: `local`, password: `local`, click **Continue**
 17. Sender Email Address: `noreply@zitadel.dev.test` Sender Name: `Zitadel Dev`, click **Continue**
 18. Click **Test**, you should receive a test message in Mailhog.  Click **Create**, Click **Activeate**
+
+## Create a Service User for Migrating Warehouse Users
+1. Go to the **Open Path** project in Zitadel
+2. Click on **Users**, then **Service Users**, then **New**
+3. Set the User Name and Name to **rails-app**, leave Access Token Type as **Bearer**, click **Create**
+4. Click **Personal Access Tokens**, Click **New**, leave the expiration date empty
+5. In `.env.local` set `ZITADEL_SERVICE_USER_TOKEN`, `ZITADEL_API_URL`,  `ZITADEL_ORG_ID`, and `ZITADEL_PROJECT_ID` appropriate values.
+6. Click **Organization**, then click the `+` next to the Actions menu.
+7. Choose the `rails-app` user and check **Org User Manager**, click **Add**
+8. Click **Default Settings**
+9. Click the `+` next to the ZA and Robot icons
+10. Choose the **rails-app** user, grant **Iam Owner** and **Iam User Manager**, click **Add**
+
+## Export/Import Process
+1. Run `rails zitadel:test_connection` to confirm the connection is setup correctly
+2. Run `rails zitadel:export_users[2]` to export a sample of 2 users
+3. Verify `tmp/zitadel_users_export.json` to confirm it looks sane
+4. Run `rails zitadel:import_users[tmp/zitadel_users_export.json]` to import users into Zitadel
