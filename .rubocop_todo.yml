@@ -3550,7 +3550,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/force_prioritized_placement_status.rb'
     - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/force_project_enrollment_coc.rb'
     - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/force_valid_enrollment_coc.rb'
-    - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/move_in_outside_enrollment.rb'
     - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/prepend_organization_id.rb'
     - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/prepend_project_id.rb'
     - 'drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_validation/base.rb'
