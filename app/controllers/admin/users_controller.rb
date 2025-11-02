@@ -14,8 +14,6 @@ module Admin
     # which is handled separately as it's stored as a JSON array rather than associations.
     VALID_ENTITY_TYPES = (AccessGroup.known_entity_types.map(&:to_s) + ['coc_codes']).freeze
 
-    # This controller is namespaced to prevent
-    # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
     before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
     before_action :require_can_impersonate_users!, only: [:impersonate]
@@ -27,8 +25,7 @@ module Admin
 
     def index
       # TODO: START_ACL replace when ACL transition complete
-      # preload(:access_controls, :oauth_identities).
-      @users = user_scope.preload(:access_controls, :roles, :oauth_identities)
+      @users = user_scope.preload(:access_controls, :roles)
       # END_ACL
 
       @users = @users.order(sort_column => sort_direction) if manually_sorted?

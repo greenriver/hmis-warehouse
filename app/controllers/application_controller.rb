@@ -14,6 +14,7 @@ class ApplicationController < ActionController::Base
   respond_to :html, :js, :json, :csv
   impersonates :user
 
+  include CurrentUser
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
@@ -46,8 +47,6 @@ class ApplicationController < ActionController::Base
 
   before_action :prepare_exception_notifier
 
-  prepend_before_action :skip_timeout
-
   # raise NotAuthorizedError which we can rescue from. This stops flow on a failed authorization check
   protected def not_authorized!(message = nil)
     raise NotAuthorizedError, message
@@ -74,11 +73,6 @@ class ApplicationController < ActionController::Base
     @user = User.new
   end
   helper_method :resource
-
-  def devise_mapping
-    @devise_mapping ||= Devise.mappings[:user]
-  end
-  helper_method :devise_mapping
 
   # Send any exceptions on production to slack
   def set_notification
@@ -112,19 +106,12 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # don't extend the user's session if its an ajax request.
-  def skip_timeout
-    request.env['devise.skip_trackable'] = true if request.xhr?
-  end
-
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
       user == Rails.application.secrets.basic_auth_user && \
       password == Rails.application.secrets.basic_auth_password
     end
   end
-
-  before_action :configure_permitted_parameters, if: :devise_controller?
 
   def append_info_to_payload(payload)
     super
@@ -181,10 +168,6 @@ class ApplicationController < ActionController::Base
   helper_method :sentry_frontend_config
 
   protected
-
-  def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
-  end
 
   # Redirect to window page after signin if you have
   # no where else to go (and you can see it)

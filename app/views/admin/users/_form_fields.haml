@@ -2,7 +2,8 @@
 .row
   .col-sm-6
     %h3 User Information
-    - providers = user.oauth_identities.map(&:provider_name).sort.uniq
+    -# TODO: this needs to be cleaned up for oauth2
+    - providers = []
     - if providers.any?
       .alert.alert-info
         = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."

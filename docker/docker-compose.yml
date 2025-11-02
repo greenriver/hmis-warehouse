@@ -32,6 +32,14 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
+    # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientID
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse}
+    # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientSecret and
+    # Needs to match /app/docker/auth/dev.oauth2-proxy.cfg cookie_secret
+    JWT_SECRET: ${JWT_SECRET:-"dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="}
+    JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+    ISS_URL: ${ISS_URL:-http://dex.dev.test:4443/dex}
+    JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
 
   env_file: *env_file
 

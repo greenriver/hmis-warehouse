@@ -6,98 +6,37 @@
 
 # frozen_string_literal: true
 
-class Users::SessionsController < Devise::SessionsController
-  include AuthenticatesWithTwoFactor
-  # Start the time log before other methods are called in the authentication stack so we can get the server begin time for the login attempt
-  prepend_before_action :begin_time_log, only: :create
-  prepend_before_action(
-    :authenticate_with_two_factor,
-    if: -> { action_name == 'create' && two_factor_enabled? },
-  )
-
-  # Minimum required login processing time for ALL login attempts (seconds)
-  MIN_REQ_LOGIN_TIME = 2
-
-  def begin_time_log
-    # Timestamp for tracking login time to help ensure that the application response time is consistent for valid/invalid usernames.
-    # This helps prevent using login method time to enumerate valid vs invalid usernames
-    @session_create_timestamp = Time.current
-  end
-
-  def end_time_log
-    # Wait a semi-random length of time to return after a login attempt to prevent using login time analysis to enumerate valid usernames.
-    # We want to make sure valid and invalid username attempts all take the same minimum amount of time to process and then add a random salt.
-    elapsed = Time.current - @session_create_timestamp
-    wait_time = MIN_REQ_LOGIN_TIME - elapsed + rand(0.5..1)
-    sleep(wait_time) if wait_time.positive? && elapsed < MIN_REQ_LOGIN_TIME
-  end
-
-  def create
-    super do |resource|
-      # User has successfully signed in, so clear any unused reset token
-      resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
-      # Note access for external reporting
-      resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
-    end
-  ensure
-    # `super` includes a redirect on failed authentication. We want to make sure this check is captured and processed
-    # from a location with access to the server's initial login timestamp.
-    end_time_log
-  end
-
-  def destroy
-    request.env['last_user'] = current_user
-
-    super
-  end
-
-  def keepalive
-    head :ok
-  end
-
-  def find_user
-    if session[:otp_user_id]
-      User.find(session[:otp_user_id])
-    elsif user_params[:email]
-      User.find_by(email: user_params[:email])
+class Users::SessionsController < ApplicationController
+  skip_before_action :authenticate_user!
+  def index
+    if current_user.present?
+      redirect_to(current_user.my_root_path)
+    else
+      flash.now.alert = I18n.t('views.session.invalid_user') if request.headers['HTTP_X_FORWARDED_USER'].present?
+      render :index
     end
   end
 
-  def user_params
-    params.require(:user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
+  def sign_in
+    url = idp_login_link(params[:connector_id])
+    redirect_to url, allow_other_host: true
   end
 
-  def two_factor_enabled?
-    find_user&.two_factor_enabled?
+  def sign_out
+    redirect_to '/oauth2/sign_out'
   end
 
-  def training_complete?
-    find_user&.training_complete?
-  end
+  # This requires alpha config for oauth2-proxy
+  # and may break if config options change in the future
+  def idp_login_link(connector_id = nil, **args)
+    auth_start_path = 'oauth2/start'
+    auth_start_url = "#{root_url}#{auth_start_path}"
 
-  def valid_otp_attempt?(user)
-    user.validate_and_consume_otp!(clean_code)
-  end
+    query = args || {}
+    query[:connector_id] = connector_id if connector_id.present?
 
-  def valid_backup_code_attempt?(user)
-    user.invalidate_otp_backup_code!(clean_code)
-  end
+    return auth_start_url if query.blank?
 
-  private def clean_code
-    user_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
-  end
-
-  # override devise to add 'allow_other_host: true' so we can redirect to okta or superset
-  def respond_to_on_destroy
-    respond_to do |format|
-      format.all { head :no_content }
-      format.any(*navigational_formats) do
-        redirect_to(
-          after_sign_out_path_for(resource_name),
-          status: Devise.responder.redirect_status,
-          allow_other_host: true,
-        )
-      end
-    end
+    "#{auth_start_url}?#{URI.encode_www_form(query)}"
   end
 end

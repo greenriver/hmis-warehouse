@@ -13,8 +13,6 @@ module HmisExternalApis
     # Not needed for API-key authenticated endpoints
     skip_before_action :authenticate_user!
 
-    prepend_before_action :skip_timeout
-
     private
 
     def internal_system

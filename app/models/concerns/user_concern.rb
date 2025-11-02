@@ -9,11 +9,11 @@
 module UserConcern
   extend ActiveSupport::Concern
   include HasPiiAttributes
+  include JwtUser
 
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
-    include PasswordRules
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
@@ -24,32 +24,10 @@ module UserConcern
     pii_attr :unconfirmed_email, as: :email
     pii_attr :phone
 
-    attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
+    attr_accessor :client_access_arbiter, :copy_form_id
 
-    # Include default devise modules. Others available are:
-    devise :invitable,
-           :recoverable,
-           :rememberable,
-           :trackable,
-           # :validatable,
-           :secure_validatable,
-           :lockable,
-           :timeoutable,
-           :confirmable,
-           :session_limitable,
-           :pwned_password,
-           :expirable,
-           :password_expirable,
-           :password_archivable,
-           :two_factor_authenticatable,
-           :two_factor_backupable,
-           password_length: 10..128,
-           otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
-           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
-           otp_number_of_backup_codes: 10
-
-    include OmniauthSupport
-
+    # Oauth2
+    has_many :user_authentication_sources, dependent: :destroy
     # Doorkeeper
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
     has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
@@ -81,9 +59,6 @@ module UserConcern
     has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
     has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
     has_many :activity_logs
-
-    has_many :two_factors_memorized_devices
-    has_many :oauth_identities, dependent: :destroy
 
     has_many :favorites
     has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
@@ -228,14 +203,6 @@ module UserConcern
     def self.find_for_authentication(conditions)
       conditions[:email].downcase!
       super(conditions)
-    end
-
-    def timeout_time(session)
-      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
-    end
-
-    def future_expiration?
-      expired_at.present? && expired_at > Time.current
     end
 
     def limited_client_view?
@@ -389,48 +356,12 @@ module UserConcern
       )
     end
 
-    def record_failure_and_lock_access_if_exceeded!
-      # Due to a bug, failed PWs double increment failed attempts. To
-      # compensate, we double the lockout threshold. To match the PW
-      # behavior, double up on failures due to OTP
-      # https://github.com/tinfoil/devise-two-factor/issues/28
-      transaction do
-        2.times do # intentional double increment
-          increment_failed_attempts
-        end
-      end
-      # outside of transaction since this method sends email
-      return unless attempts_exceeded?
-
-      lock_access! unless access_locked?
-    end
-
-    def invitation_status
-      if invitation_accepted_at.present? || invitation_sent_at.blank?
-        :active
-      elsif invitation_due_at > Time.now
-        :pending_confirmation
-      else
-        :invitation_expired
-      end
-    end
-
-    # Enforce a known value is included in the devise salt
-    # this allows us to invalidate sessions even though they are stored in redis
-    def authenticatable_salt
-      base_salt = super
-      return base_salt if custom_session_invalidator.blank?
-
-      # Poison the salt to force the user to re-login by changing custom_session_invalidator
-      # Make sure the salt isn't changing length
-      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
-    end
-
+    # TODO: this needs to be cleaned up for oauth2
     def force_logout!
       update_attribute(:custom_session_invalidator, SecureRandom.hex)
     end
 
-    # Dependent on devise expire_password_after being set to a value other than false
+    # TODO: this needs to be cleaned up for oauth2
     def force_password_reset!
       return false unless password_expiration_enabled?
 
@@ -443,7 +374,7 @@ module UserConcern
       true
     end
 
-    # Prevent sending confirmation emails if the user has an open invitation
+    # TODO: this needs to be cleaned up for oauth2
     def send_reset_password_instructions
       if invitation_token.present?
         errors.add :email, 'There is an open invitation for this account.'
@@ -453,7 +384,7 @@ module UserConcern
       end
     end
 
-    # Prevent confirming accounts if the user has an open invitation
+    # TODO: this needs to be cleaned up for oauth2
     def pending_any_confirmation
       if invitation_token.present?
         errors.add :email, 'There is an open invitation for this account.'
@@ -463,6 +394,7 @@ module UserConcern
       end
     end
 
+    # TODO: this needs to be cleaned up for oauth2
     # @return [Array] an array of text that describes the status of the account
     def overall_status(current_user)
       return ['Active'] if active_for_authentication?
@@ -480,6 +412,7 @@ module UserConcern
       text
     end
 
+    # TODO: this needs to be cleaned up for oauth2
     def deactivation_status(user)
       return unless inactive?
 

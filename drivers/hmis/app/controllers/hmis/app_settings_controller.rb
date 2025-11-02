@@ -8,7 +8,6 @@
 
 class Hmis::AppSettingsController < Hmis::BaseController
   skip_before_action :authenticate_hmis_user!
-  prepend_before_action :skip_timeout
 
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?

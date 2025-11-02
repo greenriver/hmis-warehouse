@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'application_responder'
 
 # ApplicationController that could be shared between WH and HMIS, but is currently only used by HMIS
@@ -25,8 +27,6 @@ module BaseApplicationControllerBehavior
 
     before_action :prepare_exception_notifier
 
-    before_action :configure_permitted_parameters, if: :devise_controller?
-
     protected
 
     # Send any exceptions on production to slack
@@ -39,21 +39,9 @@ module BaseApplicationControllerBehavior
       params[:locale] || session[:locale] || default_locale
     end
 
-    # don't extend the user's session if its an ajax request.
-    def skip_timeout
-      request.env['devise.skip_trackable'] = true if request.xhr?
-    end
-
-    def configure_permitted_parameters
-      devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
-    end
-
     # Redirect to window page after signin if you have
     # no where else to go (and you can see it)
-    def after_sign_in_path_for(resource)
-      # alert users if their password has been compromised
-      set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
-
+    def after_sign_in_path_for(_resource)
       last_url = session['user_return_to']
       if last_url.present?
         last_url
@@ -62,15 +50,16 @@ module BaseApplicationControllerBehavior
       end
     end
 
+    # TODO: this needs to be cleaned up for oauth2
     def after_sign_out_path_for(_scope)
-      user = request.env['last_user']
-      if user
-        provider = cookies.signed[:active_provider]
-        identity = OauthIdentity.for_user(user).where(provider: provider).first if provider
-        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
-      else
-        root_url
-      end
+      user = request.env['last_user'] # rubocop:disable Lint/UselessAssignment
+      # if user
+      #   provider = cookies.signed[:active_provider]
+      #   identity = OauthIdentity.for_user(user).where(provider: provider).first if provider
+      #   identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
+      # else
+      root_url
+      # end
     end
 
     def set_hostname

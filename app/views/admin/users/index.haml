@@ -74,7 +74,8 @@
                 - names.uniq.sort.each do |name|
                   .mb-1= name
             %td
-              - providers = user.oauth_identities.map(&:provider_name).sort.uniq
+              -# TODO: this needs to be cleaned up for oauth2
+              - providers = []
               - if providers.any?
                 %div= "Sign-in provided by #{providers.to_sentence}"
               = render 'user_invitation_status', user: user

@@ -4,12 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin
   class AccountRequestsController < ApplicationController
     include AjaxModalRails::Controller
     include ViewableEntities # TODO: START_ACL remove when ACL transition complete
-    # This controller is namespaced to prevent
-    # route collision with Devise
+
     before_action :require_can_edit_users!
     before_action :set_account_request, only: [:edit, :update, :destroy]
 

@@ -4,7 +4,8 @@
   .row
     .col-sm-6
       .form-inputs
-        - has_okta = @user.oauth_identities.any?(&:okta?)
+        -# TODO: this needs to be cleaned up for oauth2
+        - has_okta = false
         - if has_okta
           %p= link_to_if ENV['OKTA_DOMAIN'].present?, 'Manage Personal Information in OKTA', "https://#{ENV['OKTA_DOMAIN']}/enduser/settings"
         - else

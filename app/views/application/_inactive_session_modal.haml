@@ -3,7 +3,7 @@
     controller: "inactive-session-modal",
     inactive_session_modal: {
       initial_user_id_value: current_user&.id.to_s,
-      session_lifetime_secs_value: Devise.timeout_in.in_seconds,
+      session_lifetime_secs_value: 9999, # TODO: this needs to be cleaned up for oauth2
     },
     reflex_permanent: true
   }

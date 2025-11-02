@@ -14,19 +14,6 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: {
-    invitations: 'users/invitations',
-    sessions: 'users/sessions',
-  }
-
-  devise_scope :user do
-    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-    match 'users/invitations/confirm', via: :post
-    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
-    if ENV['OKTA_DOMAIN'].present?
-      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
-    end
-  end
 
   namespace :users do
     resources :invitations do
@@ -744,7 +731,6 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    # resolves route clash w/ devise
     resources :users, except: [:show, :new, :create] do
       resource :resend_invitation, only: :create
       resource :recreate_invitation, only: :create
@@ -949,11 +935,12 @@ Rails.application.routes.draw do
       get :js_example
       get :system_colors
     end
-    authenticate :user, lambda(&:can_manage_config?) do
-      # not quite sure why but we get double-prefixed routes in this engine
-      get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
-      mount PgHero::Engine, at: '/pghero'
-    end
+    # TODO: this needs to be cleaned up for oauth2
+    # authenticate :user, lambda(&:can_manage_config?) do
+    #   # not quite sure why but we get double-prefixed routes in this engine
+    #   get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
+    #   mount PgHero::Engine, at: '/pghero'
+    # end
   end
 
   namespace :system_status do

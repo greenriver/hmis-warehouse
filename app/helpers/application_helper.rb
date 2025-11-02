@@ -11,6 +11,7 @@ require_relative '../../lib/util/git'
 module ApplicationHelper
   include Pagy::Frontend
   include AssetHelper
+  include CurrentUser
 
   # permissions
   # See Role.rb for specifics of what permissions are available

@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::SessionsController < Devise::SessionsController
+# frozen_string_literal: true
+
+# TODO: this needs to be cleaned up for oauth2
+class Hmis::SessionsController < ApplicationController
   include Hmis::Concerns::JsonErrors
-  include AuthenticatesWithTwoFactor
 
   # Only respond to JSON requests
   clear_respond_to

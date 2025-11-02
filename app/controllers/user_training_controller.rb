@@ -92,14 +92,15 @@ class UserTrainingController < ApplicationController
     end
   end
 
+  # TODO: this needs to be cleaned up for oauth2
   # Figure out where we are going after login
   # stored_location_for is provided by Devise
   # after_sign_in_path_for is provided by ApplicationController
   def safe_training_redirect_path
-    path = stored_location_for(:user).presence || after_sign_in_path_for(current_user)
-    return fallback_redirect_path if training_path?(path)
+    # path = stored_location_for(:user).presence || after_sign_in_path_for(current_user)
+    # return fallback_redirect_path if training_path?(path)
 
-    path
+    # path
   end
 
   def training_path?(path)
