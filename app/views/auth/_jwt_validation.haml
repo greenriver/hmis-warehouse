@@ -4,8 +4,16 @@
   .label.label-info
     JWT Validation:
     = valid
-.mr-6.ml-4
-  .navbar-text
-    .label.label-success
-      JWT Email:
-      = helper.payload_email
+- if valid
+  .mr-6.ml-4
+    .navbar-text
+      .label.label-success
+        JWT Email:
+        = helper.payload_email
+  .mr-6.ml-4
+    .navbar-text
+      = link_to 'Sign Out IDP', '/oauth2/sign_out', class: 'btn btn-sm btn-outline-danger'
+- else
+  .mr-6.ml-4
+    .navbar-text
+      = link_to 'Sign In IDP', '/oauth2/sign_in', class: 'btn btn-sm btn-outline-success'
