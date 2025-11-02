@@ -268,47 +268,7 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_ssn_matches
-      base_scope = <<-SQL
-        FROM "Client" AS clients
-        INNER JOIN warehouse_clients ON clients.id = warehouse_clients.source_id
-        WHERE clients."DateDeleted" IS NULL
-          AND clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
-          -- ignore blanks and some obvious known ssns
-          AND clients."SSN" IS NOT NULL
-          AND clients."SSN" != ''
-          AND clients."SSN" != '000000000'
-          AND clients."SSN" != '111111111'
-          AND clients."SSN" != '123456789'
-          AND LEFT(clients."SSN", 3) != '999'
-          AND LEFT(clients."SSN", 1) != 'x'
-          AND LEFT(clients."SSN", 1) != 'X'
-          AND RIGHT(clients."SSN", 1) != 'x'
-          AND RIGHT(clients."SSN", 1) != 'X'
-      SQL
-      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        WITH destination_ssns AS (
-          SELECT
-            clients."SSN" AS ssn,
-            array_agg(DISTINCT warehouse_clients.destination_id ORDER BY warehouse_clients.destination_id) AS destination_ids
-          #{base_scope}
-          GROUP BY clients."SSN"
-          HAVING COUNT(DISTINCT warehouse_clients.destination_id) > 1
-        )
-        SELECT
-          destination_ids[idx_one] AS destination_one_id,
-          destination_ids[idx_two] AS destination_two_id,
-          ssn
-        FROM destination_ssns
-        CROSS JOIN LATERAL (
-          SELECT idx_one, idx_two
-          FROM generate_subscripts(destination_ids, 1) AS idx_one
-          JOIN generate_subscripts(destination_ids, 1) AS idx_two ON idx_one < idx_two
-        ) AS destination_pairs
-      SQL
-      results.
-        select { |r| ::HudHelper.util.valid_social?(r['ssn']) }.
-        map { |r| [r['destination_one_id'], r['destination_two_id']] }.
-        uniq
+      IdentifyDuplicatesQueryMatcher.execute_ssn_matches(match_type: :existing)
     end
 
     # Finds pairs of destination client IDs with exact normalized name matches among source clients.
@@ -317,40 +277,7 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_name_matches
-      normalized_name_sql = <<-SQL
-        concat(
-          regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')
-        )
-      SQL
-      base_scope = <<-SQL
-        FROM "Client" AS clients
-        INNER JOIN warehouse_clients ON clients.id = warehouse_clients.source_id
-        WHERE clients."DateDeleted" IS NULL
-          AND clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
-          AND clients."FirstName" IS NOT NULL AND trim(clients."FirstName") != ''
-          AND clients."LastName" IS NOT NULL AND trim(clients."LastName") != ''
-      SQL
-      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        WITH destination_names AS (
-          SELECT
-            #{normalized_name_sql} AS normalized_name,
-            array_agg(DISTINCT warehouse_clients.destination_id ORDER BY warehouse_clients.destination_id) AS destination_ids
-          #{base_scope}
-          GROUP BY normalized_name
-          HAVING COUNT(DISTINCT warehouse_clients.destination_id) > 1
-        )
-        SELECT
-          destination_ids[idx_one] AS destination_one_id,
-          destination_ids[idx_two] AS destination_two_id
-        FROM destination_names
-        CROSS JOIN LATERAL (
-          SELECT idx_one, idx_two
-          FROM generate_subscripts(destination_ids, 1) AS idx_one
-          JOIN generate_subscripts(destination_ids, 1) AS idx_two ON idx_one < idx_two
-        ) AS destination_pairs
-      SQL
-      results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
+      IdentifyDuplicatesQueryMatcher.execute_name_matches(match_type: :existing)
     end
 
     # Finds pairs of destination client IDs with exact date of birth matches among source clients.
@@ -359,34 +286,7 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_dob_matches
-      base_scope = <<-SQL
-        FROM "Client" AS clients
-        INNER JOIN warehouse_clients ON clients.id = warehouse_clients.source_id
-        WHERE clients."DateDeleted" IS NULL
-          AND clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
-          AND clients."DOB" IS NOT NULL
-          AND date_part('year', clients."DOB") > 1920
-      SQL
-      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        WITH destination_dobs AS (
-          SELECT
-            clients."DOB" AS dob,
-            array_agg(DISTINCT warehouse_clients.destination_id ORDER BY warehouse_clients.destination_id) AS destination_ids
-          #{base_scope}
-          GROUP BY clients."DOB"
-          HAVING COUNT(DISTINCT warehouse_clients.destination_id) > 1
-        )
-        SELECT
-          destination_ids[idx_one] AS destination_one_id,
-          destination_ids[idx_two] AS destination_two_id
-        FROM destination_dobs
-        CROSS JOIN LATERAL (
-          SELECT idx_one, idx_two
-          FROM generate_subscripts(destination_ids, 1) AS idx_one
-          JOIN generate_subscripts(destination_ids, 1) AS idx_two ON idx_one < idx_two
-        ) AS destination_pairs
-      SQL
-      results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
+      IdentifyDuplicatesQueryMatcher.execute_dob_matches(match_type: :existing)
     end
 
     # Finds pairs of destination and unprocessed source client IDs with exact SSN matches.
@@ -395,52 +295,11 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_ssn_matches_for_unprocessed
-      return [] if unprocessed_ids.blank?
-
-      filters = <<-SQL
-        WHERE clients."DateDeleted" IS NULL
-          AND clients."SSN" IS NOT NULL
-          AND clients."SSN" != ''
-          AND clients."SSN" != '000000000'
-          AND clients."SSN" != '111111111'
-          AND clients."SSN" != '123456789'
-          AND LEFT(clients."SSN", 3) != '999'
-          AND LEFT(clients."SSN", 1) != 'x'
-          AND LEFT(clients."SSN", 1) != 'X'
-          AND RIGHT(clients."SSN", 1) != 'x'
-          AND RIGHT(clients."SSN", 1) != 'X'
-      SQL
-      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        WITH destination_ssns AS (
-          SELECT
-            clients."SSN" AS ssn,
-            array_agg(DISTINCT clients.id ORDER BY clients.id) AS destination_ids
-          FROM "Client" AS clients
-          #{filters}
-            AND clients.data_source_id IN (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
-          GROUP BY clients."SSN"
-        ),
-        source_ssns AS (
-          SELECT
-            clients.id AS source_client_id,
-            clients."SSN" AS ssn
-          FROM "Client" AS clients
-          #{filters}
-            AND clients.id IN (#{unprocessed_ids.join(',')})
-        )
-        SELECT
-          destination_ids[idx] AS destination_client_id,
-          source_client_id,
-          ssn
-        FROM destination_ssns
-        JOIN source_ssns USING (ssn)
-        CROSS JOIN LATERAL generate_subscripts(destination_ids, 1) AS idx
-        WHERE destination_ids[idx] != source_client_id
-      SQL
-      results.
-        select { |r| ::HudHelper.util.valid_social?(r['ssn']) }.
-        map { |r| [r['destination_client_id'], r['source_client_id']] }.
-        uniq
+      IdentifyDuplicatesQueryMatcher.execute_ssn_matches(
+        match_type: :unprocessed,
+        destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
+        unprocessed_ids: unprocessed_ids,
+      )
     end
 
     # Finds pairs of destination and unprocessed source client IDs with exact normalized name matches.
@@ -448,46 +307,11 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_name_matches_for_unprocessed
-      return [] if unprocessed_ids.blank?
-
-      normalized_name_sql = <<-SQL
-        concat(
-          regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')
-        )
-      SQL
-      filters = <<-SQL
-        WHERE clients."DateDeleted" IS NULL
-          AND clients."FirstName" IS NOT NULL AND trim(clients."FirstName") != ''
-          AND clients."LastName" IS NOT NULL AND trim(clients."LastName") != ''
-      SQL
-      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        WITH destination_names AS (
-          SELECT
-            #{normalized_name_sql} AS normalized_name,
-            array_agg(DISTINCT clients.id ORDER BY clients.id) AS destination_ids
-          FROM "Client" AS clients
-          #{filters}
-            AND clients.data_source_id IN (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
-          GROUP BY normalized_name
-        ),
-        source_names AS (
-          SELECT
-            clients.id AS source_client_id,
-            #{normalized_name_sql} AS normalized_name
-          FROM "Client" AS clients
-          #{filters}
-            AND clients.id IN (#{unprocessed_ids.join(',')})
-        )
-        SELECT
-          destination_ids[idx] AS destination_client_id,
-          source_client_id
-        FROM destination_names
-        JOIN source_names USING (normalized_name)
-        CROSS JOIN LATERAL generate_subscripts(destination_ids, 1) AS idx
-        WHERE destination_ids[idx] != source_client_id
-      SQL
-      results.map { |r| [r['destination_client_id'], r['source_client_id']] }
+      IdentifyDuplicatesQueryMatcher.execute_name_matches(
+        match_type: :unprocessed,
+        destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
+        unprocessed_ids: unprocessed_ids,
+      )
     end
 
     # Finds pairs of destination and unprocessed source client IDs with exact date of birth matches.
@@ -495,40 +319,11 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_dob_matches_for_unprocessed
-      return [] if unprocessed_ids.blank?
-
-      filters = <<-SQL
-        WHERE clients."DateDeleted" IS NULL
-          AND clients."DOB" IS NOT NULL
-          AND date_part('year', clients."DOB") > 1920
-      SQL
-      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        WITH destination_dobs AS (
-          SELECT
-            clients."DOB" AS dob,
-            array_agg(DISTINCT clients.id ORDER BY clients.id) AS destination_ids
-          FROM "Client" AS clients
-          #{filters}
-            AND clients.data_source_id IN (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
-          GROUP BY clients."DOB"
-        ),
-        source_dobs AS (
-          SELECT
-            clients.id AS source_client_id,
-            clients."DOB" AS dob
-          FROM "Client" AS clients
-          #{filters}
-            AND clients.id IN (#{unprocessed_ids.join(',')})
-        )
-        SELECT
-          destination_ids[idx] AS destination_client_id,
-          source_client_id
-        FROM destination_dobs
-        JOIN source_dobs USING (dob)
-        CROSS JOIN LATERAL generate_subscripts(destination_ids, 1) AS idx
-        WHERE destination_ids[idx] != source_client_id
-      SQL
-      results.map { |r| [r['destination_client_id'], r['source_client_id']] }
+      IdentifyDuplicatesQueryMatcher.execute_dob_matches(
+        match_type: :unprocessed,
+        destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
+        unprocessed_ids: unprocessed_ids,
+      )
     end
 
     # Find potential client merge candidates by looking for matches across multiple criteria

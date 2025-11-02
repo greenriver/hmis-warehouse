@@ -222,133 +222,35 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
-    describe 'exact match methods' do
+    # Note: Detailed tests for exact match methods are in identify_duplicates_query_matcher_spec.rb
+    # These tests verify the methods integrate correctly into the identify_duplicates workflow
+    describe 'exact match methods integration' do
       let!(:client1) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
       let!(:client2) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
       let!(:dest1) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
       let!(:dest2) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
       let!(:wc1) { create(:warehouse_client, source_id: client1.id, destination_id: dest1.id) }
       let!(:wc2) { create(:warehouse_client, source_id: client2.id, destination_id: dest2.id) }
-      describe 'exact_ssn_matches' do
-        it 'finds matches when SSNs are identical' do
-          matches = subject.exact_ssn_matches
-          expect(matches).to include([dest1.id, dest2.id])
-        end
 
-        it 'ignores invalid SSNs' do
-          client1.update(SSN: '000000000')
-          client2.update(SSN: '000000000')
-
-          matches = subject.exact_ssn_matches
-          expect(matches).to be_empty
-        end
-
-        context 'when more than two destinations share an SSN' do
-          let!(:client3) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
-          let!(:dest3) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
-          let!(:wc3) { create(:warehouse_client, source_id: client3.id, destination_id: dest3.id) }
-
-          it 'returns each unique pair exactly once in ascending order' do
-            matches = subject.exact_ssn_matches
-            expected_pairs = [
-              [dest1.id, dest2.id].sort,
-              [dest1.id, dest3.id].sort,
-              [dest2.id, dest3.id].sort,
-            ]
-
-            expect(matches).to match_array(expected_pairs)
-            matches.each do |pair|
-              expect(pair).to eq(pair.sort)
-            end
-          end
-        end
+      it 'exact_ssn_matches returns matching destination pairs' do
+        matches = subject.exact_ssn_matches
+        expect(matches).to include([dest1.id, dest2.id])
       end
 
-      describe 'exact_name_matches' do
-        it 'finds matches when normalized names are identical' do
-          client1.update(FirstName: 'John', LastName: 'Smith')
-          client2.update(FirstName: 'JOHN', LastName: 'SMITH')
+      it 'exact_name_matches returns matching destination pairs' do
+        client1.update(FirstName: 'John', LastName: 'Smith')
+        client2.update(FirstName: 'JOHN', LastName: 'SMITH')
 
-          matches = subject.exact_name_matches
-          expect(matches).to include([dest1.id, dest2.id])
-        end
-
-        it 'ignores clients with missing names' do
-          client1.update(FirstName: nil, LastName: nil)
-          client2.update(FirstName: nil, LastName: nil)
-
-          matches = subject.exact_name_matches
-          expect(matches).to be_empty
-        end
-
-        context 'when more than two destinations share the same normalized name' do
-          let!(:client3) { create(:grda_warehouse_hud_client, data_source: source_data_source) }
-          let!(:dest3) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
-          let!(:wc3) { create(:warehouse_client, source_id: client3.id, destination_id: dest3.id) }
-
-          before do
-            client1.update(FirstName: 'John', LastName: 'Smith')
-            client2.update(FirstName: 'JOHN', LastName: 'SMITH')
-            client3.update(FirstName: 'john', LastName: 'smith')
-          end
-
-          it 'returns each unique pair exactly once in ascending order' do
-            matches = subject.exact_name_matches
-            expected_pairs = [
-              [dest1.id, dest2.id].sort,
-              [dest1.id, dest3.id].sort,
-              [dest2.id, dest3.id].sort,
-            ]
-
-            expect(matches).to match_array(expected_pairs)
-            matches.each do |pair|
-              expect(pair).to eq(pair.sort)
-            end
-          end
-        end
+        matches = subject.exact_name_matches
+        expect(matches).to include([dest1.id, dest2.id])
       end
 
-      describe 'exact_dob_matches' do
-        it 'finds matches when DOBs are identical' do
-          client1.update(DOB: '1980-01-01')
-          client2.update(DOB: '1980-01-01')
+      it 'exact_dob_matches returns matching destination pairs' do
+        client1.update(DOB: '1980-01-01')
+        client2.update(DOB: '1980-01-01')
 
-          matches = subject.exact_dob_matches
-          expect(matches).to include([dest1.id, dest2.id])
-        end
-
-        it 'ignores clients with DOBs before 1920' do
-          client1.update(DOB: '1919-01-01')
-          client2.update(DOB: '1919-01-01')
-
-          matches = subject.exact_dob_matches
-          expect(matches).to be_empty
-        end
-
-        context 'when more than two destinations share the same DOB' do
-          let!(:client3) { create(:grda_warehouse_hud_client, data_source: source_data_source, DOB: '1980-01-01') }
-          let!(:dest3) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
-          let!(:wc3) { create(:warehouse_client, source_id: client3.id, destination_id: dest3.id) }
-
-          before do
-            client1.update(DOB: '1980-01-01')
-            client2.update(DOB: '1980-01-01')
-          end
-
-          it 'returns each unique pair exactly once in ascending order' do
-            matches = subject.exact_dob_matches
-            expected_pairs = [
-              [dest1.id, dest2.id].sort,
-              [dest1.id, dest3.id].sort,
-              [dest2.id, dest3.id].sort,
-            ]
-
-            expect(matches).to match_array(expected_pairs)
-            matches.each do |pair|
-              expect(pair).to eq(pair.sort)
-            end
-          end
-        end
+        matches = subject.exact_dob_matches
+        expect(matches).to include([dest1.id, dest2.id])
       end
     end
 
@@ -363,6 +265,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
         before do
           [destination_a, destination_b, source_a, source_b].each { |client| client.update(SSN: '555667777') }
+          allow(task).to receive(:unprocessed_ids).and_return([source_a.id, source_b.id])
         end
 
         it 'returns each destination and source combination for the shared SSN' do
@@ -389,17 +292,13 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
           [[destination_a, 'John ', 'Smith'], [destination_b, 'JOHN', 'SMITH'], [source_a, 'john', 'smith'], [source_b, 'Jo-hn', 'Sm ith']].each do |client, first_name, last_name|
             client.update(FirstName: first_name, LastName: last_name)
           end
+          allow(task).to receive(:unprocessed_ids).and_return([source_a.id, source_b.id])
         end
 
         it 'returns each destination and source combination for the shared normalized name' do
           matches = task.exact_name_matches_for_unprocessed
-          destination_ids = [destination_a.id, destination_b.id]
-          source_ids = [source_a.id, source_b.id]
-          relevant_matches = matches.select do |pair|
-            destination_ids.include?(pair.first) && source_ids.include?(pair.last)
-          end
 
-          expect(relevant_matches).to match_array(
+          expect(matches).to match_array(
             [
               [destination_a.id, source_a.id],
               [destination_a.id, source_b.id],
@@ -418,17 +317,13 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
         before do
           [destination_a, destination_b, source_a, source_b].each { |client| client.update(DOB: '1995-02-15') }
+          allow(task).to receive(:unprocessed_ids).and_return([source_a.id, source_b.id])
         end
 
         it 'returns each destination and source combination for the shared DOB' do
           matches = task.exact_dob_matches_for_unprocessed
-          destination_ids = [destination_a.id, destination_b.id]
-          source_ids = [source_a.id, source_b.id]
-          relevant_matches = matches.select do |pair|
-            destination_ids.include?(pair.first) && source_ids.include?(pair.last)
-          end
 
-          expect(relevant_matches).to match_array(
+          expect(matches).to match_array(
             [
               [destination_a.id, source_a.id],
               [destination_a.id, source_b.id],
