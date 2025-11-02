@@ -35,112 +35,64 @@ module GrdaWarehouse
         )
       SQL
 
-      # Executes SSN match query and returns processed ID pairs
+      # Builds a query matcher for SSN matches
       # @param match_type [Symbol] :existing or :unprocessed
-      # @param warehouse_id [Integer] Optional warehouse data source ID (defaults to system warehouse)
       # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
       # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
-      # @param validate_ssn [Boolean] Whether to validate SSNs using HudHelper (default: true for SSN matches)
-      # @return [Array<Array<Integer>>] Array of ID pairs
-      def self.execute_ssn_matches(match_type:, warehouse_id: nil, destination_data_source_ids: nil, unprocessed_ids: nil, validate_ssn: true)
-        return [] if match_type == :unprocessed && unprocessed_ids.blank?
-
-        matcher = for_ssn_matches(
-          match_type: match_type,
-          warehouse_id: warehouse_id || GrdaWarehouse::DataSource.warehouse_id,
-          destination_data_source_ids: destination_data_source_ids,
-          unprocessed_ids: unprocessed_ids,
-        )
-        matcher.execute(validate_ssn: validate_ssn)
-      end
-
-      # Executes name match query and returns processed ID pairs
-      # @param match_type [Symbol] :existing or :unprocessed
-      # @param warehouse_id [Integer] Optional warehouse data source ID (defaults to system warehouse)
-      # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
-      # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
-      # @return [Array<Array<Integer>>] Array of ID pairs
-      def self.execute_name_matches(match_type:, warehouse_id: nil, destination_data_source_ids: nil, unprocessed_ids: nil)
-        return [] if match_type == :unprocessed && unprocessed_ids.blank?
-
-        matcher = for_name_matches(
-          match_type: match_type,
-          warehouse_id: warehouse_id || GrdaWarehouse::DataSource.warehouse_id,
-          destination_data_source_ids: destination_data_source_ids,
-          unprocessed_ids: unprocessed_ids,
-        )
-        matcher.execute
-      end
-
-      # Executes DOB match query and returns processed ID pairs
-      # @param match_type [Symbol] :existing or :unprocessed
-      # @param warehouse_id [Integer] Optional warehouse data source ID (defaults to system warehouse)
-      # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
-      # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
-      # @return [Array<Array<Integer>>] Array of ID pairs
-      def self.execute_dob_matches(match_type:, warehouse_id: nil, destination_data_source_ids: nil, unprocessed_ids: nil)
-        return [] if match_type == :unprocessed && unprocessed_ids.blank?
-
-        matcher = for_dob_matches(
-          match_type: match_type,
-          warehouse_id: warehouse_id || GrdaWarehouse::DataSource.warehouse_id,
-          destination_data_source_ids: destination_data_source_ids,
-          unprocessed_ids: unprocessed_ids,
-        )
-        matcher.execute
-      end
-
-      def self.for_ssn_matches(match_type:, warehouse_id:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      # @return [IdentifyDuplicatesQueryMatcher] Query matcher instance (call .execute to run)
+      # @example
+      #   IdentifyDuplicatesQueryMatcher.for_ssn_matches(match_type: :existing).execute
+      def self.for_ssn_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil)
         ensure_match_type!(match_type)
 
-        filters = base_filters(warehouse_id: warehouse_id, match_type: match_type) + SSN_FILTERS
         new(
           match_type: match_type,
           field_expression: %(clients."SSN"),
           field_alias: 'ssn',
-          filters: filters,
+          field_filters: SSN_FILTERS,
           include_value_in_results: true,
           destination_data_source_ids: destination_data_source_ids,
           unprocessed_ids: unprocessed_ids,
         )
       end
 
-      def self.for_name_matches(match_type:, warehouse_id:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      # Builds a query matcher for name matches
+      # @param match_type [Symbol] :existing or :unprocessed
+      # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
+      # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
+      # @return [IdentifyDuplicatesQueryMatcher] Query matcher instance (call .execute to run)
+      def self.for_name_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil)
         ensure_match_type!(match_type)
 
-        filters = base_filters(warehouse_id: warehouse_id, match_type: match_type) + NAME_PRESENCE_FILTERS
         new(
           match_type: match_type,
           field_expression: NORMALIZED_NAME_SQL,
           field_alias: 'normalized_name',
-          filters: filters,
+          field_filters: NAME_PRESENCE_FILTERS,
           include_value_in_results: false,
           destination_data_source_ids: destination_data_source_ids,
           unprocessed_ids: unprocessed_ids,
         )
       end
 
-      def self.for_dob_matches(match_type:, warehouse_id:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      # Builds a query matcher for DOB matches
+      # @param match_type [Symbol] :existing or :unprocessed
+      # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
+      # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
+      # @return [IdentifyDuplicatesQueryMatcher] Query matcher instance (call .execute to run)
+      def self.for_dob_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil)
         ensure_match_type!(match_type)
 
-        filters = base_filters(warehouse_id: warehouse_id, match_type: match_type) + DOB_FILTERS
         new(
           match_type: match_type,
           field_expression: %(clients."DOB"),
           field_alias: 'dob',
-          filters: filters,
+          field_filters: DOB_FILTERS,
           include_value_in_results: false,
           destination_data_source_ids: destination_data_source_ids,
           unprocessed_ids: unprocessed_ids,
         )
       end
-
-      def self.base_filters(warehouse_id:, match_type:)
-        filters = [%(clients."DateDeleted" IS NULL)]
-        filters << %(clients.data_source_id != #{warehouse_id}) if match_type == :existing
-        filters
-      end
-      private_class_method :base_filters
 
       def self.ensure_match_type!(match_type)
         return if MATCH_TYPES.include?(match_type)
@@ -149,25 +101,33 @@ module GrdaWarehouse
       end
       private_class_method :ensure_match_type!
 
-      def initialize(match_type:, field_expression:, field_alias:, filters:, include_value_in_results:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      def initialize(match_type:, field_expression:, field_alias:, field_filters:, include_value_in_results:, destination_data_source_ids: nil, unprocessed_ids: nil)
         @match_type = match_type
         @field_expression = field_expression
         @field_alias = field_alias
-        @filters = filters
+        @field_filters = field_filters
         @include_value_in_results = include_value_in_results
         @destination_data_source_ids = sanitize_ids(destination_data_source_ids)
         @unprocessed_ids = sanitize_ids(unprocessed_ids)
       end
 
-      def to_sql
+      def to_sql(warehouse_id: nil)
+        @warehouse_id = warehouse_id || GrdaWarehouse::DataSource.warehouse_id
         match_type == :existing ? existing_sql : unprocessed_sql
       end
 
       # Executes the query and returns processed ID pairs
-      # @param validate_ssn [Boolean] Whether to validate SSNs using HudHelper (only applies if SSN is in results)
-      # @return [Array<Array<Integer>>] Array of ID pairs
-      def execute(validate_ssn: false)
-        results = GrdaWarehouse::Hud::Client.connection.execute(to_sql)
+      # @param warehouse_id [Integer] Warehouse data source ID (defaults to system warehouse)
+      # @param validate_ssn [Boolean] Whether to validate SSNs using HudHelper (default: true for SSN matches)
+      # @return [Array<Array<Integer>>] Array of ID pairs, or empty array if no unprocessed_ids
+      def execute(warehouse_id: nil, validate_ssn: nil)
+        # Default validate_ssn to true for SSN matches
+        validate_ssn = (field_alias == 'ssn') if validate_ssn.nil?
+
+        # Early return for unprocessed with no IDs
+        return [] if match_type == :unprocessed && unprocessed_ids.blank?
+
+        results = GrdaWarehouse::Hud::Client.connection.execute(to_sql(warehouse_id: warehouse_id))
 
         # Filter SSNs if validation requested and SSN is in results
         results = results.select { |r| ::HudHelper.util.valid_social?(r['ssn']) } if validate_ssn && include_value_in_results && field_alias == 'ssn'
@@ -183,8 +143,8 @@ module GrdaWarehouse
 
       private
 
-      attr_reader :match_type, :field_expression, :field_alias, :filters, :include_value_in_results,
-                  :destination_data_source_ids, :unprocessed_ids
+      attr_reader :match_type, :field_expression, :field_alias, :field_filters, :include_value_in_results,
+                  :destination_data_source_ids, :unprocessed_ids, :warehouse_id
 
       # Space-efficient approach: Groups all matching clients by field value into arrays,
       # then generates unique pairs using array indices. This avoids materializing
@@ -212,6 +172,7 @@ module GrdaWarehouse
       end
 
       def existing_from_clause
+        filters = base_filters + field_filters
         <<-SQL
           FROM "Client" AS clients
           INNER JOIN warehouse_clients ON clients.id = warehouse_clients.source_id
@@ -253,10 +214,17 @@ module GrdaWarehouse
       end
 
       def unprocessed_from_clause
+        filters = base_filters + field_filters
         <<-SQL
           FROM "Client" AS clients
           WHERE #{filters.join("\n            AND ")}
         SQL
+      end
+
+      def base_filters
+        filters = [%(clients."DateDeleted" IS NULL)]
+        filters << %(clients.data_source_id != #{warehouse_id}) if match_type == :existing
+        filters
       end
 
       def value_projection

@@ -268,7 +268,7 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_ssn_matches
-      IdentifyDuplicatesQueryMatcher.execute_ssn_matches(match_type: :existing)
+      IdentifyDuplicatesQueryMatcher.for_ssn_matches(match_type: :existing).execute
     end
 
     # Finds pairs of destination client IDs with exact normalized name matches among source clients.
@@ -277,7 +277,7 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_name_matches
-      IdentifyDuplicatesQueryMatcher.execute_name_matches(match_type: :existing)
+      IdentifyDuplicatesQueryMatcher.for_name_matches(match_type: :existing).execute
     end
 
     # Finds pairs of destination client IDs with exact date of birth matches among source clients.
@@ -286,7 +286,7 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_dob_matches
-      IdentifyDuplicatesQueryMatcher.execute_dob_matches(match_type: :existing)
+      IdentifyDuplicatesQueryMatcher.for_dob_matches(match_type: :existing).execute
     end
 
     # Finds pairs of destination and unprocessed source client IDs with exact SSN matches.
@@ -295,11 +295,11 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_ssn_matches_for_unprocessed
-      IdentifyDuplicatesQueryMatcher.execute_ssn_matches(
+      IdentifyDuplicatesQueryMatcher.for_ssn_matches(
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
         unprocessed_ids: unprocessed_ids,
-      )
+      ).execute
     end
 
     # Finds pairs of destination and unprocessed source client IDs with exact normalized name matches.
@@ -307,11 +307,11 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_name_matches_for_unprocessed
-      IdentifyDuplicatesQueryMatcher.execute_name_matches(
+      IdentifyDuplicatesQueryMatcher.for_name_matches(
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
         unprocessed_ids: unprocessed_ids,
-      )
+      ).execute
     end
 
     # Finds pairs of destination and unprocessed source client IDs with exact date of birth matches.
@@ -319,11 +319,11 @@ module GrdaWarehouse::Tasks
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_dob_matches_for_unprocessed
-      IdentifyDuplicatesQueryMatcher.execute_dob_matches(
+      IdentifyDuplicatesQueryMatcher.for_dob_matches(
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
         unprocessed_ids: unprocessed_ids,
-      )
+      ).execute
     end
 
     # Find potential client merge candidates by looking for matches across multiple criteria
