@@ -1,0 +1,11 @@
+- helper = JwtHelper.new(access_token: request.headers["HTTP_X_FORWARDED_ACCESS_TOKEN"])
+- valid = helper.validate!
+.navbar-text
+  .label.label-info
+    JWT Validation:
+    = valid
+.mr-6.ml-4
+  .navbar-text
+    .label.label-success
+      JWT Email:
+      = helper.payload_email
