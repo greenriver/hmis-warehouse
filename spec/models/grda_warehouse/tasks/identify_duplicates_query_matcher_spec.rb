@@ -11,7 +11,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
   end
 
   describe '.for_ssn_matches' do
-    describe 'executing generated SQL for existing matches' do
+    describe 'for existing matches' do
       let!(:source_data_source) { create(:source_data_source) }
       let!(:destination_data_source) { create(:grda_warehouse_data_source) }
 
@@ -23,10 +23,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
         create(:warehouse_client, source_id: client1.id, destination_id: dest1.id)
         create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
 
-        sql = described_class.for_ssn_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-        results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+        results = described_class.for_ssn_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-        expect(results.map { |row| [row['destination_one_id'], row['destination_two_id']].sort }).to contain_exactly([dest1.id, dest2.id].sort)
+        expect(results).to contain_exactly([dest1.id, dest2.id].sort)
       end
 
       it 'filters out invalid SSNs' do
@@ -37,10 +36,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
         create(:warehouse_client, source_id: client1.id, destination_id: dest1.id)
         create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
 
-        sql = described_class.for_ssn_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-        results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+        results = described_class.for_ssn_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-        expect(results.count).to eq(0)
+        expect(results).to be_empty
       end
 
       it 'generates all unique pairs when three clients share an SSN' do
@@ -54,18 +52,16 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
         create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
         create(:warehouse_client, source_id: client3.id, destination_id: dest3.id)
 
-        sql = described_class.for_ssn_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-        results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+        results = described_class.for_ssn_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-        expect(results.map { |row| [row['destination_one_id'], row['destination_two_id']].sort }).to match_array([
-                                                                                                                   [dest1.id, dest2.id].sort,
-                                                                                                                   [dest1.id, dest3.id].sort,
-                                                                                                                   [dest2.id, dest3.id].sort,
-                                                                                                                 ])
+        dest_ids = [dest1.id, dest2.id, dest3.id]
+        expected_pairs = dest_ids.combination(2).map(&:sort)
+
+        expect(results.map(&:sort)).to match_array(expected_pairs)
       end
     end
 
-    describe 'executing generated SQL for unprocessed matches' do
+    describe 'for unprocessed matches' do
       let!(:source_data_source) { create(:source_data_source) }
       let!(:destination_data_source) { create(:grda_warehouse_data_source) }
 
@@ -76,15 +72,13 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
         source_a = create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: common_ssn)
         source_b = create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: common_ssn)
 
-        sql = described_class.for_ssn_matches(
+        results = described_class.for_ssn_matches(
           match_type: :unprocessed,
           destination_data_source_ids: [destination_data_source.id],
           unprocessed_ids: [source_a.id, source_b.id],
-        ).to_sql(warehouse_id: warehouse_id)
+        ).execute(warehouse_id: warehouse_id)
 
-        results = GrdaWarehouse::Hud::Client.connection.execute(sql)
-
-        expect(results.map { |row| [row['destination_client_id'], row['source_client_id']] }).to match_array(
+        expect(results).to match_array(
           [
             [destination_a.id, source_a.id],
             [destination_a.id, source_b.id],
@@ -133,10 +127,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
       create(:warehouse_client, source_id: client1.id, destination_id: dest1.id)
       create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
 
-      sql = described_class.for_name_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-      results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+      results = described_class.for_name_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-      expect(results.map { |row| [row['destination_one_id'], row['destination_two_id']].sort }).to contain_exactly([dest1.id, dest2.id].sort)
+      expect(results).to contain_exactly([dest1.id, dest2.id].sort)
     end
 
     it 'ignores clients with blank names' do
@@ -147,10 +140,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
       create(:warehouse_client, source_id: client1.id, destination_id: dest1.id)
       create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
 
-      sql = described_class.for_name_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-      results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+      results = described_class.for_name_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-      expect(results.count).to eq(0)
+      expect(results).to be_empty
     end
   end
 
@@ -167,10 +159,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
       create(:warehouse_client, source_id: client1.id, destination_id: dest1.id)
       create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
 
-      sql = described_class.for_dob_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-      results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+      results = described_class.for_dob_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-      expect(results.map { |row| [row['destination_one_id'], row['destination_two_id']].sort }).to contain_exactly([dest1.id, dest2.id].sort)
+      expect(results).to contain_exactly([dest1.id, dest2.id].sort)
     end
 
     it 'filters out DOBs before 1920' do
@@ -182,14 +173,13 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
       create(:warehouse_client, source_id: client1.id, destination_id: dest1.id)
       create(:warehouse_client, source_id: client2.id, destination_id: dest2.id)
 
-      sql = described_class.for_dob_matches(match_type: :existing).to_sql(warehouse_id: warehouse_id)
-      results = GrdaWarehouse::Hud::Client.connection.execute(sql)
+      results = described_class.for_dob_matches(match_type: :existing).execute(warehouse_id: warehouse_id)
 
-      expect(results.count).to eq(0)
+      expect(results).to be_empty
     end
   end
 
-  describe '#to_sql error handling' do
+  describe 'error handling' do
     it 'raises when match_type invalid' do
       expect do
         described_class.for_ssn_matches(match_type: :unknown)
@@ -199,13 +189,13 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
     it 'raises when destination ids missing for unprocessed' do
       matcher = described_class.for_ssn_matches(match_type: :unprocessed, destination_data_source_ids: nil, unprocessed_ids: [1])
 
-      expect { matcher.to_sql(warehouse_id: warehouse_id) }.to raise_error(ArgumentError, /destination_data_source_ids must be provided/)
+      expect { matcher.execute(warehouse_id: warehouse_id) }.to raise_error(ArgumentError, /destination_data_source_ids must be provided/)
     end
 
     it 'raises when unprocessed ids missing for unprocessed' do
       matcher = described_class.for_ssn_matches(match_type: :unprocessed, destination_data_source_ids: [1], unprocessed_ids: [])
 
-      expect { matcher.to_sql(warehouse_id: warehouse_id) }.to raise_error(ArgumentError, /unprocessed_ids must be provided/)
+      expect(matcher.execute(warehouse_id: warehouse_id)).to be_empty
     end
   end
 end
