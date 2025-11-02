@@ -267,7 +267,9 @@ module GrdaWarehouse::Tasks
     # where the SSN is valid and matches.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_ssn_matches
+    def exact_ssn_matches(legacy: true)
+      return exact_ssn_matches_legacy if legacy
+
       IdentifyDuplicatesQueryMatcher.for_ssn_matches(match_type: :existing).execute
     end
 
@@ -276,7 +278,9 @@ module GrdaWarehouse::Tasks
     # where the normalized (lowercased, stripped, unaccented) first and last names match.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_name_matches
+    def exact_name_matches(legacy: true)
+      return exact_name_matches_legacy if legacy
+
       IdentifyDuplicatesQueryMatcher.for_name_matches(match_type: :existing).execute
     end
 
@@ -285,7 +289,9 @@ module GrdaWarehouse::Tasks
     # where the DOB is present, after 1920, and matches.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_dob_matches
+    def exact_dob_matches(legacy: true)
+      return exact_dob_matches_legacy if legacy
+
       IdentifyDuplicatesQueryMatcher.for_dob_matches(match_type: :existing).execute
     end
 
@@ -294,7 +300,11 @@ module GrdaWarehouse::Tasks
     # Only returns pairs where the SSN is valid and matches.
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
-    def exact_ssn_matches_for_unprocessed
+    def exact_ssn_matches_for_unprocessed(legacy: true)
+      return [] if unprocessed_ids.blank?
+
+      return exact_ssn_matches_for_unprocessed_legacy if legacy
+
       IdentifyDuplicatesQueryMatcher.for_ssn_matches(
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
@@ -306,7 +316,11 @@ module GrdaWarehouse::Tasks
     # Expands the search to any client, even those without a warehouse_client record.
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
-    def exact_name_matches_for_unprocessed
+    def exact_name_matches_for_unprocessed(legacy: true)
+      return [] if unprocessed_ids.blank?
+
+      return exact_name_matches_for_unprocessed_legacy if legacy
+
       IdentifyDuplicatesQueryMatcher.for_name_matches(
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
@@ -318,7 +332,11 @@ module GrdaWarehouse::Tasks
     # Expands the search to any client, even those without a warehouse_client record.
     #
     # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
-    def exact_dob_matches_for_unprocessed
+    def exact_dob_matches_for_unprocessed(legacy: true)
+      return [] if unprocessed_ids.blank?
+
+      return exact_dob_matches_for_unprocessed_legacy if legacy
+
       IdentifyDuplicatesQueryMatcher.for_dob_matches(
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
@@ -326,12 +344,266 @@ module GrdaWarehouse::Tasks
       ).execute
     end
 
+    private
+
+    # TODO: remove after QA of #8391
+    def exact_ssn_matches_legacy
+      limits = <<-SQL
+        "Client" as clients
+        inner join warehouse_clients on clients.id = warehouse_clients.source_id
+        where clients."DateDeleted" is NULL
+        and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
+        -- ignore blanks and some obvious known ssns
+        and clients."SSN" is not null
+        and clients."SSN" != ''
+        and clients."SSN" != '000000000'
+        and clients."SSN" != '111111111'
+        and clients."SSN" != '123456789'
+        and LEFT(clients."SSN", 3) != '999'
+        and LEFT(clients."SSN", 1) != 'x'
+        and LEFT(clients."SSN", 1) != 'X'
+        and RIGHT(clients."SSN", 1) != 'x'
+        and RIGHT(clients."SSN", 1) != 'X'
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one as (
+          SELECT warehouse_clients.destination_id as destination_one_id,
+            clients."SSN" as destination_one_ssn
+            from #{limits}
+          ),
+          client_two as (
+          SELECT warehouse_clients.destination_id as destination_two_id,
+            clients."SSN" as destination_two_ssn
+            from #{limits}
+          )
+
+          SELECT DISTINCT
+              destination_one_id,
+              destination_two_id,
+              destination_one_ssn as ssn,
+              destination_two_ssn as ssn2
+            FROM client_one
+            JOIN client_two ON (
+              -- Match on SSN if both have it
+              destination_one_ssn = destination_two_ssn
+            )
+            WHERE destination_one_id < destination_two_id  -- Avoid duplicate pairs
+      SQL
+      # return an array of ID pairs
+      results.
+        select { |r| ::HudHelper.util.valid_social?(r['ssn']) }.
+        map { |r| [r['destination_one_id'], r['destination_two_id']] }.
+        uniq
+    end
+
+    # TODO: remove after QA of #8391
+    def exact_name_matches_legacy
+      limits = <<-SQL
+        "Client" as clients
+        inner join warehouse_clients on clients.id = warehouse_clients.source_id
+        where clients."DateDeleted" is NULL
+        and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
+        and (clients."FirstName" is not null and trim(clients."FirstName") != ''
+        and clients."LastName" is not null and trim(clients."LastName") != '')
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one_name as (
+        SELECT warehouse_clients.destination_id as destination_one_id,
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as destination_one_name
+          from #{limits}
+        ),
+        client_two_name as (
+        SELECT warehouse_clients.destination_id as destination_two_id,
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as destination_two_name
+          from #{limits}
+        )
+
+        SELECT DISTINCT
+          destination_one_id,
+          destination_two_id
+        FROM client_one_name
+        JOIN client_two_name ON (
+          -- Match on normalized name if both have it
+          destination_one_name = destination_two_name
+        )
+        WHERE destination_one_id < destination_two_id  -- Avoid duplicate pairs
+      SQL
+      # return an array of ID pairs
+      results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
+    end
+
+    # TODO: remove after QA of #8391
+    def exact_dob_matches_legacy
+      limits = <<-SQL
+        "Client" as clients
+          inner join warehouse_clients on clients.id = warehouse_clients.source_id
+          where clients."DateDeleted" is NULL
+          and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
+          and clients."DOB" is not null
+          and date_part('year', clients."DOB") > 1920
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one_dob as (
+          SELECT warehouse_clients.destination_id as destination_one_id,
+            clients."DOB" as destination_one_dob
+            from #{limits}
+        ),
+        client_two_dob as (
+          SELECT warehouse_clients.destination_id as destination_two_id,
+            clients."DOB" as destination_two_dob
+            from #{limits}
+        )
+
+        SELECT DISTINCT
+          destination_one_id,
+          destination_two_id
+        FROM client_one_dob
+        JOIN client_two_dob ON (
+          -- Match on DOB if both have it
+          destination_one_dob = destination_two_dob
+        )
+        WHERE destination_one_id < destination_two_id  -- Avoid duplicate pairs
+      SQL
+      results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
+    end
+
+    # TODO: remove after QA of #8391
+    def exact_ssn_matches_for_unprocessed_legacy
+      limits = <<-SQL
+        where clients."DateDeleted" is NULL
+        -- ignore blanks and some obvious known ssns
+        and clients."SSN" is not null
+        and clients."SSN" != ''
+        and clients."SSN" != '000000000'
+        and clients."SSN" != '111111111'
+        and clients."SSN" != '123456789'
+        and LEFT(clients."SSN", 3) != '999'
+        and LEFT(clients."SSN", 1) != 'x'
+        and LEFT(clients."SSN", 1) != 'X'
+        and RIGHT(clients."SSN", 1) != 'x'
+        and RIGHT(clients."SSN", 1) != 'X'
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one as (
+          SELECT clients.id as destination_client_id,
+            clients."SSN" as destination_client_ssn
+            from "Client" as clients
+            #{limits}
+            and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
+          ),
+          client_two as (
+          SELECT clients.id as source_client_id,
+            clients."SSN" as source_client_ssn
+            from "Client" as clients
+            #{limits}
+            and clients.id in (#{unprocessed_ids.join(',')})
+          )
+
+          SELECT DISTINCT
+              destination_client_id,
+              source_client_id,
+              destination_client_ssn as ssn,
+              source_client_ssn as ssn2
+            FROM client_one
+            JOIN client_two ON (
+              -- Match on SSN if both have it
+              destination_client_ssn = source_client_ssn
+            )
+            WHERE destination_client_id != source_client_id
+      SQL
+      # return an array of ID pairs
+      results.
+        select { |r| ::HudHelper.util.valid_social?(r['ssn']) }.
+        map { |r| [r['destination_client_id'], r['source_client_id']] }.
+        uniq
+    end
+
+    # TODO: remove after QA of #8391
+    def exact_name_matches_for_unprocessed_legacy
+      limits = <<-SQL
+        where clients."DateDeleted" is NULL
+        and (clients."FirstName" is not null and trim(clients."FirstName") != ''
+        and clients."LastName" is not null and trim(clients."LastName") != '')
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one_name as (
+        SELECT clients.id as destination_client_id,
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as destination_client_name
+          from "Client" as clients
+          #{limits}
+          and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
+        ),
+        client_two_name as (
+        SELECT clients.id as source_client_id,
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as source_client_name
+          from "Client" as clients
+          #{limits}
+          and clients.id in (#{unprocessed_ids.join(',')})
+        )
+
+        SELECT DISTINCT
+          destination_client_id,
+          source_client_id
+        FROM client_one_name
+        JOIN client_two_name ON (
+          -- Match on normalized name if both have it
+          destination_client_name = source_client_name
+        )
+        WHERE destination_client_id != source_client_id
+      SQL
+      # return an array of ID pairs
+      results.map { |r| [r['destination_client_id'], r['source_client_id']] }
+    end
+
+    # TODO: remove after QA of #8391
+    def exact_dob_matches_for_unprocessed_legacy
+      limits = <<-SQL
+        where clients."DateDeleted" is NULL
+        and clients."DOB" is not null
+        and date_part('year', clients."DOB") > 1920
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one_dob as (
+          SELECT clients.id as destination_client_id,
+            clients."DOB" as destination_client_dob
+            from
+            "Client" as clients
+            #{limits}
+            and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
+        ),
+        client_two_dob as (
+          SELECT clients.id as source_client_id,
+            clients."DOB" as source_client_dob
+            from
+            "Client" as clients
+            #{limits}
+            and clients.id in (#{unprocessed_ids.join(',')})
+        )
+
+        SELECT DISTINCT
+          destination_client_id,
+          source_client_id
+        FROM client_one_dob
+        JOIN client_two_dob ON (
+          -- Match on DOB if both have it
+          destination_client_dob = source_client_dob
+        )
+        WHERE destination_client_id != source_client_id
+      SQL
+      results.map { |r| [r['destination_client_id'], r['source_client_id']] }
+    end
+
     # Find potential client merge candidates by looking for matches across multiple criteria
     # @return [Hash] A set of client ID pairs that are candidates for merging
     # @note Only returns matches if auto deduplication is enabled in config
     # @note Filters out any previously split client pairs
     # @note Checks source client counts to avoid exceeding limits
-    private def find_merge_candidates_for_match_existing
+    # Public for testing purposes; this method is part of the internal implementation.
+    def find_merge_candidates_for_match_existing
       # Never return obvious matches if auto deduplication is disabled
       unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
         Rails.logger.info 'Auto deduplication disabled, returning empty set'
