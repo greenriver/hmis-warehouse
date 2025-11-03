@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
-cmd = "aws-vault exec openpath -- bin/containers/ssh #{ARGV.join(' ')}"
+cmd = "assume op-dev --exec -- bin/containers/ssh #{ARGV.join(' ')}"
 system(cmd)

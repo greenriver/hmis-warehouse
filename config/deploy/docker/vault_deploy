@@ -4,5 +4,5 @@
 require_relative 'lib/deployer'
 Deployer.check_that_you_pushed_to_remote!
 
-cmd = "aws-vault exec openpath -- bin/deploy #{ARGV.join(' ')}"
+cmd = "assume op-dev --exec -- bin/deploy #{ARGV.join(' ')}"
 system(cmd)
