@@ -7,6 +7,17 @@
       .alert.alert-info
         = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."
     .form-inputs.well
+      -# IDP selection for new user invitations
+      - if @available_idps.present? && @user.new_record?
+        .row
+          .col-sm-10
+            - if @available_idps.length > 1
+              = f.input :connector_id, collection: @available_idps, label_method: :last, value_method: :first, include_blank: false, as: :select_two, label: 'Identity Provider', hint: 'Select which Identity Provider to use for this user account.'
+            - else
+              = f.hidden_field :connector_id, value: @available_idps.first.first
+              - idp_name = @available_idps.first.last
+              .alert.alert-info
+                = "User will be created in #{idp_name}."
       .row
         .col-sm-10
           = f.input :first_name, required: true

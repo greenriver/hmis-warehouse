@@ -14,6 +14,9 @@ class User < ApplicationRecord
   include JwtUser
   include RailsDrivers::Extensions
 
+  # Virtual attribute for selecting IDP during invitation
+  attr_accessor :connector_id
+
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
   USER_PERMISSION_PREFIX = 'user_permissions'

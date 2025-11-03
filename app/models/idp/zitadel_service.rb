@@ -28,6 +28,9 @@ module Idp
 
     # Create a new user in Zitadel.
     #
+    # Creates a user record in Zitadel. Does not automatically send an invitation.
+    # Use create_invite_code to create an invitation after user creation.
+    #
     # @param email [String] User's email address
     # @param first_name [String] User's first name
     # @param last_name [String] User's last name
@@ -211,6 +214,9 @@ module Idp
 
     # Send an invitation to a user.
     #
+    # Creates a user in Zitadel (if they don't exist) and creates an invite code.
+    # The invite code allows the user to initialize their first authentication method.
+    #
     # @param email [String] User's email address
     # @param attributes [Hash] Additional user attributes (optional)
     # @return [Boolean] true if invitation sent successfully
@@ -218,18 +224,54 @@ module Idp
     def send_invitation(email:, **attributes)
       # First, try to find user by email
       user_id = find_user_by_email(email)
-      return resend_invitation(user_id) if user_id
 
-      # If user doesn't exist, create and invite
-      user_data = create_user(
-        email: email,
-        first_name: attributes[:first_name] || '',
-        last_name: attributes[:last_name] || '',
-        phone: attributes[:phone],
-      )
+      # If user doesn't exist, create them first
+      unless user_id
+        user_data = create_user(
+          email: email,
+          first_name: attributes[:first_name] || '',
+          last_name: attributes[:last_name] || '',
+          phone: attributes[:phone],
+        )
+        user_id = user_data['userId']
+      end
 
-      user_id = user_data['userId']
-      resend_invitation(user_id)
+      # Create invite code for the user
+      create_invite_code(user_id)
+    end
+
+    # Create an invite code for an existing user.
+    #
+    # Creates an invite code that allows the user to initialize their first authentication method.
+    # Based on Zitadel API: POST /v2/users/:userId/invite_code
+    #
+    # @param user_id [String] Zitadel user ID
+    # @return [Boolean] true if invite code created successfully
+    # @raise [Idp::ServiceError] if invite code creation fails
+    def create_invite_code(user_id)
+      response = make_request(:post, "/v2/users/#{user_id}/invite_code")
+
+      case response.code.to_i
+      when 200..299
+        true
+      when 400..499
+        begin
+          error_data = JSON.parse(response.body)
+        rescue StandardError
+          error_data = {}
+        end
+        raise ServiceError.new(
+          "Failed to create invite code: #{error_data['message'] || response.body}",
+          idp_name: idp_name,
+          operation: :create_invite_code,
+        )
+      else
+        raise ServiceError.new(
+          "Unexpected response from Zitadel: #{response.code}",
+          idp_name: idp_name,
+          operation: :create_invite_code,
+        )
+      end
     end
 
     # Return human-readable name for Zitadel.

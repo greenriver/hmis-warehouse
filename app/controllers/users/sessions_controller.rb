@@ -6,85 +6,31 @@
 
 # frozen_string_literal: true
 
-class Users::SessionsController < Devise::SessionsController
-  include AuthenticatesWithTwoFactor
-  # Start the time log before other methods are called in the authentication stack so we can get the server begin time for the login attempt
-  prepend_before_action :begin_time_log, only: :create
-  prepend_before_action(
-    :authenticate_with_two_factor,
-    if: -> { action_name == 'create' && two_factor_enabled? },
-  )
+class Users::SessionsController < ApplicationController
+  # Skip authentication for these actions since they're handled by OAuth2-proxy
+  skip_before_action :authenticate_user!, only: [:new, :create, :keepalive]
 
-  # Minimum required login processing time for ALL login attempts (seconds)
-  MIN_REQ_LOGIN_TIME = 2
-
-  def begin_time_log
-    # Timestamp for tracking login time to help ensure that the application response time is consistent for valid/invalid usernames.
-    # This helps prevent using login method time to enumerate valid vs invalid usernames
-    @session_create_timestamp = Time.current
+  # GET /users/sign_in
+  # With JWT auth, login is handled by OAuth2-proxy
+  def new
+    redirect_to '/oauth2/sign_in'
   end
 
-  def end_time_log
-    # Wait a semi-random length of time to return after a login attempt to prevent using login time analysis to enumerate valid usernames.
-    # We want to make sure valid and invalid username attempts all take the same minimum amount of time to process and then add a random salt.
-    elapsed = Time.current - @session_create_timestamp
-    wait_time = MIN_REQ_LOGIN_TIME - elapsed + rand(0.5..1)
-    sleep(wait_time) if wait_time.positive? && elapsed < MIN_REQ_LOGIN_TIME
-  end
-
+  # POST /users/sign_in
+  # With JWT auth, login is handled by OAuth2-proxy
   def create
-    super do |resource|
-      # User has successfully signed in, so clear any unused reset token
-      resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
-      # Note access for external reporting
-      resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
-    end
-  ensure
-    # `super` includes a redirect on failed authentication. We want to make sure this check is captured and processed
-    # from a location with access to the server's initial login timestamp.
-    end_time_log
+    redirect_to '/oauth2/sign_in'
   end
 
+  # DELETE /users/sign_out
   def destroy
     request.env['last_user'] = current_user
-
-    super
+    # Redirect to OAuth2-proxy sign out
+    redirect_to '/oauth2/sign_out'
   end
 
   def keepalive
     head :ok
-  end
-
-  def find_user
-    if session[:otp_user_id]
-      User.find(session[:otp_user_id])
-    elsif user_params[:email]
-      User.find_by(email: user_params[:email])
-    end
-  end
-
-  def user_params
-    params.require(:user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
-  end
-
-  def two_factor_enabled?
-    find_user&.two_factor_enabled?
-  end
-
-  def training_complete?
-    find_user&.training_complete?
-  end
-
-  def valid_otp_attempt?(user)
-    user.validate_and_consume_otp!(clean_code)
-  end
-
-  def valid_backup_code_attempt?(user)
-    user.invalidate_otp_backup_code!(clean_code)
-  end
-
-  private def clean_code
-    user_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
   end
 
   # override devise to add 'allow_other_host: true' so we can redirect to okta or superset
@@ -94,10 +40,20 @@ class Users::SessionsController < Devise::SessionsController
       format.any(*navigational_formats) do
         redirect_to(
           after_sign_out_path_for(resource_name),
-          status: Devise.responder.redirect_status,
+          status: :see_other,
           allow_other_host: true,
         )
       end
     end
+  end
+
+  private
+
+  def resource_name
+    :user
+  end
+
+  def navigational_formats
+    [:html]
   end
 end
