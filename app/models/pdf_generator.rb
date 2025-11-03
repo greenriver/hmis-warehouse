@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class PdfGenerator
   def perform(html:, file_name: 'output', options: {}, pdf_data: nil)
     pdf_data ||= render_pdf(html, options: options)
@@ -50,9 +52,7 @@ class PdfGenerator
   end
 
   def self.warden_proxy(user)
-    Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-      i.set_user(user, scope: :user, store: false, run_callbacks: false)
-    end
+    WardenProxy.new(user)
   end
 
   def self.html(controller:, user:, template: nil, layout: false, assigns:, partial: nil)

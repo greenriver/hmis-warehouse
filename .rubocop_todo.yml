@@ -1089,7 +1089,6 @@ Style/FrozenStringLiteralComment:
     - '**/*.arb'
     - 'Rakefile'
     - 'app/channels/application_cable/channel.rb'
-    - 'app/channels/application_cable/connection.rb'
     - 'app/channels/background_render_channel.rb'
     - 'app/channels/test_channel.rb'
     - 'app/controllers/access_controls_controller.rb'
@@ -2279,7 +2278,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/oauth_identity.rb'
     - 'app/models/omniauth_user_provisioner.rb'
     - 'app/models/pdf_export_template_base.rb'
-    - 'app/models/pdf_generator.rb'
     - 'app/models/performance_dashboards/base.rb'
     - 'app/models/performance_dashboards/household.rb'
     - 'app/models/performance_dashboards/overview.rb'
@@ -5129,7 +5127,6 @@ Style/StderrPuts:
 # SupportedStyles: single_quotes, double_quotes
 Style/StringLiterals:
   Exclude:
-    - 'app/channels/application_cable/connection.rb'
     - 'app/jobs/test_workoff_job.rb'
     - 'app/models/agency.rb'
     - 'app/models/consent_limit.rb'

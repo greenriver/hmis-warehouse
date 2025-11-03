@@ -10,6 +10,8 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
+  include IdpSupport
+  include JwtUser
   include RailsDrivers::Extensions
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
@@ -37,6 +39,9 @@ class User < ApplicationRecord
 
   has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
   has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
+
+  has_many :user_authentication_sources, dependent: :destroy
+  has_many :enabled_authentication_sources, -> { where(enabled: true) }, class_name: 'UserAuthenticationSource'
 
   accepts_nested_attributes_for :system_contact
 
