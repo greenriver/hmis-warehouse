@@ -14,6 +14,7 @@ class ApplicationController < ActionController::Base
   respond_to :html, :js, :json, :csv
   impersonates :user
 
+  include CurrentUser
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
@@ -133,7 +134,7 @@ class ApplicationController < ActionController::Base
 
   def info_for_paper_trail
     {
-      user_id: warden&.user&.id,
+      user_id: current_user&.id,
       session_id: session&.id&.to_s,
       request_id: request.uuid,
     }

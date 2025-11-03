@@ -52,9 +52,7 @@ class PdfGenerator
   end
 
   def self.warden_proxy(user)
-    Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-      i.set_user(user, scope: :user, store: false, run_callbacks: false)
-    end
+    WardenProxy.new(user)
   end
 
   def self.html(controller:, user:, template: nil, layout: false, assigns:, partial: nil)
