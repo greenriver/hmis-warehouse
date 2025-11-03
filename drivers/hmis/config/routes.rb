@@ -16,20 +16,14 @@ BostonHmis::Application.routes.draw do
   # Routes for the HMIS API
   if ENV['ENABLE_HMIS_API'] == 'true'
     namespace :hmis, defaults: { format: :json } do
-      devise_for :users, class_name: 'Hmis::User',
-                         skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
-                         controllers: { sessions: 'hmis/sessions' },
-                         path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
+      # Authentication routes (JWT handled by OAuth2-proxy)
+      get 'login', to: 'sessions#new', as: :new_user_session
+      post 'login', to: 'sessions#create', as: :user_session
+      delete 'logout', to: 'sessions#destroy', as: :destroy_user_session
+      get 'logout', to: 'sessions#destroy' if Rails.env.development?
 
       resource :user, only: [:show]
       resource :session_keepalive, only: [:create]
-
-      devise_scope :hmis_user do
-        match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
-        if ENV['OKTA_DOMAIN'].present?
-          get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['HMIS_OKTA_CLIENT_ID']
-        end
-      end
 
       get 'ac/prevention_assessment_report/:referral_id',
           to: 'reports#prevention_assessment_report',

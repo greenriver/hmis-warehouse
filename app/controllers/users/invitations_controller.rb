@@ -59,13 +59,13 @@ class Users::InvitationsController < ApplicationController
   def edit
     # With JWT auth, users accept invitations through their IDP
     # This action can redirect to IDP or show instructions
-    redirect_to '/oauth2/sign_in', notice: 'Please sign in to accept your invitation.'
+    redirect_to helpers.oauth2_sign_in_path, notice: 'Please sign in to accept your invitation.'
   end
 
   # PUT /resource/invitation
   def update
     # With JWT auth, invitation acceptance is handled by IDP
-    redirect_to '/oauth2/sign_in', notice: 'Please sign in to accept your invitation.'
+    redirect_to helpers.oauth2_sign_in_path, notice: 'Please sign in to accept your invitation.'
   end
 
   # GET /resource/invitation/remove?invitation_token=abcdef

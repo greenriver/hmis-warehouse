@@ -2,10 +2,10 @@
 .row
   .col-sm-6
     %h3 User Information
-    - providers = user.oauth_identities.map(&:provider_name).sort.uniq
-    - if providers.any?
+    - if user.primary_idp.present? && !user.idp_supports_profile_updates?
       .alert.alert-info
-        = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."
+        %p.mb-0
+          Sign-in provided by #{user.user_authentication_sources.find_by(connector_id: user.primary_idp)&.idp_name || user.primary_idp}. Changes made here to personal information may be overwritten on the user's next login since the IDP does not support profile updates.
     .form-inputs.well
       -# IDP selection for new user invitations
       - if @available_idps.present? && @user.new_record?
@@ -75,6 +75,7 @@
                 unchecked_value: nil
     - unless @user.new_record?
       = render 'contact_relationships'
+      = render 'identity_providers', user: user
     .form--expiration
       %h3 Account Life-cycle
       .well

@@ -4,13 +4,27 @@
   .row
     .col-sm-6
       .form-inputs
-        - has_okta = @user.oauth_identities.any?(&:okta?)
-        - if has_okta
-          %p= link_to_if ENV['OKTA_DOMAIN'].present?, 'Manage Personal Information in OKTA', "https://#{ENV['OKTA_DOMAIN']}/enduser/settings"
+        - idp_supports_profile = @user.idp_supports_profile_updates?
+        - if idp_supports_profile
+          -# IDP supports profile updates - show editable fields
+          = f.input :first_name, required: true
+          = f.input :last_name, required: true
+          = f.input :phone
         - else
-          = f.input :first_name, required: true, disabled: has_okta
-          = f.input :last_name, required: true, disabled: has_okta
-        = f.input :phone
+          -# IDP doesn't support profile updates - show read-only with message
+          - if @user.primary_idp.present?
+            .alert.alert-info
+              %p
+                %strong Personal information is managed by your Identity Provider.
+                = "To update your name, phone, or email, please contact your administrator or update your profile in #{@user.idp_service.idp_name}."
+          - else
+            .alert.alert-warning
+              %p
+                %strong No Identity Provider connected.
+                Please contact your administrator to update your profile information.
+          = f.input :first_name, required: true, readonly: true, hint: 'This field is managed by your Identity Provider.'
+          = f.input :last_name, required: true, readonly: true, hint: 'This field is managed by your Identity Provider.'
+          = f.input :phone, readonly: true, hint: 'This field is managed by your Identity Provider.'
         - if @user.show_credentials?
           = f.input :credentials, label: 'Credentials', collection: @user.credential_options, as: :select_two, input_html: { data: {tags: true} }, hint: 'Add a new credential type by typing the name and hitting enter.'
         = f.association :agency, disabled: true, as: :select_two

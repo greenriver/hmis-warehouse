@@ -1,4 +1,4 @@
--- \restrict l7rajYcuzJKSRaEg3zlE530gXBzpTkDtp7v4bsjROzBDx2n7eip02n05JvFugph
+-- \restrict wGFdz9J2c7LvoLKAeEabtq2JVCWtFp75JsF0AhCQy0rv52vYn9hVBniCwpbgyje
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -2320,7 +2320,7 @@ CREATE TABLE public.user_authentication_sources (
     enabled boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    discarded_at timestamp without time zone
+    deleted_at timestamp without time zone
 );
 
 
@@ -4067,10 +4067,10 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
--- Name: index_user_authentication_sources_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_user_authentication_sources_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_authentication_sources_on_discarded_at ON public.user_authentication_sources USING btree (discarded_at);
+CREATE INDEX index_user_authentication_sources_on_deleted_at ON public.user_authentication_sources USING btree (deleted_at);
 
 
 --
@@ -4306,11 +4306,12 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict l7rajYcuzJKSRaEg3zlE530gXBzpTkDtp7v4bsjROzBDx2n7eip02n05JvFugph
+-- \unrestrict wGFdz9J2c7LvoLKAeEabtq2JVCWtFp75JsF0AhCQy0rv52vYn9hVBniCwpbgyje
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251102194520'),
 ('20251102033229'),
 ('20251016194806'),
 ('20251001174258'),

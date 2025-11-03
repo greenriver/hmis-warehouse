@@ -35,7 +35,7 @@ class window.AjaxModal
         complete: (xhr, status) =>
           @loading.hide()
           @content.html xhr.responseText
-          @open
+          @open()
 
   _registerForms: ->
     # scope.find(@formTriggersSelector).attr('data-remote', true)
@@ -54,7 +54,7 @@ class window.AjaxModal
         complete: (xhr, status) =>
           @loading.hide()
           @content.html xhr.responseText
-          @open
+          @open()
       return false
 
   # maybe don't need this for bootstrap
@@ -84,7 +84,7 @@ class window.AjaxModal
     $("[data-ajax-modal-loading]").show()
 
   closeAndReload: ->
-    @close
+    @close()
     if @initialPath
       history.pushState({}, 'Modal', @initialPath);
     window.location.reload()

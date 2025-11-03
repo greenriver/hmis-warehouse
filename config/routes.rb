@@ -14,24 +14,17 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: {
-    invitations: 'users/invitations',
-    sessions: 'users/sessions',
-  }
-
-  devise_scope :user do
-    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-    match 'users/invitations/confirm', via: :post
-    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
-    if ENV['OKTA_DOMAIN'].present?
-      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
-    end
-  end
+  # Authentication routes (JWT handled by OAuth2-proxy)
+  get 'users/sign_in', to: 'users/sessions#new', as: :new_user_session
+  post 'users/sign_in', to: 'users/sessions#create', as: :user_session
+  delete 'users/sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
+  get 'logout_talentlms', to: 'users/sessions#destroy', as: :logout_talentlms
+  post 'session_keepalive', to: 'users/sessions#keepalive', as: :session_keepalive
 
   namespace :users do
-    resources :invitations do
+    resources :invitations, only: [:new, :create] do
       collection do
-        post :confirm
+        post :confirm, as: :confirm
       end
     end
     resources :account_requests, only: [:new, :create]
@@ -762,7 +755,6 @@ Rails.application.routes.draw do
       member do
         post :unlock
         post :un_expire
-        post :confirm
         post :impersonate
         patch :expire_password
       end
@@ -910,7 +902,6 @@ Rails.application.routes.draw do
     get :locations, on: :member
   end
   resource :account_email, only: [:edit, :update]
-  resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
     get :remove_device
   end

@@ -13,5 +13,4 @@
       = render 'layouts/mini_sign_in_form'
     - elsif !@showing_sign_in_form
       %li.c-header-nav__item
-        = link_to new_user_session_path, class: 'c-header-nav__link' do
-          Sign In
+        .my-auto.mx-auto= oauth2_sign_in_link class: 'btn btn-secondary btn-sm'
