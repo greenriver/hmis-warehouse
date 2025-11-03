@@ -12,9 +12,9 @@ class CohortsController < ApplicationController
   include CohortClients
   include Search
   before_action :some_cohort_access!
-  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update, :new]
+  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update, :new, :maintain]
   before_action :require_can_access_cohort!, only: [:show]
-  before_action :set_cohort, only: [:edit, :update, :destroy, :show]
+  before_action :set_cohort, only: [:edit, :update, :destroy, :show, :maintain]
   before_action :set_users, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show] # TODO: START_ACL remove when ACL transition complete
   before_action :set_thresholds, only: [:show]
@@ -191,6 +191,17 @@ class CohortsController < ApplicationController
     respond_with(@cohort, location: cohort_path(@cohort))
   end
 
+  def maintain
+    if @cohort.auto_maintained?
+      @cohort.delay.maintain
+      flash[:notice] = 'Cohort maintenance queued.'
+    else
+      flash[:alert] = 'This cohort is manually maintained.'
+    end
+
+    redirect_to cohort_path(@cohort)
+  end
+
   def cohort_params
     opts = [
       :name,
@@ -208,6 +219,8 @@ class CohortsController < ApplicationController
       :assessment_trigger,
       :tag_id,
       :project_group_id,
+      :automation_sub_population,
+      :automation_hoh_only,
       :enforce_project_visibility_on_cells,
       user_ids: [], # TODO: START_ACL remove when ACL transition complete
       participant_ids: [],

@@ -4,10 +4,42 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Specifies which polymorphic entity (and/or service type) that a given form is applicable to.
+# frozen_string_literal: true
+
+# Form Instance (called "Form Rule" in the frontend)
+#
+# A Form Instance/Form Rule specifies which projects (or other entities) a given
+# Form Definition should be available for. It acts as a configuration rule that
+# determines scope and applicability of forms.
+#
+# The matching logic for determining whether a rule applies to a particular
+# project or enrollment is implemented in:
+# - Hmis::Form::InstanceProjectMatch - checks if instance matches a project
+# - Hmis::Form::InstanceEnrollmentMatch - checks if instance matches an enrollment
+#
+# Instance Lifecycle:
+# - When a Form Instances is "deleted" in the frontend (since 11/2025), it is marked
+#   as inactive (active: false) rather than being hard-deleted
+# - Users cannot edit existing form instances/rules in the frontend
+# - To modify a rule, users must deactivate the old one and create a new one
+#
+# Form Role Requirements:
+# - For Form Instances that configure SERVICE role forms specifically, they must
+#   also specify either custom_service_category or custom_service_type to indicate
+#   which service(s) the form can collect
+#
+# Exclusive vs Inclusive Form Roles:
+# The application handles Form Instances differently based on whether the referenced Definition Role is
+# exclusive or inclusive. (That logic is defined in the frontend/graphql layer - see record_form_definition query,
+# assessment_form_definition query, etc).
+# - EXCLUSIVE roles (Project, Client, Enrollment): Only the single BEST matching form is displayed per context.
+#   The application picks one form using InstanceProjectMatch/InstanceEnrollmentMatch ranking logic.
+# - INCLUSIVE roles (Services, Custom Assessments): ALL matching forms are displayed.
+#   If any Form Instance enables a form for a project (by project, type, org, etc.), it appears.
 class Hmis::Form::Instance < ::GrdaWarehouseBase
   include Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_form_instances
+  has_paper_trail
 
   belongs_to :entity, polymorphic: true, optional: true
 
@@ -27,6 +59,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   validates :funder, inclusion: { in: HudHelper.util.funding_sources.keys }, allow_blank: true
   validates :project_type, inclusion: { in: HudHelper.util.project_types.keys }, allow_blank: true
   validate :validate_external_form_restrictions
+  validate :validate_service_form_restrictions
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }
@@ -107,6 +140,13 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     errors.add(:base, :invalid, full_message: 'External forms only support rule specification by Project') if entity_type != 'Hmis::Hud::Project'
     # External forms can only have ONE active Project-level rule
     errors.add(:base, :invalid, full_message: 'External forms can only have one active rule') if new_record? && definition.instances.active.for_projects.exists?
+  end
+
+  def validate_service_form_restrictions
+    return unless definition.role.to_s == 'SERVICE'
+    return unless custom_service_category_id.blank? && custom_service_type_id.blank?
+
+    errors.add(:base, :invalid, full_message: 'Service form rules must specify either a service category or service type, to indicate which service(s) the form can collect')
   end
 
   def project_matches(project_scope)
