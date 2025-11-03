@@ -28,7 +28,6 @@ module UserConcern
 
     # Include default devise modules. Others available are:
     devise :invitable,
-           :recoverable,
            :rememberable,
            :trackable,
            # :validatable,
@@ -37,18 +36,13 @@ module UserConcern
            :timeoutable,
            :confirmable,
            :session_limitable,
-           :pwned_password,
            :expirable,
-           :password_expirable,
-           :password_archivable,
            :two_factor_authenticatable,
            :two_factor_backupable,
            password_length: 10..128,
            otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
            otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
            otp_number_of_backup_codes: 10
-
-    include OmniauthSupport
 
     # Doorkeeper
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
@@ -430,27 +424,10 @@ module UserConcern
       update_attribute(:custom_session_invalidator, SecureRandom.hex)
     end
 
-    # Dependent on devise expire_password_after being set to a value other than false
-    def force_password_reset!
-      return false unless password_expiration_enabled?
-
-      # Immediately logout the user
-      self.custom_session_invalidator = SecureRandom.hex
-      # Force a password change on next login
-      need_change_password! # calls save internally
-
-      # Return true to indicate success
-      true
-    end
-
     # Prevent sending confirmation emails if the user has an open invitation
     def send_reset_password_instructions
-      if invitation_token.present?
-        errors.add :email, 'There is an open invitation for this account.'
-        false
-      else
-        super
-      end
+      errors.add :email, 'There is an open invitation for this account.' if invitation_token.present?
+      false # Password resets are not supported with JWT auth
     end
 
     # Prevent confirming accounts if the user has an open invitation

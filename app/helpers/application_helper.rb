@@ -426,6 +426,31 @@ module ApplicationHelper
     end
   end
 
+  # Generate OAuth2-proxy sign-in path, optionally with connector_id parameter.
+  #
+  # If a user has a last_connector_id set, it will be included as a query parameter
+  # to automatically direct them to the correct IDP.
+  #
+  # @param user [User, nil] User to get connector_id from (defaults to current_user)
+  # @return [String] Sign-in path, e.g., '/oauth2/sign_in' or '/oauth2/sign_in?connector_id=zitadel'
+  def oauth2_sign_in_path(user: current_user)
+    path = '/oauth2/sign_in'
+    connector_id = user&.last_connector_id
+    return path unless connector_id.present?
+
+    "#{path}?connector_id=#{CGI.escape(connector_id)}"
+  end
+
+  # Generate OAuth2-proxy sign-in link.
+  #
+  # @param user [User, nil] User to get connector_id from (defaults to current_user)
+  # @param options [Hash] Options hash passed to link_to (e.g., class, text, etc.)
+  # @return [String] HTML link to sign-in path
+  def oauth2_sign_in_link(user: current_user, **options)
+    text = options.delete(:text) || 'Sign in'
+    link_to text, oauth2_sign_in_path(user: user), **options
+  end
+
   def foreground_color(bg_color)
     color = bg_color.gsub('#', '')
     rgb = if color.length == 6

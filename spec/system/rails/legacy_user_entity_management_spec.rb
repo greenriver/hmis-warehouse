@@ -42,7 +42,7 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
 
     it 'shows the lazy loaded interface for new user creation' do
       # Navigate to new user invitation page
-      visit new_user_invitation_path
+      visit new_users_invitation_path
 
       # Fill in basic user information
       fill_in 'First name', with: 'Test'
@@ -66,7 +66,7 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
     end
 
     it 'allows entity selection for new users with lazy loaded interface' do
-      visit new_user_invitation_path
+      visit new_users_invitation_path
       click_link 'Data Access Assignments'
 
       # Verify multiple entity columns are present with proper IDs
@@ -266,7 +266,7 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
     before { sign_in_user(admin_user) }
 
     it 'works correctly when switching between tabs multiple times' do
-      visit new_user_invitation_path
+      visit new_users_invitation_path
 
       # Switch between tabs multiple times to test stability
       3.times do

@@ -58,5 +58,19 @@ module IdpSupport
     def zitadel_idp?
       primary_idp == 'zitadel'
     end
+
+    # Check if email changes are enabled for this user.
+    #
+    # With JWT auth, email changes are only enabled if:
+    # 1. User doesn't have an IDP connected (legacy/local users), OR
+    # 2. User's IDP supports profile updates (can update email via IDP)
+    #
+    # @return [Boolean] true if email changes are enabled
+    def email_change_enabled?
+      return true if primary_idp.blank?
+      return false unless idp_supports_profile_updates?
+
+      true
+    end
   end
 end

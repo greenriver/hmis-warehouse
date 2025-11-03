@@ -13,13 +13,13 @@ class Users::SessionsController < ApplicationController
   # GET /users/sign_in
   # With JWT auth, login is handled by OAuth2-proxy
   def new
-    redirect_to '/oauth2/sign_in'
+    redirect_to helpers.oauth2_sign_in_path
   end
 
   # POST /users/sign_in
   # With JWT auth, login is handled by OAuth2-proxy
   def create
-    redirect_to '/oauth2/sign_in'
+    redirect_to helpers.oauth2_sign_in_path
   end
 
   # DELETE /users/sign_out

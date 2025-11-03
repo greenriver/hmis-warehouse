@@ -17,7 +17,7 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
+    before_action :set_user, only: [:edit, :unlock, :update, :destroy, :impersonate, :un_expire, :expire_password]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
     helper_method :sort_column, :sort_direction
@@ -41,6 +41,8 @@ module Admin
       @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
       @user.build_system_contact if @user.system_contact.nil?
       @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
+      # Preload authentication sources to avoid N+1 queries
+      @user.user_authentication_sources.load
 
       # Preload all contacts with their entities and alert definitions for contact relationships display
       @user_contacts = @user.contacts.not_system_contacts.
@@ -61,24 +63,8 @@ module Admin
     end
 
     def expire_password
-      msg = if @user.force_password_reset!
-        { notice: "User #{@user.email} has been logged out and will need to change their password on next login." }
-      else
-        { warn: "Unable to expire password for #{@user.email}, password expiration is disabled" }
-      end
-      redirect_to({ action: :index }, **msg)
-    end
-
-    def confirm
-      return if adding_admin?
-
-      @redirecting = true
-      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
-      update
-      # early return if the response body was set by update(), avoid double-render error
-      return if performed?
-
-      redirect_to({ action: :edit }, notice: 'User updated')
+      @user.force_logout!
+      redirect_to({ action: :index }, notice: "User #{@user.email} has been logged out.")
     end
 
     def impersonate
@@ -93,12 +79,6 @@ module Admin
     end
 
     def update
-      if adding_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
-        flash[:error] = 'User not updated. Incorrect password'
-        render :confirm
-        return
-      end
-
       existing_health_roles = @user.health_roles.to_a
       begin
         User.transaction do
@@ -147,7 +127,7 @@ module Admin
       end
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
-      respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
+      respond_with(@user, location: edit_admin_user_path(@user))
     end
 
     def search
@@ -341,46 +321,6 @@ module Admin
       @user.using_acls? || changing_to_acls?
     end
 
-    private def adding_admin?
-      @adding_admin ||= begin
-        adding_admin = false
-        # TODO: START_ACL remove when ACL transition complete
-        if @user.using_acls?
-          existing_roles = @user.roles
-          # If we don't already have a role granting an admin permission, and we're assinging some
-          # ACLs (with associated roles)
-          if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
-            assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
-            added_role_ids = assigned_roles - existing_roles.pluck(:id)
-            Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
-              # If any role we're adding is administrative, make note, and present the confirmation page
-              next unless role.administrative?
-
-              @admin_role_name = role.role_name
-              adding_admin = true
-              break
-            end
-          end
-        else
-          existing_roles = @user.legacy_roles
-          if existing_roles.map(&:has_super_admin_permissions?).none?
-            assigned_roles = user_params[:legacy_role_ids]&.select(&:present?)&.map(&:to_i) || []
-            added_role_ids = assigned_roles - existing_roles.pluck(:id)
-            added_role_ids.select(&:present?).each do |id|
-              role = Role.find(id.to_i)
-              next unless role.administrative?
-
-              @admin_role_name = role.role_name
-              adding_admin = true
-              break
-            end
-          end
-        end
-        # END_ACL
-        adding_admin
-      end
-    end
-
     private def assigned_user_group_ids
       user_params[:user_group_ids]&.reject(&:blank?)&.map(&:to_i) || []
     end
@@ -435,12 +375,6 @@ module Admin
           result[:user_group_ids] ||= []
           result[:user_group_ids] += @user.user_groups.system.pluck(:id)
         end
-    end
-
-    private def confirmation_params
-      params.require(:user).permit(
-        :confirmation_password,
-      )
     end
 
     private def viewable_params

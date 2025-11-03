@@ -1,0 +1,31 @@
+.form--identity-providers
+  %h3 Connected Identity Providers
+  .well
+    - if user.user_authentication_sources.any?
+      %p
+        This user is connected to the following Identity Providers:
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Identity Provider
+            %th User ID in IDP
+            %th Status
+            %th Primary
+        %tbody
+          - user.user_authentication_sources.order(:connector_id).each do |auth_source|
+            %tr
+              %td= auth_source.idp_name
+              %td= auth_source.connector_user_id
+              %td
+                - if auth_source.enabled?
+                  %span.badge.bg-success Enabled
+                - else
+                  %span.badge.bg-secondary Disabled
+              %td
+                - if auth_source.connector_id == user.last_connector_id
+                  %span.badge.bg-primary Primary
+                - else
+                  %span.text-muted —
+    - else
+      %p.text-muted
+        This user is not connected to any Identity Providers. They may be a legacy user or the account was created before IDP integration.

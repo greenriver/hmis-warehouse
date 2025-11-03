@@ -7,4 +7,7 @@
 # frozen_string_literal: true
 
 # Register IDP services with the factory
-Idp::ServiceFactory.register_idp_service('zitadel', Idp::ZitadelService)
+# Using to_prepare ensures all models are loaded before registration
+Rails.application.config.to_prepare do
+  Idp::ServiceFactory.register_idp_service('zitadel', Idp::ZitadelService)
+end

@@ -40,8 +40,8 @@ module Admin
         password_confirmation: pass,
       )
 
-      # FIXME(#186770279): shouldn't send for oauth-linked accounts
-      @user.send_reset_password_instructions
+      # With JWT auth, password resets are handled by the IDP
+      # Just log the reactivation without sending password reset instructions
       redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
     end
 
