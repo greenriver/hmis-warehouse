@@ -65,26 +65,28 @@ module HmisExternalApis::AcHmis
       score_objects = data.flat_map do |response_client|
         response_client.dig('scores')&.filter_map do |score_obj|
           score_value = score_obj.dig('score')
+          next unless score_obj.dig('generator') == AHA_GENERATOR # non-AHA scores
 
           raise(Error, 'Received blank score') if score_value.blank?
-          raise(Error, "Received invalid score: #{score_value.inspect}") unless score_value.is_a?(Numeric) && score_value % 1 == 0 && score_value <= 10
+          raise(Error, "Received invalid score: #{score_value.inspect}") unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_AHA_SCORES.include?(score_value.to_i)
 
           OpenStruct.new(
+            # AHA Score
             score: score_value.to_i,
+            # This field is a 0/1 flag indicating whether the Alt-AHA should be performed or not. (1 = Alt-AHA is required, 0 = Alt-AHA is not required).
             mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
+            # MCI Unique ID that is associated with the AHA score
             dw_client_id: Array.wrap(response_client.dig('dw_client_id') || response_client.dig('dw_client_id_dw_client_id'))&.first,
+            # Generator is always 'AHA'
             generator: score_obj.dig('generator'),
           )
         end
       end
 
       # Find the highest AHA score
-      highest_aha_score = score_objects.compact.
-        filter { |score_object| score_object.generator == AHA_GENERATOR }.
-        max_by(&:score)
+      highest_aha_score = score_objects.compact.max_by(&:score)
 
       raise(Error, 'Response does not contain AHA score') unless highest_aha_score.present?
-      raise(Error, "AHA score is not valid: #{highest_aha_score.score}") unless VALID_AHA_SCORES.include?(highest_aha_score.score)
 
       highest_aha_score
     end

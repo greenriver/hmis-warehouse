@@ -230,18 +230,18 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
   context 'when AHA score is invalid' do
     let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
 
-    before do
-      response = mock_api_response(
-        client_data(
-          dw_client_id: mci_unique_id.value,
-          scores: [score_hash(score: 0, generator: 'AHA', alt_aha_flag: 0)],
-        ),
-      )
-      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
-    end
+    [-2, 0, 1.5, 11, 'str'].each do |invalid_score|
+      it "raises Error with message about invalid AHA score (#{invalid_score})" do
+        response = mock_api_response(
+          client_data(
+            dw_client_id: mci_unique_id.value,
+            scores: [score_hash(score: invalid_score, generator: 'AHA', alt_aha_flag: 0)],
+          ),
+        )
+        setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
 
-    it 'raises Error with message about invalid AHA score' do
-      expect { aha.fetch_score(client) }.to raise_error(HmisErrors::ApiError, /AHA score is not valid/)
+        expect { aha.fetch_score(client) }.to raise_error(HmisErrors::ApiError, /Received invalid score/)
+      end
     end
   end
 end
