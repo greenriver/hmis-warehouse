@@ -34,7 +34,7 @@ module HmisCsvImporter::GrdaWarehouse::Hud
         scope.find_in_batches do |batch|
           look_asides = []
           batch.each do |row|
-            data = row.slice(row.class.hmis_structure(version: '2020').keys)
+            data = row.slice(row.class.hmis_structure(version: HudHelper.current_version).keys)
             data.merge!(
               source_type: row.class.name,
               source_id: row.id,
