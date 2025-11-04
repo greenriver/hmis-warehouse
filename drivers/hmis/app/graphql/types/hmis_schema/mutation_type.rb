@@ -76,7 +76,6 @@ module Types
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :delete_form_rule, mutation: Mutations::DeleteFormRule
-    field :update_form_rule, mutation: Mutations::UpdateFormRule, deprecation_reason: 'Replaced with DeleteFormRule'
 
     field :create_project_config, mutation: Mutations::CreateProjectConfig
     field :update_project_config, mutation: Mutations::UpdateProjectConfig

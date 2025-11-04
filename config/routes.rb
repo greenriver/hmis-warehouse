@@ -588,6 +588,7 @@ Rails.application.routes.draw do
   resources :cohort_column_names, only: [:new, :create]
 
   resources :cohorts do
+    post :maintain, on: :member
     resource :columns, only: [:edit, :update], controller: 'cohorts/columns'
     resources :cohort_clients, controller: 'cohorts/clients' do
       get :pre_destroy, on: :member
@@ -908,6 +909,7 @@ Rails.application.routes.draw do
     resources :available_file_tags, only: [:index, :new, :create, :destroy, :edit, :update]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :warehouse_alerts
+    resources :metric_definitions, only: [:index, :show, :edit, :update]
     resources :public_files, only: [:index, :create, :destroy]
     resources :talentlms, only: [:index, :new, :create, :destroy, :edit, :update] do
       post :update_site_config, on: :collection
