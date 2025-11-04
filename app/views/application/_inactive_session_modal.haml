@@ -1,9 +1,17 @@
 :ruby
+  access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+  session_lifetime_secs = if access_token.present?
+    jwt_helper = JwtHelper.new(access_token: access_token)
+    expiration_time = jwt_helper.expiration_time if jwt_helper.token? && jwt_helper.validate!
+    expiration_time ? (expiration_time - Time.current).to_i : 30.minutes.to_i
+  else
+    30.minutes.to_i
+  end
   root_data = {
     controller: "inactive-session-modal",
     inactive_session_modal: {
       initial_user_id_value: current_user&.id.to_s,
-      session_lifetime_secs_value: Devise.timeout_in.in_seconds,
+      session_lifetime_secs_value: session_lifetime_secs,
     },
     reflex_permanent: true
   }
