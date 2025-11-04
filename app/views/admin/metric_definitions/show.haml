@@ -70,6 +70,7 @@
       %p.text-muted
         This chart shows the number of #{@entity_label.pluralize.downcase} that crossed the configured threshold on each day.
         Initial observations are excluded.
+        Click on a bar to see the details of the threshold crossings for that day.
 
       - if @chart_data.any?
         .metric-threshold-chart{

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/metric-tracking.md
 module GrdaWarehouse::Monitoring::Tasks
   class MetricSnapshotCollector
     BATCH_SIZE = 5_000
@@ -50,7 +51,7 @@ module GrdaWarehouse::Monitoring::Tasks
 
       Rails.logger.info "Collecting #{metrics.count} metrics for #{entities.count} #{@entity_type} records"
 
-      entities.in_groups_of(BATCH_SIZE, false) do |entity_batch|
+      entities.find_in_batches(batch_size: BATCH_SIZE) do |entity_batch|
         collect_batch(entity_batch, metrics)
       end
 

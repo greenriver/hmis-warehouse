@@ -41,10 +41,8 @@ module Admin
         distinct.
         pluck(:entity_id)
 
-      # Fetch crossings for each entity using the optimized method
-      crossings = entity_ids.map do |entity_id|
-        @metric_definition.threshold_crossings_for_date(calculation_date, entity_id: entity_id)
-      end
+      # Fetch crossings for all entities in one optimized query
+      crossings = @metric_definition.threshold_crossings_for_date(calculation_date, entity_ids: entity_ids)
 
       # Build client URLs based on entity type
       crossings_with_urls = crossings.map do |crossing|

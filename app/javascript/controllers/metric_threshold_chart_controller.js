@@ -38,7 +38,13 @@ export default class extends Controller {
         labels: {
           format: (v) => v > 0 ? v.toLocaleString('en-US') : ''
         },
-        onclick: (d) => this.handleBarClick(d)
+        onclick: (d) => this.handleBarClick(d),
+        onover: () => {
+          document.body.style.cursor = 'pointer';
+        },
+        onout: () => {
+          document.body.style.cursor = 'auto';
+        }
       },
       axis: {
         x: {
@@ -139,7 +145,7 @@ export default class extends Controller {
       const change = crossing.change;
       const sign = change > 0 ? '+' : '';
       const linkHTML = crossing.entity_url
-        ? `<a href="${crossing.entity_url}">${entityLabel} #${crossing.entity_id}</a>`
+        ? `<a href="${crossing.entity_url}">${crossing.entity_id}</a>`
         : `${entityLabel} #${crossing.entity_id}`;
       return `
               <tr>

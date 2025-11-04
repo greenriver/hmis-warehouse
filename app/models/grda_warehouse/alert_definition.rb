@@ -32,10 +32,14 @@ module GrdaWarehouse
       [:visibility_check, :email_subject]
     end
 
+    # Uses advisory lock to prevent concurrent execution - returns immediately if lock is held
     def self.maintain!
-      initial_definitions.each do |attrs|
-        find_or_create_by!(code: attrs[:code]) do |definition|
-          definition.assign_attributes(attrs.except(*non_database_attributes))
+      lock_name = 'alert_definition_maintain'
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        initial_definitions.each do |attrs|
+          find_or_create_by!(code: attrs[:code]) do |definition|
+            definition.assign_attributes(attrs.except(*non_database_attributes))
+          end
         end
       end
     end

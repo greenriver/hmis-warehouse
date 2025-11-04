@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/metric-tracking.md
 module GrdaWarehouse::Monitoring
   class MetricSnapshot < GrdaWarehouseBase
     self.table_name = 'metric_snapshots'
