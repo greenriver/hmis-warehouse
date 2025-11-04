@@ -87,11 +87,11 @@ module GrdaWarehouse
           category: 'system',
           description: 'Notification when data anomalies are detected',
         },
-        # Client Metric Alerts
+        # Threshold Monitoring Alerts
         {
           code: 'metric_days_homeless_threshold',
           name: 'Days Homeless Threshold Crossed',
-          email_subject: 'Client Metric Alert: Days Homeless Threshold Crossed',
+          email_subject: 'Threshold Monitoring Alert: Days Homeless Threshold Crossed',
           category: 'system',
           description: 'Notification when clients cross the threshold for days homeless in the last 3 years',
           visibility_check: ->(_user) { GrdaWarehouse::Monitoring::MetricDefinition.active.exists?(name: 'days_homeless_last_three_years') },
@@ -99,7 +99,7 @@ module GrdaWarehouse
         {
           code: 'metric_household_size_threshold',
           name: 'Household Size Threshold Crossed',
-          email_subject: 'Client Metric Alert: Household Size Threshold Crossed',
+          email_subject: 'Threshold Monitoring Alert: Household Size Threshold Crossed',
           category: 'system',
           description: 'Notification when clients cross the threshold for household size changes',
           visibility_check: lambda do |_user|

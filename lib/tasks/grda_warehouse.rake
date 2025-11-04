@@ -432,7 +432,7 @@ namespace :grda_warehouse do
       end
     end
 
-    # Collect client metrics daily
+    # Collect Threshold Monitorings daily
     if DateTime.current.hour == GrdaWarehouse::Monitoring::MetricDefinition::COLLECTION_HOUR
       safely_execute do
         CollectClientMetricsJob.perform_later

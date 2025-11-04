@@ -1,10 +1,9 @@
-- title = 'Client Metric Definitions'
+- title = 'Threshold Monitoring Definitions'
 - content_for :title, title
 %h1= content_for :title
 
 .row
   .col-sm-12
     %p.text-muted
-      Metric definitions are automatically created from calculator classes.
-      You can modify thresholds, display names, and activation status.
-    = render_paginated_list(scope: @metric_definitions, item_name: 'metric definition', list_partial: 'admin/metric_definitions/list')
+      Threshold monitoring definitions are hard-coded, but you can modify thresholds, display names, and activation status to fit your community's needs.
+    = render_paginated_list(scope: @metric_definitions, item_name: 'threshold definition', list_partial: 'admin/metric_definitions/list')
