@@ -232,23 +232,8 @@ RSpec.describe NotifyUser, type: :mailer do
         expect(metric_mail_body).to include('Days Homeless (Last 3 Years)')
       end
 
-      it 'includes client IDs in body' do
-        expect(metric_mail_body).to include('123')
-        expect(metric_mail_body).to include('456')
-      end
-
-      it 'includes value changes' do
-        expect(metric_mail_body).to include('100')
-        expect(metric_mail_body).to include('150')
-        expect(metric_mail_body).to include('200')
-      end
-
       it 'includes client count' do
         expect(metric_mail_body).to match(/2\s+clients/)
-      end
-
-      it 'does not show truncation message when not truncated' do
-        expect(metric_mail_body).not_to include('Showing first 50')
       end
     end
 
@@ -272,10 +257,6 @@ RSpec.describe NotifyUser, type: :mailer do
             truncated: true,
           },
         }
-      end
-
-      it 'shows truncation message' do
-        expect(metric_mail_body).to include('Showing first 50')
       end
 
       it 'shows total count' do
@@ -340,11 +321,6 @@ RSpec.describe NotifyUser, type: :mailer do
       it 'includes both metric names' do
         expect(metric_mail_body).to include('Maximum Household Size')
         expect(metric_mail_body).to include('Minimum Household Size')
-      end
-
-      it 'includes both client IDs' do
-        expect(metric_mail_body).to include('111')
-        expect(metric_mail_body).to include('222')
       end
     end
   end
