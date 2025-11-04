@@ -10,7 +10,6 @@ class AccountsController < ApplicationController
   before_action :set_user
 
   def edit
-    @user.set_initial_two_factor_secret!
   end
 
   def update

@@ -37,7 +37,6 @@ module Admin
     end
 
     def edit
-      @user.set_initial_two_factor_secret!
       @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
       @user.build_system_contact if @user.system_contact.nil?
       @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
@@ -99,7 +98,6 @@ module Admin
               end
           end
           # END_ACL
-          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
 
           # The User Group data is not captured for update when using the Role-Based view. This means it will not be included
           # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
@@ -347,7 +345,6 @@ module Admin
         :notify_on_client_added,
         :notify_on_anomaly_identified,
         :receive_account_request_notifications,
-        :otp_required_for_login,
         :expired_at,
         :training_completed,
         :copy_form_id,

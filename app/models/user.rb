@@ -17,6 +17,12 @@ class User < ApplicationRecord
   # Virtual attribute for selecting IDP during invitation
   attr_accessor :connector_id
 
+  # Virtual attribute to skip invitation sending
+  attr_accessor :skip_invitation
+
+  # Virtual attribute to store the inviting user
+  attr_accessor :invited_by
+
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
   USER_PERMISSION_PREFIX = 'user_permissions'

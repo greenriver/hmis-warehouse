@@ -112,7 +112,6 @@ Rails.application.configure do
   # Suppress logger output for asset requests.
   config.assets.quiet = true
 
-  # Devise requires a default URL
   config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   # don't need email sandbox with letter opener

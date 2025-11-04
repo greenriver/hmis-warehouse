@@ -94,17 +94,11 @@ gem 'marcel'
 gem 'acts-as-taggable-on', '~>12.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
-gem 'devise', '~> 4.9'
-gem 'devise_invitable', '~> 2.0.9'
-gem 'devise-pwned_password'
-gem 'devise-security'
-gem 'devise-two-factor', '~> 4.1.1'
 gem 'rack-cors'
 gem 'doorkeeper'
-
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-oauth2', '~> 1.7.3'
-gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
+# Zitadel client is used for migrating users to Zitadel
+gem 'zitadel-client', require: false
+gem 'jwt', '~> 3.1'
 gem 'faraday', '~> 2.2'
 gem 'oauth2'
 
