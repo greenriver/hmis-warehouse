@@ -278,16 +278,14 @@ module UserConcern
     # Attempts to get the expiration time from the JWT token.
     # Falls back to a default timeout if JWT expiration is not available.
     #
-    # @param session [Hash] Session hash (unused, kept for compatibility)
+    # @param access_token [String, nil] Optional JWT access token from request headers
     # @return [Time] Expected timeout time
-    def timeout_time(_session)
-      # Try to get expiration time from JWT token
-      jwt_helper = if respond_to?(:request) && request.present?
-        access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
-        JwtHelper.new(access_token: access_token) if access_token.present?
-      end
+    def timeout_time(access_token)
+      return nil unless access_token.present?
 
-      jwt_helper&.expiration_time
+      # Try to get expiration time from JWT token
+      jwt_helper = JwtHelper.new(access_token: access_token)
+      jwt_helper.expiration_time if jwt_helper&.token? && jwt_helper.expiration_time
     end
 
     def future_expiration?
