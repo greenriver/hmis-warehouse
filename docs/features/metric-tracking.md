@@ -1,8 +1,8 @@
-# Metric Tracking System - Architecture
+# Threshold Monitoring System - Architecture
 
 ## Overview
 
-This document outlines the design for a flexible, performant metric tracking system that monitors changes in client data over time. The system enables trend analysis, alerting, and reporting on key client metrics while handling hundreds of thousands of client records efficiently.
+This document outlines the design for a flexible, performant threshold monitoring system that monitors changes in client data over time. The system enables trend analysis, alerting, and reporting on key client metrics while handling hundreds of thousands of client records efficiently.
 
 ## Goals
 

@@ -275,7 +275,7 @@ class NotifyUser < DatabaseMailer
     end
 
     alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
-    subject = alert_definition&.email_subject || 'Client Metric Alert: Threshold Crossed'
+    subject = alert_definition&.email_subject || 'Threshold Monitoring: Threshold Crossed'
 
     mail(to: @user.email, subject: subject)
   end
