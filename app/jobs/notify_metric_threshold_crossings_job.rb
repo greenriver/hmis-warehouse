@@ -32,18 +32,26 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
 
       next if contact_ids.empty?
 
-      # Get user IDs from contacts (warehouse database)
-      user_ids = GrdaWarehouse::Contact::User.
+      # Load Contact::User records (warehouse database) - load into memory for deduplication
+      subscribed_contacts = GrdaWarehouse::Contact::User.
         where(id: contact_ids).
-        pluck(:user_id)
+        preload(:user).
+        to_a
 
-      next if user_ids.empty?
+      next if subscribed_contacts.empty?
 
-      # Get active users (app database)
-      subscribed_users = User.active.where(id: user_ids)
+      # Filter to contacts with active users and deduplicate by email
+      subscribed_users = subscribed_contacts.
+        select { |contact| contact.user&.active? }.
+        map(&:user).
+        compact.
+        index_by(&:email).
+        values
 
-      # Send notification to each subscribed user
-      subscribed_users.find_each do |user|
+      next if subscribed_users.empty?
+
+      # Send notification to each unique subscribed user
+      subscribed_users.each do |user|
         NotifyUser.metric_threshold_crossed(
           user_id: user.id,
           alert_code: alert_code,
