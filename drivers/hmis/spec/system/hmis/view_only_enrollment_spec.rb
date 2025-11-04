@@ -24,9 +24,9 @@ RSpec.feature 'Enrollment/view only access', type: :system do
   let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_client_name, :can_view_project, :can_view_enrollment_details]) }
   let!(:today) { Date.current }
 
-  # Created in base setup seed form step
-  let!(:intake_form) { Hmis::Form::Definition.find_by(role: :INTAKE) }
-  let!(:exit_form) { Hmis::Form::Definition.find_by(role: :EXIT) }
+  # Forms created in base setup
+  let(:intake_form) { Hmis::Form::Definition.find_by(role: :INTAKE) }
+  let(:exit_form) { Hmis::Form::Definition.find_by(role: :EXIT) }
 
   describe 'Enrollment Overview' do
     context 'when enrollment is wip' do
@@ -41,17 +41,17 @@ RSpec.feature 'Enrollment/view only access', type: :system do
         expect(page).not_to have_link 'Go to Exit Assessment'
         expect(page).not_to have_button 'Delete Enrollment'
 
-        # Household Tasks are visible, but not clickable
+        # Household tasks are visible, but not clickable
         expect(page).to have_text 'Finish Intake Assessment'
         expect(page).not_to have_link 'Finish Intake Assessment'
       end
 
-      context 'when one household member\'s intake has been started' do
+      context "when one household member's intake has been started" do
         let!(:intake) { create(:hmis_wip_custom_assessment, data_collection_stage: 1, enrollment: e1, data_source: ds1, definition: intake_form, values: { entry_date: today - 2.days }) }
 
         it 'shows assessment details, but cannot be edited or submitted' do
           visit "/client/#{c1.id}/enrollments/#{e1.id}"
-          # Intake link is still not on the overview, since it hasn't been submitted
+          # Overview still does not show intake link, since it hasn't been submitted
           expect(page).not_to have_link 'Go to Intake Assessment'
 
           # However, user can navigate directly to the intake and view the saved (unsubmitted) values
@@ -60,18 +60,16 @@ RSpec.feature 'Enrollment/view only access', type: :system do
           expect(page).to have_text 'This assessment is in progress.'
           expect(page).to have_text "Entry Date #{(today - 2.days).strftime('%m/%d/%Y')}"
 
-          # User cannot navigate to other household member, whose intake hasn't been started yet
+          # User cannot navigate to the other household member, whose intake hasn't been started yet
           expect(page).not_to have_text 'Alice Quinn'
-          # User cannot navigate to the summary tab, since the user can't submit
+          # User cannot navigate to the summary tab
           expect(page).not_to have_text 'Complete Intake'
 
           # Form is locked and user can't edit fields or submit
           expect(page).not_to have_button 'Unlock'
-          # No inputs in the main container page.
-          # (Searching inside the MuiContainer instead of the whole page, since the search box still apears in the top bar)
+          # No inputs in the main container page. (Searching inside the MuiContainer instead of the whole page, since the search box still appears in the top bar)
           expect(find('.MuiContainer-root')).not_to have_css('input')
           expect(page).not_to have_button 'Submit'
-
           # The only actionable thing the user can do is print
           expect(page).to have_link 'Print'
         end
@@ -100,7 +98,7 @@ RSpec.feature 'Enrollment/view only access', type: :system do
         expect(page).to have_text 'This assessment has been submitted.'
         expect(page).to have_text "Entry Date #{(today - 2.days).strftime('%m/%d/%Y')}"
 
-        # User cannot navigate to the summary tab or attempt to submit
+        # User cannot navigate to the summary tab or attempt to unlock
         expect(page).not_to have_text 'Complete Intake'
         expect(page).not_to have_button 'Unlock'
       end
