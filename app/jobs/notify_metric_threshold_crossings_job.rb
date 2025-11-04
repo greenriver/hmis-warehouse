@@ -13,6 +13,7 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
   def perform(calculation_date = Date.current)
     # Get threshold crossings grouped by alert code
     crossings_by_alert = GrdaWarehouse::Monitoring::MetricDefinition.
+      active.
       threshold_crossings_for_alerts(calculation_date)
 
     return if crossings_by_alert.empty?
@@ -25,6 +26,7 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
 
       # Get user IDs from contact_alert_subscriptions (warehouse database)
       contact_ids = GrdaWarehouse::ContactAlertSubscription.
+        active.
         where(alert_definition_id: alert_definition.id).
         pluck(:contact_id)
 

@@ -160,6 +160,7 @@ module GrdaWarehouse::Monitoring::Tasks
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
         where(current_observation_date: @calculation_date - 1.day..).
+        order(id: :desc).
         group_by { |s| [s.entity_id, s.metric_definition_id] }.
         transform_values(&:first)
     end
