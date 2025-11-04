@@ -84,7 +84,6 @@ Rails.application.configure do
   # config.action_controller.raise_on_missing_callback_actions = true
   config.action_controller.raise_on_missing_callback_actions = false
 
-  # Devise requires a default URL
   config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   routes.default_url_options = { host: ENV['FQDN'] }

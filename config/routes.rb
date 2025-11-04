@@ -14,6 +14,29 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
+
+  # Constraint to check if user is authenticated and has permission
+  class AuthenticatedUserConstraint
+    def initialize(permission_method = nil)
+      @permission_method = permission_method
+    end
+
+    def matches?(request)
+      access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+      return false unless access_token.present?
+
+      jwt_helper = JwtHelper.new(access_token: access_token)
+      return false unless jwt_helper.token? && jwt_helper.validate!
+
+      user = User.find_from_jwt(jwt_helper)
+      return false unless user&.active?
+
+      return true unless @permission_method
+
+      # Check permission if method is provided
+      user.public_send(@permission_method)
+    end
+  end
   # Authentication routes (JWT handled by OAuth2-proxy)
   get 'users/sign_in', to: 'users/sessions#new', as: :new_user_session
   post 'users/sign_in', to: 'users/sessions#create', as: :user_session
@@ -737,7 +760,6 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    # resolves route clash w/ devise
     resources :users, except: [:show, :new, :create] do
       resource :resend_invitation, only: :create
       resource :recreate_invitation, only: :create
@@ -902,9 +924,6 @@ Rails.application.routes.draw do
     get :locations, on: :member
   end
   resource :account_email, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
-    get :remove_device
-  end
   resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
@@ -940,7 +959,7 @@ Rails.application.routes.draw do
       get :js_example
       get :system_colors
     end
-    authenticate :user, lambda(&:can_manage_config?) do
+    constraints AuthenticatedUserConstraint.new(:can_manage_config?) do
       # not quite sure why but we get double-prefixed routes in this engine
       get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
       mount PgHero::Engine, at: '/pghero'

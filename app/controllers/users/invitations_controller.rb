@@ -251,7 +251,6 @@ class Users::InvitationsController < ApplicationController
       :exclude_from_directory,
       :exclude_phone_from_directory,
       :notify_on_new_account,
-      :otp_required_for_login,
       :training_completed,
       :skip_invitation,
       :permission_context,

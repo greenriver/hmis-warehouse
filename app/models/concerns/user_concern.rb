@@ -26,23 +26,19 @@ module UserConcern
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
-    # Include default devise modules. Others available are:
-    devise :invitable,
-           :rememberable,
-           :trackable,
-           # :validatable,
-           :secure_validatable,
-           :lockable,
-           :timeoutable,
-           :confirmable,
-           :session_limitable,
-           :expirable,
-           :two_factor_authenticatable,
-           :two_factor_backupable,
-           password_length: 10..128,
-           otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
-           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
-           otp_number_of_backup_codes: 10
+    # Encrypted OTP secret (read-only, legacy 2FA data)
+    # 2FA is now handled by IDP, but we keep this for backward compatibility
+    # Configure attr_encrypted to match devise-two-factor's encryption setup
+    # Note: Legacy encrypted data may not be decryptable with current configuration
+    attr_encrypted :otp_secret,
+                   key: proc { |_instance| ENV['ENCRYPTION_KEY']&.[](0..31) },
+                   attribute: :encrypted_otp_secret,
+                   iv: :encrypted_otp_secret_iv,
+                   salt: :encrypted_otp_secret_salt,
+                   encode: true,
+                   encode_iv: true,
+                   encode_salt: true,
+                   mode: :per_attribute_iv_and_salt
 
     # Doorkeeper
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
@@ -128,6 +124,16 @@ module UserConcern
       where(id: subscribed_user_ids)
     end
 
+    # Get account expiration period in days.
+    #
+    # Returns the number of days after which an account is considered expired due to inactivity.
+    # Defaults to 180 days if not configured.
+    #
+    # @return [Integer] Number of days
+    def self.expire_after
+      (ENV['ACCOUNT_EXPIRATION_DAYS']&.presence || 180).to_i
+    end
+
     scope :active, -> do
       where(
         arel_table[:active].eq(true).and(
@@ -135,7 +141,7 @@ module UserConcern
           or(arel_table[:expired_at].gt(Time.current)),
         ).and(
           arel_table[:last_activity_at].eq(nil).
-          or(arel_table[:last_activity_at].gt(expire_after.ago)),
+          or(arel_table[:last_activity_at].gt(expire_after.days.ago)),
         ),
       )
     end
@@ -144,7 +150,7 @@ module UserConcern
       where(
         arel_table[:active].eq(false).
         or(arel_table[:expired_at].lteq(Time.current)).
-        or(arel_table[:last_activity_at].lteq(expire_after.ago)),
+        or(arel_table[:last_activity_at].lteq(expire_after.days.ago)),
       )
     end
 
@@ -164,8 +170,10 @@ module UserConcern
     end
 
     # users that have currently active sessions (either in the warehouse or in HMIS)
+    # Note: Session timeout is now handled by OAuth2-proxy, so we use a default timeout period
     scope :has_recent_activity, -> do
-      where(last_activity_at: timeout_in.ago..Time.current).
+      timeout_period = 30.minutes # Default session timeout period
+      where(last_activity_at: timeout_period.ago..Time.current).
         where.not(unique_session_id: nil, hmis_unique_session_id: nil)
     end
 
@@ -214,18 +222,72 @@ module UserConcern
       GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
     end
 
+    # Check if account is locked (application-level lock, independent of IDP).
+    #
+    # Even if a user can authenticate via IDP, they may be locked at the application level.
+    # This prevents access to the application until an administrator unlocks the account.
+    #
+    # @return [Boolean] true if account is locked
+    def access_locked?
+      locked_at.present?
+    end
+
+    # Lock access to the application.
+    #
+    # Sets the locked_at timestamp, preventing access even if IDP authentication succeeds.
+    # Administrators can unlock via unlock_access!
+    #
+    # @return [Boolean] true if lock was successful
+    def lock_access!
+      update_column(:locked_at, Time.current)
+    end
+
+    # Unlock access to the application.
+    #
+    # Removes the locked_at timestamp, allowing access if other conditions are met.
+    #
+    # @return [Boolean] true if unlock was successful
+    def unlock_access!
+      update_column(:locked_at, nil)
+    end
+
+    # Check if user account is active and eligible for authentication.
+    #
+    # Accounts must be:
+    # - Active (active = true)
+    # - Not expired (expired_at is nil or in the future)
+    # - Not locked (locked_at is nil)
+    #
+    # Note: stale_account? is not checked here as it's only used for reporting purposes.
+    # Users can still log in even if their account is stale; only expired accounts are prevented.
+    #
+    # @return [Boolean] true if account is active and eligible for authentication
     def active_for_authentication?
-      super && active
+      active? && !expired_at? && !access_locked?
     end
 
-    # Allow logins to be case insensitive at login time
+    # Stub method - authentication is handled by JWT
     def self.find_for_authentication(conditions)
-      conditions[:email].downcase!
-      super(conditions)
+      # Authentication is handled by JWT, not by this method
+      # This is kept for backward compatibility
+      find_by(email: conditions[:email]&.downcase)
     end
 
-    def timeout_time(session)
-      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
+    # Get session timeout time from JWT token.
+    #
+    # Attempts to get the expiration time from the JWT token.
+    # Falls back to a default timeout if JWT expiration is not available.
+    #
+    # @param session [Hash] Session hash (unused, kept for compatibility)
+    # @return [Time] Expected timeout time
+    def timeout_time(_session)
+      # Try to get expiration time from JWT token
+      jwt_helper = if respond_to?(:request) && request.present?
+        access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+        JwtHelper.new(access_token: access_token) if access_token.present?
+      end
+
+      jwt_helper&.expiration_time
     end
 
     def future_expiration?
@@ -240,8 +302,17 @@ module UserConcern
       30.days.ago
     end
 
+    # Check if account is stale (unused for extended period).
+    #
+    # Accounts that haven't been active recently are considered stale.
+    # This is used for reporting purposes only - stale accounts can still log in.
+    # Only accounts that have passed their expiration date are prevented from logging in.
+    #
+    # @return [Boolean] true if account is stale
     def stale_account?
-      current_sign_in_at < self.class.stale_account_threshold
+      return false if last_activity_at.blank?
+
+      last_activity_at < self.class.stale_account_threshold
     end
 
     def impersonateable_by?(user)
@@ -328,75 +399,12 @@ module UserConcern
       @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
-    def two_factor_label
-      label = Translation.translate('Open Path HMIS Warehouse')
-      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
-    end
-
-    def two_factor_issuer
-      "#{two_factor_label} #{email}"
-    end
-
-    # clears all otp secrets
-    def reset_two_factor_model_attrs
-      self.encrypted_otp_secret = nil
-      self.encrypted_otp_secret_iv = nil
-      self.encrypted_otp_secret_salt = nil
-      self.otp_backup_codes = nil
-      self.otp_secret = nil
-      self.confirmed_2fa = 0
-      self.otp_required_for_login = false
-    end
-
     def my_root_path
       return clients_path if GrdaWarehouse::Config.client_search_available? && can_search_own_clients?
       return warehouse_reports_path if can_view_any_reports?
       return censuses_path if can_view_censuses?
 
       root_path
-    end
-
-    # ensure we have a secret
-    def set_initial_two_factor_secret!
-      return if otp_secret.present?
-
-      update(otp_secret: User.generate_otp_secret)
-    end
-
-    def two_factor_enabled?
-      otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
-    end
-
-    def confirmation_step
-      (confirmed_2fa + 1).ordinalize
-    end
-
-    def passed_2fa_confirmation?
-      confirmed_2fa.positive?
-    end
-
-    def disable_2fa!
-      update(
-        confirmed_2fa: 0,
-        otp_required_for_login: false,
-        otp_backup_codes: nil,
-      )
-    end
-
-    def record_failure_and_lock_access_if_exceeded!
-      # Due to a bug, failed PWs double increment failed attempts. To
-      # compensate, we double the lockout threshold. To match the PW
-      # behavior, double up on failures due to OTP
-      # https://github.com/tinfoil/devise-two-factor/issues/28
-      transaction do
-        2.times do # intentional double increment
-          increment_failed_attempts
-        end
-      end
-      # outside of transaction since this method sends email
-      return unless attempts_exceeded?
-
-      lock_access! unless access_locked?
     end
 
     def invitation_status
@@ -409,35 +417,23 @@ module UserConcern
       end
     end
 
-    # Enforce a known value is included in the devise salt
-    # this allows us to invalidate sessions even though they are stored in redis
-    def authenticatable_salt
-      base_salt = super
-      return base_salt if custom_session_invalidator.blank?
-
-      # Poison the salt to force the user to re-login by changing custom_session_invalidator
-      # Make sure the salt isn't changing length
-      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
-    end
-
+    # Force user logout by invalidating their session.
+    #
+    # Updates the custom_session_invalidator, which forces re-authentication on next request.
+    # This is used when administrators need to force a user to re-authenticate.
+    #
+    # @return [Boolean] true if logout was forced
     def force_logout!
       update_attribute(:custom_session_invalidator, SecureRandom.hex)
     end
 
-    # Prevent sending confirmation emails if the user has an open invitation
-    def send_reset_password_instructions
-      errors.add :email, 'There is an open invitation for this account.' if invitation_token.present?
-      false # Password resets are not supported with JWT auth
-    end
-
-    # Prevent confirming accounts if the user has an open invitation
+    # Check if user has pending confirmation.
+    #
+    # Email confirmation is handled by IDP, but invitations may still be pending.
+    #
+    # @return [Boolean] true if invitation is pending
     def pending_any_confirmation
-      if invitation_token.present?
-        errors.add :email, 'There is an open invitation for this account.'
-        false
-      else
-        super
-      end
+      invitation_token.present?
     end
 
     # @return [Array] an array of text that describes the status of the account
@@ -521,6 +517,131 @@ module UserConcern
       invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
         u.skip_invitation = true
       end
+    end
+
+    # Invite a user (class method).
+    #
+    # Creates a new user account and optionally sends an invitation.
+    # If IDP supports invitations and connector_id is set, sends invitation via IDP.
+    # Otherwise, creates a shell user that will be linked on first login.
+    #
+    # @param attributes [Hash] User attributes (email, first_name, last_name, etc.)
+    # @param invited_by [User, nil] User who is sending the invitation (optional, can be second positional arg)
+    # @param skip_invitation [Boolean] Skip sending invitation (default: false)
+    # @yield [User] Block to modify user before saving
+    # @return [User] Created user instance
+    def self.invite!(attributes = {}, invited_by = nil, skip_invitation: false)
+      # Handle legacy signature: invite!(attributes, invited_by_user)
+      if invited_by.is_a?(User)
+        # Second positional argument is the invited_by user
+      elsif attributes.is_a?(User) && invited_by.nil?
+        # Legacy signature: invite!(user, nil) - attributes is actually the invited_by user
+        invited_by = attributes
+        attributes = {}
+      end
+
+      attributes = attributes.dup.with_indifferent_access
+      email = attributes[:email] || attributes['email']
+      connector_id = attributes.delete(:connector_id) || attributes.delete('connector_id')
+
+      # Check if user already exists
+      user = find_by(email: email)
+      if user
+        # User exists - resend invitation if requested
+        user.invite!(invited_by: invited_by, skip_invitation: skip_invitation)
+        return user
+      end
+
+      # Create new user
+      user = new(attributes)
+      user.skip_invitation = skip_invitation || attributes[:skip_invitation] == true || attributes['skip_invitation'] == true
+      user.invited_by = invited_by if invited_by
+
+      # Allow block to modify user
+      yield user if block_given?
+
+      # Generate invitation token and set timestamps
+      unless user.skip_invitation
+        user.invitation_token = SecureRandom.hex(32)
+        user.invitation_created_at = Time.current
+        user.invitation_sent_at = Time.current
+        user.invitation_due_at = 7.days.from_now if user.respond_to?(:invitation_due_at=)
+      end
+
+      # Set confirmed_at based on skip_invitation
+      user.confirmed_at = user.skip_invitation ? Time.current : nil
+      user.active = true
+
+      # Save user first
+      user.save!
+
+      # Send invitation via IDP if supported
+      unless user.skip_invitation
+        if connector_id && Idp::ServiceFactory.idp_supports_feature?(connector_id, :invitations)
+          idp_service = Idp::ServiceFactory.for_connector(connector_id)
+          begin
+            idp_service.send_invitation(
+              email: user.email,
+              first_name: user.first_name || '',
+              last_name: user.last_name || '',
+              phone: user.phone,
+            )
+
+            # Create authentication source with placeholder
+            user.user_authentication_sources.create!(
+              connector_id: connector_id,
+              connector_user_id: user.email, # Temporary placeholder
+              enabled: true,
+            )
+          rescue Idp::ServiceError => e
+            Rails.logger.error "Failed to send invitation via IDP: #{e.message}"
+            user.errors.add(:base, "Failed to send invitation: #{e.message}")
+          end
+        end
+      end
+
+      user
+    end
+
+    # Invite an existing user (instance method).
+    #
+    # Resends invitation for an existing user.
+    # If IDP supports invitations and user has a connector_id, sends invitation via IDP.
+    #
+    # @param invited_by [User, nil] User who is sending the invitation (optional, kept for API compatibility)
+    # @param skip_invitation [Boolean] Skip sending invitation (default: false)
+    # @return [User] Self
+    def invite!(_invited_by: nil, skip_invitation: false)
+      return self if skip_invitation
+
+      # Generate new invitation token and update timestamps
+      self.invitation_token = SecureRandom.hex(32)
+      self.invitation_created_at = Time.current
+      self.invitation_sent_at = Time.current
+      self.invitation_due_at = 7.days.from_now if respond_to?(:invitation_due_at=)
+      self.invitation_accepted_at = nil
+      self.confirmed_at = nil
+
+      save!
+
+      # Send invitation via IDP if user has a connector and IDP supports invitations
+      connector_id = last_connector_id || user_authentication_sources.enabled.first&.connector_id
+      if connector_id && Idp::ServiceFactory.idp_supports_feature?(connector_id, :invitations)
+        idp_service = Idp::ServiceFactory.for_connector(connector_id)
+        begin
+          idp_service.send_invitation(
+            email: email,
+            first_name: first_name || '',
+            last_name: last_name || '',
+            phone: phone,
+          )
+        rescue Idp::ServiceError => e
+          Rails.logger.error "Failed to send invitation via IDP: #{e.message}"
+          errors.add(:base, "Failed to send invitation: #{e.message}")
+        end
+      end
+
+      self
     end
 
     def self.system_user

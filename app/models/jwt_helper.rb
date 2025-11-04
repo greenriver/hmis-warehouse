@@ -103,6 +103,19 @@ class JwtHelper
     payload.first['iat']
   end
 
+  # Get token expiration time.
+  #
+  # Returns the expiration time from the JWT's 'exp' claim.
+  # Standard JWT tokens include an 'exp' claim indicating when the token expires.
+  #
+  # @return [Time, nil] Expiration time as a Time object, or nil if not present
+  def expiration_time
+    exp = payload.first['exp']
+    return nil unless exp
+
+    Time.at(exp)
+  end
+
   # TODO: this is inconsistent based on the IDP
   def first_name
     payload.first['name'].strip.split.first.titleize

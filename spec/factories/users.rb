@@ -90,8 +90,6 @@ FactoryBot.define do
     confirmed_at { Date.yesterday }
     notify_on_vispdat_completed { false }
     agency_id { 1 }
-    otp_required_for_login { true }
     otp_secret { User.generate_otp_secret }
-    confirmed_2fa { 2 }
   end
 end

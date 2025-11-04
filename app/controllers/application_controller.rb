@@ -41,7 +41,6 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
-  before_action :enforce_2fa!
   before_action :require_training!
   before_action :health_emergency?
 
@@ -167,23 +166,10 @@ class ApplicationController < ActionController::Base
       [
         'users/sessions',
         'accounts',
-        'account_two_factors',
         'account_emails',
         'user_training',
       ],
     ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
-  end
-
-  # If a user must have Two-factor authentication turned on, only let them go
-  # to their 2FA page and their account page
-  def enforce_2fa!
-    return unless current_user
-    return unless current_user.enforced_2fa?
-    return if current_user.two_factor_enabled?
-    return if allowed_setup_controllers
-
-    flash[:alert] = 'Two factor authentication must be enabled for this account.'
-    redirect_to edit_account_two_factor_path
   end
 
   def require_training!
