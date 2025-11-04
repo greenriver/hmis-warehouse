@@ -1,0 +1,39 @@
+%h2 Client Metric Thresholds Crossed
+
+%p
+  The following clients have crossed metric thresholds on
+  = @calculation_date.strftime('%B %d, %Y')
+
+- @crossings.each do |metric_name, snapshot_info|
+  %h3= metric_name
+  %p
+    #{snapshot_info[:total_count]} #{'client'.pluralize(snapshot_info[:total_count])} crossed the threshold for this metric.
+    - if snapshot_info[:truncated]
+      %strong Showing first 50.
+
+  %table{style: 'width: 100%; border-collapse: collapse; margin-bottom: 20px;'}
+    %thead
+      %tr{style: 'background-color: #f0f0f0;'}
+        %th{style: 'padding: 8px; border: 1px solid #ddd; text-align: left;'} Client ID
+        %th{style: 'padding: 8px; border: 1px solid #ddd; text-align: left;'} Previous Value
+        %th{style: 'padding: 8px; border: 1px solid #ddd; text-align: left;'} New Value
+        %th{style: 'padding: 8px; border: 1px solid #ddd; text-align: left;'} Change
+    %tbody
+      - snapshot_info[:data].each do |data|
+        %tr
+          %td{style: 'padding: 8px; border: 1px solid #ddd;'}
+            = link_to "Client ##{data[:entity_id]}", client_url(id: data[:entity_id])
+          %td{style: 'padding: 8px; border: 1px solid #ddd;'}= data[:previous_value] || 'N/A'
+          %td{style: 'padding: 8px; border: 1px solid #ddd;'}= data[:current_value]
+          %td{style: 'padding: 8px; border: 1px solid #ddd;'}
+            - if data[:previous_value]
+              - change = data[:current_value] - data[:previous_value]
+              - sign = change > 0 ? '+' : ''
+              = "#{sign}#{change}"
+            - else
+              New baseline
+
+%p
+  %small
+    You are receiving this notification because you are subscribed to client metric alerts.
+    To manage your alert subscriptions, contact your administrator.

@@ -1,4 +1,4 @@
--- \restrict I5HiQHphQQ6XslzT0Rt7qMxnJPgXebBt814pdEKCAurynpQ7w3RyEXbnTcohSp6
+-- \restrict TJBj0idOF6ToIZGwleanG4OD9Palhp2rfGiL459qtqu18c3cNEWCUow7T3A3R6p
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -284,7 +284,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -15836,7 +15836,7 @@ CREATE TABLE public.hmis_2026_clients (
     "AmIndAKNative" integer,
     "Asian" integer,
     "BlackAfAmerican" integer,
-    "HispanicLatinaeo" integer,
+    "HispanicLatinao" integer,
     "MidEastNAfrican" integer,
     "NativeHIPacific" integer,
     "White" integer,
@@ -16367,9 +16367,6 @@ CREATE TABLE public.hmis_2026_enrollments (
     "HPScreeningScore" integer,
     "ThresholdScore" integer,
     "MentalHealthConsultation" integer,
-    "TranslationNeeded" integer,
-    "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying,
     "DateCreated" timestamp(6) without time zone,
     "DateUpdated" timestamp(6) without time zone,
     "UserID" character varying,
@@ -17082,7 +17079,6 @@ CREATE TABLE public.hmis_2026_services (
     "ServicesID" character varying,
     "EnrollmentID" character varying,
     "PersonalID" character varying,
-    "InformationDate" date,
     "DateProvided" date,
     "RecordType" integer,
     "TypeProvided" integer,
@@ -21754,7 +21750,7 @@ CREATE TABLE public.hmis_csv_2026_clients (
     "AmIndAKNative" character varying,
     "Asian" character varying,
     "BlackAfAmerican" character varying,
-    "HispanicLatinaeo" character varying,
+    "HispanicLatinao" character varying,
     "MidEastNAfrican" character varying,
     "NativeHIPacific" character varying,
     "White" character varying,
@@ -22231,9 +22227,6 @@ CREATE TABLE public.hmis_csv_2026_enrollments (
     "HPScreeningScore" character varying,
     "ThresholdScore" character varying,
     "MentalHealthConsultation" character varying,
-    "TranslationNeeded" character varying,
-    "PreferredLanguage" character varying,
-    "PreferredLanguageDifferent" character varying,
     "DateCreated" character varying,
     "DateUpdated" character varying,
     "UserID" character varying,
@@ -22874,7 +22867,6 @@ CREATE TABLE public.hmis_csv_2026_services (
     "ServicesID" character varying,
     "EnrollmentID" character varying,
     "PersonalID" character varying,
-    "InformationDate" character varying,
     "DateProvided" character varying,
     "RecordType" character varying,
     "TypeProvided" character varying,
@@ -81733,7 +81725,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict I5HiQHphQQ6XslzT0Rt7qMxnJPgXebBt814pdEKCAurynpQ7w3RyEXbnTcohSp6
+-- \unrestrict TJBj0idOF6ToIZGwleanG4OD9Palhp2rfGiL459qtqu18c3cNEWCUow7T3A3R6p
 
 SET search_path TO "$user", public;
 
