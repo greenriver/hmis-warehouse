@@ -6,6 +6,9 @@ import { application } from "./application"
 import DatepickerController from "./datepicker_controller.js"
 application.register("datepicker", DatepickerController)
 
+import Datepicker2Controller from "./datepicker2_controller.js"
+application.register("datepicker2", Datepicker2Controller)
+
 import StimulusSelectController from "./stimulus_select_controller.js"
 application.register("stimulus-select", StimulusSelectController)
 
