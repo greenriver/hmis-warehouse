@@ -77,9 +77,11 @@
             controller: 'metric-threshold-chart',
             metric_threshold_chart_data_value: @chart_data.to_json,
             metric_threshold_chart_metric_name_value: @metric_definition.display_name,
-            metric_threshold_chart_entity_label_value: @entity_label
+            metric_threshold_chart_entity_label_value: @entity_label,
+            metric_threshold_chart_metric_id_value: @metric_definition.id,
           }
         }
           %div{data: { metric_threshold_chart_target: 'chart' }}
+          .mt-4{data: { metric_threshold_chart_target: 'detailsContainer' }, style: 'display: none;'}
       - else
         %p.text-muted.text-center No threshold crossings in the last 90 days

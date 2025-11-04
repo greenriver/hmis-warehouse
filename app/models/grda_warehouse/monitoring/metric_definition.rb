@@ -187,5 +187,62 @@ module GrdaWarehouse::Monitoring
 
       results
     end
+
+    # Get threshold crossings for this metric on a specific date for a specific entity
+    # Returns array of hashes with entity_id, current_value, previous_value
+    # Excludes initial observations (first snapshot for each entity/metric)
+    def threshold_crossings_for_date(calculation_date, entity_id:)
+      # Get all snapshots where the threshold crossing occurred on this date for this entity
+      current_snapshots = metric_snapshots.
+        crossed_threshold_on_date(calculation_date).
+        where(entity_id: entity_id).
+        order(:id).
+        to_a
+
+      return [] if current_snapshots.empty?
+
+      # FIXME
+      current_snapshot_ids = current_snapshots.map(&:id)
+      min_current_id = current_snapshot_ids.min
+
+      # Find the immediate previous snapshot ID for this entity
+      previous_snapshot_id = metric_snapshots.
+        where(entity_type: entity_type, entity_id: entity_id).
+        where('id < ?', min_current_id).
+        order(id: :desc).
+        limit(1).
+        pluck(:id).
+        first
+
+      # Load only the snapshots we need: current ones + the immediate previous snapshot
+      all_needed_snapshot_ids = current_snapshot_ids
+      all_needed_snapshot_ids << previous_snapshot_id if previous_snapshot_id
+
+      all_needed_snapshots = metric_snapshots.
+        where(id: all_needed_snapshot_ids).
+        order(:id).
+        to_a
+
+      # Build crossings array by finding previous snapshot for each current snapshot
+      crossings = []
+      current_snapshots.each do |snapshot|
+        snapshot_index = all_needed_snapshots.index { |s| s.id == snapshot.id }
+
+        # Skip if this is the first snapshot (no previous snapshot exists)
+        next unless snapshot_index && snapshot_index > 0
+
+        # Get the previous snapshot
+        previous_snapshot = all_needed_snapshots[snapshot_index - 1]
+
+        # Add crossing data
+        crossings << {
+          entity_id: snapshot.entity_id,
+          current_value: snapshot.initial_value,
+          previous_value: previous_snapshot.current_value,
+        }
+      end
+
+      crossings
+    end
   end
 end

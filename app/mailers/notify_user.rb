@@ -264,6 +264,16 @@ class NotifyUser < DatabaseMailer
     @calculation_date = calculation_date
     @alert_code = alert_code
 
+    # Build mapping of metric display names to metric definition IDs
+    @metric_definition_ids = {}
+    crossings.each_key do |metric_name|
+      metric_def = GrdaWarehouse::Monitoring::MetricDefinition.active.find_by(
+        display_name: metric_name,
+      )
+      # Verify the alert_code matches (safety check)
+      @metric_definition_ids[metric_name] = metric_def.id if metric_def && metric_def.alert_code == alert_code
+    end
+
     alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
     subject = alert_definition&.email_subject || 'Client Metric Alert: Threshold Crossed'
 

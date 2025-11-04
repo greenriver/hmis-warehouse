@@ -19,12 +19,11 @@ module GrdaWarehouse::Monitoring
     validates :initial_value, presence: true
     validates :current_value, presence: true
 
-    validates :current_observation_date, uniqueness: {
-      scope: [:entity_type, :entity_id, :metric_definition_id],
-      message: 'Only one active snapshot per entity/metric',
+    # Scopes
+    scope :crossed_threshold_on_date, ->(date) {
+      where(initial_observation_date: date)
     }
 
-    # Scopes
     scope :for_date_range, ->(start_date, end_date) {
       where(initial_observation_date: ..end_date).
         where(current_observation_date: start_date..)

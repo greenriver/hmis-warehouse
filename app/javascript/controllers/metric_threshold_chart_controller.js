@@ -3,11 +3,12 @@ import { bb, bar, line } from "billboard.js";
 import "billboard.js/dist/billboard.css";
 
 export default class extends Controller {
-  static targets = ["chart"];
+  static targets = ["chart", "detailsContainer"];
   static values = {
     data: Array,
     metricName: String,
-    entityLabel: String
+    entityLabel: String,
+    metricId: Number
   }
 
   connect() {
@@ -36,7 +37,8 @@ export default class extends Controller {
         type: bar(),
         labels: {
           format: (v) => v > 0 ? v.toLocaleString('en-US') : ''
-        }
+        },
+        onclick: (d) => this.handleBarClick(d)
       },
       axis: {
         x: {
@@ -83,6 +85,77 @@ export default class extends Controller {
       }
     };
 
-    bb.generate(chartConfig);
+    this.chart = bb.generate(chartConfig);
+  }
+
+  async handleBarClick(d) {
+    if (!d || !d.x) return;
+
+    const date = new Date(d.x);
+    const dateString = date.toISOString().split('T')[0];
+
+    // Show loading state
+    if (this.hasDetailsContainerTarget) {
+      this.detailsContainerTarget.style.display = 'block';
+      this.detailsContainerTarget.innerHTML = '<p>Loading...</p>';
+    }
+
+    try {
+      const url = `/admin/metric_definitions/${this.metricIdValue}/crossings_for_date?date=${dateString}`;
+      const response = await fetch(url);
+      const jsonData = await response.json();
+
+      this.renderDetailsTable(jsonData);
+    } catch (error) {
+      console.error('Error fetching crossings:', error);
+      if (this.hasDetailsContainerTarget) {
+        this.detailsContainerTarget.innerHTML = '<p class="text-danger">Error loading data. Please try again.</p>';
+      }
+    }
+  }
+
+  renderDetailsTable(data) {
+    if (!data.crossings || data.crossings.length === 0) {
+      if (this.hasDetailsContainerTarget) {
+        this.detailsContainerTarget.innerHTML = '<p class="text-muted">No crossings found for this date.</p>';
+      }
+      return;
+    }
+
+    const entityLabel = this.entityLabelValue || 'Client';
+    const tableHTML = `
+      <h4>Threshold Crossings on ${data.date}</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>${entityLabel} ID</th>
+            <th>Previous Value</th>
+            <th>New Value</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.crossings.map(crossing => {
+      const change = crossing.change;
+      const sign = change > 0 ? '+' : '';
+      const linkHTML = crossing.entity_url
+        ? `<a href="${crossing.entity_url}">${entityLabel} #${crossing.entity_id}</a>`
+        : `${entityLabel} #${crossing.entity_id}`;
+      return `
+              <tr>
+                <td>${linkHTML}</td>
+                <td>${crossing.previous_value || 'N/A'}</td>
+                <td>${crossing.current_value}</td>
+                <td>${sign}${change}</td>
+              </tr>
+            `;
+    }).join('')}
+        </tbody>
+      </table>
+    `;
+
+    if (this.hasDetailsContainerTarget) {
+      this.detailsContainerTarget.innerHTML = tableHTML;
+    }
   }
 }

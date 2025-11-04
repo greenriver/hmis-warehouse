@@ -1,4 +1,4 @@
--- \restrict TJBj0idOF6ToIZGwleanG4OD9Palhp2rfGiL459qtqu18c3cNEWCUow7T3A3R6p
+-- \restrict U2hLDBQizr3XgUnQdY0sTIHvhUbNbPUJhURWIaMadLeNrBZ2LkP8juolHSVzlcR
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -70129,27 +70129,6 @@ CREATE INDEX index_metric_calculation_runs_on_calculation_date ON public.metric_
 
 
 --
--- Name: index_metric_calculation_runs_on_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_calculation_runs_on_status ON public.metric_calculation_runs USING btree (status);
-
-
---
--- Name: index_metric_definitions_on_active; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_definitions_on_active ON public.metric_definitions USING btree (active);
-
-
---
--- Name: index_metric_definitions_on_category; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_definitions_on_category ON public.metric_definitions USING btree (category);
-
-
---
 -- Name: index_metric_defs_on_entity_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -81725,11 +81704,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict TJBj0idOF6ToIZGwleanG4OD9Palhp2rfGiL459qtqu18c3cNEWCUow7T3A3R6p
+-- \unrestrict U2hLDBQizr3XgUnQdY0sTIHvhUbNbPUJhURWIaMadLeNrBZ2LkP8juolHSVzlcR
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251104032359'),
 ('20251030153000'),
 ('20251027202455'),
 ('20251027120000'),

@@ -9,7 +9,7 @@
 module Admin
   class MetricDefinitionsController < ApplicationController
     before_action :require_can_edit_warehouse_alerts!
-    before_action :load_metric_definition, only: [:show, :edit, :update]
+    before_action :load_metric_definition, only: [:show, :edit, :update, :crossings_for_date]
 
     def index
       # Ensure definitions are up-to-date
@@ -26,6 +26,46 @@ module Admin
       @chart_data = @metric_definition.threshold_crossing_data(days_back: 90)
       @entity_label = @metric_definition.entity_label
       @per_page_js = ['metric_threshold_chart']
+    end
+
+    def crossings_for_date
+      calculation_date = begin
+        Date.strptime(params[:date], '%Y-%m-%d')
+      rescue Date::Error
+        @metric_definition.metric_snapshots.order(id: :asc).last&.initial_observation_date || Date.current
+      end
+
+      # Get all entity IDs that crossed on this date
+      entity_ids = @metric_definition.metric_snapshots.
+        crossed_threshold_on_date(calculation_date).
+        distinct.
+        pluck(:entity_id)
+
+      # Fetch crossings for each entity using the optimized method
+      crossings = entity_ids.map do |entity_id|
+        @metric_definition.threshold_crossings_for_date(calculation_date, entity_id: entity_id)
+      end
+
+      # Build client URLs based on entity type
+      crossings_with_urls = crossings.map do |crossing|
+        entity_url = case @metric_definition.entity_type
+        when 'GrdaWarehouse::Hud::Client'
+          client_path(crossing[:entity_id])
+        end
+
+        {
+          entity_id: crossing[:entity_id],
+          current_value: crossing[:current_value],
+          previous_value: crossing[:previous_value],
+          change: crossing[:current_value] - crossing[:previous_value],
+          entity_url: entity_url,
+        }
+      end
+
+      render json: {
+        date: calculation_date.strftime('%B %d, %Y'),
+        crossings: crossings_with_urls,
+      }
     end
 
     def edit
