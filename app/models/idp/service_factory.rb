@@ -79,6 +79,16 @@ module Idp
           false
         end
       end
+
+      # Get the default session timeout period.
+      #
+      # This is used as a fallback when the JWT token doesn't provide an expiration time.
+      # In the future, this could be made configurable per IDP or pulled from IDP configuration.
+      #
+      # @return [ActiveSupport::Duration] Default session timeout period (30 minutes)
+      def default_session_timeout
+        30.minutes
+      end
     end
   end
 end
