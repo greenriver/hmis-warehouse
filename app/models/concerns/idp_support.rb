@@ -29,13 +29,6 @@ module IdpSupport
       idp_service.supports_profile_updates?
     end
 
-    # Check if user's IDP supports sending user invitations.
-    #
-    # @return [Boolean] true if IDP supports invitations
-    def idp_supports_invitations?
-      idp_service.supports_invitations?
-    end
-
     # Get appropriate IDP service for user's primary IDP.
     #
     # @return [Idp::Service] Instance of the appropriate IDP service

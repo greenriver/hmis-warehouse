@@ -9,10 +9,6 @@
     .o-page__controls
       .o-page__search
         = render_generic_search_form(admin_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
-    .o-page__action.o-page__action--stacked
-      = link_to new_users_invitation_path, class: 'btn btn-primary pull-right mb-2' do
-        %span.icon-plus
-        Add a User Account
 
 = render 'admin/users/tabs', selected_path: admin_users_path
 
@@ -77,7 +73,6 @@
               - providers = user.oauth_identities.map(&:provider_name).sort.uniq
               - if providers.any?
                 %div= "Sign-in provided by #{providers.to_sentence}"
-              = render 'user_invitation_status', user: user
             %td= render 'user_links', user: user
   = render 'common/pagination_bottom', item_name: 'user account'
 - else

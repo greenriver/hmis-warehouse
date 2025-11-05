@@ -39,9 +39,11 @@ module BaseApplicationControllerBehavior
       params[:locale] || session[:locale] || default_locale
     end
 
-    # don't extend the user's session if its an ajax request.
+    # Skip tracking timeout for AJAX requests (no-op for JWT auth).
     def skip_timeout
-      request.env['devise.skip_trackable'] = true if request.xhr?
+      # FIXME, we need to figure out how to handle routes that should not extend the session
+      # for JWT auth.  Or more to the point, we need to figure out how to handle routes that should.
+      # Session timeout is handled by JWT expiration, not trackable
     end
 
     # Redirect to window page after signin if you have

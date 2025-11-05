@@ -28,9 +28,6 @@ module Idp
 
     # Create a new user in Zitadel.
     #
-    # Creates a user record in Zitadel. Does not automatically send an invitation.
-    # Use create_invite_code to create an invitation after user creation.
-    #
     # @param email [String] User's email address
     # @param first_name [String] User's first name
     # @param last_name [String] User's last name
@@ -212,68 +209,6 @@ module Idp
       end
     end
 
-    # Send an invitation to a user.
-    #
-    # Creates a user in Zitadel (if they don't exist) and creates an invite code.
-    # The invite code allows the user to initialize their first authentication method.
-    #
-    # @param email [String] User's email address
-    # @param attributes [Hash] Additional user attributes (optional)
-    # @return [Boolean] true if invitation sent successfully
-    # @raise [Idp::ServiceError] if invitation fails
-    def send_invitation(email:, **attributes)
-      # First, try to find user by email
-      user_id = find_user_by_email(email)
-
-      # If user doesn't exist, create them first
-      unless user_id
-        user_data = create_user(
-          email: email,
-          first_name: attributes[:first_name] || '',
-          last_name: attributes[:last_name] || '',
-          phone: attributes[:phone],
-        )
-        user_id = user_data['userId']
-      end
-
-      # Create invite code for the user
-      create_invite_code(user_id)
-    end
-
-    # Create an invite code for an existing user.
-    #
-    # Creates an invite code that allows the user to initialize their first authentication method.
-    # Based on Zitadel API: POST /v2/users/:userId/invite_code
-    #
-    # @param user_id [String] Zitadel user ID
-    # @return [Boolean] true if invite code created successfully
-    # @raise [Idp::ServiceError] if invite code creation fails
-    def create_invite_code(user_id)
-      response = make_request(:post, "/v2/users/#{user_id}/invite_code")
-
-      case response.code.to_i
-      when 200..299
-        true
-      when 400..499
-        begin
-          error_data = JSON.parse(response.body)
-        rescue StandardError
-          error_data = {}
-        end
-        raise ServiceError.new(
-          "Failed to create invite code: #{error_data['message'] || response.body}",
-          idp_name: idp_name,
-          operation: :create_invite_code,
-        )
-      else
-        raise ServiceError.new(
-          "Unexpected response from Zitadel: #{response.code}",
-          idp_name: idp_name,
-          operation: :create_invite_code,
-        )
-      end
-    end
-
     # Return human-readable name for Zitadel.
     #
     # @return [String] "Zitadel"
@@ -292,13 +227,6 @@ module Idp
     #
     # @return [Boolean] true
     def supports_profile_updates?
-      true
-    end
-
-    # Check if Zitadel supports sending user invitations.
-    #
-    # @return [Boolean] true
-    def supports_invitations?
       true
     end
 
@@ -369,37 +297,6 @@ module Idp
       # For now, we'll log a warning if project_id is set but we can't grant access
       Rails.logger.warn "Project ID configured but project access granting not yet implemented. User ID: #{user_id}, Project ID: #{project_id}"
       true
-    end
-
-    # Resend invitation for an existing user.
-    #
-    # @param user_id [String] Zitadel user ID
-    # @return [Boolean] true if invitation sent successfully
-    # @raise [Idp::ServiceError] if invitation fails
-    def resend_invitation(user_id)
-      response = make_request(:post, "/management/v1/users/human/#{user_id}/_resend_invitation")
-
-      case response.code.to_i
-      when 200..299
-        true
-      when 400..499
-        begin
-          error_data = JSON.parse(response.body)
-        rescue StandardError
-          error_data = {}
-        end
-        raise ServiceError.new(
-          "Failed to send invitation: #{error_data['message'] || response.body}",
-          idp_name: idp_name,
-          operation: :send_invitation,
-        )
-      else
-        raise ServiceError.new(
-          "Unexpected response from Zitadel: #{response.code}",
-          idp_name: idp_name,
-          operation: :send_invitation,
-        )
-      end
     end
   end
 end

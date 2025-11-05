@@ -47,11 +47,18 @@
       .row
         .col-sm-10
           = f.input :exclude_phone_from_directory
-      -# Allow skipping email invite for new users if OKTA is enabled. The first time they log in with okta, the account will get linked.
-      - if ENV['OKTA_DOMAIN'].present? && @user.new_record?
+    - if @available_idps.present? && @user.new_record?
+      .form-inputs.well
+        -# IDP selection for new users
         .row
           .col-sm-10
-            = f.input :skip_invitation, as: :boolean, label: 'Skip email invitation'
+            - if @available_idps.length > 1
+              = f.input :connector_id, collection: @available_idps, label_method: :last, value_method: :first, include_blank: false, as: :select_two, label: 'Identity Provider', hint: 'Select which Identity Provider to use for this user account.'
+            - else
+              = f.hidden_field :connector_id, value: @available_idps.first.first
+              - idp_name = @available_idps.first.last
+              .alert.alert-info
+                = "User will be created in #{idp_name}."
 
   .col-sm-6
     .form--checkbox-groups
@@ -71,10 +78,6 @@
     - unless @user.new_record?
       = render 'contact_relationships'
       = render 'identity_providers', user: user
-    .form--expiration
-      %h3 Account Life-cycle
-      .well
-        = f.input :expired_at, as: :date_picker, label: 'Account Expiration Date', hint: 'If an expiration date is present, the user will not be able to login after that date.  Active accounts should be blank.'
     .form-access-control
       %h3 Permission Scheme
       .well

@@ -35,10 +35,6 @@ module Idp
       raise ServiceError.new('User reactivation not supported', idp_name: idp_name, operation: :reactivate_user)
     end
 
-    def send_invitation(**)
-      raise ServiceError.new('Invitations not supported', idp_name: idp_name, operation: :send_invitation)
-    end
-
     def idp_name
       connector_id&.humanize || 'Unknown IDP'
     end
@@ -48,10 +44,6 @@ module Idp
     end
 
     def supports_profile_updates?
-      false
-    end
-
-    def supports_invitations?
       false
     end
   end

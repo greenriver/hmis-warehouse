@@ -66,7 +66,7 @@ module Idp
       # Check if an IDP supports a specific feature.
       #
       # @param connector_id [String] The connector ID
-      # @param feature [Symbol] Feature to check (:user_management, :profile_updates, :invitations)
+      # @param feature [Symbol] Feature to check (:user_management, :profile_updates)
       # @return [Boolean] true if IDP supports the feature
       def idp_supports_feature?(connector_id, feature)
         service = for_connector(connector_id)
@@ -75,8 +75,6 @@ module Idp
           service.supports_user_management?
         when :profile_updates
           service.supports_profile_updates?
-        when :invitations
-          service.supports_invitations?
         else
           false
         end

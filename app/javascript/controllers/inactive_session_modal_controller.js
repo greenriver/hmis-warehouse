@@ -5,6 +5,7 @@ const DEFAULT_POLL_SECS = 3;
 
 const MAX_POLL_COUNT = (60 * 60 * 10) / DEFAULT_POLL_SECS; // about 10 hours
 const TS_KEY = 'session_last_request_ts';
+const EXPIRES_KEY = 'session_expires_at';
 const UID_KEY = 'session_user_id';
 
 const getTimestamp = () => {
@@ -30,10 +31,14 @@ export default class extends Controller {
     this.initialUserIdValue = this.data.get('initial-user-id-value');
     this.sessionLifetimeSecsValue = parseInt(this.data.get('session-lifetime-secs-value'));
     shared.saveValue(UID_KEY, this.initialUserIdValue);
-    if (!this.initialUserIdValue) {
+    if (!this.initialUserIdValue || !this.sessionLifetimeSecsValue || isNaN(this.sessionLifetimeSecsValue)) {
       return;
     }
-    shared.saveValue(TS_KEY, getTimestamp());
+    const now = getTimestamp();
+    shared.saveValue(TS_KEY, now);
+    // Store absolute expiration time (current time + session lifetime)
+    const expiresAt = now + this.sessionLifetimeSecsValue;
+    shared.saveValue(EXPIRES_KEY, expiresAt);
     this.state = {
       userId: this.initialUserIdValue,
       remaining: Number.MAX_VALUE,
@@ -69,10 +74,10 @@ export default class extends Controller {
       return;
     }
     state.userId = shared.getValue(UID_KEY);
-    const ts = parseInt(shared.getValue(TS_KEY));
-    if (ts) {
-      const expires = ts + this.sessionLifetimeSecsValue;
-      const delta = expires - getTimestamp();
+    const expiresAt = parseFloat(shared.getValue(EXPIRES_KEY));
+    if (expiresAt) {
+      const now = getTimestamp();
+      const delta = expiresAt - now;
       const remaining = delta > 0 ? delta : 0;
       state.remaining = remaining;
       const timeout = remaining > 0 && remaining <= WARNING_WHEN_REMAINING_SECS ? 1000 : DEFAULT_POLL_SECS * 1000;
@@ -140,6 +145,7 @@ export default class extends Controller {
     shared.saveValue(UID_KEY, userId);
     if (userId) {
       shared.saveValue(TS_KEY, getTimestamp());
+      // Don't update expiration time - it's fixed from JWT
     }
   }
 
@@ -151,15 +157,29 @@ export default class extends Controller {
   handleRenewSession(event) {
     event.preventDefault();
     if (this.state.xhr) return;
-    const success = () => {
+    const success = (data) => {
       this.state.xhr = undefined;
+      // Update expiration time if server returned new expiration
+      if (data && data.expiration_time) {
+        const now = getTimestamp();
+        const remainingSeconds = data.remaining_seconds || 0;
+        const expiresAt = now + remainingSeconds;
+        shared.saveValue(EXPIRES_KEY, expiresAt);
+        // Update state to reflect new expiration
+        this.state.remaining = remainingSeconds;
+      }
       this.hideWarning();
     };
     const error = () => {
+      // If refresh failed, reload the page to trigger re-authentication
       window.location.reload();
     };
     this.state.xhr = $.ajax(event.currentTarget.href, {
       method: 'POST',
+      dataType: 'json',
+      headers: {
+        'Accept': 'application/json',
+      },
       success,
       error,
     });

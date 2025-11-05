@@ -92,9 +92,9 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # don't extend the user's session if its an ajax request.
+  # Skip tracking timeout for AJAX requests (no-op for JWT auth).
   def skip_timeout
-    request.env['devise.skip_trackable'] = true if request.xhr?
+    # Session timeout is handled by JWT expiration, not trackable
   end
 
   def _basic_auth

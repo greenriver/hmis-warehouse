@@ -13,7 +13,6 @@ module UserConcern
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
-    include PasswordRules
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
@@ -124,34 +123,12 @@ module UserConcern
       where(id: subscribed_user_ids)
     end
 
-    # Get account expiration period in days.
-    #
-    # Returns the number of days after which an account is considered expired due to inactivity.
-    # Defaults to 180 days if not configured.
-    #
-    # @return [Integer] Number of days
-    def self.expire_after
-      (ENV['ACCOUNT_EXPIRATION_DAYS']&.presence || 180).to_i
-    end
-
     scope :active, -> do
-      where(
-        arel_table[:active].eq(true).and(
-          arel_table[:expired_at].eq(nil).
-          or(arel_table[:expired_at].gt(Time.current)),
-        ).and(
-          arel_table[:last_activity_at].eq(nil).
-          or(arel_table[:last_activity_at].gt(expire_after.days.ago)),
-        ),
-      )
+      where(active: true)
     end
 
     scope :inactive, -> do
-      where(
-        arel_table[:active].eq(false).
-        or(arel_table[:expired_at].lteq(Time.current)).
-        or(arel_table[:last_activity_at].lteq(expire_after.days.ago)),
-      )
+      where(active: false)
     end
 
     scope :care_coordinators, -> do
@@ -173,8 +150,7 @@ module UserConcern
     # Note: Session timeout is now handled by OAuth2-proxy, so we use a default timeout period
     scope :has_recent_activity, -> do
       timeout_period = 30.minutes # Default session timeout period
-      where(last_activity_at: timeout_period.ago..Time.current).
-        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
+      where(last_activity_at: timeout_period.ago..Time.current)
     end
 
     scope :using_acls, -> do
@@ -222,48 +198,14 @@ module UserConcern
       GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
     end
 
-    # Check if account is locked (application-level lock, independent of IDP).
-    #
-    # Even if a user can authenticate via IDP, they may be locked at the application level.
-    # This prevents access to the application until an administrator unlocks the account.
-    #
-    # @return [Boolean] true if account is locked
-    def access_locked?
-      locked_at.present?
-    end
-
-    # Lock access to the application.
-    #
-    # Sets the locked_at timestamp, preventing access even if IDP authentication succeeds.
-    # Administrators can unlock via unlock_access!
-    #
-    # @return [Boolean] true if lock was successful
-    def lock_access!
-      update_column(:locked_at, Time.current)
-    end
-
-    # Unlock access to the application.
-    #
-    # Removes the locked_at timestamp, allowing access if other conditions are met.
-    #
-    # @return [Boolean] true if unlock was successful
-    def unlock_access!
-      update_column(:locked_at, nil)
-    end
-
     # Check if user account is active and eligible for authentication.
     #
     # Accounts must be:
     # - Active (active = true)
-    # - Not expired (expired_at is nil or in the future)
-    # - Not locked (locked_at is nil)
-    #
-    # Note: stale_account? is not checked here as it's only used for reporting purposes.
-    # Users can still log in even if their account is stale; only expired accounts are prevented.
     #
     # @return [Boolean] true if account is active and eligible for authentication
     def active_for_authentication?
-      active? && !expired_at? && !access_locked?
+      active?
     end
 
     # Stub method - authentication is handled by JWT
@@ -276,20 +218,17 @@ module UserConcern
     # Get session timeout time from JWT token.
     #
     # Attempts to get the expiration time from the JWT token.
-    # Falls back to a default timeout if JWT expiration is not available.
+    # Returns nil if token is invalid or expiration is not available.
     #
-    # @param access_token [String, nil] Optional JWT access token from request headers
-    # @return [Time] Expected timeout time
+    # @param access_token [String] JWT access token from request headers
+    # @return [Time, nil] Expected timeout time or nil if not available
     def timeout_time(access_token)
       return nil unless access_token.present?
 
-      # Try to get expiration time from JWT token
       jwt_helper = JwtHelper.new(access_token: access_token)
-      jwt_helper.expiration_time if jwt_helper&.token? && jwt_helper.expiration_time
-    end
+      return nil unless jwt_helper.token? && jwt_helper.validate!
 
-    def future_expiration?
-      expired_at.present? && expired_at > Time.current
+      jwt_helper.expiration_time
     end
 
     def limited_client_view?
@@ -405,69 +344,6 @@ module UserConcern
       root_path
     end
 
-    def invitation_status
-      if invitation_accepted_at.present? || invitation_sent_at.blank?
-        :active
-      elsif invitation_due_at > Time.now
-        :pending_confirmation
-      else
-        :invitation_expired
-      end
-    end
-
-    # Force user logout by invalidating their session.
-    #
-    # Updates the custom_session_invalidator, which forces re-authentication on next request.
-    # This is used when administrators need to force a user to re-authenticate.
-    #
-    # @return [Boolean] true if logout was forced
-    def force_logout!
-      update_attribute(:custom_session_invalidator, SecureRandom.hex)
-    end
-
-    # Check if user has pending confirmation.
-    #
-    # Email confirmation is handled by IDP, but invitations may still be pending.
-    #
-    # @return [Boolean] true if invitation is pending
-    def pending_any_confirmation
-      invitation_token.present?
-    end
-
-    # @return [Array] an array of text that describes the status of the account
-    def overall_status(current_user)
-      return ['Active'] if active_for_authentication?
-      return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
-
-      text = []
-      text << 'Invitation expired' if invitation_status == :invitation_expired
-      if expired_at?
-        text << "Account expired on #{expired_at}"
-      elsif expired?
-        text << "Account expired due to inactivity. Last activity on #{last_activity_at}"
-      else
-        text << deactivation_status(current_user)
-      end
-      text
-    end
-
-    def deactivation_status(user)
-      return unless inactive?
-
-      # The PaperTrail versions association has a fixed order with newest last
-      version = versions.where(event: 'deactivate').last
-
-      return 'Account deactivated' unless version
-      return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
-
-      name = nil
-      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
-
-      return "Account deactivated on #{version.created_at}" unless name
-
-      "Account deactivated by #{name} on #{version.created_at}"
-    end
-
     # Search for users by name or email using prefix matching
     #
     # @param text [String] the search query
@@ -512,134 +388,16 @@ module UserConcern
       user&.restore
       return user if user.present?
 
-      invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
-        u.skip_invitation = true
-      end
-    end
-
-    # Invite a user (class method).
-    #
-    # Creates a new user account and optionally sends an invitation.
-    # If IDP supports invitations and connector_id is set, sends invitation via IDP.
-    # Otherwise, creates a shell user that will be linked on first login.
-    #
-    # @param attributes [Hash] User attributes (email, first_name, last_name, etc.)
-    # @param invited_by [User, nil] User who is sending the invitation (optional, can be second positional arg)
-    # @param skip_invitation [Boolean] Skip sending invitation (default: false)
-    # @yield [User] Block to modify user before saving
-    # @return [User] Created user instance
-    def self.invite!(attributes = {}, invited_by = nil, skip_invitation: false)
-      # Handle legacy signature: invite!(attributes, invited_by_user)
-      if invited_by.is_a?(User)
-        # Second positional argument is the invited_by user
-      elsif attributes.is_a?(User) && invited_by.nil?
-        # Legacy signature: invite!(user, nil) - attributes is actually the invited_by user
-        invited_by = attributes
-        attributes = {}
-      end
-
-      attributes = attributes.dup.with_indifferent_access
-      email = attributes[:email] || attributes['email']
-      connector_id = attributes.delete(:connector_id) || attributes.delete('connector_id')
-
-      # Check if user already exists
-      user = find_by(email: email)
-      if user
-        # User exists - resend invitation if requested
-        user.invite!(invited_by: invited_by, skip_invitation: skip_invitation)
-        return user
-      end
-
-      # Create new user
-      user = new(attributes)
-      user.skip_invitation = skip_invitation || attributes[:skip_invitation] == true || attributes['skip_invitation'] == true
-      user.invited_by = invited_by if invited_by
-
-      # Allow block to modify user
-      yield user if block_given?
-
-      # Generate invitation token and set timestamps
-      unless user.skip_invitation
-        user.invitation_token = SecureRandom.hex(32)
-        user.invitation_created_at = Time.current
-        user.invitation_sent_at = Time.current
-        user.invitation_due_at = 7.days.from_now if user.respond_to?(:invitation_due_at=)
-      end
-
-      # Set confirmed_at based on skip_invitation
-      user.confirmed_at = user.skip_invitation ? Time.current : nil
-      user.active = true
-
-      # Save user first
+      user = new(
+        email: 'noreply@greenriver.com',
+        first_name: 'System',
+        last_name: 'User',
+        agency_id: 0,
+        active: true,
+        confirmed_at: Time.current,
+      )
       user.save!
-
-      # Send invitation via IDP if supported
-      unless user.skip_invitation
-        if connector_id && Idp::ServiceFactory.idp_supports_feature?(connector_id, :invitations)
-          idp_service = Idp::ServiceFactory.for_connector(connector_id)
-          begin
-            idp_service.send_invitation(
-              email: user.email,
-              first_name: user.first_name || '',
-              last_name: user.last_name || '',
-              phone: user.phone,
-            )
-
-            # Create authentication source with placeholder
-            user.user_authentication_sources.create!(
-              connector_id: connector_id,
-              connector_user_id: user.email, # Temporary placeholder
-              enabled: true,
-            )
-          rescue Idp::ServiceError => e
-            Rails.logger.error "Failed to send invitation via IDP: #{e.message}"
-            user.errors.add(:base, "Failed to send invitation: #{e.message}")
-          end
-        end
-      end
-
       user
-    end
-
-    # Invite an existing user (instance method).
-    #
-    # Resends invitation for an existing user.
-    # If IDP supports invitations and user has a connector_id, sends invitation via IDP.
-    #
-    # @param invited_by [User, nil] User who is sending the invitation (optional, kept for API compatibility)
-    # @param skip_invitation [Boolean] Skip sending invitation (default: false)
-    # @return [User] Self
-    def invite!(_invited_by: nil, skip_invitation: false)
-      return self if skip_invitation
-
-      # Generate new invitation token and update timestamps
-      self.invitation_token = SecureRandom.hex(32)
-      self.invitation_created_at = Time.current
-      self.invitation_sent_at = Time.current
-      self.invitation_due_at = 7.days.from_now if respond_to?(:invitation_due_at=)
-      self.invitation_accepted_at = nil
-      self.confirmed_at = nil
-
-      save!
-
-      # Send invitation via IDP if user has a connector and IDP supports invitations
-      connector_id = last_connector_id || user_authentication_sources.enabled.first&.connector_id
-      if connector_id && Idp::ServiceFactory.idp_supports_feature?(connector_id, :invitations)
-        idp_service = Idp::ServiceFactory.for_connector(connector_id)
-        begin
-          idp_service.send_invitation(
-            email: email,
-            first_name: first_name || '',
-            last_name: last_name || '',
-            phone: phone,
-          )
-        rescue Idp::ServiceError => e
-          Rails.logger.error "Failed to send invitation via IDP: #{e.message}"
-          errors.add(:base, "Failed to send invitation: #{e.message}")
-        end
-      end
-
-      self
     end
 
     def self.system_user
@@ -660,9 +418,7 @@ module UserConcern
     end
 
     def inactive?
-      return true unless active?
-
-      expired?
+      !active?
     end
 
     # TODO: START_ACL remove when ACL transition complete
@@ -934,10 +690,6 @@ module UserConcern
           entity_type: model.sti_name,
         ).select(:entity_id),
       )
-    end
-
-    def skip_session_limitable?
-      ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
     end
 
     # Returns an array of hashes of access group name => [item names]

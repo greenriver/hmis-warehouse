@@ -14,12 +14,10 @@ module Admin
     # which is handled separately as it's stored as a JSON array rather than associations.
     VALID_ENTITY_TYPES = (AccessGroup.known_entity_types.map(&:to_s) + ['coc_codes']).freeze
 
-    # This controller is namespaced to prevent
-    # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :update, :destroy, :impersonate, :un_expire, :expire_password]
+    before_action :set_user, only: [:edit, :update, :destroy, :impersonate]
     before_action :require_can_impersonate_users!, only: [:impersonate]
-    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
+    after_action :log_user, only: [:show, :edit, :update, :destroy]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -51,21 +49,6 @@ module Admin
         to_a
     end
 
-    def unlock
-      @user.unlock_access!
-      redirect_to({ action: :index }, notice: 'User unlocked')
-    end
-
-    def un_expire
-      @user.update_last_activity!
-      redirect_to({ action: :index }, notice: 'User re-activated')
-    end
-
-    def expire_password
-      @user.force_logout!
-      redirect_to({ action: :index }, notice: "User #{@user.email} has been logged out.")
-    end
-
     def impersonate
       become = User.find(params[:become_id].to_i)
       impersonate_user(become)
@@ -81,7 +64,6 @@ module Admin
       existing_health_roles = @user.health_roles.to_a
       begin
         User.transaction do
-          @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
           @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls?
 
@@ -345,7 +327,6 @@ module Admin
         :notify_on_client_added,
         :notify_on_anomaly_identified,
         :receive_account_request_notifications,
-        :expired_at,
         :training_completed,
         :copy_form_id,
         :permission_context,

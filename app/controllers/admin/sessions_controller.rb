@@ -4,19 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin
   class SessionsController < ApplicationController
     before_action :require_can_manage_sessions!
 
     def index
       @users = User.has_recent_activity
-    end
-
-    def destroy
-      user = User.find(params[:id])
-      user.force_logout!
-
-      redirect_to({ action: :index }, notice: "Session ended for #{user.name}")
     end
   end
 end
