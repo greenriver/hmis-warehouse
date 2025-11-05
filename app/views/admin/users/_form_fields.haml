@@ -7,7 +7,7 @@
         %p.mb-0
           Sign-in provided by #{user.user_authentication_sources.find_by(connector_id: user.primary_idp)&.idp_name || user.primary_idp}. Changes made here to personal information may be overwritten on the user's next login since the IDP does not support profile updates.
     .form-inputs.well
-      -# IDP selection for new user invitations
+      -# IDP selection for new users
       - if @available_idps.present? && @user.new_record?
         .row
           .col-sm-10

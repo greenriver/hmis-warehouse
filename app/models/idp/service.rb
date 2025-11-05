@@ -10,8 +10,7 @@ module Idp
   # Base interface for Identity Provider (IDP) services.
   #
   # This abstract class defines the contract that all IDP service implementations must follow.
-  # IDP services handle user management operations like creating users, updating profiles,
-  # and sending invitations.
+  # IDP services handle user management operations like creating users and updating profiles.
   #
   # To add support for a new IDP:
   # 1. Create a new class inheriting from Idp::Service
