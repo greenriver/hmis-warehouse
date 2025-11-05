@@ -506,14 +506,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
     # include project id here since it may not be available during after_save hooks due to WIP
     self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
-    unit_occupancies.build(
-      unit: unit,
-      occupancy_period_attributes: {
-        start_date: start_date,
-        end_date: nil,
-        user: user,
-      },
+    occupancy = unit_occupancies.build(unit: unit)
+    occupancy.build_occupancy_period(
+      start_date: start_date,
+      end_date: nil,
+      user: user,
     )
+    occupancy
   end
 
   def release_unit!(occupancy_end_date = Date.current, user:)
