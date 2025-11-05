@@ -45,11 +45,6 @@ Rails.application.routes.draw do
   post 'session_keepalive', to: 'users/sessions#keepalive', as: :session_keepalive
 
   namespace :users do
-    resources :invitations, only: [:new, :create] do
-      collection do
-        post :confirm, as: :confirm
-      end
-    end
     resources :account_requests, only: [:new, :create]
   end
 
@@ -762,12 +757,9 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :users, except: [:show, :new, :create] do
-      resource :resend_invitation, only: :create
-      resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
       resource :locations, only: :show
-      patch :reactivate, on: :member
       collection do
         # User search queries
         resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
@@ -776,17 +768,13 @@ Rails.application.routes.draw do
         post :stop_impersonating
       end
       member do
-        post :unlock
-        post :un_expire
         post :impersonate
-        patch :expire_password
       end
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
 
     resources :inactive_users, except: [:show, :new, :create] do
-      patch :reactivate, on: :member
       collection do
         # Inactive user search queries
         resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries

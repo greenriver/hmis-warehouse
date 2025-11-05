@@ -29,22 +29,6 @@ module Admin
       perform_search(search_query.query_params)
     end
 
-    def reactivate
-      @user = User.inactive.find(params[:id].to_i)
-      pass = Devise.friendly_token(50)
-      @user.update(
-        active: true,
-        last_activity_at: Time.current,
-        expired_at: nil,
-        password: pass,
-        password_confirmation: pass,
-      )
-
-      # With JWT auth, password resets are handled by the IDP
-      # Just log the reactivation without sending password reset instructions
-      redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
-    end
-
     def title_for_index
       'User List'
     end

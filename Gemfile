@@ -105,7 +105,6 @@ gem 'oauth2'
 gem 'pretender'
 gem 'rqrcode'
 
-gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 

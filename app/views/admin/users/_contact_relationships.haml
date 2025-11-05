@@ -1,7 +1,7 @@
 -# Display all alert contact relationships for a user
 -# Shows system contact and all project/organization contacts with their subscriptions
 -# Uses preloaded @user_contacts from controller to avoid N+1 queries
-- if @user_contacts.any?
+- if @user_contacts&.any?
   .contact-relationships.mt-4.mb-4
     %h3 Other Subscriptions
     .card

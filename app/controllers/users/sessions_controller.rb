@@ -8,7 +8,7 @@
 
 class Users::SessionsController < ApplicationController
   # Skip authentication for these actions since they're handled by OAuth2-proxy
-  skip_before_action :authenticate_user!, only: [:new, :create, :keepalive]
+  skip_before_action :authenticate_user!, only: [:new, :create]
 
   # GET /users/sign_in
   # With JWT auth, login is handled by OAuth2-proxy
@@ -29,31 +29,32 @@ class Users::SessionsController < ApplicationController
     redirect_to '/oauth2/sign_out'
   end
 
+  # POST /session_keepalive
+  # Extends the session by triggering OAuth2-proxy to refresh the JWT token.
+  # OAuth2-proxy will automatically refresh the token if a refresh token is available.
+  # Returns the new expiration time so the frontend can update its countdown.
   def keepalive
-    head :ok
-  end
+    access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+    return head :unauthorized unless access_token.present?
 
-  # override devise to add 'allow_other_host: true' so we can redirect to okta or superset
-  def respond_to_on_destroy
+    jwt_helper = JwtHelper.new(access_token: access_token)
+    return head :unauthorized unless jwt_helper.token? && jwt_helper.validate!
+
+    expiration_time = jwt_helper.expiration_time
+    return head :ok unless expiration_time
+
+    # Calculate remaining seconds until expiration
+    remaining_seconds = [(expiration_time - Time.current).to_i, 0].max
+
     respond_to do |format|
-      format.all { head :no_content }
-      format.any(*navigational_formats) do
-        redirect_to(
-          after_sign_out_path_for(resource_name),
-          status: :see_other,
-          allow_other_host: true,
-        )
+      format.json do
+        render json: {
+          success: true,
+          expiration_time: expiration_time.to_i,
+          remaining_seconds: remaining_seconds,
+        }
       end
+      format.all { head :ok }
     end
-  end
-
-  private
-
-  def resource_name
-    :user
-  end
-
-  def navigational_formats
-    [:html]
   end
 end

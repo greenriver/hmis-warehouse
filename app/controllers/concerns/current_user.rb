@@ -18,7 +18,6 @@ module CurrentUser
     #
     # Also ensures authentication source exists for the user (only once per request).
     # This handles cases where users existed before IDP integration.
-    # Clears invitation token if user has a pending invitation.
     #
     # @return [User, nil] Current user or nil if not authenticated
     def current_user
@@ -31,16 +30,6 @@ module CurrentUser
 
         # Ensure authentication source exists (only once per request)
         ensure_authentication_source(user, jwt_helper) unless @auth_source_ensured
-
-        # Clear invitation token if user has a pending invitation
-        # This marks the invitation as accepted since they've successfully authenticated
-        if user.invitation_token.present? && user.invitation_accepted_at.blank?
-          user.update_columns(
-            invitation_token: nil,
-            invitation_accepted_at: Time.current,
-            confirmed_at: Time.current,
-          )
-        end
 
         user
       end
@@ -77,19 +66,9 @@ module CurrentUser
       # Ensure authentication source exists (only once per request)
       ensure_authentication_source(user, jwt_helper) unless @auth_source_ensured
 
-      # Clear invitation token if user has a pending invitation
-      # This marks the invitation as accepted since they've successfully authenticated
-      if user.invitation_token.present? && user.invitation_accepted_at.blank?
-        user.update_columns(
-          invitation_token: nil,
-          invitation_accepted_at: Time.current,
-          confirmed_at: Time.current,
-        )
-      end
-
       # Ensure user is active and eligible for authentication
       unless user.active_for_authentication?
-        handle_inactive_user(user)
+        handle_inactive_user
         return
       end
 
@@ -169,21 +148,13 @@ module CurrentUser
       redirect_to helpers.oauth2_sign_in_path
     end
 
-    # Handle inactive, locked, or expired user.
+    # Handle inactive user.
     #
     # Override in subclasses for custom behavior.
     #
-    # @param user [User] User instance that failed authentication checks
-    def handle_inactive_user(user)
-      alert_message = if user.access_locked?
-        'Your account has been locked. Please contact an administrator.'
-      elsif user.expired_at?
-        'Your account has expired. Please contact an administrator.'
-      else
-        'Your account has been deactivated.'
-      end
-
-      redirect_to helpers.oauth2_sign_in_path, alert: alert_message
+    # @param _user [User] User instance that failed authentication checks
+    def handle_inactive_user(_user)
+      redirect_to helpers.oauth2_sign_in_path, alert: 'Your account has been deactivated.'
     end
   end
 end

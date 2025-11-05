@@ -3,9 +3,7 @@
   session_lifetime_secs = if access_token.present?
     jwt_helper = JwtHelper.new(access_token: access_token)
     expiration_time = jwt_helper.expiration_time if jwt_helper.token? && jwt_helper.validate!
-    expiration_time ? (expiration_time - Time.current).to_i : 30.minutes.to_i
-  else
-    30.minutes.to_i
+    expiration_time ? (expiration_time - Time.current).to_i : nil
   end
   root_data = {
     controller: "inactive-session-modal",

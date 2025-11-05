@@ -60,16 +60,6 @@ module Idp
       raise NotImplementedError, "#{self.class.name} must implement #reactivate_user"
     end
 
-    # Send an invitation to a user.
-    #
-    # @param email [String] User's email address
-    # @param attributes [Hash] Additional user attributes (optional)
-    # @return [Boolean] true if invitation sent successfully
-    # @raise [Idp::ServiceError] if invitation fails or not supported
-    def send_invitation(email:, **attributes)
-      raise NotImplementedError, "#{self.class.name} must implement #send_invitation"
-    end
-
     # Return a human-readable name for this IDP.
     #
     # @return [String] IDP name (e.g., "Zitadel", "Okta")
@@ -88,13 +78,6 @@ module Idp
     #
     # @return [Boolean] true if IDP supports updating profile fields
     def supports_profile_updates?
-      false
-    end
-
-    # Check if this IDP supports sending user invitations.
-    #
-    # @return [Boolean] true if IDP supports invitations
-    def supports_invitations?
       false
     end
   end

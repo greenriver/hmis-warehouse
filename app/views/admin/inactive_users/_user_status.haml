@@ -1,3 +1,4 @@
-- user.overall_status(current_user).each do |status|
-  = status
-  %br
+- if user.active?
+  Active
+- else
+  Inactive

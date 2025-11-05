@@ -13,12 +13,5 @@ module Admin
     def index
       @users = User.has_recent_activity
     end
-
-    def destroy
-      user = User.find(params[:id])
-      user.force_logout!
-
-      redirect_to({ action: :index }, notice: "Session ended for #{user.name}")
-    end
   end
 end

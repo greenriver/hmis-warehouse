@@ -107,13 +107,14 @@ class JwtHelper
   #
   # Returns the expiration time from the JWT's 'exp' claim.
   # Standard JWT tokens include an 'exp' claim indicating when the token expires.
+  # Returns the time in the application's configured timezone.
   #
-  # @return [Time, nil] Expiration time as a Time object, or nil if not present
+  # @return [Time, nil] Expiration time as a Time object in the application timezone, or nil if not present
   def expiration_time
     exp = payload.first['exp']
     return nil unless exp
 
-    Time.at(exp)
+    Time.zone.at(exp)
   end
 
   # TODO: this is inconsistent based on the IDP
