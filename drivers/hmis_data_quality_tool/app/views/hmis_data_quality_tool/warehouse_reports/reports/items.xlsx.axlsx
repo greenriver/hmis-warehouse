@@ -5,9 +5,9 @@ wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ').gsub('/', '-')) do |
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report, export: true) else @result.detail_columns end
   sheet.add_row(headers.values.map { |h| h[:title] }, style: title)
-  current_user.policy_context.preload_project_dependencies(@items.pluck(:project_id).uniq)
   @items.each do |item|
-    pii_policy = current_user.reporting_policy_for_project(project_id: item.project_id, mode: :download)
+    project_id_for_policy = item.project_id_for_policy(viewable_project_ids: viewable_project_ids_for_user)
+    pii_policy = current_user.reporting_policy_for_project(project_id: project_id_for_policy, mode: :download)
     row = []
     headers.each_key do |k|
       row << item.download_value(k, pii_policy: pii_policy)
