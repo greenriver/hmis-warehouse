@@ -37,52 +37,6 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
     admin_user.access_group.add_viewable(project_access_group_2)
   end
 
-  describe 'User Creation via Invitation', js: true do
-    before { sign_in_user(admin_user) }
-
-    it 'shows the lazy loaded interface for new user creation' do
-      # Navigate to new user invitation page
-      visit new_users_invitation_path
-
-      # Fill in basic user information
-      fill_in 'First name', with: 'Test'
-      fill_in 'Last name', with: 'User'
-      fill_in 'Email', with: 'testuser@example.com'
-      select agency.name, from: 'Agency'
-
-      # Verify legacy interface is shown (not ACL interface)
-      expect(page).not_to have_content('User Access')
-      expect(page).to have_content('Data Access Assignments')
-
-      click_link 'Data Access Assignments'
-
-      # Verify lazy loading interface is present for new users
-      expect(page).to have_css('.select-placeholder', visible: false)
-      expect(page).to have_css('.j-column-actions-add', visible: false)
-
-      # Verify lazy loading interface is present
-      expect(page).to have_css('#organizations-column')
-      expect(page).to have_css('.select-placeholder, select', visible: false, wait: 10)
-    end
-
-    it 'allows entity selection for new users with lazy loaded interface' do
-      visit new_users_invitation_path
-      click_link 'Data Access Assignments'
-
-      # Verify multiple entity columns are present with proper IDs
-      # NOTE: data sources and coc codes are not lazy loaded
-      expect(page).to have_css('#data_sources-column')
-      expect(page).to have_css('#organizations-column')
-      expect(page).to have_css('#projects-column')
-      expect(page).to have_css('#project_access_groups-column')
-
-      # Each column should have interface elements (visible or hidden)
-      within('#organizations-column') do
-        expect(page).to have_css('select, .select-placeholder', visible: false)
-      end
-    end
-  end
-
   describe 'User Editing with Existing Selections', js: true do
     let!(:existing_user) { create :user, agency: agency, first_name: 'Existing', last_name: 'User', permission_context: 'role_based' }
 

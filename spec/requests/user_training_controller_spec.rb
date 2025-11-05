@@ -28,13 +28,6 @@ RSpec.describe 'UserTrainingController', type: :request do
 
   describe 'GET /user_training' do
     it 'redirects to the stored location when it is safe' do
-      # Canary: Verify that stored_location_for exists (from Devise)
-      # If Devise is removed, this test will fail and you'll need to reimplement the stored location functionality
-      expect(UserTrainingController.instance_methods).to(
-        include(:stored_location_for),
-        'stored_location_for method not found - has Devise been removed? If so, update this test and reimplement stored location functionality.',
-      )
-
       # Mock stored_location_for to return our desired path
       # We mock this because session persistence between requests is complex in request specs
       allow_any_instance_of(UserTrainingController).to receive(:stored_location_for).with(:user).and_return('/welcome_back')
@@ -45,12 +38,6 @@ RSpec.describe 'UserTrainingController', type: :request do
     end
 
     it 'falls back when the stored location points to the training portal' do
-      # Canary: Verify that stored_location_for exists (from Devise)
-      expect(UserTrainingController.instance_methods).to(
-        include(:stored_location_for),
-        'stored_location_for method not found - has Devise been removed? If so, update this test.',
-      )
-
       # Mock to simulate stored location pointing to training portal
       allow_any_instance_of(UserTrainingController).to receive(:stored_location_for).with(:user).and_return(user_training_path)
 

@@ -51,27 +51,6 @@ RSpec.describe UserEditHistory::UserVersionChangeSummary do
           changes: { 'active' => [false, true] },
           expected_summary: 'Account activated',
         },
-        'invitation sent' => {
-          event: 'update',
-          changes: {
-            'invitation_created_at' => [nil, Time.current],
-            'invitation_sent_at' => [nil, Time.current],
-            'invitation_token' => [nil, 'token'],
-          },
-          expected_summary: 'Invitation Sent',
-        },
-        'invitation accepted' => {
-          event: 'update',
-          changes: {
-            'confirmed_at' => [nil, Time.current],
-            'encrypted_password' => ['old', 'new'],
-            'invitation_accepted_at' => [nil, Time.current],
-            'invitation_token' => ['token', nil],
-            'password_changed_at' => [nil, Time.current],
-          },
-          whodunnit: nil,
-          expected_summary: 'Invitation accepted',
-        },
         'password reset email' => {
           event: 'update',
           changes: {

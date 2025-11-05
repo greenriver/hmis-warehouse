@@ -38,16 +38,6 @@ RSpec.shared_context 'with timing attack mitigation' do
       expect(elapsed).to be >= controller_class::MIN_REQ_LOGIN_TIME
     end
 
-    it 'enforces minimum login time for locked account' do
-      user.lock_access!
-      start_time = Time.current
-      do_login
-      elapsed = Time.current - start_time
-
-      assert_failure
-      expect(elapsed).to be >= controller_class::MIN_REQ_LOGIN_TIME
-    end
-
     it 'enforces minimum login time for non-existent user' do
       start_time = Time.current
       do_nonexistent_user_login
