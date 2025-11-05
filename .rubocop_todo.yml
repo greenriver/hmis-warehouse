@@ -3841,7 +3841,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two/loader/youth_education_status.rb'
     - 'drivers/hmis_csv_twenty_twenty_two/config/routes.rb'
     - 'drivers/hmis_data_quality_tool/app/controllers/hmis_data_quality_tool/warehouse_reports/goal_configs_controller.rb'
-    - 'drivers/hmis_data_quality_tool/app/controllers/hmis_data_quality_tool/warehouse_reports/reports_controller.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/document_exports/report_chart_pdf_export.rb'
     - 'drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/document_exports/report_export.rb'

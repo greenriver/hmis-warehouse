@@ -77,6 +77,17 @@ module HmisDataQualityTool::DqConcern
       value
     end
 
+    # Returns the project_id to use for PII policy checks
+    # For items with multiple projects (like Client), finds the first one the user has access to
+    # Falls back to the first project_id if none are accessible
+    def project_id_for_policy(viewable_project_ids:)
+      if respond_to?(:project_ids) && project_ids.present?
+        (project_ids & viewable_project_ids)&.first || project_ids.first
+      else
+        project_id
+      end
+    end
+
     # returns [stay_length_category, stay_length_limit]
     def self.stay_length_limit(key, report)
       section = sections(report)[key]
