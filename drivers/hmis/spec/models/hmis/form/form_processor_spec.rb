@@ -851,7 +851,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
       process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition)
       e2.reload
-      expect(old_uo.end_date).to be_present
+      expect(e2.unit_occupancies.first.end_date).to be_present
       expect(e2.active_unit_occupancy).not_to eq(old_uo)
       expect(e2.current_unit).to eq(new_unit)
     end

@@ -219,6 +219,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           donor_child.reload
         end.to change(donor_hoh, :active_unit_occupancy).to(nil).
           and change(donor_child, :active_unit_occupancy).to(nil)
+
+        expect(donor_hoh.unit_occupancies.count).to eq(1) # Still has historical occupancy (regression #8379)
+        expect(donor_hoh.unit_occupancies.sole.occupancy_period).to be_present
+        expect(donor_hoh.unit_occupancies.sole.end_date).to be_present
       end
     end
   end
