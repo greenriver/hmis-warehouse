@@ -222,62 +222,24 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
-    describe 'exact match methods' do
-      let!(:client1) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
-      let!(:client2) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
-      let!(:dest1) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
-      let!(:dest2) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
-      let!(:wc1) { create(:warehouse_client, source_id: client1.id, destination_id: dest1.id) }
-      let!(:wc2) { create(:warehouse_client, source_id: client2.id, destination_id: dest2.id) }
-      describe 'exact_ssn_matches' do
-        it 'finds matches when SSNs are identical' do
-          matches = subject.exact_ssn_matches
-          expect(matches).to include([dest1.id, dest2.id])
+    describe '#find_merge_candidates_for_match_existing' do
+      it 'treats pairs found by multiple heuristics as a single candidate' do
+        destination_a = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+        destination_b = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+        source_a = create(:grda_warehouse_hud_client, data_source: source_data_source)
+        source_b = create(:grda_warehouse_hud_client, data_source: source_data_source)
+
+        create(:warehouse_client, source_id: source_a.id, destination_id: destination_a.id)
+        create(:warehouse_client, source_id: source_b.id, destination_id: destination_b.id)
+
+        [source_a, source_b].each do |client|
+          client.update(SSN: '246810123', FirstName: 'Alex', LastName: 'Doe', DOB: '1985-05-05')
         end
 
-        it 'ignores invalid SSNs' do
-          client1.update(SSN: '000000000')
-          client2.update(SSN: '000000000')
+        result = described_class.new(run_post_processing: false).send(:find_merge_candidates_for_match_existing)
+        root, child = [destination_a.id, destination_b.id].minmax
 
-          matches = subject.exact_ssn_matches
-          expect(matches).to be_empty
-        end
-      end
-
-      describe 'exact_name_matches' do
-        it 'finds matches when normalized names are identical' do
-          client1.update(FirstName: 'John', LastName: 'Smith')
-          client2.update(FirstName: 'JOHN', LastName: 'SMITH')
-
-          matches = subject.exact_name_matches
-          expect(matches).to include([dest1.id, dest2.id])
-        end
-
-        it 'ignores clients with missing names' do
-          client1.update(FirstName: nil, LastName: nil)
-          client2.update(FirstName: nil, LastName: nil)
-
-          matches = subject.exact_name_matches
-          expect(matches).to be_empty
-        end
-      end
-
-      describe 'exact_dob_matches' do
-        it 'finds matches when DOBs are identical' do
-          client1.update(DOB: '1980-01-01')
-          client2.update(DOB: '1980-01-01')
-
-          matches = subject.exact_dob_matches
-          expect(matches).to include([dest1.id, dest2.id])
-        end
-
-        it 'ignores clients with DOBs before 1920' do
-          client1.update(DOB: '1919-01-01')
-          client2.update(DOB: '1919-01-01')
-
-          matches = subject.exact_dob_matches
-          expect(matches).to be_empty
-        end
+        expect(result).to eq({ root => [child] })
       end
     end
 
