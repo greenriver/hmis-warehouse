@@ -114,6 +114,11 @@ module HmisDataQualityTool::WarehouseReports
 
       @result = @report.result_from_key(@key)
       @items = @report.items_for(@key)
+
+      # Preload project dependencies for PII policy checks
+      all_project_ids = all_project_ids_from_items(@items)
+      current_user.policy_context.preload_project_dependencies(all_project_ids)
+
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -207,5 +212,11 @@ module HmisDataQualityTool::WarehouseReports
       cell
     end
     helper_method :formatted_cell
+
+    # Collects all project_ids from items, handling both Client (with project_ids) and Enrollment (with project_id) types
+    def all_project_ids_from_items(items)
+      items.flat_map { |item| item.respond_to?(:project_ids) ? item.project_ids : [item.project_id] }.compact.uniq
+    end
+    helper_method :all_project_ids_from_items
   end
 end

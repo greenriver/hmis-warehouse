@@ -26,6 +26,19 @@ module HmisDataQualityTool
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 
+    def project_id
+      project_ids.first
+    end
+
+    def project_ids
+      # Projects are preloaded in client_scope (source_enrollments: [:exit, :project]) which is used to build enrollments
+      @project_ids ||= if enrollments.blank?
+        []
+      else
+        enrollments.map { |en| en.project&.id }.compact.uniq
+      end
+    end
+
     def self.detail_headers
       {
         destination_client_id: { title: 'Warehouse Client ID' },
@@ -322,7 +335,7 @@ module HmisDataQualityTool
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
             # three dots because starting on the end date is allowed, sorted by id so we can distinct later
-            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?((start_date2...end_date2))
+            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?(start_date2...end_date2)
           end
         end
       end

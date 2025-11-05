@@ -62,13 +62,8 @@ module HudPathReport
       @filter.set_from_params(filter_params) if filter_params.present?
     end
 
-    # This method allow picking the version of the report, we only need this during the transition
-    TodoOrDie('Remove active_report_versions once we are on FY 2026', by: '2025-11-01')
     def active_report_versions
-      return {} if default_report_version == :fy2026 && ! Rails.env.development?
-
       {
-        fy2024: 'FY 2024',
         fy2026: 'FY 2026',
       }.invert.freeze
     end

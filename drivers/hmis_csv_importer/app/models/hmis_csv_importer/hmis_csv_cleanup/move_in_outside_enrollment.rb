@@ -27,13 +27,32 @@ module HmisCsvImporter::HmisCsvCleanup
         enrollment_batch << enrollment
       end
 
-      enrollment_source.import(
-        enrollment_batch,
-        on_duplicate_key_update: {
-          conflict_target: conflict_target(enrollment_source),
-          columns: [:MoveInDate, :source_hash],
-        },
-      )
+      # Deduplicate by conflict_target to avoid PostgreSQL cardinality violation
+      # Keep the last occurrence of each unique conflict target combination
+      conflict_keys = conflict_target(enrollment_source)
+
+      unique_batch = enrollment_batch.index_by do |enrollment|
+        conflict_keys.map { |key| enrollment.public_send(key) }
+      end.values
+
+      begin
+        enrollment_source.import(
+          unique_batch,
+          on_duplicate_key_update: {
+            conflict_target: conflict_keys,
+            columns: [:MoveInDate, :source_hash],
+          },
+        )
+      rescue ActiveRecord::ActiveRecordError, PG::Error => e
+        Rails.logger.error("MoveInOutsideEnrollment cleanup failed to import: #{e.message}")
+        # Sometimes we still get a cardinality violation, so we need to retry with individual saves
+        unique_batch.each do |enrollment|
+          enrollment.save!
+        rescue StandardError => save_error
+          # If that fails, log it, but move on
+          Rails.logger.error("MoveInOutsideEnrollment cleanup failed to save Enrollment ID #{enrollment.id}: #{save_error.message}")
+        end
+      end
     end
 
     def enrollment_scope

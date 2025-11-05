@@ -22,7 +22,7 @@ module Hmis::WorkflowExecution
     end
 
     def active_steps
-      instance.steps.where(status: ['available', 'in_progress'])
+      instance.steps.open
     end
 
     def start_workflow!(user:)
