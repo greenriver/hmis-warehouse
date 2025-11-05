@@ -218,12 +218,5 @@ module HmisDataQualityTool::WarehouseReports
       items.flat_map { |item| item.respond_to?(:project_ids) ? item.project_ids : [item.project_id] }.compact.uniq
     end
     helper_method :all_project_ids_from_items
-
-    # Returns a Set of project IDs the current user can view for reporting purposes
-    # Memoized to avoid multiple queries per request
-    def viewable_project_ids_for_user
-      @viewable_project_ids_for_user ||= GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_clients).pluck(:id).to_set
-    end
-    helper_method :viewable_project_ids_for_user
   end
 end

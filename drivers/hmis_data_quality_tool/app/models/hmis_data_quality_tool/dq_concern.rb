@@ -82,7 +82,7 @@ module HmisDataQualityTool::DqConcern
     # Falls back to the first project_id if none are accessible
     def project_id_for_policy(viewable_project_ids:)
       if respond_to?(:project_ids) && project_ids.present?
-        project_ids.find { |pid| viewable_project_ids.include?(pid) } || project_ids.first
+        (project_ids & viewable_project_ids)&.first || project_ids.first
       else
         project_id
       end
