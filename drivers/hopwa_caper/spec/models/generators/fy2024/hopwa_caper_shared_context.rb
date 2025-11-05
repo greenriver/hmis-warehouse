@@ -32,14 +32,22 @@ RSpec.shared_context 'HOPWA CAPER shared context' do
   end
 
   let(:hiv_positive) do
-    HudHelper.util('2024').disability_types.invert.fetch('HIV/AIDS')
+    HudHelper.util('2026').disability_types.invert.fetch('HIV/AIDS')
   end
 
   let(:hopwa_financial_assistance) do
-    HudHelper.util('2024').record_types.invert.fetch('HOPWA Financial Assistance')
+    HudHelper.util('2026').record_types.invert.fetch('HOPWA Financial Assistance')
+  end
+
+  let(:hopwa_supportive_service) do
+    HudHelper.util('2026').record_types.invert.fetch('HOPWA Service')
   end
 
   let(:rental_assistance) do
-    HudHelper.util('2024').hopwa_financial_assistance_options.invert.fetch('Rental assistance')
+    HudHelper.util('2026').hopwa_financial_assistance_options.invert.fetch('Rental assistance')
+  end
+
+  let(:supportive_service_types) do
+    HudHelper.util('2026').hopwa_services_options
   end
 end

@@ -5,7 +5,7 @@
 ###
 
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
-  GenderFilter = Struct.new(:label, :code_names, keyword_init: true) do
+  SexFilter = Struct.new(:label, :code_names, keyword_init: true) do
     def id_map(name)
       HudHelper.util('2024').gender_field_name_to_id.fetch(name)
     end
@@ -18,13 +18,11 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
 
     def self.all
       filters = [
-        new(label: 'Male', code_names: [:Man]),
         new(label: 'Female', code_names: [:Woman]),
-        new(label: 'Gender Nonbinary', code_names: [:NonBinary]),
-        new(label: 'Transgender Female', code_names: [:Transgender, :Woman]),
-        new(label: 'Transgender Male', code_names: [:Transgender, :Man]),
+        new(label: 'Male', code_names: [:Man]),
       ]
-      filters + [ExcludeFilter.new(label: 'Gender not Disclosed', filters: filters)]
+
+      filters + [ExcludeFilter.new(label: 'Sex not reported', filters: filters)]
     end
   end
 end

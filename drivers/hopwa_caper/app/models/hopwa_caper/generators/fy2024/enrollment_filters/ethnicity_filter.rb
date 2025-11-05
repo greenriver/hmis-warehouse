@@ -14,7 +14,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
 
     def self.all
       [
-        new(label: 'Total Hispanic or Latinx', code_name: :HispanicLatinaeo),
+        new(label: 'Total Hispanic', code_name: :HispanicLatinaeo),
       ]
     end
   end

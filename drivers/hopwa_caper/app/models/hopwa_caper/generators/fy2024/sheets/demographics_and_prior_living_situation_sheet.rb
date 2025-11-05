@@ -40,7 +40,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def demographics_sheet_a(sheet)
       scope = relevant_demographics_enrollments.where(hopwa_eligible: true)
-      demographics_breakdown_table(sheet, enrollment_scope: scope, header: 'Complete the age, gender, race, and ethnicity information for all individuals served with all types of HOPWA assistance.', title: 'A. For each racial category, how many HOPWA-eligible Individuals identified as such?')
+      demographics_breakdown_table(sheet, enrollment_scope: scope, header: 'Complete the age, sex, race, and ethnicity information for all individuals served with all types of HOPWA assistance.', title: 'A. For each racial category, how many HOPWA-eligible Individuals identified as such?')
     end
 
     def demographics_sheet_b(sheet)
@@ -50,13 +50,13 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def demographics_breakdown_table(sheet, enrollment_scope:, header: nil, title:)
       age_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::AgeFilter.all
-      gender_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::GenderFilter.all
+      sex_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::SexFilter.all
       ethnicity_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::EthnicityFilter.all
       race_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::RaceFilter.all
 
       if header
         sheet.add_header(col: 'A', label: header)
-        gender_filters.each do
+        sex_filters.each do
           age_filters.each do |_age_filter|
             sheet.add_header(label: '')
           end
@@ -67,21 +67,21 @@ module HopwaCaper::Generators::Fy2024::Sheets
       end
 
       sheet.append_row(label: title) do |row|
-        gender_filters.each do |gender_filter|
+        sex_filters.each do |sex_filter|
           age_filters.each do |_age_filter|
-            row.append_cell_value(value: gender_filter.label)
+            row.append_cell_value(value: sex_filter.label)
           end
         end
         ethnicity_filters.each do |_ethnicity_filter|
-          row.append_cell_value(value: 'Of the total number of individuals reported for each racial category, how many also identify as Hispanic or Latinx?')
+          row.append_cell_value(value: 'Of the total number of individuals reported for each racial category, how many also identify as Hispanic?')
         end
       end
 
       sheet.append_row(label: nil) do |row|
         row.append_cell_value(value: nil)
-        gender_filters.each do |gender_filter|
+        sex_filters.each do |sex_filter|
           age_filters.each do |age_filter|
-            row.append_cell_value(value: "#{gender_filter.label} #{age_filter.label}")
+            row.append_cell_value(value: "#{sex_filter.label} #{age_filter.label}")
           end
         end
         ethnicity_filters.each do |ethnicity_filter|
@@ -92,10 +92,10 @@ module HopwaCaper::Generators::Fy2024::Sheets
       # add rows
       race_filters.each do |race_filter|
         sheet.append_row(label: race_filter.label) do |row|
-          # add cells for race/gender/age
-          gender_filters.each do |gender_filter|
+          # add cells for race/sex/age
+          sex_filters.each do |sex_filter|
             age_filters.each do |age_filter|
-              filters = [race_filter, age_filter, gender_filter]
+              filters = [race_filter, age_filter, sex_filter]
               cell_scope = filters.reduce(enrollment_scope) { |scope, filter| filter.apply(scope) }
               row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
             end
@@ -126,7 +126,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
           row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
         end
 
-        sheet.append_row(label: 'How many other household members (beneficiaries) are HIV negative or have an unknown HIV status? ') do |row|
+        sheet.append_row(label: 'How many other household members (beneficiaries) are HIV negative or have an unknown HIV status?') do |row|
           cell_scope = scope.where(hiv_positive: false)
           row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
         end
@@ -134,9 +134,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def prior_living_situation_sheet(sheet)
-      # NOTE: currently we do not support P-FBH or ST-TFBH
-      # sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP')
-      sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA or PHP')
+      sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP	')
       program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.tbra_or_php_hopwa
       relevant_enrollments = overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments)).where(hopwa_eligible: true)
 

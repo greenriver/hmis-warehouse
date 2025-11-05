@@ -79,23 +79,23 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
           types: ['Transitional housing for homeless persons (including homeless youth)'],
         ),
         new(
-          label: 'an institutional arrangement expected to last less than six months',
+          label: 'How many households exited to an institutional arrangement expected to last less than six months?',
           types: type_unknown,
         ),
         new(
-          label: 'How many households exited to institutional arrangement expected to last more than six months?',
+          label: 'How many households exited to an institutional arrangement expected to last more than six months?',
           types: type_unknown,
         ),
         new(
-          label: 'a jail/prison term expected to last less than six months',
+          label: 'How many households exited to a jail/prison term expected to last less than six months?',
           types: type_unknown,
         ),
         new(
-          label: 'a jail/prison term expected to last more than six months',
+          label: 'How many households exited to a jail/prison term expected to last more than six months?',
           types: type_unknown,
         ),
         new(
-          label: "a situation that isn't transitional, but is not expected to last more than 90 days and their housing situation after those 90 days is uncertain",
+          label: "How many households exited to a situation that isn't transitional, but is not expected to last more than 90 days and their housing situation after those 90 days is uncertain?",
           types: type_unknown,
         ),
         new(

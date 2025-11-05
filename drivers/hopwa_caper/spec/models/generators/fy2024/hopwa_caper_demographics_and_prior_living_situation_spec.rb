@@ -11,7 +11,7 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
-    HudHelper.util('2024').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+    HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
   end
 
   let(:project) do
@@ -66,6 +66,10 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       expect(report.hopwa_caper_enrollments.where(viral_load_suppression: true).size).to eq(1)
 
       all_rows = question_as_rows(question_number: 'Q1', report: report)
+      flattened_rows = all_rows.flatten
+      expect(flattened_rows).to include('Complete the age, sex, race, and ethnicity information for all individuals served with all types of HOPWA assistance.')
+      expect(flattened_rows).to include('Of the total number of individuals reported for each racial category, how many also identify as Hispanic?')
+      expect(flattened_rows).to include('How many other household members (beneficiaries) are HIV negative or have an unknown HIV status?')
 
       # hopwa qualified individuals demographics
       rows_to_table(all_rows.slice(2, 11)).yield_self do |table|
