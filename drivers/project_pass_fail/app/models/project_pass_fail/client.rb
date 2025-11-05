@@ -46,7 +46,7 @@ module ProjectPassFail
         enrollment_coc: apr_client.enrollment_coc,
         income_at_entry: apr_client.income_from_any_source_at_start,
       }
-      attributes.delete('Gender') unless project_pass_fail.include_gender_data?
+      attributes.delete(:gender_multi) unless project_pass_fail.include_gender_data?
       assign_attributes(attributes)
     end
 
@@ -56,7 +56,7 @@ module ProjectPassFail
       )
     end
 
-    def self.detail_headers
+    def self.detail_headers(include_gender_data: true)
       headers = {
         first_name: 'First Name',
         last_name: 'Last Name',
@@ -79,14 +79,14 @@ module ProjectPassFail
         days_served: 'Days Served',
         income_at_entry: 'Income at Entry',
       }
-      headers.delete('Gender') unless project_pass_fail.include_gender_data?
+      headers.delete(:gender_multi) unless include_gender_data
       headers
     end
 
-    def self.detail_headers_for_export
-      return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    def self.detail_headers_for_export(include_gender_data: true)
+      return detail_headers(include_gender_data: include_gender_data) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
-      detail_headers.except(:first_name, :last_name, :dob, :ssn)
+      detail_headers(include_gender_data: include_gender_data).except(:first_name, :last_name, :dob, :ssn)
     end
   end
 end
