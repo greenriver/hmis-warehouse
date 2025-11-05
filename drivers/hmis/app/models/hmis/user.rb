@@ -97,10 +97,6 @@ class Hmis::User < ApplicationRecord
     end
   end
 
-  def lock_access!(opts = {})
-    super opts.merge({ send_instructions: false })
-  end
-
   def entity_access_loader_factory(...)
     @entity_access_loader_factory ||= Hmis::EntityAccessLoaderFactory.new(self)
     @entity_access_loader_factory.perform(...)
@@ -217,7 +213,8 @@ class Hmis::User < ApplicationRecord
       name: name,
       email: email,
       phone: phone,
-      sessionDuration: Devise.timeout_in.in_seconds,
+      # Session duration is managed by the IDP and can be obtained from JWT token
+      sessionDuration: nil,
     }
   end
 

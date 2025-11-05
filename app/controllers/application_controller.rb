@@ -161,6 +161,33 @@ class ApplicationController < ActionController::Base
     root_url
   end
 
+  # Store a location in session for redirect after authentication.
+  #
+  # Compatible with Devise's store_location_for helper.
+  #
+  # @param scope [Symbol] Scope name (e.g., :user)
+  # @param location [String] URL to store
+  def store_location_for(scope, location)
+    session["#{scope}_return_to"] = location
+  end
+
+  # Retrieve stored location from session.
+  #
+  # Compatible with Devise's stored_location_for helper.
+  #
+  # @param scope [Symbol] Scope name (e.g., :user)
+  # @return [String, nil] Stored location or nil if not present
+  def stored_location_for(scope)
+    session["#{scope}_return_to"]
+  end
+
+  # Clear stored location from session.
+  #
+  # @param scope [Symbol] Scope name (e.g., :user)
+  def clear_stored_location_for(scope)
+    session.delete("#{scope}_return_to")
+  end
+
   def allowed_setup_controllers
     controller_path.in?(
       [

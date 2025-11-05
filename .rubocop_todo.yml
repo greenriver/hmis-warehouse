@@ -1305,7 +1305,6 @@ Style/FrozenStringLiteralComment:
     - 'app/controllers/service_history_logs_controller.rb'
     - 'app/controllers/source_clients_controller.rb'
     - 'app/controllers/tokens_controller.rb'
-    - 'app/controllers/users/account_requests_controller.rb'
     - 'app/controllers/warehouse_reports/active_veterans_controller.rb'
     - 'app/controllers/warehouse_reports/ad_hoc_analysis_controller.rb'
     - 'app/controllers/warehouse_reports/ad_hoc_anon_analysis_controller.rb'

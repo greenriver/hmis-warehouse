@@ -183,7 +183,7 @@ module Admin
 
     # Validates and sanitizes the base parameter for form input naming.
     # The base parameter determines the prefix used for form field names
-    # (e.g., 'user[projects][]' vs 'invitation[projects][]').
+    # (e.g., 'user[projects][]').
     #
     # @return [String] The sanitized base parameter, defaults to 'user'
     #
