@@ -53,7 +53,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         category: 'household_calculations',
         count_change_threshold: 1,
         percent_change_threshold: nil,
-        active: true,
+        active: false,
         alert_code: 'metric_household_size_threshold',
       }
     end

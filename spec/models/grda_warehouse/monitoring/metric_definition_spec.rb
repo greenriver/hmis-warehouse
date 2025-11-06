@@ -75,7 +75,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       expect(metric).to be_present
       expect(metric.entity_type).to eq('GrdaWarehouse::Hud::Client')
       expect(metric.calculator_class).to eq('GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator')
-      expect(metric.active).to be true
+      expect(metric.active).to be false
     end
   end
 

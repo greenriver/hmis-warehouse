@@ -96,21 +96,55 @@ export default class extends Controller {
       return originalParseInput(value);
     }
 
-    const stringValue = value.toString().trim();
+    const rawValue = value.toString().trim();
+
+    // Preserve any localization details supplied via data attributes so the picker
+    // respects backend configuration (locale, formatting, etc.) during parsing.
+    let optionsData = {};
+    try {
+      optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
+    } catch (_) {
+      optionsData = {};
+    }
+
+    const locale = optionsData.localization?.locale || 'en-US';
+    const normalizedValue = this.normalizeMonthAliases(rawValue, locale);
+    const localizationForFormat = (format) => {
+      if (optionsData.localization) {
+        return { ...optionsData.localization, locale, format };
+      }
+
+      return { locale, format };
+    };
 
     // Try the original parsing first (handles the expected format)
-    try {
-      const originalResult = originalParseInput(value);
-      if (originalResult && originalResult.isValid) {
-        return originalResult;
+    const tryOriginalParse = (candidate) => {
+      try {
+        const result = originalParseInput(candidate);
+        if (result && result.isValid) {
+          return result;
+        }
+      } catch (_) {
+        // Continue to flexible parsing if original fails
       }
-    } catch (error) {
-      // Continue to flexible parsing if original fails
+
+      return undefined;
+    };
+
+    let parsed = tryOriginalParse(rawValue);
+    if (parsed) return parsed;
+
+    if (normalizedValue !== rawValue) {
+      parsed = tryOriginalParse(normalizedValue);
+      if (parsed) return parsed;
     }
 
     // Use Tempus Dominus DateTime to parse common date formats
+    // Allow both abbreviated and fully spelled-out months along with several
+    // common numeric permutations so we accept the majority of user input cases.
     const formats = [
       'MMM d, yyyy',
+      'MMMM d, yyyy',
       'MM/dd/yyyy',
       'M/d/yyyy',
       'MM-dd-yyyy',
@@ -123,26 +157,48 @@ export default class extends Controller {
       'M-d-yy',
     ];
 
-    let locale = 'en-US';
-    try {
-      const optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
-      if (optionsData.localization && optionsData.localization.locale) {
-        locale = optionsData.localization.locale;
+    const parseCandidates = normalizedValue === rawValue ? [normalizedValue] : [normalizedValue, rawValue];
+    for (const candidate of parseCandidates) {
+      for (const fmt of formats) {
+        try {
+          const dt = DateTime.fromString(candidate, localizationForFormat(fmt));
+          if (dt && DateTime.isValid(dt)) {
+            return dt;
+          }
+        } catch (_) { }
       }
-    } catch (_) { }
+    }
 
-    for (const fmt of formats) {
-      try {
-        const dt = DateTime.fromString(stringValue, { locale, format: fmt });
-        if (dt && DateTime.isValid(dt)) {
-          return dt;
-        }
-      } catch (_) { }
+    // Fallback to the browser's parser for inputs Tempus Dominus cannot handle
+    // (e.g., informal month names like "Sept" that sit between MMM and MMMM).
+    for (const candidate of parseCandidates) {
+      const nativeDate = new Date(candidate);
+      if (!Number.isNaN(nativeDate.getTime())) {
+        try {
+          const localization = optionsData.localization ? { ...optionsData.localization, locale } : { locale };
+          return DateTime.convert(nativeDate, locale, localization);
+        } catch (_) { }
+      }
     }
 
     // If flexible parsing fails, return the original parsing result
     // This will let TempusDominus handle the error appropriately
     return originalParseInput(value);
+  }
+
+  normalizeMonthAliases(value, locale) {
+    const normalizedLocale = (locale || '').toLowerCase();
+    if (!normalizedLocale.startsWith('en')) {
+      return value;
+    }
+
+    return value.replace(/\bsept\.?\b/gi, (match) => this.applyMatchCase(match.replace(/\./g, ''), 'Sep'));
+  }
+
+  applyMatchCase(source, target) {
+    if (source === source.toUpperCase()) return target.toUpperCase();
+    if (source === source.toLowerCase()) return target.toLowerCase();
+    return target[0].toUpperCase() + target.slice(1);
   }
 
   addButtonLabels() {

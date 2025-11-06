@@ -36,16 +36,14 @@ module GrdaWarehouse::WarehouseReports
               entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
             ),
           )
+      # Users with role-based access fall into the scenarios below
+      elsif user.can_view_all_reports? || user.can_view_assigned_reports?
+        # Both permissions allow access to report definitions the user has access to
+        # (via collections/access groups). can_view_all_reports additionally allows
+        # seeing report runs by other users (handled elsewhere, not in this method).
+        where(id: user.reports.pluck(:id))
       else
-        if user.can_view_all_reports? # rubocop:disable Style/IfInsideElse
-          # If you can view all reports, regardless of who ran the report, for reports you have access to
-          where(id: user.reports.pluck(:id))
-        elsif user.can_view_assigned_reports?
-          joins(:group_viewable_entities).
-            merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
-        else
-          none
-        end
+        none
       end
     end
     # END_ACL
