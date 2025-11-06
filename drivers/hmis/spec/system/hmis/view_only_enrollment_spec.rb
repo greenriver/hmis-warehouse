@@ -10,7 +10,10 @@ require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.feature 'Enrollment/view only access', type: :system do
+# System tests for view-only access to enrollments and assessments.
+# Verifies that users with view-only permissions can see enrollment details
+# but cannot edit, submit, unlock, or delete records.
+RSpec.feature 'View-only access to Enrollments', type: :system do
   include_context 'hmis base setup'
 
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
