@@ -96,13 +96,6 @@ module Idp
       def default_session_timeout
         30.minutes
       end
-
-      # Default impersonation timeout period
-      #
-      # @return [ActiveSupport::Duration] Default timeout period (8 hours)
-      def default_impersonation_timeout
-        8.hours
-      end
     end
   end
 end

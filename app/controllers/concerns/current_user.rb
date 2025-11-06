@@ -20,19 +20,37 @@ module CurrentUser
     # Also ensures authentication source exists for the user (only once per request).
     # This handles cases where users existed before IDP integration.
     #
-    # @return [User, nil] Current user or nil if not authenticated
+    # If impersonation is active, returns the impersonated user instead of the true user.
+    #
+    # @return [User, nil] Current user (or impersonated user) or nil if not authenticated
     def current_user
       @current_user ||= begin
         jwt_helper = jwt_helper_for_request
         return nil unless jwt_helper&.token? && jwt_helper.validate!
 
-        user = User.find_from_jwt(jwt_helper)
-        return nil unless user
+        authenticated_user = User.find_from_jwt(jwt_helper)
+        return nil unless authenticated_user
 
         # Ensure authentication source exists (only once per request)
-        ensure_authentication_source(user, jwt_helper) unless @auth_source_ensured
+        ensure_authentication_source(authenticated_user, jwt_helper) unless @auth_source_ensured
 
-        user
+        # Check for impersonation state
+        impersonation_manager = ImpersonationManager.new(session&.id)
+        impersonation_data = impersonation_manager.get
+        if impersonation_data && impersonation_data[:impersonated_user_id].present?
+          # Validate permissions on every request
+          true_user = User.find_by(id: impersonation_data[:true_user_id])
+          impersonated_user = User.find_by(id: impersonation_data[:impersonated_user_id])
+
+          return impersonated_user if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
+
+          # Clear invalid impersonation
+          impersonation_manager.clear
+          return authenticated_user
+
+        end
+
+        authenticated_user
       end
     end
     helper_method :current_user
@@ -88,13 +106,36 @@ module CurrentUser
 
     # Get the true user (when impersonating).
     #
-    # @return [User, nil] True user or nil if not impersonating
+    # Returns the actual authenticated user from JWT, not the impersonated user.
+    # If not impersonating, returns the current_user.
+    #
+    # @return [User, nil] True user or nil if not authenticated
     def true_user
-      # If impersonation is active, return the true user
-      # This uses the pretender gem's impersonation functionality
-      session[:true_user_id] ? User.find_by(id: session[:true_user_id]) : current_user
+      return nil unless current_user
+
+      impersonation_manager = ImpersonationManager.new(session&.id)
+      impersonation_data = impersonation_manager.get
+      return current_user unless impersonation_data && impersonation_data[:true_user_id].present?
+
+      true_user_record = User.find_by(id: impersonation_data[:true_user_id])
+      true_user_record || current_user
     end
     helper_method :true_user
+
+    # Check if currently impersonating another user.
+    #
+    # @return [Boolean] true if impersonating, false otherwise
+    def impersonating?
+      return false unless current_user
+
+      impersonation_manager = ImpersonationManager.new(session&.id)
+      impersonation_data = impersonation_manager.get
+      return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
+
+      # Verify the impersonated user matches current_user
+      impersonation_data[:impersonated_user_id] == current_user.id
+    end
+    helper_method :impersonating?
 
     private
 
@@ -132,14 +173,19 @@ module CurrentUser
       @auth_source_ensured = true
     end
 
-    # Get JwtHelper instance for the current request.
+    # Validate impersonation permissions.
     #
-    # @return [JwtHelper, nil] JwtHelper instance or nil if no token present
-    def jwt_helper_for_request
-      access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
-      return nil unless access_token.present?
+    # Checks that the true user has permission to impersonate and that the
+    # impersonated user can be impersonated by the true user.
+    #
+    # @param true_user [User] The user who is impersonating
+    # @param impersonated_user [User] The user being impersonated
+    # @return [Boolean] true if impersonation is allowed, false otherwise
+    def validate_impersonation_permissions(true_user, impersonated_user)
+      return false unless true_user&.can_impersonate_users?
+      return false unless impersonated_user&.impersonateable_by?(true_user)
 
-      JwtHelper.new(access_token: access_token)
+      true
     end
 
     # Handle unauthenticated user.

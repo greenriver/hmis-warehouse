@@ -3141,7 +3141,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/health_thrive_assessment/config/routes.rb'
     - 'drivers/health_thrive_assessment/extensions/health/patient_extension.rb'
     - 'drivers/hmis/app/controllers/hmis/concerns/json_errors.rb'
-    - 'drivers/hmis/app/controllers/hmis/impersonations_controller.rb'
     - 'drivers/hmis/app/controllers/hmis/session_keepalives_controller.rb'
     - 'drivers/hmis/app/controllers/hmis/theme_controller.rb'
     - 'drivers/hmis/app/controllers/hmis/users_controller.rb'
