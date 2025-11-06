@@ -1,0 +1,21 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+        %th Connector ID
+        %th API URL
+        %th Active
+        %th
+    %tbody
+      - list.each do |config|
+        %tr
+          %td
+            = link_to config.name, edit_admin_idp_service_config_path(config)
+          %td= config.connector_id
+          %td= truncate(config.api_url, length: 50)
+          %td= checkmark(config.active)
+          %td
+            = link_to admin_idp_service_config_path(config), method: :delete, data: {confirm: "Would you really like to delete the IDP service config #{config.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+              %span.icon-cross
+              Delete

@@ -756,7 +756,7 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    resources :users, except: [:show, :new, :create] do
+    resources :users, except: [:show] do
       resource :audit, only: :show
       resource :edit_history, only: :show
       resource :locations, only: :show
@@ -906,6 +906,7 @@ Rails.application.routes.draw do
     end
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
+    resources :idp_service_configs, except: [:show]
     resources :delayed_jobs, only: [:index, :update, :destroy]
 
     resources :system_maintenance_tasks, only: [:index]

@@ -13,17 +13,16 @@ module Idp
   # Zitadel IDP service implementation.
   #
   # Provides user management operations for Zitadel IDP using the Management API.
-  # Requires environment variables:
-  # - ZITADEL_API_URL: Base URL for Zitadel API (e.g., http://zitadel.dev.test:8080)
-  # - ZITADEL_SERVICE_USER_TOKEN: Personal Access Token with admin permissions
-  # - ZITADEL_ORG_ID: Organization ID in Zitadel
-  # - ZITADEL_PROJECT_ID: (Optional) Project ID for granting user access to the Warehouse application
+  # Can be initialized with a config hash (from Idp::ServiceConfig) or will use ENV variables as fallback.
+  #
+  # Config hash keys:
+  # - api_url: Base URL for Zitadel API (e.g., http://zitadel.dev.test:8080)
+  # - service_token: Personal Access Token with admin permissions
+  # - org_id: Organization ID in Zitadel
+  # - project_id: (Optional) Project ID for granting user access to the Warehouse application
   class ZitadelService < Service
-    def initialize
-      @api_url = ENV.fetch('ZITADEL_API_URL', 'http://zitadel.dev.test:8080')
-      @token = ENV.fetch('ZITADEL_SERVICE_USER_TOKEN')
-      @org_id = ENV.fetch('ZITADEL_ORG_ID')
-      @project_id = ENV['ZITADEL_PROJECT_ID']
+    def initialize(config: nil)
+      super(config: config || default_config)
     end
 
     # Create a new user in Zitadel.
@@ -32,7 +31,8 @@ module Idp
     # @param first_name [String] User's first name
     # @param last_name [String] User's last name
     # @param phone [String, nil] User's phone number (optional)
-    # @return [Hash] User data including 'userId'
+    # @return [Hash] Result hash with :success (Boolean) and :connector_user_id (String, nil)
+    #   Example: { success: true, connector_user_id: 'user-123' }
     # @raise [Idp::ServiceError] if user creation fails
     def create_user(email:, first_name:, last_name:, phone: nil)
       user_data = {
@@ -63,7 +63,10 @@ module Idp
         result = JSON.parse(response.body)
         # Grant user access to project if project_id is configured
         grant_project_access(result['userId']) if project_id.present? && result['userId']
-        result
+        {
+          success: true,
+          connector_user_id: result['userId'],
+        }
       when 400..499
         begin
           error_data = JSON.parse(response.body)
@@ -218,9 +221,9 @@ module Idp
 
     # Check if Zitadel supports user management operations.
     #
-    # @return [Boolean] true
+    # @return [Boolean] true if API URL and token are configured
     def supports_user_management?
-      true
+      api_url.present? && token.present?
     end
 
     # Check if Zitadel supports profile field updates.
@@ -232,7 +235,21 @@ module Idp
 
     private
 
-    attr_reader :api_url, :token, :org_id, :project_id
+    def api_url
+      config[:api_url]
+    end
+
+    def token
+      config[:service_token]
+    end
+
+    def org_id
+      config[:org_id]
+    end
+
+    def project_id
+      config[:project_id]
+    end
 
     # Make HTTP request to Zitadel API.
     #
@@ -262,21 +279,10 @@ module Idp
       request = request_class.new(uri.path)
       request['Authorization'] = "Bearer #{token}"
       request['Content-Type'] = 'application/json'
-      request['x-zitadel-orgid'] = org_id
+      request['x-zitadel-orgid'] = org_id if org_id.present?
       request.body = body.to_json if body
 
       http.request(request)
-    end
-
-    # Find user ID by email address.
-    #
-    # @param _email [String] User's email address (unused - placeholder for future implementation)
-    # @return [String, nil] User ID if found, nil otherwise
-    def find_user_by_email(_email)
-      # Note: Zitadel API doesn't have a direct search by email endpoint in Management API
-      # This is a placeholder - actual implementation may need to use a different approach
-      # or maintain a mapping of email to user_id
-      nil
     end
 
     # Grant user access to the configured project.
@@ -297,6 +303,17 @@ module Idp
       # For now, we'll log a warning if project_id is set but we can't grant access
       Rails.logger.warn "Project ID configured but project access granting not yet implemented. User ID: #{user_id}, Project ID: #{project_id}"
       true
+    end
+
+    protected
+
+    def default_config
+      {
+        api_url: ENV['ZITADEL_API_URL'],
+        service_token: ENV['ZITADEL_SERVICE_USER_TOKEN'],
+        org_id: ENV['ZITADEL_ORG_ID'],
+        project_id: ENV['ZITADEL_PROJECT_ID'],
+      }
     end
   end
 end

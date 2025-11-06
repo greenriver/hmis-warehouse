@@ -42,6 +42,8 @@ module Idp
 
       # Get an IDP service instance for the given connector_id.
       #
+      # Checks for Idp::ServiceConfig record first, then falls back to registered service classes.
+      #
       # @param connector_id [String] The connector ID
       # @return [Idp::Service] Instance of the appropriate IDP service
       # @return [Idp::NullService] If connector_id is not registered
@@ -49,6 +51,11 @@ module Idp
         initialize_registry
         return Idp::NullService.new(connector_id) unless connector_id.present?
 
+        # Check for Idp::ServiceConfig record first
+        config_record = Idp::ServiceConfig.active.find_by(connector_id: connector_id) if defined?(Idp::ServiceConfig)
+        return config_record.to_service if config_record
+
+        # Fall back to registered service classes
         service_class = @services[connector_id.to_s]
         return Idp::NullService.new(connector_id) unless service_class
 
@@ -88,6 +95,13 @@ module Idp
       # @return [ActiveSupport::Duration] Default session timeout period (30 minutes)
       def default_session_timeout
         30.minutes
+      end
+
+      # Default impersonation timeout period
+      #
+      # @return [ActiveSupport::Duration] Default timeout period (8 hours)
+      def default_impersonation_timeout
+        8.hours
       end
     end
   end

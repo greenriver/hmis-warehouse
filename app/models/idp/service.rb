@@ -19,13 +19,20 @@ module Idp
   #
   # @abstract Subclass and implement all methods to create a concrete IDP service.
   class Service
+    attr_reader :config
+
+    def initialize(config: nil)
+      @config = config || default_config
+    end
+
     # Create a new user in the IDP.
     #
     # @param email [String] User's email address
     # @param first_name [String] User's first name
     # @param last_name [String] User's last name
     # @param phone [String, nil] User's phone number (optional)
-    # @return [Hash] User data including IDP user ID
+    # @return [Hash] Result hash with :success (Boolean) and :connector_user_id (String, nil)
+    #   Example: { success: true, connector_user_id: 'user-123' }
     # @raise [Idp::ServiceError] if user creation fails
     def create_user(email:, first_name:, last_name:, phone: nil)
       raise NotImplementedError, "#{self.class.name} must implement #create_user"
@@ -78,6 +85,12 @@ module Idp
     # @return [Boolean] true if IDP supports updating profile fields
     def supports_profile_updates?
       false
+    end
+
+    protected
+
+    def default_config
+      {}
     end
   end
 
