@@ -431,14 +431,27 @@ module ApplicationHelper
   # If a user has a last_connector_id set, it will be included as a query parameter
   # to automatically direct them to the correct IDP.
   #
+  # OAuth2-proxy supports the `rd` (redirect) query parameter to preserve the
+  # original URL through the authentication flow.
+  #
   # @param user [User, nil] User to get connector_id from (defaults to current_user)
-  # @return [String] Sign-in path, e.g., '/oauth2/sign_in' or '/oauth2/sign_in?connector_id=zitadel'
-  def oauth2_sign_in_path(user: current_user)
+  # @param redirect_to [String, nil] URL to redirect to after authentication (passed as `rd` parameter)
+  # @return [String] Sign-in path, e.g., '/oauth2/sign_in' or '/oauth2/sign_in?connector_id=zitadel&rd=/path'
+  def oauth2_sign_in_path(user: current_user, redirect_to: nil)
     path = '/oauth2/sign_in'
-    connector_id = user&.last_connector_id
-    return path unless connector_id.present?
+    params = []
 
-    "#{path}?connector_id=#{CGI.escape(connector_id)}"
+    connector_id = user&.last_connector_id
+    params << "connector_id=#{CGI.escape(connector_id)}" if connector_id.present?
+
+    if redirect_to.present?
+      # OAuth2-proxy uses `rd` parameter for redirect URL
+      params << "rd=#{CGI.escape(redirect_to)}"
+    end
+
+    return path if params.empty?
+
+    "#{path}?#{params.join('&')}"
   end
 
   # Generate OAuth2-proxy sign-in link.
