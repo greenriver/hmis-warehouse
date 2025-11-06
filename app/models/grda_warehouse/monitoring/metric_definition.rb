@@ -152,7 +152,8 @@ module GrdaWarehouse::Monitoring
         total_count = crossings.count
         truncated = total_count > limit
 
-        results[metric.alert_code][metric.display_name] = {
+        results[metric.alert_code][metric.id] = {
+          display_name: metric.display_name,
           data: crossings.first(limit),
           total_count: total_count,
           truncated: truncated,

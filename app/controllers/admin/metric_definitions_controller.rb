@@ -29,10 +29,10 @@ module Admin
     end
 
     def crossings_for_date
-      calculation_date = begin
-        Date.strptime(params[:date], '%Y-%m-%d')
-      rescue Date::Error
+      calculation_date = if params[:date].blank?
         @metric_definition.metric_snapshots.order(id: :asc).last&.initial_observation_date || Date.current
+      else
+        Date.strptime(params[:date], '%Y-%m-%d')
       end
 
       # Get all entity IDs that crossed on this date
@@ -61,7 +61,7 @@ module Admin
       end
 
       render json: {
-        date: calculation_date.strftime('%B %d, %Y'),
+        date: calculation_date.to_fs,
         crossings: crossings_with_urls,
       }
     end

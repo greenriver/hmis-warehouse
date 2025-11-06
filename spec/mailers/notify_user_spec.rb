@@ -191,9 +191,11 @@ RSpec.describe NotifyUser, type: :mailer do
     end
 
     let(:calculation_date) { Date.current }
+    let(:metric_id) { 42 }
     let(:crossings) do
       {
-        'Days Homeless (Last 3 Years)' => {
+        metric_id => {
+          display_name: 'Days Homeless (Last 3 Years)',
           data: [
             { entity_id: 123, current_value: 150, previous_value: 100 },
             { entity_id: 456, current_value: 200, previous_value: 150 },
@@ -251,7 +253,8 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
       let(:crossings) do
         {
-          'Days Homeless (Last 3 Years)' => {
+          metric_id => {
+            display_name: 'Days Homeless (Last 3 Years)',
             data: Array.new(50) { |i| { entity_id: i, current_value: 150, previous_value: 100 } },
             total_count: 75,
             truncated: true,
@@ -268,7 +271,8 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
       let(:crossings) do
         {
-          'Maximum Household Size' => {
+          100 => {
+            display_name: 'Maximum Household Size',
             data: [{ entity_id: 789, current_value: 5, previous_value: 3 }],
             total_count: 1,
             truncated: false,
@@ -297,12 +301,14 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
       let(:crossings) do
         {
-          'Maximum Household Size' => {
+          100 => {
+            display_name: 'Maximum Household Size',
             data: [{ entity_id: 111, current_value: 5, previous_value: 3 }],
             total_count: 1,
             truncated: false,
           },
-          'Minimum Household Size' => {
+          200 => {
+            display_name: 'Minimum Household Size',
             data: [{ entity_id: 222, current_value: 1, previous_value: 2 }],
             total_count: 1,
             truncated: false,

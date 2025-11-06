@@ -26,7 +26,7 @@ This document outlines the design for a flexible, performant threshold monitorin
 ### Core Design Principles
 
 1. **Polymorphic Entities**: Track metrics for any entity type (Client, Project, DataSource, etc.)
-2. **Flexible Values**: Support multiple data types (integer, float, string, boolean, JSON)
+2. **Simple Values**: Thresholds monitor changes that can be expressed as integers
 3. **Pluggable Calculators**: Separate metric calculation logic from storage
 4. **Single Table Storage**: Simplified querying with intelligent retention policy
 5. **Performance Optimized**: Batch processing, bulk upserts, composite indexes
@@ -37,69 +37,13 @@ This document outlines the design for a flexible, performant threshold monitorin
 
 Stores the catalog of available metrics and how to calculate them.
 
-```ruby
-create_table :metric_definitions, comment: 'Catalog of available metrics and calculation rules' do |t|
-  t.string :name, null: false, limit: 100, comment: 'Unique identifier (e.g., days_homeless_last_three_years)'
-  t.string :display_name, null: false, comment: 'Human-readable name for UI'
-  t.text :description, comment: 'Detailed description of what this metric measures'
-
-  t.string :entity_type, null: false, comment: 'Entity class this metric applies to (e.g., GrdaWarehouse::Hud::Client)'
-  t.string :calculator_class, null: false, comment: 'Ruby class that implements calculation logic'
-  t.integer :calculation_window_days, comment: 'Lookback period in days (e.g., 1095 for 3 years)'
-
-  t.integer :count_change_threshold, comment: 'Only record snapshot if value changes by at least this amount (sparse storage)'
-  t.decimal :percent_change_threshold, precision: 5, scale: 2, comment: 'Only record snapshot if value changes by at least this percentage (sparse storage)'
-
-  t.string :category, limit: 50, comment: 'Grouping category for UI organization'
-  t.boolean :active, default: true, null: false, comment: 'Whether this metric is actively being calculated'
-
-  t.timestamps
-
-  t.index [:entity_type, :name], unique: true, name: 'index_metric_defs_on_entity_and_name'
-  t.index :active
-  t.index :category
-end
-```
-
-**Key Fields:**
-
-- `name`: Unique identifier within entity type (used in code)
-- `entity_type`: What this metric applies to (Client, Project, etc.)
-- `calculator_class`: Ruby class that implements calculation logic
-- `calculation_window_days`: Lookback period (e.g., 1095 days = 3 years)
-- `category`: Grouping for UI and reporting
-
 **Design Decision: Single Value Type**
 
 All metrics store integer values in a single column. This simplifies the schema and is appropriate since all current and planned metrics are count-based (days, enrollments, household sizes, etc.).
 
 #### Metric Snapshots Table (`metric_snapshots`)
 
-Stores time-range snapshots using range-based sparse storage. Each snapshot represents a period where a metric value stayed within the configured threshold.
-
-```ruby
-create_table :metric_snapshots, comment: 'Time-series snapshots of metric values (range-based sparse storage)',
-             partition_by: { type: :range, key: :initial_observation_date } do |t|
-  t.references :entity, polymorphic: true, null: false, comment: 'Entity being measured'
-  t.references :metric_definition, null: false, foreign_key: true, comment: 'Which metric this snapshot is for'
-
-  t.date :initial_observation_date, null: false, comment: 'Date this value range started'
-  t.date :current_observation_date, null: false, comment: 'Date this value was last calculated/verified'
-
-  t.integer :initial_value, null: false, comment: 'Value when first observed'
-  t.integer :current_value, null: false, comment: 'Value as of last verification (updated daily)'
-
-  t.string :calculation_version, limit: 20, comment: 'Version of calculator that produced this value'
-
-  t.timestamps
-
-  t.index [:entity_type, :entity_id, :metric_definition_id, :current_observation_date, :initial_observation_date],
-          unique: true,
-          name: 'index_metric_snapshots_unique'
-  t.index [:metric_definition_id, :current_observation_date]
-  t.index [:entity_type, :entity_id, :current_observation_date]
-end
-```
+Stores time-range snapshots using range-based sparse storage. Each snapshot represents a period where a metric value stayed within the configured threshold. The table is partitioned by `initial_observation_date` with quarterly partitions (3 years past + 10 years future).
 
 **Design Decisions:**
 
@@ -113,6 +57,10 @@ end
   - Pre-created partitions: 3 years past + 10 years future
   - Enables efficient archival and query performance
 - **Composite indexes**: Optimized for common query patterns (time series, change detection)
+
+#### Metric Calculation Runs Table (`metric_calculation_runs`)
+
+Logs each execution of the metric collection job, tracking statistics and status for monitoring and debugging.
 
 ### Sparse Storage Strategy
 
@@ -296,7 +244,7 @@ See `app/models/grda_warehouse/monitoring/metric_snapshot.rb` for implementation
 
 ## Implemented Metrics
 
-### Client Metrics (3-year lookback window)
+### Client Metrics
 
 | Metric Name | Display Name | Calculator | Threshold | Description |
 |-------------|--------------|------------|-----------|-------------|
@@ -363,24 +311,9 @@ Total                              ~24s
 
 ## Integration Points
 
-### Future: Alert System Integration
+### Alert System Integration
 
-Metrics can drive alerts through change detection:
-- Alert when homeless days increase significantly
-- Notify case managers of household composition changes
-- Track data quality metrics and flag issues
-
-### Future: Reporting Integration
-
-Metrics provide time-series data for dashboards and reports:
-- Trend charts showing metric evolution over time
-- Cohort analysis comparing metric trends across groups
-- Change reports highlighting entities with significant changes
-- Aggregate statistics (sum, average, percentiles)
-
-### Future: API Integration
-
-Expose metrics via API endpoints for external consumption
+Metrics can drive alerts through change detection.  Alerts for system-level thresholds can be enabled on the user edit screen.  Alerts for project or organization level thresholds can be applied on the contact pages for projects and organizations.  At this time there are no project or organization level thresholds.
 
 ## Extensibility
 
@@ -393,23 +326,16 @@ Expose metrics via API endpoints for external consumption
    - Include batch processing for efficiency (single query for all entities)
 
 2. **Register Calculator**
-   - Add to `AVAILABLE_CALCULATORS` array in `MetricDefinition`
+   - Add to `available_calculators` array in `MetricDefinition`
 
 3. **Run Maintenance Task**
    - `MetricDefinition.maintain!` will create the metric definition
-   - Or restart application (runs automatically via TaskQueue)
 
-4. **Next Collection Run**: New metric automatically calculated for all active entities
+4. **Enable the New Threshold**
+   - Visit the threshold monitoring page in the admin section and enable the threshold monitoring
 
-**No schema changes or manual database updates required!**
+5. **Next Collection Run**: New metric automatically calculated for all active entities
 
-### Adding a New Entity Type
-
-1. **Create Calculators** for metrics applicable to this entity
-
-2. **Update Active Entity Filtering** in `MetricSnapshotCollector#get_active_entities`
-
-3. **Create Collection Job** (or extend existing job to handle multiple entity types)
 
 ## Testing Strategy
 
@@ -424,10 +350,6 @@ Expose metrics via API endpoints for external consumption
 - **Collection Flow**: End-to-end batch collection with threshold detection
 - **Data Retention**: Verify 3-year cleanup preserves correct records
 - **Statistics Tracking**: Verify calculation run records track correct counts
-
-**Test Location**: `spec/models/grda_warehouse/monitoring/`
-
-**Run Tests**: `dcr spec bundle exec rspec spec/models/grda_warehouse/monitoring/`
 
 ## Key Design Decisions
 
@@ -529,84 +451,3 @@ Expose metrics via API endpoints for external consumption
 - 5,000+ entities processed per batch
 - Sub-minute calculation times
 - Scalable to large datasets
-
-## Migration Plan
-
-See [implementation-working-documents/metric-tracking-implementation.md](../implementation-working-documents/metric-tracking-implementation.md) for detailed implementation steps.
-
-## Future Enhancements
-
-### Query Interface (Phase 4)
-
-Implement `HasMetricSnapshots` concern for easy metric access from entity models:
-- `client.metric_value('days_homeless_last_three_years')`
-- `client.metric_time_series('days_homeless_last_three_years', start_date:, end_date:)`
-- `client.metric_change('days_homeless_last_three_years', days_back: 7)`
-
-### Additional Metrics
-
-Implement remaining planned client metrics:
-- Enrollment counts
-- Unique projects served
-- Service counts
-- Current living situation assessments
-- Source client counts
-
-### Alert System
-
-Use metrics for change-based alerting:
-- Detect significant increases in homeless days
-- Monitor household composition changes
-- Track data quality indicators
-
-### Reporting & Visualization
-
-Build dashboards showing:
-- Trend charts with interpolation
-- Cohort analysis across client groups
-- Change detection reports
-- Population-level aggregations
-
-### Metric Metadata
-
-Store additional context with snapshots (JSONB column):
-- Data quality flags
-- Confidence scores
-- Contributing factors for changes
-
-### Additional Entity Types
-
-Extend to Projects, Data Sources, and Organizations with relevant metrics
-
-## References
-
-### Implementation Files
-
-**Models:**
-- `app/models/grda_warehouse/monitoring/metric_definition.rb`
-- `app/models/grda_warehouse/monitoring/metric_snapshot.rb`
-- `app/models/grda_warehouse/monitoring/metric_calculation_run.rb`
-
-**Calculators:**
-- `app/models/grda_warehouse/monitoring/metric_calculators/base_calculator.rb`
-- `app/models/grda_warehouse/monitoring/metric_calculators/homeless_days_last_three_years_calculator.rb`
-- `app/models/grda_warehouse/monitoring/metric_calculators/min_household_size_calculator.rb`
-- `app/models/grda_warehouse/monitoring/metric_calculators/max_household_size_calculator.rb`
-
-**Collection:**
-- `app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb`
-- `app/jobs/collect_client_metrics_job.rb`
-
-**Migrations:**
-- `db/warehouse/migrate/20251020141816_create_metric_definitions.rb`
-- `db/warehouse/migrate/20251020142047_create_metric_snapshots.rb`
-- `db/warehouse/migrate/20251020142304_create_metric_calculation_runs.rb`
-
-**Tests:**
-- `spec/models/grda_warehouse/monitoring/`
-
-### Related Documentation
-
-- Implementation Details: `docs/implementation-working-documents/metric-tracking-implementation.md`
-- Warehouse Clients Processed: `app/models/grda_warehouse/warehouse_clients_processed.rb`
-- Service History: `app/models/grda_warehouse/service_history_service.rb`
