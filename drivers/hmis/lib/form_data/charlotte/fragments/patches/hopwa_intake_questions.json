@@ -7,6 +7,7 @@
         "link_id": "hopwa_intake",
         "text": "HOPWA Intake Questions",
         "type": "GROUP",
+        "data_collected_about": "HOH",
         "item": [
           {
             "text": "County of Residence",
@@ -18,7 +19,6 @@
             "warn_if_empty": false,
             "disabled_display": "HIDDEN",
             "pick_list_reference": "GEOCODE",
-            "data_collected_about": "HOH",
             "mapping": {
               "custom_field_key": "county_of_residence"
             }
@@ -39,7 +39,6 @@
                 "code": "No"
               }
             ],
-            "data_collected_about": "HOH",
             "mapping": {
               "custom_field_key": "housing_plan"
             }
@@ -60,7 +59,6 @@
                 "code": "No"
               }
             ],
-            "data_collected_about": "HOH",
             "mapping": {
               "custom_field_key": "service_plan"
             }
@@ -97,7 +95,6 @@
                 "code": "Not in Plan"
               }
             ],
-            "data_collected_about": "HOH",
             "mapping": {
               "custom_field_key": "maintained_contact_with_case_manager"
             }
@@ -134,7 +131,6 @@
                 "code": "Not in Plan"
               }
             ],
-            "data_collected_about": "HOH",
             "mapping": {
               "custom_field_key": "primary_health_contact"
             }
@@ -149,7 +145,6 @@
                 "read_only": false,
                 "warn_if_empty": false,
                 "disabled_display": "HIDDEN",
-                "data_collected_about": "HOH",
                 "mapping": {
                   "custom_field_key": "hiv_status_verification_source"
                 }
@@ -162,7 +157,6 @@
                 "read_only": false,
                 "warn_if_empty": false,
                 "disabled_display": "HIDDEN",
-                "data_collected_about": "HOH",
                 "mapping": {
                   "custom_field_key": "hiv_status_verification_date"
                 }
@@ -191,7 +185,6 @@
                 "code": "Unknown"
               }
             ],
-            "data_collected_about": "HOH",
             "mapping": {
               "custom_field_key": "improved_viral_load_or_achieved_viral_suppression"
             }
