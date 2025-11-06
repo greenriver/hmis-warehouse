@@ -1844,7 +1844,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/eto_api/detail.rb'
     - 'app/models/eto_api/tasks/update_eto_data.rb'
     - 'app/models/external_hmis/client_path.rb'
-    - 'app/models/external_hmis/enrollment_path.rb'
     - 'app/models/external_hmis/project_path.rb'
     - 'app/models/favorite.rb'
     - 'app/models/filters/chronic.rb'
