@@ -67,33 +67,5 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
         expect(picker.value).to eq(sept_expected_date)
       end
     end
-
-    it 'supports keyboard entry for datepicker2' do
-      visit datepicker_style_guide_path
-
-      hidden = find('#mock_2_date_accessible', visible: false)
-      month = find('#mock_2_date_accessible_month')
-      day = find('#mock_2_date_accessible_day')
-      year = find('#mock_2_date_accessible_year')
-
-      fill_in id: month[:id], with: '5'
-      fill_in id: day[:id], with: '7'
-      fill_in id: year[:id], with: '24'
-
-      expect(hidden.value).to eq('May 7, 2024')
-
-      fill_in id: month[:id], with: '2'
-      fill_in id: day[:id], with: '31'
-      fill_in id: year[:id], with: '2024'
-
-      expect(hidden.value).to eq('')
-      expect(page).to have_selector('#mock_2_date_accessible_validation', text: 'Date is not valid')
-
-      fill_in id: day[:id], with: '29'
-      fill_in id: year[:id], with: '24'
-
-      expect(hidden.value).to eq('Feb 29, 2024')
-      expect(page).to have_no_selector('#mock_2_date_accessible_validation', visible: true)
-    end
   end
 end

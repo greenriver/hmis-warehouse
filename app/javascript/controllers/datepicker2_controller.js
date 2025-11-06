@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import Inputmask from "inputmask"
 
 const MONTHS = [
   "Jan",
@@ -19,9 +20,7 @@ const MONTHS = [
 export default class extends Controller {
   static targets = [
     "hiddenInput",
-    "month",
-    "day",
-    "year",
+    "maskedInput",
     "validationMessage",
   ]
 
@@ -32,10 +31,11 @@ export default class extends Controller {
 
   connect() {
     this.dateOptions = this.parseDateOptions()
+    this.initMaskedInput()
     this.lastEmittedValue = this.hiddenInputTarget.value || ""
 
-    this.populateSegmentsFromHidden()
-    this.syncHiddenValue()
+    this.populateMaskedFromHidden()
+    this.syncHiddenValue({ emitChange: false })
   }
 
   parseDateOptions() {
@@ -49,25 +49,28 @@ export default class extends Controller {
     }
   }
 
-  populateSegmentsFromHidden() {
-    if (!this.hasMonthTarget || !this.hasDayTarget || !this.hasYearTarget) return
+  initMaskedInput() {
+    if (!this.hasMaskedInputTarget) return
 
-    const currentValues = {
-      month: this.monthTarget.value,
-      day: this.dayTarget.value,
-      year: this.yearTarget.value,
-    }
+    this.inputMask = new Inputmask({
+      mask: "99/99/9999",
+      placeholder: "MM/DD/YYYY",
+      showMaskOnHover: false,
+      showMaskOnFocus: true,
+      clearIncomplete: false,
+    })
 
-    if (currentValues.month || currentValues.day || currentValues.year) {
-      return
-    }
+    this.inputMask.mask(this.maskedInputTarget)
+  }
+
+  populateMaskedFromHidden() {
+    if (!this.hasMaskedInputTarget) return
 
     const parsed = this.parseHiddenValue()
     if (!parsed) return
 
-    this.monthTarget.value = this.pad(parsed.month)
-    this.dayTarget.value = this.pad(parsed.day)
-    this.yearTarget.value = parsed.year.toString()
+    const formatted = this.formatMMDDYYYY(parsed)
+    if (formatted) this.maskedInputTarget.value = formatted
   }
 
   parseHiddenValue() {
@@ -77,81 +80,12 @@ export default class extends Controller {
     return this.parseDateString(value)
   }
 
-  handleSegmentInput(event) {
-    const input = event.target
-    const sanitized = input.value.replace(/[^0-9]/g, "")
-    const maxLength = Number(input.getAttribute("maxlength") || sanitized.length)
-    const trimmed = sanitized.slice(0, maxLength)
-
-    input.value = trimmed
-
-    if (
-      trimmed.length === maxLength &&
-      event.inputType !== "deleteContentBackward" &&
-      event.inputType !== "deleteContentForward"
-    ) {
-      this.focusNextSegment(input)
-    }
-
+  handleMaskedInput() {
     this.syncHiddenValue()
   }
 
-  handleSegmentBlur(event) {
-    const input = event.target
-    const digits = input.value.replace(/[^0-9]/g, "")
-
-    if (!digits) {
-      input.value = ""
-      this.syncHiddenValue()
-      return
-    }
-
-    if (input === this.yearTarget) {
-      const expanded = this.expandYear(digits)
-      input.value = expanded ? expanded.toString() : digits
-    } else {
-      input.value = this.pad(digits)
-    }
-
+  handleMaskedBlur() {
     this.syncHiddenValue()
-  }
-
-  handleSegmentKeydown(event) {
-    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return
-
-    event.preventDefault()
-
-    const input = event.target
-    const increment = event.key === "ArrowUp" ? 1 : -1
-    const bounds = this.boundsForInput(input)
-    const current = parseInt(input.value, 10) || 0
-
-    let next = current + increment
-
-    if (bounds) {
-      next = Math.min(bounds.max, Math.max(bounds.min, next))
-    }
-
-    if (input === this.yearTarget) {
-      input.value = next.toString()
-    } else {
-      input.value = this.pad(next)
-    }
-
-    this.syncHiddenValue()
-  }
-
-  boundsForInput(input) {
-    if (input === this.monthTarget) return { min: 1, max: 12 }
-    if (input === this.dayTarget) return { min: 1, max: 31 }
-
-    if (input === this.yearTarget) {
-      const min = this.optionValue(["minYear", "min_year"], 1900)
-      const max = this.optionValue(["maxYear", "max_year"], new Date().getFullYear() + 100)
-      return { min, max }
-    }
-
-    return null
   }
 
   optionValue(keys, fallback) {
@@ -164,35 +98,36 @@ export default class extends Controller {
     return fallback
   }
 
-  focusNextSegment(input) {
-    if (input === this.monthTarget && this.hasDayTarget) {
-      this.dayTarget.focus()
-    } else if (input === this.dayTarget && this.hasYearTarget) {
-      this.yearTarget.focus()
-    }
-  }
+  syncHiddenValue({ emitChange = true } = {}) {
+    if (!this.hasMaskedInputTarget) return
 
-  syncHiddenValue() {
-    const month = this.normalizeNumber(this.monthTarget?.value)
-    const day = this.normalizeNumber(this.dayTarget?.value)
-    const year = this.normalizeYear(this.yearTarget?.value)
+    const raw = (this.maskedInputTarget.value || "").trim()
+    const digitsOnly = raw.replace(/[^0-9]/g, "")
 
-    if (!month && !day && !year) {
-      this.clearHiddenValue()
+    if (!digitsOnly) {
+      this.clearHiddenValue({ emitChange })
       this.showValidationMessage("")
       return
     }
 
-    if (!(month && day && year)) {
-      this.clearHiddenValue()
-      this.showValidationMessage("Enter month, day, and year")
+    if (digitsOnly.length !== 8) {
+      this.clearHiddenValue({ emitChange })
+      this.showValidationMessage("Enter a valid date")
       return
     }
 
+    const parts = this.parseMMDDYYYY(raw)
+    if (!parts) {
+      this.clearHiddenValue({ emitChange })
+      this.showValidationMessage("Enter a valid date")
+      return
+    }
+
+    const { month, day, year } = parts
     const date = this.buildDate(year, month, day)
 
-    if (!date || !this.dateMatches(date, { year, month, day })) {
-      this.clearHiddenValue()
+    if (!date || !this.dateMatches(date, parts) || !this.yearWithinBounds(year)) {
+      this.clearHiddenValue({ emitChange })
       this.showValidationMessage("Date is not valid")
       return
     }
@@ -201,48 +136,21 @@ export default class extends Controller {
     this.hiddenInputTarget.value = formatted
     this.showValidationMessage("")
 
-    if (formatted !== this.lastEmittedValue) {
+    if (formatted !== this.lastEmittedValue && emitChange) {
       this.hiddenInputTarget.dispatchEvent(new Event("change", { bubbles: true }))
-      this.lastEmittedValue = formatted
     }
+
+    this.lastEmittedValue = formatted
   }
 
-  clearHiddenValue() {
+  clearHiddenValue({ emitChange = true } = {}) {
     if (this.hiddenInputTarget.value !== "") {
       this.hiddenInputTarget.value = ""
-      this.hiddenInputTarget.dispatchEvent(new Event("change", { bubbles: true }))
+      if (emitChange) {
+        this.hiddenInputTarget.dispatchEvent(new Event("change", { bubbles: true }))
+      }
       this.lastEmittedValue = ""
     }
-  }
-
-  normalizeNumber(value) {
-    if (!value) return null
-    const digits = value.toString().replace(/[^0-9]/g, "")
-    if (!digits) return null
-    return parseInt(digits, 10)
-  }
-
-  normalizeYear(value) {
-    if (!value) return null
-    const digits = value.toString().replace(/[^0-9]/g, "")
-    if (!digits) return null
-    return this.expandYear(digits)
-  }
-
-  expandYear(value) {
-    const digits = value.toString().slice(0, 4)
-    if (digits.length <= 2) {
-      const number = parseInt(digits, 10)
-      if (Number.isNaN(number)) return null
-      const defaultPivot = new Date().getFullYear() % 100
-      const centuryPivot = this.optionValue(["twoDigitYearPivot", "two_digit_year_pivot"], defaultPivot)
-      const century = number <= centuryPivot ? 2000 : 1900
-      return century + number
-    }
-
-    const number = parseInt(digits, 10)
-    if (Number.isNaN(number)) return null
-    return number
   }
 
   buildDate(year, month, day) {
@@ -265,6 +173,12 @@ export default class extends Controller {
     return `${monthName} ${date.getDate()}, ${date.getFullYear()}`
   }
 
+  formatMMDDYYYY({ year, month, day }) {
+    const mm = month.toString().padStart(2, "0")
+    const dd = day.toString().padStart(2, "0")
+    return `${mm}/${dd}/${year}`
+  }
+
   showValidationMessage(message) {
     if (!this.hasValidationMessageTarget) return
 
@@ -281,9 +195,9 @@ export default class extends Controller {
 
   updateAriaValidity(isValid) {
     const value = isValid ? "false" : "true"
-    ;[this.monthTarget, this.dayTarget, this.yearTarget].forEach((field) => {
-      if (field) field.setAttribute("aria-invalid", value)
-    })
+    if (this.hasMaskedInputTarget) {
+      this.maskedInputTarget.setAttribute("aria-invalid", value)
+    }
   }
 
   parseDateString(value) {
@@ -342,9 +256,45 @@ export default class extends Controller {
     return null
   }
 
-  pad(value) {
-    const number = typeof value === "number" ? value : parseInt(value || "", 10)
-    if (Number.isNaN(number)) return ""
-    return number.toString().padStart(2, "0")
+  parseMMDDYYYY(value) {
+    if (!value) return null
+    const digits = value.toString().replace(/[^0-9]/g, "")
+    if (digits.length !== 8) return null
+
+    const month = parseInt(digits.slice(0, 2), 10)
+    const day = parseInt(digits.slice(2, 4), 10)
+    const year = parseInt(digits.slice(4), 10)
+
+    if (Number.isNaN(month) || Number.isNaN(day) || Number.isNaN(year)) return null
+    if (month < 1 || month > 12) return null
+    if (day < 1 || day > 31) return null
+
+    return { month, day, year }
+  }
+
+  expandYear(value) {
+    const digits = value.toString().slice(0, 4)
+    if (digits.length <= 2) {
+      const number = parseInt(digits, 10)
+      if (Number.isNaN(number)) return null
+      const defaultPivot = new Date().getFullYear() % 100
+      const centuryPivot = this.optionValue(["twoDigitYearPivot", "two_digit_year_pivot"], defaultPivot)
+      const century = number <= centuryPivot ? 2000 : 1900
+      return century + number
+    }
+
+    const number = parseInt(digits, 10)
+    if (Number.isNaN(number)) return null
+    return number
+  }
+
+  yearWithinBounds(year) {
+    const minYear = this.optionValue(["minYear", "min_year"], null)
+    const maxYear = this.optionValue(["maxYear", "max_year"], null)
+
+    if (minYear && year < minYear) return false
+    if (maxYear && year > maxYear) return false
+
+    return true
   }
 }

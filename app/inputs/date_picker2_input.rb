@@ -18,7 +18,7 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
       template.safe_join(
         [
           hidden_field(wrapper_options),
-          fields_container,
+          masked_input_field,
           validation_message_container,
         ],
       )
@@ -38,8 +38,10 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
   def prepare_html_options
     input_html_options[:data] ||= {}
     @date_options ||= input_html_options[:data][:date_options] || input_html_options[:data]['date_options']
+    input_html_options[:id] ||= masked_dom_id
     input_html_options[:value] ||= display_value
     input_html_options[:autocomplete] ||= 'off'
+    label_html_options[:for] ||= masked_dom_id
   end
 
   def readonly_display
@@ -67,93 +69,31 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
       options[:data].delete('date_options')
       options[:aria] ||= {}
       options[:aria][:describedby] = validation_message_id
+      options[:id] = hidden_dom_id
       options.delete(:required)
       options
     end
   end
 
-  def fields_container
-    template.content_tag(:div, class: fields_container_classes) do
-      template.safe_join([month_field, day_field, year_field])
-    end
+  def masked_input_field
+    template.text_field_tag(nil, masked_input_value, masked_input_html_options)
   end
 
-  def fields_container_classes
-    %w[row gx-2 gy-1 align-items-end datepicker2__fields].join(' ')
-  end
-
-  def month_field
-    segment(
-      label: I18n.t('date_picker2.month_label', default: 'Month'),
-      id_suffix: 'month',
-      placeholder: 'MM',
-      maxlength: 2,
-      pattern: '(0?[1-9]|1[0-2])',
-      target: 'month',
-      value: padded_value(value_parts[:month], 2),
-    )
-  end
-
-  def day_field
-    segment(
-      label: I18n.t('date_picker2.day_label', default: 'Day'),
-      id_suffix: 'day',
-      placeholder: 'DD',
-      maxlength: 2,
-      pattern: '(0?[1-9]|[12][0-9]|3[01])',
-      target: 'day',
-      value: padded_value(value_parts[:day], 2),
-    )
-  end
-
-  def year_field
-    segment(
-      label: I18n.t('date_picker2.year_label', default: 'Year'),
-      id_suffix: 'year',
-      placeholder: 'YYYY',
-      maxlength: 4,
-      pattern: '(19|20)\d{2}',
-      target: 'year',
-      value: padded_value(value_parts[:year], 4),
-    )
-  end
-
-  def segment(label:, id_suffix:, placeholder:, maxlength:, pattern:, target:, value: nil)
-    template.content_tag(:div, class: 'col-auto datepicker2__segment') do
-      template.safe_join(
-        [
-          template.label_tag(segment_id(id_suffix), label, class: 'form-label'),
-          template.text_field_tag(
-            nil,
-            value,
-            segment_html_options(
-              id_suffix:,
-              placeholder:,
-              maxlength:,
-              pattern:,
-              target:,
-            ),
-          ),
-        ],
-      )
-    end
-  end
-
-  def segment_html_options(id_suffix:, placeholder:, maxlength:, pattern:, target:)
+  def masked_input_html_options
     {
-      id: segment_id(id_suffix),
+      id: masked_dom_id,
       class: 'form-control datepicker2__input',
-      placeholder:,
-      maxlength:,
+      placeholder: 'MM/DD/YYYY',
+      maxlength: 10,
       inputmode: 'numeric',
-      pattern:,
+      pattern: '(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/(19|20)\d{2}',
+      autocomplete: 'off',
+      required: required_field?,
       'aria-describedby': validation_message_id,
       'aria-invalid': 'false',
-      autocomplete: 'off',
-      required: required?,
       data: {
-        datepicker2_target: target,
-        action: 'input->datepicker2#handleSegmentInput blur->datepicker2#handleSegmentBlur keydown->datepicker2#handleSegmentKeydown',
+        datepicker2_target: 'maskedInput',
+        action: 'input->datepicker2#handleMaskedInput blur->datepicker2#handleMaskedBlur',
       },
     }
   end
@@ -170,7 +110,7 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
   end
 
   def wrapper_html_options
-    classes = %w[input-group flex-wrap align-items-start w-auto datepicker2]
+    classes = %w[datepicker2]
     classes.concat(Array(wrapper_classes))
 
     existing_controller = input_html_options[:data][:controller] || input_html_options[:data]['controller']
@@ -200,31 +140,16 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
     data[:date_options] || data['date_options']
   end
 
-  def segment_id(id_suffix)
-    [base_dom_id, id_suffix].compact.join('_')
+  def hidden_dom_id
+    [base_dom_id, 'hidden'].join('_')
   end
 
-  def base_dom_id
-    hidden_input_html_options[:id] || [@builder.object_name, attribute_name].compact.join('_')
+  def masked_dom_id
+    base_dom_id
   end
 
   def validation_message_id
     @validation_message_id ||= [base_dom_id, 'validation'].join('_')
-  end
-
-  def value_parts
-    return @value_parts if defined?(@value_parts)
-
-    raw_date = extract_date_from_value
-    if raw_date
-      @value_parts = {
-        month: raw_date.month,
-        day: raw_date.day,
-        year: raw_date.year,
-      }
-    else
-      @value_parts = { month: nil, day: nil, year: nil }
-    end
   end
 
   def extract_date_from_value
@@ -238,10 +163,11 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
     nil
   end
 
-  def padded_value(number, length)
-    return unless number.present?
+  def masked_input_value
+    date = extract_date_from_value
+    return unless date
 
-    format("%0#{length}d", number)
+    date.strftime('%m/%d/%Y')
   end
 
   def display_value
@@ -276,5 +202,12 @@ class DatePicker2Input < SimpleForm::Inputs::StringInput
     Date.parse(value)
   rescue ArgumentError
     nil
+  end
+
+  def base_dom_id
+    @base_dom_id ||= begin
+      id = input_html_options[:id] || input_html_options['id']
+      id.presence || [@builder.object_name, attribute_name].compact.join('_')
+    end
   end
 end

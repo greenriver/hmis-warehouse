@@ -71,13 +71,7 @@
                 A fully accessible input that supports typing month, day, and year separately while still
                 emitting
                 %code Aug 30, 2025
-                to the server. All segments are synchronized through Stimulus.
-              %p.small.text-muted.mb-3
-                Try entering dates like
-                %code 05 07 2024
-                or
-                %code 5/7/24
-                and tabbing between fields—the hidden value will remain formatted for our back-end.
+                to the server
               = f.input :date_accessible, as: :date_picker2, label: 'Datepicker2 Input'
 
           .row
