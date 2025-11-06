@@ -1,0 +1,27 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "decision",
+      "mapping": {
+        "custom_field_key": "direct_referral_workflow_provider_decision_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "1", "label": "Accept" },
+        { "code": "0", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "direct_referral_workflow_provider_decision_note"
+      },
+      "required": false
+    }
+  ]
+}
