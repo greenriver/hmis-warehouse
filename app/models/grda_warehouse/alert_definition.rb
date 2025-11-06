@@ -34,10 +34,17 @@ module GrdaWarehouse
 
     def self.maintain!
       initial_definitions.each do |attrs|
+        db_attrs = attrs.dup
+        non_database_attributes.each { |key| db_attrs.delete(key) }
         find_or_create_by!(code: attrs[:code]) do |definition|
-          definition.assign_attributes(attrs.except(*non_database_attributes))
+          definition.assign_attributes(db_attrs)
         end
       end
+    end
+
+    # Alias for backward compatibility with older deployed code
+    class << self
+      alias_method :seed_initial_definitions, :maintain!
     end
 
     def self.initial_definitions
