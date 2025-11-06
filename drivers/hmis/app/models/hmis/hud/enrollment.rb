@@ -456,14 +456,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_members.heads_of_households.first&.entry_date
   end
 
-  # track change via attr to avoid adding complexity to form processor
-  attr_accessor :unit_occupancy_changes
-  after_save :track_unit_occupancy_changes, if: :unit_occupancy_changes
-  def track_unit_occupancy_changes
-    unit_type, user_id, project_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id, :project_id)
-    unit_type.track_availability(project_id: project_id, user_id: user_id)
-  end
-
   # Assigns a unit to this enrollment, building a new unit occupancy record. The enrollment must be saved to persist the assignment.
   #
   # This method handles the business logic for unit assignment including:
@@ -504,8 +496,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       raise 'Cannot assign to a unit with locked opportunity' unless is_same_client || is_same_household
     end
 
-    # include project id here since it may not be available during after_save hooks due to WIP
-    self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
     unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {
@@ -521,11 +511,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     # If enrollment isn't assigned to any unit, do nothing
     return if occupancy.nil? || occupancy.occupancy_period.nil?
 
-    transaction do
-      occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
-      unit_type = occupancy.unit&.unit_type
-      unit_type&.track_availability(project_id: project.id, user_id: user.id)
-    end
+    occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
   end
 
   def unit_occupied_on(date = Date.current)

@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# unused
 module HmisExternalApis::AcHmis
   # Track local and synced changes
   class UnitAvailabilitySync < ::HmisExternalApis::HmisExternalApisBase

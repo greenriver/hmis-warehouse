@@ -41,6 +41,7 @@ module HmisExternalApis::AcHmis
         then { |r| handle_error(r) }
     end
 
+    # DEPRECATED do not call
     def update_unit_capacity(payload)
       conn.patch('Unit/Capacity', format_payload(payload)).
         then { |r| handle_error(r) }
