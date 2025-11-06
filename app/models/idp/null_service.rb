@@ -17,6 +17,7 @@ module Idp
 
     def initialize(connector_id = nil)
       @connector_id = connector_id
+      super(config: {})
     end
 
     def create_user(**)

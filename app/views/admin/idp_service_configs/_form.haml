@@ -1,0 +1,15 @@
+.row
+  .col-sm-8
+    = simple_form_for [:admin, @idp_service_config] do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :name, hint: 'Friendly name for this configuration'
+        = f.input :connector_id, collection: Idp::ServiceFactory.supported_idps, as: :select_two, prompt: 'Select IDP', hint: 'The IDP connector identifier'
+        = f.input :api_url, hint: 'Base URL for the IDP API (e.g., http://zitadel.dev.test)'
+        = f.input :service_token, as: :password, input_html: { value: @idp_service_config.service_token }, hint: 'Service account token/password.'
+        = f.input :org_id, label: 'Organization ID', hint: 'Organization ID in the IDP (optional)'
+        = f.input :project_id, label: 'Project ID', hint: 'Project ID in the IDP (optional)'
+        = f.input :active, label: 'Active', hint: 'Only active configurations will be used'
+
+      .form_actions
+      = f.button :submit

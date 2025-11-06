@@ -16,6 +16,7 @@ module Admin
 
     before_action :require_can_edit_users!, except: [:stop_impersonating]
     before_action :set_user, only: [:edit, :update, :destroy, :impersonate]
+    before_action :set_available_idps, only: [:new, :create, :edit]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy]
     helper_method :sort_column, :sort_direction
@@ -34,10 +35,68 @@ module Admin
       @pagy, @users = pagy(@users)
     end
 
+    def new
+      @user = User.new
+      ensure_system_contact
+      set_system_alerts
+      @agencies = Agency.order(:name)
+    end
+
+    def create
+      @user = User.new(user_params)
+      ensure_system_contact
+      set_system_alerts
+      @agencies = Agency.order(:name)
+
+      connector_id = user_params[:connector_id]
+
+      begin
+        User.transaction do
+          @user.save!
+
+          # Create user in IDP if connector_id is provided and IDP supports user management
+          if connector_id.present?
+            idp_service = Idp::ServiceFactory.for_connector(connector_id)
+            if idp_service.supports_user_management?
+              begin
+                result = idp_service.create_user(
+                  email: @user.email,
+                  first_name: @user.first_name,
+                  last_name: @user.last_name,
+                  phone: @user.phone,
+                )
+                if result[:success] && result[:connector_user_id].present?
+                  # Create authentication source
+                  @user.user_authentication_sources.create!(
+                    connector_id: connector_id,
+                    connector_user_id: result[:connector_user_id],
+                    enabled: true,
+                  )
+                  @user.update_column(:last_connector_id, connector_id)
+                  Rails.logger.info "Created user #{@user.email} in IDP #{connector_id} with ID #{result[:connector_user_id]}"
+                end
+              rescue Idp::ServiceError => e
+                Rails.logger.error "Failed to create user in IDP: #{e.message}"
+                # Continue with warehouse user creation even if IDP creation fails
+                # User can still be created in warehouse as a shell user
+              end
+            end
+          end
+        end
+      rescue ActiveRecord::RecordInvalid
+        flash[:error] = 'Please review the form problems below'
+        render :new
+        return
+      end
+
+      flash[:notice] = "User #{@user.name} was successfully created."
+      redirect_to edit_admin_user_path(@user)
+    end
+
     def edit
       @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
-      @user.build_system_contact if @user.system_contact.nil?
-      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
+      ensure_system_contact
+      set_system_alerts
       # Preload authentication sources to avoid N+1 queries
       @user.user_authentication_sources.load
 
@@ -312,6 +371,7 @@ module Admin
     private def user_params
       base_params = params[:user] || ActionController::Parameters.new
       base_params.permit(
+        :connector_id,
         :last_name,
         :first_name,
         :email,
@@ -383,6 +443,25 @@ module Admin
       @user = User.find(params[:id].to_i)
 
       @agencies = Agency.order(:name)
+    end
+
+    private def set_system_alerts
+      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
+    end
+
+    private def ensure_system_contact
+      @user.build_system_contact if @user.system_contact.nil?
+    end
+
+    private def set_available_idps
+      # Build list of available IDPs that have service configs and support user management
+      @available_idps = []
+
+      # Check Idp::ServiceConfig records
+      Idp::ServiceConfig.active.each do |config|
+        service = config.to_service
+        @available_idps << [config.connector_id, service.idp_name] if service.supports_user_management?
+      end
     end
 
     private def perform_search(search_params = {})

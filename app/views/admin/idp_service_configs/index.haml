@@ -1,0 +1,12 @@
+- title = "IDP Service Configs"
+- content_for :title, title
+
+.o-page
+  .o-page__title.d-flex
+    %h1= content_for :title
+    .ml-auto
+      = link_to new_admin_idp_service_config_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        Add IDP Service Config
+
+  = render_paginated_list(scope: @idp_service_configs, item_name: 'IDP service config', list_partial: 'list')
