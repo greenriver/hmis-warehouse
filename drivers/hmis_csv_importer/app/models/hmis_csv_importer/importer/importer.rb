@@ -603,7 +603,6 @@ module HmisCsvImporter::Importer
     end
 
     def mark_tree_as_dead
-      total_files = importable_files.count
       file_count = 0
       importable_files.each_value do |klass|
         file_count += 1
@@ -645,7 +644,6 @@ module HmisCsvImporter::Importer
     end
 
     def add_new_data
-      total_files = importable_files.count
       file_count = 0
       importable_files.each do |file_name, klass|
         file_count += 1
@@ -822,11 +820,9 @@ module HmisCsvImporter::Importer
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
         upsert_columns = klass.upsert_column_names(version: importer_log.version) if custom_augmentation?(klass)
 
-        existing_scope = existing_destination_data_scope(klass)
-        total_batches = (existing_scope.count.to_f / SELECT_BATCH_SIZE).ceil
-        Rails.logger.info "Processing #{total_batches} batches of existing records for #{file_name}"
+        Rails.logger.info "Processing existing records for #{file_name} in batches"
 
-        existing_scope.in_batches(of: SELECT_BATCH_SIZE) do |relation|
+        existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
             importer_log_id: @importer_log.id,
@@ -1277,6 +1273,10 @@ module HmisCsvImporter::Importer
     # These classes need to preload mapping data before processing
     private def custom_file?(klass)
       klass.respond_to?(:custom_file?) && klass.custom_file?
+    end
+
+    private def total_files
+      @total_files ||= importable_files.count
     end
   end
 end
