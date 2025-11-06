@@ -32,12 +32,12 @@ module HopwaCaper
 
     def available_report_versions
       {
-        'FY 2024' => { slug: :fy2024, active: true },
+        'FY 2026' => { slug: :fy2026, active: true },
       }.freeze
     end
 
     def default_report_version
-      :fy2024
+      :fy2026
     end
 
     private def filter_class
@@ -97,7 +97,7 @@ module HopwaCaper
 
     def possible_generator_classes
       {
-        fy2024: HopwaCaper::Generators::Fy2024::Generator,
+        fy2026: HopwaCaper::Generators::Fy2026::Generator,
       }
     end
   end

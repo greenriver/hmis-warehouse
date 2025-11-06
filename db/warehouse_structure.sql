@@ -1,4 +1,4 @@
--- \restrict StbcbBEuGN1AvZe64nTTk0yfRpI7lVXIUHDa91tMpeppLPRskTTOhb2ioUdDWMe
+-- \restrict qbLGGkX1iyMy6HZq9FpZAB3GoTuuQ40BY0NeY0SWaNBvPgOZfQeKOlHqWKoxqEn
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -25293,7 +25293,8 @@ CREATE TABLE public.hopwa_caper_enrollments (
     subsidy_information integer,
     ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
     viral_load_suppression boolean DEFAULT false NOT NULL,
-    percent_ami numeric
+    percent_ami numeric,
+    sex character varying
 );
 
 
@@ -81733,11 +81734,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict StbcbBEuGN1AvZe64nTTk0yfRpI7lVXIUHDa91tMpeppLPRskTTOhb2ioUdDWMe
+-- \unrestrict qbLGGkX1iyMy6HZq9FpZAB3GoTuuQ40BY0NeY0SWaNBvPgOZfQeKOlHqWKoxqEn
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251106123000'),
 ('20251030153000'),
 ('20251027202455'),
 ('20251027120000'),

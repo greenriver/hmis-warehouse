@@ -3,8 +3,8 @@
 The HOPWA CAPER feature produces the HUD-required Consolidated Annual Performance and Evaluation Report for Housing Opportunities for Persons With AIDS (HOPWA) grantees. It packages HMIS warehouse data into the CAPER workbook format, allowing program staff to validate results in the web UI, download PDF exports, and deliver a submission-ready dataset to HUD without manual spreadsheet work.
 
 ## Reporting Workflow
-- **Entry point:** The report lives under the HUD Reports surface. `HopwaCaper::BaseController` wires the standard HUD filtering UI (date range, CoCs, projects, data sources) to the generator and exposes feature-aware routes for questions, cells, and exports. Only FY 2024 is active today, but the controller is version-aware so later fiscal-year generators can be added in place.
-- **Report instances:** When a user queues a run, `HopwaCaper::Generators::Fy2024::Generator` prepares a dedicated `HudReports::ReportInstance`. The feature registers with `HudReports` via `/drivers/hopwa_caper/config/initializers/hopwa_caper_feature.rb`, so the shared job runners and dashboards treat it like any other HUD report.
+- **Entry point:** The report lives under the HUD Reports surface. `HopwaCaper::BaseController` wires the standard HUD filtering UI (date range, CoCs, projects, data sources) to the generator and exposes feature-aware routes for questions, cells, and exports. Only FY 2026 is active today, but the controller is version-aware so later fiscal-year generators can be added in place.
+- **Report instances:** When a user queues a run, `HopwaCaper::Generators::Fy2026::Generator` prepares a dedicated `HudReports::ReportInstance`. The feature registers with `HudReports` via `/drivers/hopwa_caper/config/initializers/hopwa_caper_feature.rb`, so the shared job runners and dashboards treat it like any other HUD report.
 - **Asynchronous processing:** The generator executes inside the standard HUD report job pipeline. It can run interactively from the UI or manually via `Reporting::Hud::RunReportJob`, producing repeatable results with the same filters.
 
 ## Data Preparation Pipeline
@@ -15,8 +15,8 @@ The HOPWA CAPER feature produces the HUD-required Consolidated Annual Performanc
 - **Universe links:** Both staging models inherit from `HudReports::ReportClientBase`, exposing `as_report_members` helpers that register each record as a `HudReports::UniverseMember`. This is how HUD report tooling resolves drill-downs and renders client detail tables in the UI.
 
 ## Question Sheets and Builders
-- **Sheet architecture:** The FY 2024 generator enumerates four sheet classes (`DemographicsAndPriorLivingSituation`, `Tbra`, `Strmu`, `Php`). Each inherits from `HopwaCaper::Generators::Fy2024::Sheets::Base` or `BaseProgramSheet`, which wrap `HudReports::QuestionSheet` and provide common helpers for enrollment scoping, cell creation, and household table generation.
-- **Reusable filters:** Enrollment filters (age, gender, income, longevity, prior living situation, housing outcomes) and service filters (record type, STRMU assistance categories) live under `app/models/hopwa_caper/generators/fy2024/enrollment_filters` and `.../service_filters`. Filters encapsulate the business rules for grouping rows so that question sheets remain declarative. When HUD guidance changes, editing or adding a filter object usually suffices.
+- **Sheet architecture:** The FY 2026 generator enumerates four sheet classes (`DemographicsAndPriorLivingSituation`, `Tbra`, `Strmu`, `Php`). Each inherits from `HopwaCaper::Generators::Fy2026::Sheets::Base` or `BaseProgramSheet`, which wrap `HudReports::QuestionSheet` and provide common helpers for enrollment scoping, cell creation, and household table generation.
+- **Reusable filters:** Enrollment filters (age, gender, income, longevity, prior living situation, housing outcomes) and service filters (record type, STRMU assistance categories) live under `app/models/hopwa_caper/generators/fy2026/enrollment_filters` and `.../service_filters`. Filters encapsulate the business rules for grouping rows so that question sheets remain declarative. When HUD guidance changes, editing or adding a filter object usually suffices.
 - **Cell construction:** Sheets compose filters to build household counts, expenditure totals, and outcome tallies. For example, the STRMU sheet combines financial assistance service filters with household enrollment scopes so that “served with STRMU Mortgage Assistance only” can be answered consistently across UI, CSV, and PDF exports. The builders return `HudReports::ReportCell` records that power both the UI tables and downloads.
 
 ## UI & Export Integration
@@ -31,8 +31,8 @@ The HOPWA CAPER feature produces the HUD-required Consolidated Annual Performanc
 
 ## Related Code
 - Feature initializer: `/app/drivers/hopwa_caper/config/initializers/hopwa_caper_feature.rb`
-- Generator: `/app/drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2024/generator.rb`
+- Generator: `/app/drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/generator.rb`
 - Staging models: `/app/drivers/hopwa_caper/app/models/hopwa_caper/enrollment.rb`, `/app/drivers/hopwa_caper/app/models/hopwa_caper/service.rb`
-- Question sheets & filters: `/app/drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2024/sheets/` and `.../enrollment_filters/`, `.../service_filters/`
+- Question sheets & filters: `/app/drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/sheets/` and `.../enrollment_filters/`, `.../service_filters/`
 - PDF export: `/app/drivers/hopwa_caper/app/models/hopwa_caper/document_exports/hopwa_caper_export.rb`
 - HUD report extensions: `/app/drivers/hopwa_caper/extensions/hud_reports/`
