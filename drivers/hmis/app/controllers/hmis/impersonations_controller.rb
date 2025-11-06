@@ -17,14 +17,20 @@ class Hmis::ImpersonationsController < Hmis::BaseController
 
     return render_error('Cannot impersonate current user') if user.id == current_hmis_user.id
 
-    impersonate_hmis_user(user)
+    # Validate permissions before storing
+    return render_error('You do not have permission to impersonate users') unless true_hmis_user.can_impersonate_users?
+
+    return render_error('This user cannot be impersonated') unless user.impersonateable_by?(true_hmis_user)
+
+    # Store impersonation state in cache
+    ImpersonationManager.new(session.id).store(true_hmis_user.id, user.id)
     render_success
   end
 
   def destroy
     return render_error('Not impersonating') unless impersonating?
 
-    stop_impersonating_hmis_user
+    ImpersonationManager.new(session.id).clear
     render_success
   end
 

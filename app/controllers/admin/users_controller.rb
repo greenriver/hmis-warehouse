@@ -110,12 +110,20 @@ module Admin
 
     def impersonate
       become = User.find(params[:become_id].to_i)
-      impersonate_user(become)
+      return redirect_to root_path, alert: 'Cannot impersonate yourself' if become.id == current_user.id
+
+      # Validate permissions before storing
+      return redirect_to root_path, alert: 'You do not have permission to impersonate users' unless current_user.can_impersonate_users?
+
+      return redirect_to root_path, alert: 'This user cannot be impersonated' unless become.impersonateable_by?(current_user)
+
+      # Store impersonation state in cache
+      ImpersonationManager.new(session.id).store(current_user.id, become.id)
       redirect_to root_path
     end
 
     def stop_impersonating
-      stop_impersonating_user
+      ImpersonationManager.new(session.id).clear
       redirect_to root_path
     end
 

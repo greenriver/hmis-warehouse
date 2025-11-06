@@ -146,15 +146,25 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  # Redirect to window page after signin if you have
+  # Redirect after signin
   # no where else to go (and you can see it)
-  def after_sign_in_path_for(_resource)
-    last_url = session['user_return_to']
-    if last_url.present?
-      last_url
-    else
-      current_user&.my_root_path || root_path
+  #
+  # Priority order:
+  # 1. Stored redirect URL from OAuth2-proxy flow (via redirect_url_after_auth)
+  # 2. Application root path
+  #
+  # @param user [User, nil] User instance (defaults to current_user)
+  # @return [String] Path to redirect to
+  def after_sign_in_path_for(user = current_user)
+    # Check for stored redirect URL from OAuth2-proxy flow (includes user.my_root_path)
+    redirect_url = redirect_url_after_auth(user)
+    if redirect_url.present?
+      # Clear the stored redirect after use
+      clear_redirect_url
+      return redirect_url
     end
+    # Final fallback to application root
+    root_path
   end
 
   def after_sign_out_path_for(_scope)

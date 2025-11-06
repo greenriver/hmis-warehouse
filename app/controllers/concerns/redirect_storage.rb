@@ -45,6 +45,54 @@ module RedirectStorage
     nil
   end
 
+  # Get the redirect URL to use after authentication.
+  #
+  # Checks multiple sources in priority order:
+  # 1. Query parameter from OAuth2-proxy (`rd` parameter)
+  # 2. Rails cache key (`redirect:{session_id}`)
+  # 3. OAuth2-proxy header (`X-Auth-Request-Redirect`) - if available
+  # 4. User's root path (`user.my_root_path`) - if user provided
+  #
+  # @param user [User, nil] User instance to get root path from (optional)
+  # @return [String, nil] Redirect URL or nil if not found
+  def redirect_url_after_auth(user = nil)
+    redirect_url = params[:rd].presence || get_redirect_url || request.headers['X-Auth-Request-Redirect'].presence || user&.my_root_path
+
+    redirect_url if redirect_url.present? && safe_redirect_url?(redirect_url)
+  end
+
+  # Validate that a redirect URL is safe to use.
+  #
+  # Ensures the URL:
+  # - Is not external (same host)
+  # - Is a relative path or same-origin URL
+  # - Doesn't contain dangerous protocols (javascript:, data:, etc.)
+  #
+  # @param url [String] URL to validate
+  # @return [Boolean] true if URL is safe, false otherwise
+  def safe_redirect_url?(url)
+    return false if url.blank?
+
+    # Allow relative paths (starting with /)
+    return true if url.start_with?('/')
+
+    # Parse absolute URLs
+    begin
+      uri = URI.parse(url)
+    rescue URI::InvalidURIError
+      return false
+    end
+
+    # Reject dangerous protocols
+    return false if ['javascript', 'data', 'vbscript'].include?(uri.scheme&.downcase)
+
+    # Allow same-origin URLs (same host as current request)
+    return true if uri.host == request.host || uri.host.nil?
+
+    # Reject external URLs
+    false
+  end
+
   # Clear stored redirect URL for the current session.
   #
   # @param session_id [String, nil] Session ID (defaults to current session ID)
