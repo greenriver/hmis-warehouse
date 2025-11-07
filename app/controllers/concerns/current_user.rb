@@ -14,7 +14,6 @@ module CurrentUser
   extend ActiveSupport::Concern
 
   included do
-    include RedirectStorage
     # Get the current authenticated user from JWT token.
     #
     # Also ensures authentication source exists for the user (only once per request).
@@ -208,7 +207,10 @@ module CurrentUser
     #
     # Override in subclasses for custom behavior (e.g., JSON responses).
     def handle_unauthenticated
-      original_url = capture_original_request_url
+      original_url = RedirectUrlHelper.capture_original_request_url(
+        request: request,
+        session_id: session&.id&.to_s,
+      )
       redirect_to helpers.oauth2_sign_in_path(redirect_to: original_url)
     end
 
@@ -221,7 +223,10 @@ module CurrentUser
     #
     # @param _user [User] User instance that failed authentication checks
     def handle_inactive_user(_user)
-      original_url = capture_original_request_url
+      original_url = RedirectUrlHelper.capture_original_request_url(
+        request: request,
+        session_id: session&.id&.to_s,
+      )
       redirect_to helpers.oauth2_sign_in_path(redirect_to: original_url), alert: 'Your account has been deactivated.'
     end
   end

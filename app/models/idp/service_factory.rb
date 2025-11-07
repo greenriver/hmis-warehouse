@@ -87,13 +87,13 @@ module Idp
         end
       end
 
-      # Get the default session timeout period.
+      # Get the time period used to determine recent activity.
       #
-      # This is used as a fallback when the JWT token doesn't provide an expiration time.
-      # In the future, this could be made configurable per IDP or pulled from IDP configuration.
+      # This is used to determine which users have had recent activity (e.g., in the last 30 minutes).
+      # Session timeout is handled by JWT expiration, not by this value.
       #
-      # @return [ActiveSupport::Duration] Default session timeout period (30 minutes)
-      def default_session_timeout
+      # @return [ActiveSupport::Duration] Recent activity time period (30 minutes)
+      def recent_activity_period
         30.minutes
       end
     end

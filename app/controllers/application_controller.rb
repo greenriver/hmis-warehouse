@@ -159,10 +159,15 @@ class ApplicationController < ActionController::Base
   # @return [String] Path to redirect to
   def after_sign_in_path_for(user = current_user)
     # Check for stored redirect URL from OAuth2-proxy flow (includes user.my_root_path)
-    redirect_url = redirect_url_after_auth(user)
+    redirect_url = RedirectUrlHelper.redirect_url_after_auth(
+      params: params,
+      request: request,
+      session_id: session&.id&.to_s,
+      user: user,
+    )
     if redirect_url.present?
       # Clear the stored redirect after use
-      clear_redirect_url
+      RedirectManager.new(session&.id&.to_s).clear
       return redirect_url
     end
     # Final fallback to application root

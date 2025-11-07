@@ -146,9 +146,9 @@ module UserConcern
     end
 
     # users that have currently active sessions (either in the warehouse or in HMIS)
-    # Note: Session timeout is now handled by OAuth2-proxy, so we use a default timeout period
+    # Note: Session timeout is now handled by OAuth2-proxy, so we use a recent activity period
     scope :has_recent_activity, -> do
-      timeout_period = Idp::ServiceFactory.default_session_timeout
+      timeout_period = Idp::ServiceFactory.recent_activity_period
       where(last_activity_at: timeout_period.ago..Time.current)
     end
 
