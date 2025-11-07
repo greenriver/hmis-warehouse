@@ -43,7 +43,6 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
         :hud_client,
         DOB: today - 20.years,
         DOBDataQuality: 1,
-        Man: 1,
         BlackAfAmerican: 1,
         White: 1,
         Sex: 1,
@@ -55,7 +54,6 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
         :hud_client,
         DOB: today - 32.years,
         DOBDataQuality: 1,
-        Woman: 1,
         White: 1,
         Sex: 0,
         data_source: data_source,
@@ -119,8 +117,8 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
 
       hoh_row = report.hopwa_caper_enrollments.find_by(personal_id: hoh_client.PersonalID)
       beneficiary_row = report.hopwa_caper_enrollments.find_by(personal_id: beneficiary_client.PersonalID)
-      expect(hoh_row.sex).to eq('Male')
-      expect(beneficiary_row.sex).to eq('Female')
+      expect(hoh_row.sex).to eq('1')
+      expect(beneficiary_row.sex).to eq('0')
 
       all_rows = question_as_rows(question_number: 'Q1', report: report)
       flattened_rows = all_rows.flatten
@@ -130,6 +128,7 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
 
       # hopwa qualified individuals demographics
       rows_to_table(all_rows.slice(2, 11)).yield_self do |table|
+        # byebug
         expect(table['Black/African American & White']['Male 18-30']).to eq(1)
         expect(table['White']['Female 31-50']).to eq(0)
       end
