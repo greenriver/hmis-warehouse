@@ -3374,7 +3374,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/app/models/hmis/hud/validators/custom_service_validator.rb'
     - 'drivers/hmis/app/models/hmis/hud/validators/enrollment_validator.rb'
     - 'drivers/hmis/app/models/hmis/hud/validators/exit_validator.rb'
-    - 'drivers/hmis/app/models/hmis/hud/validators/funder_validator.rb'
     - 'drivers/hmis/app/models/hmis/hud/validators/income_benefit_validator.rb'
     - 'drivers/hmis/app/models/hmis/hud/validators/inventory_validator.rb'
     - 'drivers/hmis/app/models/hmis/hud/validators/organization_validator.rb'

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Validators::FunderValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
@@ -19,7 +21,7 @@ class Hmis::Hud::Validators::FunderValidator < Hmis::Hud::Validators::BaseValida
   def validate(record)
     super(record) do
       # Other funder is required if 46 (other) is selected for funder
-      record.errors.add :other_funder, :required, message: 'must exist' if record.funder == OTHER_FUNDER && !record.other_funder.present?
+      record.errors.add :other_funder, :required, message: 'must exist' if record.funder&.to_i == OTHER_FUNDER && !record.other_funder.present?
 
       # End date must be after start date
       record.errors.add :end_date, :invalid, message: 'must be on or after start date' if record.end_date && record.start_date && record.end_date < record.start_date
