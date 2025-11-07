@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,7 +9,7 @@
 # https://files.hudexchange.info/resources/documents/HOPWA-Consolidated-APR-CAPER-User-Manual-Chapter-16.pdf
 module HopwaCaper::Generators::Fy2026::Sheets
   class DemographicsAndPriorLivingSituationSheet < Base
-    QUESTION_NUMBER = 'Q1: Demographics and Prior Living Situation'.freeze
+    QUESTION_NUMBER = 'Q1: Demographics and Prior Living Situation'
     QUESTION_NUMBERS = ['Q1'].freeze
 
     CONTENTS = {

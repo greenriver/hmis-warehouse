@@ -28,7 +28,12 @@ module HopwaCaper::Generators::Fy2026::Sheets
         add_sheet_header(sheet, title: self.class::SHEET_TITLE)
         contents.each do |opts|
           opts => { method:, label: }
-          sheet.append_row(label: label) if label
+          sheet.append_row(label: label) do |row|
+            if opts == contents.first # firs row has headers
+              row.append_cell_value(value: 'Number of Households')
+              row.append_cell_value(value: 'Expenditures')
+            end
+          end
           send(method, sheet)
         end
       end
@@ -38,12 +43,12 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def add_sheet_header(sheet, title:)
       sheet.add_header(col: 'A', label: title)
-      sheet.add_header(col: 'B', label: 'Number of Households')
-      sheet.add_header(col: 'C', label: 'Expenditures')
+      sheet.add_header(col: 'B', label: '')
+      sheet.add_header(col: 'C', label: '')
 
       sheet.append_row(label: 'Questions') do |row|
-        row.append_cell_value(value: 'Number of Households')
-        row.append_cell_value(value: 'Expenditures')
+        row.append_cell_value(value: 'This Report')
+        row.append_cell_value(value: 'This Report')
       end
     end
 
@@ -63,6 +68,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
         row.append_cell_members(members: service_members(multi_service_households))
         row.append_cell_value(value: nil)
       end
+
+      sheet.append_row(label: '')
 
       sheet.append_row(label: 'Deduplicated Supportive Services Household Total (based on amounts reported in Rows 5-21 above)') do |row|
         row.append_cell_members(members: service_members(all_supportive_service_households))

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,10 +8,10 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class HousingInfoSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q5: Housing Information Services'.freeze
+    QUESTION_NUMBER = 'Q5: Housing Information Services'
     QUESTION_NUMBERS = ['Q5'].freeze
-    SHEET_TITLE = 'Complete for all households served with HOPWA-funded Housing Information Services by your organization in the reporting year.'.freeze
-    HOUSING_INFO_CATEGORY_NAME = 'HOPWA Housing Information'.freeze
+    SHEET_TITLE = 'Complete for all households served with HOPWA-funded Housing Information Services by your organization in the reporting year.'
+    HOUSING_INFO_CATEGORY_NAME = 'HOPWA Housing Information'
 
     CONTENTS = [
       { method: :households_served_sheet, label: 'Households Served by this Activity' },
