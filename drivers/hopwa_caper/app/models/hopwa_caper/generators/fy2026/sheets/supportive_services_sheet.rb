@@ -75,7 +75,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def append_supportive_service_row(sheet, label:, services:)
       sheet.append_row(label: label) do |row|
         row.append_cell_members(members: service_members(services))
-        row.append_cell_value(value: total_expenditures_for(services))
+        row.append_cell_value(value: nil)
       end
     end
 
@@ -85,10 +85,6 @@ module HopwaCaper::Generators::Fy2026::Sheets
       HopwaCaper::Enrollment.head_of_household.
         where(report_instance_id: @report.id, report_household_id: services.select(:report_household_id)).
         as_report_members
-    end
-
-    def total_expenditures_for(services)
-      services.sum(:fa_amount)
     end
 
     def multi_service_households

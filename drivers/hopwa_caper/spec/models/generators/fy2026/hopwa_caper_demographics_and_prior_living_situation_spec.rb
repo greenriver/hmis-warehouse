@@ -65,6 +65,11 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       expect(report.hopwa_caper_enrollments.where(ever_prescribed_anti_retroviral_therapy: true).size).to eq(1)
       expect(report.hopwa_caper_enrollments.where(viral_load_suppression: true).size).to eq(1)
 
+      hoh_row = report.hopwa_caper_enrollments.find_by(personal_id: household.hoh.client.PersonalID)
+      beneficiary_row = report.hopwa_caper_enrollments.find_by(personal_id: household.other_members.first.client.PersonalID)
+      expect(hoh_row.sex).to eq('Male')
+      expect(beneficiary_row.sex).to eq('Female')
+
       all_rows = question_as_rows(question_number: 'Q1', report: report)
       flattened_rows = all_rows.flatten
       expect(flattened_rows).to include('Complete the age, sex, race, and ethnicity information for all individuals served with all types of HOPWA assistance.')

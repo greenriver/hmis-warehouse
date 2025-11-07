@@ -54,9 +54,14 @@ module HopwaCaper::Generators::Fy2026::Sheets
       ethnicity_filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::EthnicityFilter.all
       race_filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::RaceFilter.all
 
+      # align columns
+      reported_sex_filters = sex_filters.slice(0..1)
+      missing_sex_filters = sex_filters.slice(2..)
+      deprecated_gender_padding = 3
+
       if header
         sheet.add_header(col: 'A', label: header)
-        sex_filters.each do
+        (sex_filters.size + deprecated_gender_padding).times do
           age_filters.each do |_age_filter|
             sheet.add_header(label: '')
           end
@@ -67,11 +72,14 @@ module HopwaCaper::Generators::Fy2026::Sheets
       end
 
       sheet.append_row(label: title) do |row|
-        sex_filters.each do |sex_filter|
-          age_filters.each do |_age_filter|
-            row.append_cell_value(value: sex_filter.label)
-          end
+        reported_sex_filters.each do |sex_filter|
+          age_filters.each { row.append_cell_value(value: sex_filter.label) }
         end
+        (deprecated_gender_padding * age_filters.size).times { row.append_cell_value(value: nil) }
+        missing_sex_filters.each do |sex_filter|
+          age_filters.each { row.append_cell_value(value: sex_filter.label) }
+        end
+
         ethnicity_filters.each do |_ethnicity_filter|
           row.append_cell_value(value: 'Of the total number of individuals reported for each racial category, how many also identify as Hispanic?')
         end
@@ -79,7 +87,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       sheet.append_row(label: nil) do |row|
         row.append_cell_value(value: nil)
-        sex_filters.each do |sex_filter|
+        reported_sex_filters.each do |sex_filter|
+          age_filters.each do |age_filter|
+            row.append_cell_value(value: "#{sex_filter.label} #{age_filter.label}")
+          end
+        end
+        (deprecated_gender_padding * age_filters.size).times { row.append_cell_value(value: nil) }
+        missing_sex_filters.each do |sex_filter|
           age_filters.each do |age_filter|
             row.append_cell_value(value: "#{sex_filter.label} #{age_filter.label}")
           end
@@ -93,7 +107,15 @@ module HopwaCaper::Generators::Fy2026::Sheets
       race_filters.each do |race_filter|
         sheet.append_row(label: race_filter.label) do |row|
           # add cells for race/sex/age
-          sex_filters.each do |sex_filter|
+          reported_sex_filters.each do |sex_filter|
+            age_filters.each do |age_filter|
+              filters = [race_filter, age_filter, sex_filter]
+              cell_scope = filters.reduce(enrollment_scope) { |scope, filter| filter.apply(scope) }
+              row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
+            end
+          end
+          (deprecated_gender_padding * age_filters.size).times { row.append_cell_value(value: nil) }
+          missing_sex_filters.each do |sex_filter|
             age_filters.each do |age_filter|
               filters = [race_filter, age_filter, sex_filter]
               cell_scope = filters.reduce(enrollment_scope) { |scope, filter| filter.apply(scope) }

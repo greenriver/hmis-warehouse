@@ -102,7 +102,7 @@ module HopwaCaper
         age: client.age_on([report.start_date, enrollment.entry_date].max),
         dob: client.dob,
         dob_quality: client.dob_data_quality,
-        genders: client.gender_multi.sort,
+        sex: client.sex,
         races: client.race_multi.sort,
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,

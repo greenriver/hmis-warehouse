@@ -53,9 +53,9 @@ module HopwaCaper::Generators::Fy2026
         HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet,
         HopwaCaper::Generators::Fy2026::Sheets::TbraSheet,
         HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet,
-      HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
-      HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
-      HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
