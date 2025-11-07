@@ -80,8 +80,8 @@ module Hmis::Hud::Processors
       # If already assigned to this unit: do nothing
       return if active_unit_occupancy&.unit_id == unit.id
 
-      # If assigned to a different unit: unassign
-      enrollment.release_unit!(user: @processor.current_user)
+      # If assigned to a different unit: unassign. Change in-memory instead of using release_unit! because the form processor should not persist changes until the owner record is saved
+      active_unit_occupancy&.occupancy_period&.assign_attributes(end_date: Date.current, user: @processor.current_user)
 
       # Assign to specified unit
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)

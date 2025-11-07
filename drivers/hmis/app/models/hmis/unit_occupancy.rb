@@ -26,19 +26,9 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
   has_one :client, through: :enrollment
 
   # Date range for which the client occupied the unit.
-  has_one :occupancy_period, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
+  has_one :occupancy_period, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy, autosave: true
   # Service record that relates to this occupancy (likely a BedNight or BedNight-ish custom service)
   belongs_to :hmis_service, class_name: 'Hmis::Hud::HmisService', optional: true
-
-  # To discuss: accepts_nested_attributes_for has some trickiness that we weren't accounting for, so I'm proposing to remove it.
-  # if you don't pass `id` in the nested attribute hash, it creates a new record.
-  # it overwrites the existing record, which then gets destroyed because of the dependent: :destroy relationship.
-  # meanwhile if the newly created record is invalid, it silently fails to save,
-  # and the result is that the UnitOccupancy's ActiveRange winds up being nil.
-  # documentation:
-  # https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#module-ActiveRecord::NestedAttributes::ClassMethods-label-One-to-one
-  # https://github.com/rails/rails/blob/v7.1.0/activerecord/lib/active_record/nested_attributes.rb
-  # accepts_nested_attributes_for :occupancy_period
 
   delegate :start_date, to: :occupancy_period
   delegate :end_date, to: :occupancy_period
