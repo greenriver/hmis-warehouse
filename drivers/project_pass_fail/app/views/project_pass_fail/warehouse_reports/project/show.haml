@@ -11,13 +11,13 @@
       %thead.table-dark
         %tr
           %th
-          - ProjectPassFail::Client.detail_headers.each_value do |header|
+          - ProjectPassFail::Client.detail_headers(include_gender_data: @report.include_gender_data?).each_value do |header|
             %th= header
       %tbody
         - @clients.each.with_index do |client, i|
           %tr
             %th= i + 1
-            - ProjectPassFail::Client.detail_headers.each_key do |k|
+            - ProjectPassFail::Client.detail_headers(include_gender_data: @report.include_gender_data?).each_key do |k|
               %td{style: 'max-width: 600px;'}
                 - if k.in?([:first_name, :last_name]) && client.client&.destination_client.present?
                   = link_to client[k], appropriate_client_path(client.client.destination_client)

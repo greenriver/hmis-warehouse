@@ -38,6 +38,27 @@ graph TD
     F --> H
 ```
 
+## Understanding "Unprocessed" vs "Processed"
+
+**Unprocessed Clients**: Source clients without a `WarehouseClient` record (newly imported, not yet linked to a destination)
+
+**Processed Clients**: Source clients with an existing `WarehouseClient` record linking them to a destination
+
+This distinction is fundamental because:
+- `identify_duplicates` processes unprocessed sources → links them to destinations
+- `match_existing!` merges already-processed destinations → consolidates duplicates
+
+### Matching Method Variants
+
+Each matching criterion has two implementations with different return types:
+
+| Method | Returns | Used By | Compares |
+|--------|---------|---------|----------|
+| `exact_ssn_matches` | `[dest_id, dest_id]` | `match_existing!` | destination ↔ destination |
+| `exact_ssn_matches_for_unprocessed` | `[dest_id, source_id]` | `identify_duplicates` | destination ↔ unprocessed source |
+
+Similar method pairs exist for name and DOB matching. The different return types reflect different architectural needs: linking new clients vs merging existing ones.
+
 ## Two Main Operations
 
 The system provides two distinct operations that handle different deduplication scenarios:

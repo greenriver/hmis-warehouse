@@ -1068,13 +1068,19 @@ module GrdaWarehouse::Hud
     end
 
     def invalidate_consent!
+      hr_status = nil
+      # If using implied consent, we need to set the housing release status to the current consent type ("Implied Consent")
+      hr_status = GrdaWarehouse::Config.active_consent_class.new(client: self).current_consent_type if GrdaWarehouse::Config.implied_consent?
+
       update_columns(
         consent_form_id: nil,
-        housing_release_status: nil,
+        housing_release_status: hr_status,
         consent_form_signed_on: nil,
         consent_expires_on: nil,
         consented_coc_codes: [],
       )
+      # Remove any view caches for this client since permissions may have changed
+      clear_view_cache
     end
 
     def apply_housing_release_status

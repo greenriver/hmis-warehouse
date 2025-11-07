@@ -23,7 +23,6 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
 
   def with_form_type(scope)
     with_filter(scope, :form_type) do
-      # TODO: filter active status / max version
       identifiers = Hmis::Form::Definition.where(role: input.form_type).pluck(:identifier)
       scope.where(definition_identifier: identifiers)
     end
@@ -31,9 +30,8 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
 
   def with_definition(scope)
     with_filter(scope, :definition) do
-      # TODO: filter active status / max version
-      identifiers = Hmis::Form::Definition.where(id: input.definition).pluck(:identifier)
-      scope.where(definition_identifier: identifiers)
+      identifier = Hmis::Form::Definition.find_by(id: input.definition)&.identifier
+      scope.where(definition_identifier: identifier)
     end
   end
 

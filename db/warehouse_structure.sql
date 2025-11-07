@@ -1,4 +1,4 @@
--- \restrict Z2hW2lrcMq9x5ur7xLLnBP7nIEUoA0CMSpmPLxj2dXCRMNZdwC3LdlpJduzU5eU
+-- \restrict StbcbBEuGN1AvZe64nTTk0yfRpI7lVXIUHDa91tMpeppLPRskTTOhb2ioUdDWMe
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -1804,7 +1804,10 @@ CREATE TABLE public.cohorts (
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
     project_group_id bigint,
     enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL,
-    expose_inactive_on_client_dashboard boolean DEFAULT false
+    expose_inactive_on_client_dashboard boolean DEFAULT false,
+    automation_sub_population character varying,
+    automation_hoh_only boolean DEFAULT false,
+    automation_updated_at timestamp(6) without time zone
 );
 
 
@@ -81730,11 +81733,13 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict Z2hW2lrcMq9x5ur7xLLnBP7nIEUoA0CMSpmPLxj2dXCRMNZdwC3LdlpJduzU5eU
+-- \unrestrict StbcbBEuGN1AvZe64nTTk0yfRpI7lVXIUHDa91tMpeppLPRskTTOhb2ioUdDWMe
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251030153000'),
+('20251027202455'),
 ('20251027120000'),
 ('20251020142304'),
 ('20251020142047'),
@@ -81971,3 +81976,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

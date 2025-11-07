@@ -51,6 +51,16 @@ RSpec.describe Filters::Criteria::FilterForProjects do
       end
     end
 
+    context 'with project_group_ids that reference empty groups' do
+      let!(:empty_project_group) { create(:project_group) }
+      let(:project_group_ids) { [empty_project_group.id] }
+
+      it 'filters to an empty scope' do
+        result = criteria.apply(scope)
+        expect(result).to be_empty
+      end
+    end
+
     context 'when user cannot view project_ids' do
       let(:role) do
         create(:role, can_view_project_related_filters: false)

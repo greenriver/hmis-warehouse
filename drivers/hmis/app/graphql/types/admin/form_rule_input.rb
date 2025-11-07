@@ -14,7 +14,7 @@ module Types
     argument :organization_id, ID, required: false
     argument :project_id, ID, required: false
     argument :data_collected_about, Types::Forms::Enums::DataCollectedAbout, required: false
-    argument :active_status, Types::HmisSchema::Enums::ActiveStatus, required: false
+    argument :active_status, Types::HmisSchema::Enums::ActiveStatus, required: false, deprecation_reason: 'Rules are always active when created. This type is no longer used for updating a form rule. To deactivate, use DeleteFormRule mutation.'
     argument :service_type_id, ID, required: false
     argument :service_category_id, ID, required: false
 
@@ -24,9 +24,9 @@ module Types
         funder: funder,
         other_funder: other_funder,
         data_collected_about: data_collected_about,
-        active: active_status == 'ACTIVE',
         custom_service_type_id: service_type_id,
         custom_service_category_id: service_category_id,
+        active: true,
       }
       attrs[:entity] = if project_id.present?
         Hmis::Hud::Project.viewable_by(current_user).find(project_id)

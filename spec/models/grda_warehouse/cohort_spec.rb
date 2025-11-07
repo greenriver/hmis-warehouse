@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'shared_contexts/hud_enrollment_builders'
 
 RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let!(:cohort_manager) { create :cohort_manager }

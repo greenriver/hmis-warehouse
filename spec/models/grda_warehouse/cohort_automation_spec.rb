@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'shared_contexts/hud_enrollment_builders'
 
 RSpec.describe GrdaWarehouse::Cohort, type: :model do
-  let!(:client) { create :grda_warehouse_hud_client }
+  let(:today) { Date.current }
   let!(:ds) { create :grda_warehouse_data_source }
+  let!(:destination_data_source) { create :destination_data_source }
+  let!(:organization) { create(:hud_organization, data_source: ds) }
+
+  let!(:client) { create :grda_warehouse_hud_client, data_source: destination_data_source }
   let!(:source_client) do
     create(
       :grda_warehouse_hud_client,
@@ -25,7 +30,9 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     create(
       :hud_project,
       ProjectType: 0,
-      data_source_id: ds.id,
+      data_source: ds,
+      organization: organization,
+      ContinuumProject: 1,
     )
   end
   let!(:source_enrollment) do
@@ -33,19 +40,20 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       :hud_enrollment,
       EnrollmentID: 'a1',
       ProjectID: source_project.ProjectID,
-      EntryDate: Date.new(2021, 4, 1),
+      EntryDate: today - 10.days,
       DisablingCondition: 1,
-      data_source_id: ds.id,
+      data_source: ds,
       PersonalID: source_client.PersonalID,
-      DateToStreetESSH: Date.new(2020, 1, 1),
+      DateToStreetESSH: today - 1.year,
       LivingSituation: 118,
       LOSUnderThreshold: 1,
       TimesHomelessPastThreeYears: 4,
       MonthsHomelessPastThreeYears: 111,
+      EnrollmentCoC: 'MA-500',
     )
   end
 
-  let!(:client2) { create :grda_warehouse_hud_client }
+  let!(:client2) { create :grda_warehouse_hud_client, data_source: destination_data_source }
   let!(:source_client2) do
     create(
       :grda_warehouse_hud_client,
@@ -64,8 +72,10 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let!(:source_project2) do
     create(
       :hud_project,
-      ProjectType: 1,
-      data_source_id: ds.id,
+      ProjectType: 1, # Emergency Shelter - a homeless project type
+      data_source: ds,
+      organization: organization,
+      ContinuumProject: 1,
     )
   end
   let!(:source_enrollment2) do
@@ -73,15 +83,16 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       :hud_enrollment,
       EnrollmentID: 'a2',
       ProjectID: source_project2.ProjectID,
-      EntryDate: Date.new(2021, 4, 1),
+      EntryDate: today - 10.days,
       DisablingCondition: 1,
-      data_source_id: ds.id,
+      data_source: ds,
       PersonalID: source_client2.PersonalID,
-      DateToStreetESSH: Date.new(2021, 1, 1),
+      DateToStreetESSH: today - 6.months,
       LivingSituation: 116,
       LOSUnderThreshold: 1,
       TimesHomelessPastThreeYears: 4,
       MonthsHomelessPastThreeYears: 113,
+      EnrollmentCoC: 'MA-500',
     )
   end
 
@@ -91,15 +102,16 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       :hud_enrollment,
       EnrollmentID: 'a3',
       ProjectID: source_project.ProjectID,
-      EntryDate: Date.new(2019, 4, 1),
+      EntryDate: today - 100.days,
       DisablingCondition: 1,
-      data_source_id: ds.id,
+      data_source: ds,
       PersonalID: source_client.PersonalID,
-      DateToStreetESSH: Date.new(2018, 1, 1),
+      DateToStreetESSH: today - 200.days,
       LivingSituation: 117,
       LOSUnderThreshold: 1,
       TimesHomelessPastThreeYears: 4,
       MonthsHomelessPastThreeYears: 112,
+      EnrollmentCoC: 'MA-500',
     )
   end
   # newer but different project, (matches should find source_enrollment)
@@ -108,23 +120,25 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       :hud_enrollment,
       EnrollmentID: 'a4',
       ProjectID: source_project2.ProjectID,
-      EntryDate: Date.new(2023, 4, 1),
+      EntryDate: today - 5.days,
       DisablingCondition: 1,
-      data_source_id: ds.id,
+      data_source: ds,
       PersonalID: source_client.PersonalID,
-      DateToStreetESSH: Date.new(2023, 1, 1),
+      DateToStreetESSH: today - 1.month,
       LivingSituation: 119,
       LOSUnderThreshold: 1,
       TimesHomelessPastThreeYears: 4,
       MonthsHomelessPastThreeYears: 114,
+      EnrollmentCoC: 'MA-500',
     )
   end
-  let!(:project_group) { create :project_group, name: 'Test Group' }
-  let!(:cohort) { create :cohort }
+  let!(:project_group) { create :project_group, name: 'Test Group', projects: [source_project] }
+  let!(:cohort) { create :cohort, project_group: project_group }
 
   before do
-    project_group.projects << source_project
-    cohort.update(project_group_id: project_group.id)
+    # Rebuild service history for all enrollments - required for automation to work
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
     cohort.maintain
     cohort.class.prepare_active_cohorts
   end
@@ -144,6 +158,182 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       end
       # This is a date, we don't store the full string
       expect(cohort.cohort_clients.first.most_recent_date_to_street).to eq(source_enrollment.DateToStreetESSH)
+    end
+  end
+
+  describe 'automation filters' do
+    include_context 'HUD enrollment builders'
+
+    let!(:project) { create_project(project_type: 1) }
+    let!(:project_group) { create(:project_group, projects: [project]) }
+    let(:cohort) { create(:cohort) }
+
+    before do
+      @client = create_client_with_warehouse_link
+      @client_hoh = create_client_with_warehouse_link
+      @client_veteran = create_client_with_warehouse_link(veteran_status: 1)
+
+      @client_enrollment = create_enrollment(client: @client, project: project, entry_date: today - 10.days, relationship_to_ho_h: 2)
+      @client_hoh_enrollment = create_enrollment(client: @client_hoh, project: project, entry_date: today - 10.days, relationship_to_ho_h: 1)
+      @client_veteran_enrollment = create_enrollment(client: @client_veteran, project: project, entry_date: today - 10.days, relationship_to_ho_h: 2)
+
+      # Rebuild service history for all enrollments created so far.
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+    end
+
+    describe '.auto_maintained' do
+      it 'includes cohorts with a project group' do
+        expect do
+          cohort.update!(project_group: project_group)
+        end.to change { described_class.auto_maintained.include?(cohort.reload) }.from(false).to(true)
+      end
+
+      it 'does not include cohorts without a project group' do
+        expect(described_class.auto_maintained).not_to include(cohort)
+      end
+    end
+
+    describe '#auto_maintained?' do
+      it 'is true if project_group_id is set' do
+        expect do
+          cohort.update!(project_group: project_group)
+        end.to change { cohort.auto_maintained? }.from(false).to(true)
+      end
+
+      it 'is false when project_group_id is not set' do
+        expect(cohort).not_to be_auto_maintained
+      end
+    end
+
+    describe '#automation_scope_descriptions' do
+      before { cohort.update!(project_group: project_group) }
+
+      it 'includes the project group when present' do
+        expect(cohort.automation_scope_descriptions).to include("projects in the #{project_group.name} project group")
+      end
+
+      it 'includes the sub-population label when present' do
+        cohort.update!(automation_sub_population: 'veterans')
+        expect(cohort.automation_scope_descriptions).to include('clients in the Veterans sub-population')
+      end
+
+      it 'includes heads of household when configured' do
+        cohort.update!(automation_hoh_only: true)
+        expect(cohort.automation_scope_descriptions).to include('clients who are Heads of Household')
+      end
+    end
+
+    describe '#maintain' do
+      before { cohort.update!(project_group: project_group) }
+      it 'adds clients from project group' do
+        cohort.maintain
+        expect(cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+      end
+
+      it 'filters by sub-population' do
+        expect do
+          cohort.update!(automation_sub_population: 'veterans')
+          cohort.maintain
+        end.to change { cohort.reload.automation_sub_population }.from(nil).to('veterans')
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(@client_veteran.destination_client.id)
+      end
+
+      it 'filters by hoh_only' do
+        expect do
+          cohort.update!(automation_hoh_only: true)
+          cohort.maintain
+        end.to change { cohort.reload.automation_hoh_only }.from(false).to(true)
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(@client_hoh.destination_client.id)
+      end
+
+      it 'filters by sub-population and hoh_only' do
+        # Create a veteran HoH to test intersection
+        client_vet_hoh = create_client_with_warehouse_link(veteran_status: 1)
+        create_enrollment(client: client_vet_hoh, project: project, relationship_to_ho_h: 1, entry_date: today - 10.days)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+        expect do
+          cohort.update!(automation_sub_population: 'veterans', automation_hoh_only: true)
+          cohort.maintain
+        end.to change { cohort.reload.automation_sub_population }.from(nil).to('veterans').
+          and change { cohort.reload.automation_hoh_only }.from(false).to(true)
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(client_vet_hoh.destination_client.id)
+      end
+
+      it 'removes clients no longer matching criteria' do
+        cohort.maintain
+        expect(cohort.clients.count).to eq(3)
+
+        expect do
+          cohort.update!(automation_hoh_only: true)
+          cohort.maintain
+        end.to change { cohort.reload.automation_hoh_only }.from(false).to(true)
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(@client_hoh.destination_client.id)
+      end
+
+      it 'removes clients once the enrollment closes' do
+        cohort.maintain
+        expect(cohort.clients.pluck(:id)).to include(@client.destination_client.id)
+
+        create(
+          :hud_exit,
+          enrollment: @client_enrollment,
+          exit_date: today - 1.day,
+          data_source: data_source,
+          personal_id: @client.personal_id,
+        )
+
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+        cohort.maintain
+
+        expect(cohort.clients.pluck(:id)).not_to include(@client.destination_client.id)
+      end
+
+      it 'records the automation timestamp when maintenance succeeds' do
+        cohort.update!(project_group: project_group)
+
+        expect do
+          cohort.maintain
+        end.to change { cohort.reload.automation_updated_at }.from(nil)
+      end
+    end
+
+    describe 'validations' do
+      it 'allows valid sub_population' do
+        cohort.project_group = project_group
+        cohort.automation_sub_population = 'veterans'
+        expect(cohort).to be_valid
+      end
+
+      it 'rejects invalid sub_population' do
+        cohort.project_group = project_group
+        cohort.automation_sub_population = 'invalid_pop'
+        expect(cohort).not_to be_valid
+        expect(cohort.errors[:automation_sub_population]).to include('is not a valid sub-population')
+      end
+
+      it 'clears automation_sub_population when project group is removed' do
+        cohort.automation_sub_population = 'veterans'
+        cohort.valid?
+
+        expect(cohort.automation_sub_population).to be_nil
+      end
+
+      it 'clears automation_hoh_only when project group is removed' do
+        cohort.automation_hoh_only = true
+        cohort.valid?
+
+        expect(cohort.automation_hoh_only).to be(false)
+      end
     end
   end
 end

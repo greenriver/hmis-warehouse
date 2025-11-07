@@ -1,0 +1,19 @@
+%h4 Automation
+%ul
+  %li
+    This cohort is automatically populated.
+    - descriptions = @cohort.automation_scope_descriptions
+    - if descriptions.any?
+      Clients will be populated based on #{descriptions.to_sentence}.
+    - else
+      Clients will be populated automatically based on the configured automation criteria.
+  %li
+    - if @cohort.automation_updated_at?
+      = "Last automatic refresh was on #{@cohort.automation_updated_at}."
+    - else
+      No automated refresh recorded yet, check back soon.
+
+- if can_configure_cohorts?
+  .mb-2
+    = button_to maintain_cohort_path(@cohort), method: :post, class: 'btn btn-secondary btn-sm' do
+      Queue Refresh Now

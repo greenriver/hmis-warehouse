@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
-# frozen_string_literal: true
+# AWS vault has been superseded by granted. This mechanism will be phased out in the coming months,
+# at which time we can remove this file completely. Keeping the `vault_*` name for developer ergonomics during the transition.
 
 # Confirm we've pushed/pulled before we ask for a password
 require_relative 'lib/deployer'
 Deployer.check_that_you_pushed_to_remote!
 
-cmd = "aws-vault exec openpath -- bin/deploy #{ARGV.join(' ')}"
+cmd = "assume op-dev --exec -- bin/deploy #{ARGV.join(' ')}"
 system(cmd)
