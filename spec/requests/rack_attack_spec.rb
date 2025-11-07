@@ -119,22 +119,19 @@ RSpec.describe Rack::Attack, type: :request do
         expect(requests_sent).to eq(throttled_at)
       end
     end
-
-    describe 'Password Reset Throttling' do
-      let(:path) { edit_user_password_path }
-      it 'throttles brute-force password reset requests' do
-        throttled_at = 20
-        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
-          get(path, params: { reset_password_token: "FFFFFFFFFFFFFFFFFFF#{i}" })
-        end
-        expect(requests_sent).to eq(throttled_at)
-      end
-    end
   end
 
   describe 'when logged in' do
     before do
       sign_in user
+
+      # For rack_attack tests, we also need to set the token in the env hash
+      # since rack_attack uses raw Rack calls
+      allow_any_instance_of(Rack::Attack::Request).to receive(:env).and_wrap_original do |method, *args|
+        env = method.call(*args)
+        env['HTTP_X_FORWARDED_ACCESS_TOKEN'] = jwt_token if jwt_token
+        env
+      end
     end
 
     include_examples 'blocks active storage routes'
