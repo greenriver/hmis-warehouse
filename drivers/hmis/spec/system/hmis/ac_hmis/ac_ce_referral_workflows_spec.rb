@@ -261,7 +261,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         mui_select(unit_group.name, from: 'Unit Group')
         fill_in 'Resource Coordinator Notes', with: 'note'
 
-        # Ensure warning is displayed because the client is already enrolled in the target project
+        # Ensure warning is displayed because the client is already enrolled in the target project (based on project_can_accept_referral)
         expect(page).to have_content(referral_warning_message)
 
         expect do
@@ -281,7 +281,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         mui_select(unit_group.name, from: 'Unit Group')
         fill_in 'Resource Coordinator Notes', with: 'note'
 
-        # Ensure warning is displayed because the client is already referred to the target project
+        # Ensure warning is displayed because the client is already referred to the target project (based on project_can_accept_referral)
         expect(page).to have_content(referral_warning_message)
 
         expect do
