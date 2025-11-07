@@ -3,7 +3,7 @@
 
 = content_for :crumbs do
   = link_to admin_metric_definitions_path do
-    &laquo; Client Metric Definitions
+    &laquo; Threshold Monitoring Definitions
 
 %h1= content_for :title
 
@@ -70,6 +70,7 @@
       %p.text-muted
         This chart shows the number of #{@entity_label.pluralize.downcase} that crossed the configured threshold on each day.
         Initial observations are excluded.
+        Click on a bar to see the details of the threshold crossings for that day.
 
       - if @chart_data.any?
         .metric-threshold-chart{
@@ -77,9 +78,11 @@
             controller: 'metric-threshold-chart',
             metric_threshold_chart_data_value: @chart_data.to_json,
             metric_threshold_chart_metric_name_value: @metric_definition.display_name,
-            metric_threshold_chart_entity_label_value: @entity_label
+            metric_threshold_chart_entity_label_value: @entity_label,
+            metric_threshold_chart_metric_id_value: @metric_definition.id,
           }
         }
           %div{data: { metric_threshold_chart_target: 'chart' }}
+          .mt-4{data: { metric_threshold_chart_target: 'detailsContainer' }, style: 'display: none;'}
       - else
         %p.text-muted.text-center No threshold crossings in the last 90 days

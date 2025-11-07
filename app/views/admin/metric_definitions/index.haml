@@ -1,44 +1,9 @@
-- title = 'Client Metric Definitions'
+- title = 'Threshold Monitoring Definitions'
 - content_for :title, title
 %h1= content_for :title
 
 .row
   .col-sm-12
     %p.text-muted
-      Metric definitions are automatically created from calculator classes.
-      You can modify thresholds, display names, and activation status.
-    .card
-      %table.table.table-striped
-        %thead
-          %tr
-            %th Name
-            %th Count Threshold
-            %th Percent Threshold
-            %th Active
-            %th Actions
-        %tbody
-          - @metric_definitions.group_by(&:category).each do |category, definitions|
-            %tr.table-secondary
-              %td{colspan: 8}
-                %strong= category.titleize
-            - definitions.each do |definition|
-              %tr
-                %td
-                  = link_to definition.display_name, admin_metric_definition_path(definition)
-                %td.text-center
-                  - if definition.count_change_threshold
-                    = definition.count_change_threshold
-                  - else
-                    %span.text-muted —
-                %td.text-center
-                  - if definition.percent_change_threshold
-                    = "#{definition.percent_change_threshold}%"
-                  - else
-                    %span.text-muted —
-                %td.text-center
-                  - if definition.active
-                    %span.badge.text-bg-primary Active
-                  - else
-                    %span.badge.text-bg-secondary Inactive
-                %td
-                  = link_to 'Edit', edit_admin_metric_definition_path(definition), class: 'btn btn-sm btn-primary'
+      Threshold monitoring definitions are hard-coded, but you can modify thresholds, display names, and activation status to fit your community's needs.
+    = render_paginated_list(scope: @metric_definitions, item_name: 'threshold definition', list_partial: 'admin/metric_definitions/list')
