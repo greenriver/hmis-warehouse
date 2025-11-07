@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
 
-cmd = "aws-vault exec openpath -- bin/containers/ssh #{ARGV.join(' ')}"
+# AWS vault has been superseded by granted. This mechanism will be phased out in the coming months,
+# at which time we can remove this file completely. Keeping the `vault_*` name for developer ergonomics during the transition.
+
+cmd = "assume op-dev --exec -- bin/containers/ssh #{ARGV.join(' ')}"
 system(cmd)

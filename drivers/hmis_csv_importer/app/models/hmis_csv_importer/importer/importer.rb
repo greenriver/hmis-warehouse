@@ -603,7 +603,10 @@ module HmisCsvImporter::Importer
     end
 
     def mark_tree_as_dead
+      file_count = 0
       importable_files.each_value do |klass|
+        file_count += 1
+        Rails.logger.info "[#{file_count}/#{total_files}] Marking tree as dead for #{klass.name}..."
         with_sql_log(__method__, klass, name: 'involved_warehouse_scope') do
           klass.mark_tree_as_dead(
             data_source_id: data_source.id,
@@ -641,7 +644,10 @@ module HmisCsvImporter::Importer
     end
 
     def add_new_data
+      file_count = 0
       importable_files.each do |file_name, klass|
+        file_count += 1
+        Rails.logger.info "[#{file_count}/#{total_files}] Adding new data for #{file_name}..."
         # Augmentation classes will always be updating existing records
         next if custom_augmentation?(klass)
 
@@ -718,12 +724,20 @@ module HmisCsvImporter::Importer
 
     def process_existing
       # TODO: This could be parallelized
+      total_files = importable_files.count
+      file_count = 0
       importable_files.each do |file_name, klass|
+        file_count += 1
+        Rails.logger.info "[#{file_count}/#{total_files}] Processing existing records for #{file_name}..."
         preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
+          Rails.logger.info "  Marking unchanged records for #{file_name}..."
           mark_unchanged(klass, file_name)
+          Rails.logger.info "  Marking incoming older records for #{file_name}..."
           mark_incoming_older(klass, file_name)
+          Rails.logger.info "  Applying updates for #{file_name}..."
           apply_updates(klass, file_name)
+          Rails.logger.info "  Completed processing #{file_name}"
         end
       end
     end
@@ -805,6 +819,9 @@ module HmisCsvImporter::Importer
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
         upsert_columns = klass.upsert_column_names(version: importer_log.version) if custom_augmentation?(klass)
+
+        Rails.logger.info "Processing existing records for #{file_name} in batches"
+
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
@@ -829,6 +846,7 @@ module HmisCsvImporter::Importer
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
               # so these must be processed more slowly
               if klass.hud_key == :PersonalID
+                Rails.logger.info "Processing #{batch.count} records individually for #{file_name}"
                 batch.each do |incoming|
                   destination_class.where(
                     data_source_id: incoming.data_source_id,
@@ -838,6 +856,7 @@ module HmisCsvImporter::Importer
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
+                Rails.logger.info "Processing #{batch.count} records in bulk for #{file_name}"
                 process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
               end
               batch = []
@@ -846,6 +865,7 @@ module HmisCsvImporter::Importer
         end
         if batch.present? # ensure we get the last batch
           if klass.hud_key == :PersonalID && !custom_augmentation?(klass)
+            Rails.logger.info "Processing final batch of #{batch.count} records individually for #{file_name}"
             batch.each do |incoming|
               destination_class.where(
                 data_source_id: incoming.data_source_id,
@@ -855,6 +875,7 @@ module HmisCsvImporter::Importer
             end
             note_processed(file_name, batch.count, 'updated')
           else
+            Rails.logger.info "Processing final batch of #{batch.count} records in bulk for #{file_name}"
             process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
           end
         end
@@ -864,6 +885,7 @@ module HmisCsvImporter::Importer
           GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
             update_all(processed_as: nil)
         end
+        Rails.logger.info "Completed applying updates for #{file_name}"
       end
       records = summary_for(file_name, 'updated') || 0
       stats = {
@@ -889,6 +911,7 @@ module HmisCsvImporter::Importer
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :source_hash)
       unchanged = (existing & incoming).map(&:first)
+      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming.count} incoming, #{unchanged.count} unchanged"
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         query = klass.warehouse_class.where(
           data_source_id: data_source.id,
@@ -925,6 +948,7 @@ module HmisCsvImporter::Importer
       # if the incoming DateUpdated is strictly less than the existing one
       # trust the warehouse is correct
       unchanged = existing.select { |k, v| incoming[k].to_date < v.to_date }.keys
+      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming.count} incoming, #{unchanged.count} unchanged"
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         query = klass.warehouse_class.where(
           data_source_id: data_source.id,
@@ -1249,6 +1273,10 @@ module HmisCsvImporter::Importer
     # These classes need to preload mapping data before processing
     private def custom_file?(klass)
       klass.respond_to?(:custom_file?) && klass.custom_file?
+    end
+
+    private def total_files
+      @total_files ||= importable_files.count
     end
   end
 end

@@ -76,9 +76,9 @@ class Menu::Item < OpenStruct
   def collapse_regex
     # Most of the time we want an exact match, but for some sections there are a bunch of different paths for the drill-down
     terminator = match_pattern_terminator || '\z'
-    regex = children_paths(self, paths).reject(&:blank?).map { |p| "^#{p}#{terminator}" }.join('|')
-    regex << match_pattern if match_pattern.present?
-    Regexp.new(regex)
+    regex_parts = children_paths(self, paths).reject(&:blank?).map { |p| "^#{p}#{terminator}" }
+    regex_parts << match_pattern if match_pattern.present?
+    Regexp.new(regex_parts.join('|'))
   end
 
   def collapsed_class(path_info)
