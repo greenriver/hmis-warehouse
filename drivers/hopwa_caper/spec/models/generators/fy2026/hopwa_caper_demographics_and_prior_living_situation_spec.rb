@@ -37,21 +37,73 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
   end
 
   context 'With one multi-member household served with rental assistance' do
-    let!(:household) do
-      create_hopwa_eligible_household(
-        project: project,
-        hoh_client: create(:hud_client, DOB: today - 20.years, DOBDataQuality: 1, Man: 1, BlackAfAmerican: 1, White: 1, data_source: data_source),
-        other_clients: [create(:hud_client, DOB: today - 32.years, DOBDataQuality: 1, Woman: 1, White: 1, data_source: data_source)],
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_client) do
+      create(
+        :hud_client,
+        DOB: today - 20.years,
+        DOBDataQuality: 1,
+        Man: 1,
+        BlackAfAmerican: 1,
+        White: 1,
+        Sex: 1,
+        data_source: data_source,
+      )
+    end
+    let(:beneficiary_client) do
+      create(
+        :hud_client,
+        DOB: today - 32.years,
+        DOBDataQuality: 1,
+        Woman: 1,
+        White: 1,
+        Sex: 0,
+        data_source: data_source,
       )
     end
 
+    let!(:hoh_enrollment) do
+      create_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      ).tap do |enrollment|
+        create(
+          :hud_disability,
+          disability_type: hiv_positive,
+          enrollment: enrollment,
+          anti_retroviral: 1,
+          viral_load_available: 1,
+          viral_load: 100,
+          data_source: data_source,
+        )
+      end
+    end
+
+    let!(:beneficiary_enrollment) do
+      create_enrollment(
+        client: beneficiary_client,
+        project: project,
+        entry_date: report_start_date,
+        household_id: household_id,
+        relationship_to_ho_h: 99,
+      )
+    end
+
+    let(:household_enrollments) { [hoh_enrollment, beneficiary_enrollment] }
+
     let!(:services) do
-      household.enrollments.map do |member|
-        create_service(
+      household_enrollments.map do |member|
+        create(
+          :hud_service,
           enrollment: member,
           record_type: hopwa_financial_assistance,
           type_provided: rental_assistance,
           fa_amount: 101,
+          date_provided: member.entry_date,
+          data_source: data_source,
         )
       end
     end
@@ -65,8 +117,8 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       expect(report.hopwa_caper_enrollments.where(ever_prescribed_anti_retroviral_therapy: true).size).to eq(1)
       expect(report.hopwa_caper_enrollments.where(viral_load_suppression: true).size).to eq(1)
 
-      hoh_row = report.hopwa_caper_enrollments.find_by(personal_id: household.hoh.client.PersonalID)
-      beneficiary_row = report.hopwa_caper_enrollments.find_by(personal_id: household.other_members.first.client.PersonalID)
+      hoh_row = report.hopwa_caper_enrollments.find_by(personal_id: hoh_client.PersonalID)
+      beneficiary_row = report.hopwa_caper_enrollments.find_by(personal_id: beneficiary_client.PersonalID)
       expect(hoh_row.sex).to eq('Male')
       expect(beneficiary_row.sex).to eq('Female')
 

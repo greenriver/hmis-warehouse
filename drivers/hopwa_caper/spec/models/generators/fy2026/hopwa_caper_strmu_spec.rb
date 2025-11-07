@@ -19,20 +19,54 @@ RSpec.describe 'HOPWA CAPER STRMU', type: :model do
   end
 
   context 'With one multi-member household served with rental assistance' do
-    let!(:household) do
-      create_hopwa_eligible_household(
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:beneficiary_client) { create(:hud_client, data_source: data_source) }
+
+    let!(:hoh_enrollment) do
+      create_enrollment(
+        client: hoh_client,
         project: project,
-        other_clients: [create(:hud_client, data_source: data_source)],
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+    end
+
+    let!(:beneficiary_enrollment) do
+      create_enrollment(
+        client: beneficiary_client,
+        project: project,
+        entry_date: report_start_date,
+        household_id: household_id,
+        relationship_to_ho_h: 99,
+      )
+    end
+
+    let(:household_enrollments) { [hoh_enrollment, beneficiary_enrollment] }
+
+    before do
+      create(
+        :hud_disability,
+        disability_type: hiv_positive,
+        enrollment: hoh_enrollment,
+        anti_retroviral: 1,
+        viral_load_available: 1,
+        viral_load: 100,
+        data_source: data_source,
       )
     end
 
     let!(:services) do
-      household.enrollments.map do |member|
-        create_service(
+      household_enrollments.map do |member|
+        create(
+          :hud_service,
           enrollment: member,
           record_type: hopwa_financial_assistance,
           type_provided: rental_assistance,
           fa_amount: 101,
+          date_provided: member.entry_date,
+          data_source: data_source,
         )
       end
     end
@@ -47,18 +81,19 @@ RSpec.describe 'HOPWA CAPER STRMU', type: :model do
     end
 
     context 'with a prior enrollments' do
-      before(:each) do
-        old_enrollment = create(
-          :hud_enrollment,
-          client: household.hoh.client,
+      before do
+        previous_enrollment = create_enrollment(
+          client: hoh_client,
           project: project,
           entry_date: report_start_date - 1.year,
-          relationship_to_hoh: 1,
+          household_id: Hmis::Hud::Base.generate_uuid,
+          relationship_to_ho_h: 1,
         )
         create(
           :hud_exit,
-          enrollment: old_enrollment,
-          exit_date: old_enrollment.entry_date,
+          enrollment: previous_enrollment,
+          exit_date: previous_enrollment.entry_date,
+          data_source: data_source,
         )
       end
 

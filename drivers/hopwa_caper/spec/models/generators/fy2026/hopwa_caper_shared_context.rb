@@ -8,8 +8,10 @@
 
 require 'rails_helper'
 require_relative 'hopwa_caper_helpers'
+require_relative '../../../../../../spec/shared_contexts/hud_enrollment_builders'
 
 RSpec.shared_context 'HOPWA CAPER shared context' do
+  include_context 'HUD enrollment builders'
   include HopwaCaperHelpers
 
   let(:generator) { HopwaCaper::Generators::Fy2026::Generator }

@@ -32,12 +32,28 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
   end
 
   context 'with a household that received housing information services' do
-    let!(:household) do
-      create_hopwa_eligible_household(project: project)
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_enrollment) do
+      create_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      ).tap do |enrollment|
+        create(
+          :hud_disability,
+          disability_type: hiv_positive,
+          enrollment: enrollment,
+          anti_retroviral: 1,
+          viral_load_available: 1,
+          viral_load: 100,
+          data_source: data_source,
+        )
+      end
     end
 
     let!(:housing_info_service) do
-      hoh_enrollment = household.hoh
       Hmis::Hud::CustomService.insert_all([
         {
           'CustomServiceID' => SecureRandom.uuid.delete('-'),
@@ -60,7 +76,7 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
       rows = question_as_rows(question_number: 'Q5', report: report).to_h
 
       expect(rows.fetch('How many households were served with housing information services?')).to eq(1)
-      expect(rows.fetch('What were the HOPWA funds expended for Housing Information Services?')).to eq(0)
+      expect(rows.fetch('What were the HOPWA funds expended for Housing Information Services?')).to be_blank
     end
   end
 end
