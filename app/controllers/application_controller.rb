@@ -12,7 +12,6 @@ require_relative '../../lib/util/git'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
-  impersonates :user
 
   include CurrentUser
   include ActivityLogger
@@ -112,16 +111,19 @@ class ApplicationController < ActionController::Base
   def info_for_paper_trail
     {
       user_id: current_user&.id,
+      true_user_id: true_user&.id,
       session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
 
-  # Sets whodunnit
+  # Sets whodunnit for PaperTrail
+  #
+  # Returns the true user ID when impersonating, otherwise the current user ID.
+  # Format when impersonating: "#{true_user.id} as #{current_user.id}"
   def user_for_paper_trail
     return 'unauthenticated' unless current_user.present?
-    return current_user.id unless true_user.present?
-    return current_user.id if true_user == current_user
+    return current_user.id unless impersonating?
 
     "#{true_user.id} as #{current_user.id}"
   end

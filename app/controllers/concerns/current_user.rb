@@ -24,34 +24,7 @@ module CurrentUser
     #
     # @return [User, nil] Current user (or impersonated user) or nil if not authenticated
     def current_user
-      @current_user ||= begin
-        jwt_helper = jwt_helper_for_request
-        return nil unless jwt_helper&.token? && jwt_helper.validate!
-
-        authenticated_user = User.find_from_jwt(jwt_helper)
-        return nil unless authenticated_user
-
-        # Ensure authentication source exists (only once per request)
-        ensure_authentication_source(authenticated_user, jwt_helper) unless @auth_source_ensured
-
-        # Check for impersonation state
-        impersonation_manager = ImpersonationManager.new(session&.id)
-        impersonation_data = impersonation_manager.get
-        if impersonation_data && impersonation_data[:impersonated_user_id].present?
-          # Validate permissions on every request
-          true_user = User.find_by(id: impersonation_data[:true_user_id])
-          impersonated_user = User.find_by(id: impersonation_data[:impersonated_user_id])
-
-          return impersonated_user if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
-
-          # Clear invalid impersonation
-          impersonation_manager.clear
-          return authenticated_user
-
-        end
-
-        authenticated_user
-      end
+      @current_user ||= authenticated_user_from_jwt(user_class: User)
     end
     helper_method :current_user
 
@@ -69,25 +42,15 @@ module CurrentUser
     #
     # @raise [ActionController::RedirectBackError] if user is not authenticated
     def authenticate_user!
-      jwt_helper = jwt_helper_for_request
-
-      unless jwt_helper&.token? && jwt_helper.validate!
-        handle_unauthenticated
-        return
-      end
-
-      user = User.find_from_jwt(jwt_helper)
+      user = authenticated_user_from_jwt(user_class: User)
       unless user
         handle_unauthenticated
         return
       end
 
-      # Ensure authentication source exists (only once per request)
-      ensure_authentication_source(user, jwt_helper) unless @auth_source_ensured
-
       # Ensure user is active and eligible for authentication
       unless user.active_for_authentication?
-        handle_inactive_user
+        handle_inactive_user(user)
         return
       end
 
@@ -139,6 +102,13 @@ module CurrentUser
 
     private
 
+    # Get JWT helper for the current request.
+    #
+    # @return [JwtHelper, nil] JwtHelper instance or nil if no token present
+    def jwt_helper_for_request
+      @jwt_helper_for_request ||= JwtHelper.new(access_token: request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'])
+    end
+
     # Ensure UserAuthenticationSource exists for the user.
     #
     # This handles cases where users existed before IDP integration.
@@ -186,6 +156,49 @@ module CurrentUser
       return false unless impersonated_user&.impersonateable_by?(true_user)
 
       true
+    end
+
+    # Get authenticated user from JWT with impersonation support.
+    #
+    # This is a generic method that can be used by both User and Hmis::User controllers.
+    # It handles JWT validation, authentication source creation, and impersonation logic.
+    #
+    # @param user_class [Class] The user class to return (User or Hmis::User)
+    # @return [User, Hmis::User, nil] Authenticated user (or impersonated user) or nil
+    def authenticated_user_from_jwt(user_class: User)
+      jwt_helper = jwt_helper_for_request
+      return nil unless jwt_helper&.token? && jwt_helper.validate!
+
+      authenticated_user = User.find_from_jwt(jwt_helper)
+      return nil unless authenticated_user
+
+      # Cast to requested user class if different (e.g., Hmis::User)
+      user = if user_class == User
+        authenticated_user
+      else
+        user_class.find_by(id: authenticated_user.id)
+      end
+      return nil unless user
+
+      # Ensure authentication source exists (only once per request)
+      ensure_authentication_source(authenticated_user, jwt_helper) unless @auth_source_ensured
+
+      # Check for impersonation state
+      impersonation_manager = ImpersonationManager.new(session&.id)
+      impersonation_data = impersonation_manager.get
+      if impersonation_data && impersonation_data[:impersonated_user_id].present?
+        # Validate permissions on every request
+        true_user = User.find_by(id: impersonation_data[:true_user_id])
+        impersonated_user = user_class.find_by(id: impersonation_data[:impersonated_user_id])
+
+        return impersonated_user if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
+
+        # Clear invalid impersonation
+        impersonation_manager.clear
+        return user
+      end
+
+      user
     end
 
     # Handle unauthenticated user.
