@@ -81,8 +81,7 @@ module Hmis::Hud::Processors
       return if active_unit_occupancy&.unit_id == unit.id
 
       # If assigned to a different unit: unassign
-      # Update the occupancy period directly, instead of using enrollment.release_unit!, to avoid creating a nested transaction.
-      enrollment.active_unit_occupancy.occupancy_period.update!(end_date: Date.current, user: @processor.current_user) if enrollment.active_unit_occupancy.present?
+      enrollment.release_unit!(user: @processor.current_user)
 
       # Assign to specified unit
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)

@@ -518,13 +518,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def release_unit!(occupancy_end_date = Date.current, user:)
     occupancy = active_unit_occupancy
     # If enrollment isn't assigned to any unit, do nothing
-    return if occupancy.nil? || occupancy.occupancy_period.nil?
+    return if occupancy.nil?
+    raise "Missing occupancy period for enrollment #{enrollment.id}" unless occupancy.occupancy_period
 
-    transaction do
-      occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
-      unit_type = occupancy.unit&.unit_type
-      unit_type&.track_availability(project_id: project.id, user_id: user.id)
-    end
+    occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
   end
 
   def unit_occupied_on(date = Date.current)

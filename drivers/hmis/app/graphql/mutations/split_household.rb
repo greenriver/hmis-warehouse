@@ -44,11 +44,7 @@ module Mutations
           enrollment.relationship_to_hoh = map_enrollment_id_to_relationship[enrollment.id.to_s]
 
           # Release the unit, so that we don't end with a unit occupied by 2 different households.
-          # Update the occupancy period directly, instead of using enrollment.release_unit!
-          # to avoid creating a nested transaction.
-          # Also, we don't need to track availability since the unit is still being occupied by the remaining household members.
-          enrollment.active_unit_occupancy.occupancy_period.update!(end_date: Date.current, user: current_user) if enrollment.active_unit_occupancy.present?
-
+          enrollment.release_unit!(current_user)
           enrollment.save!
         end
 
