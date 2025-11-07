@@ -12,6 +12,7 @@
 # JWT authentication by stubbing JWT validation and setting request headers.
 module JwtAuthenticationHelper
   # Override request methods to automatically include JWT headers
+  # When prepended, these methods are called before ActionDispatch::IntegrationTest's methods
   [:get, :post, :put, :patch, :delete, :head].each do |method|
     define_method(method) do |path, *args, **kwargs|
       # Merge JWT headers if available
@@ -20,7 +21,7 @@ module JwtAuthenticationHelper
         # Merge JWT headers
         kwargs[:headers] = kwargs[:headers].merge(@jwt_headers)
       end
-      # Call super with all arguments
+      # Call super to use the original method from ActionDispatch::IntegrationTest
       super(path, *args, **kwargs)
     end
   end
@@ -44,23 +45,32 @@ module JwtAuthenticationHelper
       connector_id: 'test',
       connector_user_id: user.id.to_s,
       payload_email: user.email,
+      expiration_time: 1.hour.from_now,
     )
 
     # Stub JwtHelper.authenticated? class method
-    allow(JwtHelper).to receive(:authenticated?).with(mock_token).and_return(true)
-    allow(JwtHelper).to receive(:authenticated?).and_call_original
+    # Returns true for mock token, calls original for other tokens
+    allow(JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|
+      token == mock_token ? true : original_method.call(token)
+    end
 
     # Stub JwtHelper.user_id_from_token class method
-    allow(JwtHelper).to receive(:user_id_from_token).with(mock_token).and_return(user.id)
-    allow(JwtHelper).to receive(:user_id_from_token).and_call_original
+    # Returns user.id for mock token, calls original for other tokens
+    allow(JwtHelper).to receive(:user_id_from_token).and_wrap_original do |original_method, token|
+      token == mock_token ? user.id : original_method.call(token)
+    end
 
-    # Stub JwtHelper.new to return our mock helper
-    allow(JwtHelper).to receive(:new).with(access_token: mock_token).and_return(jwt_helper)
-    allow(JwtHelper).to receive(:new).and_call_original
+    # Stub JwtHelper.new to return our mock helper for the mock token
+    # Calls original for other tokens
+    allow(JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+      kwargs[:access_token] == mock_token ? jwt_helper : original_method.call(**kwargs)
+    end
 
-    # Stub User.find_from_jwt to return the user
-    allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(user)
-    allow(User).to receive(:find_from_jwt).and_call_original
+    # Stub User.find_from_jwt to return the user for our mock helper
+    # Calls original for other helpers
+    allow(User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
+      helper == jwt_helper ? user : original_method.call(helper)
+    end
 
     # Store token for use in headers
     @jwt_token = mock_token
@@ -75,16 +85,6 @@ module JwtAuthenticationHelper
     mock_token
   end
 
-  # Get JWT authentication headers for use in request specs.
-  #
-  # Use this when you need to explicitly pass headers to requests:
-  #   get path, headers: jwt_headers
-  #
-  # @return [Hash] Headers hash with JWT token
-  def jwt_headers
-    @jwt_headers ||= {}
-  end
-
   # Get the mock JWT token for the signed-in user.
   #
   # @return [String, nil] The mock JWT token or nil if not signed in
@@ -94,6 +94,14 @@ module JwtAuthenticationHelper
 end
 
 RSpec.configure do |config|
+  # Include the module for sign_in and other helper methods
   config.include JwtAuthenticationHelper, type: :request
   config.include JwtAuthenticationHelper, type: :controller
+
+  # Prepend to the example's singleton class AFTER example group before blocks run
+  # This ensures sign_in has been called and @jwt_headers is set
+  config.append_before(:each, type: :request) do |example|
+    # Prepend to ensure our method overrides take precedence
+    example.singleton_class.prepend(JwtAuthenticationHelper) unless example.singleton_class.ancestors.include?(JwtAuthenticationHelper)
+  end
 end
