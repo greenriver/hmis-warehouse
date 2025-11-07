@@ -88,7 +88,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
-    - 'app/models/two_factors_memorized_device.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -2459,7 +2458,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/talentlms/login.rb'
     - 'app/models/token.rb'
     - 'app/models/translation.rb'
-    - 'app/models/two_factors_memorized_device.rb'
     - 'app/models/unique_name.rb'
     - 'app/models/warehouse_alert.rb'
     - 'app/models/warehouse_report.rb'

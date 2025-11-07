@@ -141,7 +141,7 @@ RSpec.describe Rack::Attack, type: :request do
 
     describe 'status endpoints' do
       let(:excluded_paths) { ['/messages/poll'] }
-      let(:session_timeout) { Idp::ServiceFactory.default_session_timeout }
+      let(:session_timeout) { Idp::ServiceFactory.recent_activity_period }
 
       it 'does not extend session lifetime for excluded paths' do
         excluded_paths.each do |path|
