@@ -44,7 +44,7 @@ module Mutations
           enrollment.relationship_to_hoh = map_enrollment_id_to_relationship[enrollment.id.to_s]
 
           # Release the unit, so that we don't end with a unit occupied by 2 different households.
-          enrollment.release_unit!(current_user)
+          enrollment.release_unit!(user: current_user)
           enrollment.save!
         end
 
