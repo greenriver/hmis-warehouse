@@ -481,7 +481,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def assign_unit(unit:, start_date:, user:, active_referral: nil)
     raise "Active referral unit is incorrect #{active_referral.opportunity.unit.id} != #{unit.id}" if active_referral.present? && active_referral.opportunity.unit != unit
 
-    current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
+    current_occupancy = active_unit_occupancy if active_unit_occupancy&.occupancy_period&.active?
     # ignore: this enrollment is already assigned to this unit
     return if current_occupancy.present? && current_occupancy.unit == unit
 
