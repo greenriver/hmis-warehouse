@@ -1,15 +1,19 @@
+x-env-file: &env_file
+  - .env.development.local
+  - .env.local
+
 x-app: &app
-  image: hmis-warehouse:5.3
+  image: hmis-warehouse:5.2
   build:
     context: .
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.4.5
-      BUNDLER_VERSION: "2.7.2"
+      RUBY_VERSION: 3.3.8
+      BUNDLER_VERSION: "2.6.3"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.4.5-slim-bookworm
+      BUILD_TAG: 3.3.8-slim-bookworm
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -28,10 +32,16 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
+    # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientID
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse}
+    # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientSecret and
+    # Needs to match /app/docker/auth/dev.oauth2-proxy.cfg cookie_secret
+    JWT_SECRET: ${JWT_SECRET:-"dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="}
+    JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+    ISS_URL: ${ISS_URL:-http://dex.dev.test:4443/dex}
+    JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
 
-  env_file:
-    - .env.development.local
-    - .env.local
+  env_file: *env_file
 
 x-backend: &backend
   <<: *app
@@ -146,6 +156,103 @@ services:
         condition: service_started
       minio:
         condition: service_started
+  oauth2-proxy:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`)
+      - traefik.http.routers.hmis-warehouse-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-warehouse-oauth2.service=hmis-warehouse-oauth2
+      - traefik.http.routers.hmis-warehouse-oauth2.tls=true
+      - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
+    container_name: oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    command: --alpha-config /oauth2-proxy.yaml --config /oauth2-proxy.cfg
+    hostname: hmis-warehouse.dev.test
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy.cfg:/oauth2-proxy.cfg"
+      - "./docker/auth/dev.oauth2-proxy.yaml:/oauth2-proxy.yaml"
+    environment:
+      <<: *env
+      FQDN: hmis-warehouse.dev.test
+      VIRTUAL_HOST: hmis-warehouse.dev.test
+      VIRTUAL_PORT: 4180
+    ports:
+      - 4180:4180/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  oauth2-proxy-hmis:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-frontend-oauth2.rule=Host(`hmis.dev.test`)
+      - traefik.http.routers.hmis-frontend-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-frontend-oauth2.service=hmis-frontend-oauth2
+      - traefik.http.routers.hmis-frontend-oauth2.tls=true
+      - traefik.http.services.hmis-frontend-oauth2.loadbalancer.server.port=4181
+    container_name: oauth2-proxy-hmis
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    command: --alpha-config /oauth2-proxy-hmis.yaml --config /oauth2-proxy-hmis.cfg
+    hostname: hmis.dev.test
+    extra_hosts:
+      - "internal-hmis.dev.test:host-gateway"
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy-hmis.cfg:/oauth2-proxy-hmis.cfg"
+      - "./docker/auth/dev.oauth2-proxy-hmis.yaml:/oauth2-proxy-hmis.yaml"
+    environment:
+      <<: *env
+      FQDN: hmis.dev.test
+      VIRTUAL_HOST: hmis.dev.test
+      VIRTUAL_PORT: 4181
+    ports:
+      - 4181:4181/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  dex-db-init:
+    image: postgres:17.5-bookworm
+    container_name: dex-db-init
+    command: >
+      bash -c "psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'dex'\" | grep -q 1 || psql -h db -U postgres -c 'CREATE DATABASE dex'"
+    environment:
+      PGPASSWORD: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  dex:
+    container_name: dex
+    # image: dexidp/dex:latest-alpine
+    image: ghcr.io/dexidp/dex:v2.44.0
+    command: dex serve /dex.yaml
+    hostname: dex
+    volumes:
+      - "./docker/auth/dev.dex.yaml:/dex.yaml"
+    env_file: *env_file
+    environment:
+      <<: *env
+      FQDN: dex.dev.test
+      VIRTUAL_HOST: dex.dev.test
+      VIRTUAL_PORT: 4443
+    ports:
+      - 4443:4443/tcp
+    networks:
+      default:
+        aliases:
+          - dex.dev.test
+    depends_on:
+      db:
+        condition: "service_healthy"
+      dex-db-init:
+        condition: service_completed_successfully
+    # oauth2 proxy kept failing intermittently, added this health check
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "4443"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   web:
     <<: *backend
@@ -153,16 +260,6 @@ services:
     stdin_open: true
     tty: true
     command: bin/rails server -b 0.0.0.0
-    labels:
-      - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.op.entrypoints=web
-      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.services.op_https.loadbalancer.server.port=3000
-      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.routers.op_https.tls=true
-      - traefik.http.routers.op_https.entrypoints=web-secure
-      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
-      - traefik.http.routers.op.middlewares=op_https
     ports:
       - "3000"
       - "9394"
@@ -171,8 +268,7 @@ services:
       - "9394"
     environment:
       <<: *env
-      VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}
-      VIRTUAL_PORT: 3000
+    hostname: internal-warehouse.dev.test
     depends_on:
       db:
         condition: service_healthy
@@ -182,6 +278,10 @@ services:
         condition: service_started
       yarn:
         condition: service_started
+      oauth2-proxy:
+        condition: service_started
+      dex:
+        condition: service_healthy
 
   # To transition from a previous major version to pg17, run `bash ./docker/pg17/upgrade.sh`
   db_previous:
