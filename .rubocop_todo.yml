@@ -67,7 +67,6 @@ Layout/DotPosition:
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/client_involvement.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/data_warehouse_api.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/program_involvement.rb'
-    - 'spec/models/omniauth_user_provisioner_spec.rb'
 
 # Offense count: 23
 # This cop supports safe autocorrection (--autocorrect).
@@ -4726,7 +4725,6 @@ Style/FrozenStringLiteralComment:
     - 'spec/models/health/tasks/notify_care_coordinators_of_patient_eligibility_problems_spec.rb'
     - 'spec/models/logging_spec.rb'
     - 'spec/models/message_spec.rb'
-    - 'spec/models/omniauth_user_provisioner_spec.rb'
     - 'spec/models/pluck_in_batches_spec.rb'
     - 'spec/models/role_spec.rb'
     - 'spec/models/sql_helper_spec.rb'
@@ -4736,7 +4734,6 @@ Style/FrozenStringLiteralComment:
     - 'spec/models/user_edit_history/display_item_spec.rb'
     - 'spec/models/user_group_spec.rb'
     - 'spec/requests/account_emails_controller_spec.rb'
-    - 'spec/requests/account_passwords_controller_spec.rb'
     - 'spec/requests/accounts_controller_spec.rb'
     - 'spec/requests/admin/administrative_events_controller_legacy_spec.rb'
     - 'spec/requests/admin/administrative_events_controller_spec.rb'

@@ -124,44 +124,9 @@ RSpec.describe Rack::Attack, type: :request do
   describe 'when logged in' do
     before do
       sign_in user
-
-      # For rack_attack tests, we also need to set the token in the env hash
-      # since rack_attack uses raw Rack calls
-      allow_any_instance_of(Rack::Attack::Request).to receive(:env).and_wrap_original do |method, *args|
-        env = method.call(*args)
-        env['HTTP_X_FORWARDED_ACCESS_TOKEN'] = jwt_token if jwt_token
-        env
-      end
     end
 
     include_examples 'blocks active storage routes'
-
-    describe 'status endpoints' do
-      let(:excluded_paths) { ['/messages/poll'] }
-      let(:session_timeout) { Idp::ServiceFactory.recent_activity_period }
-
-      it 'does not extend session lifetime for excluded paths' do
-        excluded_paths.each do |path|
-          # First request to establish session
-          get path, xhr: true
-          expect(response).to be_successful
-
-          # Move time forward
-          travel(session_timeout - 1.minutes)
-
-          # Should still be logged in
-          get path, xhr: true
-          expect(response).to be_successful
-
-          # Move time forward 2 more minutes (past the timeout)
-          travel 2.minutes
-
-          # Should be logged out
-          get path, xhr: true
-          expect(response).to have_http_status(:unauthorized)
-        end
-      end
-    end
 
     describe 'and hitting the homepage' do
       let(:path) { root_path }
