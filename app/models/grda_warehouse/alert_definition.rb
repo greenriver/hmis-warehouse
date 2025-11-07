@@ -37,11 +37,18 @@ module GrdaWarehouse
       lock_name = 'alert_definition_maintain'
       GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
         initial_definitions.each do |attrs|
+          db_attrs = attrs.dup
+          non_database_attributes.each { |key| db_attrs.delete(key) }
           find_or_create_by!(code: attrs[:code]) do |definition|
-            definition.assign_attributes(attrs.except(*non_database_attributes))
+            definition.assign_attributes(db_attrs)
           end
         end
       end
+    end
+
+    # Alias for backward compatibility with older deployed code
+    class << self
+      alias_method :seed_initial_definitions, :maintain!
     end
 
     def self.initial_definitions
