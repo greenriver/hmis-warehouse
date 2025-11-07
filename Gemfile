@@ -102,7 +102,6 @@ gem 'jwt', '~> 3.1'
 gem 'faraday', '~> 2.2'
 gem 'oauth2'
 
-gem 'pretender'
 gem 'rqrcode'
 
 gem 'maxminddb' # for local geocoding of login attempts

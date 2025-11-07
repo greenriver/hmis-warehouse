@@ -307,10 +307,6 @@ module ApplicationHelper
     Git.revision
   end
 
-  def impersonating?
-    current_user != true_user
-  end
-
   def modal_size
     ''
   end

@@ -124,7 +124,7 @@ module Admin
 
     def stop_impersonating
       ImpersonationManager.new(session.id).clear
-      redirect_to root_path
+      redirect_to admin_users_path
     end
 
     def update
