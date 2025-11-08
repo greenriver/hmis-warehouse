@@ -39,7 +39,7 @@ providers:
   - ADFSConfig: {}
     azureConfig:
       tenant: common
-    backendLogoutURL: ""
+    backendLogoutURL: "https://dex.dev.test/dex/auth/logout"
     bitbucketConfig: {}
     clientID: hmis-frontend
     clientSecret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
@@ -54,6 +54,7 @@ providers:
         allow:
           - value: local
           - value: github_idp
+          - value: zitadel
 
     microsoftEntraIDConfig: {}
     name: Dex

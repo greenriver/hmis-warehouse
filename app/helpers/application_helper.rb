@@ -437,7 +437,8 @@ module ApplicationHelper
     path = '/oauth2/sign_in'
     params = []
 
-    connector_id = user&.last_connector_id
+    # Get connector_id from user database record, or fall back to cookie for logged-out users
+    connector_id = user&.last_connector_id || cookies[:last_connector_id]
     params << "connector_id=#{CGI.escape(connector_id)}" if connector_id.present?
 
     if redirect_to.present?
