@@ -38,8 +38,10 @@ x-app: &app
     # Needs to match /app/docker/auth/dev.oauth2-proxy.cfg cookie_secret
     JWT_SECRET: ${JWT_SECRET:-"dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="}
     JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
-    ISS_URL: ${ISS_URL:-http://dex.dev.test:4443/dex}
-    JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
+    # Internal connections use Docker network hostname 'dex'
+    # Issuer must match what browsers see (https://dex.dev.test/dex) for token validation
+    ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
+    JWKS_URL: ${JWKS_URL:-http://dex:4443/dex/keys}
 
   env_file: *env_file
 
@@ -168,6 +170,8 @@ services:
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
     command: --alpha-config /oauth2-proxy.yaml --config /oauth2-proxy.cfg
     hostname: hmis-warehouse.dev.test
+    extra_hosts:
+      - "dex.dev.test:host-gateway"
     volumes:
       - "./docker/auth/dev.oauth2-proxy.cfg:/oauth2-proxy.cfg"
       - "./docker/auth/dev.oauth2-proxy.yaml:/oauth2-proxy.yaml"
@@ -196,6 +200,7 @@ services:
     extra_hosts:
       - "internal-hmis.dev.test:host-gateway"
       - "host.docker.internal:host-gateway"
+      - "dex.dev.test:host-gateway"
     volumes:
       - "./docker/auth/dev.oauth2-proxy-hmis.cfg:/oauth2-proxy-hmis.cfg"
       - "./docker/auth/dev.oauth2-proxy-hmis.yaml:/oauth2-proxy-hmis.yaml"
@@ -222,6 +227,13 @@ services:
     restart: "no"
 
   dex:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dex.rule=Host(`dex.dev.test`)
+      - traefik.http.routers.dex.entrypoints=web-secure
+      - traefik.http.routers.dex.tls=true
+      - traefik.http.services.dex.loadbalancer.server.port=4443
+      - traefik.http.services.dex.loadbalancer.server.scheme=http
     container_name: dex
     # image: dexidp/dex:latest-alpine
     image: ghcr.io/dexidp/dex:v2.44.0
@@ -237,10 +249,6 @@ services:
       VIRTUAL_PORT: 4443
     ports:
       - 4443:4443/tcp
-    networks:
-      default:
-        aliases:
-          - dex.dev.test
     depends_on:
       db:
         condition: "service_healthy"

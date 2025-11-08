@@ -63,7 +63,7 @@ providers:
       emailClaim: email
       groupsClaim: groups
       insecureSkipNonce: true
-      issuerURL: http://dex.dev.test:4443/dex
+      issuerURL: https://dex.dev.test/dex
       userIDClaim: email
     provider: oidc
     scope: openid email profile federated:id

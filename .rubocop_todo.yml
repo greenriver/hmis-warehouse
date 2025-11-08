@@ -3140,7 +3140,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/app/controllers/hmis/concerns/json_errors.rb'
     - 'drivers/hmis/app/controllers/hmis/session_keepalives_controller.rb'
     - 'drivers/hmis/app/controllers/hmis/theme_controller.rb'
-    - 'drivers/hmis/app/controllers/hmis/users_controller.rb'
     - 'drivers/hmis/app/controllers/hmis_admin/access_controls_controller.rb'
     - 'drivers/hmis/app/controllers/hmis_admin/access_overviews_controller.rb'
     - 'drivers/hmis/app/controllers/hmis_admin/user_groups/users_controller.rb'
