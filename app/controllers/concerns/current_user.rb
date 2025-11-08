@@ -139,6 +139,11 @@ module CurrentUser
       # Update last_connector_id if this is a different connector
       user.update_column(:last_connector_id, connector_id) if user.last_connector_id != connector_id
 
+      # Always ensure cookie is set so sign-in page can use it even when user is logged out
+      # This handles cases where cookie might have been cleared or expired
+      # Use permanent to set a 20-year expiration
+      cookies.permanent[:last_connector_id] = connector_id
+
       @auth_source_ensured = true
     end
 

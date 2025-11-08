@@ -19,6 +19,7 @@ class Hmis::User < ApplicationRecord
   include Memery
 
   include UserConcern
+  include IdpSupport
   include HasRecentItems
   self.table_name = :users
 
@@ -215,6 +216,8 @@ class Hmis::User < ApplicationRecord
       phone: phone,
       # Session duration is managed by the IDP and can be obtained from JWT token
       sessionDuration: nil,
+      # Primary IDP connector ID for bypassing IDP picker on sign-in
+      primaryIdp: primary_idp,
     }
   end
 
