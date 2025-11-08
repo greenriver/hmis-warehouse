@@ -2,7 +2,7 @@
 # This configuration is intended to be used with the docker compose testing
 # environment.
 # This should configure Dex to run on port 4443 and provides a static login
-issuer: http://dex.dev.test:4443/dex
+issuer: https://dex.dev.test/dex
 storage:
   type: postgres
   config:
@@ -28,7 +28,7 @@ connectors:
     config:
       clientID: ${GITHUB_IDP_CLIENT_ID}
       clientSecret: ${GITHUB_IDP_CLIENT_SECRET}
-      redirectURI: http://dex.dev.test:4443/dex/callback
+      redirectURI: https://dex.dev.test/dex/callback
   - type: oidc
     id: zitadel
     name: Open Path Account
@@ -36,7 +36,7 @@ connectors:
       issuer: http://zitadel.dev.test:8080
       clientID: ${ZITADEL_IDP_CLIENT_ID}
       clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
-      redirectURI: http://dex.dev.test:4443/dex/callback
+      redirectURI: https://dex.dev.test/dex/callback
       useLoginAsID: true
       scopes:
         - openid
