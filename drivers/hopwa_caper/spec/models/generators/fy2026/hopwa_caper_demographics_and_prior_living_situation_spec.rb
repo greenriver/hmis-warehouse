@@ -117,8 +117,8 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
 
       hoh_row = report.hopwa_caper_enrollments.find_by(personal_id: hoh_client.PersonalID)
       beneficiary_row = report.hopwa_caper_enrollments.find_by(personal_id: beneficiary_client.PersonalID)
-      expect(hoh_row.sex).to eq('1')
-      expect(beneficiary_row.sex).to eq('0')
+      expect(hoh_row.sex).to eq(1)
+      expect(beneficiary_row.sex).to eq(0)
 
       all_rows = question_as_rows(question_number: 'Q1', report: report)
       flattened_rows = all_rows.flatten
