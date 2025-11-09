@@ -1,4 +1,4 @@
--- \restrict WrnIjeEGsJ86ORZkJQdZZe8WhAhsmpXQM3pexqy6fH6aEh49ckkooixzOx2gzom
+-- \restrict MtbGbd3prluLkCWEfohsaWTCm06pcwUfrtxUTa4WxApmTJioeFz64RHgCtVe7bR
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -25332,7 +25332,10 @@ CREATE TABLE public.hopwa_caper_services (
     date_provided date,
     record_type integer,
     type_provided integer,
-    fa_amount numeric
+    fa_amount numeric,
+    service_source character varying,
+    service_category_name character varying,
+    service_type_name character varying
 );
 
 
@@ -76364,7 +76367,7 @@ CREATE UNIQUE INDEX uidx_hopwa_caper_enrollments ON public.hopwa_caper_enrollmen
 -- Name: uidx_hopwa_caper_services; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_id);
+CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_source, service_id);
 
 
 --
@@ -80950,11 +80953,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict WrnIjeEGsJ86ORZkJQdZZe8WhAhsmpXQM3pexqy6fH6aEh49ckkooixzOx2gzom
+-- \unrestrict MtbGbd3prluLkCWEfohsaWTCm06pcwUfrtxUTa4WxApmTJioeFz64RHgCtVe7bR
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251109090000'),
 ('20251106123000'),
 ('20251104183938'),
 ('20251104032359'),

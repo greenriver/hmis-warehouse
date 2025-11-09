@@ -116,6 +116,13 @@ RSpec.describe 'HOPWA CAPER Supportive Services', type: :model do
       expect(transportation.last).to be_blank
       expect(indexed.fetch('How many households received more than one type of Supportive Services?').first).to eq(1)
       expect(indexed.fetch('Deduplicated Supportive Services Household Total (based on amounts reported in Rows 5-21 above)').first).to eq(2)
+
+      # Verify HUD service metadata is populated
+      expect(report.hopwa_caper_services.count).to eq(3)
+      case_mgmt_service = report.hopwa_caper_services.find_by(type_provided: case_management_code)
+      expect(case_mgmt_service.service_source).to eq(HopwaCaper::Service::HUD_SERVICE_SOURCE)
+      expect(case_mgmt_service.service_category_name).to eq('HOPWA Service')
+      expect(case_mgmt_service.service_type_name).to eq('Case management')
     end
   end
 end

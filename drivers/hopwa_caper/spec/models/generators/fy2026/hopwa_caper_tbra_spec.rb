@@ -71,7 +71,7 @@ RSpec.describe 'HOPWA CAPER TBRA', type: :model do
       end
     end
 
-    it 'reports household count, medical insurance, and income_benefit' do
+    it 'reports household count, medical insurance, income sources, and health outcomes' do
       hoh_enrollment.income_benefits.create!(Medicaid: 1, Earned: 1, information_date: report_start_date)
       report = create_report([project])
       run_report(report)
@@ -79,6 +79,8 @@ RSpec.describe 'HOPWA CAPER TBRA', type: :model do
       expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
       expect(rows.fetch('Earned Income from Employment')).to eq(1)
       expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
+      expect(rows.fetch('How many HOPWA-eligible individuals served with TBRA this year have ever been prescribed Anti-Retroviral Therapy?')).to eq(1)
+      expect(rows.fetch('How many HOPWA-eligible persons served with TBRA have shown an improved viral load or achieved viral suppression?')).to eq(1)
       expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(1)
     end
 

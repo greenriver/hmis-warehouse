@@ -40,41 +40,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def housing_info_enrollments
       @housing_info_enrollments ||= begin
-        hopwa = HopwaCaper::Enrollment.arel_table
-        enrollment = GrdaWarehouse::Hud::Enrollment.arel_table
-        custom_service = Hmis::Hud::CustomService.arel_table
-        custom_service_type = Hmis::Hud::CustomServiceType.arel_table
-        custom_service_category = Hmis::Hud::CustomServiceCategory.arel_table
-
-        # Join HopwaCaper::Enrollment -> GrdaWarehouse::Hud::Enrollment via enrollment_id
-        join_enrollment = hopwa.join(enrollment, Arel::Nodes::InnerJoin).
-          on(enrollment[:id].eq(hopwa[:enrollment_id])).
-          join_sources
-
-        # Join Enrollment -> CustomService via composite key (EnrollmentID, PersonalID, data_source_id)
-        join_custom_service = enrollment.join(custom_service, Arel::Nodes::InnerJoin).
-          on(
-            custom_service[:EnrollmentID].eq(enrollment[:EnrollmentID]).
-            and(custom_service[:PersonalID].eq(enrollment[:PersonalID])).
-            and(custom_service[:data_source_id].eq(enrollment[:data_source_id])),
-          ).
-          join_sources
-
-        # Join CustomService -> CustomServiceType via association
-        join_service_type = custom_service.join(custom_service_type, Arel::Nodes::InnerJoin).
-          on(custom_service_type[:id].eq(custom_service[:custom_service_type_id])).
-          join_sources
-
-        # Join CustomServiceType -> CustomServiceCategory via association
-        join_category = custom_service_type.join(custom_service_category, Arel::Nodes::InnerJoin).
-          on(custom_service_category[:id].eq(custom_service_type[:custom_service_category_id])).
-          join_sources
-
-        HopwaCaper::Enrollment.
+        HopwaCaper::Service.
           where(report_instance_id: @report.id).
-          joins(join_enrollment, join_custom_service, join_service_type, join_category).
-          where(custom_service[:DateProvided].in(@report.start_date..@report.end_date)).
-          where(custom_service_category[:name].eq(HOUSING_INFO_CATEGORY_NAME)).
+          where(service_source: HopwaCaper::Service::CUSTOM_SERVICE_SOURCE).
+          where(date_provided: @report.start_date..@report.end_date).
+          where(service_category_name: HOUSING_INFO_CATEGORY_NAME).
           select(:report_household_id).
           distinct
       end
