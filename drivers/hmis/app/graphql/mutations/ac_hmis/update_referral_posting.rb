@@ -105,7 +105,9 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Note: when status changed from 'Denied Pending' to 'Denied', the previous behavior was to resend
-      # the original referral request to LINK. That behavior has been removed since the LINK integration is being deprecated.
+      # the original referral request to LINK if specified via resend_referral_request input field.
+      # That behavior has been removed because the LINK integration is being deprecated.
+      # Referrals can be "re-requested" by marking units available.
 
       { record: posting }
     end
