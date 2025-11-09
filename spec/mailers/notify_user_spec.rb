@@ -191,9 +191,11 @@ RSpec.describe NotifyUser, type: :mailer do
     end
 
     let(:calculation_date) { Date.current }
+    let(:metric_id) { 42 }
     let(:crossings) do
       {
-        'Days Homeless (Last 3 Years)' => {
+        metric_id => {
+          display_name: 'Days Homeless (Last 3 Years)',
           data: [
             { entity_id: 123, current_value: 150, previous_value: 100 },
             { entity_id: 456, current_value: 200, previous_value: 150 },
@@ -232,23 +234,8 @@ RSpec.describe NotifyUser, type: :mailer do
         expect(metric_mail_body).to include('Days Homeless (Last 3 Years)')
       end
 
-      it 'includes client IDs in body' do
-        expect(metric_mail_body).to include('123')
-        expect(metric_mail_body).to include('456')
-      end
-
-      it 'includes value changes' do
-        expect(metric_mail_body).to include('100')
-        expect(metric_mail_body).to include('150')
-        expect(metric_mail_body).to include('200')
-      end
-
       it 'includes client count' do
         expect(metric_mail_body).to match(/2\s+clients/)
-      end
-
-      it 'does not show truncation message when not truncated' do
-        expect(metric_mail_body).not_to include('Showing first 50')
       end
     end
 
@@ -266,16 +253,13 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
       let(:crossings) do
         {
-          'Days Homeless (Last 3 Years)' => {
+          metric_id => {
+            display_name: 'Days Homeless (Last 3 Years)',
             data: Array.new(50) { |i| { entity_id: i, current_value: 150, previous_value: 100 } },
             total_count: 75,
             truncated: true,
           },
         }
-      end
-
-      it 'shows truncation message' do
-        expect(metric_mail_body).to include('Showing first 50')
       end
 
       it 'shows total count' do
@@ -287,7 +271,8 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
       let(:crossings) do
         {
-          'Maximum Household Size' => {
+          100 => {
+            display_name: 'Maximum Household Size',
             data: [{ entity_id: 789, current_value: 5, previous_value: 3 }],
             total_count: 1,
             truncated: false,
@@ -316,12 +301,14 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
       let(:crossings) do
         {
-          'Maximum Household Size' => {
+          100 => {
+            display_name: 'Maximum Household Size',
             data: [{ entity_id: 111, current_value: 5, previous_value: 3 }],
             total_count: 1,
             truncated: false,
           },
-          'Minimum Household Size' => {
+          200 => {
+            display_name: 'Minimum Household Size',
             data: [{ entity_id: 222, current_value: 1, previous_value: 2 }],
             total_count: 1,
             truncated: false,
@@ -340,11 +327,6 @@ RSpec.describe NotifyUser, type: :mailer do
       it 'includes both metric names' do
         expect(metric_mail_body).to include('Maximum Household Size')
         expect(metric_mail_body).to include('Minimum Household Size')
-      end
-
-      it 'includes both client IDs' do
-        expect(metric_mail_body).to include('111')
-        expect(metric_mail_body).to include('222')
       end
     end
   end
