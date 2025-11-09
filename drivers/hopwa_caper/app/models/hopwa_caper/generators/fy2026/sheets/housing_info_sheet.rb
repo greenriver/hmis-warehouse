@@ -40,30 +40,41 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def housing_info_enrollments
       @housing_info_enrollments ||= begin
-        hopwa_table = HopwaCaper::Enrollment.table_name
-        enrollment_table = GrdaWarehouse::Hud::Enrollment.table_name
-        custom_service_table = Hmis::Hud::CustomService.table_name
-        custom_service_type_table = Hmis::Hud::CustomServiceType.table_name
-        custom_service_category_table = Hmis::Hud::CustomServiceCategory.table_name
+        hopwa = HopwaCaper::Enrollment.arel_table
+        enrollment = GrdaWarehouse::Hud::Enrollment.arel_table
+        custom_service = Hmis::Hud::CustomService.arel_table
+        custom_service_type = Hmis::Hud::CustomServiceType.arel_table
+        custom_service_category = Hmis::Hud::CustomServiceCategory.arel_table
 
-        joins_sql = <<~SQL.squish
-          INNER JOIN "#{enrollment_table}" housing_info_enrollment
-            ON housing_info_enrollment.id = #{hopwa_table}.enrollment_id
-          INNER JOIN "#{custom_service_table}" housing_info_custom_services
-            ON housing_info_custom_services."EnrollmentID" = housing_info_enrollment."EnrollmentID"
-            AND housing_info_custom_services."PersonalID" = housing_info_enrollment."PersonalID"
-            AND housing_info_custom_services.data_source_id = housing_info_enrollment.data_source_id
-          INNER JOIN "#{custom_service_type_table}" housing_info_custom_service_types
-            ON housing_info_custom_service_types.id = housing_info_custom_services.custom_service_type_id
-          INNER JOIN "#{custom_service_category_table}" housing_info_custom_service_categories
-            ON housing_info_custom_service_categories.id = housing_info_custom_service_types.custom_service_category_id
-        SQL
+        # Join HopwaCaper::Enrollment -> GrdaWarehouse::Hud::Enrollment via enrollment_id
+        join_enrollment = hopwa.join(enrollment, Arel::Nodes::InnerJoin).
+          on(enrollment[:id].eq(hopwa[:enrollment_id])).
+          join_sources
+
+        # Join Enrollment -> CustomService via composite key (EnrollmentID, PersonalID, data_source_id)
+        join_custom_service = enrollment.join(custom_service, Arel::Nodes::InnerJoin).
+          on(
+            custom_service[:EnrollmentID].eq(enrollment[:EnrollmentID]).
+            and(custom_service[:PersonalID].eq(enrollment[:PersonalID])).
+            and(custom_service[:data_source_id].eq(enrollment[:data_source_id])),
+          ).
+          join_sources
+
+        # Join CustomService -> CustomServiceType via association
+        join_service_type = custom_service.join(custom_service_type, Arel::Nodes::InnerJoin).
+          on(custom_service_type[:id].eq(custom_service[:custom_service_type_id])).
+          join_sources
+
+        # Join CustomServiceType -> CustomServiceCategory via association
+        join_category = custom_service_type.join(custom_service_category, Arel::Nodes::InnerJoin).
+          on(custom_service_category[:id].eq(custom_service_type[:custom_service_category_id])).
+          join_sources
 
         HopwaCaper::Enrollment.
           where(report_instance_id: @report.id).
-          joins(joins_sql).
-          where(housing_info_custom_services: { DateProvided: @report.start_date..@report.end_date }).
-          where(housing_info_custom_service_categories: { name: HOUSING_INFO_CATEGORY_NAME }).
+          joins(join_enrollment, join_custom_service, join_service_type, join_category).
+          where(custom_service[:DateProvided].in(@report.start_date..@report.end_date)).
+          where(custom_service_category[:name].eq(HOUSING_INFO_CATEGORY_NAME)).
           select(:report_household_id).
           distinct
       end

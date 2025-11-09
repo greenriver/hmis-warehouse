@@ -1,4 +1,4 @@
--- \restrict qbLGGkX1iyMy6HZq9FpZAB3GoTuuQ40BY0NeY0SWaNBvPgOZfQeKOlHqWKoxqEn
+-- \restrict UPj9eATJKj5LIcHUNoDTq0oGykkeYVVTpETIrW7LEN0rujfvdlVQzuEFUzcnEAK
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -25294,7 +25294,7 @@ CREATE TABLE public.hopwa_caper_enrollments (
     ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
     viral_load_suppression boolean DEFAULT false NOT NULL,
     percent_ami numeric,
-    sex character varying
+    sex integer
 );
 
 
@@ -70138,27 +70138,6 @@ CREATE INDEX index_metric_calculation_runs_on_calculation_date ON public.metric_
 
 
 --
--- Name: index_metric_calculation_runs_on_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_calculation_runs_on_status ON public.metric_calculation_runs USING btree (status);
-
-
---
--- Name: index_metric_definitions_on_active; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_definitions_on_active ON public.metric_definitions USING btree (active);
-
-
---
--- Name: index_metric_definitions_on_category; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_definitions_on_category ON public.metric_definitions USING btree (category);
-
-
---
 -- Name: index_metric_defs_on_entity_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -70177,13 +70156,6 @@ CREATE INDEX index_metric_snapshots_for_cleanup ON ONLY public.metric_snapshots 
 --
 
 CREATE INDEX index_metric_snapshots_for_date_range ON ONLY public.metric_snapshots USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: index_metric_snapshots_for_time_series; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_metric_snapshots_for_time_series ON ONLY public.metric_snapshots USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -74877,13 +74849,6 @@ CREATE INDEX metric_snapshots_2022_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2022_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2022_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2022_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2022_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74902,13 +74867,6 @@ CREATE INDEX metric_snapshots_2022_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2023_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2023_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2023_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2023_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2023_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -74933,13 +74891,6 @@ CREATE INDEX metric_snapshots_2023_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2023_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2023_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2023_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2023_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74958,13 +74909,6 @@ CREATE INDEX metric_snapshots_2023_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2023_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2023_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2023_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2023_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2023_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -74989,13 +74933,6 @@ CREATE INDEX metric_snapshots_2023_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2023_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2023_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2023_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2023_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75014,13 +74951,6 @@ CREATE INDEX metric_snapshots_2023_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2024_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2024_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2024_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2024_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2024_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75045,13 +74975,6 @@ CREATE INDEX metric_snapshots_2024_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2024_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2024_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2024_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2024_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75070,13 +74993,6 @@ CREATE INDEX metric_snapshots_2024_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2024_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2024_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2024_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2024_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2024_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75101,13 +75017,6 @@ CREATE INDEX metric_snapshots_2024_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2024_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2024_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2024_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2024_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75126,13 +75035,6 @@ CREATE INDEX metric_snapshots_2024_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2025_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2025_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2025_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2025_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2025_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75157,13 +75059,6 @@ CREATE INDEX metric_snapshots_2025_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2025_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2025_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2025_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2025_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75182,13 +75077,6 @@ CREATE INDEX metric_snapshots_2025_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2025_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2025_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2025_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2025_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2025_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75213,13 +75101,6 @@ CREATE INDEX metric_snapshots_2025_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2025_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2025_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2025_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2025_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75238,13 +75119,6 @@ CREATE INDEX metric_snapshots_2025_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2026_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2026_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2026_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2026_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2026_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75269,13 +75143,6 @@ CREATE INDEX metric_snapshots_2026_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2026_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2026_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2026_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2026_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75294,13 +75161,6 @@ CREATE INDEX metric_snapshots_2026_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2026_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2026_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2026_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2026_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2026_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75325,13 +75185,6 @@ CREATE INDEX metric_snapshots_2026_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2026_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2026_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2026_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2026_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75350,13 +75203,6 @@ CREATE INDEX metric_snapshots_2026_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2027_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2027_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2027_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2027_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2027_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75381,13 +75227,6 @@ CREATE INDEX metric_snapshots_2027_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2027_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2027_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2027_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2027_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75406,13 +75245,6 @@ CREATE INDEX metric_snapshots_2027_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2027_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2027_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2027_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2027_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2027_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75437,13 +75269,6 @@ CREATE INDEX metric_snapshots_2027_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2027_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2027_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2027_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2027_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75462,13 +75287,6 @@ CREATE INDEX metric_snapshots_2027_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2028_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2028_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2028_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2028_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2028_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75493,13 +75311,6 @@ CREATE INDEX metric_snapshots_2028_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2028_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2028_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2028_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2028_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75518,13 +75329,6 @@ CREATE INDEX metric_snapshots_2028_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2028_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2028_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2028_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2028_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2028_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75549,13 +75353,6 @@ CREATE INDEX metric_snapshots_2028_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2028_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2028_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2028_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2028_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75574,13 +75371,6 @@ CREATE INDEX metric_snapshots_2028_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2029_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2029_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2029_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2029_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2029_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75605,13 +75395,6 @@ CREATE INDEX metric_snapshots_2029_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2029_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2029_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2029_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2029_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75630,13 +75413,6 @@ CREATE INDEX metric_snapshots_2029_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2029_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2029_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2029_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2029_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2029_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75661,13 +75437,6 @@ CREATE INDEX metric_snapshots_2029_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2029_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2029_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2029_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2029_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75686,13 +75455,6 @@ CREATE INDEX metric_snapshots_2029_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2030_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2030_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2030_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2030_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2030_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75717,13 +75479,6 @@ CREATE INDEX metric_snapshots_2030_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2030_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2030_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2030_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2030_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75742,13 +75497,6 @@ CREATE INDEX metric_snapshots_2030_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2030_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2030_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2030_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2030_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2030_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75773,13 +75521,6 @@ CREATE INDEX metric_snapshots_2030_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2030_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2030_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2030_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2030_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75798,13 +75539,6 @@ CREATE INDEX metric_snapshots_2030_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2031_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2031_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2031_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2031_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2031_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75829,13 +75563,6 @@ CREATE INDEX metric_snapshots_2031_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2031_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2031_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2031_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2031_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75854,13 +75581,6 @@ CREATE INDEX metric_snapshots_2031_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2031_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2031_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2031_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2031_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2031_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75885,13 +75605,6 @@ CREATE INDEX metric_snapshots_2031_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2031_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2031_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2031_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2031_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75910,13 +75623,6 @@ CREATE INDEX metric_snapshots_2031_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2032_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2032_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2032_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2032_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2032_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75941,13 +75647,6 @@ CREATE INDEX metric_snapshots_2032_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2032_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2032_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2032_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2032_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75966,13 +75665,6 @@ CREATE INDEX metric_snapshots_2032_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2032_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2032_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2032_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2032_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2032_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -75997,13 +75689,6 @@ CREATE INDEX metric_snapshots_2032_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2032_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2032_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2032_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2032_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76022,13 +75707,6 @@ CREATE INDEX metric_snapshots_2032_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2033_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2033_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2033_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2033_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2033_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -76053,13 +75731,6 @@ CREATE INDEX metric_snapshots_2033_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2033_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2033_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2033_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2033_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76078,13 +75749,6 @@ CREATE INDEX metric_snapshots_2033_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2033_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2033_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2033_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2033_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2033_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -76109,13 +75773,6 @@ CREATE INDEX metric_snapshots_2033_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2033_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2033_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2033_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2033_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76134,13 +75791,6 @@ CREATE INDEX metric_snapshots_2033_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2034_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2034_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2034_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2034_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2034_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -76165,13 +75815,6 @@ CREATE INDEX metric_snapshots_2034_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2034_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2034_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2034_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2034_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76190,13 +75833,6 @@ CREATE INDEX metric_snapshots_2034_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2034_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2034_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2034_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2034_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2034_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -76221,13 +75857,6 @@ CREATE INDEX metric_snapshots_2034_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2034_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2034_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2034_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2034_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76246,13 +75875,6 @@ CREATE INDEX metric_snapshots_2034_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2035_q1_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2035_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2035_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2035_q1_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2035_q1 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -76277,13 +75899,6 @@ CREATE INDEX metric_snapshots_2035_q2_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2035_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2035_q2_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2035_q2 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2035_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76302,13 +75917,6 @@ CREATE INDEX metric_snapshots_2035_q2_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_2035_q3_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_2035_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_2035_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2035_q3_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2035_q3 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -76333,13 +75941,6 @@ CREATE INDEX metric_snapshots_2035_q4_entity_type_entity_id_metric_defi_idx1 ON 
 
 
 --
--- Name: metric_snapshots_2035_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_2035_q4_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_2035_q4 USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
-
-
---
 -- Name: metric_snapshots_2035_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76358,13 +75959,6 @@ CREATE INDEX metric_snapshots_2035_q4_metric_definition_id_current_obser_idx ON 
 --
 
 CREATE INDEX metric_snapshots_default_entity_type_entity_id_metric_defi_idx1 ON public.metric_snapshots_default USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date, current_observation_date);
-
-
---
--- Name: metric_snapshots_default_entity_type_entity_id_metric_defi_idx2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX metric_snapshots_default_entity_type_entity_id_metric_defi_idx2 ON public.metric_snapshots_default USING btree (entity_type, entity_id, metric_definition_id, initial_observation_date);
 
 
 --
@@ -77236,13 +76830,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2022_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2022_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2022_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77268,13 +76855,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2023_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2023_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2023_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77306,13 +76886,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2023_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2023_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2023_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77338,13 +76911,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2023_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2023_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2023_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77376,13 +76942,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2023_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2023_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2023_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77408,13 +76967,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2024_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2024_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2024_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77446,13 +76998,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2024_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2024_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2024_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77478,13 +77023,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2024_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2024_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2024_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77516,13 +77054,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2024_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2024_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2024_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77548,13 +77079,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2025_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2025_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2025_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77586,13 +77110,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2025_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2025_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2025_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77618,13 +77135,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2025_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2025_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2025_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77656,13 +77166,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2025_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2025_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2025_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77688,13 +77191,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2026_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2026_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2026_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77726,13 +77222,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2026_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2026_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2026_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77758,13 +77247,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2026_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2026_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2026_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77796,13 +77278,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2026_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2026_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2026_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77828,13 +77303,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2027_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2027_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2027_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77866,13 +77334,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2027_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2027_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2027_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77898,13 +77359,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2027_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2027_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2027_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -77936,13 +77390,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2027_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2027_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2027_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -77968,13 +77415,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2028_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2028_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2028_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78006,13 +77446,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2028_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2028_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2028_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78038,13 +77471,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2028_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2028_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2028_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78076,13 +77502,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2028_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2028_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2028_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78108,13 +77527,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2029_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2029_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2029_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78146,13 +77558,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2029_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2029_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2029_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78178,13 +77583,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2029_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2029_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2029_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78216,13 +77614,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2029_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2029_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2029_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78248,13 +77639,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2030_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2030_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2030_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78286,13 +77670,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2030_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2030_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2030_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78318,13 +77695,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2030_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2030_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2030_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78356,13 +77726,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2030_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2030_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2030_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78388,13 +77751,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2031_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2031_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2031_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78426,13 +77782,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2031_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2031_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2031_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78458,13 +77807,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2031_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2031_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2031_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78496,13 +77838,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2031_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2031_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2031_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78528,13 +77863,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2032_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2032_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2032_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78566,13 +77894,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2032_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2032_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2032_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78598,13 +77919,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2032_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2032_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2032_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78636,13 +77950,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2032_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2032_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2032_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78668,13 +77975,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2033_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2033_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2033_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78706,13 +78006,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2033_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2033_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2033_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78738,13 +78031,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2033_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2033_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2033_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78776,13 +78062,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2033_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2033_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2033_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78808,13 +78087,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2034_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2034_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2034_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78846,13 +78118,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2034_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2034_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2034_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78878,13 +78143,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2034_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2034_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2034_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78916,13 +78174,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2034_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2034_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2034_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -78948,13 +78199,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2035_q1_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2035_q1_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2035_q1_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -78986,13 +78230,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2035_q2_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2035_q2_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2035_q2_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -79018,13 +78255,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_2035_q3_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_2035_q3_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2035_q3_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -79056,13 +78286,6 @@ ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public
 
 
 --
--- Name: metric_snapshots_2035_q4_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_2035_q4_entity_type_entity_id_metric_defi_idx2;
-
-
---
 -- Name: metric_snapshots_2035_q4_entity_type_entity_id_metric_defin_idx; Type: INDEX ATTACH; Schema: public; Owner: -
 --
 
@@ -79088,13 +78311,6 @@ ALTER INDEX public.metric_snapshots_pkey ATTACH PARTITION public.metric_snapshot
 --
 
 ALTER INDEX public.index_metric_snapshots_for_date_range ATTACH PARTITION public.metric_snapshots_default_entity_type_entity_id_metric_defi_idx1;
-
-
---
--- Name: metric_snapshots_default_entity_type_entity_id_metric_defi_idx2; Type: INDEX ATTACH; Schema: public; Owner: -
---
-
-ALTER INDEX public.index_metric_snapshots_for_time_series ATTACH PARTITION public.metric_snapshots_default_entity_type_entity_id_metric_defi_idx2;
 
 
 --
@@ -81734,12 +80950,14 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict qbLGGkX1iyMy6HZq9FpZAB3GoTuuQ40BY0NeY0SWaNBvPgOZfQeKOlHqWKoxqEn
+-- \unrestrict UPj9eATJKj5LIcHUNoDTq0oGykkeYVVTpETIrW7LEN0rujfvdlVQzuEFUzcnEAK
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251106123000'),
+('20251104183938'),
+('20251104032359'),
 ('20251030153000'),
 ('20251027202455'),
 ('20251027120000'),
