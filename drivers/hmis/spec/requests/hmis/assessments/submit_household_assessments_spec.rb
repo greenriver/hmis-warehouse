@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -126,7 +128,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
 
       before(:each) do
-        delete destroy_hmis_user_session_path
         hmis_login(other_user)
       end
 

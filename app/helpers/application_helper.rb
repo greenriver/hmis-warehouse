@@ -461,6 +461,33 @@ module ApplicationHelper
     link_to text, oauth2_sign_in_path(user: user), **options
   end
 
+  # Generate IDP logout URL with post-logout redirect.
+  #
+  # For IDPs that support OIDC RP-Initiated Logout (like Zitadel), this creates
+  # a proper logout URL that will:
+  # 1. Log the user out of the IDP
+  # 2. Redirect to oauth2-proxy's sign_out to clear its session
+  # 3. Finally redirect back to the application
+  #
+  # For IDPs that don't support logout, just uses oauth2-proxy sign_out.
+  #
+  # @param user [User, nil] User to get connector_id from (defaults to current_user)
+  # @param final_redirect_uri [String] Final destination after all logouts complete (defaults to root_url)
+  # @return [String] Logout URL
+  def idp_logout_url(user: current_user, final_redirect_uri: nil)
+    connector_id = user&.last_connector_id || cookies[:last_connector_id]
+    final_redirect_uri ||= root_url
+
+    # After IDP logout, we need to clear oauth2-proxy session before going to final destination
+    oauth2_signout_url = "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(final_redirect_uri)}"
+
+    # Use IDP service to generate logout URL
+    # - If IDP supports OIDC logout (e.g., Zitadel): returns IDP logout URL with oauth2_signout_url as post_logout_redirect_uri
+    # - If IDP doesn't support logout: returns oauth2_signout_url directly
+    idp_service = Idp::ServiceFactory.for_connector(connector_id)
+    idp_service.logout_url(post_logout_redirect_uri: oauth2_signout_url)
+  end
+
   def foreground_color(bg_color)
     color = bg_color.gsub('#', '')
     rgb = if color.length == 6

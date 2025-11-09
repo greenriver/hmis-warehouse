@@ -17,7 +17,6 @@ web:
   http: 0.0.0.0:4443
 oauth2:
   skipApprovalScreen: true
-  alwaysShowLoginScreen: false
 expiry:
   signingKeys: "4h"
   idTokens: "1h"
@@ -31,12 +30,12 @@ connectors:
       redirectURI: https://dex.dev.test/dex/callback
   - type: oidc
     id: zitadel
-    name: Open Path Account
+    name: Zitadel Account
     config:
-      issuer: http://zitadel.dev.test:8080
+      issuer: ${ZITADEL_API_URL}
       clientID: ${ZITADEL_IDP_CLIENT_ID}
       clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
-      redirectURI: https://dex.dev.test/dex/callback
+      redirectURI: ${DEX_ISSUER}/callback
       useLoginAsID: true
       scopes:
         - openid

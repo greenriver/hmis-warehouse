@@ -55,7 +55,6 @@ providers:
           - value: local
           - value: github_idp
           - value: zitadel
-
     microsoftEntraIDConfig: {}
     name: Dex
     oidcConfig:
