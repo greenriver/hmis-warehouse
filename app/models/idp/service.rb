@@ -87,6 +87,18 @@ module Idp
       false
     end
 
+    # Generate OIDC RP-Initiated Logout URL for this IDP.
+    #
+    # By default, returns the post_logout_redirect_uri (typically oauth2-proxy sign_out).
+    # IDP implementations that support OIDC logout should override this to return
+    # their IDP-specific logout URL.
+    #
+    # @param post_logout_redirect_uri [String] Where to redirect after logout (typically oauth2-proxy sign_out)
+    # @return [String] Logout URL
+    def logout_url(post_logout_redirect_uri:)
+      post_logout_redirect_uri
+    end
+
     protected
 
     def default_config

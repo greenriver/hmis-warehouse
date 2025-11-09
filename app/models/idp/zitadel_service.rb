@@ -233,6 +233,33 @@ module Idp
       true
     end
 
+    # Generate OIDC RP-Initiated Logout URL for Zitadel.
+    #
+    # Creates a logout URL that will:
+    # 1. Log the user out of Zitadel
+    # 2. Redirect to the specified post_logout_redirect_uri
+    #
+    # Note: For best results, Zitadel requires an id_token_hint parameter, but since we don't
+    # have access to the ID token in the Rails backend (only oauth2-proxy has it), we rely on
+    # Zitadel's cookie-based session detection. Make sure post_logout_redirect_uri is allowed
+    # in the Zitadel application's "Post Logout URIs" configuration.
+    #
+    # @param post_logout_redirect_uri [String] Where to redirect after logout
+    # @return [String, nil] Logout URL or nil if api_url is not configured
+    # @see https://zitadel.com/docs/apis/openidoauth/endpoints#end_session_endpoint
+    def logout_url(post_logout_redirect_uri:)
+      return post_logout_redirect_uri unless api_url.present?
+
+      # Include client_id for Zitadel to validate the post_logout_redirect_uri
+      client_id = ENV['ZITADEL_IDP_CLIENT_ID']
+      params = {
+        post_logout_redirect_uri: post_logout_redirect_uri,
+      }
+      params[:client_id] = client_id if client_id.present?
+
+      "#{api_url}/oidc/v1/end_session?#{params.to_query}"
+    end
+
     private
 
     def api_url

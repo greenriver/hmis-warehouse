@@ -157,7 +157,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:assessment) { create :hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, user: hud_user, created_by_hud_user: hud_user, updated_by_hud_user: hud_user }
 
     before(:each) do
-      delete destroy_hmis_user_session_path
       hmis_login(other_user)
     end
 

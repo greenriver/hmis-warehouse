@@ -12,6 +12,7 @@
 # This controller provides endpoints for the frontend to interact with authentication.
 class Hmis::SessionsController < ActionController::Base
   include Hmis::Concerns::JsonErrors
+  helper ApplicationHelper
 
   # Only respond to JSON requests
   respond_to :json
@@ -37,10 +38,14 @@ class Hmis::SessionsController < ActionController::Base
   end
 
   # DELETE /hmis/logout
-  # Redirect to OAuth2-proxy sign out
+  # Return IDP logout URL for frontend to redirect to
   def destroy
-    # Redirect to OAuth2-proxy sign out
-    # For JSON API, return success and let the frontend handle redirect
-    render json: { success: true, redirect_url: '/oauth2/sign_out' }, status: 200
+    # Generate IDP-specific logout URL
+    # For Zitadel: Logs out of Zitadel → clears oauth2-proxy session → redirects to HMIS root
+    # For others: Clears oauth2-proxy session → redirects to HMIS root
+    hmis_root_url = "#{request.base_url}/"
+    logout_url = helpers.idp_logout_url(user: nil, final_redirect_uri: hmis_root_url)
+
+    render json: { success: true, redirect_url: logout_url }, status: 200
   end
 end

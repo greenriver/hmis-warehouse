@@ -167,6 +167,6 @@ class Hmis::BaseController < ActionController::Base
   end
 
   rescue_from 'NotAuthorizedError' do |_exception|
-    head :unauthorized
+    render_json_error(401, :unauthenticated)
   end
 end

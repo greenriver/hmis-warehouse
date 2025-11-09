@@ -25,8 +25,11 @@ class Users::SessionsController < ApplicationController
   # DELETE /users/sign_out
   def destroy
     request.env['last_user'] = current_user
-    # Redirect to OAuth2-proxy sign out
-    redirect_to '/oauth2/sign_out'
+
+    # Redirect to IDP-specific logout URL
+    # For Zitadel: Logs out of Zitadel → clears oauth2-proxy session → redirects to root
+    # For others: Clears oauth2-proxy session → redirects to root
+    redirect_to helpers.idp_logout_url(user: current_user, final_redirect_uri: root_url), allow_other_host: true
   end
 
   # POST /session_keepalive

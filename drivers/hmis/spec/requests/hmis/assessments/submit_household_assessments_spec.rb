@@ -128,7 +128,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
 
       before(:each) do
-        delete destroy_hmis_user_session_path
         hmis_login(other_user)
       end
 

@@ -87,10 +87,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'responds with 401 if not authenticated' do
-      delete destroy_hmis_user_session_path
+      # Clear JWT headers to simulate unauthenticated request
+      @jwt_headers = nil
+
+      response, body = post_graphql { simple_query }
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 204
-        response, body = post_graphql { simple_query }
         expect(response.status).to eq 401
         expect(body.dig('error', 'type')).to eq 'unauthenticated'
       end
