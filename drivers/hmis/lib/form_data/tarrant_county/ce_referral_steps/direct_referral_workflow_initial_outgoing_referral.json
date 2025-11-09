@@ -1,0 +1,13 @@
+{
+  "item": [
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "required": false,
+      "mapping": {
+        "custom_field_key": "direct_referral_workflow_initial_outgoing_referral_note"
+      }
+    }
+  ]
+}
