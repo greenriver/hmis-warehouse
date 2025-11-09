@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,9 +8,9 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class StrmuSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q3: STRMU'.freeze
+    QUESTION_NUMBER = 'Q3: STRMU'
     QUESTION_NUMBERS = ['Q3'].freeze
-    SHEET_TITLE = 'Complete this section for all Households served with HOPWA Short-Term Rent, Mortgage, and Utilities Assistance (STRMU) by your organization in the reporting year.'.freeze
+    SHEET_TITLE = 'Complete this section for all Households served with HOPWA Short-Term Rent, Mortgage, and Utilities Assistance (STRMU) by your organization in the reporting year.'
     CONTENTS = [
       { method: :households_served_sheet, label: 'Households Served by this Activity - STRMU Breakdown' },
       { method: :expenditures_sheet, label: 'STRMU Expenditures' },

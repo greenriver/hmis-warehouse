@@ -39,15 +39,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
     private
 
     def housing_info_enrollments
-      @housing_info_enrollments ||= begin
-        HopwaCaper::Service.
-          where(report_instance_id: @report.id).
-          where(service_source: HopwaCaper::Service::CUSTOM_SERVICE_SOURCE).
-          where(date_provided: @report.start_date..@report.end_date).
-          where(service_category_name: HOUSING_INFO_CATEGORY_NAME).
-          select(:report_household_id).
-          distinct
-      end
+      @housing_info_enrollments ||= HopwaCaper::Service.
+        where(report_instance_id: @report.id).
+        where(service_source: HopwaCaper::Service::CUSTOM_SERVICE_SOURCE).
+        where(date_provided: @report.start_date..@report.end_date).
+        where(service_category_name: HOUSING_INFO_CATEGORY_NAME).
+        select(:report_household_id).
+        distinct
     end
   end
 end

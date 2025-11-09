@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -8,7 +10,7 @@ require 'rails_helper'
 
 require_relative 'hopwa_caper_shared_context'
 
-RSpec.describe 'HOPWA CAPER Supportive Services', type: :model do
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, type: :model do
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
@@ -25,43 +27,21 @@ RSpec.describe 'HOPWA CAPER Supportive Services', type: :model do
 
   context 'with multiple households receiving supportive services' do
     let(:household_with_multiple_services) do
-      enrollment = create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 1.day,
         household_id: Hmis::Hud::Base.generate_uuid,
-        relationship_to_ho_h: 1,
       )
-      create(
-        :hud_disability,
-        disability_type: hiv_positive,
-        enrollment: enrollment,
-        anti_retroviral: 1,
-        viral_load_available: 1,
-        viral_load: 100,
-        data_source: data_source,
-      )
-      enrollment
     end
 
     let(:secondary_household) do
-      enrollment = create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 2.days,
         household_id: Hmis::Hud::Base.generate_uuid,
-        relationship_to_ho_h: 1,
       )
-      create(
-        :hud_disability,
-        disability_type: hiv_positive,
-        enrollment: enrollment,
-        anti_retroviral: 1,
-        viral_load_available: 1,
-        viral_load: 100,
-        data_source: data_source,
-      )
-      enrollment
     end
 
     before do
@@ -99,7 +79,6 @@ RSpec.describe 'HOPWA CAPER Supportive Services', type: :model do
     it 'reports households and expenditures by supportive service type with deduplicated totals' do
       report = create_report([project])
       run_report(report)
-
       rows = question_as_rows(question_number: 'Q6', report: report)
       indexed = rows.to_h { |row| [row[0], row[1..]] }
 

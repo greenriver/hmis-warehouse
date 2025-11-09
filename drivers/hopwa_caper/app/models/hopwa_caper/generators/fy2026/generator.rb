@@ -210,7 +210,7 @@ module HopwaCaper::Generators::Fy2026
       grouped = enrollment_context.group_by { |(data_source_id, _enrollment_id), _| data_source_id }
 
       grouped.flat_map do |data_source_id, entries|
-        enrollment_ids = entries.map { |(data_source_key, enrollment_id), _| enrollment_id }
+        enrollment_ids = entries.map { |(_data_source_key, enrollment_id), _| enrollment_id }
 
         Hmis::Hud::CustomService.
           where(data_source_id: data_source_id, EnrollmentID: enrollment_ids).

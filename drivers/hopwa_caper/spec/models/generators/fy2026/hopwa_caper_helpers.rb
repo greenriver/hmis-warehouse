@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -42,5 +44,48 @@ module HopwaCaperHelpers
   def question_as_rows(question_number:, report:)
     exporter = HudReports::CsvExporter.new(report, question_number)
     exporter.as_array
+  end
+
+  # Create an HIV+ enrollment with standard disability attributes
+  def create_hiv_positive_enrollment(client:, project:, entry_date:, household_id:, relationship_to_ho_h: 1)
+    create_enrollment(
+      client: client,
+      project: project,
+      entry_date: entry_date,
+      household_id: household_id,
+      relationship_to_ho_h: relationship_to_ho_h,
+    ).tap do |enrollment|
+      create(
+        :hud_disability,
+        disability_type: hiv_positive,
+        enrollment: enrollment,
+        anti_retroviral: 1,
+        viral_load_available: 1,
+        viral_load: 100,
+        data_source: data_source,
+      )
+    end
+  end
+
+  # Create standard income benefits (Medicaid + Earned income)
+  def create_standard_income_benefits(enrollment, date: report_start_date)
+    enrollment.income_benefits.create!(
+      Medicaid: 1,
+      Earned: 1,
+      information_date: date,
+    )
+  end
+
+  # Run report and extract rows as hash for given question
+  def run_and_extract_rows(projects, question_number)
+    report = create_report(projects)
+    run_report(report)
+    rows = question_as_rows(question_number: question_number, report: report).to_h
+    [report, rows]
+  end
+
+  # HUD code lookup helper
+  def hud_code(category, value)
+    HudHelper.util('2026').public_send(category).invert.fetch(value)
   end
 end

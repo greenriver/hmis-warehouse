@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -8,7 +10,7 @@ require 'rails_helper'
 
 require_relative 'hopwa_caper_shared_context'
 
-RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet, type: :model do
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
@@ -34,46 +36,34 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
   context 'with a household that received housing information services' do
     let(:household_id) { Hmis::Hud::Base.generate_uuid }
     let(:hoh_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 1.day,
         household_id: household_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let!(:housing_info_service) do
-      Hmis::Hud::CustomService.insert_all([
-        {
-          'CustomServiceID' => SecureRandom.uuid.delete('-'),
-          'EnrollmentID' => hoh_enrollment.EnrollmentID,
-          'PersonalID' => hoh_enrollment.client.PersonalID,
-          'UserID' => SecureRandom.uuid.delete('-'),
-          'DateProvided' => report_start_date + 10.days,
-          data_source_id: hoh_enrollment.data_source_id,
-          custom_service_type_id: custom_service_type.id,
-          'DateCreated' => Time.current,
-          'DateUpdated' => Time.current,
-        },
-      ])
+      Hmis::Hud::CustomService.insert_all(
+        [
+          {
+            'CustomServiceID' => SecureRandom.uuid.delete('-'),
+            'EnrollmentID' => hoh_enrollment.EnrollmentID,
+            'PersonalID' => hoh_enrollment.client.PersonalID,
+            'UserID' => SecureRandom.uuid.delete('-'),
+            'DateProvided' => report_start_date + 10.days,
+            data_source_id: hoh_enrollment.data_source_id,
+            custom_service_type_id: custom_service_type.id,
+            'DateCreated' => Time.current,
+            'DateUpdated' => Time.current,
+          },
+        ],
+      )
     end
 
     it 'reports households served for housing information services' do
-      report = create_report([project])
-      run_report(report)
-
-      rows = question_as_rows(question_number: 'Q5', report: report).to_h
+      report, rows = run_and_extract_rows([project], 'Q5')
 
       expect(rows.fetch('How many households were served with housing information services?')).to eq(1)
       expect(report.hopwa_caper_services.count).to eq(1)
@@ -88,43 +78,21 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
     let(:household2_id) { Hmis::Hud::Base.generate_uuid }
 
     let(:hoh1_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 1.day,
         household_id: household1_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let(:hoh2_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 2.days,
         household_id: household2_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let(:custom_service_category) do
@@ -137,27 +105,26 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
 
     before do
       [hoh1_enrollment, hoh2_enrollment].each do |enrollment|
-        Hmis::Hud::CustomService.insert_all([
-          {
-            'CustomServiceID' => SecureRandom.uuid.delete('-'),
-            'EnrollmentID' => enrollment.EnrollmentID,
-            'PersonalID' => enrollment.client.PersonalID,
-            'UserID' => SecureRandom.uuid.delete('-'),
-            'DateProvided' => report_start_date + 10.days,
-            data_source_id: enrollment.data_source_id,
-            custom_service_type_id: custom_service_type.id,
-            'DateCreated' => Time.current,
-            'DateUpdated' => Time.current,
-          },
-        ])
+        Hmis::Hud::CustomService.insert_all(
+          [
+            {
+              'CustomServiceID' => SecureRandom.uuid.delete('-'),
+              'EnrollmentID' => enrollment.EnrollmentID,
+              'PersonalID' => enrollment.client.PersonalID,
+              'UserID' => SecureRandom.uuid.delete('-'),
+              'DateProvided' => report_start_date + 10.days,
+              data_source_id: enrollment.data_source_id,
+              custom_service_type_id: custom_service_type.id,
+              'DateCreated' => Time.current,
+              'DateUpdated' => Time.current,
+            },
+          ],
+        )
       end
     end
 
     it 'counts all households receiving housing information services' do
-      report = create_report([project])
-      run_report(report)
-
-      rows = question_as_rows(question_number: 'Q5', report: report).to_h
+      report, rows = run_and_extract_rows([project], 'Q5')
 
       expect(rows.fetch('How many households were served with housing information services?')).to eq(2)
       expect(report.hopwa_caper_services.count).to eq(2)
@@ -167,23 +134,12 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
   context 'with services outside report date range' do
     let(:household_id) { Hmis::Hud::Base.generate_uuid }
     let(:hoh_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date - 30.days,
         household_id: household_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let(:custom_service_category) do
@@ -195,42 +151,43 @@ RSpec.describe 'HOPWA CAPER Housing Information Services', type: :model do
     end
 
     let!(:service_before_range) do
-      Hmis::Hud::CustomService.insert_all([
-        {
-          'CustomServiceID' => SecureRandom.uuid.delete('-'),
-          'EnrollmentID' => hoh_enrollment.EnrollmentID,
-          'PersonalID' => hoh_enrollment.client.PersonalID,
-          'UserID' => SecureRandom.uuid.delete('-'),
-          'DateProvided' => report_start_date - 1.day,
-          data_source_id: hoh_enrollment.data_source_id,
-          custom_service_type_id: custom_service_type.id,
-          'DateCreated' => Time.current,
-          'DateUpdated' => Time.current,
-        },
-      ])
+      Hmis::Hud::CustomService.insert_all(
+        [
+          {
+            'CustomServiceID' => SecureRandom.uuid.delete('-'),
+            'EnrollmentID' => hoh_enrollment.EnrollmentID,
+            'PersonalID' => hoh_enrollment.client.PersonalID,
+            'UserID' => SecureRandom.uuid.delete('-'),
+            'DateProvided' => report_start_date - 1.day,
+            data_source_id: hoh_enrollment.data_source_id,
+            custom_service_type_id: custom_service_type.id,
+            'DateCreated' => Time.current,
+            'DateUpdated' => Time.current,
+          },
+        ],
+      )
     end
 
     let!(:service_after_range) do
-      Hmis::Hud::CustomService.insert_all([
-        {
-          'CustomServiceID' => SecureRandom.uuid.delete('-'),
-          'EnrollmentID' => hoh_enrollment.EnrollmentID,
-          'PersonalID' => hoh_enrollment.client.PersonalID,
-          'UserID' => SecureRandom.uuid.delete('-'),
-          'DateProvided' => report_end_date + 1.day,
-          data_source_id: hoh_enrollment.data_source_id,
-          custom_service_type_id: custom_service_type.id,
-          'DateCreated' => Time.current,
-          'DateUpdated' => Time.current,
-        },
-      ])
+      Hmis::Hud::CustomService.insert_all(
+        [
+          {
+            'CustomServiceID' => SecureRandom.uuid.delete('-'),
+            'EnrollmentID' => hoh_enrollment.EnrollmentID,
+            'PersonalID' => hoh_enrollment.client.PersonalID,
+            'UserID' => SecureRandom.uuid.delete('-'),
+            'DateProvided' => report_end_date + 1.day,
+            data_source_id: hoh_enrollment.data_source_id,
+            custom_service_type_id: custom_service_type.id,
+            'DateCreated' => Time.current,
+            'DateUpdated' => Time.current,
+          },
+        ],
+      )
     end
 
     it 'excludes services outside the report date range' do
-      report = create_report([project])
-      run_report(report)
-
-      rows = question_as_rows(question_number: 'Q5', report: report).to_h
+      report, rows = run_and_extract_rows([project], 'Q5')
 
       expect(rows.fetch('How many households were served with housing information services?')).to eq(0)
       expect(report.hopwa_caper_services.count).to eq(0)

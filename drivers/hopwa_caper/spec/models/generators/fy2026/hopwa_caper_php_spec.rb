@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,7 +9,7 @@
 require 'rails_helper'
 
 require_relative 'hopwa_caper_shared_context'
-RSpec.describe 'HOPWA CAPER PHP', type: :model do
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PhpSheet, type: :model do
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
@@ -24,23 +26,12 @@ RSpec.describe 'HOPWA CAPER PHP', type: :model do
     let(:beneficiary_client) { create(:hud_client, data_source: data_source) }
 
     let!(:hoh_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: hoh_client,
         project: project,
         entry_date: report_start_date + 1.day,
         household_id: household_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let!(:beneficiary_enrollment) do
@@ -54,10 +45,8 @@ RSpec.describe 'HOPWA CAPER PHP', type: :model do
     end
 
     it 'reports household count, medical insurance, and income sources' do
-      hoh_enrollment.income_benefits.create!(Medicaid: 1, Earned: 1, information_date: report_start_date)
-      report = create_report([project])
-      run_report(report)
-      rows = question_as_rows(question_number: 'Q4', report: report).to_h
+      create_standard_income_benefits(hoh_enrollment)
+      _, rows = run_and_extract_rows([project], 'Q4')
       expect(rows.fetch('How many households were served with PHP assistance?')).to eq(1)
       expect(rows.fetch('Earned Income from Employment')).to eq(1)
       expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
@@ -69,51 +58,29 @@ RSpec.describe 'HOPWA CAPER PHP', type: :model do
     let(:household2_id) { Hmis::Hud::Base.generate_uuid }
 
     let!(:hoh1_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 1.day,
         household_id: household1_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let!(:hoh2_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date + 2.days,
         household_id: household2_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let(:exit_to_other_hopwa_code) do
-      HudHelper.util('2026').destinations.invert.fetch('Moved from one HOPWA funded project to HOPWA PH')
+      hud_code(:destinations, 'Moved from one HOPWA funded project to HOPWA PH')
     end
 
     let(:exit_to_private_housing_code) do
-      HudHelper.util('2026').destinations.invert.fetch('Rental by client, no ongoing housing subsidy')
+      hud_code(:destinations, 'Rental by client, no ongoing housing subsidy')
     end
 
     before do
@@ -134,9 +101,7 @@ RSpec.describe 'HOPWA CAPER PHP', type: :model do
     end
 
     it 'counts households by exit destination' do
-      report = create_report([project])
-      run_report(report)
-      rows = question_as_rows(question_number: 'Q4', report: report).to_h
+      _, rows = run_and_extract_rows([project], 'Q4')
 
       expect(rows.fetch('How many households were served with PHP assistance?')).to eq(2)
       expect(rows.fetch('How many households exited to other HOPWA housing programs?')).to eq(1)

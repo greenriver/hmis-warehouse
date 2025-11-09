@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,7 +9,7 @@
 require 'rails_helper'
 
 require_relative 'hopwa_caper_shared_context'
-RSpec.describe 'HOPWA CAPER TBRA', type: :model do
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model do
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
@@ -72,10 +74,8 @@ RSpec.describe 'HOPWA CAPER TBRA', type: :model do
     end
 
     it 'reports household count, medical insurance, income sources, and health outcomes' do
-      hoh_enrollment.income_benefits.create!(Medicaid: 1, Earned: 1, information_date: report_start_date)
-      report = create_report([project])
-      run_report(report)
-      rows = question_as_rows(question_number: 'Q2', report: report).to_h
+      create_standard_income_benefits(hoh_enrollment)
+      _, rows = run_and_extract_rows([project], 'Q2')
       expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
       expect(rows.fetch('Earned Income from Employment')).to eq(1)
       expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
@@ -102,9 +102,7 @@ RSpec.describe 'HOPWA CAPER TBRA', type: :model do
       end
 
       it 'counts longevity' do
-        report = create_report([project])
-        run_report(report)
-        rows = question_as_rows(question_number: 'Q2', report: report).to_h
+        _, rows = run_and_extract_rows([project], 'Q2')
         expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(0)
         expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
       end

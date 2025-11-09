@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,9 +8,9 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class SupportiveServicesSheet < Base
-    QUESTION_NUMBER = 'Q6: Supportive Services'.freeze
+    QUESTION_NUMBER = 'Q6: Supportive Services'
     QUESTION_NUMBERS = ['Q6'].freeze
-    SHEET_TITLE = 'Complete for all households served with HOPWA funded Supportive Services by your organization in the reporting year.'.freeze
+    SHEET_TITLE = 'Complete for all households served with HOPWA funded Supportive Services by your organization in the reporting year.'
 
     CONTENTS = [
       { method: :supportive_services_section, label: 'Households and Expenditures for Supportive Service Types' },

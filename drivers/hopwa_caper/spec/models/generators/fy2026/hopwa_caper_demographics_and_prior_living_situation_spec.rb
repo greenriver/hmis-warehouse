@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,7 +9,7 @@
 require 'rails_helper'
 
 require_relative 'hopwa_caper_shared_context'
-RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model do
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet, type: :model do
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
@@ -61,23 +63,12 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
     end
 
     let!(:hoh_enrollment) do
-      create_enrollment(
+      create_hiv_positive_enrollment(
         client: hoh_client,
         project: project,
         entry_date: report_start_date + 1.day,
         household_id: household_id,
-        relationship_to_ho_h: 1,
-      ).tap do |enrollment|
-        create(
-          :hud_disability,
-          disability_type: hiv_positive,
-          enrollment: enrollment,
-          anti_retroviral: 1,
-          viral_load_available: 1,
-          viral_load: 100,
-          data_source: data_source,
-        )
-      end
+      )
     end
 
     let!(:beneficiary_enrollment) do
@@ -143,6 +134,149 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       all_rows.slice(25, 25).to_h { |ary| ary.slice(0, 2) }.compact_blank.yield_self do |lookup|
         expect(lookup.fetch("How many individuals newly receiving HOPWA assistance didn't report or refused to report their prior living situation?")).to eq(1)
       end
+    end
+  end
+
+  context 'with enrollments outside report date range' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: report_start_date - 60.days,
+        household_id: household_id,
+      )
+    end
+
+    before do
+      # Service outside the report date range
+      create(
+        :hud_service,
+        enrollment: hoh_enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 100,
+        date_provided: report_start_date - 10.days,
+        data_source: data_source,
+      )
+    end
+
+    it 'includes enrollment but excludes services outside the report period' do
+      report = create_report([project])
+      run_report(report)
+
+      # Enrollment is included because it's open during the report period
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      # But no services should be recorded since they're all outside the report date range
+      expect(report.hopwa_caper_services.size).to eq(0)
+    end
+  end
+
+  context 'with Hispanic ethnicity demographics' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hispanic_client) do
+      create(
+        :hud_client,
+        DOB: today - 25.years,
+        DOBDataQuality: 1,
+        HispanicLatinaeo: 1,
+        AmIndAKNative: 1,
+        Sex: 1,
+        data_source: data_source,
+      )
+    end
+
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hispanic_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    before do
+      create(
+        :hud_service,
+        enrollment: hoh_enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 100,
+        date_provided: hoh_enrollment.entry_date,
+        data_source: data_source,
+      )
+    end
+
+    it 'reports Hispanic ethnicity breakdown correctly' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      enrollment = report.hopwa_caper_enrollments.first
+      expect(enrollment.hiv_positive).to be(true)
+      expect(enrollment.races).to include(1) # AmIndAKNative race code
+
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+
+      # Hispanic ethnicity totals should include the client in the American Indian/Alaskan Native race row
+      american_indian_row = all_rows.find { |row| row.first == 'American Indian/Alaskan Native' }
+      expect(american_indian_row).to be_present
+      expect(american_indian_row.last).to eq(1)
+    end
+  end
+
+  context 'with unknown or missing demographic data' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:unknown_demographics_client) do
+      create(
+        :hud_client,
+        DOB: nil,
+        DOBDataQuality: 99,
+        RaceNone: 9,
+        Sex: 99,
+        data_source: data_source,
+      )
+    end
+
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: unknown_demographics_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    before do
+      create(
+        :hud_service,
+        enrollment: hoh_enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 100,
+        date_provided: hoh_enrollment.entry_date,
+        data_source: data_source,
+      )
+    end
+
+    it 'handles unknown demographic data gracefully' do
+      report = create_report([project])
+      run_report(report)
+
+      # Verify the system handles unknown data gracefully without crashing
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      enrollment = report.hopwa_caper_enrollments.first
+      expect(enrollment.hiv_positive).to be(true)
+      expect(enrollment.dob_quality).to eq(99)
+      expect(enrollment.sex).to eq(99)
+      expect(enrollment.races).to include(unknown_demographics_client.RaceNone) # Preserve RaceNone response for reporting
+
+      # Verify the report generates without errors
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+      expect(all_rows).to be_present
+      expect(all_rows.size).to be > 25 # Should have full report structure
     end
   end
 end
