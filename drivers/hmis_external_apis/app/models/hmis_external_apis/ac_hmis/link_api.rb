@@ -30,29 +30,39 @@ module HmisExternalApis::AcHmis
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).exists?
     end
 
+    # Deprecated
     def create_referral_request(payload)
+      send_to_sentry('Deprecated LINK API called: create_referral_request')
+
       conn.post('Referral/ReferralRequest', format_payload(payload)).
         then { |r| handle_error(r) }
     end
 
+    # NOTE: Not yet deprecated - This method is still in active use for voiding existing ReferralRequests.
+    # It will be deprecated once all legacy ReferralRequests have been worked through.
     def void_referral_request(referral_request_id:, requested_by:)
       payload = format_payload({ is_void: true, requested_by: requested_by })
       conn.patch("Referral/ReferralRequest/#{referral_request_id}", payload).
         then { |r| handle_error(r) }
     end
 
-    # DEPRECATED do not call
+    # Deprecated
     def update_unit_capacity(payload)
+      send_to_sentry('Deprecated LINK API called: update_unit_capacity')
       conn.patch('Unit/Capacity', format_payload(payload)).
         then { |r| handle_error(r) }
     end
 
+    # NOTE: Not yet deprecated - This method is still in active use for updating posting status
+    # on legacy ReferralPostings. It will be deprecated once all legacy postings have been worked through.
     def update_referral_posting_status(payload)
       conn.patch('Referral/PostingStatus', format_payload(payload, id_variant: 'Id')).
         then { |r| handle_error(r) }
     end
 
+    # Deprecated
     def active_referral_mci_ids
+      send_to_sentry('Deprecated LINK API called: active_referral_mci_ids')
       conn.get('Referral/ActiveReferralMciid').then { |r| handle_error(r) }
     end
 
@@ -69,6 +79,10 @@ module HmisExternalApis::AcHmis
     end
 
     protected
+
+    def send_to_sentry(msg)
+      Sentry.capture_message(msg)
+    end
 
     def handle_error(result)
       Rails.logger.error "LINK Error: #{result.error}" if result.error

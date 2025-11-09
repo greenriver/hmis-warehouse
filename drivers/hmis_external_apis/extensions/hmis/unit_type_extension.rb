@@ -18,7 +18,6 @@ module HmisExternalApis
                 -> { where(namespace: HmisExternalApis::AcHmis::Mper::SYSTEM_ID) },
                 class_name: 'HmisExternalApis::ExternalId',
                 as: :source
-        has_many :external_unit_availability_syncs, class_name: 'HmisExternalApis::AcHmis::UnitAvailabilitySync', dependent: :destroy # remove
       end
     end
   end
