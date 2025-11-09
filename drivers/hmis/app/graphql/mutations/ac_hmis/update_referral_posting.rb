@@ -104,14 +104,8 @@ module Mutations
 
       return { errors: errors } if errors.any?
 
-      # resend original referral request
-      if posting_status_change == ['denied_pending_status', 'denied_status'] && input.resend_referral_request
-        raise unless posting.from_link?
-        raise unless posting.referral_request_id
-
-        new_request = posting.referral_request.dup
-        HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(new_request)
-      end
+      # Note: when status changed from 'Denied Pending' to 'Denied', the previous behavior was to resend
+      # the original referral request to LINK. That behavior has been removed since the LINK integration is being deprecated.
 
       { record: posting }
     end

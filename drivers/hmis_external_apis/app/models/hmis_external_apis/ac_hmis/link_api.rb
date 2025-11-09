@@ -6,6 +6,13 @@
 
 # frozen_string_literal: true
 
+#####
+# DEPRECATED 🚨
+# The LinkApi class has been deprecated. Most methods in this class are deprecated and
+# send Sentry notifications when called. The update_referral_posting_status method is
+# still in active use for legacy ReferralPostings and will be deprecated once all
+# legacy postings have been worked through.
+#
 # To connect to the API, you need a remote credential for this endpoint. Replace
 # the empty strings below with values from the documentation.
 #
@@ -19,7 +26,7 @@
 #   "base_url"=>"http://ac_hmis_stub:9292/api",
 #   "additional_headers"=>{'Ocp-Apim-Subscription-Key': 'abcdeTest'},
 # }
-
+####
 module HmisExternalApis::AcHmis
   class LinkApi
     SYSTEM_ID = 'ac_hmis_link'
@@ -33,14 +40,13 @@ module HmisExternalApis::AcHmis
     # Deprecated
     def create_referral_request(payload)
       send_to_sentry('Deprecated LINK API called: create_referral_request')
-
       conn.post('Referral/ReferralRequest', format_payload(payload)).
         then { |r| handle_error(r) }
     end
 
-    # NOTE: Not yet deprecated - This method is still in active use for voiding existing ReferralRequests.
-    # It will be deprecated once all legacy ReferralRequests have been worked through.
+    # Deprecated
     def void_referral_request(referral_request_id:, requested_by:)
+      send_to_sentry('Deprecated LINK API called: void_referral_request')
       payload = format_payload({ is_void: true, requested_by: requested_by })
       conn.patch("Referral/ReferralRequest/#{referral_request_id}", payload).
         then { |r| handle_error(r) }
