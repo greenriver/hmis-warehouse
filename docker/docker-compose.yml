@@ -32,8 +32,11 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
-    # Needs to match /app/docker/auth/dev.oauth2-proxy-warehouse.yaml providers -> clientID
-    IDP_AUD: ${IDP_AUD:-hmis-warehouse}
+    # Comma-separated list of valid JWT audiences. Should include both:
+    # - hmis-warehouse (for warehouse oauth2-proxy)
+    # - hmis-frontend (for HMIS oauth2-proxy)
+    # Defaults to both if not set
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend}
     # Needs to match /app/docker/auth/dev.oauth2-proxy-warehouse.yaml providers -> clientSecret and
     # Needs to match /app/docker/auth/dev.oauth2-proxy-warehouse.cfg cookie_secret
     JWT_SECRET: ${JWT_SECRET:-"dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="}
@@ -161,7 +164,7 @@ services:
   oauth2-proxy:
     labels:
       - traefik.enable=true
-      - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`)
+      - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`) || Host(`hmis-backend.dev.test`)
       - traefik.http.routers.hmis-warehouse-oauth2.entrypoints=web-secure
       - traefik.http.routers.hmis-warehouse-oauth2.service=hmis-warehouse-oauth2
       - traefik.http.routers.hmis-warehouse-oauth2.tls=true
@@ -198,7 +201,7 @@ services:
     command: --alpha-config /oauth2-proxy-hmis.yaml --config /oauth2-proxy-hmis.cfg
     hostname: hmis.dev.test
     extra_hosts:
-      - "internal-hmis.dev.test:host-gateway"
+      - "internal-warehouse.dev.test:host-gateway"
       - "host.docker.internal:host-gateway"
       - "dex.dev.test:host-gateway"
     volumes:
@@ -207,7 +210,7 @@ services:
     environment:
       <<: *env
       FQDN: hmis.dev.test
-      VIRTUAL_HOST: hmis.dev.test
+      VIRTUAL_HOST: hmis.dev.test,hmis-backend.dev.test
       VIRTUAL_PORT: 4181
     ports:
       - 4181:4181/tcp
