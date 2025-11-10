@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class EnrollmentDisenrollment
     def initialize(start_date:, end_date:, effective_date:, aco_ids:, enrollment_reasons:)

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisExternalApis::TcHmis::Importers::SyntheticCeAssessmentsForCustomAssessment
   def perform(custom_assessments:, assessment_type:, assessment_level:, prioritization_status:)
     default_attrs = {

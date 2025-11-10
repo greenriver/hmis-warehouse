@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UpdateTalentConfigRecords < ActiveRecord::Migration[7.0]
   def up
     Talentlms::Config.all.each do |c|

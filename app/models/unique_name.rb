@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class UniqueName < ApplicationRecord
   # Build double metaphone representations for all names in the database
   def self.update!(...)

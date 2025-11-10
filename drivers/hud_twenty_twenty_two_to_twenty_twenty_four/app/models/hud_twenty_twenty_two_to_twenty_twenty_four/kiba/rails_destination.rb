@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudTwentyTwentyTwoToTwentyTwentyFour::Kiba
   class RailsDestination
     BATCH_SIZE = 1_000

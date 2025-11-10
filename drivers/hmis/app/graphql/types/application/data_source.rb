@@ -14,7 +14,7 @@ module Types
     field :name, String, null: false
     field :is_current_data_source, Boolean, null: false
 
-    def is_current_data_source # rubocop:disable Naming/PredicateName
+    def is_current_data_source # rubocop:disable Naming/PredicatePrefix
       current_user.hmis_data_source_id == object.id
     end
   end

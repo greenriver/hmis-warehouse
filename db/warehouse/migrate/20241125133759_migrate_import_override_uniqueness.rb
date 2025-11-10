@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MigrateImportOverrideUniqueness < ActiveRecord::Migration[7.0]
   def up
     # Update all records to ensure we only have one with a unique data_source_id, file_name, replaces_column, matched_hud_key, replaces_value

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Admin::AdministrativeEventsController < ApplicationController
   before_action :require_can_add_administrative_event!
   before_action :load_event, only: [:edit, :update, :destroy]

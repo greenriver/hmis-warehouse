@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class SandboxEmailInterceptor
   # TODO: list recipients who will always be BCC'd when application is running in sandbox mode
   RECIPIENTS = ENV['SANDBOX_RECIPIENTS']&.split(',') || []

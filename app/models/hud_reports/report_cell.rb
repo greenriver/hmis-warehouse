@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # A HUD report cell, identified by a question and cell name (e.g., question: 'Q1', cell_name: 'b2')
 # * the cell value appears to be stored in the "summary" field
 # * sometimes a cell is a question group (q6) with sub-questions (6a, 6b, etc.,)

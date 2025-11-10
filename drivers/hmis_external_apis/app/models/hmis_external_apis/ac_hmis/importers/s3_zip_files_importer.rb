@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This class iterates over the zip file objects in a bucket "directory" and
 # calls an importer on that directory after extraction.
 

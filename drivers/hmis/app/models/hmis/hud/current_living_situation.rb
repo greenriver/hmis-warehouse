@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   self.table_name = :CurrentLivingSituation
   self.sequence_name = "public.\"#{table_name}_id_seq\""

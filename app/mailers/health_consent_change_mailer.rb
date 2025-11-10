@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HealthConsentChangeMailer < HealthMailer
   def consent_changed(new_patients:, consented:, revoked_consent:, unmatched:, user:)
     @consented = consented

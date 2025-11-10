@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateThriveAssessments < ActiveRecord::Migration[6.1]
   def change
     create_table :thrive_assessments do |t|

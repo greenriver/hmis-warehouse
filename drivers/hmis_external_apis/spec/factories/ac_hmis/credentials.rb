@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   FactoryBot.define do
     factory :ac_hmis_mper_credential, parent: :grda_remote_oauth_credential do

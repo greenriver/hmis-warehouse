@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::IdentifyDuplicatesLog < GrdaWarehouseBase
   self.table_name = 'identify_duplicates_log'
   include ActionView::Helpers::DateHelper

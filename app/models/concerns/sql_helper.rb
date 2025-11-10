@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Module for SQL-related helper methods. Assumes a PostgreSQL database.
 # Perhaps there's a way to do this with the active_record_extended gem but I couldn't find it
 module SqlHelper

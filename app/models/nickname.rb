@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Nickname < ApplicationRecord
   belongs_to :nicknames, optional: true, class_name: '::Nickname', foreign_key: :nickname_id
   scope :for, -> (name) { where(nickname_id: where(name: name.downcase)) }

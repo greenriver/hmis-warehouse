@@ -39,7 +39,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
         :data_source_id,
         col,
       ],
-      query_constraints: [
+      foreign_key: [
         :data_source_id,
         col,
       ],
@@ -61,7 +61,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
         :PersonalID,
         :data_source_id,
       ],
-      query_constraints: [
+      foreign_key: [
         :EnrollmentID,
         :PersonalID,
         :data_source_id,
