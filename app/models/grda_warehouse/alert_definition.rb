@@ -32,12 +32,16 @@ module GrdaWarehouse
       [:visibility_check, :email_subject]
     end
 
+    # Uses advisory lock to prevent concurrent execution - returns immediately if lock is held
     def self.maintain!
-      initial_definitions.each do |attrs|
-        db_attrs = attrs.dup
-        non_database_attributes.each { |key| db_attrs.delete(key) }
-        find_or_create_by!(code: attrs[:code]) do |definition|
-          definition.assign_attributes(db_attrs)
+      lock_name = 'alert_definition_maintain'
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        initial_definitions.each do |attrs|
+          db_attrs = attrs.dup
+          non_database_attributes.each { |key| db_attrs.delete(key) }
+          find_or_create_by!(code: attrs[:code]) do |definition|
+            definition.assign_attributes(db_attrs)
+          end
         end
       end
     end
@@ -90,11 +94,11 @@ module GrdaWarehouse
           category: 'system',
           description: 'Notification when data anomalies are detected',
         },
-        # Client Metric Alerts
+        # Threshold Monitoring Alerts
         {
           code: 'metric_days_homeless_threshold',
           name: 'Days Homeless Threshold Crossed',
-          email_subject: 'Client Metric Alert: Days Homeless Threshold Crossed',
+          email_subject: 'Threshold Monitoring Alert: Days Homeless Threshold Crossed',
           category: 'system',
           description: 'Notification when clients cross the threshold for days homeless in the last 3 years',
           visibility_check: ->(_user) { GrdaWarehouse::Monitoring::MetricDefinition.active.exists?(name: 'days_homeless_last_three_years') },
@@ -102,7 +106,7 @@ module GrdaWarehouse
         {
           code: 'metric_household_size_threshold',
           name: 'Household Size Threshold Crossed',
-          email_subject: 'Client Metric Alert: Household Size Threshold Crossed',
+          email_subject: 'Threshold Monitoring Alert: Household Size Threshold Crossed',
           category: 'system',
           description: 'Notification when clients cross the threshold for household size changes',
           visibility_check: lambda do |_user|
