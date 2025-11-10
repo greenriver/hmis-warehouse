@@ -15,66 +15,67 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   let!(:destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
   let!(:client) { create :window_hud_client, data_source_id: window_data_source.id, SSN: '123456789', FirstName: 'First', LastName: 'Last', DOB: '2019-09-16' }
   let!(:warehouse_client) { create :warehouse_client, source: client, destination: destination }
+  let(:oauth2_sign_in_path) { '/oauth2/sign_in' }
 
   describe 'logged out' do
     it 'doesn\'t allow index' do
       get clients_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow show' do
       get client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow new' do
       get new_client_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow create' do
       post clients_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow edit' do
       get edit_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow service_range' do
       get service_range_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow rollup' do
       get rollup_client_path(destination, partial: :residential_enrollments)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow assessment' do
       get assessment_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow image' do
       get image_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow chronic_days' do
       get chronic_days_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow merge' do
       patch merge_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow unmerge' do
       patch unmerge_client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
   end
 
@@ -454,8 +455,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow service_range' do
       sign_in user
       get service_range_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow rollup' do
@@ -479,22 +480,22 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow chronic_days' do
       sign_in user
       get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(destination)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow unmerge' do
       sign_in user
       patch unmerge_client_path(destination)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
   end
 end

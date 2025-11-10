@@ -17,6 +17,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   let!(:config) { create :config_b }
   let!(:user) { create :acl_user }
+  let(:oauth2_sign_in_path) { '/oauth2/sign_in' }
 
   before do
     Collection.maintain_system_groups
@@ -25,68 +26,68 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   describe 'logged out' do
     it 'doesn\'t allow index' do
       get clients_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow search results' do
       query = create(:grda_warehouse_client_search_query)
       get client_search_query_path(id: query.id)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow show' do
       get client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow new' do
       get new_client_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow create' do
       post clients_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow edit' do
       get edit_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow service_range' do
       get service_range_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow rollup' do
       get rollup_client_path(window_destination_client, partial: :residential_enrollments)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow assessment' do
       get assessment_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow image' do
       get image_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow chronic_days' do
       get chronic_days_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow merge' do
       patch merge_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
 
     it 'doesn\'t allow unmerge' do
       patch unmerge_client_path(window_destination_client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
     end
   end
 
