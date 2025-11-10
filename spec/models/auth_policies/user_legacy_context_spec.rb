@@ -181,4 +181,70 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
       end
     end
   end
+
+  describe 'user.access_group direct assignments' do
+    subject(:context) { described_class.new(legacy_user) }
+
+    before do
+      # Ensure user's access group is persisted
+      legacy_user.access_group.save! unless legacy_user.access_group.persisted?
+    end
+
+    describe '#project_role_permissions' do
+      context 'when project is directly assigned to user.access_group' do
+        before do
+          legacy_user.access_group.add_viewable(project)
+        end
+
+        it 'returns correct permissions for the project' do
+          expect(context.project_role_permissions(project.id)).to include(:can_view_projects)
+        end
+      end
+
+      context 'when project is not assigned to user.access_group' do
+        it 'returns empty set when project has no other access groups' do
+          expect(context.project_role_permissions(project.id)).to be_empty
+        end
+      end
+    end
+
+    describe '#data_source_role_permissions' do
+      context 'when data source is directly assigned to user.access_group' do
+        before do
+          legacy_user.access_group.add_viewable(data_source)
+        end
+
+        it 'returns correct permissions for the data source' do
+          expect(context.data_source_role_permissions(data_source.id)).to include(:can_view_projects)
+        end
+      end
+
+      context 'when data source is not assigned to user.access_group' do
+        it 'returns empty set when data source has no other access groups' do
+          expect(context.data_source_role_permissions(data_source.id)).to be_empty
+        end
+      end
+    end
+
+    describe '#direct_client_role_permissions' do
+      let(:client_data_source) { create(:grda_warehouse_data_source, authoritative: true) }
+      let(:client) { create(:hud_client, data_source: client_data_source) }
+
+      context 'when client data source is directly assigned to user.access_group' do
+        before do
+          legacy_user.access_group.add_viewable(client_data_source)
+        end
+
+        it 'returns correct permissions for the client' do
+          expect(context.direct_client_role_permissions(client.id)).to include(:can_view_projects)
+        end
+      end
+
+      context 'when client data source is not assigned to user.access_group' do
+        it 'returns empty set when client has no other access groups' do
+          expect(context.direct_client_role_permissions(client.id)).to be_empty
+        end
+      end
+    end
+  end
 end

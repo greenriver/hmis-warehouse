@@ -11,10 +11,13 @@ class CollectClientMetricsJob < BaseJob
   queue_with_priority 15
 
   def perform(calculation_date = Date.current)
-    GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector.run_daily_collection(
-      entity_type: 'GrdaWarehouse::Hud::Client',
-      calculation_date: calculation_date,
-    )
+    lock_name = 'collect_client_metrics_job'
+    GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+      GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector.run_daily_collection(
+        entity_type: 'GrdaWarehouse::Hud::Client',
+        calculation_date: calculation_date,
+      )
+    end
   end
 
   def priority
