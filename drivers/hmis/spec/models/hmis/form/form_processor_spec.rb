@@ -825,8 +825,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       new_unit = create(:hmis_unit, project: p1)
       hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
       expect do
-         process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition, save: false)
-     end.not_to change(Hmis::UnitOccupancy, :count)
+        process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition, save: false)
+      end.not_to change(Hmis::UnitOccupancy, :count)
 
       # Since the form processor was run without saving, the unit assignment is unchanged
       expect(e2.reload.active_unit_occupancy.unit).to eq(old_unit)
@@ -860,7 +860,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
       process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition)
       e2.reload
-      expect(e2.unit_occupancies.first.end_date).to be_present
+      old_uo.reload
+      expect(old_uo.end_date).to be_present
       expect(e2.active_unit_occupancy).not_to eq(old_uo)
       expect(e2.current_unit).to eq(new_unit)
     end
