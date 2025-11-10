@@ -475,7 +475,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
     let!(:enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1) }
     let!(:unit) { create(:hmis_unit, project: project) }
-    let(:hmis_user) { user.related_hmis_user(ds1) }
 
     it 'assigns unit successfully' do
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
