@@ -824,7 +824,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Use the form processor to reassign the enrollment to new_unit, but without saving
       new_unit = create(:hmis_unit, project: p1)
       hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
-      process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition, save: false)
+      expect do
+         process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition, save: false)
+     end.not_to change(Hmis::UnitOccupancy, :count)
 
       # Since the form processor was run without saving, the unit assignment is unchanged
       expect(e2.reload.active_unit_occupancy.unit).to eq(old_unit)
