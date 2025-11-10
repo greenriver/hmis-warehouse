@@ -79,7 +79,7 @@ runs:
           libicu-dev \
           libmagic-dev \
           libpq-dev \
-          libsodium \
+          libsodium23 \
           libsodium-dev \
           libxml2-dev \
           libxslt1-dev \
