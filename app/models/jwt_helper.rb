@@ -73,10 +73,20 @@ class JwtHelper
       true, # verify signature
       {
         algorithm: algorithm,
-        aud: ENV.fetch('IDP_AUD'),
+        aud: idp_audiences,
         iss: ENV.fetch('ISS_URL'),
       },
     )
+  end
+
+  # Returns the list of valid audience values for JWT validation.
+  # Supports both single value and comma-separated list from IDP_AUD env var.
+  # Defaults to both hmis-warehouse and hmis-frontend if not set.
+  #
+  # @return [Array<String>] List of valid audience values
+  private def idp_audiences
+    aud = ENV.fetch('IDP_AUD', 'hmis-warehouse,hmis-frontend')
+    aud.split(',').map(&:strip)
   end
 
   def email(forwarded_email)
