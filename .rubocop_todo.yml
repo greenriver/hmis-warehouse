@@ -2966,7 +2966,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/client_access_control/spec/factories/grda_warehouse/hud/projects.rb'
     - 'drivers/client_access_control/spec/factories/grda_warehouse/warehouse_clients.rb'
     - 'drivers/client_access_control/spec/factories/roles.rb'
-    - 'drivers/client_access_control/spec/requests/clients_legacy_spec.rb'
     - 'drivers/client_documents_report/app/controllers/client_documents_report/warehouse_reports/reports_controller.rb'
     - 'drivers/client_documents_report/app/models/client_documents_report.rb'
     - 'drivers/client_documents_report/app/models/client_documents_report/report.rb'
