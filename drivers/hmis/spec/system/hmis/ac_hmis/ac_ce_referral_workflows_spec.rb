@@ -251,8 +251,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       end
     end
 
-    context 'when the client is already enrolled in the target project' do
-      let!(:enrollment) { create(:hmis_hud_wip_enrollment, data_source: ds1, project: target_project, client: client1, entry_date: 30.days.ago) }
+    shared_examples 'allows referral with warning' do
       it 'displays a warning message, but allows the referral to be sent' do
         visit "/projects/#{source_project.id}/referrals"
         click_link 'Send Referral'
@@ -270,24 +269,14 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       end
     end
 
+    context 'when the client is already enrolled in the target project' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, data_source: ds1, project: target_project, client: client1, entry_date: 30.days.ago) }
+      it_behaves_like 'allows referral with warning'
+    end
+
     context 'when the client has an active referral to the target project' do
       let!(:referral) { create(:hmis_ce_referral, client: client1, project: target_project, data_source: target_project.data_source, status: 'in_progress') }
-
-      it 'displays a warning message, but allows the referral to be sent' do
-        visit "/projects/#{source_project.id}/referrals"
-        click_link 'Send Referral'
-        mui_select('Alice A and 1 other', from: 'HoH Enrollment')
-        mui_select(target_project.project_name, from: 'Project')
-        mui_select(unit_group.name, from: 'Unit Group')
-        fill_in 'Resource Coordinator Notes', with: 'note'
-
-        # Ensure warning is displayed because the client is already referred to the target project (based on project_can_accept_referral)
-        expect(page).to have_content(referral_warning_message)
-
-        expect do
-          click_button 'Refer Household'
-        end.to change(Hmis::Ce::Referral, :count).by(1)
-      end
+      it_behaves_like 'allows referral with warning'
     end
   end
 
