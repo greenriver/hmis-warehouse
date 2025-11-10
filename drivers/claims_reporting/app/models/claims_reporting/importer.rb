@@ -9,6 +9,10 @@
 require 'net/sftp'
 require 'zip'
 
+# support curve25519-sha256
+# verify with bundle exec ruby -r x25519  -r net/ssh -e "p Net::SSH::Transport::Algorithms::ALGORITHMS[:kex]"
+require 'x25519'
+
 module ClaimsReporting
   class Importer
     include NotifierConfig
@@ -53,15 +57,6 @@ module ClaimsReporting
         credentials['username'],
         password: credentials['password'] || credentials.password,
         auth_methods: ['publickey', 'password'],
-        kex: %w[
-          curve25519-sha256@libssh.org
-          ecdh-sha2-nistp521
-          ecdh-sha2-nistp384
-          ecdh-sha2-nistp256
-          diffie-hellman-group-exchange-sha256
-          diffie-hellman-group14-sha256
-          diffie-hellman-group14-sha1
-        ],
         keepalive: true,
         keepalive_interval: 60,
       ) do |connection|
