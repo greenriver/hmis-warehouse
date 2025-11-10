@@ -212,17 +212,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:donor_hoh_occupancy) { create :hmis_unit_occupancy, unit: unit1, enrollment: donor_hoh }
       let!(:donor_child_occupancy) { create :hmis_unit_occupancy, unit: unit1, enrollment: donor_child }
 
+      let(:today) { Date.current }
+
       it 'removes the current unit occupancy from the joiners' do
         expect do
           perform_mutation
-          donor_hoh.reload
-          donor_child.reload
-        end.to change(donor_hoh, :active_unit_occupancy).to(nil).
-          and change(donor_child, :active_unit_occupancy).to(nil)
-
-        expect(donor_hoh.unit_occupancies.count).to eq(1) # Still has historical occupancy (regression #8379)
-        expect(donor_hoh.unit_occupancies.sole.occupancy_period).to be_present
-        expect(donor_hoh.unit_occupancies.sole.end_date).to be_present
+          [donor_hoh, donor_child, donor_hoh_occupancy, donor_child_occupancy].each(&:reload)
+        end.to not_change(Hmis::UnitOccupancy, :count). # historic unit occupancies are still present (regression #8379)
+          # unit is released from the joiners
+          and change(donor_hoh, :active_unit_occupancy).to(nil).
+          and change(donor_child, :active_unit_occupancy).to(nil).
+          # historic unit occcupancy is end-dated
+          and change { donor_hoh_occupancy.occupancy_period.end_date }.from(nil).to(today).
+          and change { donor_child_occupancy.occupancy_period.end_date }.from(nil).to(today)
       end
     end
   end
