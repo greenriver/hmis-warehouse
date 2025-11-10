@@ -114,6 +114,8 @@ RUN apt-get update && apt-get upgrade -y \
   libmagic1 \
   libpq-dev \
   libreadline-dev \
+  libsodium \
+  libsodium-dev \
   libx11-6 \
   libxext6 \
   libxml2-dev \

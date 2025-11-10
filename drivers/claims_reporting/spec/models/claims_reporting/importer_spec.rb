@@ -58,4 +58,12 @@ RSpec.describe ClaimsReporting::Importer do
     it_behaves_like 'imports data from zip', true
     it_behaves_like 'imports data from zip', false
   end
+
+  describe 'ssh algorithm support' do
+    it 'advertises curve25519 and chacha20-poly1305' do
+      algorithms = Net::SSH::Transport::Algorithms::ALGORITHMS
+      expect(algorithms[:kex]).to include('curve25519-sha256', 'curve25519-sha256@libssh.org')
+      expect(algorithms[:encryption]).to include('chacha20-poly1305@openssh.com')
+    end
+  end
 end
