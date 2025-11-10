@@ -96,7 +96,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Unit occupancy
   # All unit occupancies, including historical
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
-  has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, autosave: true
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
 
@@ -473,7 +473,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def assign_unit(unit:, start_date:, user:, active_referral: nil)
     raise "Active referral unit is incorrect #{active_referral.opportunity.unit.id} != #{unit.id}" if active_referral.present? && active_referral.opportunity.unit != unit
 
-    current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
+    current_occupancy = active_unit_occupancy if active_unit_occupancy&.occupancy_period&.active?
     # ignore: this enrollment is already assigned to this unit
     return if current_occupancy.present? && current_occupancy.unit == unit
 
@@ -496,20 +496,20 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       raise 'Cannot assign to a unit with locked opportunity' unless is_same_client || is_same_household
     end
 
-    unit_occupancies.build(
-      unit: unit,
-      occupancy_period_attributes: {
-        start_date: start_date,
-        end_date: nil,
-        user: user,
-      },
+    occupancy = unit_occupancies.build(unit: unit)
+    occupancy.build_occupancy_period(
+      start_date: start_date,
+      end_date: nil,
+      user: user,
     )
+    occupancy
   end
 
   def release_unit!(occupancy_end_date = Date.current, user:)
     occupancy = active_unit_occupancy
     # If enrollment isn't assigned to any unit, do nothing
-    return if occupancy.nil? || occupancy.occupancy_period.nil?
+    return if occupancy.nil?
+    raise "Missing occupancy period for enrollment #{enrollment.id}" unless occupancy.occupancy_period
 
     occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
   end

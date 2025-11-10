@@ -26,10 +26,9 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
   has_one :client, through: :enrollment
 
   # Date range for which the client occupied the unit.
-  has_one :occupancy_period, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
+  has_one :occupancy_period, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy, autosave: true
   # Service record that relates to this occupancy (likely a BedNight or BedNight-ish custom service)
   belongs_to :hmis_service, class_name: 'Hmis::Hud::HmisService', optional: true
-  accepts_nested_attributes_for :occupancy_period
 
   delegate :start_date, to: :occupancy_period
   delegate :end_date, to: :occupancy_period
