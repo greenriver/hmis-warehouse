@@ -58,4 +58,41 @@ RSpec.describe ClaimsReporting::Importer do
     it_behaves_like 'imports data from zip', true
     it_behaves_like 'imports data from zip', false
   end
+
+  describe '#using_sftp' do
+    let(:credentials) do
+      {
+        'host' => 'sftp.example.org',
+        'username' => 'claims_user',
+        'password' => 'super-secret',
+      }
+    end
+    let(:expected_kex) do
+      %w[
+        curve25519-sha256@libssh.org
+        ecdh-sha2-nistp521
+        ecdh-sha2-nistp384
+        ecdh-sha2-nistp256
+        diffie-hellman-group-exchange-sha256
+        diffie-hellman-group14-sha256
+        diffie-hellman-group14-sha1
+      ]
+    end
+    let(:connection) { instance_double(Net::SFTP::Session) }
+
+    it 'configures Net::SFTP with the expected kex algorithms' do
+      expect(Net::SFTP).to receive(:start) do |host, username, options|
+        expect(host).to eq(credentials['host'])
+        expect(username).to eq(credentials['username'])
+        expect(options[:kex]).to eq(expected_kex)
+        expect(options[:auth_methods]).to eq(%w[publickey password])
+        expect(options[:password]).to eq(credentials['password'])
+        connection
+      end.and_yield(connection)
+
+      importer.send(:using_sftp, credentials) do |sftp|
+        expect(sftp).to eq(connection)
+      end
+    end
+  end
 end
