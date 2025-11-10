@@ -9,11 +9,13 @@
 require 'memery'
 
 module GrdaWarehouse
+  # @see docs/features/cohorts.md
   class Cohort < GrdaWarehouseBase
     include ArelHelper
     include AccessGroups # TODO: START_ACL remove this after permission migration is complete
     include EntityAccess
     include Memery
+    # FIXME, routes shouldn't be included in a model like this
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid
@@ -22,9 +24,12 @@ module GrdaWarehouse
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
+    validates :automation_sub_population, inclusion: { in: ->(_) { AvailableSubPopulations.available_sub_populations.values.map(&:to_s) }, allow_blank: true, message: 'is not a valid sub-population' }
+    validate :require_project_group_for_automation
     serialize :column_state, type: Array
 
     after_create :maintain_system_group
+    before_validation :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }
 
     has_many :cohort_tabs, dependent: :destroy
     has_many :cohort_clients, dependent: :destroy
@@ -152,6 +157,10 @@ module GrdaWarehouse
       tab = cohort_tabs.find_by(name: population)
       # If the source of the clients on this tab looks for deleted clients
       tab&.base_scope == 'only_deleted'
+    end
+
+    def available_sub_populations
+      AvailableSubPopulations.available_sub_populations
     end
 
     private def active_tab(user, population)
@@ -336,7 +345,11 @@ module GrdaWarehouse
 
     # Attr Accessors
     available_columns.each do |column|
-      attr_accessor column.column
+      accessor_name = column.column.to_s
+      # guard against this legacy foot gun
+      raise("Skipping attr_accessor for Cohort##{accessor_name} – conflicts with actual column") if column_names.include?(accessor_name)
+
+      attr_accessor accessor_name
     end
 
     def self.sort_directions
@@ -595,8 +608,36 @@ module GrdaWarehouse
       auto_maintained.find_each(&:maintain)
     end
 
+    # automation filter configured?
     def auto_maintained?
       project_group.present?
+    end
+
+    def automation_sub_population_label
+      return if automation_sub_population.blank?
+
+      available_sub_populations.find do |_label, key|
+        key.to_s == automation_sub_population.to_s
+      end&.first || automation_sub_population.to_s.humanize
+    end
+
+    def automation_scope_descriptions
+      [].tap do |descriptions|
+        descriptions << "projects in the #{project_group.name} project group" if project_group.present?
+
+        if (label = automation_sub_population_label).present?
+          descriptions << "clients in the #{label} sub-population"
+        end
+
+        descriptions << 'clients who are Heads of Household' if automation_hoh_only?
+      end
+    end
+
+    private def require_project_group_for_automation
+      return if project_group_id.present?
+      return unless automation_sub_population.present? || automation_hoh_only?
+
+      errors.add(:project_group, 'must be selected when automation filters are configured')
     end
 
     def selected_project_group_viewable_by(user)
@@ -619,15 +660,51 @@ module GrdaWarehouse
     def maintain
       return unless auto_maintained?
 
-      existing_client_ids = cohort_clients.pluck(:client_id)
-      incoming_client_ids = project_group.clients.
-        joins(:warehouse_client_source).
-        merge(GrdaWarehouse::Hud::Enrollment.open_on_date(Date.current)).
-        pluck(wc_t[:destination_id])
-      to_remove = existing_client_ids - incoming_client_ids
-      to_add = incoming_client_ids - existing_client_ids
-      remove_clients(to_remove, 'No longer enrolled in project group')
-      add_clients(to_add, 'Enrolled in project group')
+      lock_name = [self.class.name, :maintain, id].join(':')
+      acquired = self.class.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        existing_client_ids = cohort_clients.pluck(:client_id)
+        filter = build_automation_filter
+        # tags: [:warehouse] keeps the project, HoH, and sub-pop criteria active; other tag mixes drop one or the other.
+        incoming_client_ids = filter.apply_criteria(
+          GrdaWarehouse::ServiceHistoryEnrollment.all,
+          tags: [:warehouse],
+          report_scope_source: nil,
+          all_project_types: true,
+        ).pluck(:client_id).uniq
+
+        to_remove = existing_client_ids - incoming_client_ids
+        to_add = incoming_client_ids - existing_client_ids
+        remove_clients(to_remove, 'No longer matches automation criteria')
+        add_clients(to_add, 'Matches automation criteria')
+
+        update_column(:automation_updated_at, Time.current)
+      end
+
+      acquired
+    end
+
+    private def clear_automation_filters_without_project_group
+      return if project_group_id.present?
+
+      self.automation_sub_population = nil
+      self.automation_hoh_only = false
+    end
+
+    private def build_automation_filter
+      filter = ::Filters::FilterBase.new
+      filter.user_id = User.setup_system_user.id
+      # Match the historic behavior of automation: include only clients with
+      # enrollments that are open today so we don't linger closed participants.
+      today = Date.current
+      filter.start = today
+      filter.end = today
+      return filter unless project_group_id.present?
+
+      filter.project_group_ids = [project_group_id]
+      filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
+      filter.hoh_only = automation_hoh_only
+      filter.require_service_during_range = false
+      filter
     end
 
     private def add_clients(client_ids, reason)

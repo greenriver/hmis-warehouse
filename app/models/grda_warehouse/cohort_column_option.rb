@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 module GrdaWarehouse
+  # @see docs/features/cohorts.md
   class CohortColumnOption < GrdaWarehouseBase
     validates_presence_of :cohort_column, :value
 

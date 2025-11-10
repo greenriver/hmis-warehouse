@@ -51,7 +51,7 @@ module Mutations
           enrollment.relationship_to_hoh = map_enrollment_id_to_relationship[enrollment.id.to_s]
 
           # Whether or not the receiving household has a unit assignment, clear the joining enrollment's current unit assignment
-          enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
+          enrollment.release_unit!(user: current_user)
           enrollment.assign_unit(unit: receiving_unit, start_date: Date.current, user: current_user) if receiving_unit
 
           enrollment.save!

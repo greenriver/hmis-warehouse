@@ -1,3 +1,8 @@
+-- \restrict ev8undYEDFLV4rJaDCpXx1db4FlVc1qSQxfgeU0stCiHDmNe1sawKDDIHZHneuL
+
+-- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -74,8 +79,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -1732,6 +1737,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: warehouse_data_quality_report_enrollments warehouse_data_quality_report_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2852,13 +2865,6 @@ CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_en
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
-
-
---
 -- Name: warehouse_partitioned_monthly_reports monthly_reports_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -2868,6 +2874,8 @@ CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_
 --
 -- PostgreSQL database dump complete
 --
+
+-- \unrestrict ev8undYEDFLV4rJaDCpXx1db4FlVc1qSQxfgeU0stCiHDmNe1sawKDDIHZHneuL
 
 SET search_path TO "$user", public;
 

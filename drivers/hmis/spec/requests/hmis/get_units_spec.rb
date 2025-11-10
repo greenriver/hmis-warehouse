@@ -54,11 +54,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 name
                 expression
               }
-              priorityScheme {
-                id
-                name
-                expression
-              }
               prioritySchemes {
                 id
                 name
@@ -244,14 +239,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'name' => 'Age Requirement',
             'expression' => 'current_age >= 18',
           )
-
-          priority_scheme = unit_node['priorityScheme']
-          expect(priority_scheme).to include(
-            'name' => 'Homeless Priority',
-            'expression' => 'days_homeless',
-          )
-
-          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['days_homeless'])
+          priority_schemes = unit_node['prioritySchemes']
+          expect(priority_schemes.count).to eq(1)
+          expect(priority_schemes.first['name']).to eq('Homeless Priority')
+          expect(priority_schemes.first['expression']).to eq('days_homeless')
         end
       end
 
@@ -294,14 +285,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           # Ensure the GraphQL ID is modified to prevent cache conflicts
           expect(eligibility_requirements[0]['id']).to match(/^#{unit.id}\.999$/)
 
-          priority_scheme = unit_node['priorityScheme']
-          expect(priority_scheme).to include(
-            'name' => 'Historical Priority Rule',
-            'expression' => 'chronic_days',
-          )
-          expect(priority_scheme['id']).to match(/^#{unit.id}\.998$/)
-
-          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['chronic_days'])
+          priority_schemes = unit_node['prioritySchemes']
+          expect(priority_schemes.count).to eq(1)
+          expect(priority_schemes.first['name']).to eq('Historical Priority Rule')
+          expect(priority_schemes.first['expression']).to eq('chronic_days')
+          expect(priority_schemes.first['id']).to match(/^#{unit.id}\.998$/)
         end
       end
 

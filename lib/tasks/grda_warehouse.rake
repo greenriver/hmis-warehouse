@@ -432,6 +432,13 @@ namespace :grda_warehouse do
       end
     end
 
+    # Collect threshold monitoring data daily
+    if DateTime.current.hour == GrdaWarehouse::Monitoring::MetricDefinition::COLLECTION_HOUR
+      safely_execute do
+        CollectClientMetricsJob.perform_later
+      end
+    end
+
     # This should be very fast, no need to background
     if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
       safely_execute do

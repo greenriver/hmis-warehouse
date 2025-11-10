@@ -155,7 +155,8 @@ RSpec.describe model, type: :model do
       end
 
       it 'is not stalled when there was an import yesterday' do
-        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago + 2.minutes) }
+        # 2-hour buffer so tests don't fail across DST boundaries
+        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago + 2.hours) }
         expect(ds1.stalled_date).to eq(nil)
       end
 

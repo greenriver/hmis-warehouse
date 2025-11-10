@@ -22,7 +22,7 @@ module Hmis::Ce
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
     has_one :unit, class_name: 'Hmis::Unit', through: :opportunity
-    belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
+    belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :destroy
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote', dependent: :destroy
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant', dependent: :destroy

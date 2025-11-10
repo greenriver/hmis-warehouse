@@ -42,9 +42,19 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
     )
   end
 
+  let!(:next_task) do
+    create(
+      :hmis_workflow_definition_user_task,
+      template: template,
+      name: 'Another task',
+      swimlane: swimlane,
+    )
+  end
+
   # Connect workflow nodes
   before do
     start_event.connect_to!(client_acceptance_task)
+    client_acceptance_task.connect_to!(next_task)
   end
 
   # Create opportunity and referral
@@ -159,6 +169,26 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
 
             step.reload
           end.to not_change(step, :status).from('in_progress').
+            and not_change(Hmis::WorkflowExecution::AuditEvent, :count)
+        end
+      end
+
+      context 'and the step has already been completed' do
+        before(:each) do
+          referral.workflow_engine.start_step!(step, user: hmis_user)
+          referral.workflow_engine.complete_step!(step, user: hmis_user, submitted_values: {})
+        end
+
+        it 'returns a staleness validation error' do
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            errors = result.dig('data', 'startCeReferralStep', 'errors')
+            expect(errors).not_to be_nil
+            expect(errors.count).to eq(1)
+            expect(errors.sole['fullMessage']).to eq(HmisErrors::ApiError::STALE_OBJECT_ERROR)
+            step.reload
+          end.to not_change(step, :status).from('completed').
             and not_change(Hmis::WorkflowExecution::AuditEvent, :count)
         end
       end
