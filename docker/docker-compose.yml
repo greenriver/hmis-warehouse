@@ -161,7 +161,7 @@ services:
         condition: service_started
       minio:
         condition: service_started
-  oauth2-proxy:
+  oauth2-proxy-warehouse:
     labels:
       - traefik.enable=true
       - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`) || Host(`hmis-backend.dev.test`)
@@ -169,15 +169,15 @@ services:
       - traefik.http.routers.hmis-warehouse-oauth2.service=hmis-warehouse-oauth2
       - traefik.http.routers.hmis-warehouse-oauth2.tls=true
       - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
-    container_name: oauth2-proxy
+    container_name: oauth2-proxy-warehouse
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
-    command: --alpha-config /oauth2-proxy.yaml --config /oauth2-proxy.cfg
+    command: --alpha-config /oauth2-proxy-warehouse.yaml --config /oauth2-proxy-warehouse.cfg
     hostname: hmis-warehouse.dev.test
     extra_hosts:
       - "dex.dev.test:host-gateway"
     volumes:
-      - "./docker/auth/dev.oauth2-proxy-warehouse.cfg:/oauth2-proxy.cfg"
-      - "./docker/auth/dev.oauth2-proxy-warehouse.yaml:/oauth2-proxy.yaml"
+      - "./docker/auth/dev.oauth2-proxy-warehouse.cfg:/oauth2-proxy-warehouse.cfg"
+      - "./docker/auth/dev.oauth2-proxy-warehouse.yaml:/oauth2-proxy-warehouse.yaml"
     environment:
       <<: *env
       FQDN: hmis-warehouse.dev.test
@@ -289,7 +289,9 @@ services:
         condition: service_started
       yarn:
         condition: service_started
-      oauth2-proxy:
+      oauth2-proxy-warehouse:
+        condition: service_started
+      oauth2-proxy-hmis:
         condition: service_started
       dex:
         condition: service_healthy
