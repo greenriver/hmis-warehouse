@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources, type: :model do
-  let(:dry_run) { false }
   let(:retain_at) { 1.day.ago }
 
   let!(:active_data_source) { create :source_data_source, name: 'Active Source' }
@@ -53,7 +52,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources,
       let!(:deleted_data_source) { nil }
 
       it 'returns zero counts' do
-        result = described_class.call(dry_run: dry_run, retain_at: retain_at)
+        result = described_class.call(retain_at: retain_at)
         expect(result[:enrollments_deleted]).to eq(0)
         expect(result[:services_deleted]).to eq(0)
       end
@@ -81,7 +80,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources,
         expect(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: deleted_data_source.id).count).to be > 0
         expect(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: recently_deleted_data_source.id).count).to be > 0
 
-        result = described_class.call(dry_run: dry_run, retain_at: retain_at)
+        result = described_class.call(retain_at: retain_at)
 
         # Active data source should retain service history
         expect(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: active_data_source.id).count).to be > 0
@@ -101,39 +100,6 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources,
         # Verify counts
         expect(result[:enrollments_deleted]).to be > 0
         expect(result[:services_deleted]).to be > 0
-      end
-    end
-
-    context 'with dry_run enabled' do
-      let(:dry_run) { true }
-      let!(:client) { create_client_with_warehouse_link(data_source: deleted_data_source) }
-
-      before do
-        create_enrollment_with_service_history(data_source: deleted_data_source, client: client)
-        # Soft-delete the data source after creating service history
-        deleted_data_source.update_column(:deleted_at, 2.days.ago)
-      end
-
-      it 'counts but does not delete records' do
-        initial_enrollment_count = GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: deleted_data_source.id).count
-        initial_service_count = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).where(
-          service_history_enrollments: { data_source_id: deleted_data_source.id },
-        ).count
-
-        expect(initial_enrollment_count).to be > 0
-        expect(initial_service_count).to be > 0
-
-        result = described_class.call(dry_run: dry_run, retain_at: retain_at)
-
-        # Counts should be returned
-        expect(result[:enrollments_deleted]).to eq(initial_enrollment_count)
-        expect(result[:services_deleted]).to eq(initial_service_count)
-
-        # But records should still exist
-        expect(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: deleted_data_source.id).count).to eq(initial_enrollment_count)
-        expect(GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).where(
-          service_history_enrollments: { data_source_id: deleted_data_source.id },
-        ).count).to eq(initial_service_count)
       end
     end
   end

@@ -14,23 +14,21 @@
 #  - Only processes data sources deleted before a retention period (default: 1 day ago)
 #  - Deletes all `ServiceHistoryService` records for those data sources (from all partitions)
 #  - Deletes all `ServiceHistoryEnrollment` records for those data sources
-#  - Supports dry-run mode to preview what would be deleted
 #
 # Usage:
-#   GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call(dry_run: true)
-#   GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call(dry_run: false)
+#   GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call
+#   GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call(retain_at: 2.days.ago)
 #
 module GrdaWarehouse::Tasks::ServiceHistory
   class PurgeForDeletedDataSources
     include NotifierConfig
     include ArelHelper
 
-    def self.call(dry_run: true, retain_at: 1.day.ago)
-      new(dry_run: dry_run, retain_at: retain_at).call
+    def self.call(retain_at: 24.hours.ago)
+      new(retain_at: retain_at).call
     end
 
-    def initialize(dry_run: true, retain_at: 1.day.ago)
-      @dry_run = dry_run
+    def initialize(retain_at: )
       @retain_at = retain_at
       setup_notifier('Purge Service History for Deleted Data Sources')
     end
@@ -74,15 +72,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def purge_service_history_enrollments(data_source_ids)
       return 0 if data_source_ids.empty?
 
-      if @dry_run
-        GrdaWarehouse::ServiceHistoryEnrollment.
-          where(data_source_id: data_source_ids).
-          count
-      else
-        GrdaWarehouse::ServiceHistoryEnrollment.
-          where(data_source_id: data_source_ids).
-          delete_all
-      end
+      GrdaWarehouse::ServiceHistoryEnrollment.
+        where(data_source_id: data_source_ids).
+        delete_all
     end
 
     def purge_service_history_services(data_source_ids)
@@ -96,15 +88,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         enrollment_ids = batch.pluck(:id)
         next if enrollment_ids.empty?
 
-        if @dry_run
-          count += GrdaWarehouse::ServiceHistoryService.
-            where(service_history_enrollment_id: enrollment_ids).
-            count
-        else
-          count += GrdaWarehouse::ServiceHistoryService.
-            where(service_history_enrollment_id: enrollment_ids).
-            delete_all
-        end
+        count += GrdaWarehouse::ServiceHistoryService.
+          where(service_history_enrollment_id: enrollment_ids).
+          delete_all
       end
       count
     end
