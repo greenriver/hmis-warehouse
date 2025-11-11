@@ -484,8 +484,12 @@ module ApplicationHelper
     # Use IDP service to generate logout URL
     # - If IDP supports OIDC logout (e.g., Zitadel): returns IDP logout URL with oauth2_signout_url as post_logout_redirect_uri
     # - If IDP doesn't support logout: returns oauth2_signout_url directly
+    # Pass the Warehouse client_id for Zitadel to validate the post_logout_redirect_uri
     idp_service = Idp::ServiceFactory.for_connector(connector_id)
-    idp_service.logout_url(post_logout_redirect_uri: oauth2_signout_url)
+    idp_service.logout_url(
+      post_logout_redirect_uri: oauth2_signout_url,
+      client_id: ENV['ZITADEL_IDP_WAREHOUSE_CLIENT_ID'],
+    )
   end
 
   def foreground_color(bg_color)
