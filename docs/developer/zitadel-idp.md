@@ -6,12 +6,32 @@ This document does not cover installation of Zitadel but attempts to explain eno
 
 # Architecture Overview
 
-This setup uses **a single Dex connector** to Zitadel with **shared authentication cookies** between Warehouse and HMIS:
+This setup uses **a single Dex connector** to Zitadel with **three OAuth2-Proxy instances**:
 
-- Users log in once and gain access to both applications (SSO behavior)
+## OAuth2-Proxy Instances
+
+1. **oauth2-proxy-warehouse** (`hmis-warehouse.dev.test:4180`)
+   - Proxies requests to the Warehouse Rails application
+   - Cookie name: `_oauth2_proxy_warehouse`
+   - Client ID: Uses `ZITADEL_IDP_WAREHOUSE_CLIENT_ID`
+
+2. **oauth2-proxy-hmis** (`hmis.dev.test:4181`)
+   - Proxies requests to the HMIS React frontend (Vite dev server)
+   - Cookie name: `_oauth2_proxy_hmis` (shared with hmis-backend)
+   - Client ID: Uses `ZITADEL_IDP_HMIS_CLIENT_ID`
+
+3. **oauth2-proxy-hmis-backend** (`hmis-backend.dev.test:4182`)
+   - Proxies API requests from HMIS frontend to Rails backend
+   - Cookie name: `_oauth2_proxy_hmis` (shared with frontend)
+   - Client ID: Uses `ZITADEL_IDP_HMIS_CLIENT_ID`
+
+## Cookie and Session Architecture
+
+- **Warehouse** uses a separate cookie (`_oauth2_proxy_warehouse`) so logout from warehouse doesn't affect HMIS
+- **HMIS frontend and backend** share the same cookie (`_oauth2_proxy_hmis`) for seamless API access
+- All cookies are set for domain `.dev.test` to enable SSO behavior across subdomains
 - Access control is managed via **Zitadel project grants** - you can restrict which users can access which projects
-- Both applications share the same authentication session
-- You can optionally create separate Zitadel projects for Warehouse and HMIS to manage users independently, but they use the same Dex connector
+- You can optionally create separate Zitadel projects for Warehouse and HMIS to manage users independently
 
 # Initial Configuration
 
@@ -47,6 +67,9 @@ This setup uses **a single Dex connector** to Zitadel with **shared authenticati
     ```bash
     ZITADEL_IDP_CLIENT_ID=<client-id>
     ZITADEL_IDP_CLIENT_SECRET=<client-secret>
+    # Separate client IDs for proper logout redirect handling
+    ZITADEL_IDP_WAREHOUSE_CLIENT_ID=<client-id>
+    ZITADEL_IDP_HMIS_CLIENT_ID=<client-id>
     ```
 12. Copy the **Organization ID** (from organization settings) to `.env.local`:
     ```bash
@@ -105,6 +128,10 @@ ZITADEL_ORG_ID=<org-id>
 ZITADEL_IDP_CLIENT_ID=<dex-client-id>
 ZITADEL_IDP_CLIENT_SECRET=<dex-client-secret>
 
+# Client IDs for logout redirect handling (typically same as ZITADEL_IDP_CLIENT_ID)
+ZITADEL_IDP_WAREHOUSE_CLIENT_ID=<dex-client-id>
+ZITADEL_IDP_HMIS_CLIENT_ID=<dex-client-id>
+
 # Optional: Separate projects for access control
 ZITADEL_WAREHOUSE_PROJECT_ID=<warehouse-project-id>  # For rake tasks
 ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>            # For rake tasks
@@ -113,7 +140,7 @@ ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>            # For rake tasks
 ## 6. Restart Services
 
 ```bash
-docker compose restart dex oauth2-proxy oauth2-proxy-hmis
+docker compose restart dex oauth2-proxy-warehouse oauth2-proxy-hmis oauth2-proxy-hmis-backend
 ```
 
 # User Migration

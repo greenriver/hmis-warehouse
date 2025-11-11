@@ -2,7 +2,15 @@
 
 The HMIS Warehouse uses an external Identity Provider (IDP) for user authentication instead of managing users directly within the application. This architectural decision provides several key benefits: improved security through centralized identity management, support for Single Sign-On (SSO) across multiple applications, delegation of password management and two-factor authentication to specialized systems, and the ability to integrate with existing organizational IDPs that communities may already have in place.
 
-The authentication flow involves three main components working together. When a user accesses the warehouse, **OAuth2-proxy** acts as a reverse proxy in front of the application, intercepting all requests and validating authentication. OAuth2-proxy communicates with **Dex**, which serves as an identity broker capable of connecting to various upstream IDPs. For communities with their own IDPs, Dex plays intermediary, for communities that do not have IDP infrastructure, we use **Zitadel** to provide account management. The warehouse application itself receives validated JWT tokens from OAuth2-proxy via HTTP headers and uses these tokens to identify and authenticate users without handling passwords or authentication credentials directly.
+The authentication flow involves multiple components working together through **three separate OAuth2-Proxy instances**:
+
+1. **oauth2-proxy-warehouse** - Handles authentication for the Warehouse Rails application
+2. **oauth2-proxy-hmis** - Handles authentication for the HMIS React frontend
+3. **oauth2-proxy-hmis-backend** - Validates authentication for API requests from HMIS frontend to Rails backend
+
+When a user accesses either application, the appropriate **OAuth2-proxy** instance acts as a reverse proxy, intercepting requests and validating authentication. OAuth2-proxy communicates with **Dex**, which serves as an identity broker capable of connecting to various upstream IDPs. For communities with their own IDPs, Dex plays intermediary; for communities without IDP infrastructure, we use **Zitadel** to provide account management. The Rails application receives validated JWT tokens from OAuth2-proxy via HTTP headers and uses these tokens to identify and authenticate users without handling passwords or authentication credentials directly.
+
+The three-proxy architecture enables **session isolation**: logging out of Warehouse doesn't affect HMIS, and vice versa. The HMIS frontend and backend proxies share the same authentication cookie (`_oauth2_proxy_hmis`) to allow seamless API access, while Warehouse uses a separate cookie (`_oauth2_proxy_warehouse`).
 
 The warehouse application receives authentication information through standardized HTTP headers injected by OAuth2-proxy. The `X-Forwarded-Access-Token` header contains the JWT access token that includes user identity claims such as email, name, and connector information. The application's `CurrentUser` concern validates this token, extracts user information, and looks up or creates the corresponding `User` record in the warehouse database. This process ensures that users authenticated via any supported IDP can access the warehouse seamlessly, while the warehouse maintains its own user records for authorization and audit purposes.
 
@@ -12,21 +20,38 @@ The system supports multiple IDP backends through Dex's connector architecture, 
 
 ## Key Components
 
-- **OAuth2-proxy**: Reverse proxy that validates authentication and injects JWT tokens into requests
+- **oauth2-proxy-warehouse** (`hmis-warehouse.dev.test`): Reverse proxy for Warehouse application, uses `_oauth2_proxy_warehouse` cookie
+- **oauth2-proxy-hmis** (`hmis.dev.test`): Reverse proxy for HMIS React frontend, uses `_oauth2_proxy_hmis` cookie
+- **oauth2-proxy-hmis-backend** (`hmis-backend.dev.test`): Reverse proxy for HMIS API requests, shares `_oauth2_proxy_hmis` cookie with frontend
 - **Dex**: Identity broker that supports multiple upstream IDP connectors
 - **IDP** (e.g., Zitadel, Okta, Azure AD): Handles user authentication and credential management
-- **Warehouse Application**: Validates JWT tokens and manages authorization and access control
+- **Rails Application**: Validates JWT tokens and manages authorization and access control for both Warehouse and HMIS
 
 ## Authentication Flow
 
-1. User requests access to warehouse application
-2. OAuth2-proxy intercepts request and checks for valid session
+### Warehouse Authentication
+
+1. User requests access to `hmis-warehouse.dev.test`
+2. oauth2-proxy-warehouse intercepts request and checks for valid session cookie (`_oauth2_proxy_warehouse`)
 3. If unauthenticated, user is redirected to IDP login page
 4. User authenticates with IDP (via Dex)
-5. IDP issues JWT token to OAuth2-proxy
-6. OAuth2-proxy validates token and forwards request with `X-Forwarded-Access-Token` header
-7. Warehouse application validates JWT and looks up/creates User record
+5. IDP issues JWT token to oauth2-proxy-warehouse
+6. oauth2-proxy-warehouse sets cookie and forwards request with `X-Forwarded-Access-Token` header
+7. Rails application validates JWT and looks up/creates User record
 8. User is authenticated and authorized based on warehouse permissions
+
+### HMIS Authentication
+
+1. User requests access to `hmis.dev.test`
+2. oauth2-proxy-hmis intercepts request and checks for valid session cookie (`_oauth2_proxy_hmis`)
+3. If unauthenticated, user is redirected to IDP login page (same flow as Warehouse)
+4. User authenticates and oauth2-proxy-hmis sets the `_oauth2_proxy_hmis` cookie
+5. React frontend loads and makes API requests to `/hmis/*` endpoints
+6. Vite dev server proxies these requests to `hmis-backend.dev.test`
+7. oauth2-proxy-hmis-backend validates the shared `_oauth2_proxy_hmis` cookie and injects JWT headers
+8. Rails application validates JWT and processes the API request
+
+**Key point**: The HMIS frontend and backend share the same authentication cookie, enabling seamless API access without requiring separate authentication.
 
 ## Session Management
 
