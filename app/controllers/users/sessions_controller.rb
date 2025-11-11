@@ -29,7 +29,11 @@ class Users::SessionsController < ApplicationController
     # Redirect to IDP-specific logout URL
     # For Zitadel: Logs out of Zitadel → clears oauth2-proxy session → redirects to root
     # For others: Clears oauth2-proxy session → redirects to root
-    redirect_to helpers.idp_logout_url(user: current_user, final_redirect_uri: root_url), allow_other_host: true
+    logout_url = helpers.idp_logout_url(
+      final_redirect_uri: root_url,
+      client_id: ENV['ZITADEL_IDP_WAREHOUSE_CLIENT_ID'],
+    )
+    redirect_to logout_url, allow_other_host: true
   end
 
   # POST /session_keepalive

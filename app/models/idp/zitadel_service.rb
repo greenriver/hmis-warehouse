@@ -245,13 +245,15 @@ module Idp
     # in the Zitadel application's "Post Logout URIs" configuration.
     #
     # @param post_logout_redirect_uri [String] Where to redirect after logout
+    # @param client_id [String, nil] Optional client_id to use (defaults to ZITADEL_IDP_WAREHOUSE_CLIENT_ID env var)
     # @return [String, nil] Logout URL or nil if api_url is not configured
     # @see https://zitadel.com/docs/apis/openidoauth/endpoints#end_session_endpoint
-    def logout_url(post_logout_redirect_uri:)
+    def logout_url(post_logout_redirect_uri:, client_id: nil)
       return post_logout_redirect_uri unless api_url.present?
 
       # Include client_id for Zitadel to validate the post_logout_redirect_uri
-      client_id = ENV['ZITADEL_IDP_CLIENT_ID']
+      # Use provided client_id or fall back to environment variable
+      client_id ||= ENV['ZITADEL_IDP_WAREHOUSE_CLIENT_ID']
       params = {
         post_logout_redirect_uri: post_logout_redirect_uri,
       }
