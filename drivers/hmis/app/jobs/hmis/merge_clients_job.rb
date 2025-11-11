@@ -13,6 +13,7 @@ module Hmis
     attr_accessor :clients_needing_reference_updates
     attr_accessor :actor
     attr_accessor :data_source_id
+    attr_accessor :merge_audit
 
     def perform(client_ids:, actor_id:)
       raise 'You cannot merge less than two clients' if Array.wrap(client_ids).length < 2
@@ -65,13 +66,54 @@ module Hmis
 
     private
 
+    def build_and_update_merge_mappings(key:, scope:, attributes:)
+      mapping = {}
+      scope.each do |record|
+        mapping[record.id] = record.slice(attributes)
+      end
+      update_merge_mappings(key, mapping) if mapping.any?
+    end
+
+    def update_merge_mappings(key, mappings)
+      return unless merge_audit
+
+      # Validate mapping structure - each value should be a hash with attribute names
+      # mappings.each do |record_id, mapping_data|
+      #   unless mapping_data.is_a?(Hash)
+      #     raise ArgumentError, "Invalid mapping structure for #{key}[#{record_id}]: expected Hash, got #{mapping_data.class}"
+      #   end
+      #   if mapping_data.empty?
+      #     raise ArgumentError, "Invalid mapping structure for #{key}[#{record_id}]: mapping data cannot be empty"
+      #   end
+      # end
+
+      current_mappings = merge_audit.pre_merge_mappings || {}
+      current_mappings[key.to_s] = (current_mappings[key.to_s] || {}).merge(mappings.stringify_keys)
+      merge_audit.update_column(:pre_merge_mappings, current_mappings)
+    end
+
     def save_audit_trail
       Rails.logger.info 'Saving audit trail with initial state'
       # Create merge audit trail, storing the attributes for each client at time of merge
-      merge_audit = Hmis::ClientMergeAudit.create!(
+      self.merge_audit = Hmis::ClientMergeAudit.create!(
         actor_id: actor.id,
         merged_at: Time.current,
         pre_merge_state: clients.map(&:attributes),
+        pre_merge_mappings: {
+          enrollments: {}, # [id => { PersonalID => value }]
+          names: {}, # [id => { PersonalID => value }]
+          addresses: {}, # [id => { PersonalID => value }]
+          contact_points: {}, # [id => { PersonalID => value }]
+          custom_data_elements: {}, # [id => { owner_id => value }]
+          files: {}, # [id => { client_id => value }]
+          mci_ids: {}, # [id => { source_id => value }]
+          mci_unique_ids: {}, # [id => { source_id => value }]
+          scan_cards: {}, # [id => { client_id => value }]
+          client_locations: {}, # [id => { client_id => value }]
+          # Note: Enrollment-related records (assessments, services, disabilities, etc.)
+          # are tied to enrollments via EnrollmentID, so we don't need to store separate
+          # mappings for them. They will be updated when enrollments are transferred.
+        },
       )
 
       retained_client_id = client_to_retain.id
@@ -121,6 +163,9 @@ module Hmis
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
 
+      # Capture pre-merge name mappings before updating
+      build_and_update_merge_mappings(key: 'names', scope: name_scope, attributes: 'PersonalID')
+
       # Update all names to point to client_to_retain
       primary_found = false
       name_scope.sort_by(&:id).each do |name|
@@ -142,6 +187,10 @@ module Hmis
 
       element_ids = clients.flat_map(&:custom_data_elements).map(&:id)
 
+      # Capture pre-merge CDE mappings before updating
+      cde_scope = Hmis::Hud::CustomDataElement.where(id: element_ids)
+      build_and_update_merge_mappings(key: 'custom_data_elements', scope: cde_scope, attributes: 'owner_id')
+
       Hmis::Hud::CustomDataElement.where(id: element_ids).update_all(owner_id: client_to_retain.id)
 
       Rails.logger.info 'uniqify custom data elements for each definition'
@@ -158,6 +207,7 @@ module Hmis
 
         values = elements.sort_by(&:DateUpdated)
 
+        # Destroy duplicate CDEs (some may have been in the mappings, that's okay)
         values[0..-2].each(&:destroy!)
       end
     end
@@ -190,17 +240,19 @@ module Hmis
 
     def update_client_id_foreign_keys
       candidates = [
-        ::GrdaWarehouse::ClientFile,
-        Hmis::File,
+        [Hmis::File, 'files'],
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
       client_ids = clients_needing_reference_updates.map(&:id)
-      candidates.each do |candidate|
-        candidate.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
+
+      candidates.each do |candidate, mapping_key|
+        candidate_scope = candidate.where(client_id: client_ids)
+        build_and_update_merge_mappings(key: mapping_key, scope: candidate_scope, attributes: 'client_id')
+        candidate_scope.update_all(client_id: client_to_retain.id)
       end
 
-      # Update ReferralHouseholdMembers in a way that respects uniquness constraint on (client_id, referral_id)
+      # Update ReferralHouseholdMembers in a way that respects uniqueness constraint on (client_id, referral_id)
       HmisExternalApis::AcHmis::ReferralHouseholdMember.where(client_id: client_ids).each do |rhhm|
         # Find retained client's household membership for this referral, if exists
         rhhm_for_retained_client = HmisExternalApis::AcHmis::ReferralHouseholdMember.find_by(
@@ -225,7 +277,10 @@ module Hmis
         where.not(value: current_ids_for_retained_client).
         order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
-      mci_ids.where(id: records_by_value.values.map(&:id)).each do |external_id|
+      # Capture pre-merge MCI ID mappings before updating
+      mci_scope = mci_ids.where(id: records_by_value.values.map(&:id))
+      build_and_update_merge_mappings(key: 'mci_ids', scope: mci_scope, attributes: 'source_id')
+      mci_scope.each do |external_id|
         # save individually to trigger paper trail version creation
         external_id.update!(source_id: client_to_retain.id)
       end
@@ -248,6 +303,9 @@ module Hmis
         max_by(&:updated_at)
       return unless mci_unique_id_to_keep
 
+      # Capture pre-merge MCI Unique ID mapping before updating
+      build_and_update_merge_mappings(key: 'mci_unique_ids', scope: [mci_unique_id_to_keep], attributes: 'source_id')
+
       # Re-assign this MCI Unique ID to the retained client
       mci_unique_id_to_keep.update!(source: client_to_retain)
     end
@@ -255,7 +313,12 @@ module Hmis
     def merge_scan_cards
       # Update all Scan Cards for deleted clients to point to the retained client, including deactivated scan cards
       client_ids = clients_needing_reference_updates.map(&:id)
-      Hmis::ScanCardCode.with_deleted.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
+      scan_card_scope = Hmis::ScanCardCode.with_deleted.where(client_id: client_ids)
+
+      # Capture pre-merge scan card mappings before updating
+      build_and_update_merge_mappings(key: 'scan_cards', scope: scan_card_scope, attributes: 'client_id')
+
+      scan_card_scope.update_all(client_id: client_to_retain.id)
     end
 
     def merge_client_locations
@@ -263,7 +326,12 @@ module Hmis
       # Note: for locations collected in HMIS these are probably also tied to an Enrollment via `source_id`, but the client_id
       # reference is necessary to maintain for the warehouse reports
       client_ids = clients_needing_reference_updates.map(&:id)
-      ::ClientLocationHistory::Location.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
+      location_scope = ::ClientLocationHistory::Location.where(client_id: client_ids)
+
+      # Capture pre-merge client location mappings before updating
+      build_and_update_merge_mappings(key: 'client_locations', scope: location_scope, attributes: 'client_id')
+
+      location_scope.update_all(client_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients
@@ -275,6 +343,9 @@ module Hmis
     end
 
     def update_personal_id_foreign_keys
+      # Enrollment-related records (assessments, services, disabilities, etc.) are tied to enrollments
+      # via EnrollmentID, so we only need to capture enrollment mappings. The enrollment-related records
+      # will be updated when enrollments are transferred during un-merge.
       candidates = [
         Hmis::Hud::Assessment,
         Hmis::Hud::AssessmentQuestion,
@@ -299,19 +370,26 @@ module Hmis
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (PersonalID and data source)"
 
-      candidates.each do |candidate|
-        personal_ids = clients_needing_reference_updates.map(&:personal_id)
+      personal_ids = clients_needing_reference_updates.map(&:personal_id)
 
+      candidates.each do |candidate|
         t = candidate.arel_table
 
         candidate_scope = candidate.
           where(t['PersonalID'].in(personal_ids)).
           where(t['data_source_id'].eq(data_source_id))
 
-        # Special logging for Enrollment, so we know which Enrollments came from which client in the case of un-merging. TODO(#7444) store this in the audit trail somewhere.
-        if candidate == Hmis::Hud::Enrollment && candidate_scope.exists?
-          pre_merge_enrollments = candidate_scope.pluck(:id, :PersonalID)
-          Rails.logger.info "Updating #{candidate_scope.size} Enrollments to point to Client #{client_to_retain.id} (PersonalID: #{client_to_retain.personal_id}). Pre-merge enrollments [pk, PersonalID]: #{pre_merge_enrollments.inspect}"
+        next unless candidate_scope.exists?
+
+        # Capture mappings for enrollments, addresses, and contact_points
+        # (enrollment-related records are tied via EnrollmentID, so we don't need separate mappings for them)
+        case candidate.name
+        when 'Hmis::Hud::Enrollment'
+          build_and_update_merge_mappings(key: 'enrollments', scope: candidate_scope, attributes: 'PersonalID')
+        when 'Hmis::Hud::CustomClientAddress'
+          build_and_update_merge_mappings(key: 'addresses', scope: candidate_scope, attributes: 'PersonalID')
+        when 'Hmis::Hud::CustomClientContactPoint'
+          build_and_update_merge_mappings(key: 'contact_points', scope: candidate_scope, attributes: 'PersonalID')
         end
 
         candidate_scope.update_all(PersonalID: client_to_retain.personal_id)

@@ -58,6 +58,41 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       )
     end
 
+    it 'stores pre-merge mappings in audit trail' do
+      audit = Hmis::ClientMergeAudit.first
+      expect(audit.pre_merge_mappings).to be_present
+      expect(audit.pre_merge_mappings).to be_a(Hash)
+    end
+
+    it 'stores enrollment mappings' do
+      audit = Hmis::ClientMergeAudit.first
+      enrollment_mappings = audit.mappings_for('enrollments')
+      expect(enrollment_mappings).to be_a(Hash)
+      puts "audit: #{audit.pre_merge_mappings.inspect}"
+      expect(enrollment_mappings[client2_related_by_personal_id.id]).to eq({ 'PersonalID' => client2.personal_id })
+    end
+
+    it 'stores name mappings' do
+      audit = Hmis::ClientMergeAudit.first
+      name_mappings = audit.mappings_for('names')
+      expect(name_mappings).to be_a(Hash)
+      expect(name_mappings[client2_name.id]).to eq({ 'PersonalID' => client2.personal_id })
+    end
+
+    it 'stores file mappings' do
+      audit = Hmis::ClientMergeAudit.first
+      file_mappings = audit.mappings_for('files')
+      expect(file_mappings).to be_a(Hash)
+      expect(file_mappings[client2_related_by_client_id.id]).to eq({ 'client_id' => client2.id })
+    end
+
+    it 'stores custom data element mappings' do
+      audit = Hmis::ClientMergeAudit.first
+      cde_mappings = audit.mappings_for('custom_data_elements')
+      expect(cde_mappings).to be_a(Hash)
+      expect(cde_mappings[client2_custom_data_element.id]).to eq({ 'owner_id' => client2.id })
+    end
+
     it 'minimally seems to merge correctly' do
       expect(client1.date_created).to be < client2.date_created
       expect(client1.reload.pronouns).to eq('she')
