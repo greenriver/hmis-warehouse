@@ -1,8 +1,3 @@
--- \restrict pCREoDHfWt7F2d1IejBCcjORwOMXc1IU7RkJYU1WmhYpxLFcAanqVooNEh1BYoQ
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -17734,7 +17729,8 @@ CREATE TABLE public.hmis_client_merge_audits (
     actor_id bigint NOT NULL,
     merged_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    pre_merge_mappings jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -80949,8 +80945,6 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict pCREoDHfWt7F2d1IejBCcjORwOMXc1IU7RkJYU1WmhYpxLFcAanqVooNEh1BYoQ
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
@@ -81078,6 +81072,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250121204933'),
 ('20250117174547'),
 ('20250116145506'),
+('20250115120000'),
 ('20241217210211'),
 ('20241216184819'),
 ('20241213204837'),
