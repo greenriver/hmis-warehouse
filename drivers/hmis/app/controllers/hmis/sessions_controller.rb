@@ -10,9 +10,12 @@
 #
 # With JWT authentication, login is handled by OAuth2-proxy.
 # This controller provides endpoints for the frontend to interact with authentication.
-class Hmis::SessionsController < ActionController::Base
+class Hmis::SessionsController < Hmis::BaseController
   include Hmis::Concerns::JsonErrors
   helper ApplicationHelper
+  include CurrentUser
+
+  skip_before_action :authenticate_hmis_user!, only: [:create]
 
   # Only respond to JSON requests
   respond_to :json
@@ -40,12 +43,14 @@ class Hmis::SessionsController < ActionController::Base
   # DELETE /hmis/logout
   # Return IDP logout URL for frontend to redirect to
   def destroy
+    attach_data_source_id
+    data_source = GrdaWarehouse::DataSource.hmis.find(current_hmis_user.hmis_data_source_id)
     # Generate IDP-specific logout URL
-    # For Zitadel: Logs out of Zitadel → clears oauth2-proxy session → redirects to HMIS root
-    # For others: Clears oauth2-proxy session → redirects to HMIS root
-    hmis_root_url = "#{request.base_url}/"
-    logout_url = helpers.idp_logout_url(user: nil, final_redirect_uri: hmis_root_url)
+    # Logs out of Zitadel → clears oauth2-proxy session → redirects to HMIS root
+    hmis_root_url = root_url(host: data_source.hmis)
+    logout_url = helpers.idp_logout_url(user: current_hmis_user, final_redirect_uri: hmis_root_url)
 
+    Rails.logger.error("DESTROYING SESSION #{logout_url}")
     render json: { success: true, redirect_url: logout_url }, status: 200
   end
 end
