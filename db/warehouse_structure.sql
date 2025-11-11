@@ -1,4 +1,4 @@
--- \restrict 1FDqfTYAssTITPwVLfsF8gN7TJgtq7m1tK0G3SpyE1qDH2HL3YpCr9YsS3XZPBA
+-- \restrict SJw5VvlXle8UbI1a6DkZPHGrtbVZOBoK6gQADdXAGkJfrKiR6UOiO8MFObhBKu4
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -69364,13 +69364,6 @@ CREATE INDEX index_hopwa_caper_services_on_report_household_id ON public.hopwa_c
 
 
 --
--- Name: index_hopwa_caper_services_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hopwa_caper_services_on_report_instance_id ON public.hopwa_caper_services USING btree (report_instance_id);
-
-
---
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -80953,7 +80946,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict 1FDqfTYAssTITPwVLfsF8gN7TJgtq7m1tK0G3SpyE1qDH2HL3YpCr9YsS3XZPBA
+-- \unrestrict SJw5VvlXle8UbI1a6DkZPHGrtbVZOBoK6gQADdXAGkJfrKiR6UOiO8MFObhBKu4
 
 SET search_path TO "$user", public;
 

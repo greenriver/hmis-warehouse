@@ -17,7 +17,11 @@ class AddServiceMetadataToHopwaCaperServices < ActiveRecord::Migration[7.0]
 
       change_column_null :hopwa_caper_services, :service_source, false
 
-      remove_index :hopwa_caper_services, name: 'uidx_hopwa_caper_services'
+      # this index is redundant with the composite index
+      remove_index :hopwa_caper_services, name: 'uidx_hopwa_caper_services', if_exists: true
+
+      # service_id might be a custom or a HUD service, adds service_source to the composite key to differentiate them
+      remove_index :hopwa_caper_services, name: :index_hopwa_caper_services_on_report_instance_id
       add_index(
         :hopwa_caper_services,
         [:report_instance_id, :service_source, :service_id],
