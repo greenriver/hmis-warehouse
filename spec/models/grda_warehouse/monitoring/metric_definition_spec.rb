@@ -75,7 +75,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       expect(metric).to be_present
       expect(metric.entity_type).to eq('GrdaWarehouse::Hud::Client')
       expect(metric.calculator_class).to eq('GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator')
-      expect(metric.active).to be true
+      expect(metric.active).to be false
     end
   end
 
@@ -203,7 +203,9 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       result = described_class.threshold_crossings_for_alerts(calculation_date)
 
       expect(result['metric_days_homeless_threshold']).to be_present
-      crossings = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)'][:data]
+      metric_data = result['metric_days_homeless_threshold'][metric_with_alert.id]
+      expect(metric_data).to be_present
+      crossings = metric_data[:data]
       expect(crossings.length).to eq(1)
       expect(crossings.first[:entity_id]).to eq(client1.id)
     end
@@ -248,7 +250,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       )
 
       result = described_class.threshold_crossings_for_alerts(calculation_date)
-      crossing = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)'][:data].first
+      crossing = result['metric_days_homeless_threshold'][metric_with_alert.id][:data].first
 
       expect(crossing[:current_value]).to eq(160)
       expect(crossing[:previous_value]).to eq(120)
@@ -319,9 +321,11 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       # Both metrics should be under the same alert code
       expect(result['metric_household_size_threshold']).to be_present
       expect(result['metric_household_size_threshold'].keys).to contain_exactly(
-        'Minimum Household Size',
-        'Maximum Household Size',
+        household_min.id,
+        household_max.id,
       )
+      expect(result['metric_household_size_threshold'][household_min.id][:display_name]).to eq('Minimum Household Size')
+      expect(result['metric_household_size_threshold'][household_max.id][:display_name]).to eq('Maximum Household Size')
     end
 
     it 'limits results to 50 per metric and marks as truncated' do
@@ -363,7 +367,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       end
 
       result = described_class.threshold_crossings_for_alerts(calculation_date)
-      metric_data = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)']
+      metric_data = result['metric_days_homeless_threshold'][metric_with_alert.id]
 
       expect(metric_data[:total_count]).to eq(55)
       expect(metric_data[:data].length).to eq(50)
@@ -396,7 +400,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       end
 
       result = described_class.threshold_crossings_for_alerts(calculation_date)
-      metric_data = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)']
+      metric_data = result['metric_days_homeless_threshold'][metric_with_alert.id]
 
       expect(metric_data[:total_count]).to eq(3)
       expect(metric_data[:data].length).to eq(3)
@@ -472,7 +476,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       )
 
       result = described_class.threshold_crossings_for_alerts(calculation_date)
-      crossings = result['metric_days_homeless_threshold']['Days Homeless (Last 3 Years)'][:data]
+      crossings = result['metric_days_homeless_threshold'][metric_with_alert.id][:data]
 
       expect(crossings.length).to eq(1)
       expect(crossings.first[:current_value]).to eq(200)

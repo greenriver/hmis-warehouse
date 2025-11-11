@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisDataCleanup::DuplicateRecordsReport
   def duplicate_custom_assessments(data_source)
     # to reduce the search space, find the enrollment ids that might be duplicates

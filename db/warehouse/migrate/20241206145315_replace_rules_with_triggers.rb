@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ReplaceRulesWithTriggers < ActiveRecord::Migration[7.0]
   VIEWS = [
     'client_searchable_names',

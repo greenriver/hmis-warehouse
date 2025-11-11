@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetImportConfigType < ActiveRecord::Migration[7.0]
   def change
     Health::ImportConfig.all.each do |config|

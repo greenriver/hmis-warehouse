@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::CoordinatedEntryAssessment
   class Individual < Base
     validate :location_preference_required, if: :completed?

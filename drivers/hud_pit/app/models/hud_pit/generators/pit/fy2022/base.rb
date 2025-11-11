@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # PIT Notes
 #   CoCs should report on people based on where they are sleeping on the night of the count, as opposed to the program they are enrolled in.
 #    RRH + PH (don't count)

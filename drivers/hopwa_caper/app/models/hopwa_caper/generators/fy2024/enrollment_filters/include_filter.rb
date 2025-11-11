@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # all rows matching any filters
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   IncludeFilter = Struct.new(:label, :filters, keyword_init: true) do

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   PriorLivingSituationFilter = Struct.new(:label, :types, :rental_subsidy_types, keyword_init: true) do
     def apply(scope)

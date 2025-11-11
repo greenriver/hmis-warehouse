@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SimilarityMetric
   class SocialSecurityNumber < Base
     FAKES_RX = /   # not using HudHelper.util.valid_social? because I think it's too strict for matching purposes

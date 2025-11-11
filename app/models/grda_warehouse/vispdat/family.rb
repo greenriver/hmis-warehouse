@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Vispdat
   class Family < Base
 
@@ -26,7 +28,7 @@ module GrdaWarehouse::Vispdat
       time_spent_alone_12
       time_spent_helping_siblings
     ).each do |field|
-      enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
+      enum "#{field}_answer".to_sym, { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
     end
 
     # Require the refused checkbox to be checked if no answer given

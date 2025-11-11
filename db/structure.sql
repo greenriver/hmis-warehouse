@@ -1,8 +1,3 @@
--- \restrict wGFdz9J2c7LvoLKAeEabtq2JVCWtFp75JsF0AhCQy0rv52vYn9hVBniCwpbgyje
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -4306,11 +4301,10 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict wGFdz9J2c7LvoLKAeEabtq2JVCWtFp75JsF0AhCQy0rv52vYn9hVBniCwpbgyje
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251106020333'),
 ('20251102194520'),
 ('20251102033229'),
 ('20251016194806'),

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ChangeHealthInstrumentRaceToJson < ActiveRecord::Migration[6.1]
   def up
     # ARRAY[race] wraps the existing value into an array for to_json

@@ -6,6 +6,11 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/metric-tracking.md
+# This metric tracks the largest household size across all enrollments for a given client.
+# It is calculated as the count of members for each unique [data_source_id, HouseholdID] combination.
+# It is designed to alert on the situation where a client's household size increases.
+# This may be expected, but may also indicate unexpected changes in household size.
 module GrdaWarehouse::Monitoring::MetricCalculators
   class MaxHouseholdSizeCalculator < BaseCalculator
     include ArelHelper
@@ -48,7 +53,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         category: 'household_calculations',
         count_change_threshold: 1,
         percent_change_threshold: nil,
-        active: true,
+        active: false,
         alert_code: 'metric_household_size_threshold',
       }
     end

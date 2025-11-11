@@ -71,7 +71,7 @@ RSpec.configure do |config|
   config.include S3Utils
 
   config.before(:suite) do
-    # disable paper trail for test performance
+    # disable paper trail to improve test performance
     PaperTrail.enabled = false
 
     # disable rack attack unless we are testing it explicitly

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MigrateSupersetRoles < ActiveRecord::Migration[7.0]
   def up
     User.where.not(superset_roles: []).find_each do |u|

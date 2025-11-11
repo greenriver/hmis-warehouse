@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 7.1.0'
+gem 'rails', '~> 7.2.0'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
 
@@ -32,7 +32,7 @@ gem 'rails-html-sanitizer'
 gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.1.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 gem 'pghero'
@@ -51,10 +51,10 @@ gem 'premailer'
 gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
-gem 'activerecord-postgis-adapter'
+gem 'activerecord-postgis-adapter', '~> 10.0'
 gem 'ffi'
 gem 'ffi-geos'
-gem 'rgeo', '~> 2.4.0'
+gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
@@ -65,7 +65,7 @@ gem 'bcrypt'
 gem 'haml-rails'
 gem 'haml', '~> 6.0'
 gem 'sassc-rails'
-gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
+gem 'autoprefixer-rails'
 gem 'kaminari'
 gem 'pagy', '~> 8.2'
 gem 'with_advisory_lock'
@@ -151,13 +151,13 @@ gem 'htmlentities'
 
 # ETO API related
 gem 'rest-client', '~> 2.0'
-gem 'curb', require: false
+gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
 gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
 gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
-gem 'rexml', require: false # For ETO API and MassHealth SOAP processing
+gem 'rexml', '>= 3.4.2', require: false # For ETO API and MassHealth SOAP processing; pinned for CVE-2025-58767
 
 gem 'redcarpet'
 
@@ -187,6 +187,7 @@ gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
 gem 'net-ssh', '~> 7', require: false
+gem 'x25519', require: false
 gem 'net-http'
 gem 'multipart-post'
 gem 'addressable' # normalize uris

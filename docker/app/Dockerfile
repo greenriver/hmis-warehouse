@@ -31,11 +31,12 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG USER_ID=10000
 ARG GROUP_ID=10000
-ARG BUNDLER_VERSION=2.6.3
+
+ARG BUNDLER_VERSION=2.7.2
 ARG PG_MAJOR=17
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.3.8
+LABEL "ruby-version"=3.4.5
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -120,6 +121,8 @@ RUN apt-get update && apt-get upgrade -y \
   libxrender1 \
   libxslt1-dev \
   libyaml-dev \
+  libproj-dev \
+  proj-bin \
   libzstd-dev \
   liblz4-dev \
   locales-all \
@@ -131,6 +134,7 @@ RUN apt-get update && apt-get upgrade -y \
   poppler-utils \
   postgresql-client \
   postgresql-server-dev-all \
+  ripgrep \
   pinentry-tty \
   shared-mime-info \
   software-properties-common \
@@ -157,7 +161,9 @@ RUN chmod +x /usr/local/bin/install_pg_repack.sh \
 
 WORKDIR /app
 
+# CVE-2025-58767, note rexml is bundled with ruby, and must be explicitly pinned
 RUN gem update --system \
+  && gem update rexml \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \

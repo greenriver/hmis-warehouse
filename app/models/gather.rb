@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Gather < OpenStruct
   include ArelHelper
   # Accepts a hash of buckets with either lambdas or where clauses or both to determine inclusion of items from the scope

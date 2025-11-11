@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
 #   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hud_chronic, class: 'GrdaWarehouse::HudChronic' do
     date { '2017-10-26' }

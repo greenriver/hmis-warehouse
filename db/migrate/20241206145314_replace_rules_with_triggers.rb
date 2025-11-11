@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ReplaceRulesWithTriggers < ActiveRecord::Migration[7.0]
   VIEWS = [
     'hmis_user_client_activity_log_summaries',

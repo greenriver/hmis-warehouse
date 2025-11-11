@@ -38,7 +38,7 @@ Rails.application.configure do
       'Cache-Control' => "public, max-age=#{2.days.to_i}",
     }
   else
-    cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
+    cache_ssl = ENV.fetch('CACHE_SSL') { 'false' } == 'true'
     redis_config = Rails.application.config_for(:cache_store).merge(
       {
         expires_in: 5.minutes,

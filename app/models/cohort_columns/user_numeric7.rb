@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class UserNumeric7 < ::CohortColumns::Integer
     attribute :column, String, lazy: true, default: :user_numeric_7

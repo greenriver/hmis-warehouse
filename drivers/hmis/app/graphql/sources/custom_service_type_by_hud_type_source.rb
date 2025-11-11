@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # load CSTs for given [[record_type, type_provided]...]
 class Sources::CustomServiceTypeByHudTypeSource < ::GraphQL::Dataloader::Source
   def fetch(types)

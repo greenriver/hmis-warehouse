@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Importing
   class TestBatchUploadJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)

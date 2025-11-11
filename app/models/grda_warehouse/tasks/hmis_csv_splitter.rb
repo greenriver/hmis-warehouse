@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This class is used to split HMIS data into multiple file sets based on the project ids provided
 # Run like so:
 # splitter = GrdaWarehouse::Tasks::HmisCsvSplitter.new(source_path: '/path/to/source/data', destination_path: '/path/to/destination/data', project_ids: ['P-1', 'P-2', 'P-3'])

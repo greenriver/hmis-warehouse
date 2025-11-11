@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CasAccess
   class ActivityLog < CasBase
     self.table_name = :activity_logs
@@ -42,8 +44,8 @@ module CasAccess
     def self.scrub(data)
       data.map do |row|
         # Strip anything after the ?
-        row[:path]&.gsub!(/\?.*/, '')
-        row[:referrer]&.gsub!(/\?.*/, '')
+        row[:path] = row[:path]&.gsub(/\?.*/, '')
+        row[:referrer] = row[:referrer]&.gsub(/\?.*/, '')
         row[:created_at] = row[:created_at].to_fs(:db)
         row
       end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ReportResultsSummaryController < ApplicationController
   before_action :require_can_view_hud_reports!
   before_action :set_report_results_summary, :set_report_results, only: [:show]

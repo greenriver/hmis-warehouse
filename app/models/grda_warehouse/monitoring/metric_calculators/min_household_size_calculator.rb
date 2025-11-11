@@ -6,6 +6,12 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/metric-tracking.md
+# This metric tracks the smallest household size across all enrollments for a given client.
+# It is calculated as the count of members for each unique [data_source_id, HouseholdID] combination.
+# It is designed to alert on the situation where history has been rewritten or erased
+# in such a way that someone who previously participated in a multi-person household is no
+# longer present with other people.
 module GrdaWarehouse::Monitoring::MetricCalculators
   class MinHouseholdSizeCalculator < BaseCalculator
     include ArelHelper
@@ -48,7 +54,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         category: 'household_calculations',
         count_change_threshold: 1,
         percent_change_threshold: nil,
-        active: true,
+        active: false,
         alert_code: 'metric_household_size_threshold',
       }
     end

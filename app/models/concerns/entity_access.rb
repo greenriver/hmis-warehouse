@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 ##
 # The +EntityAccess+ concern provides methods for managing user access (either
 # viewable or editable) to a given model. It is currently in-use in ProjectGroups and Cohorts

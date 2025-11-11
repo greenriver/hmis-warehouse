@@ -897,7 +897,9 @@ Rails.application.routes.draw do
     resources :available_file_tags, only: [:index, :new, :create, :destroy, :edit, :update]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :warehouse_alerts
-    resources :metric_definitions, only: [:index, :show, :edit, :update]
+    resources :metric_definitions, only: [:index, :show, :edit, :update] do
+      get :crossings_for_date, on: :member
+    end
     resources :public_files, only: [:index, :create, :destroy]
     resources :talentlms, only: [:index, :new, :create, :destroy, :edit, :update] do
       post :update_site_config, on: :collection
@@ -907,7 +909,6 @@ Rails.application.routes.draw do
     resources :idp_service_configs, except: [:show]
     resources :delayed_jobs, only: [:index, :update, :destroy]
 
-    resource :deprecation, only: [:show]
     resources :system_maintenance_tasks, only: [:index]
   end
 

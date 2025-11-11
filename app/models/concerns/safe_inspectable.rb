@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # some objects on too large to show
 module SafeInspectable
   extend ActiveSupport::Concern
