@@ -555,7 +555,6 @@ module HmisDataQualityTool
           ssn_issues: Client,
           dob_issues: Client,
           race_issues: Client,
-          gender_issues: Client,
           veteran_issues: Client,
           afghanistan_oef: Enrollment,
           iraq_oif: Enrollment,

@@ -49,9 +49,9 @@ module HmisDataQualityTool
         household_id: { title: 'Household ID' },
         head_of_household_count: { title: 'Count of Heads of Household' },
         disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        living_situation: { title: 'Living Situation', translator: ->(v) { "#{HudHelper.util.living_situation(v)} (#{v})" } },
+        living_situation: { title: 'Prior Living Situation', translator: ->(v) { "#{HudHelper.util.living_situation(v)} (#{v})" } },
         relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{HudHelper.util.relationship_to_hoh(v)} (#{v})" } },
-        coc_code: { title: 'CoC Code' },
+        coc_code: { title: 'Client Location (CoC Code)' },
         destination: { title: 'Exit Destination', translator: ->(v) { "#{HudHelper.util.destination(v)} (#{v})" } },
         entry_date_entered_at: { title: 'Entry Date Added' },
         exit_date_entered_at: { title: 'Exit Date Added' },
@@ -60,6 +60,7 @@ module HmisDataQualityTool
         project_operating_start_date: { title: 'Project Operating Start Date' },
         project_operating_end_date: { title: 'Project Operating End Date' },
         project_type: { title: 'Project Type', translator: ->(v) { "#{HudHelper.util.project_type(v)} (#{v})" } },
+        funders: { title: 'Funders', translator: ->(v) { v.map { |f| HudHelper.util.funding_source(f) }.join(', ') } },
         project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HudHelper.util.tracking_method(v || 0)} (#{v})" } },
         lot: { title: 'Length of Time in Project' },
         days_since_last_service: { title: 'Days Since Last Service' },
@@ -521,6 +522,28 @@ module HmisDataQualityTool
       item.relationship_to_hoh == 1
     end
 
+    def self.rrh_sso_only?(item)
+      return false unless item.project_type == 13 # RRH project type
+      return false unless item.enrollment&.project.present?
+
+      item.enrollment.project.rrh_sso_only?
+    end
+
+    def self.sso_with_gpd_cm_hr_funder?(item)
+      return false unless item.project_type == 6 # SSO project type
+      return false unless item.funders.present?
+
+      item.funders.include?(45) # VA: GPD Case Management/Housing Retention
+    end
+
+    def self.requires_move_in_date?(item)
+      return false unless hoh?(item)
+
+      in_ph_and_not_rrh_sso = HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type) && ! rrh_sso_only?(item)
+      sso_with_gpd_cm_hr = sso_with_gpd_cm_hr_funder?(item)
+      in_ph_and_not_rrh_sso || sso_with_gpd_cm_hr
+    end
+
     def self.chronic_denominator?(item)
       return false unless hoh_or_adult?(item) && HudHelper.util.residential_project_type_ids.include?(item.project_type)
       # required for HoH and Adults in ES, SO, SH
@@ -577,8 +600,8 @@ module HmisDataQualityTool
           },
         },
         living_situation_issues: {
-          title: 'Living Situation',
-          description: 'Living situation is an invalid value',
+          title: 'Prior Living Situation',
+          description: 'Prior living situation is an invalid value',
           required_for: 'Adults and HoH',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -671,21 +694,21 @@ module HmisDataQualityTool
           },
         },
         hoh_client_location_issues: {
-          title: 'Head of Household is Missing Client Location',
-          description: 'Client location (CoC Code) is missing, invalid or doesn\'t match the project\'s CoC',
+          title: 'Head of Household is Missing Enrollment CoC',
+          description: 'Enrollment CoC is missing, invalid or doesn\'t match the project\'s CoC',
           required_for: 'HoH',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
-            :coc_code,
+            :enrollment_coc,
           ],
           denominator: ->(item) { hoh?(item) },
           limiter: ->(item) {
             # Only HoH
             return false unless hoh?(item)
-            # Must have a CoC Code
-            return true if item.coc_code.blank?
+            # Must have an Enrollment CoC
+            return true if item.enrollment_coc.blank?
             # Must be a known CoC
-            return true unless HudHelper.util.valid_coc?(item.coc_code)
+            return true unless HudHelper.util.valid_coc?(item.enrollment_coc)
             # If the project doesn't have a CoC, then we don't know if the enrollment CoC is in the right place
             # so just ignore it
             return false if item.project_coc_codes.blank?
@@ -697,13 +720,14 @@ module HmisDataQualityTool
         hoh_income_percent_ami: {
           title: 'Head of Household is Missing Income as a Percent of AMI',
           description: 'Income as a Percent of AMI is missing or not collected',
-          required_for: 'HoH in HP or RRH',
+          required_for: 'HoH in HP, RRH, or HOPWA-funded programs',
           detail_columns: default_detail_columns + [
             :percent_ami,
           ],
           denominator: ->(item) {
             funding_sources = [
               HudHelper.util.funder_components['VA: SSVF'],
+              HudHelper.util.funder_components['HUD: HOPWA'],
             ].flatten
             in_project_types = [
               HudHelper.util.performance_reporting[:rrh],
@@ -719,6 +743,7 @@ module HmisDataQualityTool
             # Limit to items with intersecting funders below
             funding_sources = [
               HudHelper.util.funder_components['VA: SSVF'],
+              HudHelper.util.funder_components['HUD: HOPWA'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
@@ -832,7 +857,7 @@ module HmisDataQualityTool
           },
         },
         homeless_living_situation_issues: {
-          title: 'HP - Homeless Living Situation',
+          title: 'HP - Homeless Prior Living Situation',
           description: 'Adults in Homeless Prevention should not be indicating they are homeless prior immediately prior to entry.',
           required_for: 'Adults in HP at entry',
           detail_columns: default_detail_columns + [
@@ -847,7 +872,7 @@ module HmisDataQualityTool
           },
         },
         non_homeless_living_situation_issues: {
-          title: 'RRH - Non-Homeless Living Situation',
+          title: 'RRH - Non-Homeless Prior Living Situation',
           description: 'Adults entering RRH must indicate they were homeless prior to entry. Clients may be flagged as errors in this category when transferring from a TH to an RRH project. Since TH is not classified as a homeless prior living situation, these flags occur but should be disregarded for Joint TH/RRH projects.',
           required_for: 'Adults in RRH at entry',
           detail_columns: default_detail_columns + [
@@ -1170,97 +1195,112 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
-          required_for: 'HoH in PH',
+          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
+            :funders,
             :relationship_to_hoh,
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
+            return false if HmisDataQualityTool::Enrollment.rrh_sso_only?(item)
+            return false unless HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
+
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 90 && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            item.lot >= 90
           },
           ph_missed_exit_length: 90,
         },
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
-          required_for: 'HoH in PH',
+          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
+            :funders,
             :relationship_to_hoh,
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
+            return false if HmisDataQualityTool::Enrollment.rrh_sso_only?(item)
+            return false unless HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
+
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 180 && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            item.lot >= 180
           },
           ph_missed_exit_length: 180,
         },
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
-          required_for: 'HoH in PH',
+          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
+            :funders,
             :relationship_to_hoh,
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
+            return false if HmisDataQualityTool::Enrollment.rrh_sso_only?(item)
+            return false unless HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
+
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 365 && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            item.lot >= 365
           },
           ph_missed_exit_length: 365,
         },
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',
-          description: 'Move-in date must be on or after the entry date, only checked for PH projects',
-          required_for: 'HoH in PH',
+          description: 'Move-in date must be on or after the entry date, only checked for PH projects and SSO with VA: GPD CM/HR',
+          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
+            :funders,
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
+            return false if HmisDataQualityTool::Enrollment.rrh_sso_only?(item)
+            return false unless HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
             return false if item.move_in_date.blank?
-            return false unless HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
 
             item.move_in_date < item.entry_date
           },
         },
         move_in_post_exit_issues: {
           title: 'Move-In After Exit Date',
-          description: 'Move-in date must be on or before the exit date, only checked for PH projects',
-          required_for: 'HoH in PH',
+          description: 'Move-in date must be on or before the exit date, only checked for PH projects and SSO with VA: GPD CM/HR',
+          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
+            :funders,
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
+            return false if HmisDataQualityTool::Enrollment.rrh_sso_only?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
-            return false unless HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
 
             item.move_in_date > item.exit_date
           },
@@ -1555,7 +1595,7 @@ module HmisDataQualityTool
         date_to_street_issues: {
           title: 'Approximate Date Homeless',
           description: 'Approximate Date Homeless (Date to Street ES SH 3.917.3) is required in some situations',
-          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
+          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by prior living situation and project type',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :living_situation,
@@ -1578,7 +1618,7 @@ module HmisDataQualityTool
         times_homeless_issues: {
           title: 'Number Times Homeless',
           description: 'The number of times someone was previously homeless is required in some situations.',
-          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
+          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by prior living situation and project type',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :date_to_street_essh,
@@ -1600,7 +1640,7 @@ module HmisDataQualityTool
         months_homeless_issues: {
           title: 'Number of Months Homeless',
           description: 'The number of months someone was previously homeless is required in some situations.',
-          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
+          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by prior living situation and project type',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :date_to_street_essh,
