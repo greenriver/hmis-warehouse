@@ -34,6 +34,8 @@ module HmisSqlServer
   end
 
   class LsaBase < SqlServerBase
+    self.abstract_class = true
+
     private def useful_date_column
       nil
     end
