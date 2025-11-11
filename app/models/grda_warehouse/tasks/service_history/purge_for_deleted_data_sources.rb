@@ -20,8 +20,6 @@
 #   GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call(dry_run: true)
 #   GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call(dry_run: false)
 #
-# Or via the job:
-#   ServiceHistory::PurgeForDeletedDataSourcesJob.perform_later
 module GrdaWarehouse::Tasks::ServiceHistory
   class PurgeForDeletedDataSources
     include NotifierConfig
@@ -67,7 +65,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # 1. Have been soft-deleted (deleted_at is present)
       # 2. Were deleted before the retention date
       GrdaWarehouse::DataSource.
-        unscoped.
+        with_deleted.
         where.not(deleted_at: nil).
         where('deleted_at < ?', @retain_at).
         pluck(:id)
@@ -93,28 +91,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
         where(data_source_id: data_source_ids)
 
-      if @dry_run
-        # For dry run, we need the count across all enrollments
-        # This is unavoidable but only runs in dry-run mode
-        enrollment_ids = enrollment_scope.pluck(:id)
-        return 0 if enrollment_ids.empty?
+      count = 0
+      enrollment_scope.in_batches(of: 1000) do |batch|
+        enrollment_ids = batch.pluck(:id)
+        next if enrollment_ids.empty?
 
-        GrdaWarehouse::ServiceHistoryService.
-          where(service_history_enrollment_id: enrollment_ids).
-          count
-      else
-        # Process enrollment IDs in batches to avoid loading all into memory
-        count = 0
-        enrollment_scope.in_batches(of: 1000) do |batch|
-          enrollment_ids = batch.pluck(:id)
-          next if enrollment_ids.empty?
-
+        if @dry_run
+          count += GrdaWarehouse::ServiceHistoryService.
+            where(service_history_enrollment_id: enrollment_ids).
+            count
+        else
           count += GrdaWarehouse::ServiceHistoryService.
             where(service_history_enrollment_id: enrollment_ids).
             delete_all
         end
-        count
       end
+      count
     end
 
     def log(message)

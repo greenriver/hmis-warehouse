@@ -183,6 +183,12 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
     end
 
     context 'guard clauses prevent processing when' do
+      it 'processes successfully when all guard conditions pass' do
+        result = enrollment.rebuild_service_history!
+        expect(result).to eq(:update)
+        expect(GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: enrollment.EnrollmentID).exists?).to be true
+      end
+
       it 'returns false for EntryDate before 1970-01-01' do
         enrollment.update_column(:EntryDate, '1969-12-31')
         expect(enrollment.rebuild_service_history!).to be false
@@ -272,7 +278,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
         ).pluck(:date).sort
 
         expect(service_dates.first).to eq('2023-01-01'.to_date)
-        expect(service_dates.last).to be <= Date.current
+        expect(service_dates.last).to eq Date.current
       end
     end
   end

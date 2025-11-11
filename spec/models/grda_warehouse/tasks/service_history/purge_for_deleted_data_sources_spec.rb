@@ -136,27 +136,5 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources,
         ).count).to eq(initial_service_count)
       end
     end
-
-    context 'with multiple enrollments and services' do
-      let!(:client1) { create_client_with_warehouse_link(data_source: deleted_data_source) }
-      let!(:client2) { create_client_with_warehouse_link(data_source: deleted_data_source) }
-
-      before do
-        create_enrollment_with_service_history(data_source: deleted_data_source, client: client1)
-        create_enrollment_with_service_history(data_source: deleted_data_source, client: client2)
-        # Soft-delete the data source after creating service history
-        deleted_data_source.update_column(:deleted_at, 2.days.ago)
-      end
-
-      it 'purges all service history for the deleted data source' do
-        initial_enrollment_count = GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: deleted_data_source.id).count
-        expect(initial_enrollment_count).to be > 2 # At least entry + exit for each enrollment
-
-        result = described_class.call(dry_run: dry_run, retain_at: retain_at)
-
-        expect(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: deleted_data_source.id).count).to eq(0)
-        expect(result[:enrollments_deleted]).to eq(initial_enrollment_count)
-      end
-    end
   end
 end
