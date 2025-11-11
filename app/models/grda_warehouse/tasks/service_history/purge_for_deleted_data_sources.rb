@@ -41,7 +41,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       deleted_data_source_ids = find_deleted_data_sources
 
       if deleted_data_source_ids.empty?
-        log "No deleted data sources found with service history to purge"
+        log 'No deleted data sources found with service history to purge'
         return { enrollments_deleted: 0, services_deleted: 0 }
       end
 
@@ -90,24 +90,30 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def purge_service_history_services(data_source_ids)
       return 0 if data_source_ids.empty?
 
-      # Get enrollment IDs for these data sources
-      enrollment_ids = GrdaWarehouse::ServiceHistoryEnrollment.
-        where(data_source_id: data_source_ids).
-        pluck(:id)
-
-      return 0 if enrollment_ids.empty?
+      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        where(data_source_id: data_source_ids)
 
       if @dry_run
+        # For dry run, we need the count across all enrollments
+        # This is unavoidable but only runs in dry-run mode
+        enrollment_ids = enrollment_scope.pluck(:id)
+        return 0 if enrollment_ids.empty?
+
         GrdaWarehouse::ServiceHistoryService.
           where(service_history_enrollment_id: enrollment_ids).
           count
       else
-        # Delete services in batches (important for partitioned table performance)
-        enrollment_ids.each_slice(1000).sum do |enrollment_batch|
-          GrdaWarehouse::ServiceHistoryService.
-            where(service_history_enrollment_id: enrollment_batch).
+        # Process enrollment IDs in batches to avoid loading all into memory
+        count = 0
+        enrollment_scope.in_batches(of: 1000) do |batch|
+          enrollment_ids = batch.pluck(:id)
+          next if enrollment_ids.empty?
+
+          count += GrdaWarehouse::ServiceHistoryService.
+            where(service_history_enrollment_id: enrollment_ids).
             delete_all
         end
+        count
       end
     end
 

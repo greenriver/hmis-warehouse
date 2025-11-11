@@ -33,7 +33,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources,
       entry_date: '2023-01-01',
     )
 
-    exit_record = create(
+    create(
       :hud_exit,
       data_source_id: data_source.id,
       EnrollmentID: enrollment.EnrollmentID,
