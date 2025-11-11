@@ -1,4 +1,4 @@
--- \restrict MtbGbd3prluLkCWEfohsaWTCm06pcwUfrtxUTa4WxApmTJioeFz64RHgCtVe7bR
+-- \restrict 1FDqfTYAssTITPwVLfsF8gN7TJgtq7m1tK0G3SpyE1qDH2HL3YpCr9YsS3XZPBA
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -25333,7 +25333,7 @@ CREATE TABLE public.hopwa_caper_services (
     record_type integer,
     type_provided integer,
     fa_amount numeric,
-    service_source character varying,
+    service_source character varying NOT NULL,
     service_category_name character varying,
     service_type_name character varying
 );
@@ -80953,7 +80953,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict MtbGbd3prluLkCWEfohsaWTCm06pcwUfrtxUTa4WxApmTJioeFz64RHgCtVe7bR
+-- \unrestrict 1FDqfTYAssTITPwVLfsF8gN7TJgtq7m1tK0G3SpyE1qDH2HL3YpCr9YsS3XZPBA
 
 SET search_path TO "$user", public;
 

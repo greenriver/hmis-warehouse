@@ -9,6 +9,14 @@ class AddServiceMetadataToHopwaCaperServices < ActiveRecord::Migration[7.0]
         t.string :service_type_name
       end
 
+      execute <<~SQL.squish
+        UPDATE hopwa_caper_services
+        SET service_source = 'hud_service'
+        WHERE service_source IS NULL
+      SQL
+
+      change_column_null :hopwa_caper_services, :service_source, false
+
       remove_index :hopwa_caper_services, name: 'uidx_hopwa_caper_services'
       add_index(
         :hopwa_caper_services,
