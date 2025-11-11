@@ -32,6 +32,8 @@ module HmisSqlServer
   end
 
   class LsaBase < SqlServerBase
+    self.abstract_class = true
+
     include TsqlImport
 
     def clean_row_for_import(row:, headers:) # rubocop:disable Lint/UnusedMethodArgument
