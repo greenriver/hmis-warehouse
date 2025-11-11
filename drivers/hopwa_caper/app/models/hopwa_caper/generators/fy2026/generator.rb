@@ -109,7 +109,10 @@ module HopwaCaper::Generators::Fy2026
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
+
+        # Build a lookup hash to enable batched custom service queries.
         enrollment_context = {}
+
         batch.each do |service_history_enrollment|
           hud_enrollment = service_history_enrollment.enrollment
 
@@ -117,9 +120,12 @@ module HopwaCaper::Generators::Fy2026
           next unless client
 
           enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
+
+          # Store enrollment context for later custom service lookup
           context_key = [hud_enrollment.data_source_id, hud_enrollment.EnrollmentID]
           enrollment_context[context_key] = { enrollment: hud_enrollment, client: client }
 
+          # Collect HUD services (already preloaded via association)
           service_rows.concat(
             hud_enrollment.services.
               where(date_provided: report.start_date..report.end_date).
@@ -204,19 +210,25 @@ module HopwaCaper::Generators::Fy2026
 
     private
 
+    # Batch-fetch custom services for a set of enrollments to avoid N+1 queries.
+    # Groups enrollments by data_source_id and issues one query per data source,
+    # then uses the enrollment_context hash to link services back to their enrollments.
     def custom_service_rows_for(enrollment_context)
       return [] if enrollment_context.empty?
 
+      # Group by data_source_id to minimize queries (typically 1-2 per batch)
       grouped = enrollment_context.group_by { |(data_source_id, _enrollment_id), _| data_source_id }
 
       grouped.flat_map do |data_source_id, entries|
         enrollment_ids = entries.map { |(_data_source_key, enrollment_id), _| enrollment_id }
 
+        # Fetch all custom services for this data source's enrollments in one query
         Hmis::Hud::CustomService.
           where(data_source_id: data_source_id, EnrollmentID: enrollment_ids).
           where(DateProvided: report.start_date..report.end_date).
           preload(custom_service_type: :custom_service_category).
           filter_map do |custom_service|
+            # Use enrollment_context to retrieve the HUD enrollment and client
             key = [data_source_id, custom_service.EnrollmentID]
             context = enrollment_context[key]
             next unless context
