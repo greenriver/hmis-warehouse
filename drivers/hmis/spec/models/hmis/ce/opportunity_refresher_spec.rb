@@ -40,7 +40,6 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
       expect(result[:closed_count]).to eq(2)
       expect(result[:closed_opportunity_unit_ids]).to contain_exactly(unit1.id, unit2.id)
       expect(result[:created_count]).to eq(2)
-      expect(result[:skipped_opportunity_ids]).to be_empty
 
       expect(opportunity1.reload.status).to eq('closed')
       expect(opportunity2.reload.status).to eq('closed')
@@ -73,13 +72,12 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
       let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, project: p1, data_source: ds1, status: :locked, stale: true) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity1, data_source: ds1, status: :in_progress) }
 
-      it 'does not close the stale opportunity with active referrals' do
+      it 'does not close the stale opportunity that is locked' do
         result = refresher.refresh_stale_opportunities
 
         expect(result[:closed_count]).to eq(1)
         expect(result[:closed_opportunity_unit_ids]).to contain_exactly(unit2.id)
         expect(result[:created_count]).to eq(1)
-        expect(result[:skipped_opportunity_ids]).to contain_exactly(opportunity1.id)
 
         expect(opportunity1.reload.status).to eq('locked')
         expect(opportunity2.reload.status).to eq('closed')

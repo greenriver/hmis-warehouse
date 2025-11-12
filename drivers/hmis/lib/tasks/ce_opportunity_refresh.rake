@@ -24,12 +24,6 @@ task :refresh_stale_opportunities, [:pool_ids] => [:environment] do |_t, args|
 
   result = refresher.refresh_stale_opportunities(candidate_pool_ids: pool_ids)
 
-  if result[:skipped_opportunity_ids].any?
-    puts "⚠ Skipped #{result[:skipped_opportunity_ids].length} stale opportunities with active referrals"
-    puts "  Opportunity IDs: #{result[:skipped_opportunity_ids].sort.join(', ')}"
-    puts ''
-  end
-
   puts "✓ Closed #{result[:closed_count]} stale opportunities"
   if result[:closed_opportunity_unit_ids].any?
     puts "  Units: #{result[:closed_opportunity_unit_ids].sort.join(', ')}"

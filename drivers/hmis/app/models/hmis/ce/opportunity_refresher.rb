@@ -11,18 +11,12 @@ module Hmis::Ce
     #   closed_opportunity_unit_ids: Array<Integer>,
     #   created_count: Integer,
     #   created_opportunity_ids: Array<Integer>,
-    #   skipped_count: Integer,
-    #   skipped_opportunity_ids: Array<Integer>
     # }
     def refresh_stale_opportunities(candidate_pool_ids: nil)
-      stale_scope = Hmis::Ce::Opportunity.stale.active
+      scope = Hmis::Ce::Opportunity.stale.active.open
 
       # Filter by candidate pools if provided
-      stale_scope = stale_scope.where(candidate_pool_id: candidate_pool_ids) if candidate_pool_ids.present?
-
-      # Skip opportunities that have active referrals
-      skipped_opportunity_ids = stale_scope.joins(:active_referral).pluck(:id)
-      scope = stale_scope.where.not(id: skipped_opportunity_ids)
+      scope = scope.where(candidate_pool_id: candidate_pool_ids) if candidate_pool_ids.present?
 
       closed_opportunity_unit_ids = []
       opportunities_to_create = []
@@ -49,8 +43,6 @@ module Hmis::Ce
           closed_opportunity_unit_ids: closed_opportunity_unit_ids,
           created_count: created_ids.length,
           created_opportunity_ids: created_ids,
-          skipped_count: skipped_opportunity_ids.length,
-          skipped_opportunity_ids: skipped_opportunity_ids,
         }
       end
     end
