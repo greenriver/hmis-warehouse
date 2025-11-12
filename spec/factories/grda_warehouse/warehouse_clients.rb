@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :warehouse_client, class: 'GrdaWarehouse::WarehouseClient' do
     association :data_source, factory: :grda_warehouse_data_source

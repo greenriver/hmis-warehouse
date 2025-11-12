@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :unversioned_combined_enrollments_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Combined Enrollments' }

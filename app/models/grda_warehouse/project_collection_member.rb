@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This DB view finds project and collection relationships. It includes access groups that relate to the project
 # indirectly (via organization, project groups, etc)
 module GrdaWarehouse

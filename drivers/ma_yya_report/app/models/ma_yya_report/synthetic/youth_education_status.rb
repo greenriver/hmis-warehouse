@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MaYyaReport::Synthetic
   # TODO: Remove. Not used since HMIS transition. Records that were in the synthetic table
   # were moved(imported) into the YouthEducationStatus at migration time.

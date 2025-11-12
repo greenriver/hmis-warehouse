@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateEpicThrives < ActiveRecord::Migration[6.1]
   def change
     create_table :epic_thrives do |t|

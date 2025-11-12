@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateHealthComprehensiveAssessments < ActiveRecord::Migration[6.1]
   def change
     create_table :hca_assessments do |t|

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :date_range, class: 'Filters::DateRange' do
     start { Date.parse('2019-01-01') }

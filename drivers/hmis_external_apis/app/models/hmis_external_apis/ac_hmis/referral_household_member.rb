@@ -16,7 +16,7 @@ module HmisExternalApis::AcHmis
     has_many :postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', through: :referral
 
     enum(
-      relationship_to_hoh: ::HudHelper.util.hud_list_map_as_enumerable(:relationships_to_hoh),
+      :relationship_to_hoh, ::HudHelper.util.hud_list_map_as_enumerable(:relationships_to_hoh)
     )
 
     scope :heads_of_households, -> { where(relationship_to_hoh: 'self_head_of_household') }

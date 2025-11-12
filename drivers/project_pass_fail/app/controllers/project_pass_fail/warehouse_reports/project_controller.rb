@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # (pick universe from any combination of Project Type, CoC Code, Data Source, Organization, Project, Project Group)
 # Date Range
 # Show:

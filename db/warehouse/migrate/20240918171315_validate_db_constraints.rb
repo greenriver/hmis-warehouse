@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ValidateDbConstraints < ActiveRecord::Migration[7.0]
   def up
     tables.each do |table, column|

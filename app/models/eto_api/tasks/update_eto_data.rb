@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
 # require 'newrelic_rpm'
 module EtoApi::Tasks

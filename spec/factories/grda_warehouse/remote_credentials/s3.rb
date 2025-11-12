@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :grda_remote_s3, class: 'GrdaWarehouse::RemoteCredentials::S3' do
     active { true }

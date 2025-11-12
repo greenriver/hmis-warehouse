@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class PgheroCollectStatsJob < ::BaseJob
   def perform(clean: false)
     # seems to break on pg12

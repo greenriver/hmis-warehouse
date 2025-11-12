@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :lsa_fy2018, class: 'Reports::Lsa::Fy2018::All' do
     name { 'Longitudinal System Analysis FY 2018' }

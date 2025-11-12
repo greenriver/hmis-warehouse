@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudTwentyTwentyTwoToTwentyTwentyFour
   module References
     extend ActiveSupport::Concern
@@ -15,6 +17,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
 
       private def reference(reference_name, &block)
         reference = @references[reference_name]
+        return unless reference
 
         if reference[:file].present?
           content = File.read(reference[:file])

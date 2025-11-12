@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis
   #
   # The HohChangeHandler class is responsible for handling changes to the Head of Household (HoH) in a household enrollment.

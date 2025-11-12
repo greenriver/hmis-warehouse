@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :secure_file, class: 'GrdaWarehouse::SecureFile' do
     name { 'test file' }

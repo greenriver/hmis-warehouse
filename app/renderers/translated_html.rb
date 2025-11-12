@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class TranslatedHtml < Redcarpet::Render::HTML
   # NOTE: this will convert anything within {{ }} to a translated string
   def postprocess(html)
