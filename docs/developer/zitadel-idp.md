@@ -1,8 +1,79 @@
 # Zitadel IDP
 
-The warehouse has run since 2017 using the [devise](https://github.com/heartcombo/devise) gem for authentication.  We are now switching to an Oauth2 authentication system that includes [Oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of [Dex](https://dexidp.io) which proxies pretty much any IDP. For installations where the community does not have an existing IDP, we use a stand-alone installation of [Zitadel](https://zitadel.com) to provide user management.
+The warehouse previously used the [devise](https://github.com/heartcombo/devise) gem for authentication. The application has fully migrated to an OAuth2 authentication system using [OAuth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of [Dex](https://dexidp.io) which proxies to any IDP. For installations where the community does not have an existing IDP, we use a stand-alone installation of [Zitadel](https://zitadel.com) to provide user management.
 
-This document does not cover installation of Zitadel but attempts to explain enough about the configuration so that the migration of user data can take place.
+This document covers:
+- How JWT-based authentication works in the application
+- How to configure Zitadel, Dex, and OAuth2-proxy for development and production
+- How to migrate user data from the old Devise system
+- How to test with JWT authentication in RSpec
+
+This document does not cover installation of Zitadel itself.
+
+# Authentication Architecture
+
+## JWT Token Flow
+
+The authentication system uses JWT (JSON Web Token) tokens to authenticate users:
+
+1. **User Login**: User authenticates via OAuth2-proxy → Dex → Zitadel
+2. **Token Issuance**: Zitadel issues an ID token to Dex, which issues its own JWT to OAuth2-proxy
+3. **Header Injection**: OAuth2-proxy validates the JWT and injects it into the `X-Forwarded-Access-Token` header on every request to the Rails application
+4. **Rails Validation**: The Rails application reads the JWT from `HTTP_X_FORWARDED_ACCESS_TOKEN` header
+5. **User Identification**: `JwtHelper` validates the JWT signature using the JWKS endpoint and verifies claims (issuer, audience, expiration)
+6. **Session Setup**: `CurrentUser` concern extracts user information and sets `current_user` for the request
+
+## Key Components
+
+### JwtHelper
+- Validates JWT tokens by fetching public keys from Dex's JWKS endpoint
+- Verifies JWT claims: issuer (`ISS_URL`), audience (`IDP_AUD`), expiration
+- Extracts user information: email, connector ID, connector user ID
+- Class methods: `authenticated?(token)` and `user_id_from_token(token)`
+
+### CurrentUser Concern
+- Included in both `ApplicationController` (Warehouse) and `Hmis::BaseController` (HMIS)
+- Provides `current_user` (Warehouse) or `current_hmis_user` (HMIS)
+- Provides `authenticate_user!` or `authenticate_hmis_user!`
+- Redirects unauthenticated users to OAuth2-proxy sign-in endpoint
+
+### UserAuthenticationSource
+- Links users to IDP connectors using `connector_id` and `connector_user_id`
+- Allows users to have multiple authentication sources (e.g., GitHub, Zitadel)
+- Created automatically on first login or during user migration
+
+### User Lookup Process
+1. Look up by `connector_id` + `connector_user_id` in `UserAuthenticationSource`
+2. Fallback to email address lookup
+3. Automatically create `UserAuthenticationSource` if missing
+
+## HTTP Headers
+
+OAuth2-proxy injects these headers into every request:
+
+- `HTTP_X_FORWARDED_ACCESS_TOKEN`: JWT access token (primary authentication mechanism)
+- `X-Forwarded-User`: User's email address
+- `X-Forwarded-Groups`: User's groups (comma-separated)
+
+The Rails application primarily uses `HTTP_X_FORWARDED_ACCESS_TOKEN` for authentication.
+
+## Warehouse vs HMIS Authentication
+
+Both applications use the same JWT-based authentication but with separate controllers and user types:
+
+**Warehouse Application:**
+- Controller: `Users::SessionsController`
+- User model: `User`
+- Authentication method: `authenticate_user!`
+- Current user method: `current_user`
+- Logout client ID: `ZITADEL_IDP_WAREHOUSE_CLIENT_ID`
+
+**HMIS Application:**
+- Controller: `Hmis::SessionsController`
+- User model: `Hmis::User` (STI - same table as `User`)
+- Authentication method: `authenticate_hmis_user!`
+- Current user method: `current_hmis_user`
+- Logout client ID: `ZITADEL_IDP_HMIS_CLIENT_ID`
 
 # Architecture Overview
 
@@ -32,6 +103,130 @@ This setup uses **a single Dex connector** to Zitadel with **three OAuth2-Proxy 
 - All cookies are set for domain `.dev.test` to enable SSO behavior across subdomains
 - Access control is managed via **Zitadel project grants** - you can restrict which users can access which projects
 - You can optionally create separate Zitadel projects for Warehouse and HMIS to manage users independently
+
+## Dex Configuration
+
+Dex acts as an OIDC broker between OAuth2-proxy and Zitadel:
+
+- **Static Clients**: Two clients configured in Dex:
+  - `hmis-warehouse`: Used by oauth2-proxy-warehouse
+  - `hmis-frontend`: Used by oauth2-proxy-hmis and oauth2-proxy-hmis-backend
+- **JWT Expiration**: ID tokens expire after 1 hour
+- **Connector Selection**: Use `connector_id` query parameter to specify which IDP connector to use (e.g., `zitadel`, `github_idp`, `local`)
+- **JWKS Endpoint**: Dex exposes public keys at `/dex/keys` for JWT signature validation
+
+# Session Management & Logout
+
+## Session Persistence
+
+- Sessions are managed by OAuth2-proxy cookies, not Rails sessions
+- The Rails application is stateless - it validates the JWT on every request
+- JWT tokens expire after 1 hour
+- OAuth2-proxy may automatically refresh tokens if a refresh token is available
+- No separate Rails session timeout - authentication is purely JWT-based
+
+## Logout Flow
+
+### Warehouse Logout
+
+When a user logs out of the Warehouse application:
+
+1. `DELETE /users/sign_out` is called
+2. Rails generates a logout URL using `idp_logout_url` helper with:
+   - `final_redirect_uri`: Where to redirect after logout (typically root URL)
+   - `client_id`: `ZITADEL_IDP_WAREHOUSE_CLIENT_ID`
+3. User is redirected to Zitadel's OIDC RP-Initiated Logout endpoint:
+   ```
+   {zitadel_url}/oidc/v1/end_session?post_logout_redirect_uri={oauth2_proxy_signout}&client_id={client_id}
+   ```
+4. Zitadel clears its session and redirects to OAuth2-proxy's sign-out endpoint:
+   ```
+   /oauth2/sign_out?rd={final_redirect_uri}
+   ```
+5. OAuth2-proxy clears its cookie and redirects to the final destination
+
+### HMIS Logout
+
+HMIS uses a slightly different flow because the frontend is a React application:
+
+1. `DELETE /hmis/logout` is called (returns JSON, not a redirect)
+2. Response includes the logout URL
+3. Frontend JavaScript redirects the browser to the logout URL
+4. Same flow as Warehouse from step 3 onwards
+
+## Logout URL Helper
+
+The `idp_logout_url` helper generates the appropriate logout URL for the configured IDP:
+
+- **Zitadel**: Generates OIDC RP-Initiated Logout URL (clears Zitadel session)
+- **Other IDPs**: Falls back to OAuth2-proxy sign-out URL (clears OAuth2-proxy session only)
+
+# Environment Configuration Reference
+
+The application requires these environment variables for JWT authentication:
+
+## JWT Validation
+
+```bash
+# JWT issuer - must match Dex issuer
+ISS_URL=https://dex.dev.test/dex
+
+# JWKS endpoint for fetching public keys
+JWKS_URL=http://dex:4443/dex/keys
+
+# JWT signature algorithm
+JWT_ALGORITHM=RS256
+
+# Valid JWT audiences (comma-separated)
+IDP_AUD=hmis-warehouse,hmis-frontend
+```
+
+## Zitadel API Configuration
+
+```bash
+# Zitadel API base URL
+ZITADEL_API_URL=http://zitadel.dev.test:8080
+
+# Service user token for user management API
+ZITADEL_SERVICE_USER_TOKEN=<service-user-token>
+
+# Zitadel organization ID
+ZITADEL_ORG_ID=<organization-id>
+```
+
+## Dex Connector Configuration
+
+```bash
+# Dex application client ID (created in Zitadel)
+ZITADEL_IDP_CLIENT_ID=<dex-client-id>
+
+# Dex application client secret (created in Zitadel)
+ZITADEL_IDP_CLIENT_SECRET=<dex-client-secret>
+```
+
+## Logout Redirect Configuration
+
+```bash
+# Client IDs used for logout redirect URL generation
+# These are typically the same as ZITADEL_IDP_CLIENT_ID
+# but kept separate for flexibility
+
+# Warehouse logout client ID
+ZITADEL_IDP_WAREHOUSE_CLIENT_ID=<dex-client-id>
+
+# HMIS logout client ID
+ZITADEL_IDP_HMIS_CLIENT_ID=<dex-client-id>
+```
+
+## Optional: Project-based Access Control
+
+```bash
+# Zitadel project IDs for rake task user management
+# Only needed if using project-based access control
+
+ZITADEL_WAREHOUSE_PROJECT_ID=<warehouse-project-id>
+ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>
+```
 
 # Initial Configuration
 
@@ -113,29 +308,28 @@ The service user is needed for the rake tasks that import/export users.
 
 ## 5. Complete Environment Configuration
 
-Your `.env.local` should now have all the necessary Zitadel configuration:
+Your `.env.local` should now have the necessary Zitadel configuration from the steps above:
 
 ```bash
-# Dex Configuration
-DEX_ISSUER=https://dex.dev.test/dex
-
 # Zitadel API Configuration
 ZITADEL_API_URL=http://zitadel.dev.test:8080
 ZITADEL_SERVICE_USER_TOKEN=<service-user-token>
-
-# Zitadel Organization and Dex Application
 ZITADEL_ORG_ID=<org-id>
+
+# Dex Application in Zitadel
 ZITADEL_IDP_CLIENT_ID=<dex-client-id>
 ZITADEL_IDP_CLIENT_SECRET=<dex-client-secret>
 
-# Client IDs for logout redirect handling (typically same as ZITADEL_IDP_CLIENT_ID)
+# Logout redirect handling (typically same as ZITADEL_IDP_CLIENT_ID)
 ZITADEL_IDP_WAREHOUSE_CLIENT_ID=<dex-client-id>
 ZITADEL_IDP_HMIS_CLIENT_ID=<dex-client-id>
 
-# Optional: Separate projects for access control
-ZITADEL_WAREHOUSE_PROJECT_ID=<warehouse-project-id>  # For rake tasks
-ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>            # For rake tasks
+# Optional: Project-based access control
+ZITADEL_WAREHOUSE_PROJECT_ID=<warehouse-project-id>
+ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>
 ```
+
+**Note**: See the "Environment Configuration Reference" section above for the complete list of JWT validation and authentication variables required by the application.
 
 ## 6. Restart Services
 
@@ -213,3 +407,111 @@ To add an existing user to a project:
 3. Click **+** to add a user
 4. Search for and select the user
 5. Grant appropriate role (or leave default)
+
+# Testing with JWT Authentication
+
+The test suite includes a `sign_in` helper that mocks JWT authentication for request specs and controller specs.
+
+## Using sign_in in Request Specs
+
+```ruby
+RSpec.describe 'Some Feature', type: :request do
+  let(:user) { create(:user) }
+
+  it 'allows authenticated users to access the page' do
+    sign_in(user)
+
+    get some_path
+
+    expect(response).to be_successful
+  end
+end
+```
+
+## How It Works
+
+The `sign_in` helper (defined in `spec/support/jwt_authentication_helper.rb`):
+
+1. **Generates a mock JWT token**: Creates a unique token like `mock-jwt-token-{user_id}-{random_hex}`
+2. **Stubs JwtHelper methods**:
+   - `JwtHelper.new` returns a mock helper for the token
+   - `JwtHelper.authenticated?(token)` returns true for the mock token
+   - `JwtHelper.user_id_from_token(token)` returns the user's ID
+3. **Stubs User lookup**: `User.find_from_jwt` returns the signed-in user
+4. **Injects headers automatically**: Prepends HTTP method overrides (`get`, `post`, etc.) to automatically include `HTTP_X_FORWARDED_ACCESS_TOKEN` header in all requests
+5. **Creates authentication source**: Ensures `UserAuthenticationSource` exists for the user
+
+## Automatic Header Injection
+
+The helper overrides HTTP methods to automatically inject JWT headers:
+
+```ruby
+# No need to manually pass headers - they're added automatically
+sign_in(user)
+
+get '/path'                          # JWT header included
+post '/path', params: { data: 'x' }  # JWT header included
+put '/path', params: { data: 'x' }   # JWT header included
+```
+
+## Controller Specs
+
+The helper also supports controller specs by stubbing `current_user`:
+
+```ruby
+RSpec.describe SomeController, type: :controller do
+  let(:user) { create(:user) }
+
+  it 'loads the user' do
+    sign_in(user)
+
+    get :index
+
+    expect(controller.current_user).to eq(user)
+  end
+end
+```
+
+## What Gets Stubbed
+
+- **JwtHelper instance**: Mock helper with `token?`, `validate!`, `connector_id`, `connector_user_id`, `payload_email`, `expiration_time`
+- **JwtHelper class methods**: `authenticated?(token)`, `user_id_from_token(token)`, `new(access_token:)`
+- **User lookup**: `User.find_from_jwt(jwt_helper)`
+- **Controller helpers**: `current_user`, `user_signed_in?` (controller specs only)
+
+## Implementation Details
+
+The test helper uses `and_wrap_original` to conditionally stub methods:
+- Returns mock values for the generated mock token
+- Calls original methods for any other tokens (useful for edge cases)
+
+This approach ensures tests can authenticate as different users sequentially and that JWT authentication works correctly through the entire request cycle.
+
+## Next Steps
+Outstanding Questions:
+
+1. How do we replace the following we had in the warehouse:
+  a. Single browser login - a user can't be logged in to multiple browsers at once
+  b. Password expiration
+  c. Forced logout & password reset (API?)
+  d. Session timeout length with extension based on use
+  e. Account expiration
+  f. Invitations
+  g. ToTP memory (30 days? optional)
+  h. password complexity
+  i. max login attempts
+  j. password reuse
+
+2. We need to thoroughly test
+  a. Session modal
+  b. multi-browser login
+  c. PDF generation (ensure permisions are obeyed)
+  d. logouts
+  e. Warden Proxy
+  f. User migration
+
+4. We need to build:
+  a. Theme for Dex & Zitadel
+  b. Better login links where we can go to the full Dex login if we want, but force most people to default to the right IDP
+  c. Superset
+  d. CAS
