@@ -178,4 +178,74 @@ RSpec.describe Hmis::Unit, type: :model do
 
     it_behaves_like 'versioned model'
   end
+
+  describe '#build_ce_opportunity' do
+    let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+    let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p1) }
+    let!(:unit_group) { create(:hmis_unit_group, project: p1, workflow_template: workflow_template) }
+    let!(:unit) { create(:hmis_unit, project: p1, unit_group: unit_group, unit_type: unit_type) }
+
+    context 'with unit group that has rules' do
+      let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
+      let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
+
+      before do
+        Hmis::Ce::Match::CandidatePoolBuilder.call
+        unit_group.reload
+        expect(unit_group.candidate_pool).not_to be_nil
+      end
+
+      it 'returns an unsaved opportunity' do
+        opportunity = unit.build_ce_opportunity
+
+        # Sets correct attributes
+        expect(opportunity).to be_a(Hmis::Ce::Opportunity)
+        expect(opportunity).not_to be_persisted
+        expect(opportunity.unit).to eq(unit)
+        expect(opportunity.project).to eq(p1)
+        expect(opportunity.name).to include("Unit #{unit.id}")
+        expect(opportunity.name).to include(unit_type.description)
+        expect(opportunity.candidate_pool_id).to eq(unit_group.candidate_pool_id)
+        expect(opportunity.candidate_pool_id).not_to be_nil
+
+        # Sets assignment rules
+        expect(opportunity.assignment_rules).to be_an(Array)
+        expect(opportunity.assignment_rules.length).to eq(2)
+        rule_ids = opportunity.assignment_rules.map { |r| r['id'] }
+        expect(rule_ids).to contain_exactly(eligibility_rule.id, priority_rule.id)
+      end
+    end
+
+    context 'with unit group that has no rules' do
+      before do
+        Hmis::Ce::Match::CandidatePoolBuilder.call
+        unit_group.reload
+        expect(unit_group.candidate_pool).to be_nil # no rules = no candidate pool
+      end
+
+      it 'returns opportunity with nil candidate_pool_id and empty rules' do
+        opportunity = unit.build_ce_opportunity
+
+        expect(opportunity.candidate_pool_id).to be_nil
+        expect(opportunity.assignment_rules).to eq([])
+      end
+    end
+
+    context 'without unit group' do
+      let!(:unit_without_group) { create(:hmis_unit, project: p1, unit_group: nil) }
+
+      it 'raises an error' do
+        expect { unit_without_group.build_ce_opportunity }.to raise_error('Unit must be in a Unit Group to build CE opportunity')
+      end
+    end
+
+    context 'with unit group but no workflow template' do
+      let!(:unit_group_no_template) { create(:hmis_unit_group, project: p1, workflow_template: nil, direct_referral_workflow_template: nil) }
+      let!(:unit_no_template) { create(:hmis_unit, project: p1, unit_group: unit_group_no_template) }
+
+      it 'raises an error' do
+        expect { unit_no_template.build_ce_opportunity }.to raise_error('Unit Group has no Workflow Template')
+      end
+    end
+  end
 end

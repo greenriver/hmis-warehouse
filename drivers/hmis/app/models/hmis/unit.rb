@@ -162,6 +162,26 @@ class Hmis::Unit < Hmis::HmisBase
     { code: id, label: display_name }
   end
 
+  # Build an unsaved CE Opportunity for this unit
+  def build_ce_opportunity(rule_resolver: Hmis::Ce::Match::UnitGroupRuleResolver.new)
+    raise 'Unit already has an active opportunity' if latest_opportunity&.active?
+    raise 'Unit must be in a Unit Group to build CE opportunity' unless unit_group
+    raise 'Unit Group has no Workflow Template' unless unit_group.workflow_template || unit_group.direct_referral_workflow_template
+
+    unit_desc = unit_type&.description
+    opportunity_name = "Unit #{id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
+
+    rules = rule_resolver.rules_for_unit_group(unit_group)
+
+    Hmis::Ce::Opportunity.new(
+      unit: self,
+      project: project,
+      name: opportunity_name,
+      candidate_pool_id: unit_group.candidate_pool_id,
+      assignment_rules: rules.map(&:attributes),
+    )
+  end
+
   private
 
   # TODO(#8157) - remove
