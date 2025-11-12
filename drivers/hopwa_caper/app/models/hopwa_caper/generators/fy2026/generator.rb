@@ -108,7 +108,6 @@ module HopwaCaper::Generators::Fy2026
 
     def build_hopwa_caper_models
       scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }, :services])
-      service_range = service_date_range
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -128,10 +127,9 @@ module HopwaCaper::Generators::Fy2026
           context_key = [hud_enrollment.data_source_id, hud_enrollment.EnrollmentID]
           enrollment_context[context_key] = { enrollment: hud_enrollment, client: client }
 
-          # Collect HUD services (already preloaded via association)
           service_rows.concat(
             hud_enrollment.services.
-              where(date_provided: service_range).
+              where(date_provided: service_date_range).
               map do |hud_service|
                 HopwaCaper::Service.from_hud_service(
                   report: report,
@@ -143,19 +141,17 @@ module HopwaCaper::Generators::Fy2026
           )
         end
 
-        service_rows.concat(custom_service_rows_for(enrollment_context, date_range: service_range))
+        service_rows.concat(custom_service_rows_for(enrollment_context, date_range: service_date_range))
 
         import_rows(HopwaCaper::Enrollment, enrollment_rows)
         import_rows(HopwaCaper::Service, service_rows)
       end
 
-      # batch process clients
       report.hopwa_caper_enrollments.distinct.pluck(:destination_client_id).in_groups_of(100, false) do |client_ids|
         enrollments = report.hopwa_caper_enrollments.where(destination_client_id: client_ids).order(:id)
         ensure_uniform_client_attrs(enrollments)
       end
 
-      # batch process households
       report.hopwa_caper_enrollments.distinct.pluck(:report_household_id).in_groups_of(100, false) do |household_ids|
         enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
         update_hopwa_eligibility(enrollments)
@@ -167,7 +163,6 @@ module HopwaCaper::Generators::Fy2026
     # ensure consistent values for individuals (can vary based on enrollment entry date)
     def ensure_uniform_client_attrs(enrollment_rows)
       groups = enrollment_rows.sort_by(&:id).group_by(&:destination_client_id).values
-      changed = []
       groups.each do |group|
         uniform_attrs = {
           age: group.map(&:age).compact.max,
@@ -177,34 +172,35 @@ module HopwaCaper::Generators::Fy2026
         }
         group.each do |enrollment|
           enrollment.attributes = uniform_attrs
-          changed.push(enrollment) if enrollment.changed?
+          enrollment.save! if enrollment.changed?
         end
       end
-      changed.each(&:save!)
     end
 
-    # try and figure out which person in a household is hopwa eligible
+    # Determine which person in each household is HOPWA eligible.
+    # HOPWA eligibility determination rules:
+    # 1. If HoH is HIV+, they are eligible
+    # 2. If only one person in household is HIV+, they are eligible
+    # 3. Otherwise, first HIV+ person is eligible
+    # 4. If no one is HIV+, HoH is eligible by default
     def update_hopwa_eligibility(enrollment_rows)
       households = enrollment_rows.group_by(&:report_household_id).values
-      eligible_enrollments = households.map do |enrollments|
-        # if the hoh is hiv+
-        hohs = enrollments.filter { |e| e.relationship_to_hoh == 1 }
-        next hohs.first if hohs.one? && hohs.first.hiv_positive
-
-        # if there's only one hiv+ person in the household
-        hiv = enrollments.filter(&:hiv_positive)
-        next hiv.first if hiv.one?
-
-        # first hiv+ person
-        next hiv.first if hiv.any?
-
-        # default to hoh
-        hohs.first
-      end
+      eligible_enrollments = households.filter_map { |enrollments| find_hopwa_eligible_enrollment(enrollments) }
 
       report.hopwa_caper_enrollments.
-        where(id: eligible_enrollments.compact.map(&:id)).
+        where(id: eligible_enrollments.map(&:id)).
         update(hopwa_eligible: true)
+    end
+
+    def find_hopwa_eligible_enrollment(enrollments)
+      hohs = enrollments.filter { |e| e.relationship_to_hoh == 1 }.sort_by(&:id)
+      return hohs.first if hohs.one? && hohs.first.hiv_positive
+
+      hiv = enrollments.filter(&:hiv_positive).sort_by(&:id)
+      return hiv.first if hiv.one?
+      return hiv.first if hiv.any?
+
+      hohs.first
     end
 
     def import_rows(klass, rows)
@@ -253,11 +249,7 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def service_date_range
-      return @service_date_range if defined?(@service_date_range)
-
-      range_start = report.start_date - SERVICE_LOOKBACK
-      range_start = range_start.to_date if range_start.respond_to?(:to_date)
-      @service_date_range = range_start..report.end_date
+      @service_date_range ||= (report.start_date - SERVICE_LOOKBACK)..report.end_date
     end
   end
 end

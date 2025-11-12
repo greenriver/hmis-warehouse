@@ -47,7 +47,7 @@ module HopwaCaper
     end
 
     def self.as_report_members
-      all.map do |record|
+      current_scope.map do |record|
         ::HudReports::UniverseMember.new(
           universe_membership_type: sti_name,
           universe_membership_id: record.id,
