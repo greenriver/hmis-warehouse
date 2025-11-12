@@ -270,8 +270,7 @@ module Types
 
     def source_ce_referral
       # Skip checking permission here, because the current user can view the referral's target enrollment (this object),
-      # so we know they have can_view_summary? on the referral. The referral schema object field-level authorization
-      # will prevent resolving non-summary fields if the current user doesn't have access to view them.
+      # so we know they have at least can_view_summary? on the referral.
       load_ar_association(object, :source_ce_referral)
     end
 
