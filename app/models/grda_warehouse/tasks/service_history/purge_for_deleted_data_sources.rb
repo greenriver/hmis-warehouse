@@ -28,18 +28,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
       new(retain_at: retain_at).call
     end
 
-    def initialize(retain_at: )
+    def initialize(retain_at:)
       @retain_at = retain_at
       setup_notifier('Purge Service History for Deleted Data Sources')
     end
 
     def call
       deleted_data_source_ids = find_deleted_data_sources
-
-      if deleted_data_source_ids.empty?
-        log 'No deleted data sources found with service history to purge'
-        return { enrollments_deleted: 0, services_deleted: 0 }
-      end
+      return { enrollments_deleted: 0, services_deleted: 0 } if deleted_data_source_ids.empty?
 
       log "Found #{deleted_data_source_ids.size} deleted data source(s) with service history records"
 
@@ -65,7 +61,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       GrdaWarehouse::DataSource.
         with_deleted.
         where.not(deleted_at: nil).
-        where('deleted_at < ?', @retain_at).
+        where(deleted_at: ..@retain_at).
         pluck(:id)
     end
 
