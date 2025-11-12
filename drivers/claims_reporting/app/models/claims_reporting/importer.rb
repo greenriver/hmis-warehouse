@@ -50,6 +50,14 @@ module ClaimsReporting
     end
 
     DEFAULT_NAMING_CONVENTION = /(?<prefix>.*)_?(?<m>[a-z]{3})_(?<y>\d{4})\.zip\Z/i
+    # Remote OpenSSH servers patched for CVE-2023-48795 ("Terrapin")
+    SFTP_ENCRYPTION_ALGORITHMS = [
+      'aes256-gcm@openssh.com',
+      'aes128-gcm@openssh.com',
+      'aes256-ctr',
+      'aes192-ctr',
+      'aes128-ctr',
+    ].freeze
 
     private def using_sftp(credentials)
       credentials ||= default_credentials
@@ -59,6 +67,7 @@ module ClaimsReporting
         credentials['username'],
         password: credentials['password'] || credentials.password,
         auth_methods: ['publickey', 'password'],
+        encryption: SFTP_ENCRYPTION_ALGORITHMS,
         keepalive: true,
         keepalive_interval: 60,
       ) do |connection|
