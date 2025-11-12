@@ -39,7 +39,13 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
   def can_view_summary?
     return false unless Hmis::Ce.configuration.enabled?
 
-    source_project_permissions.include?(:can_manage_outgoing_referrals)
+    # Users who can manage outgoing referrals from the source project
+    return true if source_project_permissions.include?(:can_manage_outgoing_referrals)
+
+    # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project.
+    return true if referral.target_enrollment_id.present? && project_permissions.include?(:can_view_enrollment_details)
+
+    false
   end
 
   def can_assign_referral_tasks?

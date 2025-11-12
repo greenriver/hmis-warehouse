@@ -170,6 +170,59 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
+  describe '#can_view_summary?' do
+    let(:source_project) { create :hmis_hud_project, data_source: data_source }
+    let(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, data_source: data_source }
+    let(:referral) do
+      create(
+        :hmis_ce_referral,
+        opportunity: opportunity,
+        workflow_instance: workflow_instance,
+        client: client,
+        referred_by: user,
+        status: 'initialized',
+        source_enrollment: source_enrollment,
+      )
+    end
+
+    context 'when user can manage outgoing referrals on source project' do
+      it 'returns true' do
+        create_access_control(user, source_project, with_permission: [:can_manage_outgoing_referrals])
+        expect(policy.can_view_summary?).to be true
+      end
+    end
+
+    context 'when referral has a target enrollment' do
+      let(:target_enrollment) { create :hmis_hud_enrollment, project: project, client: client, data_source: data_source }
+      let(:referral) do
+        create(
+          :hmis_ce_referral,
+          opportunity: opportunity,
+          workflow_instance: workflow_instance,
+          client: client,
+          referred_by: user,
+          status: 'initialized',
+          source_enrollment: source_enrollment,
+          target_enrollment: target_enrollment,
+        )
+      end
+
+      it 'returns true if user can view target enrollment' do
+        create_access_control(user, project, with_permission: [:can_view_enrollment_details])
+        expect(policy.can_view_summary?).to be true
+      end
+
+      it 'returns false if user cannot view target enrollment' do
+        create_access_control(user, project, with_permission: [:can_view_project])
+        expect(policy.can_view_summary?).to be false
+      end
+    end
+
+    it 'returns false if user has no relevant permissions' do
+      expect(policy.can_view_summary?).to be false
+    end
+  end
+
   describe '#can_create_note?' do
     let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
