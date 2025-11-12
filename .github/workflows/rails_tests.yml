@@ -74,11 +74,11 @@ jobs:
           POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
         # Set health checks to wait until postgres has started
         options: >-
+          --entrypoint sh -c 'exec /usr/local/bin/docker-entrypoint.sh postgres -c max_locks_per_transaction=2048'
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          -c max_locks_per_transaction=2048
         ports:
           - 5432:5432
 
