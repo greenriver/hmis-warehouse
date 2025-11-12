@@ -1083,6 +1083,7 @@ type CeReferral {
   """
   sourceEnrollment: CeReferralSourceEnrollment
   sourceEnrollmentId: ID!
+  sourceProjectName: String!
   status: CeReferralStatus!
   steps: [CeReferralStep!]
   swimlanes: [CeReferralSwimlane!]

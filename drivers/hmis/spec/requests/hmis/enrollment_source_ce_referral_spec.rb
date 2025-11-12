@@ -18,7 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+  let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1, project_name: 'CE Project') }
   let!(:client) { create(:hmis_hud_client_complete, data_source: ds1) }
   let!(:source_enrollment) { create(:hmis_hud_enrollment, client: client, data_source: ds1, project: source_project) }
 
@@ -43,11 +43,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         enrollment(id: $id) {
           id
           sourceCeReferral {
-            # summary fields that should always be resolved
             id
             status
-
-            # access object that indicates user permissions
+            sourceProjectName
             access {
               canViewReferralDetails
             }
@@ -71,6 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(referral_data).to include(
           'id' => ce_referral.id.to_s,
           'status' => ce_referral.status,
+          'sourceProjectName' => source_project.project_name,
         )
 
         # Should indicate no full referral access
@@ -105,6 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(referral_data).to include(
           'id' => ce_referral.id.to_s,
           'status' => ce_referral.status,
+          'sourceProjectName' => source_project.project_name,
         )
 
         # Should indicate full referral access
