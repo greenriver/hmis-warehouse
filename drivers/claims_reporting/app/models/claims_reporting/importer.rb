@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Class to handle upsert style inserts from ZIPED CSVs (and potentially other flat file formats
 # into ClaimsReporting::* data tables.
 require 'net/sftp'

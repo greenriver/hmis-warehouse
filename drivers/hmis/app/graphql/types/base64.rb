@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # app/graphql/types/json_object.rb
 class Types::Base64 < Types::BaseScalar
   description 'A base64 encoded string'

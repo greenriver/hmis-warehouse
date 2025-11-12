@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Types
   class Admin::FormRuleInput < Types::BaseInputObject
     argument :project_type, Types::HmisSchema::Enums::ProjectType, required: false

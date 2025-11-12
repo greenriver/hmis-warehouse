@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HMIS uses similar but separate permissions system from the warehouse
 # See drivers/hmis/doc/PERMISSIONS.md
 

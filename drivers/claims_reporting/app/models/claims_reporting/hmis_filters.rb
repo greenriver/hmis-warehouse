@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClaimsReporting
   # performs a similar function to ::Filter::FilterScopes
   # but that expects a scope that is joinable to "clients"

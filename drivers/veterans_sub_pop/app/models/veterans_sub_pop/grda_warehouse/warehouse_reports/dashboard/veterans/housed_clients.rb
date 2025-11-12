@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module VeteransSubPop::GrdaWarehouse::WarehouseReports::Dashboard::Veterans
   class HousedClients < ::GrdaWarehouse::WarehouseReports::Dashboard::Housed
     def client_source

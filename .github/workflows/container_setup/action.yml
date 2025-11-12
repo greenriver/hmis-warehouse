@@ -84,6 +84,8 @@ runs:
           libxml2-dev \
           libxslt1-dev \
           libyaml-dev \
+          libproj-dev \
+          proj-bin \
           nodejs \
           poppler-utils \
           postgresql-client-16 \
@@ -120,7 +122,7 @@ runs:
       run: |
         # Install pg gem with correct configuration
         # gem install pg -- --with-pg-config=/usr/bin/pg_config
-        gem install bundler --version=2.6.3
+        gem install bundler --version=2.7.2
         bundle config set --local without 'production staging'
         bundle install --jobs 10 --retry 3
 

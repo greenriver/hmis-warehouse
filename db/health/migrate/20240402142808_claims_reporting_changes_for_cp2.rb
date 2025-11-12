@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ClaimsReportingChangesForCp2 < ActiveRecord::Migration[6.1]
   def change
     add_column :claims_reporting_medical_claims, :pcc_repricing_fee_flag, :string, limit: 50

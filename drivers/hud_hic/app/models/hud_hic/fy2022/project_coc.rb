@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudHic::Fy2022
   class ProjectCoc < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_project_cocs'

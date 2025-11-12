@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # common questions and behavior for TBRU, STRMU, PHP
 module HopwaCaper::Generators::Fy2024::Sheets
   class BaseProgramSheet < Base

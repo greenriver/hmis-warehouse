@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'path organization f', shared_context: :metadata do
   describe 'Datalab 2024 PATH - Organization F' do
     let(:results_dir) { 'path/path_organization_f' }

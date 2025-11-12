@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::UsersController < Hmis::BaseController
   skip_before_action :authenticate_hmis_user!, only: [:show]
   prepend_before_action :skip_timeout, only: [:show]

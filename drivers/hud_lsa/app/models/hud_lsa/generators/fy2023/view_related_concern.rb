@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa::Generators::Fy2023::ViewRelatedConcern
   extend ActiveSupport::Concern
   include Rails.application.routes.url_helpers

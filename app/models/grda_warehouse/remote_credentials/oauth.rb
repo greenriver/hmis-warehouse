@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class RemoteCredentials::Oauth < GrdaWarehouse::RemoteCredential
     alias_attribute :client_id, :username

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ReportingDbLoad < ActiveRecord::Migration[6.1]
   # This migration replaces everything that comes before
   # The process for making this is to grab a copy of the appropriate structure.sql file

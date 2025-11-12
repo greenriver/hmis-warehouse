@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby
+# !/usr/bin/env ruby
+
+# frozen_string_literal: true
 
 require_relative 'scheduled_task'
 require_relative 'cronjob'

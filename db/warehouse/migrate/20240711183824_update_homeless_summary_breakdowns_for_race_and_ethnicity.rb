@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UpdateHomelessSummaryBreakdownsForRaceAndEthnicity < ActiveRecord::Migration[7.0]
   def change
     HomelessSummaryReport::Client::HOUSEHOLD_VARIANTS.each do |variant_slug|

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 RSpec.describe Hmis::Hud::HmisService, type: :model do
   let(:ds1) { create :hmis_data_source }

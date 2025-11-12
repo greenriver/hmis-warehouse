@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Tasks::ScrubPii
   # Scrub personally identifiable information (PII) for selected HMIS client-related records.
   # * Selectively scrub personally identifiable information (PII) for HMIS Clients

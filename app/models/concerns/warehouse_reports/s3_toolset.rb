@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports::S3Toolset
   extend ActiveSupport::Concern
   # Setup the S3 configuration if not setup if possible

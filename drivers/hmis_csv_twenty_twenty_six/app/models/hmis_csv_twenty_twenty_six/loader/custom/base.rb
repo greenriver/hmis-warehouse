@@ -18,5 +18,8 @@ module HmisCsvTwentyTwentySix::Loader::Custom
 
     # Loader tables store raw CSV data as strings
     # All validation and type conversion happens in the importer phase
+
+    # This is an abstract base class - it should not have its own table
+    self.abstract_class = true
   end
 end

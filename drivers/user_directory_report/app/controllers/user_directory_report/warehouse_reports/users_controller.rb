@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module UserDirectoryReport::WarehouseReports
   class UsersController < ApplicationController
     helper_method :nav_link_classes

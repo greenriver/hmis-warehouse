@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module AjaxModalRails::Controller
   # This module sets up controllers to load their content in a modal
   # in response to ajax requests.  See ajax-modals.js.coffee for client side details

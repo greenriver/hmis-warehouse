@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # An HMIS User indicates that there is a vacancy in a program.
 module HmisExternalApis::AcHmis
   class CreateReferralRequestJob < BaseJob

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: the following assumptions are currently made for data coming from CAS (as these are added to the assessments in CAS this may change)
 # 1. 4.19.7 PrioritizationStatus - everyone in CAS is on the list (1)
 # 2. 4.19.4 AssessmentLevel - all assessments are housing needs assessments (2)

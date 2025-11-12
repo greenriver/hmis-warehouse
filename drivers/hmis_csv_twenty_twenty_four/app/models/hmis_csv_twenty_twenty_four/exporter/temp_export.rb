@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyFour::Exporter
   class TempExport
     # temporary table functionality from https://github.com/zdennis/ar-extensions/blob/master/ar-extensions/lib/ar-extensions/temporary_table.rb
