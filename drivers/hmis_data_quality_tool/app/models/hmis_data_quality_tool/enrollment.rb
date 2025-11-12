@@ -184,8 +184,15 @@ module HmisDataQualityTool
     end
 
     def self.detail_headers_for(slug, report, export:)
-      # Months homeless has the same detail columns we need for the CH questions
-      slug = :months_homeless_issues unless sections(report).key?(slug.to_sym)
+      slug = if sections(report).key?(slug.to_sym)
+        slug
+      elsif [:destination_temporary, :destination_permanent, :destination_other].include?(slug.to_sym)
+        # Show destination based detail columns for the Informational destination questions
+        :destination_issues
+      else
+        # Months homeless has the same detail columns we need for the CH questions
+        :months_homeless_issues
+      end
 
       section = sections(report)[slug.to_sym]
       header_source = if export
