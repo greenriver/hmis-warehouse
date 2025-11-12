@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ConvertDataSourceConfigToImportThreshold < ActiveRecord::Migration[7.0]
   def up
     GrdaWarehouse::DataSource.where(refuse_imports_with_errors: true).find_each do |ds|

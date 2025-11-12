@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwenty::Loader
   class LoadError < GrdaWarehouseBase
     self.table_name = 'hmis_csv_load_errors'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsDbUriExtractor
   def self.extract_uri(name:, env:)
     YAML.safe_load(ERB.new(File.read(Rails.root.join('config/database.yml'))).result, aliases: true).yield_self do |config|

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Code initially written for and funded by Delaware Health and Social Services.
 # Used and modified with permission.
 #

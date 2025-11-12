@@ -39,7 +39,8 @@ module HmisExternalApis::AcHmis
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
-    NoMciUniqueIdError = HmisErrors::ApiError.new(display_message: 'Client does not have an MCI unique ID')
+    # Custom error class for MciUniqueId so the mutation can catch it
+    class NoMciUniqueIdError < HmisErrors::ApiError; end
 
     def fetch_score(client)
       # Collect MCI unique IDs for this client and all source clients with the same destination client

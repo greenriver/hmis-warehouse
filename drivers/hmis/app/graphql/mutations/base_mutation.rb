@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   # Generally, use CleanBaseMutation instead of this since we don't need Relay.
   # We may clean up the old BaseMutation later

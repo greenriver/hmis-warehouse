@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # email message stowed in database
 class Message < ApplicationRecord
   SCHEDULES = ['immediate', 'daily'].freeze

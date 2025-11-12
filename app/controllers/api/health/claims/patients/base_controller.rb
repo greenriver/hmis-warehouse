@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Api::Health::Claims::Patients
   class BaseController < ApplicationController
     before_action :require_can_view_or_edit_client_health!

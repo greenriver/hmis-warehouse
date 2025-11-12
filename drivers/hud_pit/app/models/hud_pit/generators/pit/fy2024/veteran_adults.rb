@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPit::Generators::Pit::Fy2024
   class VeteranAdults < Base
     QUESTION_NUMBER = 'Adult Only Veteran Households (without Children)'.freeze

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class AccountsController < ApplicationController
   before_action :set_user
@@ -19,8 +19,7 @@ class AccountsController < ApplicationController
     changed_notes << 'User credentials were changed.' if @user.credentials != account_params[:credentials]
     changed_notes << 'Email schedule was updated.' if @user.email_schedule != account_params[:email_schedule]
     changed_notes << 'Phone number was updated.' if @user.phone != account_params[:phone]
-    changed_notes << 'Agency name was updated.' if @user.agency_id.to_s != account_params[:agency].to_s && account_params[:agency].present?
-    changed_notes << 'Theme was updated.' if @user.theme != account_params[:theme]
+    changed_notes << 'Agency name was updated.' if @user.agency_id.to_s != account_params[:agency_id].to_s && account_params[:agency_id].present?
 
     if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')

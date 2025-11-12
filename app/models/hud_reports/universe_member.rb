@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Polymorphic join to connect report cells, to a particular report type's clients
 module HudReports
   class UniverseMember < GrdaWarehouseBase

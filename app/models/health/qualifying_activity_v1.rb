@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Stateless, QA data lives in associated model
 module Health

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Based on work from:
 # https://about.gitlab.com/blog/2021/02/03/how-we-automatically-fixed-hundreds-of-ruby-2-7-deprecation-warnings/
 if ENV.key?('RECORD_DEPRECATIONS')

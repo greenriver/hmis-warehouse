@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CasAccess
   class ClientOpportunityMatch < CasBase
     self.table_name = :client_opportunity_matches

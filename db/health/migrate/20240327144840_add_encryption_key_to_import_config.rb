@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddEncryptionKeyToImportConfig < ActiveRecord::Migration[6.1]
   add_column :import_configs, :encryption_key_name, :string
   add_column :import_configs, :encrypted_passphrase, :string

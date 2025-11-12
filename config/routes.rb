@@ -906,7 +906,6 @@ Rails.application.routes.draw do
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
 
-    resource :deprecation, only: [:show]
     resources :system_maintenance_tasks, only: [:index]
   end
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This version of the AHAR report is scoped to a particular project at a particular data source
 module ReportGenerators::Pit::Fy2018
   class ByProject < Base

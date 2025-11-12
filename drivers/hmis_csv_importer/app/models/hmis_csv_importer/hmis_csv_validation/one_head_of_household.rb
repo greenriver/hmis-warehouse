@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Validate that for any given importer_log_id there is only
 # one head of household identified. This SELECT COUNT(...) ... GROUP BY
 # so should happen only once after the import is complete

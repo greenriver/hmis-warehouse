@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'FY2024 SPM enrollment context', shared_context: :metadata do
   def default_filter_definition
     {

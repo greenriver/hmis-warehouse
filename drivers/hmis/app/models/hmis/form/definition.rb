@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
@@ -315,9 +315,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
-  RETIRED = 'retired'.freeze
-  PUBLISHED = 'published'.freeze
-  DRAFT = 'draft'.freeze
+  RETIRED = 'retired'
+  PUBLISHED = 'published'
+  DRAFT = 'draft'
   STATUSES = [RETIRED, PUBLISHED, DRAFT].freeze
   validates :status, inclusion: {
     in: STATUSES,

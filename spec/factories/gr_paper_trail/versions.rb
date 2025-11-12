@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :gr_paper_trail_version, class: 'GrPaperTrail::Version' do
     item_type { 'User' }

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'memery'
 require 'restclient'
@@ -132,7 +132,7 @@ module GrdaWarehouse::Hud
       ongoing
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client

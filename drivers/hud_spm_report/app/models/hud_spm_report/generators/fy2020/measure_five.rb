@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Measure 5: Number of Persons who Become Homeless for the First Time
 module HudSpmReport::Generators::Fy2020
   class MeasureFive < Base
