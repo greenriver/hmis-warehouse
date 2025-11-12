@@ -135,6 +135,7 @@ RUN apt-get update && apt-get upgrade -y \
   postgresql-server-dev-all \
   pinentry-tty \
   shared-mime-info \
+  ssh \
   software-properties-common \
   tar \
   tini \
