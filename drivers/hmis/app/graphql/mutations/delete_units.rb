@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class DeleteUnits < BaseMutation
     argument :unit_ids, [ID], required: true
@@ -22,13 +24,9 @@ module Mutations
       raise 'Not found' unless project.present?
       raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_units)
 
-      units = Hmis::Unit.where(id: unit_ids).preload(:unit_type)
-      unit_types = units.map(&:unit_type).uniq.compact
+      units = Hmis::Unit.where(id: unit_ids)
       Hmis::Unit.transaction do
         units.each(&:destroy!)
-        unit_types.each do |unit_type|
-          unit_type.track_availability(project_id: project.id, user_id: current_user.id)
-        end
       end
 
       { unit_ids: unit_ids, errors: [] }
