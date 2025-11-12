@@ -542,7 +542,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   private def check_active_outgoing_direct_referrals
     return unless outgoing_ce_referrals.originated_from_direct_send.active.exists?
 
-    raise ActiveRecord::DeleteRestrictionError, 'Cannot delete enrollment because it has active outgoing referrals. Please complete or reject the referrals first.'
+    raise ActiveRecord::DeleteRestrictionError, 'active outgoing direct referrals'
   end
 
   # Nullifies source_enrollment_id on waitlist-based referrals when enrollment is deleted.
