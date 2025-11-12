@@ -1,4 +1,4 @@
--- \restrict pCREoDHfWt7F2d1IejBCcjORwOMXc1IU7RkJYU1WmhYpxLFcAanqVooNEh1BYoQ
+-- \restrict SJw5VvlXle8UbI1a6DkZPHGrtbVZOBoK6gQADdXAGkJfrKiR6UOiO8MFObhBKu4
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -25293,7 +25293,8 @@ CREATE TABLE public.hopwa_caper_enrollments (
     subsidy_information integer,
     ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
     viral_load_suppression boolean DEFAULT false NOT NULL,
-    percent_ami numeric
+    percent_ami numeric,
+    sex integer
 );
 
 
@@ -25331,7 +25332,10 @@ CREATE TABLE public.hopwa_caper_services (
     date_provided date,
     record_type integer,
     type_provided integer,
-    fa_amount numeric
+    fa_amount numeric,
+    service_source character varying NOT NULL,
+    service_category_name character varying,
+    service_type_name character varying
 );
 
 
@@ -69360,13 +69364,6 @@ CREATE INDEX index_hopwa_caper_services_on_report_household_id ON public.hopwa_c
 
 
 --
--- Name: index_hopwa_caper_services_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hopwa_caper_services_on_report_instance_id ON public.hopwa_caper_services USING btree (report_instance_id);
-
-
---
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -76363,7 +76360,7 @@ CREATE UNIQUE INDEX uidx_hopwa_caper_enrollments ON public.hopwa_caper_enrollmen
 -- Name: uidx_hopwa_caper_services; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_id);
+CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_source, service_id);
 
 
 --
@@ -80949,11 +80946,13 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict pCREoDHfWt7F2d1IejBCcjORwOMXc1IU7RkJYU1WmhYpxLFcAanqVooNEh1BYoQ
+-- \unrestrict SJw5VvlXle8UbI1a6DkZPHGrtbVZOBoK6gQADdXAGkJfrKiR6UOiO8MFObhBKu4
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251109090000'),
+('20251106123000'),
 ('20251104183938'),
 ('20251104032359'),
 ('20251030153000'),
