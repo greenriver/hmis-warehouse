@@ -1082,7 +1082,7 @@ type CeReferral {
   Limited details about the source enrollment. Available even without full access to the source record.
   """
   sourceEnrollment: CeReferralSourceEnrollment
-  sourceEnrollmentId: ID!
+  sourceEnrollmentId: ID
   status: CeReferralStatus!
   steps: [CeReferralStep!]
   swimlanes: [CeReferralSwimlane!]
