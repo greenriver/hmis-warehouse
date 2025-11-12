@@ -73,6 +73,47 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet, type: :
     end
   end
 
+  context 'with housing information services prior to the reporting period' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:legacy_service_date) { (report_start_date - 10.years).to_date }
+    let(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: legacy_service_date,
+        household_id: household_id,
+      )
+    end
+
+    let!(:legacy_housing_info_service) do
+      Hmis::Hud::CustomService.insert_all(
+        [
+          {
+            'CustomServiceID' => SecureRandom.uuid.delete('-'),
+            'EnrollmentID' => hoh_enrollment.EnrollmentID,
+            'PersonalID' => hoh_enrollment.client.PersonalID,
+            'UserID' => SecureRandom.uuid.delete('-'),
+            'DateProvided' => legacy_service_date,
+            data_source_id: hoh_enrollment.data_source_id,
+            custom_service_type_id: custom_service_type.id,
+            'DateCreated' => Time.current,
+            'DateUpdated' => Time.current,
+          },
+        ],
+      )
+    end
+
+    it 'captures historical custom services without affecting current-period totals' do
+      report, rows = run_and_extract_rows([project], 'Q5')
+
+      expect(
+        report.hopwa_caper_services.custom_services.where(date_provided: legacy_service_date).count,
+      ).to eq(1)
+
+      expect(rows.fetch('How many households were served with housing information services?')).to eq(0)
+    end
+  end
+
   context 'with multiple households receiving housing information services' do
     let(:household1_id) { Hmis::Hud::Base.generate_uuid }
     let(:household2_id) { Hmis::Hud::Base.generate_uuid }
@@ -190,7 +231,10 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet, type: :
       report, rows = run_and_extract_rows([project], 'Q5')
 
       expect(rows.fetch('How many households were served with housing information services?')).to eq(0)
-      expect(report.hopwa_caper_services.count).to eq(0)
+      expect(report.hopwa_caper_services.count).to eq(1)
+      expect(
+        report.hopwa_caper_services.where(date_provided: report_start_date - 1.day).count,
+      ).to eq(1)
     end
   end
 end

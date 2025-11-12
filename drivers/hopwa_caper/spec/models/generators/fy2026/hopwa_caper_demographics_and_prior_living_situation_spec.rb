@@ -163,14 +163,16 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
       )
     end
 
-    it 'includes enrollment but excludes services outside the report period' do
+    it 'includes enrollment and keeps historical services for downstream lookbacks' do
       report = create_report([project])
       run_report(report)
 
       # Enrollment is included because it's open during the report period
       expect(report.hopwa_caper_enrollments.size).to eq(1)
-      # But no services should be recorded since they're all outside the report date range
-      expect(report.hopwa_caper_services.size).to eq(0)
+      # Historical services are retained so longevity sheets can perform lookbacks.
+      expect(
+        report.hopwa_caper_services.where(date_provided: report_start_date - 10.days).count,
+      ).to eq(1)
     end
   end
 

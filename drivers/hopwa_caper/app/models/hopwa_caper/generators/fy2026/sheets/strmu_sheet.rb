@@ -34,7 +34,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def relevant_services
       service_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
       service_filter.apply(@report.hopwa_caper_services).
-        where(date_provided: @report.start_date...@report.end_date).
+        where(date_provided: @report.start_date..@report.end_date).
         joins(:enrollment).merge(relevant_enrollments)
     end
 

@@ -103,5 +103,35 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
       expect(case_mgmt_service.service_category_name).to eq('HOPWA Service')
       expect(case_mgmt_service.service_type_name).to eq('Case management')
     end
+
+    context 'with legacy supportive services before the reporting period' do
+      let(:legacy_service_date) { (report_start_date - 10.years).to_date }
+
+      before do
+        create(
+          :hud_service,
+          record_type: hopwa_supportive_service,
+          enrollment: household_with_multiple_services,
+          type_provided: case_management_code,
+          fa_amount: 60,
+          date_provided: legacy_service_date,
+          data_source: data_source,
+        )
+      end
+
+      it 'captures historical services for lookback analysis without affecting current year totals' do
+        report = create_report([project])
+        run_report(report)
+
+        expect(
+          report.hopwa_caper_services.hud_services.where(date_provided: legacy_service_date).count,
+        ).to eq(1)
+
+        rows = question_as_rows(question_number: 'Q6', report: report)
+        indexed = rows.to_h { |row| [row[0], row[1..]] }
+
+        expect(indexed.fetch('Case Management').first).to eq(1)
+      end
+    end
   end
 end

@@ -11,6 +11,8 @@
 # @see docs/features/hopwa_caper.md
 module HopwaCaper::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
+    SERVICE_LOOKBACK = 15.years
+
     def self.fiscal_year
       'FY 2026'
     end
@@ -90,7 +92,7 @@ module HopwaCaper::Generators::Fy2026
         open_between(start_date: @report.start_date, end_date: @report.end_date)
 
       # tbra has a 15 year look-back
-      look_back = 15.years
+      look_back = SERVICE_LOOKBACK
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report.start_date - look_back, end_date: @report.end_date).
         where(client_id: overlapping_enrollments.select(:client_id))
@@ -106,6 +108,7 @@ module HopwaCaper::Generators::Fy2026
 
     def build_hopwa_caper_models
       scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }, :services])
+      service_range = service_date_range
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -128,7 +131,7 @@ module HopwaCaper::Generators::Fy2026
           # Collect HUD services (already preloaded via association)
           service_rows.concat(
             hud_enrollment.services.
-              where(date_provided: report.start_date..report.end_date).
+              where(date_provided: service_range).
               map do |hud_service|
                 HopwaCaper::Service.from_hud_service(
                   report: report,
@@ -140,7 +143,7 @@ module HopwaCaper::Generators::Fy2026
           )
         end
 
-        service_rows.concat(custom_service_rows_for(enrollment_context))
+        service_rows.concat(custom_service_rows_for(enrollment_context, date_range: service_range))
 
         import_rows(HopwaCaper::Enrollment, enrollment_rows)
         import_rows(HopwaCaper::Service, service_rows)
@@ -213,7 +216,7 @@ module HopwaCaper::Generators::Fy2026
     # Batch-fetch custom services for a set of enrollments to avoid N+1 queries.
     # Groups enrollments by data_source_id and issues one query per data source,
     # then uses the enrollment_context hash to link services back to their enrollments.
-    def custom_service_rows_for(enrollment_context)
+    def custom_service_rows_for(enrollment_context, date_range:)
       return [] if enrollment_context.empty?
 
       # Group by data_source_id to minimize queries (typically 1-2 per batch)
@@ -225,7 +228,7 @@ module HopwaCaper::Generators::Fy2026
         # Fetch all custom services for this data source's enrollments in one query
         Hmis::Hud::CustomService.
           where(data_source_id: data_source_id, EnrollmentID: enrollment_ids).
-          where(DateProvided: report.start_date..report.end_date).
+          where(DateProvided: date_range).
           preload(custom_service_type: :custom_service_category).
           filter_map do |custom_service|
             # Use enrollment_context to retrieve the HUD enrollment and client
@@ -247,6 +250,14 @@ module HopwaCaper::Generators::Fy2026
             )
           end
       end
+    end
+
+    def service_date_range
+      return @service_date_range if defined?(@service_date_range)
+
+      range_start = report.start_date - SERVICE_LOOKBACK
+      range_start = range_start.to_date if range_start.respond_to?(:to_date)
+      @service_date_range = range_start..report.end_date
     end
   end
 end
