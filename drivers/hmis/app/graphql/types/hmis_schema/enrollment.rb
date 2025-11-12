@@ -227,6 +227,7 @@ module Types
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
     field :source_referral_posting, HmisSchema::ReferralPosting, null: true, description: 'Present if this household was enrolled as the result of a referral from another project.'
+    field :source_ce_referral, HmisSchema::CeReferral, null: true, description: 'Present if this household was enrolled as the result of a CE referral.'
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)'
 
     # should not be queried in batch
@@ -265,6 +266,13 @@ module Types
 
       # there should never be more than 1 referral posting for a given enrollment
       load_ar_association(object, :source_postings).min_by(&:id)
+    end
+
+    def source_ce_referral
+      # Skip checking permission here, because the current user can view the referral's target enrollment (this object),
+      # so we know they have can_view_summary? on the referral. The referral schema object field-level authorization
+      # will prevent resolving non-summary fields if the current user doesn't have access to view them.
+      load_ar_association(object, :source_ce_referral)
     end
 
     # N+1, not performant for queries on collections
