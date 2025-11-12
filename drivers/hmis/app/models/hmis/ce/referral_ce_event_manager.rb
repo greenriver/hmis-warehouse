@@ -16,7 +16,8 @@ module Hmis::Ce
 
     def create_ce_event(message)
       enrollment = referral.source_enrollment
-      raise 'Referral does not have a source enrollment' unless enrollment.present?
+      # Skip CE Event creation if source Enrollment is missing. (Expected for VSP referrals or if the source enrollment was deleted)
+      return unless enrollment
 
       # If the referral already has a CE event, return early and don't raise
       return if referral.ce_event.present?

@@ -11,13 +11,6 @@ require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Hud::Enrollment, type: :model do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
 
   it 'detects date conflicts' do
@@ -82,33 +75,26 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
   end
 
-  describe 'in progress enrollments' do
-    let!(:enrollment) { build(:hmis_hud_enrollment) }
-    before(:each) do
-      enrollment.save_in_progress!
-    end
-  end
-
   describe 'saved enrollments' do
-    let!(:enrollment) { create(:hmis_hud_enrollment) }
+    let!(:enrollment) { create(:hmis_hud_enrollment, data_source: ds1) }
 
     before(:each) do
-      create(:hmis_hud_exit, data_source: enrollment.data_source, enrollment: enrollment, client: enrollment.client)
-      create(:hmis_hud_service, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_hud_event, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_income_benefit, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_disability, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_health_and_dv, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_current_living_situation, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_hud_assessment, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_employment_education, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_youth_education_status, data_source: enrollment.data_source, enrollment: enrollment)
+      create(:hmis_hud_exit, data_source: ds1, enrollment: enrollment, client: enrollment.client)
+      create(:hmis_hud_service, data_source: ds1, enrollment: enrollment)
+      create(:hmis_hud_event, data_source: ds1, enrollment: enrollment)
+      create(:hmis_income_benefit, data_source: ds1, enrollment: enrollment)
+      create(:hmis_disability, data_source: ds1, enrollment: enrollment)
+      create(:hmis_health_and_dv, data_source: ds1, enrollment: enrollment)
+      create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment)
+      create(:hmis_hud_assessment, data_source: ds1, enrollment: enrollment)
+      create(:hmis_employment_education, data_source: ds1, enrollment: enrollment)
+      create(:hmis_youth_education_status, data_source: ds1, enrollment: enrollment)
 
       enrollment.save_not_in_progress!
     end
 
     it 'preserve shared data after destroy' do
-      enrollment.destroy
+      enrollment.destroy!
       enrollment.reload
 
       [
@@ -137,7 +123,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(enrollment.send(assoc)).to be_present, "expected #{assoc} to be present"
       end
 
-      enrollment.destroy
+      enrollment.destroy!
       enrollment.reload
 
       [
@@ -525,6 +511,84 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end.not_to raise_error
 
       expect(hh_member.current_unit).to eq(unit)
+    end
+  end
+
+  describe 'destroy hooks for outgoing CE referrals' do
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1) }
+    let!(:target_project) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:target_opportunity1) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project) }
+    let!(:target_opportunity2) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project) }
+    let!(:target_opportunity3) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project) }
+
+    context 'when enrollment is the source for active direct referrals' do
+      let!(:active_direct_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN, status: 'in_progress') }
+
+      it 'prevents deletion' do
+        expect do
+          source_enrollment.destroy!
+        end.to raise_error(ActiveRecord::DeleteRestrictionError, /Cannot delete enrollment because it has active outgoing referrals/).
+          and(not_change { source_enrollment.reload.date_deleted }).
+          and(not_change { active_direct_referral.reload.source_enrollment_id })
+      end
+    end
+
+    context 'when enrollment is the source for completed direct referrals' do
+      let!(:accepted_direct_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN, status: 'accepted') }
+      let!(:rejected_direct_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN, status: 'rejected') }
+
+      it 'destroys all direct referrals' do
+        expect do
+          source_enrollment.destroy!
+        end.to change { source_enrollment.reload.date_deleted }.from(nil).
+          and change { accepted_direct_referral.reload.deleted_at }.from(nil).
+          and change { rejected_direct_referral.reload.deleted_at }.from(nil)
+      end
+    end
+
+    context 'when enrollment is the source for waitlist referrals' do
+      let!(:active_waitlist_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN, status: 'in_progress') }
+      let!(:accepted_waitlist_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN, status: 'accepted') }
+      let!(:rejected_waitlist_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity3, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN, status: 'rejected') }
+
+      it 'allows deletion even with active waitlist referrals and nullifies source_enrollment_id' do
+        expect do
+          source_enrollment.destroy!
+        end.to change { source_enrollment.reload.date_deleted }.from(nil).
+          and change { active_waitlist_referral.reload.source_enrollment_id }.from(source_enrollment.id).to(nil).
+          and change { accepted_waitlist_referral.reload.source_enrollment_id }.from(source_enrollment.id).to(nil).
+          and change { rejected_waitlist_referral.reload.source_enrollment_id }.from(source_enrollment.id).to(nil)
+      end
+    end
+
+    context 'when enrollment has mixed referral types' do
+      let!(:active_direct_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN, status: 'in_progress') }
+      let!(:completed_direct_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN, status: 'accepted') }
+      let!(:waitlist_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity3, source_enrollment: source_enrollment, client: c1, referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN, status: 'accepted') }
+
+      it 'prevents deletion due to active direct referral' do
+        expect do
+          source_enrollment.destroy!
+        end.to raise_error(ActiveRecord::DeleteRestrictionError).
+          and(not_change { source_enrollment.reload.date_deleted }).
+          and(not_change { active_direct_referral.reload.source_enrollment_id }).
+          and(not_change { completed_direct_referral.reload.source_enrollment_id }).
+          and(not_change { waitlist_referral.reload.source_enrollment_id })
+      end
+
+      it 'allows deletion and processes referrals correctly when active direct referral is completed' do
+        active_direct_referral.update!(status: 'rejected')
+
+        expect do
+          source_enrollment.destroy!
+        end.to change { source_enrollment.reload.date_deleted }.from(nil).
+          and change { completed_direct_referral.reload.deleted_at }.from(nil).
+          and change { waitlist_referral.reload.source_enrollment_id }.from(source_enrollment.id).to(nil)
+      end
     end
   end
 end

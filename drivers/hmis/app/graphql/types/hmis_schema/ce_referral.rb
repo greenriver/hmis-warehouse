@@ -45,7 +45,7 @@ module Types
     summary_field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the full referral, even without full client record access.'
     # Special case: Client is a "summary field" because it doesn't require referral visibility, but resolving it does require permission to view the client record.
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
-    summary_field :source_enrollment_id, ID, null: false
+    summary_field :source_enrollment_id, ID, null: true # may be null for VSP referrals or if the source enrollment was deleted
     # Resolve project fields separately, instead of on the project schema object, in case user can't view the project
     summary_field :target_project_id, ID, null: false
     summary_field :target_project_name, String, null: false
@@ -212,10 +212,11 @@ module Types
     end
 
     def source_enrollment
-      return unless object.source_enrollment_id
+      return unless object.source_enrollment_id # May be null for VSP referrals or if the source enrollment was deleted
 
-      # Resolve source Enrollment without checking viewable_by.This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment
+      # Resolve source Enrollment without checking viewable_by. This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment
       enrollment = load_ar_association(object, :source_enrollment)
+      return unless enrollment # May be missing if source enrollment was deleted and reference was not cleaned up (cleanup added with #8539)
 
       # Not passing definition_identifiers because we don't need to resolve assessment data in this context (for now)
       OpenStruct.new(enrollment: enrollment, definition_identifiers: [])

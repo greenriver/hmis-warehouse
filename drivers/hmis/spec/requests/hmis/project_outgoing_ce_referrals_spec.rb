@@ -48,6 +48,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               status
               sourceEnrollmentId
               clientId
+              targetProjectId
+              targetProjectName
+              targetProjectType
+              customStatus {
+                id
+                key
+                name
+              }
+              referredBy {
+                id
+                name
+              }
 
               # special case summary field that is resolved when the user has permission to view the client
               clientName

@@ -109,6 +109,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
+  before_destroy :check_active_outgoing_direct_referrals
+  before_destroy :nullify_outgoing_waitlist_referrals
+  before_destroy :destroy_outgoing_direct_referrals
   before_validation :set_hud_project_id_from_project_pk_unless_wip, if: :project_pk_changed?
   def set_hud_project_id_from_project_pk_unless_wip
     return unless project_id
@@ -533,6 +536,26 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     # to link a Form Definition, because a Form Definition will be selected when/if the form is opened for editing.
     assessment.build_form_processor
     assessment
+  end
+
+  # Prevents deletion of an enrollment that has active outgoing direct referrals.
+  private def check_active_outgoing_direct_referrals
+    return unless outgoing_ce_referrals.originated_from_direct_send.active.exists?
+
+    raise ActiveRecord::DeleteRestrictionError, 'Cannot delete enrollment because it has active outgoing referrals. Please complete or reject the referrals first.'
+  end
+
+  # Nullifies source_enrollment_id on waitlist-based referrals when enrollment is deleted.
+  # Waitlist-based referrals can exist without as source enrollment since they're already resolved.
+  private def nullify_outgoing_waitlist_referrals
+    outgoing_ce_referrals.originated_from_waitlist.each { |referral| referral.update!(source_enrollment_id: nil) }
+  end
+
+  # Destroys all direct send referrals when enrollment is deleted.
+  # Direct send referrals require the source enrollment to identify which project sent them.
+  # Without the source enrollment, they would "float" and not appear on the source project's outgoing referrals list.
+  private def destroy_outgoing_direct_referrals
+    outgoing_ce_referrals.originated_from_direct_send.each(&:destroy!)
   end
 
   # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts
