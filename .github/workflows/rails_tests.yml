@@ -177,8 +177,6 @@ jobs:
           TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
-          bin/db_prep
-
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
@@ -187,6 +185,7 @@ jobs:
           docker restart pg_container
           wait-for-it localhost:5432 --timeout=30 --strict -- echo "PostgreSQL is up"
           psql -c "SHOW max_locks_per_transaction;"
+          bin/db_prep
 
       - name: Precompile assets
         env:
