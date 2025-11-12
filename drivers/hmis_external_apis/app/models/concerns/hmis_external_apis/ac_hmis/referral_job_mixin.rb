@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # common behavior for referral processing
 module HmisExternalApis::AcHmis
   module ReferralJobMixin
@@ -19,10 +21,6 @@ module HmisExternalApis::AcHmis
 
     def mci
       @mci ||= ::HmisExternalApis::AcHmis::Mci.new
-    end
-
-    def mper
-      @mper ||= ::HmisExternalApis::AcHmis::Mper.new
     end
 
     def link
