@@ -4129,7 +4129,7 @@ type Enrollment {
   sourceCeReferral: CeReferral
 
   """
-  Present if this household was enrolled as the result of a referral from another project.
+  Present if this household was enrolled as the result of a legacy (pre-CE) referral from another project.
   """
   sourceReferralPosting: ReferralPosting
   staffAssignments: [StaffAssignment!]
