@@ -36,6 +36,10 @@ module HopwaCaper
              foreign_key: :universe_membership_id
 
     belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
+
+    scope :hud_services, -> { where(service_source: HUD_SERVICE_SOURCE) }
+    scope :custom_services, -> { where(service_source: CUSTOM_SERVICE_SOURCE) }
+
     delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, to: :enrollment
 
     def project_id

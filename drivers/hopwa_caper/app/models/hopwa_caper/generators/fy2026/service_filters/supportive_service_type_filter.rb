@@ -9,11 +9,11 @@
 module HopwaCaper::Generators::Fy2026::ServiceFilters
   SupportiveServiceTypeFilter = Struct.new(:label, :types, keyword_init: true) do
     def apply(scope)
-      scope.where(type_provided: codes)
+      scope.hud_services.where(type_provided: codes)
     end
 
     def codes
-      @codes ||= types.map { |type| lookup.fetch(type) }
+      types.map { |type| lookup.fetch(type) }
     end
 
     def self.all

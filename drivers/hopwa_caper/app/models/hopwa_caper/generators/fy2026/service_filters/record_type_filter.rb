@@ -9,23 +9,13 @@
 module HopwaCaper::Generators::Fy2026::ServiceFilters
   RecordTypeFilter = Struct.new(:label, :types, keyword_init: true) do
     def apply(scope)
-      scope.where(record_type: codes)
+      scope.hud_services.where(record_type: codes)
     end
 
     def codes
       types.map do |type|
         HudHelper.util('2026').record_types.invert.fetch(type)
       end
-    end
-
-    def self.any_hopwa_assistance
-      new(
-        label: 'Any HOPWA Assistance',
-        types: [
-          'HOPWA Financial Assistance',
-          'HOPWA Service',
-        ],
-      )
     end
 
     def self.hopwa_financial_assistance

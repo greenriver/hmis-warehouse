@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class AddServiceMetadataToHopwaCaperServices < ActiveRecord::Migration[7.0]
+class AddServiceMetadataToHopwaCaperServices < ActiveRecord::Migration[7.1]
   def change
     safety_assured do
       change_table :hopwa_caper_services, bulk: true do |t|

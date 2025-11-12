@@ -105,7 +105,7 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def build_hopwa_caper_models
-      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }])
+      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }, :services])
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []

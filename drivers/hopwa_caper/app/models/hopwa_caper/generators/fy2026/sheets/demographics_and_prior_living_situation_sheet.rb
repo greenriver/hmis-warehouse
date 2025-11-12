@@ -59,6 +59,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # align columns
       reported_sex_filters = sex_filters.slice(0..1)
       missing_sex_filters = sex_filters.slice(2..)
+      # FY2024 had 3 other gender categories; padding maintains cell alignment
       deprecated_gender_padding = 3
 
       if header
@@ -158,7 +159,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def prior_living_situation_sheet(sheet)
-      sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP	')
+      sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP')
       program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_or_php_hopwa
       relevant_enrollments = overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments)).where(hopwa_eligible: true)
 
