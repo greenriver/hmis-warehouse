@@ -78,6 +78,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          -c max_locks_per_transaction=2048
         ports:
           - 5432:5432
 
