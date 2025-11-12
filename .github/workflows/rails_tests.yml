@@ -74,7 +74,7 @@ jobs:
           POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
         # Set health checks to wait until postgres has started
         options: >-
-          --entrypoint sh -c 'exec /usr/local/bin/docker-entrypoint.sh postgres -c max_locks_per_transaction=2048'
+          --name pg_container
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
@@ -182,6 +182,11 @@ jobs:
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
+          psql -c "SHOW max_locks_per_transaction;"
+          psql -c "ALTER SYSTEM set max_locks_per_transaction = 2048;"
+          docker restart pg_container
+          wait-for-it localhost:5432 --timeout=30 --strict -- echo "PostgreSQL is up"
+          psql -c "SHOW max_locks_per_transaction;"
 
       - name: Precompile assets
         env:
