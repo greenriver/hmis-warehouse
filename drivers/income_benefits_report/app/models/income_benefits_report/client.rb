@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: This report runs all calculations against the most-recently started enrollment
 # that matches the filter scope for a given client
 module IncomeBenefitsReport

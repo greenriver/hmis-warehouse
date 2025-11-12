@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 BostonHmis::Application.routes.draw do
   # TODO: build this out
   scope module: :hud_spm_report, path: :hud_reports, as: :hud_reports do

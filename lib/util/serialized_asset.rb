@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This is a way to have assets in the asset pipeline that are
 # different per environment
 

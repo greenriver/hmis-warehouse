@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MoveHrsnsToHrsnScreenings < ActiveRecord::Migration[6.1]
   def change
     # Health::SelfSufficiencyMatrixForm.find_in_batches do |batch|

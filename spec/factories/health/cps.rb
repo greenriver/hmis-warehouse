@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :sender, class: 'Health::Cp' do
     pid { '110999999' }

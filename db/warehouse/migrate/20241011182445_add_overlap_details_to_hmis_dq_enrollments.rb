@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddOverlapDetailsToHmisDqEnrollments < ActiveRecord::Migration[7.0]
   def change
     add_column :hmis_dqt_clients, :overlapping_entry_exit_details, :jsonb

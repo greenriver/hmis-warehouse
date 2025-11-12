@@ -98,7 +98,7 @@ class Role < ApplicationRecord
     system == false && health_role == false
   end
 
-  def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
+  def has_super_admin_permissions? # rubocop:disable Naming/PredicatePrefix
     Role.permissions.each do |permission,|
       return true if Role.super_admin_permissions.include?(permission) && self[permission]
     end

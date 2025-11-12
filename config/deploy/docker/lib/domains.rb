@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-route53'
 require 'amazing_print'
 

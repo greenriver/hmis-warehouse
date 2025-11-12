@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Measure 4: Employment and Income Growth for Homeless Persons in CoC Program-funded Projects
 module HudSpmReport::Generators::Fy2020
   class MeasureFour < Base

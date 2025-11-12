@@ -34,7 +34,7 @@ module Types
     end
 
     # Ignoring rubocop because the method names need to match the API field names, which use "has_*"
-    # rubocop:disable Naming/PredicateName
+    # rubocop:disable Naming/PredicatePrefix
     def has_more_after
       @offset + @limit < nodes_count
     end
@@ -42,6 +42,6 @@ module Types
     def has_more_before
       @offset.positive?
     end
-    # rubocop:enable Naming/PredicateName
+    # rubocop:enable Naming/PredicatePrefix
   end
 end

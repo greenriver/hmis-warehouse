@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # These should be removed as these are moved to their own drivers
 Rails.application.config.hud_reports['Reports::Lsa::Fy2021::Base'] = {
   title: 'Longitudinal System Analysis',
@@ -102,11 +104,11 @@ class Report < ApplicationRecord
   def as_html results
   end
 
-  def has_options? # rubocop:disable Naming/PredicateName
+  def has_options? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_custom_form? # rubocop:disable Naming/PredicateName
+  def has_custom_form? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
@@ -118,31 +120,31 @@ class Report < ApplicationRecord
     report_report_results_path self
   end
 
-  def has_project_option? # rubocop:disable Naming/PredicateName
+  def has_project_option? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_project_id_option? # rubocop:disable Naming/PredicateName
+  def has_project_id_option? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_data_source_option? # rubocop:disable Naming/PredicateName
+  def has_data_source_option? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_pit_options? # rubocop:disable Naming/PredicateName
+  def has_pit_options? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_date_range_options? # rubocop:disable Naming/PredicateName
+  def has_date_range_options? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_coc_codes_option? # rubocop:disable Naming/PredicateName
+  def has_coc_codes_option? # rubocop:disable Naming/PredicatePrefix
     false
   end
 
-  def has_race_options? # rubocop:disable Naming/PredicateName
+  def has_race_options? # rubocop:disable Naming/PredicatePrefix
     false
   end
 end

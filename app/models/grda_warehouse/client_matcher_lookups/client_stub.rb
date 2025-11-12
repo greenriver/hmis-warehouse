@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # efficiently query a large set of client records into memory-efficient objects
 module GrdaWarehouse::ClientMatcherLookups
   ClientStub = Struct.new(:id, :first_name, :last_name, :ssn, :dob) do

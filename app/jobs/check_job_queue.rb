@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This is not actually a Job -- it is located here since it reasons about them...
 class CheckJobQueue
   include NotifierConfig

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ==  Hmis::EnrollmentAssessmentEligibilityList
 #
 # return a collection of assessments for the given enrollment

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreatePmCoCStaticSpms < ActiveRecord::Migration[7.0]
   def change
     create_table :pm_coc_static_spms do |t|

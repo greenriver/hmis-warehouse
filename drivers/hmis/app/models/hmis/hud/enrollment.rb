@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
@@ -102,7 +102,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # All referrals where this enrollment is the source enrollment. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id
-  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
