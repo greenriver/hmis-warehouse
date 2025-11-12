@@ -1004,7 +1004,12 @@ module HmisDataQualityTool
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
-            !item.hoh_veteran
+            # the hoh_veteran column is an integer, but it's being assigned as a boolean
+            # use .to_i to safely convert and check if it is falsy
+            # return false if nil (data not available), only flag if explicitly false/0
+            return false if item.hoh_veteran.nil?
+
+            item.hoh_veteran.to_i == 0
           },
         },
         future_entry_date_issues: {
