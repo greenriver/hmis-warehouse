@@ -510,8 +510,9 @@ Outstanding Questions:
   e. Warden Proxy
   f. User migration
 
-4. We need to build:
-  a. Theme for Dex & Zitadel
-  b. Better login links where we can go to the full Dex login if we want, but force most people to default to the right IDP
-  c. Superset
-  d. CAS
+4. We need to build/fix:
+  a. Test are still failing
+  b. Theme for Dex & Zitadel
+  c. Better login links where we can go to the full Dex login if we want, but force most people to default to the right IDP
+  d. Superset
+  e. CAS
