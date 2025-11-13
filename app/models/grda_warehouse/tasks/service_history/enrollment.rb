@@ -117,6 +117,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def rebuild_service_history!
       return false if self.EntryDate < '1970-01-01'.to_date
       return false if destination_client.blank? || project.blank?
+      return false if data_source.blank?
       return false if already_processed?
 
       self.history_generated_on = Date.current
