@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientSearchUtil
   class NameSearch
     # Hmis::Hud::Client.matching_search_term(term).pluck(:id, :search_name_full, Arel.sql('ROUND(names.search_score * 100)')).take(20)

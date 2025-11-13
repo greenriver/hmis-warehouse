@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ImportsController < ApplicationController
   before_action :require_can_view_imports!
   before_action :set_import, only: [:show, :edit, :update, :destroy, :download]

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # To create a ClientView URL:
 # GrdaWarehouse::RemoteCredentials::ExternalLink.create!(
 # 	slug: HmisExternalApis::AcHmis::Clientview::SYSTEM_ID,

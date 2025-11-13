@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HapReport
   class Erap < GrdaWarehouseBase
     belongs_to :hap_report, class_name: 'HapReport::Report'

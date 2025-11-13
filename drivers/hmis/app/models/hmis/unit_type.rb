@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Hmis
   class UnitType < HmisBase
@@ -19,7 +19,7 @@ module Hmis
 
     # HUD bed types specified on Inventory
     enum(
-      bed_type: {
+      :bed_type, {
         ch_vet_bed_inventory: 7,
         youth_vet_bed_inventory: 8,
         vet_bed_inventory: 9,
@@ -27,7 +27,7 @@ module Hmis
         youth_bed_inventory: 11,
         ch_bed_inventory: 12,
         other_bed_inventory: 13,
-      },
+      }
     )
 
     def to_pick_list_option

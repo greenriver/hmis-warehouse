@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddAdditionalContactsToPctp < ActiveRecord::Migration[6.1]
   def change
     [:guardian, :social_support].each do |label|

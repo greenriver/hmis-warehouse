@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa::Fy2023
   class Report < ::Report
     include ArelHelper
@@ -23,11 +25,11 @@ module HudLsa::Fy2023
       :zip
     end
 
-    def has_options? # rubocop:disable Naming/PredicateName
+    def has_options? # rubocop:disable Naming/PredicatePrefix
       true
     end
 
-    def has_custom_form? # rubocop:disable Naming/PredicateName
+    def has_custom_form? # rubocop:disable Naming/PredicatePrefix
       true
     end
 

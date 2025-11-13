@@ -1,4 +1,4 @@
--- \restrict MjcG1RJIpQWm6lAEaIkOlVbbndht0bVybWjmu9DaWafuEWEDmcvpcBjPJtJQ4Dm
+-- \restrict ABDLaAKPjcYk0w0fRjSK4FedzgRrlPa3EmNVIREJU9AG1t2MJ8jTACu4hqnz7vi
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
@@ -4234,11 +4234,12 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict MjcG1RJIpQWm6lAEaIkOlVbbndht0bVybWjmu9DaWafuEWEDmcvpcBjPJtJQ4Dm
+-- \unrestrict ABDLaAKPjcYk0w0fRjSK4FedzgRrlPa3EmNVIREJU9AG1t2MJ8jTACu4hqnz7vi
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251106020333'),
 ('20251016194806'),
 ('20251001174258'),
 ('20250918155525'),
@@ -4579,6 +4580,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20160701172807'),
 ('20160628182622'),
 ('20160616140826'),
-('20160615125048'),
-('20251106020333');
+('20160615125048');
 

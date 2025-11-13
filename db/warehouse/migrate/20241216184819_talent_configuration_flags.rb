@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TalentConfigurationFlags < ActiveRecord::Migration[7.0]
   def change
     add_column :configs, :default_lms_email_to_warehouse_email, :boolean

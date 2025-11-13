@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ReportResultsSummaries::SystemPerformance
   class Fy2019 < Base
     # def report_start

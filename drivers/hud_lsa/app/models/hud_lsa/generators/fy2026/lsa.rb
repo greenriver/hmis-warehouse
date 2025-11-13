@@ -37,11 +37,11 @@ module HudLsa::Generators::Fy2026
     belongs_to :export, class_name: 'GrdaWarehouse::HmisExport', optional: true
 
     scope :lsa, -> do
-      where('options->>\'lsa_scope\' != \'?\' OR options->>\'lsa_scope\' IS NULL', HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
+      where("options->>'lsa_scope' != ? OR options->>'lsa_scope' IS NULL", HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
     end
 
     scope :hic, -> do
-      where('options->>\'lsa_scope\' = \'?\'', HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
+      where("options->>'lsa_scope' = ?", HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
     end
 
     def self.find_report(user)

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
 
   # NOTE, this is a join table where the users are in one database and the entities are in another.  You will usually have to pluck ids to be successful.

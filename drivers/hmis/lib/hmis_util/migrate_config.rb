@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisUtil
   # This utility class can be used for migrating HMIS Configuration between environments. (Staging=>Production, for example.)
   #

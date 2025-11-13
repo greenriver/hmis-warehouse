@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: View model. Refers to PHI related models thru their documents public interfaces.
 # Controls should be implemented there

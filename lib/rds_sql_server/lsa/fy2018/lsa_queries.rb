@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # require_relative 'sql_server_base'
 require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s unless ENV['NO_LSA_RDS'].present?
 module LsaSqlServer

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module VeteransSubPop::Reporting::MonthlyReports
   class Veterans < ::Reporting::MonthlyReports::Base
     def enrollment_scope(start_date:, end_date:)

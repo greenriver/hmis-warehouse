@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvImporter::HmisCsvCleanup
   class ForceValidEnrollmentCoc < Base
     def cleanup!
@@ -17,7 +19,7 @@ module HmisCsvImporter::HmisCsvCleanup
         enrollment.EnrollmentCoC = "#{enrollment.EnrollmentCoC[0..1]}-#{enrollment.EnrollmentCoC[2..4]}" if enrollment.EnrollmentCoC.match?(/^[a-z]{2}[0-9]{3}$/i)
 
         # upcase any that match the format but aren't correctly cased
-        enrollment.EnrollmentCoC.upcase! if enrollment.EnrollmentCoC.match?(/^[a-z]{2}-[0-9]{3}$/i)
+        enrollment.EnrollmentCoC = enrollment.EnrollmentCoC.upcase if enrollment.EnrollmentCoC.match?(/^[a-z]{2}-[0-9]{3}$/i)
 
         # double check the resulting code is valid, blank it if not
         enrollment.EnrollmentCoC = nil if enrollment.EnrollmentCoC.present? && ! ::HudHelper.util.valid_coc?(enrollment.EnrollmentCoC)
