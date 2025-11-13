@@ -58,6 +58,24 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     end
   end
 
+  context 'when API returns "No client found" error' do
+    let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
+
+    before do
+      response = double(
+        'response',
+        error: false,
+        http_status: 200,
+        parsed_body: { 'result' => 'error', 'message' => 'No client found.', 'data' => [] },
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+    end
+
+    it 'raises NoMciUniqueIdError' do
+      expect { aha.fetch_score(client) }.to raise_error(HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError)
+    end
+  end
+
   context 'when client has MCI unique ID' do
     let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
 
