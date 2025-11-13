@@ -62,6 +62,23 @@ Rake::Task['db:schema:dump:reporting'].enhance do
 end
 # End Monkey Patch for pg_dump 17.6
 
+def load_structure_sql(connection_class, filename)
+  config = connection_class.connection_db_config.configuration_hash
+  env = {}
+  password = config[:password]
+  env['PGPASSWORD'] = password if password && !password.empty?
+  command = ['psql', '-v', 'ON_ERROR_STOP=1']
+  host = config[:host]
+  command += ['-h', host] if host && !host.empty?
+  port = config[:port]
+  command += ['-p', port.to_s] if port
+  user = config[:username]
+  command += ['-U', user] if user && !user.empty?
+  command += ['-d', config.fetch(:database)]
+  command += ['-f', Rails.root.join('db', filename).to_s]
+  system(env, *command) || raise("Failed to load #{filename} with psql")
+end
+
 namespace :db do
   namespace :schema do
     desc 'Conditionally load the database schema'
@@ -77,28 +94,28 @@ namespace :db do
       desc 'Conditionally load the database structure (primary)'
       task :primary, [] => [:environment] do |_t, _args|
         ApplicationRecord.load_db_if_empty do
-          ApplicationRecord.connection.execute(File.read('db/structure.sql'))
+          load_structure_sql(ApplicationRecord, 'structure.sql')
         end
       end
 
       desc 'Conditionally load the database structure (warehouse)'
       task :warehouse, [] => [:environment] do |_t, _args|
         GrdaWarehouseBase.load_db_if_empty do
-          GrdaWarehouseBase.connection.execute(File.read('db/warehouse_structure.sql'))
+          load_structure_sql(GrdaWarehouseBase, 'warehouse_structure.sql')
         end
       end
 
       desc 'Conditionally load the database structure (health)'
       task :health, [] => [:environment] do |_t, _args|
         HealthBase.load_db_if_empty do
-          HealthBase.connection.execute(File.read('db/health_structure.sql'))
+          load_structure_sql(HealthBase, 'health_structure.sql')
         end
       end
 
       desc 'Conditionally load the database structure (reporting)'
       task :reporting, [] => [:environment] do |_t, _args|
         ReportingBase.load_db_if_empty do
-          ReportingBase.connection.execute(File.read('db/reporting_structure.sql'))
+          load_structure_sql(ReportingBase, 'reporting_structure.sql')
         end
       end
     end
