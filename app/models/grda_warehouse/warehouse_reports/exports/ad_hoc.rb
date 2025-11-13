@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTES about calculations
 # Where there may be more than one answer for a client, the most-recent enrollment or exit that falls
 # within the chosen date range

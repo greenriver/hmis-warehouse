@@ -25,11 +25,11 @@ module HudLsa::Fy2026
       :zip
     end
 
-    def has_options? # rubocop:disable Naming/PredicateName
+    def has_options? # rubocop:disable Naming/PredicatePrefix
       true
     end
 
-    def has_custom_form? # rubocop:disable Naming/PredicateName
+    def has_custom_form? # rubocop:disable Naming/PredicatePrefix
       true
     end
 

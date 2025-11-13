@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Decision Tree
 # If the HouseholdID is blank, consider it an individual enrollment, ensure RelationshipToHoH is 1
 # If the household only has one person, ensure RelationshipToHoH is 1

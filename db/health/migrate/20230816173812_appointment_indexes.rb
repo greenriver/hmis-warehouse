@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AppointmentIndexes < ActiveRecord::Migration[6.1]
   def change
     StrongMigrations.disable_check(:add_index)

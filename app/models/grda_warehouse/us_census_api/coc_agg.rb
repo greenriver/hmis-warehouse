@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # https://www.census.gov/content/dam/Census/data/developers/api-user-guide/api-guide.pdf
 # https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
 

@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # we might not need this, need specs around outcomes
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   HousingOutcomeFilter = Struct.new(:label, :code, keyword_init: true) do

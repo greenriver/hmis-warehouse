@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # all rows except those matching any filters
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   ExcludeFilter = Struct.new(:label, :filters, keyword_init: true) do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RenameGenderColumns < ActiveRecord::Migration[6.1]
   def change
     StrongMigrations.disable_check(:rename_column)

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class BulkReviewExternalSubmissions < CleanBaseMutation
     argument :external_submission_ids, [ID], required: true

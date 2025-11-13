@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Delete paper trail versions for a model
 # * handle versions for aliases (GrdaWarehouse::Hud::Client and Hmis::Hud::Client)
 # * accounts for different version backing tables

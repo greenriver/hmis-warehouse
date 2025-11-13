@@ -42,13 +42,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     # call the factory outside of expect block to isolate version side effects
     let!(:client) { create :grda_warehouse_hud_client }
 
-    before(:all) do
-      PaperTrail.enabled = true
-      PaperTrail.request.enabled = true
-    end
-    after(:all) do
-      PaperTrail.enabled = false
-      PaperTrail.request.enabled = false
+    around(:example) do |ex|
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        ex.run
+      ensure
+        PaperTrail.request.enabled = false
+      end
     end
 
     it 'tracks versions for committed changes to the correct table' do

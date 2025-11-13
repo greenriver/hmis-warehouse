@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# frozen_string_literal: true
+
 # Runs with
 # Get target_group_name from secrets yaml
 # aws-vault exec $VAULT_PROFILE -- docker compose run --no-deps --entrypoint='' --rm web bundle exec rails runner ./bin/test-bg

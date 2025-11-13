@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class PdfGenerator
   def perform(html:, file_name: 'output', options: {}, pdf_data: nil)
     pdf_data ||= render_pdf(html, options: options)

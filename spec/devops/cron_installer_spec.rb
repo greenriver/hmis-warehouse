@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 require_relative '../../config/deploy/docker/lib/cron_installer'
@@ -63,6 +65,90 @@ RSpec.describe CronInstaller, type: :model do
 
     else
       it 'is not normally tested in CI because setup is too involved' do
+      end
+    end
+  end
+
+  # Regression tests for string mutations during frozen string literal conversion
+  describe '#get_command (string mutations)' do
+    let(:subject) { CronInstaller.new }
+
+    context 'with RAILS_ENV removal (sub!)' do
+      it 'removes RAILS_ENV prefix from command' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app && RAILS_ENV=production bundle exec rake some:task'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'some:task'])
+      end
+
+      it 'handles multiple RAILS_ENV formats' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app && RAILS_ENV=staging bundle exec rake other:task'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'other:task'])
+      end
+
+      it 'handles commands without RAILS_ENV prefix' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app && bundle exec rake clean:task'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'clean:task'])
+      end
+    end
+
+    context 'with whitespace stripping (strip!)' do
+      it 'strips leading and trailing whitespace' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app &&    bundle exec rake task:name   '"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'task:name'])
+      end
+
+      it 'handles commands with only leading whitespace' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app &&     bundle exec rake task:clean'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'task:clean'])
+      end
+
+      it 'handles commands with only trailing whitespace' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app && bundle exec rake task:build     '"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'task:build'])
+      end
+    end
+
+    context 'with both mutations combined' do
+      it 'removes RAILS_ENV and strips whitespace together' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app &&   RAILS_ENV=production   bundle exec rake complex:task   '"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'complex:task'])
+      end
+
+      it 'handles complex commands with multiple components' do
+        line = "0 2 * * * /bin/bash -l -c 'cd /app && RAILS_ENV=staging bundle exec rake grda_warehouse:daily --silent ##interruptable=false##'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['bundle', 'exec', 'rake', 'grda_warehouse:daily', '--silent', '##interruptable=false##'])
+      end
+    end
+
+    context 'edge cases' do
+      it 'handles minimal command structure' do
+        line = "0 * * * * /bin/bash -l -c 'cd /app && rake task'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['rake', 'task'])
+      end
+
+      it 'raises error for invalid cron line without bash command' do
+        line = '0 * * * * invalid_line_format'
+        expect { subject.send(:get_command, line) }.to raise_error('invalid cron line')
+      end
+
+      it 'handles command without && separator by taking full command' do
+        line = "0 * * * * /bin/bash -l -c 'cd /app'"
+        result = subject.send(:get_command, line)
+        expect(result).to eq(['cd', '/app'])
+      end
+
+      it 'handles empty command after && separator' do
+        line = "0 * * * * /bin/bash -l -c 'cd /app &&   '"
+        result = subject.send(:get_command, line)
+        expect(result).to eq([])
       end
     end
   end

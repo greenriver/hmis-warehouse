@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :existing_export, class: 'GrdaWarehouse::Hud::Export' do
     ExportID { '1234' }

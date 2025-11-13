@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthThriveAssessment
   class Assessment < HealthBase
     include Rails.application.routes.url_helpers
@@ -90,10 +92,10 @@ module HealthThriveAssessment
       user&.name || external_name
     end
 
-    enum reporter: {
+    enum :reporter, {
       patient: 10,
       caregiver: 20,
-    }
+    }, prefix: true
 
     def reporter_options
       {
@@ -102,7 +104,7 @@ module HealthThriveAssessment
       }.invert
     end
 
-    enum housing_status: {
+    enum :housing_status, {
       steady: 10,
       at_risk: 20,
       homeless: 30,
@@ -116,11 +118,11 @@ module HealthThriveAssessment
       }.invert
     end
 
-    enum food_insecurity: {
+    enum :food_insecurity, {
       never: 10,
       sometimes: 20,
       often: 30,
-    }, _prefix: true
+    }, prefix: true
 
     def food_insecurity_responses
       {
@@ -130,11 +132,11 @@ module HealthThriveAssessment
       }.invert
     end
 
-    enum food_worries: {
+    enum :food_worries, {
       never: 10,
       sometimes: 20,
       often: 30,
-    }, _prefix: true
+    }, prefix: true
 
     def food_worries_responses
       {

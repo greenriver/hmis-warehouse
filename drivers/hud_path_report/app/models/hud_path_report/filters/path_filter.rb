@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPathReport::Filters
   class PathFilter < ::Filters::HudFilterBase
     def default_project_type_codes

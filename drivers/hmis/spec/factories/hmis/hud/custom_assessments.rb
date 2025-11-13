@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_form_processor, class: 'Hmis::Form::FormProcessor' do
     definition { association :hmis_form_definition }

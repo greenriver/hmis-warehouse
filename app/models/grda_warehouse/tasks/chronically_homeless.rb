@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Figure out who is chronically homeless
 # Our working definition of chronic homelessness is:
 # 1. Currently Homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)

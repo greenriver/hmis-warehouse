@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PublicReports
   class Setting < GrdaWarehouseBase
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY'][0..31]

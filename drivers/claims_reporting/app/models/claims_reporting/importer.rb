@@ -4,10 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Class to handle upsert style inserts from ZIPED CSVs (and potentially other flat file formats
 # into ClaimsReporting::* data tables.
 require 'net/sftp'
 require 'zip'
+
+# support curve25519-sha256
+# verify with bundle exec ruby -r x25519  -r net/ssh -e "p Net::SSH::Transport::Algorithms::ALGORITHMS[:kex]"
+require 'x25519'
 
 module ClaimsReporting
   class Importer

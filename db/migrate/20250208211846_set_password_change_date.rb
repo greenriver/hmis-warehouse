@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetPasswordChangeDate < ActiveRecord::Migration[7.0]
   def up
     # For anyone who hasn't changed their password since we added password_changed_at (password expiration)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :ssm, class: 'Health::SelfSufficiencyMatrixForm' do
     completed_at { Date.current }
