@@ -62,6 +62,8 @@ Rake::Task['db:schema:dump:reporting'].enhance do
 end
 # End Monkey Patch for pg_dump 17.6
 
+# Use postgres directly to load the structure.sql files.  They have gotten too large
+# to load with `db:structure:conditional_load`
 def load_structure_sql(connection_class, filename)
   config = connection_class.connection_db_config.configuration_hash
   env = {}
