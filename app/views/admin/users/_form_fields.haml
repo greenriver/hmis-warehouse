@@ -49,19 +49,21 @@
 
   .col-sm-6
     .form--checkbox-groups
-      %h3 Notifications
+      %h3 System Notifications
       .well
-        %p Which notifications should this user receive?
-        - if ENV['OKTA_DOMAIN'].present?
-          = f.input :notify_on_new_account, label: 'New account creation by an external system'
-        = f.input :receive_file_upload_notifications, label: 'File uploads'
-        - if can_edit_vspdat? # you can only assign this if you can also edit them
-          = f.input :notify_on_vispdat_completed, label: "VI-SPDAT submissions", as: :boolean
-        - if GrdaWarehouse::DataSource.authoritative.exists?
-          = f.input :notify_on_client_added, label: "Authoritative clients added", as: :boolean
-        = f.input :notify_on_anomaly_identified, label: "Anomalies identified"
-        - if GrdaWarehouse::Config.get(:request_account_available)
-          = f.input :receive_account_request_notifications, label: 'Account requests', as: :boolean
+        %p Which system-wide notifications should this user receive?
+        = f.simple_fields_for :system_contact do |sc_form|
+          - @system_alerts.each do |alert|
+            - if alert.show_to?(current_user)
+              = sc_form.input :alert_definition_ids,
+                as: :boolean,
+                label: alert.name,
+                hint: alert.description,
+                input_html: { multiple: true, checked: @user.system_contact&.alert_definition_ids&.include?(alert.id) },
+                checked_value: alert.id,
+                unchecked_value: nil
+    - unless @user.new_record?
+      = render 'contact_relationships'
     .form--expiration
       %h3 Account Life-cycle
       .well

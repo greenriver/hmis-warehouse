@@ -12,6 +12,11 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'Join Households', type: :system do
   include_context 'hmis base setup'
+
+  # consistent time for avoid failures when run across day boundaries
+  before(:each)  { freeze_time }
+  after(:each) { travel_back }
+
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
 
   let!(:c1) { create :hmis_hud_client, data_source: ds1, first_name: 'Apple', last_name: 'Orange' }

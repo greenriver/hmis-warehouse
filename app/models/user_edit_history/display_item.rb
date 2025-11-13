@@ -14,7 +14,7 @@ class UserEditHistory::DisplayItem
   # version is instance of GrPaperTrail::Version
   # users_by_id is preloaded user hash {id => user}
   def initialize(version, users_by_id)
-    raise ArgumentError unless version.is_a?(GrPaperTrail::Version)
+    raise ArgumentError unless version.is_a?(GrPaperTrail::Version) || version.is_a?(GrdaWarehouse::Version)
 
     @version = version
 
@@ -38,7 +38,12 @@ class UserEditHistory::DisplayItem
       @error = true
     end
 
-    @changes = klass.describe_changes(version, changeset) unless @error
+    begin
+      # could fail when loading associated records or processing changes
+      @changes = klass.describe_changes(version, changeset) unless @error
+    rescue StandardError
+      @error = true
+    end
   end
 
   protected

@@ -153,6 +153,18 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
           end.not_to change(Hmis::Ce::Referral, :count)
         end
       end
+
+      context 'if the opportunity lacks a workflow template' do
+        let!(:unit_group) { create :hmis_unit_group, project: project, workflow_template: nil }
+        let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+        let!(:opportunity) { create :hmis_ce_opportunity, project: project, unit_group: unit_group, unit: unit, workflow_template: nil }
+
+        it 'raises an error' do
+          expect do
+            expect_gql_error post_graphql(**variables) { mutation }
+          end.not_to change(Hmis::Ce::Referral, :count)
+        end
+      end
     end
   end
 end
