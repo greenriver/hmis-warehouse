@@ -60,6 +60,12 @@ module HmisExternalApis::AcHmis
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
 
+      # If the API returns "No client found" error, the external system was unable to find the MCI Unique ID.
+      # Raise the same error as if the client had no MCI Unique ID, so the mutation/frontend handle it in the same way.
+      # Note: this is a hotfix for a bug introduced in release-188. IF we need to differentiate between the two cases,
+      # we can add a new error class and adjust end-user messaging.
+      raise NoMciUniqueIdError if result.parsed_body&.dig('message')&.match?(/no client found/i)
+
       data = result.parsed_body&.dig('data')
       raise(Error, "AHA response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
@@ -115,18 +121,11 @@ module HmisExternalApis::AcHmis
       # Check if HTTP status indicates success (200-299 range)
       return result if http_status_successful?(result.http_status)
 
-      # Handle specific case: 404 with "No client found" shouldn't raise, just return no ID
-      return result if client_not_found_response?(result)
-
       raise(Error, "AHA HTTP error: Received non-200 HTTP status: #{result.http_status}")
     end
 
     def http_status_successful?(status)
       status.in?(200..299)
-    end
-
-    def client_not_found_response?(result)
-      result.http_status == 404 && result.parsed_body&.dig('message') == 'No client found.'
     end
   end
 end
