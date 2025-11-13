@@ -64,7 +64,7 @@ module HmisExternalApis::AcHmis
       # Raise the same error as if the client had no MCI Unique ID, so the mutation/frontend handle it in the same way.
       # Note: this is a hotfix for a bug introduced in release-188. IF we need to differentiate between the two cases,
       # we can add a new error class and adjust end-user messaging.
-      raise NoMciUniqueIdError if result.parsed_body&.dig('message')&.match?(/no client found/i)
+      raise NoMciUniqueIdError if client_not_found_response?(result)
 
       data = result.parsed_body&.dig('data')
       raise(Error, "AHA response missing `data` key. Response body: `#{result.parsed_body}`") unless data
@@ -126,6 +126,10 @@ module HmisExternalApis::AcHmis
 
     def http_status_successful?(status)
       status.in?(200..299)
+    end
+
+    def client_not_found_response?(result)
+      result.parsed_body&.dig('message')&.match?(/no client found/i)
     end
   end
 end
