@@ -79,6 +79,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          postgres -c max_locks_per_transaction=1024
         ports:
           - 5432:5432
 
@@ -180,9 +181,6 @@ jobs:
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
-          psql -h postgres -U postgres -c "SHOW max_locks_per_transaction;"
-          psql -h postgres -U postgres -c "ALTER SYSTEM set max_locks_per_transaction = 2048;"
-          psql -h postgres -U postgres -c "SELECT pg_reload_conf();"
           psql -h postgres -U postgres -c "SHOW max_locks_per_transaction;"
           bin/db_prep
 
