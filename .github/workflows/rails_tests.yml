@@ -79,7 +79,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          postgres -c max_locks_per_transaction=1024
         ports:
           - 5432:5432
 
@@ -181,6 +180,15 @@ jobs:
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
+          echo "Current max_locks_per_transaction:"
+          psql -h postgres -U postgres -c "SHOW max_locks_per_transaction;"
+          echo "Attempting to increase max_locks_per_transaction..."
+          docker exec pg_container sh -c "echo 'max_locks_per_transaction = 1024' >> /var/lib/postgresql/data/postgresql.conf"
+          docker exec pg_container su - postgres -c "pg_ctl restart -D /var/lib/postgresql/data -m fast"
+          echo "Waiting for PostgreSQL to restart..."
+          sleep 5
+          pg_isready -h postgres -U postgres
+          echo "Updated max_locks_per_transaction:"
           psql -h postgres -U postgres -c "SHOW max_locks_per_transaction;"
           bin/db_prep
 
