@@ -15,7 +15,12 @@ module Hmis::Ce
       scope = Hmis::Ce::Opportunity.stale.open
 
       # Filter by candidate pools if provided
-      scope = scope.where(candidate_pool_id: candidate_pool_ids) if candidate_pool_ids.present?
+      unless candidate_pool_ids.nil?
+        candidate_pools = Hmis::Ce::Match::CandidatePool.where(id: candidate_pool_ids)
+        raise 'Invalid candidate_pool_ids passed to OpportunityRefresher' unless candidate_pools.size == candidate_pool_ids.size
+
+        scope = scope.where(candidate_pool_id: candidate_pool_ids)
+      end
 
       unit_ids = []
       opportunities_to_create = []
