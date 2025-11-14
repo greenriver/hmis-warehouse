@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5
 Delayed::Worker.max_attempts = 3
-Delayed::Worker.max_run_time = 30.hours
+Delayed::Worker.max_run_time = 48.hours
 
 Delayed::Worker.default_queue_name = 'default_priority'
 Delayed::Worker.read_ahead = 2
