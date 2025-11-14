@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud_spm_report.md
 module HudSpmReport::Fy2026
   class SpmEnrollment < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_enrollments'
@@ -34,7 +35,8 @@ module HudSpmReport::Fy2026
       # SPM only runs on residential projects,
       # residential projects do not receive service on their exit date,
       # exclude exit date
-      where(dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date]), exit_date_included: false)
+      open_condition = dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date], exit_date_included: false)
+      where(open_condition)
     end
 
     # HMIS Standard Reporting Terminology Glossary 2024 active client method 2
@@ -140,6 +142,7 @@ module HudSpmReport::Fy2026
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
+      # check for n+1, collect sequential enrollment records and smooth them somehow?
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
         members = []
         batch.each do |enrollment|
@@ -333,6 +336,33 @@ module HudSpmReport::Fy2026
     private_class_method def self.household(enrollments)
       result = {}
 
+      enrollments.heads_of_households.find_in_batches do |batch|
+        batch.each do |enrollment|
+          hh_id = enrollment.household_id
+          existing = result[hh_id]
+
+          if existing
+            # if this enrollment has no move-in-date, keep existing
+            next if enrollment.move_in_date.nil?
+
+            # if this enrollment move-in date is older, keep existing
+            next if existing.move_in_date.present? && enrollment.move_in_date > existing.move_in_date
+          end
+
+          result[hh_id] = HomelessnessInfo.new(
+            start_of_homelessness: enrollment.date_to_street_essh,
+            entry_date: enrollment.entry_date,
+            move_in_date: enrollment_own_move_in_date(enrollment),
+          )
+        end
+      end
+      result
+    end
+
+    private_class_method def self.household(enrollments)
+      result = {}
+
+      e_t = GrdaWarehouse::Hud::Enrollment.arel_table
       scope = enrollments.heads_of_households.order(e_t[:household_id], e_t[:move_in_date].asc.nulls_last)
       scope.find_in_batches do |batch|
         batch.each do |enrollment|

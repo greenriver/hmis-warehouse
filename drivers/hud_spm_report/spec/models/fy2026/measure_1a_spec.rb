@@ -372,4 +372,22 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
       end
     end
   end
+
+  #describe 'performance optimizations' do
+  #  it 'limits the number of queries for extra calculations' do
+  #    # This test ensures that our memoization strategy is effective.
+  #    # The query count may need adjustment if the report logic or the test data changes,
+  #    # but it should remain in this approximate range. A large increase could
+  #    # indicate a regression in performance (e.g., N+1 queries).
+  #    PerformanceMeasurement::Goal.ensure_default
+  #    report = report_class.new(
+  #      user_id: User.system_user.id
+  #    )
+  #    report.filter = default_filter
+  #    report.save(validate: false)
+  #    report.update_goal_configuration!
+
+  #    expect { report.run_and_save! }.to make_database_queries(count: 60..80)
+  #  end
+  #end
 end

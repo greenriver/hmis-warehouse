@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud_spm_report.md
 module HudSpmReport::Fy2026
   class Return < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_returns'
