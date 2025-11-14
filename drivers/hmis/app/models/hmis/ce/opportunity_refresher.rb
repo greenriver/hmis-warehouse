@@ -13,7 +13,7 @@ module Hmis::Ce
     #   created_opportunity_ids: Array<Integer>,
     # }
     def refresh_stale_opportunities(candidate_pool_ids: nil)
-      scope = Hmis::Ce::Opportunity.stale.active.open
+      scope = Hmis::Ce::Opportunity.stale.open
 
       # Filter by candidate pools if provided
       scope = scope.where(candidate_pool_id: candidate_pool_ids) if candidate_pool_ids.present?
