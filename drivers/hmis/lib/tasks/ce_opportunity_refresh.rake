@@ -24,19 +24,11 @@ task :refresh_stale_opportunities, [:pool_ids] => [:environment] do |_t, args|
 
   result = refresher.refresh_stale_opportunities(candidate_pool_ids: pool_ids)
 
-  puts "✓ Closed #{result[:closed_count]} stale opportunities"
-  if result[:closed_opportunity_unit_ids].any?
-    puts "  Units: #{result[:closed_opportunity_unit_ids].sort.join(', ')}"
-  end
-
-  puts ''
-  puts "✓ Created #{result[:created_count]} fresh opportunities"
-  if result[:created_opportunity_ids].any?
+  if result[:num_refreshed_units] > 0
+    puts "✓ Refreshed #{result[:num_refreshed_units]} stale opportunities"
+    puts "  Units: #{result[:refreshed_unit_ids].sort.join(', ')}"
     puts "  New opportunity IDs: #{result[:created_opportunity_ids].sort.join(', ')}"
-  end
-
-  if result[:closed_count].zero? && result[:skipped_opportunity_ids].empty?
-    puts ''
+  else
     puts 'No stale opportunities found to refresh.'
   end
 

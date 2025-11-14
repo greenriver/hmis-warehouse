@@ -37,9 +37,8 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
     it 'closes stale opportunities and creates fresh ones' do
       result = refresher.refresh_stale_opportunities
 
-      expect(result[:closed_count]).to eq(2)
-      expect(result[:closed_opportunity_unit_ids]).to contain_exactly(unit1.id, unit2.id)
-      expect(result[:created_count]).to eq(2)
+      expect(result[:num_refreshed_units]).to eq(2)
+      expect(result[:refreshed_unit_ids]).to contain_exactly(unit1.id, unit2.id)
 
       expect(opportunity1.reload.status).to eq('closed')
       expect(opportunity2.reload.status).to eq('closed')
@@ -62,8 +61,8 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
     it 'only processes opportunities in candidate pool indicated' do
       result = refresher.refresh_stale_opportunities(candidate_pool_ids: [opportunity1.candidate_pool.id])
 
-      expect(result[:closed_count]).to eq(1)
-      expect(result[:closed_opportunity_unit_ids]).to contain_exactly(unit1.id)
+      expect(result[:num_refreshed_units]).to eq(1)
+      expect(result[:refreshed_unit_ids]).to contain_exactly(unit1.id)
       expect(opportunity1.reload.status).to eq('closed')
       expect(opportunity2.reload.status).to eq('open')
     end
@@ -75,9 +74,8 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
       it 'does not close the stale opportunity that is locked' do
         result = refresher.refresh_stale_opportunities
 
-        expect(result[:closed_count]).to eq(1)
-        expect(result[:closed_opportunity_unit_ids]).to contain_exactly(unit2.id)
-        expect(result[:created_count]).to eq(1)
+        expect(result[:num_refreshed_units]).to eq(1)
+        expect(result[:refreshed_unit_ids]).to contain_exactly(unit2.id)
 
         expect(opportunity1.reload.status).to eq('locked')
         expect(opportunity2.reload.status).to eq('closed')
