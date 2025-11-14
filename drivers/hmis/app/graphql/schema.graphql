@@ -1082,8 +1082,8 @@ type CeReferral {
   Limited details about the source enrollment. Available even without full access to the source record.
   """
   sourceEnrollment: CeReferralSourceEnrollment
-  sourceEnrollmentId: ID!
-  sourceProjectName: String!
+  sourceEnrollmentId: ID
+  sourceProjectName: String
   status: CeReferralStatus!
   steps: [CeReferralStep!]
   swimlanes: [CeReferralSwimlane!]
