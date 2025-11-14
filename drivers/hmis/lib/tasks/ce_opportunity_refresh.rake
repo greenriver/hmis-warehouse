@@ -3,7 +3,8 @@
 # Helper task to close stale CE opportunities and remint fresh ones
 # usage:
 # - rails driver:hmis:refresh_stale_opportunities
-# - passing optional candidate_pool_ids: rails driver:hmis:refresh_stale_opportunities[1,2,3]
+# - passing optional candidate_pool_ids: rails 'driver:hmis:refresh_stale_opportunities[1\,2\,3]'
+# Note: need to backslash-escape commas to prevent rake from parsing them as separate args
 desc 'Close stale CE opportunities and create fresh ones with updated rules'
 task :refresh_stale_opportunities, [:pool_ids] => [:environment] do |_t, args|
   raise 'CE is not enabled' unless Hmis::Ce.configuration.enabled?
