@@ -166,7 +166,7 @@ class Hmis::Unit < Hmis::HmisBase
   def build_ce_opportunity(rule_resolver: Hmis::Ce::Match::UnitGroupRuleResolver.new)
     raise 'Unit already has an active opportunity' if latest_opportunity&.active?
     raise 'Unit must be in a Unit Group to build CE opportunity' unless unit_group
-    raise 'Unit Group has no Workflow Template' unless unit_group.workflow_template || unit_group.direct_referral_workflow_template
+    raise 'Unit Group has no Workflow Template' unless unit_group.any_workflow_template?
 
     unit_desc = unit_type&.description
     opportunity_name = "Unit #{id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
