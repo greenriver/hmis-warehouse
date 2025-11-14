@@ -13,6 +13,19 @@ require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 RSpec.shared_context 'DQ Tool test setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
 
+  # Clean up DQ Tool data before each test to prevent test pollution
+  before do
+    HmisDataQualityTool::Inventory.destroy_all
+    HmisDataQualityTool::Client.destroy_all
+    HmisDataQualityTool::Enrollment.destroy_all
+    HmisDataQualityTool::CurrentLivingSituation.destroy_all
+    HmisDataQualityTool::Report.destroy_all
+
+    setup_access_control(user_with_client_access, report_role, data_sources_collection)
+    # Clear user permission cache to ensure changes take effect
+    user.clear_memery_cache!
+  end
+
   # Ensure data sources are created (they're defined in HUD enrollment builders, but ensure they exist)
   let!(:destination_data_source) { create :destination_data_source }
   let!(:data_source) { create(:source_data_source) }
@@ -30,12 +43,6 @@ RSpec.shared_context 'DQ Tool test setup', shared_context: :metadata do
            can_search_own_clients: true)
   end
   let(:data_sources_collection) { Collection.system_collection(:data_sources) }
-  # Ensure user has the report role before filters are created
-  before do
-    setup_access_control(user_with_client_access, report_role, data_sources_collection)
-    # Clear user permission cache to ensure changes take effect
-    # user.clear_memery_cache!
-  end
 
   let(:default_filter) do
     Filters::HudFilterBase.new(
