@@ -37,9 +37,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag matching bed counts' do
-          result = @report.results.find { |r| r.title == 'Sum of Dedicated Beds does not Equal Total Beds' }
-          expect(result).to be_present
-          expect(result.invalid_count).to eq(0)
+          expect_result(title: 'Sum of Dedicated Beds does not Equal Total Beds')
         end
       end
 
@@ -52,22 +50,20 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             data_source: data_source,
             inventory_start_date: '2022-10-01'.to_date,
             inventory_end_date: '2023-09-30'.to_date,
-            bed_inventory: 10,
+            bed_inventory: 100, # Sum: 2+1+1+1+2+2+0 = 9, doesn't match 100
             ch_vet_bed_inventory: 2,
             youth_vet_bed_inventory: 1,
             vet_bed_inventory: 1,
             ch_youth_bed_inventory: 1,
             youth_bed_inventory: 2,
             ch_bed_inventory: 2,
-            other_bed_inventory: 0, # Sum: 2+1+1+1+2+2+0 = 9, doesn't match 10
+            other_bed_inventory: 0,
           )
           @report = setup_report([@project.id])
         end
 
         it 'flags mismatched bed counts' do
-          result = @report.results.find { |r| r.title == 'Sum of Dedicated Beds does not Equal Total Beds' }
-          expect(result).to be_present
-          expect(result.invalid_count).to eq(1)
+          expect_result(title: 'Sum of Dedicated Beds does not Equal Total Beds', invalid_count: 1)
         end
       end
 
@@ -93,9 +89,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag zero beds' do
-          result = @report.results.find { |r| r.title == 'Sum of Dedicated Beds does not Equal Total Beds' }
-          expect(result).to be_present
-          expect(result.invalid_count).to eq(0)
+          expect_result(title: 'Sum of Dedicated Beds does not Equal Total Beds')
         end
       end
     end
