@@ -176,6 +176,12 @@ class Hmis::Unit < Hmis::HmisBase
     opportunities.build(
       project: project,
       name: opportunity_name,
+      # The unit group may or may not have a candidate_pool_id.
+      # - Unit groups in projects supporting waitlist-based referrals will have an associated candidate pool, once processing has run.
+      #   This includes unit groups that *don't* support waitlist-based referrals because they only have a Direct Referral Workflow Template.
+      # - Unit groups in projects only supporting direct referrals typically do not have an associated candidate pool,
+      #   but they may have one left over if they used to support waitlists.
+      # TODO(#8555) - update comment if this behavior changes
       candidate_pool_id: unit_group.candidate_pool_id,
       assignment_rules: rules.map(&:attributes),
     )
