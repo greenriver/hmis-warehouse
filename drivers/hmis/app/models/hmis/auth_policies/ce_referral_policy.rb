@@ -39,6 +39,8 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
   def can_view_summary?
     return false unless Hmis::Ce.configuration.enabled?
 
+    return true if can_view?
+
     # Users who can manage outgoing referrals from the source project
     return true if source_project_permissions.include?(:can_manage_outgoing_referrals)
 
