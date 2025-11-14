@@ -173,8 +173,7 @@ class Hmis::Unit < Hmis::HmisBase
 
     rules = rule_resolver.rules_for_unit_group(unit_group)
 
-    Hmis::Ce::Opportunity.new(
-      unit: self,
+    opportunities.build(
       project: project,
       name: opportunity_name,
       candidate_pool_id: unit_group.candidate_pool_id,
