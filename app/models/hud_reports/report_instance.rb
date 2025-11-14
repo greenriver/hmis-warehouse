@@ -188,7 +188,8 @@ module HudReports
     # @param question [String] the question name (e.g., 'Q1')
     # @return [ReportCell] the universe cell
     def universe(question)
-      universe_scope(question).first_or_create
+      @universe_cache ||= {}
+      @universe_cache[question] ||= universe_scope(question).first_or_create
     end
 
     # DANGER. This deletes the reports data without changing its state.
