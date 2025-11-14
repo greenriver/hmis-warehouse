@@ -269,9 +269,11 @@ module Types
     end
 
     def source_ce_referral
-      # Skip checking permission here, because the current user can view the referral's target enrollment (this object),
-      # so we know they have at least can_view_summary? on the referral.
-      load_ar_association(object, :source_ce_referral)
+      source_referral = load_ar_association(object, :source_ce_referral)
+      return unless source_referral # enrollment did not originate from a ce referral
+
+      policy = current_user.policy_for(source_referral, policy_type: :ce_referral)
+      source_referral if policy.can_view_summary?
     end
 
     # N+1, not performant for queries on collections
