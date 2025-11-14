@@ -44,7 +44,7 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
     # Users who can manage outgoing referrals from the source project
     return true if source_project_permissions.include?(:can_manage_outgoing_referrals)
 
-    # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project.
+    # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project, which is validated on the referral
     # TODO(8549) - encapsulate this check requiring both can_view_enrollment_details and can_view_project in the Enrollment Policy
     return true if referral.target_enrollment_id.present? && project_permissions.include?(:can_view_enrollment_details) && project_permissions.include?(:can_view_project)
 
