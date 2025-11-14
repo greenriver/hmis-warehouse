@@ -217,6 +217,7 @@ module Types
 
       # Resolve source Enrollment without checking viewable_by.This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment
       enrollment = load_ar_association(object, :source_enrollment)
+      return unless enrollment # May be missing if source enrollment was deleted and reference was not cleaned up
 
       # Not passing definition_identifiers because we don't need to resolve assessment data in this context (for now)
       OpenStruct.new(enrollment: enrollment, definition_identifiers: [])
