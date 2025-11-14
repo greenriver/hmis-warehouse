@@ -227,6 +227,8 @@ module Types
       return unless object.source_enrollment_id
 
       enrollment = load_ar_association(object, :source_enrollment)
+      return unless enrollment
+
       project = load_ar_association(enrollment, :project)
       project&.name
     end
