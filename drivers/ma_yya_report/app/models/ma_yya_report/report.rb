@@ -64,7 +64,7 @@ module MaYyaReport
       end.map { |client| client[:client_id] }
     end
 
-    private def filter
+    def filter
       @filter ||= ::Filters::FilterBase.new(
         user_id: user_id,
         enforce_one_year_range: false,

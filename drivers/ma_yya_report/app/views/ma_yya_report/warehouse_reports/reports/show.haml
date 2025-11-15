@@ -1,8 +1,13 @@
 = content_for :crumbs do
   = link_to ma_yya_report_warehouse_reports_reports_path do
     = "« MA YYA Reports"
-%h1.mb-5
-  MA YYA Report
+.d-flex.mb-5
+  %h1.mb-0
+    MA YYA Report
+  .ml-auto
+    = link_to ma_yya_report_warehouse_reports_report_path(@report, format: :xlsx), class: 'btn btn-secondary' do
+      %i.icon-download2
+      Download Excel
 
 .warehouse-reports__completed
   .d-flex

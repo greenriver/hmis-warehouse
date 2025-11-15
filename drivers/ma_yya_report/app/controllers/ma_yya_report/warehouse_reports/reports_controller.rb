@@ -39,6 +39,13 @@ module MaYyaReport::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          filename = "#{@report.title} - #{Time.current.to_fs(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def destroy
