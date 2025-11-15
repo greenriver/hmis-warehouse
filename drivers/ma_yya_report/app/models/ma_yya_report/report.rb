@@ -34,6 +34,152 @@ module MaYyaReport
       ma_yya_report_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
+    DETAIL_BASE_COLUMNS = [:first_name, :last_name, :client_id, :entry_date, :age].freeze
+    DETAIL_MEMBER_COLUMNS = [:first_name, :last_name].freeze
+    DETAIL_COLUMN_GROUPS = {
+      default: [],
+      street_outreach: [
+        :enrolled_in_street_outreach,
+        :currently_homeless,
+        :at_risk_of_homelessness,
+        :referral_source,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      initial_contact: [
+        :initial_contact,
+        :currently_homeless,
+        :at_risk_of_homelessness,
+        :referral_source,
+        :enrolled_in_street_outreach,
+        :project_type_at_entry,
+        :entry_current_living_situation_code,
+        :previous_universe_entry_date,
+        :previous_universe_project_type,
+        :homeless_enrollment_project_type,
+      ],
+      prevention_case_management: [
+        :at_risk_of_homelessness,
+        :latest_non_homeless_cls_in_range,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      rehousing_case_management: [
+        :currently_homeless,
+        :latest_homeless_cls_in_range,
+        :latest_homeless_cls_in_range_code,
+        :homeless_enrollment_started_prior_to_range,
+        :homeless_enrollment_started_during_range,
+        :homeless_enrollment_project_type_during_range,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      core_totals: [
+        :currently_homeless,
+        :at_risk_of_homelessness,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+        :homelessness_basis,
+      ],
+      demographics_age_gender: [:gender],
+      demographics_race_language: [:race, :ethnicity, :language],
+      demographics_disability: [:mental_health_disorder, :substance_use_disorder, :physical_disability, :developmental_disability],
+      demographics_other: [
+        :pregnant,
+        :due_date,
+        :household_ages,
+        :sexual_orientation,
+        :current_school_attendance,
+        :current_educational_status,
+        :most_recent_education_status,
+        :education_status_date,
+        :health_insurance,
+        :employed,
+        :former_foster_ward,
+        :former_juvenile_justice_ward,
+        :voluntary_dcf_service,
+        :voluntary_dys_yes_service,
+        :exchange_for_sex,
+      ],
+      demographics_lgbtq: [:sexual_orientation, :gender],
+      outcomes_prevention: [
+        :first_prevention_date,
+        :first_prevention_date_in_last_year,
+        :latest_homeless_entry_date,
+        :latest_homeless_cls,
+        :latest_homeless_cls_code,
+        :homelessness_basis,
+      ],
+      outcomes_rehousing: [
+        :first_homeless_date,
+        :first_homeless_date_in_last_year,
+        :permanent_exit_date,
+        :latest_homeless_entry_date,
+        :homelessness_basis,
+      ],
+    }.freeze
+
+    DETAIL_SUBSECTION_GROUPS = {
+      'A1' => :street_outreach,
+      'A2' => :initial_contact,
+      'A3' => :prevention_case_management,
+      'A4' => :rehousing_case_management,
+      'A_Total' => :core_totals,
+      'D1' => :demographics_age_gender,
+      'D2' => :demographics_race_language,
+      'D3' => :demographics_disability,
+      'D4' => :demographics_other,
+      'E1' => :demographics_age_gender,
+      'E2' => :demographics_race_language,
+      'E3' => :demographics_disability,
+      'E4' => :demographics_other,
+      'F1' => :outcomes_prevention,
+      'F2' => :outcomes_rehousing,
+      'G1' => :demographics_age_gender,
+      'G2' => :demographics_race_language,
+      'G3' => :demographics_lgbtq,
+      'H1' => :demographics_age_gender,
+      'H2' => :demographics_race_language,
+      'H3' => :demographics_lgbtq,
+    }.freeze
+
+    DETAIL_CELL_OVERRIDES = {
+      F2d: [:zip_codes],
+    }.freeze
+
+    PROJECT_TYPE_COLUMNS = [
+      :project_type_at_entry,
+      :homeless_enrollment_project_type,
+      :previous_universe_project_type,
+      :homeless_enrollment_project_type_during_range,
+    ].freeze
+
+    CURRENT_LIVING_SITUATION_COLUMNS = [
+      :entry_current_living_situation_code,
+      :latest_homeless_cls_code,
+      :latest_homeless_cls_in_range_code,
+    ].freeze
+
+    def detail_columns_for(cell_name)
+      cell = cell_name.to_sym
+      columns = DETAIL_BASE_COLUMNS.dup
+      columns.concat(DETAIL_COLUMN_GROUPS.fetch(detail_column_group_for(cell), []))
+      columns.concat(DETAIL_CELL_OVERRIDES.fetch(cell, []))
+      columns.uniq
+    end
+
+    def detail_header_for(column)
+      column.to_s.humanize
+    end
+
+    def member_level_column?(column)
+      DETAIL_MEMBER_COLUMNS.include?(column.to_sym)
+    end
+
     private def create_universe
       previous_period_filter = filter.deep_dup
       previous_period_filter.end = filter.start - 1.day
@@ -718,6 +864,19 @@ module MaYyaReport
       end.to_h
     end
 
+    private def detail_column_group_for(cell_name)
+      subsection_key = cell_to_subsection[cell_name]
+      DETAIL_SUBSECTION_GROUPS.fetch(subsection_key, :default)
+    end
+
+    private def cell_to_subsection
+      @cell_to_subsection ||= nested_cell_definitions.flat_map do |_, section|
+        section[:subsections].flat_map do |subsection_key, subsection|
+          subsection[:cells].keys.map { |cell_key| [cell_key, subsection_key] }
+        end
+      end.to_h
+    end
+
     def cell(cell_name)
       report_cells.find_by(name: cell_name)
     end
@@ -731,8 +890,25 @@ module MaYyaReport
     end
 
     def format_value(value, key)
-      return HudHelper.util.gender(value) if key == 'gender'
-      return format_race(value) if key == 'race'
+      column = key.to_sym
+
+      return format_lookup_value(value) { HudHelper.util.current_living_situation(value) } if CURRENT_LIVING_SITUATION_COLUMNS.include?(column)
+
+      return format_lookup_value(value) { HudHelper.util.project_type(value) } if PROJECT_TYPE_COLUMNS.include?(column)
+
+      case column
+      when :referral_source
+        return format_lookup_value(value) { HudHelper.util.referral_source(value) }
+      when :sexual_orientation
+        return format_lookup_value(value) { HudHelper.util.sexual_orientation(value) }
+      when :current_school_attendance
+        return format_lookup_value(value) { HudHelper.util.current_school_attended(value) }
+      when :most_recent_education_status
+        return format_lookup_value(value) { HudHelper.util.most_recent_ed_status(value) }
+      end
+
+      return HudHelper.util.gender(value) if column == :gender
+      return format_race(value) if column == :race
 
       case value
       when Array
@@ -753,6 +929,15 @@ module MaYyaReport
       elsif value.in?(HudHelper.util.race_nones.keys)
         return HudHelper.util.race_none(value)
       end
+
+      value
+    end
+
+    private def format_lookup_value(value)
+      return value if value.nil?
+
+      label = yield
+      return "#{label} (#{value})" if label.present?
 
       value
     end

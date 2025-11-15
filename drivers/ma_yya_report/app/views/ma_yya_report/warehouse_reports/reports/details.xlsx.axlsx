@@ -2,8 +2,7 @@ wb = xlsx_package.workbook
 
 wb.add_worksheet(name: @cell.slice(0, 30).gsub(/[^a-zA-Z0-9]/, ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at', 'ethnicity']
-  headers = (['first_name', 'last_name'] + attributes).map(&:humanize)
+  headers = @detail_columns.map { |column| @report.detail_header_for(column) }
   sheet.add_row(headers, style: title)
   current_user.policy_context.preload_project_dependencies(@members.flat_map { |m| m.universe_membership.service_history_enrollment.project_id }.uniq)
   @members.each do |member|
@@ -12,13 +11,22 @@ wb.add_worksheet(name: @cell.slice(0, 30).gsub(/[^a-zA-Z0-9]/, ' ')) do |sheet|
     next unless project
 
     pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :download)
-    row = [
-      client.display_value(header: :first_name, value: member[:first_name], pii_policy: pii_policy),
-      client.display_value(header: :last_name, value: member[:last_name], pii_policy: pii_policy),
-    ]
-
-    attributes.each do |k|
-      row << client.display_value(header: k, value: client[k], pii_policy: pii_policy)
+    row = []
+    @detail_columns.each do |column|
+      case column
+      when :first_name
+        row << client.display_value(header: :first_name, value: member[:first_name], pii_policy: pii_policy)
+      when :last_name
+        row << client.display_value(header: :last_name, value: member[:last_name], pii_policy: pii_policy)
+      when :client_id
+        row << client.display_value(header: :client_id, value: client[:client_id], pii_policy: pii_policy)
+      else
+        if @report.member_level_column?(column)
+          row << client.display_value(header: column, value: client[column], pii_policy: pii_policy)
+        else
+          row << @report.format_value(client[column], column.to_s)
+        end
+      end
     end
     sheet.add_row(row)
   end

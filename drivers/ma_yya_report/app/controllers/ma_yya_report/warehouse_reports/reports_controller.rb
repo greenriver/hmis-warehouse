@@ -62,6 +62,7 @@ module MaYyaReport::WarehouseReports
       @cell = "#{@cell}: #{text}" if text.present?
 
       @members = @report.cell(params[:cell]).members.preload(universe_membership: { service_history_enrollment: [:project] })
+      @detail_columns = @report.detail_columns_for(cell)
 
       respond_to do |format|
         format.html {}

@@ -20,9 +20,8 @@
   %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
     %thead.table-dark
       %tr
-        - attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at', 'ethnicity', 'service_history_enrollment_id', 'enrollment_id', 'report_id']
-        - (['first_name', 'last_name'] + attributes).each do |name|
-          %th= name.humanize
+        - @detail_columns.each do |column|
+          %th= @report.detail_header_for(column)
     %tbody
       - @members.each do |member|
         - client = member.universe_membership
@@ -31,14 +30,18 @@
 
         - pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :browse)
         %tr
-          %td= client.display_value(header: :first_name, value: member[:first_name], pii_policy: pii_policy)
-          %td= client.display_value(header: :last_name, value: member[:last_name], pii_policy: pii_policy)
-          - client_details = member.universe_membership
-          - attributes.each do |attribute|
-            - if attribute == 'client_id'
-              %td= link_to client.display_value(header: attribute, value: client_details[attribute], pii_policy: pii_policy), client_path(client_details[attribute]), target: '_blank'
+          - @detail_columns.each do |column|
+            - case column
+            - when :first_name
+              %td= client.display_value(header: :first_name, value: member[:first_name], pii_policy: pii_policy)
+            - when :last_name
+              %td= client.display_value(header: :last_name, value: member[:last_name], pii_policy: pii_policy)
+            - when :client_id
+              - client_id_value = client[:client_id]
+              - display_value = client.display_value(header: :client_id, value: client_id_value, pii_policy: pii_policy)
+              %td= link_to display_value, client_path(client_id_value), target: '_blank'
             - else
-              %td= @report.format_value(client_details[attribute], attribute)
+              %td= @report.format_value(client[column], column.to_s)
 
 = content_for :page_js do
   :javascript
