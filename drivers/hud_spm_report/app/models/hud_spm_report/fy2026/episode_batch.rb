@@ -14,7 +14,7 @@ module HudSpmReport::Fy2026
       @excluded_project_types = excluded_project_types
       @include_self_reported_and_ph = include_self_reported_and_ph
       @report = report
-      @filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options) # loading a user does a DB lookup, so avoid it
+      @filter = ::Filters::HudFilterBase.new(user: report.user).update(report.options) # loading a user does a DB lookup, so avoid it
     end
 
     def calculate_batch(client_ids)
@@ -41,14 +41,24 @@ module HudSpmReport::Fy2026
       # Services are really expensive to preload, for unknown reasons, however, the overall set of information we need is fairly small
       enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, :enrollment).group_by(&:client_id)
       batch_personal_ids = enrollments_for_clients.values.flatten.map(&:personal_id).uniq
-      # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
-      # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
-      batch_services = GrdaWarehouse::Hud::Service.bed_night.
-        between(start_date: nil, end_date: @filter.end). # We don't need anything after the report end date, but may need services before the start date
-        where(PersonalID: batch_personal_ids). # impose some basic limit so we don't load the entire set of services
-        pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).
-        group_by { |r| r.shift(3) }.
-        transform_values(&:flatten)
+      service_start_date = @filter.start.present? ? (@filter.start - 365.days) : nil
+      service_start_date ||= @filter.start
+      service_start_date ||= @filter.end
+      enrollment_key_whitelist = enrollments_for_clients.values.flatten.each_with_object(Set.new) do |enrollment, memo|
+        memo.add([enrollment.enrollment.EnrollmentID, enrollment.personal_id, enrollment.data_source_id])
+      end
+      data_source_ids = enrollments_for_clients.values.flatten.map(&:data_source_id).uniq
+      service_scope = GrdaWarehouse::Hud::Service.bed_night.
+        between(start_date: service_start_date || @filter.start, end_date: @filter.end).
+        where(PersonalID: batch_personal_ids)
+      service_scope = service_scope.where(data_source_id: data_source_ids) if data_source_ids.present?
+      batch_services = Hash.new { |h, k| h[k] = [] }
+      service_scope.pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).each do |enrollment_id, personal_id, data_source_id, date_provided|
+        key = [enrollment_id, personal_id, data_source_id]
+        next unless enrollment_key_whitelist.include?(key)
+
+        batch_services[key] << date_provided
+      end
 
       episodes = []
       bed_nights_per_episode = []

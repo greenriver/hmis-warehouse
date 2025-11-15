@@ -17,7 +17,7 @@ module HudSpmReport::Adapters
 
     def initialize(report_instance)
       spm_project_types = HudHelper.util.spm_project_type_numbers
-      @filter = Filters::HudFilterBase.new(user_id: report_instance.user.id, relevant_project_types: spm_project_types).update(report_instance.options)
+      @filter = Filters::HudFilterBase.new(user: report_instance.user, relevant_project_types: spm_project_types).update(report_instance.options)
       # Enforce the spm project types in addition to chosen project ids
       @project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: spm_project_types, id: report_instance.project_ids).pluck(:id)
     end

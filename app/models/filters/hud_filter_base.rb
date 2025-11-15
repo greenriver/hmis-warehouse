@@ -16,6 +16,12 @@ module Filters
     # Provide a mechanism to limit relevant project types
     attribute :relevant_project_types, Array, default: []
 
+    def initialize(user: nil, **opts)
+      super(**opts)
+      @user = user if user
+      self.user_id = user.id if user
+    end
+
     def params_for_display
       params = known_params.flat_map do |k|
         if k.is_a?(Hash)
@@ -30,6 +36,8 @@ module Filters
 
     # NOTE: This differs from the base filter class because it doesn't include any projects based on CoCCode
     def effective_project_ids
+      return @effective_project_ids if defined?(@effective_project_ids)
+
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups
       @effective_project_ids += effective_project_ids_from_organizations

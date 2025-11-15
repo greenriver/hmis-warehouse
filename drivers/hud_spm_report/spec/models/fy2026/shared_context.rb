@@ -14,7 +14,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
   let(:default_filter) do
     Filters::HudFilterBase.new(
-      user_id: user.id,
+      user: user,
       start: '2022-10-01'.to_date,
       end: '2023-09-30'.to_date,
       coc_codes: ['MA-500'],

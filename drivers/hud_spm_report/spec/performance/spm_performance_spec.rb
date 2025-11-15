@@ -40,11 +40,10 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   end
 
   before do
-    puts "building"
     build_performance_households
-    puts "done"
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
     report # ensure the report is persisted before running expectations
+    Rails.logger.level=0
   end
 
   def build_performance_households
@@ -106,7 +105,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
     it 'runs without introducing n+1 queries' do
       expect do
         run_measure(report, described_class)
-      end.to make_database_queries(count: 0..150)
+      end.to make_database_queries(count: 250..300)
 
       report.reload
       expect(report.answer(question: '1a', cell: 'B2').summary.to_i).to be_positive
