@@ -56,6 +56,7 @@ module MaYyaReport::WarehouseReports
 
     def details
       cell = params[:cell].to_sym
+      @cell_key = cell
       @cell = @report.label(cell)
 
       text = @report.cell_label(cell)

@@ -25,6 +25,7 @@
       - last_section = nil
       - last_subsection = nil
       - @report.labels.each do |label|
+        - description = @report.detail_description(label)
         - section = label.to_s[0]
         - subsection = label.to_s[0..1]
         - if section != last_section
@@ -39,7 +40,7 @@
             - subsection_label = @report.subsection_label(subsection)
             %td{rowspan: "#{@report.row_count(subsection)}", width: '20%'}
               %i= subsection_label[:text]
-            = render 'row_contents', label: label
+            = render 'row_contents', label: label, description: description
         - else
           %tr
-            = render 'row_contents', label: label
+            = render 'row_contents', label: label, description: description

@@ -4,6 +4,9 @@
 
 %h1.mb-5
   = @cell
+- description = @report.detail_description(@cell_key)
+- if description.present?
+  %p.text-muted= description
 
 .d-flex.mb-4
   .mr-4

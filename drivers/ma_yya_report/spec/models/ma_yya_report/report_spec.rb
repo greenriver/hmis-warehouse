@@ -430,4 +430,18 @@ RSpec.describe MaYyaReport::Report do
       expect(report.format_value(value, 'most_recent_education_status')).to eq("#{label} (#{value})")
     end
   end
+
+  describe '#detail_description' do
+    it 'returns a cell specific description when provided' do
+      expect(report.detail_description(:A1a)).to include('Street Outreach contacts')
+    end
+
+    it 'falls back to subsection description when cell specific text is missing' do
+      expect(report.detail_description(:D1a)).to include('Prevention total')
+    end
+
+    it 'returns nil when no description exists' do
+      expect(report.detail_description(:NonexistentCell)).to be_nil
+    end
+  end
 end
