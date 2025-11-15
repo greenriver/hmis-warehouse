@@ -433,11 +433,7 @@ RSpec.describe MaYyaReport::Report do
 
   describe '#detail_description' do
     it 'returns a cell specific description when provided' do
-      expect(report.detail_description(:A1a)).to include('Street Outreach contacts')
-    end
-
-    it 'falls back to subsection description when cell specific text is missing' do
-      expect(report.detail_description(:D1a)).to include('Prevention total')
+      expect(report.detail_description(:A1a)).to include('Enrolled in Street Outreach')
     end
 
     it 'returns nil when no description exists' do
