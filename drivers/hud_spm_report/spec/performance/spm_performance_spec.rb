@@ -83,10 +83,12 @@ RSpec.shared_examples 'SPM measure performance check' do
   end
 
   it 'runs within the expected query budget and persists answers' do
-    expect do
-      run_measure(report, measure_class)
-    end.to make_database_queries(count: query_range)
-      .and perform_under(timing_ms).ms.sample(1).times.warmup(0)
+    aggregate_failures 'performance' do
+      expect do
+        run_measure(report, measure_class)
+      end.to make_database_queries(count: query_range).
+        and perform_under(timing_ms).ms.sample(1).times.warmup(0)
+    end
 
     expect(report.report_cells.where(question: measure_class.question_number)).to exist
   end
@@ -95,13 +97,20 @@ end
 RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model do
   include_context 'SPM performance dataset'
 
-  let(:question_names) { ['Measure 1'] }
+  let(:question_names) do
+    ['Measure 1', 'Measure 2', 'Measure 3', 'Measure 4', 'Measure 5', 'Measure 6', 'Measure 7', 'HDX Upload']
+  end
+  let(:query_range) { 45..55 }
+  let(:timing_ms) { 30 * 1000 }
 
   describe '.create_enrollment_set' do
     it 'executes a bounded number of queries for large households' do
-      expect do
-        described_class.create_enrollment_set(report)
-      end.to make_database_queries(count: 45..55)
+      aggregate_failures 'performance' do
+        expect do
+          described_class.create_enrollment_set(report)
+        end.to make_database_queries(count: query_range).
+          and perform_under(timing_ms).ms.sample(1).times.warmup(0)
+      end
 
       expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
     end
@@ -190,7 +199,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model do
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 1230..1250}
+  let(:query_range) { 1230..1250 }
   let(:timing_ms) { 30 * 1000 }
 
   include_examples 'SPM measure performance check'
