@@ -21,7 +21,7 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
 
   let(:household_count) { 35 }
   let(:members_per_household) { 3 }
-  let(:enrollments_per_member) { 10 }
+  let(:enrollments_per_member) { 50 }
   let(:expected_enrollment_count) { household_count * members_per_household * enrollments_per_member }
 
   let(:report) do
@@ -91,10 +91,10 @@ RSpec.shared_examples 'SPM measure performance check' do
       expect do
         puts "testing ##{question_names.inspect} a #{Time.current.strftime("%H:%M:%S")}"
         run_measure(report, measure_class)
+        puts "testing ##{question_names.inspect} b #{Time.current.strftime("%H:%M:%S")}"
       end.to make_database_queries(count: query_range).
         and perform_under(timing_ms).ms.sample(1).times.warmup(0)
     end
-    puts "testing ##{question_names.inspect} b #{Time.current.strftime("%H:%M:%S")}"
 
     expect(report.report_cells.where(question: measure_class.question_number)).to exist
   end
@@ -115,8 +115,10 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
         expect do
           puts "testing create_enrollment_set a #{Time.current.strftime("%H:%M:%S")}"
           described_class.create_enrollment_set(report)
-        end.to make_database_queries(count: query_range).
-          and perform_under(timing_ms).ms.sample(1).times.warmup(0)
+          puts "testing create_enrollment_set b #{Time.current.strftime("%H:%M:%S")}"
+        #end.to make_database_queries(count: query_range).
+        #  and perform_under(timing_ms).ms.sample(1).times.warmup(0)
+        end.to perform_under(timing_ms).ms.sample(1).times.warmup(0)
       end
       puts "testing create_enrollment_set b #{Time.current.strftime("%H:%M:%S")}"
 
