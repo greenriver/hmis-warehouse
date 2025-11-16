@@ -143,6 +143,7 @@ module HudSpmReport::Fy2026
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
       # check for n+1, collect sequential enrollment records and smooth them somehow?
+      puts "create_enrollment_set a #{Time.current.strftime("%H:%M:%S")}"
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
         members = []
         batch.each do |enrollment|

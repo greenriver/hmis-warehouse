@@ -39,10 +39,14 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   end
 
   before do
+    puts "testing before a #{Time.current.strftime("%H:%M:%S")}"
     build_performance_households
+    puts "testing before b #{Time.current.strftime("%H:%M:%S")}"
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+    puts "testing before c #{Time.current.strftime("%H:%M:%S")}"
     report
-    Rails.logger.level = 0
+    puts "testing before d #{Time.current.strftime("%H:%M:%S")}"
+    # Rails.logger.level = 0
   end
 
   def build_performance_households
@@ -85,16 +89,18 @@ RSpec.shared_examples 'SPM measure performance check' do
   it 'runs within the expected query budget and persists answers' do
     aggregate_failures 'performance' do
       expect do
+        puts "testing ##{question_names.inspect} a #{Time.current.strftime("%H:%M:%S")}"
         run_measure(report, measure_class)
       end.to make_database_queries(count: query_range).
         and perform_under(timing_ms).ms.sample(1).times.warmup(0)
     end
+    puts "testing ##{question_names.inspect} b #{Time.current.strftime("%H:%M:%S")}"
 
     expect(report.report_cells.where(question: measure_class.question_number)).to exist
   end
 end
 
-RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model do
+RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:question_names) do
@@ -107,17 +113,19 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model do
     it 'executes a bounded number of queries for large households' do
       aggregate_failures 'performance' do
         expect do
+          puts "testing create_enrollment_set a #{Time.current.strftime("%H:%M:%S")}"
           described_class.create_enrollment_set(report)
         end.to make_database_queries(count: query_range).
           and perform_under(timing_ms).ms.sample(1).times.warmup(0)
       end
+      puts "testing create_enrollment_set b #{Time.current.strftime("%H:%M:%S")}"
 
       expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
     end
   end
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -128,7 +136,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -139,7 +147,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureThree, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureThree, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -150,7 +158,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureThree, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFour, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFour, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -161,7 +169,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFour, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFive, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFive, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -172,7 +180,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFive, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSix, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSix, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -183,7 +191,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSix, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSeven, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSeven, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
@@ -194,7 +202,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSeven, type: :model do
   include_examples 'SPM measure performance check'
 end
 
-RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
 
   let(:measure_class) { described_class }
