@@ -147,14 +147,22 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def create_universe(table_name)
+      start_time = Time.current
       @universe = @report.universe(table_name)
+
+      Rails.logger.info "SPM FY2026 Measure 2: Computing returns for #{enrollment_set.count} enrollments..."
+      return_start = Time.current
       returns = HudSpmReport::Fy2026::Return.compute_returns(@report, enrollment_set)
+      return_duration = Time.current - return_start
+      Rails.logger.info "SPM FY2026 Measure 2: Computed #{returns.count} returns in #{return_duration.round(2)}s"
 
       members = returns.map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
       @universe.add_universe_members(members)
 
+      total_duration = Time.current - start_time
+      Rails.logger.info "SPM FY2026 Measure 2: Universe creation completed in #{total_duration.round(2)}s"
       @universe.members
     end
   end

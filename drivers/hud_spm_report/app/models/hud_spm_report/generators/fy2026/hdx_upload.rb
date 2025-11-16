@@ -243,22 +243,44 @@ module HudSpmReport::Generators::Fy2026
         external_row_label: true,
       )
 
-      # Set the column headers in row 1
+      # Delete existing cells for this question (excluding universe cell) to avoid duplicates
+      @report.report_cells.where(question: table_name, universe: false).where.not(cell_name: nil).delete_all
+
+      # Build all cell records for bulk insert
+      now = Time.current
+      cell_records = []
+
+      # Row 1: Column headers
       COLUMNS.each do |column|
-        answer = @report.answer(question: table_name, cell: "#{column.column_letter}1")
-        answer.update(summary: column.variable_name)
+        cell_records << {
+          report_instance_id: @report.id,
+          question: table_name,
+          cell_name: "#{column.column_letter}1",
+          universe: false,
+          summary: column.variable_name,
+          created_at: now,
+          updated_at: now,
+        }
       end
 
-      # Set the values in row 2
+      # Row 2: Values
       COLUMNS.each do |column|
-        # Get the formatted the value
         raw_value = column.get_raw_value(self)
         formatted_value = column.format_value(raw_value)
 
-        # Update the report cell
-        answer = @report.answer(question: table_name, cell: "#{column.column_letter}2")
-        answer.update(summary: formatted_value)
+        cell_records << {
+          report_instance_id: @report.id,
+          question: table_name,
+          cell_name: "#{column.column_letter}2",
+          universe: false,
+          summary: formatted_value,
+          created_at: now,
+          updated_at: now,
+        }
       end
+
+      # Bulk insert all cells in a single operation
+      HudReports::ReportCell.insert_all(cell_records)
     end
 
     def metadata(column)
