@@ -134,31 +134,65 @@ module HudSpmReport::Fy2026
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
 
+    def self.enrollment_scope_for_members
+      GrdaWarehouse::Hud::Enrollment.preload(
+        :client,
+        :destination_client,
+        :exit,
+        :income_benefits_at_exit,
+        :income_benefits_at_entry,
+        :income_benefits,
+        project: :funders
+      ).select(
+        :id,
+        :EnrollmentID,
+        :PersonalID,
+        :ProjectID,
+        :EntryDate,
+        :HouseholdID,
+        :RelationshipToHoH,
+        :EnrollmentCoC,
+        :LivingSituation,
+        :RentalSubsidyType,
+        :LengthOfStay,
+        :LOSUnderThreshold,
+        :PreviousStreetESSH,
+        :DateToStreetESSH,
+        :TimesHomelessPastThreeYears,
+        :MonthsHomelessPastThreeYears,
+        :DisablingCondition,
+        :DateOfEngagement,
+        :MoveInDate,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
+        :data_source_id,
+      )
+    end
+
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user: report_instance.user).update(report_instance.options)
-      enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
-      household_infos = household(enrollments)
-      # check for n+1, collect sequential enrollment records and smooth them somehow?
-      puts "create_enrollment_set a #{Time.current.strftime("%H:%M:%S")}"
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
-        members = []
-        batch.each do |enrollment|
+      query = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance)
+
+      #puts "create_enrollment_set households #{Time.current.strftime("%H:%M:%S")}"
+      household_infos = collect_household_info(query)
+
+      #puts "create_enrollment_set members #{Time.current.strftime("%H:%M:%S")}"
+      query.enrollment_batches(enrollment_scope_for_members) do |batch|
+        members = batch.filter_map do |enrollment|
           client = enrollment.client
           next if client.blank?
 
-          current_income_benefits = current_income_benefits(enrollment, filter.end)
-          previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
-          household_info = household_infos[enrollment.household_id] ||
-            HomelessnessInfo.new(
-              start_of_homelessness: enrollment.date_to_street_essh,
-              entry_date: enrollment.entry_date,
-              move_in_date: enrollment_own_move_in_date(enrollment),
-            ) # If there is no HoH, use the enrollment
-          members << {
+          current_income_benefits = collect_current_income_benefits(enrollment, filter.end)
+          previous_income_benefits = collect_previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
+          household_info = fetch_household_info(household_infos, enrollment)
+          {
             report_instance_id: report_instance.id,
 
             first_name: client.first_name,
@@ -265,7 +299,7 @@ module HudSpmReport::Fy2026
       (total_income(income_benefit) - earned_income(income_benefit)).clamp(0..)
     end
 
-    private_class_method def self.current_income_benefits(enrollment, end_date)
+    private_class_method def self.collect_current_income_benefits(enrollment, end_date)
       # Exit assessment for leavers, or most recent annual update within report range for stayers
       if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
         enrollment.income_benefits_at_exit
@@ -284,7 +318,7 @@ module HudSpmReport::Fy2026
       end
     end
 
-    private_class_method def self.previous_income_benefits(enrollment, annual_date, end_date)
+    private_class_method def self.collect_previous_income_benefits(enrollment, annual_date, end_date)
       return enrollment.income_benefits_at_entry if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
       return enrollment.income_benefits_at_entry if annual_date.nil? # Return entry if no annual date
 
@@ -360,21 +394,40 @@ module HudSpmReport::Fy2026
       result
     end
 
-    private_class_method def self.household(enrollments)
-      result = {}
+    private_class_method def self.to_household_info(enrollment)
+      HomelessnessInfo.new(
+        start_of_homelessness: enrollment.date_to_street_essh,
+        entry_date: enrollment.entry_date,
+        move_in_date: enrollment_own_move_in_date(enrollment),
+      )
+    end
 
-      e_t = GrdaWarehouse::Hud::Enrollment.arel_table
-      scope = enrollments.heads_of_households.order(e_t[:household_id], e_t[:move_in_date].asc.nulls_last)
-      scope.find_in_batches do |batch|
+    private_class_method def self.fetch_household_info(household_infos, enrollment)
+      # If there is no HoH, use the enrollment
+      key = [enrollment.data_source_id, enrollment.household_id]
+      household_infos[key] || to_household_info(enrollment)
+    end
+
+    private_class_method def self.collect_household_info(query)
+      results = {}
+      enrollment_scope = GrdaWarehouse::Hud::Enrollment.
+        heads_of_households.
+        select(
+          :id,
+          :household_id,
+          :data_source_id,
+          :date_to_street_essh,
+          :entry_date,
+          :move_in_date,
+        )
+
+      query.enrollment_batches(enrollment_scope) do |batch|
         batch.each do |enrollment|
-          result[enrollment.household_id] = HomelessnessInfo.new(
-            start_of_homelessness: enrollment.date_to_street_essh,
-            entry_date: enrollment.entry_date,
-            move_in_date: enrollment_own_move_in_date(enrollment),
-          )
+          key = [enrollment.data_source_id, enrollment.household_id]
+          results[key] = to_household_info(enrollment)
         end
       end
-      result
+      results
     end
   end
 end

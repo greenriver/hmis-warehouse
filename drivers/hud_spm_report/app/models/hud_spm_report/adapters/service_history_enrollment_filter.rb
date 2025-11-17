@@ -22,7 +22,7 @@ module HudSpmReport::Adapters
       @project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: spm_project_types, id: report_instance.project_ids).pluck(:id)
     end
 
-    def enrollments
+    def enrollment_batches(enrollment_scope)
       report_start_date = @filter.start
       report_end_date = @filter.end
       lookback_start_date = report_start_date - 7.years
@@ -35,38 +35,9 @@ module HudSpmReport::Adapters
       scope = filter_for_cocs(scope)
       scope = @filter.apply_criteria(scope, tags: [:warehouse, :client])
 
-      GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id])).select(*enrollment_columns)
-    end
-
-    # Limited columns to avoid pulling more data from the database than necessary
-    def enrollment_columns
-      [
-        :id,
-        :EnrollmentID,
-        :PersonalID,
-        :ProjectID,
-        :EntryDate,
-        :HouseholdID,
-        :RelationshipToHoH,
-        :EnrollmentCoC,
-        :LivingSituation,
-        :RentalSubsidyType,
-        :LengthOfStay,
-        :LOSUnderThreshold,
-        :PreviousStreetESSH,
-        :DateToStreetESSH,
-        :TimesHomelessPastThreeYears,
-        :MonthsHomelessPastThreeYears,
-        :DisablingCondition,
-        :DateOfEngagement,
-        :MoveInDate,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-        :data_source_id,
-      ].freeze
+      scope.joins(:enrollment).select(e_t[:id]).in_batches do |batch|
+        yield enrollment_scope.where(id: batch.map(&:id))
+      end
     end
   end
 end

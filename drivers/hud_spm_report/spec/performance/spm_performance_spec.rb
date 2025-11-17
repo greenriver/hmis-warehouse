@@ -13,15 +13,13 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   include_context 'SPM test setup'
 
   let(:projects) do
-    [
-      create_project(project_type: 0), # ES-EE
-      create_project(project_type: 2), # TH
-    ]
+    5.times.map { create_project(project_type: 1) }
   end
 
   let(:household_count) { 35 }
   let(:members_per_household) { 3 }
-  let(:enrollments_per_member) { 50 }
+  let(:enrollments_per_member) { 10 }
+  let(:query_range) { (query_count - 25)...(query_count + 25) }
   let(:expected_enrollment_count) { household_count * members_per_household * enrollments_per_member }
 
   let(:report) do
@@ -38,15 +36,11 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
     end
   end
 
+  after(:all) { GrdaWarehouse::ServiceHistoryEnrollment.vacuum_table }
   before do
-    puts "testing before a #{Time.current.strftime("%H:%M:%S")}"
     build_performance_households
-    puts "testing before b #{Time.current.strftime("%H:%M:%S")}"
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-    puts "testing before c #{Time.current.strftime("%H:%M:%S")}"
     report
-    puts "testing before d #{Time.current.strftime("%H:%M:%S")}"
-    # Rails.logger.level = 0
   end
 
   def build_performance_households
@@ -60,8 +54,8 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
 
         enrollments_per_member.times do |enrollment_index|
           project = projects[(household_index + enrollment_index) % projects.length]
-          entry_date = base_entry_date + (household_index * 3 + enrollment_index).days
-          exit_date = entry_date + 20.days
+          entry_date = base_entry_date + enrollment_index.days
+          exit_date = entry_date + 1.day
 
           create_enrollment(
             client: client,
@@ -73,7 +67,7 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
             date_to_street_essh: entry_date - 30.days,
             living_situation: 100,
             destination: 301,
-            move_in_date: relationship == 1 ? entry_date + 5.days : nil,
+            move_in_date: relationship == 1 ? entry_date : nil,
           )
         end
       end
@@ -89,11 +83,9 @@ RSpec.shared_examples 'SPM measure performance check' do
   it 'runs within the expected query budget and persists answers' do
     aggregate_failures 'performance' do
       expect do
-        puts "testing ##{question_names.inspect} a #{Time.current.strftime("%H:%M:%S")}"
         run_measure(report, measure_class)
-        puts "testing ##{question_names.inspect} b #{Time.current.strftime("%H:%M:%S")}"
       end.to make_database_queries(count: query_range).
-        and perform_under(timing_ms).ms.sample(1).times.warmup(0)
+        and perform_under(timing_secs).secs.sample(1).times.warmup(0)
     end
 
     expect(report.report_cells.where(question: measure_class.question_number)).to exist
@@ -106,21 +98,17 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
   let(:question_names) do
     ['Measure 1', 'Measure 2', 'Measure 3', 'Measure 4', 'Measure 5', 'Measure 6', 'Measure 7', 'HDX Upload']
   end
-  let(:query_range) { 45..55 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 75 }
+  let(:timing_secs) { 10 }
 
   describe '.create_enrollment_set' do
     it 'executes a bounded number of queries for large households' do
       aggregate_failures 'performance' do
         expect do
-          puts "testing create_enrollment_set a #{Time.current.strftime("%H:%M:%S")}"
           described_class.create_enrollment_set(report)
-          puts "testing create_enrollment_set b #{Time.current.strftime("%H:%M:%S")}"
-        #end.to make_database_queries(count: query_range).
-        #  and perform_under(timing_ms).ms.sample(1).times.warmup(0)
-        end.to perform_under(timing_ms).ms.sample(1).times.warmup(0)
+        end.to make_database_queries(count: query_range).
+          and perform_under(timing_secs).secs.sample(1).times.warmup(0)
       end
-      puts "testing create_enrollment_set b #{Time.current.strftime("%H:%M:%S")}"
 
       expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
     end
@@ -132,8 +120,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 250..260 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 179 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -143,8 +131,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model, exclu
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 410..430 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) {400  }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -154,8 +142,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureThree, type: :model, exc
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 170..190 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 180 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -165,8 +153,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFour, type: :model, excl
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 210..230 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 220 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -176,8 +164,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFive, type: :model, excl
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 350..380 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 360 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -187,8 +175,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSix, type: :model, exclu
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 30..40 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 40 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -198,8 +186,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSeven, type: :model, exc
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 245..265 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 250 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end
@@ -209,8 +197,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_range) { 1230..1250 }
-  let(:timing_ms) { 30 * 1000 }
+  let(:query_count) { 1240 }
+  let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'
 end

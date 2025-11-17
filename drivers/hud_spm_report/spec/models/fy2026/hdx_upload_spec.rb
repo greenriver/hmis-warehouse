@@ -9,7 +9,7 @@
 require 'rails_helper'
 require_relative './shared_context'
 
-RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclude_fixpoints: true do
   include_context 'SPM test setup'
 
   let(:hdx_columns) do
