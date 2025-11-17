@@ -1,8 +1,13 @@
 = content_for :crumbs do
   = link_to ma_yya_report_warehouse_reports_reports_path do
     = "« MA YYA Reports"
-%h1.mb-5
-  MA YYA Report
+.d-flex.mb-5
+  %h1.mb-0
+    MA YYA Report
+  .ml-auto
+    = link_to ma_yya_report_warehouse_reports_report_path(@report, format: :xlsx), class: 'btn btn-secondary' do
+      %i.icon-download2
+      Download Excel
 
 .warehouse-reports__completed
   .d-flex
@@ -20,6 +25,7 @@
       - last_section = nil
       - last_subsection = nil
       - @report.labels.each do |label|
+        - description = @report.detail_description(label)
         - section = label.to_s[0]
         - subsection = label.to_s[0..1]
         - if section != last_section
@@ -34,7 +40,7 @@
             - subsection_label = @report.subsection_label(subsection)
             %td{rowspan: "#{@report.row_count(subsection)}", width: '20%'}
               %i= subsection_label[:text]
-            = render 'row_contents', label: label
+            = render 'row_contents', label: label, description: description
         - else
           %tr
-            = render 'row_contents', label: label
+            = render 'row_contents', label: label, description: description
