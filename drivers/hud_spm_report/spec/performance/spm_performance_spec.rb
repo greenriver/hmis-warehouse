@@ -36,7 +36,6 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
     end
   end
 
-  after(:all) { GrdaWarehouse::ServiceHistoryEnrollment.vacuum_table }
   before do
     build_performance_households
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
@@ -75,130 +74,87 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   end
 end
 
-RSpec.shared_examples 'SPM measure performance check' do
-  before do
-    HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
-  end
+RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints: true do
+  include_context 'SPM performance dataset'
 
-  it 'runs within the expected query budget and persists answers' do
-    aggregate_failures 'performance' do
+  let(:enrollment_set_query_count) { 75 }
+  let(:enrollment_set_timing_secs) { 10 }
+  let(:measure_configs) do
+    [
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureOne,
+        query_count: 170,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureTwo,
+        query_count: 400,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureThree,
+        query_count: 150,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureFour,
+        query_count: 220,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureFive,
+        query_count: 360,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureSix,
+        query_count: 40,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureSeven,
+        query_count: 250,
+        timing_secs: 10,
+      },
+      {
+        klass: HudSpmReport::Generators::Fy2026::HdxUpload,
+        query_count: 630,
+        timing_secs: 10,
+      },
+    ]
+  end
+  let(:question_names) { measure_configs.map { |config| config[:klass].question_number } }
+
+  it 'limits queries for enrollment creation and each measure run' do
+    aggregate_failures('spm enrollment creation') do
       expect do
-        run_measure(report, measure_class)
-      end.to make_database_queries(count: query_range).
-        and perform_under(timing_secs).secs.sample(1).times.warmup(0)
+        HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
+      end.to(
+        make_database_queries(count: (enrollment_set_query_count - 25)...(enrollment_set_query_count + 25)).
+          and(perform_under(enrollment_set_timing_secs).secs.sample(1).times.warmup(0)),
+        'SpmEnrollment.create_enrollment_set query budget',
+      )
     end
 
-    expect(report.report_cells.where(question: measure_class.question_number)).to exist
-  end
-end
+    expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
 
-RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
+    measure_configs.each do |config|
+      klass = config[:klass]
+      query_count = config[:query_count]
+      timing_secs = config[:timing_secs]
+      query_budget = (query_count - 25)...(query_count + 25)
 
-  let(:question_names) do
-    ['Measure 1', 'Measure 2', 'Measure 3', 'Measure 4', 'Measure 5', 'Measure 6', 'Measure 7', 'HDX Upload']
-  end
-  let(:query_count) { 75 }
-  let(:timing_secs) { 10 }
-
-  describe '.create_enrollment_set' do
-    it 'executes a bounded number of queries for large households' do
-      aggregate_failures 'performance' do
+      puts klass.name
+      aggregate_failures(klass.name) do
         expect do
-          described_class.create_enrollment_set(report)
-        end.to make_database_queries(count: query_range).
-          and perform_under(timing_secs).secs.sample(1).times.warmup(0)
-      end
+          run_measure(report, klass)
+        end.to(
+          make_database_queries(count: query_budget).
+            and(perform_under(timing_secs).secs.sample(1).times.warmup(0)),
+        )
 
-      expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
+        expect(report.report_cells.where(question: klass.question_number)).to exist
+      end
     end
   end
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 179 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 400 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureThree, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 180 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFour, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 220 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureFive, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 360 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSix, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 40 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSeven, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 250 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
-end
-
-RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclude_fixpoints: true do
-  include_context 'SPM performance dataset'
-
-  let(:measure_class) { described_class }
-  let(:question_names) { [measure_class.question_number] }
-  let(:query_count) { 1240 }
-  let(:timing_secs) { 30 }
-
-  include_examples 'SPM measure performance check'
 end
