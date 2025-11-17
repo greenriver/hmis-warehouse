@@ -17,8 +17,13 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       context 'with matching bed counts' do
         before do
           @project = create_project(project_type: 1) # ES
+          @project.reload
+          expect(@project.project_cocs.exists?).to be true
+          expect(@project.project_cocs.pluck(:CoCCode)).to include('MA-500')
+
           @inventory = create(
             :hud_inventory,
+            ProjectID: @project.ProjectID,
             project: @project,
             data_source: data_source,
             CoCCode: 'MA-500',
@@ -33,6 +38,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             ch_bed_inventory: 2,
             other_bed_inventory: 1,
           )
+          @inventory.reload
           # Sum: 2+1+1+1+2+2+1 = 10, matches bed_inventory
           @report = setup_report([@project.id])
         end
@@ -45,8 +51,13 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       context 'with mismatched bed counts' do
         before do
           @project = create_project(project_type: 1) # ES
+          @project.reload
+          expect(@project.project_cocs.exists?).to be true
+          expect(@project.project_cocs.pluck(:CoCCode)).to include('MA-500')
+
           @inventory = create(
             :hud_inventory,
+            ProjectID: @project.ProjectID,
             project: @project,
             data_source: data_source,
             CoCCode: 'MA-500',
@@ -61,6 +72,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             ch_bed_inventory: 2,
             other_bed_inventory: 0,
           )
+          @inventory.reload
           @report = setup_report([@project.id])
         end
 
@@ -72,8 +84,13 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       context 'with zero total beds' do
         before do
           @project = create_project(project_type: 1) # ES
+          @project.reload
+          expect(@project.project_cocs.exists?).to be true
+          expect(@project.project_cocs.pluck(:CoCCode)).to include('MA-500')
+
           @inventory = create(
             :hud_inventory,
+            ProjectID: @project.ProjectID,
             project: @project,
             data_source: data_source,
             CoCCode: 'MA-500',
@@ -88,6 +105,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             ch_bed_inventory: 0,
             other_bed_inventory: 0,
           )
+          @inventory.reload
           @report = setup_report([@project.id])
         end
 
