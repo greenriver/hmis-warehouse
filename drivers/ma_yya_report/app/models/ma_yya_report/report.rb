@@ -211,7 +211,7 @@ module MaYyaReport
       E1c: 'Of the Total YYA Homeless/Rehousing, those who identified as Woman.',
       E1d: 'Of the Total YYA Homeless/Rehousing, those who identified as Transgender.',
       E1e: 'Of the Total YYA Homeless/Rehousing, those who identified as Non-Binary.',
-      E1f: 'Of the Total YYA Homeless/Rehousing, those who are questioning gender/Client doesn\'t know/Client prefers Eot to answer.',
+      E1f: 'Of the Total YYA Homeless/Rehousing, those who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
       E1g: 'Of the Total YYA Homeless/Rehousing, those with no Gender Data collected.',
       E2a: 'Of the Total YYA Homeless/Rehousing, those who identified as White.',
       E2b: 'Of the Total YYA Homeless/Rehousing, those who identified as African American.',
