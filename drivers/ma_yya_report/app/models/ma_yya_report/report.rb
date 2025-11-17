@@ -34,6 +34,7 @@ module MaYyaReport
       ma_yya_report_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
+    # Constants to define which columns are shown on detail pages
     DETAIL_BASE_COLUMNS = [:first_name, :last_name, :client_id, :entry_date, :age].freeze
     DETAIL_MEMBER_COLUMNS = [:first_name, :last_name].freeze
     DETAIL_COLUMN_GROUPS = {
@@ -141,6 +142,7 @@ module MaYyaReport
       'H3' => :demographics_lgbtq,
     }.freeze
 
+    # Allow for custom client address data from HMIS where available
     DETAIL_CELL_OVERRIDES = {
       F2d: [:zip_codes],
     }.freeze

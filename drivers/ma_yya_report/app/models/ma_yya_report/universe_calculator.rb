@@ -52,7 +52,7 @@ module MaYyaReport
       end
     end
 
-    private def for_batch(batch) # rubocop:disable Metrics/AbcSize
+    private def for_batch(batch)
       enrollments_by_client_id = clients_with_enrollments(batch)
       {}.tap do |clients|
         batch.each do |client|
@@ -127,16 +127,16 @@ module MaYyaReport
 
             latest_homeless_entry_date: latest_homeless_entry_date(all_enrollments),
 
-            earliest_homeless_cls_in_range: homeless_cls_in_range.first&.InformationDate, # Legacy column retained for historical exports
+            # earliest_homeless_cls_in_range: homeless_cls_in_range.first&.InformationDate, # Legacy column no longer in use
             latest_homeless_cls_in_range: latest_homeless_cls_in_range_entry&.InformationDate,
             latest_homeless_cls_in_range_code: latest_homeless_cls_in_range_entry&.CurrentLivingSituation,
-            earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first&.InformationDate, # Legacy column retained for historical exports
+            # earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first&.InformationDate, # Legacy column no longer in use
             latest_non_homeless_cls_in_range: non_homeless_cls_in_range.last&.InformationDate,
 
             latest_homeless_cls: latest_homeless_cls&.InformationDate,
             latest_homeless_cls_code: latest_homeless_cls&.CurrentLivingSituation,
 
-            direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]), # Legacy column retained for historical exports
+            # direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]), # Legacy column no longer in use
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
@@ -150,15 +150,15 @@ module MaYyaReport
             developmental_disability: disability?(enrollment.enrollment, 6),
             pregnant: health_and_dv&.PregnancyStatus,
             due_date: health_and_dv&.DueDate,
-            head_of_household: enrollment.head_of_household?, # Legacy column retained for historical exports
+            # head_of_household: enrollment.head_of_household?, # Legacy column no longer in use
             household_ages: household_ages(enrollment),
             sexual_orientation: enrollment.enrollment.SexualOrientation,
             most_recent_education_status: education_status&.MostRecentEdStatus,
             health_insurance: enrollment.enrollment.income_benefits_at_entry&.InsuranceFromAnySource == 1,
-            rehoused_on: rehoused_on(enrollment.enrollment), # Legacy column retained for historical exports
+            # rehoused_on: rehoused_on(enrollment.enrollment), # Legacy column no longer in use
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
-            flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Legacy column retained for historical exports
+            # flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Legacy column no longer in use
             language: language(enrollment.enrollment),
             employed: employment_status&.Employed == 1,
             former_foster_ward: enrollment.enrollment.FormerWardChildWelfare == 1,
