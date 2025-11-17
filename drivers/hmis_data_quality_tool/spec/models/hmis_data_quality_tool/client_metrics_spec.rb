@@ -43,8 +43,8 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           @client = create_client_with_warehouse_link(
             first_name: nil,
             last_name: 'Doe',
+            name_data_quality: 1, # Full name reported
           )
-          @client.update(NameDataQuality: 1) # Full name reported
           create_enrollment(client: @client, project: @project)
           @report = setup_report([@project.id])
         end

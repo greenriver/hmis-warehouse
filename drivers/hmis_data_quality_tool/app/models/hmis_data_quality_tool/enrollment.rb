@@ -51,7 +51,7 @@ module HmisDataQualityTool
         disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         living_situation: { title: 'Prior Living Situation', translator: ->(v) { "#{HudHelper.util.living_situation(v)} (#{v})" } },
         relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{HudHelper.util.relationship_to_hoh(v)} (#{v})" } },
-        coc_code: { title: 'Client Location (CoC Code)' },
+        coc_code: { title: 'Enrollment CoC' },
         destination: { title: 'Exit Destination', translator: ->(v) { "#{HudHelper.util.destination(v)} (#{v})" } },
         entry_date_entered_at: { title: 'Entry Date Added' },
         exit_date_entered_at: { title: 'Exit Date Added' },
@@ -536,6 +536,9 @@ module HmisDataQualityTool
       item.enrollment.project.rrh_sso_only?
     end
 
+    # Determines if the enrollment is an SSO project with the 'VA: Grant Per Diem - Case Management/Housing Retention' funder
+    # @param item [HmisDataQualityTool::Enrollment]
+    # @return [Boolean] true if the enrollment is an SSO project with the 'VA: Grant Per Diem - Case Management/Housing Retention' funder
     def self.sso_with_gpd_cm_hr_funder?(item)
       return false unless item.project_type == 6 # SSO project type
       return false unless item.funders.present?
@@ -727,7 +730,7 @@ module HmisDataQualityTool
         hoh_income_percent_ami: {
           title: 'Head of Household is Missing Income as a Percent of AMI',
           description: 'Income as a Percent of AMI is missing or not collected',
-          required_for: 'HoH in HP, RRH, or HOPWA-funded programs',
+          required_for: 'HoH in HP/RRH or SSVF/HOPWA-funded programs',
           detail_columns: default_detail_columns + [
             :percent_ami,
           ],
@@ -1011,12 +1014,13 @@ module HmisDataQualityTool
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
-            # the hoh_veteran column is an integer, but it's being assigned as a boolean
-            # use .to_i to safely convert and check if it is falsy
-            # return false if nil (data not available), only flag if explicitly false/0
-            return false if item.hoh_veteran.nil?
+            # The hoh_veteran column is an integer, but is being assigned as a boolean. We need to avoid checking
+            # the value as if it were a boolean (e.g. `return !item.hoh_veteran`). Instead, we need to check the integer value.
 
-            item.hoh_veteran.to_i == 0
+            # Only items specifically flagged as having a veteran HoH should pass this DQ check, so we need to flag any value in
+            # the hoh_veteran column that is not a 1. This will include items with a nil for hoh_veteran.
+
+            item.hoh_veteran != 1
           },
         },
         future_entry_date_issues: {
