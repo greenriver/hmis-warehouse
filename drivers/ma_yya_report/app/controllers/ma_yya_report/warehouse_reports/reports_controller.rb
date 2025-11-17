@@ -95,7 +95,7 @@ module MaYyaReport::WarehouseReports
       {
         start: day_in_last_quarter.beginning_of_quarter,
         end: day_in_last_quarter.end_of_quarter,
-      }.merge(last_report&.options&.symbolize_keys)
+      }.merge(last_report&.options&.symbolize_keys || {})
     end
 
     def report_options(filter)
