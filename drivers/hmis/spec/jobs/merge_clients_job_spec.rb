@@ -9,13 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::MergeClientsJob, type: :model do
-  # Probably other specs aren't cleaning up:
-  before(:all) { cleanup_test_environment }
-
   let(:data_source) { create(:hmis_data_source) }
-  let(:user) { create(:hmis_hud_user, data_source: data_source) }
-  let(:client1) { create(:hmis_hud_client_complete, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
 
+  let(:client1) { create(:hmis_hud_client_complete, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
   let!(:client1_name) { create(:hmis_hud_custom_client_name, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.middle_name, suffix: client1.name_suffix, data_source: data_source) }
   let!(:client1_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client1, data_source: data_source) }
   let!(:client1_address) { create(:hmis_hud_custom_client_address, client: client1, data_source: data_source) }
@@ -81,7 +77,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'stores file mappings' do
       audit = Hmis::ClientMergeAudit.first
-      file_mappings = audit.mappings_for('files')
+      file_mappings = audit.mappings_for('warehouse_files')
       expect(file_mappings).to be_a(Hash)
       expect(file_mappings[client2_related_by_client_id.id]).to eq({ 'client_id' => client2.id })
     end
@@ -203,7 +199,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   end
 
   context 'when merged client has enrollment' do
-    let!(:o1) { create :hmis_hud_organization, data_source: data_source, user: user }
+    let!(:o1) { create :hmis_hud_organization, data_source: data_source }
     let!(:p1) { create(:hmis_hud_project, data_source: data_source, organization: o1) }
     let!(:e1) { create(:hmis_hud_wip_enrollment, client: client2, project: p1, data_source: data_source) }
 
