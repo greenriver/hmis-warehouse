@@ -21,6 +21,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             :hud_inventory,
             project: @project,
             data_source: data_source,
+            CoCCode: 'MA-500',
             inventory_start_date: '2022-10-01'.to_date,
             inventory_end_date: '2023-09-30'.to_date,
             bed_inventory: 10,
@@ -48,6 +49,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             :hud_inventory,
             project: @project,
             data_source: data_source,
+            CoCCode: 'MA-500',
             inventory_start_date: '2022-10-01'.to_date,
             inventory_end_date: '2023-09-30'.to_date,
             bed_inventory: 100, # Sum: 2+1+1+1+2+2+0 = 9, doesn't match 100
@@ -74,6 +76,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             :hud_inventory,
             project: @project,
             data_source: data_source,
+            CoCCode: 'MA-500',
             inventory_start_date: '2022-10-01'.to_date,
             inventory_end_date: '2023-09-30'.to_date,
             bed_inventory: 0,
