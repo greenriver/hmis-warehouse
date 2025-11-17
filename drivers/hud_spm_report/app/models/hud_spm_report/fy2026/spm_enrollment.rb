@@ -424,6 +424,16 @@ module HudSpmReport::Fy2026
       query.enrollment_batches(enrollment_scope) do |batch|
         batch.each do |enrollment|
           key = [enrollment.data_source_id, enrollment.household_id]
+          existing = results[key]
+
+          if existing
+            # if this enrollment has no move-in-date, keep existing
+            next if enrollment.move_in_date.nil?
+
+            # if this enrollment move-in date is older, keep existing
+            next if existing.move_in_date.present? && enrollment.move_in_date > existing.move_in_date
+          end
+
           results[key] = to_household_info(enrollment)
         end
       end
