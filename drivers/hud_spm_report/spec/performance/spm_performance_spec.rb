@@ -131,7 +131,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model, exclu
 
   let(:measure_class) { described_class }
   let(:question_names) { [measure_class.question_number] }
-  let(:query_count) {400  }
+  let(:query_count) { 400 }
   let(:timing_secs) { 30 }
 
   include_examples 'SPM measure performance check'

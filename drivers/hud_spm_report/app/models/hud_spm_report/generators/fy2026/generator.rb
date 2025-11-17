@@ -19,7 +19,7 @@ module HudSpmReport::Generators::Fy2026
 
       # Pre-create enrollment set to track timing separately
       enrollment_start = Time.current
-      Rails.logger.info "SPM FY2026: Creating enrollment set..."
+      Rails.logger.info 'SPM FY2026: Creating enrollment set...'
       HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
       enrollment_duration = Time.current - enrollment_start
       Rails.logger.info "SPM FY2026: Enrollment set creation completed in #{enrollment_duration.round(2)}s (#{report.spm_enrollments.count} enrollments)"

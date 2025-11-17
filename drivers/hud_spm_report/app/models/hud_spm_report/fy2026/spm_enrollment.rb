@@ -142,7 +142,7 @@ module HudSpmReport::Fy2026
         :income_benefits_at_exit,
         :income_benefits_at_entry,
         :income_benefits,
-        project: :funders
+        project: :funders,
       ).select(
         :id,
         :EnrollmentID,
@@ -180,10 +180,8 @@ module HudSpmReport::Fy2026
       filter = ::Filters::HudFilterBase.new(user: report_instance.user).update(report_instance.options)
       query = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance)
 
-      #puts "create_enrollment_set households #{Time.current.strftime("%H:%M:%S")}"
       household_infos = collect_household_info(query)
 
-      #puts "create_enrollment_set members #{Time.current.strftime("%H:%M:%S")}"
       query.enrollment_batches(enrollment_scope_for_members) do |batch|
         members = batch.filter_map do |enrollment|
           client = enrollment.client

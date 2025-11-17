@@ -84,7 +84,7 @@ RSpec.configure do |config|
     example_file_paths = examples.map { |e| e.metadata[:file_path] }.uniq
 
     # Check if any examples are from HUD report drivers
-    hud_report_examples = example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any?
+    hud_report_examples = example_file_paths.grep(/\/drivers\/(hud_path_report|hud_spm_report|hud_data_quality_report)\//).any?
 
     # Check if all examples explicitly exclude fixpoints via metadata
     # To exclude fixpoints, add `exclude_fixpoints: true` to your RSpec.describe block:
