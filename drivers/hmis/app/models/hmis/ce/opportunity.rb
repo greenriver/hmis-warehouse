@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 # An opportunity is the availability of a unit (housing or other services)
+#
+# @see docs/features/hmis/readme_for_hmis_units.md For detailed documentation on CE opportunities and the unit occupancy workflow
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase

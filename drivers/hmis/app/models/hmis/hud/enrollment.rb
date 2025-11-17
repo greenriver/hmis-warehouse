@@ -94,7 +94,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
 
   # Unit occupancy
-  # All unit occupancies, including historical
+  # All unit occupancies, including historical. @see docs/features/hmis/readme_for_hmis_units.md For detailed documentation on unit occupancy workflows
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, autosave: true
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
