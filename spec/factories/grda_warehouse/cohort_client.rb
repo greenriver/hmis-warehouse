@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :cohort_client, class: 'GrdaWarehouse::CohortClient' do
     adjusted_days_homeless { 111 }

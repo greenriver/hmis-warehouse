@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Controller for dynamically changing the HMIS theme.
 # This is currently only used for QA/dev purposes, to allow
 # dynamically switching out the theme from the browser console.

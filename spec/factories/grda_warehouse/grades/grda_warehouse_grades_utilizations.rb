@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :utilization_grade_a, class: 'GrdaWarehouse::Grades::Utilization' do
     grade { 'A' }

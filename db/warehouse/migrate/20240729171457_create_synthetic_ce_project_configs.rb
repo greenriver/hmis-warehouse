@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateSyntheticCeProjectConfigs < ActiveRecord::Migration[7.0]
   def change
     create_table :synthetic_ce_assessment_project_configs do |t|

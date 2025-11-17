@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthOverviewHelper
   TOP_CHART_LABELS = {
     top_providers: 'of Total Cost',

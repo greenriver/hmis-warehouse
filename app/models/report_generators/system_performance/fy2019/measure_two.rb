@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ReportGenerators::SystemPerformance::Fy2019
   class MeasureTwo < Base
     LOOKBACK_STOP_DATE = '2012-10-01'

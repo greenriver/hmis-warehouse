@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
   describe 'Datalab 2023 APR - Services Only' do
     let(:results_dir) { 'apr/sso_coc' }

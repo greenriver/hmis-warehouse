@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
   describe 'Datalab 2024 CE APR - SystemWide' do
     let(:results_dir) { 'ce_apr/systemwide' }

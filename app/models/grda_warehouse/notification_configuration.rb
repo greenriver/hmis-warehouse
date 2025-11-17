@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This class holds links between:
 # 1. The item that will trigger a notification (source)
 # 2. The user who should receive the notification

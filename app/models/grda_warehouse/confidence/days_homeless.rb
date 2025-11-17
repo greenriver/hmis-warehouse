@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Confidence
   class DaysHomeless < Base
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :resource_id

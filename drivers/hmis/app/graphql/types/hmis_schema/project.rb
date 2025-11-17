@@ -232,7 +232,7 @@ module Types
       object.unit_groups.order(:name, :id)
     end
 
-    def has_units # rubocop:disable Naming/PredicateName
+    def has_units # rubocop:disable Naming/PredicatePrefix
       load_ar_association(object, :units).exists?
     end
 

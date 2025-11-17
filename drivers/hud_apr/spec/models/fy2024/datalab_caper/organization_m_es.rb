@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab organization m es caper', shared_context: :metadata do
   describe 'Datalab 2024 CAPER - Organization M ES' do
     let(:results_dir) { 'caper/organization_m_es' }

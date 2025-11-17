@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # generic key value store for db-managed config
 class AppConfigProperty < ApplicationRecord
   validates :key, presence: true, uniqueness: true

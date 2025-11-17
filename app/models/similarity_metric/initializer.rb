@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SimilarityMetric
 
   # collect a set of means and standard deviations for a set of metrics given a sample

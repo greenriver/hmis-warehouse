@@ -27,36 +27,14 @@ module Mutations
       # Validate that units being marked available don't exceed assigned legacy ReferralPostings
       validate_unit_availability_against_referral_postings(units, project)
 
-      opportunities = units.map { |unit| build_opportunity_for_unit(unit) }
+      rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
+      opportunities = units.map { |unit| unit.build_ce_opportunity(rule_resolver: rule_resolver) }
       Hmis::Ce::Opportunity.import!(opportunities)
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
     end
 
     private
-
-    def build_opportunity_for_unit(unit)
-      raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
-
-      unit_group = unit.unit_group
-      raise 'Unit must be in a Unit Group to be marked available' unless unit_group
-      raise 'Unit Group has no Workflow Template' unless unit_group.workflow_template || unit_group.direct_referral_workflow_template
-
-      unit_desc = unit.unit_type&.description
-      opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
-
-      Hmis::Ce::Opportunity.new(
-        unit: unit,
-        project: unit.project,
-        name: opportunity_name,
-        candidate_pool_id: unit_group.candidate_pool_id,
-        assignment_rules: rule_resolver.rules_for_unit_group(unit_group).map(&:attributes),
-      )
-    end
-
-    def rule_resolver
-      @rule_resolver ||= Hmis::Ce::Match::UnitGroupRuleResolver.new
-    end
 
     # Validate that the units being marked available don't exceed assigned legacy ReferralPostings.
     # This is a temporary fix for issue #8359.

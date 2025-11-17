@@ -106,6 +106,7 @@ module Hmis::Ce
     validate :unique_referral_per_opportunity
     validate :ce_template
     validate :consistent_data_source
+    validate :consistent_project
     # Direct referrals require a source enrollment to identify which project sent the referral.
     # Without a source enrollment, the referral would "float" and not appear on the source project's
     # outgoing referrals list, making it difficult to track and manage.
@@ -240,6 +241,12 @@ module Hmis::Ce
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity
 
       errors.add(:custom_status, msg) if custom_status && data_source != custom_status.data_source
+    end
+
+    def consistent_project
+      return unless target_enrollment
+
+      errors.add(:target_enrollment, 'must be in same project as referral') unless target_enrollment.project == target_project
     end
   end
 end

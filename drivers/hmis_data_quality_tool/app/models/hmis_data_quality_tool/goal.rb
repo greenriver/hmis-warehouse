@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool
   class Goal < ::GrdaWarehouseBase
     self.table_name = 'hmis_dqt_goals'

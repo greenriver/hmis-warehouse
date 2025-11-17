@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Testing:
 # Testing is done manually against the sample data set since it requires spooling up an RDS installation.
 # You can run: (This will re-use the most-recent result set, if you want to keep that, you should create a new one with the appropriate dates)

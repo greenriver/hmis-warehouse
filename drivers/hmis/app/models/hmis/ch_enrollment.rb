@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # persist the HUD calculation for chronic homelessness at the enrollment level
 # see GrdaWarehouse::ChEnrollment for details
 module Hmis

@@ -4,18 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], query_constraints: [:lat, :lon], optional: true
+    belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
     # this relation isn't used; use polymorphic `source` above
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
 
-    MARKER_COLOR = '#72A0C1'.freeze
+    MARKER_COLOR = '#72A0C1'
 
     # Locations where both `lat` and `lon` are present
     scope :valid, -> { where.not(lat: nil).and(where.not(lon: nil)) }
