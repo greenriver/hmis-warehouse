@@ -965,6 +965,7 @@ type CeOpportunity {
   Active or accepted referral
   """
   referral: CeReferral
+  stale: Boolean!
   status: CeOpportunityStatus!
   unit: Unit
 }

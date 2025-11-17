@@ -74,6 +74,10 @@ module Hmis
       direct_referral_workflow_template || workflow_template
     end
 
+    def any_workflow_template?
+      workflow_template.present? || direct_referral_workflow_template.present?
+    end
+
     # Form definition to use for direct referrals to this Unit Group, if any.
     # Returns nil if no form definition is found
     # Raises if there are 2+ entry user tasks, which indicates misconfiguration
