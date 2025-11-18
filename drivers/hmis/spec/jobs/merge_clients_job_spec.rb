@@ -517,12 +517,14 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       end
 
       context 'where merged client has mci_unique_id' do
-        let!(:external_id_client_2) { create :mci_unique_id_external_id, source: client2, remote_credential: mci_unique_id_cred }
+        let!(:record2) { create :mci_unique_id_external_id, source: client2, remote_credential: mci_unique_id_cred }
 
         it 'retains mci_unique_id' do
           Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
-          expect(client1.ac_hmis_mci_unique_id&.value).to eq(external_id_client_2.value)
+          expect(client1.ac_hmis_mci_unique_id&.value).to eq(record2.value)
         end
+
+        it_behaves_like 'merge that saves mappings', 'mci_unique_ids', 'source_id', 'id'
       end
 
       context 'where retained client has mci_unique_id' do
@@ -532,9 +534,6 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
           Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
           expect(client1.ac_hmis_mci_unique_id&.value).to eq(record2.value)
         end
-
-        # todo @martha(2) - this isn't the case, it doesn't match the shared example
-        # it_behaves_like 'merge that saves mappings', 'mci_unique_ids', 'source_id', 'id'
       end
 
       context 'where clients have different mci_unique_ids' do
@@ -548,7 +547,8 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
           expect(client1.ac_hmis_mci_unique_id&.value).to eq(record1.value)
         end
 
-        # todo @martha(2) - this isn't the case, it doesn't save the mapping due to implementation, needs update?
+        # TODO- discuss, do we need to add this expectation? I think no, because in this case the discarded unique ID is not updated.
+        # but I think it's fully deleted (not soft deleted) so this might be something to flag for unmerge
         # it_behaves_like 'merge that saves mappings', 'mci_unique_ids', 'source_id', 'id'
       end
 

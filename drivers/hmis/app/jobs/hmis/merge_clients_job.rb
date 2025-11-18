@@ -317,7 +317,6 @@ module Hmis
     # it's also possible to perform a manual merge in HMIS for two clients that
     # may or may not share MCI Unique ID values.
     def merge_mci_unique_ids
-      # todo @martha(2) - this means mci_unique_ids are not stored in pre_merge_mappings - needs update?
       # If retained client has an MCI Unique ID, no action is needed.
       # Max 1 MCI Unique ID is permitted per client, so if any of
       # the merged clients have differing MCI Unique IDs, they will be destroyed.
