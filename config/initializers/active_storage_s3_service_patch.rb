@@ -28,7 +28,7 @@ Rails.application.config.to_prepare do
           content_disposition: content_disposition,
           part_size: self.class::MINIMUM_UPLOAD_PART_SIZE,
           metadata: custom_metadata,
-          **upload_options
+          **upload_options,
         ) do |write_stream|
           source_keys.each do |source_key|
             stream(source_key) do |chunk|
@@ -51,7 +51,7 @@ Rails.application.config.to_prepare do
           content_disposition: content_disposition,
           part_size: part_size,
           metadata: custom_metadata,
-          **upload_options
+          **upload_options,
         ) do |write_stream|
           IO.copy_stream(io, write_stream)
         end
@@ -64,4 +64,3 @@ Rails.application.config.to_prepare do
     end
   end
 end
-
