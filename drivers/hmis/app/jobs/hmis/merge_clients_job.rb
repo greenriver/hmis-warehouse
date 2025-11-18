@@ -228,7 +228,8 @@ module Hmis
 
         values = elements.sort_by(&:DateUpdated)
 
-        # Destroy duplicate CDEs (some may have been in the mappings, that's okay)
+        # Destroy duplicate CDEs. Some may have been in pre_merge_mappings, which is fine and will help us restore them later if unmerge is needed.
+        # Any manual or automated restoration process should account for the fact that CDEDs may have been deleted and need to be recreated, not just moved over.
         values[0..-2].each(&:destroy!)
       end
     end
@@ -273,7 +274,8 @@ module Hmis
         candidate_scope.update_all(client_id: client_to_retain.id)
       end
 
-      # Update ReferralHouseholdMembers in a way that respects uniqueness constraint on (client_id, referral_id)
+      # Update ReferralHouseholdMembers in a way that respects uniqueness constraint on (client_id, referral_id).
+      # These aren't stored in pre_merge_mappings because it's legacy functionality.
       HmisExternalApis::AcHmis::ReferralHouseholdMember.where(client_id: client_ids).each do |rhhm|
         # Find retained client's household membership for this referral, if exists
         rhhm_for_retained_client = HmisExternalApis::AcHmis::ReferralHouseholdMember.find_by(
@@ -312,6 +314,7 @@ module Hmis
     # it's also possible to perform a manual merge in HMIS for two clients that
     # may or may not share MCI Unique ID values.
     def merge_mci_unique_ids
+      # todo @martha - this means mci_unique_ids are not stored in pre_merge_mappings - needs update?
       # If retained client has an MCI Unique ID, no action is needed.
       # Max 1 MCI Unique ID is permitted per client, so if any of
       # the merged clients have differing MCI Unique IDs, they will be destroyed.
