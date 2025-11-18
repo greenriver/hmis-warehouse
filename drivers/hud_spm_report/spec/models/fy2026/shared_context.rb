@@ -12,7 +12,12 @@ require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 # Shared context for SPM testing
 RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
-  let(:household_sequence) { Enumerator.new { |y| i = 0; loop { y << "HH-#{SecureRandom.uuid}-#{i += 1}" } } }
+  let(:household_sequence) do
+    Enumerator.new do |y|
+      i = 0
+      loop { y << "HH-#{SecureRandom.uuid}-#{i += 1}" }
+    end
+  end
 
   let(:default_filter) do
     Filters::HudFilterBase.new(

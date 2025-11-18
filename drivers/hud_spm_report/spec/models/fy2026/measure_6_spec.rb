@@ -20,7 +20,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureSix, type: :model, exclu
     end
 
     it 'builds the return table without data' do
-      %w[B2 C2 G7 J7].each do |cell|
+      ['B2', 'C2', 'G7', 'J7'].each do |cell|
         expect(@report.answer(question: '6a.1 and 6b.1', cell: cell).summary).to eq(0)
       end
     end
