@@ -18,6 +18,21 @@ module HudSpmReport::Fy2026
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
+    def self.apply_search_scope(scope)
+      scope.joins(:exit_enrollment)
+    end
+
+    def self.search_columns
+      enrollment_table = HudSpmReport::Fy2026::SpmEnrollment.arel_table
+      [
+        enrollment_table[:first_name],
+        enrollment_table[:last_name],
+        enrollment_table[:personal_id],
+        Arel::Nodes::NamedFunction.new('CAST', [enrollment_table[:id].as('TEXT')]),
+        Arel::Nodes::NamedFunction.new('CAST', [enrollment_table[:client_id].as('TEXT')]),
+      ]
+    end
+
     # duck-types to enrollment
     def project_id
       [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id

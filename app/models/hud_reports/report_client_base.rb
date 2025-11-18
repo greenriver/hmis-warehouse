@@ -22,6 +22,42 @@ module HudReports
       transform_value(col.to_s, cell_val, pii_policy)
     end
 
+    def self.search_clients(scope, search_term)
+      return scope if search_term.blank?
+      return scope unless searchable?
+
+      scope = apply_search_scope(scope)
+      columns = search_columns
+      return scope if columns.empty?
+
+      conditions = columns.map do |col|
+        col.matches("%#{sanitize_sql_like(search_term)}%")
+      end
+
+      scope.where(conditions.inject(:or)).distinct
+    end
+
+    def self.searchable?
+      search_columns.any?
+    end
+
+    def self.apply_search_scope(scope)
+      scope
+    end
+
+    def self.search_columns
+      table = arel_table
+      columns = [
+        Arel::Nodes::NamedFunction.new('CAST', [table[:id].as('TEXT')]),
+        Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
+      ]
+
+      ['first_name', 'last_name', 'personal_id'].each do |col|
+        columns << table[col] if column_names.include?(col)
+      end
+      columns
+    end
+
     private
 
     def fetch_cell_value(col)

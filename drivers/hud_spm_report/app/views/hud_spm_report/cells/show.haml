@@ -13,13 +13,14 @@
 
 .d-flex.align-items-end.mb-4
   .w-50
-    = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @report.id, measure_id: @question, cell_id: @cell, table: @table), method: :post, class: 'mb-0') do
-      .input-group
-        = text_field_tag :q, @search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @search_term.present?
-        .input-group-append
-          = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
-          - if @search_term.present?
-            = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
+    - if @searchable
+      = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @report.id, measure_id: @question, cell_id: @cell, table: @table), method: :post, class: 'mb-0') do
+        .input-group
+          = text_field_tag :q, @search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @search_term.present?
+          .input-group-append
+            = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
+            - if @search_term.present?
+              = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
   .pl-2.ml-auto
     - if @search_term.present?
       %div

@@ -22,6 +22,21 @@ module HudSpmReport::Fy2026
     attr_accessor :report # FIXME?
     attr_writer :filter, :services
 
+    def self.apply_search_scope(scope)
+      scope.joins(:enrollments)
+    end
+
+    def self.search_columns
+      enrollment_table = HudSpmReport::Fy2026::SpmEnrollment.arel_table
+      [
+        enrollment_table[:first_name],
+        enrollment_table[:last_name],
+        enrollment_table[:personal_id],
+        Arel::Nodes::NamedFunction.new('CAST', [enrollment_table[:id].as('TEXT')]),
+        Arel::Nodes::NamedFunction.new('CAST', [enrollment_table[:client_id].as('TEXT')]),
+      ]
+    end
+
     def project_id
       enrollment.project_id
     end
