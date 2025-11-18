@@ -60,6 +60,13 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
     mappings_for(record_type)[record_id]&.dig('source_id')&.to_i
   end
 
+  # Get the original warehouse destination_id for a merged source client
+  # @param client_id [Integer] The source client ID
+  # @return [Integer, nil] The original warehouse destination client ID, or nil if not found
+  def original_warehouse_destination_id(client_id)
+    mappings_for('source_clients')[client_id]&.dig('destination_id')&.to_i
+  end
+
   # Get IDs of records that were destroyed during merge
   # @param record_type [String] The record type (e.g., 'custom_data_elements', 'referral_household_members')
   # @return [Array<String>] Array of destroyed record IDs as strings

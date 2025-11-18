@@ -28,6 +28,7 @@ module Hmis
     #   mci_unique_ids: {}, # [id => { source_id => value }]
     #   scan_cards: {}, # [id => { client_id => value }]
     #   client_locations: {}, # [id => { client_id => value }]
+    #   source_clients: {}, # [client_id => { destination_id => warehouse_destination_client_id }]
     # }
 
     # Note: Enrollment-related records (assessments, services, disabilities, etc.)
@@ -47,6 +48,7 @@ module Hmis
       'mci_unique_ids' => 'source_id',
       'scan_cards' => 'client_id',
       'client_locations' => 'client_id',
+      'source_clients' => 'destination_id',
     }.freeze
 
     def perform(client_ids:, actor_id:)
@@ -361,9 +363,18 @@ module Hmis
     def delete_warehouse_clients
       Rails.logger.info 'Deleting warehouse clients of merged clients'
 
-      ::GrdaWarehouse::WarehouseClient.
-        where(source_id: clients_needing_reference_updates.map(&:id)).
-        find_each(&:destroy!)
+      # Capture warehouse destination_id mappings before deleting
+      warehouse_clients = ::GrdaWarehouse::WarehouseClient.
+        where(source_id: clients_needing_reference_updates.map(&:id))
+
+      mappings = {}
+      warehouse_clients.find_each do |wc|
+        mappings[wc.source_id] = { 'destination_id' => wc.destination_id }
+      end
+      update_merge_mappings('source_clients', mappings) if mappings.any?
+
+      # Now delete them
+      warehouse_clients.find_each(&:destroy!)
     end
 
     def update_personal_id_foreign_keys

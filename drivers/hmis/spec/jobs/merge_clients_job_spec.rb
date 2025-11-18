@@ -565,6 +565,20 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
           expect(GrdaWarehouse::WarehouseClient.where(source_id: c1.id).count).to eq(1)
         end
+
+        it 'stores warehouse destination client IDs in audit trail' do
+          # Get warehouse destination IDs before merge
+          c2_warehouse_destination_id = c2.destination_client.id
+
+          Hmis::MergeClientsJob.perform_now(client_ids: [c1.id, c2.id], actor_id: actor.id)
+
+          audit = Hmis::ClientMergeAudit.last
+          expect(audit.pre_merge_mappings['source_clients']).to be_present
+          expect(audit.pre_merge_mappings['source_clients'][c2.id.to_s]).to eq({ 'destination_id' => c2_warehouse_destination_id })
+
+          # Test helper method
+          expect(audit.original_warehouse_destination_id(c2.id)).to eq(c2_warehouse_destination_id)
+        end
       end
     end
   end
