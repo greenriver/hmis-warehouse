@@ -11,63 +11,27 @@
       %i.icon-file-excel
       Download
 
-- if @total_count.zero?
-  .none-found No records found.
-- else
-  .d-flex.align-items-end.mb-4
-    .w-50
-      = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @report.id, measure_id: @question, cell_id: @cell, table: @table), method: :post, class: 'mb-0') do
-        .input-group
-          = text_field_tag :q, @search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @search_term.present?
-          .input-group-append
-            = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
-            - if @search_term.present?
-              = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
-    .pl-2.ml-auto
-      - if @search_term.present?
-        %div
-          Showing
-          = number_with_delimiter @filtered_count
-          of
-          = number_with_delimiter @total_count
-          = 'client'.pluralize(@total_count)
-      - else
-        = "#{number_with_delimiter @total_count} #{'client'.pluralize(@total_count)} total"
-      - if @pagy.pages > 1
-        %span.text-muted.d-block
-          = "(page #{@pagy.page} of #{@pagy.pages})"
+.d-flex.align-items-end.mb-4
+  .w-50
+    = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @report.id, measure_id: @question, cell_id: @cell, table: @table), method: :post, class: 'mb-0') do
+      .input-group
+        = text_field_tag :q, @search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @search_term.present?
+        .input-group-append
+          = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
+          - if @search_term.present?
+            = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
+  .pl-2.ml-auto
+    - if @search_term.present?
+      %div
+        Showing
+        = number_with_delimiter @filtered_count
+        of
+        = number_with_delimiter @total_count
+        = 'client'.pluralize(@total_count)
+    - else
+      = "#{number_with_delimiter @total_count} #{'client'.pluralize(@total_count)} total"
+    - if @pagy.pages > 1
+      %span.text-muted.d-block
+        = "(page #{@pagy.page} of #{@pagy.pages})"
 
-  = render 'common/pagination_top', item_name: 'client'
-
-  .card.overflow-x-scroll{style: "height: 800px"}
-    %table.table.table-sm.table-bordered.table-fixed
-      %thead.table-dark
-        %tr
-          %th
-          - @headers.each_value do |header|
-            %th= header
-      %tbody
-        - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
-        - # @clients are either Episodes or Returns (already preloaded in controller)
-        - @clients.each.with_index do |client, i|
-          - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
-          %tr
-            %th.table-dark= (@pagy.offset + i + 1)
-            - @headers.each_key do |k|
-              %td{style: 'max-width: 600px;'}
-                - if k.to_sym == :client_id
-                  = link_to appropriate_client_path(client[k]) do
-                    = client[k]
-                  %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
-                    %i.icon-info
-                - elsif k.to_s.match?(/personal_id/)
-                  - # Using regex here as the personal_id header value is a nested key (e.g. 'enrollment.personal_id', exit_enrollment.personal_id, etc.)
-                  - value = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
-                  -# Client could have multiple source clients, only want to show the HMIS link for source client(s) in the data_source of the current SPM_enrollment/episode/return
-                  -# This should only be one client, but just in case of data issues, we'll loop through them all
-                  - client.client.source_clients.select { |sc| sc.data_source_id == client.data_source_id }.each do |hmis_client|
-                    = hmis_external_link(hmis_client, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
-                - else
-                  = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
-
-  = render 'common/pagination_bottom', item_name: 'client'
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @clients, item_name: 'client', list_partial: 'hud_spm_report/cells/list')
