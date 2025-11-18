@@ -41,7 +41,7 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   # @return [String, nil] The original PersonalID, or nil if not found
   def original_personal_id_for_enrollment(enrollment_id)
     mapping_data = mappings_for('enrollments')[enrollment_id]
-    mapping_data&.dig('PersonalID') || mapping_data&.dig('personal_id')
+    mapping_data&.dig('PersonalID')
   end
 
   # Get the original client_id for a specific record (for client_id-based records like files)
