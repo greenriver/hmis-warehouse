@@ -27,7 +27,7 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   # @param record_type [String] The key in pre_merge_mappings (e.g., 'enrollments', 'names')
   # @return [Hash] Mapping of record_id => { attribute_name => original_value }
   def mappings_for(record_type)
-    ((pre_merge_mappings || {})[record_type.to_s] || {}).transform_keys(&:to_i)
+    (pre_merge_mappings[record_type.to_s] || {}).transform_keys(&:to_i)
   end
 
   # Get all enrollment IDs that were moved during this merge
@@ -65,7 +65,7 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   # @return [Array<String>] Array of destroyed record IDs as strings
   def destroyed_record_ids(record_type)
     key = "destroyed_#{record_type}"
-    (pre_merge_mappings || {})[key] || []
+    pre_merge_mappings[key] || []
   end
 
   # Check if a specific record was destroyed during merge
