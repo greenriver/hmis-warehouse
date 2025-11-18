@@ -49,7 +49,6 @@
                     = hmis_external_link(item.enrollment, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value
                   - elsif k.to_s == 'personal_id'
                     = hmis_external_link(item.client, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value
-                  - elsif k.to_s == 'project_name'
                   - else
                     = formatted_cell(value)
     = content_for :page_js do
