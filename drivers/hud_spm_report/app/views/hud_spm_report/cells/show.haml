@@ -7,7 +7,7 @@
 .d-flex.mb-2
   %h1= content_for :title
   .ml-auto
-    = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
+    = link_to(hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table, format: :xlsx), {class: 'btn btn-secondary'}) do
       %i.icon-file-excel
       Download
 

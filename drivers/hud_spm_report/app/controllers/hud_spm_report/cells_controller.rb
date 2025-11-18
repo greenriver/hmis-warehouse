@@ -13,96 +13,80 @@ module HudSpmReport
     end
 
     def show
-      params.require(report_param_name)
-
-      set_report
-
-      @question = generator.valid_question_number params.require(:measure_id)
-      @cell = @report.valid_cell_name params.require(:id)
-      @table = params.require(:table) # valid_table_name is too strict for the SPM table names
-      @name = "#{generator.file_prefix} #{@question} #{@cell}"
-
-      @headers = generator.column_headings(@question)
-
-      base_scope = generator.client_scope(@question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
+      set_common_variables
 
       @search_term = nil
       # Only show search if the model supports it
-      @searchable = base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?(base_scope)
-      filtered_scope = base_scope
+      @searchable = model_searchable?
 
       respond_to do |format|
-        format.html do
-          # Get counts for display
-          @total_count = base_scope.count
-          @filtered_count = @total_count
-
-          # Paginate and preload associations to avoid N+1 queries
-          @pagy, paginated_clients = pagy(filtered_scope, items: 100)
-          @clients = paginated_clients.preload(client: [:data_source, :source_clients])
-        end
-        format.xlsx do
-          # For Excel downloads, load all records
-          @clients = filtered_scope.preload(client: [:data_source, :source_clients])
-          @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-          headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
-        end
+        format.html { render_html_response(base_scope) }
+        format.xlsx { render_xlsx_response }
       end
     end
 
     def search
-      params.require(report_param_name)
-
-      set_report
-
-      @question = generator.valid_question_number params.require(:measure_id)
-      @cell = @report.valid_cell_name params.require(:id)
-      @table = params.require(:table)
+      set_common_variables
 
       search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:query_id])
       return handle_invalid_query('Search query not found') if search_query.nil?
 
       search_query.touch
 
+      @search_term = search_query.query_params[:q].to_s
+
+      filtered_scope = if (@searchable = model_searchable?)
+        base_scope.model.search_clients(base_scope, @search_term)
+      else
+        base_scope
+      end
+
+      respond_to do |format|
+        format.html { render_html_response(filtered_scope) }
+      end
+    end
+
+    private
+
+    def set_common_variables
+      params.require(report_param_name)
+      set_report
+
+      @question = generator.valid_question_number params.require(:measure_id)
+      @cell = @report.valid_cell_name params.require(:id)
+      @table = params.require(:table)
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
       @headers = generator.column_headings(@question)
+    end
 
-      base_scope = generator.client_scope(@question).
+    def base_scope
+      @base_scope ||= generator.client_scope(@question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id)).
         distinct
+    end
 
-      @search_term = search_query.query_params[:q].to_s
+    def model_searchable?
+      base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?
+    end
 
-      if base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?
-        filtered_scope = base_scope.model.search_clients(base_scope, @search_term)
-        @searchable = true
-      else
-        filtered_scope = base_scope
-        @searchable = false
-      end
+    def render_html_response(scope)
+      @total_count = base_scope.count
+      @filtered_count = scope.count
 
-      respond_to do |format|
-        format.html do
-          @total_count = base_scope.count
-          @filtered_count = filtered_scope.count
+      # Paginate and preload associations to avoid N+1 queries
+      @pagy, paginated_clients = pagy(scope, items: 100)
+      @clients = paginated_clients.preload(client: [:data_source, :source_clients])
 
-          @pagy, paginated_clients = pagy(filtered_scope, items: 100)
-          @clients = paginated_clients.preload(client: [:data_source, :source_clients])
+      render :show
+    end
 
-          render :show
-        end
-        format.xlsx do
-          @clients = filtered_scope.preload(client: [:data_source, :source_clients])
-          @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-          headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
-        end
-      end
+    def render_xlsx_response
+      # For Excel downloads, load all records
+      @clients = base_scope.preload(client: [:data_source, :source_clients])
+      @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
     end
 
     private def handle_invalid_query(message)
