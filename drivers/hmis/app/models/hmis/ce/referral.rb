@@ -106,6 +106,7 @@ module Hmis::Ce
     validate :unique_referral_per_opportunity
     validate :ce_template
     validate :consistent_data_source
+    validate :consistent_project
 
     # When referral status changes, its CustomReferralStatus (user-facing status) should also be updated.
     # See ReferralMessageHandler for example.
@@ -236,6 +237,12 @@ module Hmis::Ce
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity
 
       errors.add(:custom_status, msg) if custom_status && data_source != custom_status.data_source
+    end
+
+    def consistent_project
+      return unless target_enrollment
+
+      errors.add(:target_enrollment, 'must be in same project as referral') unless target_enrollment.project == target_project
     end
   end
 end

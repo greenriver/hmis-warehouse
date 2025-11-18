@@ -102,6 +102,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # All referrals where this enrollment is the source enrollment. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id
+  # The referral that created this enrollment (if any)
+  has_one :source_ce_referral, class_name: 'Hmis::Ce::Referral', foreign_key: :target_enrollment_id
+
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
