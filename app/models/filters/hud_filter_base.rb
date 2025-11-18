@@ -16,8 +16,10 @@ module Filters
     # Provide a mechanism to limit relevant project types
     attribute :relevant_project_types, Array, default: []
 
-    def initialize(user: nil, **opts)
-      super(**opts)
+    def initialize(attributes = {})
+      # Extract user from attributes hash if present
+      user = attributes.is_a?(Hash) ? attributes.delete(:user) : nil
+      super(attributes)
       # Cache @user instance to avoid extra database lookups while still setting user_id for consistency
       @user = user if user
       self.user_id = user.id if user
