@@ -244,6 +244,13 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
       end
     end
 
+    it 'exports measure 1 metrics with expected values' do
+      expect(@report.answer(question: '1a', cell: :B2).summary.to_i).to eq(2)
+      expect(@report.answer(question: 'csv', cell: 'L2').summary).to eq(2.0)
+      expect(@report.answer(question: 'csv', cell: 'M2').summary).to eq(75.5)
+      expect(@report.answer(question: 'csv', cell: 'N2').summary).to eq(75.5)
+    end
+
     # Test Data Quality Report fields are populated
     it 'populates Data Quality Report fields' do
       dq_sections = [:essh, :th, :pshoph, :rrh, :so]

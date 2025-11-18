@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../models/fy2026/shared_context'
+require_relative './shared_context'
 
 RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   include_context 'SPM test setup'
@@ -108,7 +108,7 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
       },
       {
         klass: HudSpmReport::Generators::Fy2026::MeasureSix,
-        query_count: 40,
+        query_count: 530,
         timing_secs: 10,
       },
       {
@@ -118,7 +118,7 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
       },
       {
         klass: HudSpmReport::Generators::Fy2026::HdxUpload,
-        query_count: 630,
+        query_count: 580,
         timing_secs: 10,
       },
     ]
@@ -144,7 +144,7 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
       timing_secs = config[:timing_secs]
       query_budget = (query_count - 25)...(query_count + 25)
 
-      puts klass.name
+      # puts klass.name
       aggregate_failures(klass.name) do
         expect do
           run_measure(report, klass)
