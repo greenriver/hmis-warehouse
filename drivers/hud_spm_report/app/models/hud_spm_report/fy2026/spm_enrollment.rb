@@ -366,32 +366,6 @@ module HudSpmReport::Fy2026
       enrollment.move_in_date >= enrollment.entry_date ? enrollment.move_in_date : nil
     end
 
-    private_class_method def self.household(enrollments)
-      result = {}
-
-      enrollments.heads_of_households.find_in_batches do |batch|
-        batch.each do |enrollment|
-          hh_id = enrollment.household_id
-          existing = result[hh_id]
-
-          if existing
-            # if this enrollment has no move-in-date, keep existing
-            next if enrollment.move_in_date.nil?
-
-            # if this enrollment move-in date is older, keep existing
-            next if existing.move_in_date.present? && enrollment.move_in_date > existing.move_in_date
-          end
-
-          result[hh_id] = HomelessnessInfo.new(
-            start_of_homelessness: enrollment.date_to_street_essh,
-            entry_date: enrollment.entry_date,
-            move_in_date: enrollment_own_move_in_date(enrollment),
-          )
-        end
-      end
-      result
-    end
-
     private_class_method def self.to_household_info(enrollment)
       HomelessnessInfo.new(
         start_of_homelessness: enrollment.date_to_street_essh,
@@ -424,9 +398,7 @@ module HudSpmReport::Fy2026
         batch.each do |enrollment|
           key = [enrollment.data_source_id, enrollment.household_id]
           # With ordering, first valid enrollment per household wins
-          next if results.key?(key)
-
-          results[key] = to_household_info(enrollment)
+          results[key] ||= to_household_info(enrollment)
         end
       end
       results

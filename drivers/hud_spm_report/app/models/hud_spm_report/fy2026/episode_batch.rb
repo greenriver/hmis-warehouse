@@ -43,7 +43,7 @@ module HudSpmReport::Fy2026
       # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
       enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, :enrollment).group_by(&:client_id)
       batch_personal_ids = enrollments_for_clients.values.flatten.map(&:personal_id).uniq
-      enrollment_key_whitelist = enrollments_for_clients.values.flatten.each_with_object(Set.new) do |enrollment, memo|
+      allowed_enrollment_keys = enrollments_for_clients.values.flatten.each_with_object(Set.new) do |enrollment, memo|
         memo.add([enrollment.enrollment.EnrollmentID, enrollment.personal_id, enrollment.data_source_id])
       end
       data_source_ids = enrollments_for_clients.values.flatten.map(&:data_source_id).uniq
@@ -54,7 +54,7 @@ module HudSpmReport::Fy2026
       batch_services = Hash.new { |h, k| h[k] = [] }
       service_scope.pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).each do |enrollment_id, personal_id, data_source_id, date_provided|
         key = [enrollment_id, personal_id, data_source_id]
-        next unless enrollment_key_whitelist.include?(key)
+        next unless allowed_enrollment_keys.include?(key)
 
         batch_services[key] << date_provided
       end

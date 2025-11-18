@@ -16,21 +16,6 @@ module HudSpmReport::Generators::Fy2026
       client_class.preload(enrollment: :project)
     end
 
-    def run!
-      start_time = Time.current
-      measure_name = self.class.question_number
-      Rails.logger.info "SPM FY2026: Starting #{measure_name} for Report ##{@report.id}"
-
-      super
-
-      duration = Time.current - start_time
-      Rails.logger.info "SPM FY2026: Completed #{measure_name} in #{duration.round(2)}s"
-    rescue StandardError => e
-      duration = Time.current - start_time
-      Rails.logger.error "SPM FY2026: Failed #{measure_name} after #{duration.round(2)}s - #{e.class}: #{e.message}"
-      raise
-    end
-
     private def enrollment_set
       enrollments = @report.spm_enrollments
       return enrollments if enrollments.exists?

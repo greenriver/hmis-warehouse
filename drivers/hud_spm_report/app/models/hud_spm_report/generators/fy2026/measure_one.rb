@@ -168,7 +168,6 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported_and_ph: false)
-      start_time = Time.current
       @universe = @report.universe(universe_name)
       # Universe
       # Measure 1a/Metric 1: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), and Safe Haven (Project Type 8) clients who are active in report date range.
@@ -187,25 +186,16 @@ module HudSpmReport::Generators::Fy2026
       enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)
       batch_calculator = HudSpmReport::Fy2026::EpisodeBatch.new(enrollments, included_project_types, excluded_project_types, include_self_reported_and_ph, @report)
 
-      Rails.logger.info "SPM FY2026 Measure 1: Creating episodes for universe #{universe_name} (#{enrollments.count} enrollments)..."
-      episode_start = Time.current
-      episode_count = 0
       client_ids = enrollments.pluck(:client_id).uniq
       client_ids.each_slice(500) do |slice|
         episodes = batch_calculator.calculate_batch(slice)
         next unless episodes.present?
 
-        episode_count += episodes.count
         members = episodes.map do |episode|
           [episode.client, episode]
         end.to_h
         @universe.add_universe_members(members)
       end
-      episode_duration = Time.current - episode_start
-      Rails.logger.info "SPM FY2026 Measure 1: Created #{episode_count} episodes for universe #{universe_name} in #{episode_duration.round(2)}s"
-
-      total_duration = Time.current - start_time
-      Rails.logger.info "SPM FY2026 Measure 1: Universe #{universe_name} completed in #{total_duration.round(2)}s"
       @universe.members
     end
 

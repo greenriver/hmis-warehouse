@@ -10,10 +10,12 @@
 - The FY2026 generator exposes metadata (title, question list, filter class, upload capabilities) to the HUD reports framework. Each question maps to a dedicated measure class that encapsulates table preparation and summary calculation logic.
 - `Generator.questions` returns the ordered measure list (Measures 1–7 plus HDX upload). HUD report answers reference these classes via the question number.
 
-### Data Models
+### Key Classes
 - **SpmEnrollment**: Denormalized enrollment records that capture client identity, age, project, destination, income history, homelessness status, and funding eligibility. These records back most measure universes and expose scopes for active method definitions and literal homelessness checks.
 - **Episode**: Derived time-series representation of homeless episodes built from enrollment bed nights. It uses `EpisodeBatch` to compute contiguous timelines and stores summary statistics (first date, last date, total days).
+- **EpisodeBatch**: Builds contiguous homelessness episodes, merging bed-night data, self-reported start dates, and PH adjustments before persisting `Episode` rows.
 - **Return**: Represents returns to homelessness after a permanent exit, combining the exit enrollment with a potential return enrollment to compute days-to-return and destination classifications.
+- **ServiceHistoryEnrollmentFilter**: Applies HUD filter options and guarantees only SPM-relevant projects feed the denormalization step.
 
 ### Calculation Flow
 - **Filtering**: `ServiceHistoryEnrollmentFilter` adapts the general HUD filter form to SPM-specific project types. It queries `ServiceHistoryEnrollment`, applies CoC and project filters, and returns the `Hud::Enrollment` rows needed for denormalization.
@@ -30,13 +32,4 @@
 - **Measure 5** (`MeasureFive`): Identifies first-time homelessness by checking prior enrollments during the two-year lookback window.
 - **Measure 6** (`MeasureSix`): Measures successful placements and returns for TH/SH projects (part a/b) and Category 3 homelessness (part c).
 - **Measure 7** (`MeasureSeven`): Evaluates exits to permanent housing for Street Outreach and mixed project types, and retention for RRH/PH move-ins.
-
-### Key Components
-- **ServiceHistoryEnrollmentFilter**: Applies HUD filter options and guarantees only SPM-relevant projects feed the denormalization step.
-- **EpisodeBatch**: Builds contiguous homelessness episodes, merging bed-night data, self-reported start dates, and PH adjustments before persisting `Episode` rows.
 - **HDX Upload**: Generates the HDX 2.0 CSV submission by mapping SPM cell values to HDX columns through strongly typed metadata definitions.
-
-### Controllers and Views
-- `HudSpmReport::SpmsController` handles report creation, queuing, history pages, and running status updates via HUD report endpoints.
-- `HudSpmReport::MeasuresController` wraps individual measure pages, defaulting the filter to FY2026 project types and routing to `/hud_reports/spms/:spm_id/measures/:id`.
-- Drill-down endpoints (`HudSpmReport::CellsController`) render detail tables or export CSV/XLSX using the HUD reports answer metadata populated by the measure classes.
