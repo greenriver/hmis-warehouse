@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See docs/features/hmis/readme_for_client_merges.md
+
 class Hmis::ClientMergeAudit < Hmis::HmisBase
   belongs_to :actor, class_name: 'Hmis::User'
   has_many :client_merge_histories, class_name: 'Hmis::ClientMergeHistory', inverse_of: :client_merge_audit

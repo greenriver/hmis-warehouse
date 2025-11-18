@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See docs/features/hmis/readme_for_client_merges.md
+
 module Hmis
   class MergeClientsJob < BaseJob
     attr_accessor :clients
