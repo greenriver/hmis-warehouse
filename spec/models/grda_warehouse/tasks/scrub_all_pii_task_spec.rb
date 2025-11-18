@@ -41,9 +41,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   end
 
   def perform_task(...)
-    travel_to(today) do
-      described_class.new.perform(...)
-    end
+    described_class.new.perform(...)
     reload_records
   end
 
@@ -56,6 +54,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
 
   # stub faker to get reproducable test values
   before(:each) do
+    travel_to(today)
     allow(Faker::Name).to receive(:first_name).and_return(fake_first_name)
     allow(Faker::Name).to receive(:last_name).and_return(fake_last_name)
     allow(Faker::Name).to receive(:middle_name).and_return(fake_middle_name)
@@ -63,6 +62,10 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     allow(Faker::Date).to receive(:between) do |kwargs|
       kwargs[:from] # Always returns the lower bound
     end
+  end
+
+  after do
+    travel_back
   end
 
   context 'with defaults' do
