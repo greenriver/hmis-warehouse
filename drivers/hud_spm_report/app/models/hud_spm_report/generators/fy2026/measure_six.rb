@@ -91,11 +91,24 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def seed_zero_answers(table_name, row_numbers, column_names)
+      now = Time.current
+      cell_records = []
+
       row_numbers.each do |row_number|
         column_names.each do |column_name|
-          @report.answer(question: table_name, cell: "#{column_name}#{row_number}").update(summary: 0)
+          cell_records << {
+            report_instance_id: @report.id,
+            question: table_name,
+            cell_name: "#{column_name}#{row_number}",
+            universe: false,
+            summary: 0,
+            created_at: now,
+            updated_at: now,
+          }
         end
       end
+
+      HudReports::ReportCell.insert_all(cell_records)
     end
   end
 end

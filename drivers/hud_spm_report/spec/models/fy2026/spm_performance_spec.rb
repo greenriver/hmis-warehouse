@@ -93,7 +93,7 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
       },
       {
         klass: HudSpmReport::Generators::Fy2026::MeasureThree,
-        query_count: 150,
+        query_count: 110,
         timing_secs: 10,
       },
       {
@@ -108,7 +108,7 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
       },
       {
         klass: HudSpmReport::Generators::Fy2026::MeasureSix,
-        query_count: 530,
+        query_count: 40,
         timing_secs: 10,
       },
       {

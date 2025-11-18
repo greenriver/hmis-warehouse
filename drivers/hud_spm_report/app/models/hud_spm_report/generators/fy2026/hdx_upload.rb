@@ -243,9 +243,6 @@ module HudSpmReport::Generators::Fy2026
         external_row_label: true,
       )
 
-      # Delete existing cells for this question (excluding universe cell) to avoid duplicates
-      @report.report_cells.where(question: table_name, universe: false).where.not(cell_name: nil).delete_all
-
       # Build all cell records for bulk insert
       now = Time.current
       cell_records = []
@@ -363,7 +360,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
+      @filter ||= ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
     end
   end
 end

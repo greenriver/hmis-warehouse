@@ -18,6 +18,7 @@ module Filters
 
     def initialize(user: nil, **opts)
       super(**opts)
+      # Cache @user instance to avoid extra database lookups while still setting user_id for consistency
       @user = user if user
       self.user_id = user.id if user
     end

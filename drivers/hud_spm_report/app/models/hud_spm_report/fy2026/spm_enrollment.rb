@@ -410,6 +410,7 @@ module HudSpmReport::Fy2026
       results = {}
       enrollment_scope = GrdaWarehouse::Hud::Enrollment.
         heads_of_households.
+        order(:data_source_id, :household_id, e_t[:move_in_date].asc.nulls_last).
         select(
           :id,
           :household_id,
@@ -422,15 +423,8 @@ module HudSpmReport::Fy2026
       query.enrollment_batches(enrollment_scope) do |batch|
         batch.each do |enrollment|
           key = [enrollment.data_source_id, enrollment.household_id]
-          existing = results[key]
-
-          if existing
-            # if this enrollment has no move-in-date, keep existing
-            next if enrollment.move_in_date.nil?
-
-            # if this enrollment move-in date is older, keep existing
-            next if existing.move_in_date.present? && enrollment.move_in_date > existing.move_in_date
-          end
+          # With ordering, first valid enrollment per household wins
+          next if results.key?(key)
 
           results[key] = to_household_info(enrollment)
         end

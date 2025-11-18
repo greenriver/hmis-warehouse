@@ -226,7 +226,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def median(values)
-      return 0 if values.empty?
+      return nil if values.empty?
 
       sorted = values.sort
       len = sorted.length

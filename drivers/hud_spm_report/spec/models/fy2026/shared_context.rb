@@ -29,7 +29,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     )
   end
 
-  def build_household(projects:, entry_date:, exit_date:, members: 1, destination: nil, living_situation: 100, date_to_street_essh: nil, include_move_in: false, move_in_offset: 0, data_source_override: nil, household_id: nil)
+  def build_household(projects:, entry_date:, exit_date:, members: 1, destination: nil, living_situation: 100, date_to_street_essh: nil, include_move_in: false, move_in_offset: 0, data_source_override: nil, household_id: nil) # rubocop:disable Metrics/ParameterLists
     household_id ||= household_sequence.next
     members.times.flat_map do |index|
       client = create_client_with_warehouse_link

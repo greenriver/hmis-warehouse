@@ -39,17 +39,16 @@ module HudSpmReport::Fy2026
       # enrollments_for_clients = spm_enrollments.group_by(&:client_id)
 
       # Services are really expensive to preload, for unknown reasons, however, the overall set of information we need is fairly small
+      # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
+      # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
       enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, :enrollment).group_by(&:client_id)
       batch_personal_ids = enrollments_for_clients.values.flatten.map(&:personal_id).uniq
-      service_start_date = @filter.start.present? ? (@filter.start - 365.days) : nil
-      service_start_date ||= @filter.start
-      service_start_date ||= @filter.end
       enrollment_key_whitelist = enrollments_for_clients.values.flatten.each_with_object(Set.new) do |enrollment, memo|
         memo.add([enrollment.enrollment.EnrollmentID, enrollment.personal_id, enrollment.data_source_id])
       end
       data_source_ids = enrollments_for_clients.values.flatten.map(&:data_source_id).uniq
       service_scope = GrdaWarehouse::Hud::Service.bed_night.
-        between(start_date: service_start_date || @filter.start, end_date: @filter.end).
+        between(start_date: nil, end_date: @filter.end). # We don't need anything after the report end date, but may need services before the start date
         where(PersonalID: batch_personal_ids)
       service_scope = service_scope.where(data_source_id: data_source_ids) if data_source_ids.present?
       batch_services = Hash.new { |h, k| h[k] = [] }

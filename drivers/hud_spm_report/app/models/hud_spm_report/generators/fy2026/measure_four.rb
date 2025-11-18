@@ -227,7 +227,7 @@ module HudSpmReport::Generators::Fy2026
 
       @stayers_computed = true
 
-      filter = ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
+      filter = ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
       staying_enrollments = candidate_stayers(filter).where(spm_e_t[:days_enrolled].gteq(365))
       client_enrollments = HudSpmReport::Fy2026::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: staying_enrollments)
 
@@ -245,7 +245,7 @@ module HudSpmReport::Generators::Fy2026
 
       @leavers_computed = true
 
-      filter = ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
+      filter = ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
       stayer_ids = candidate_stayers(filter).pluck(:client_id)
 
       leaving_enrollments = enrollment_set.open_during_range(filter.range).
