@@ -11,17 +11,36 @@
       %i.icon-file-excel
       Download
 
-- if @clients.blank?
+- if @total_count.zero?
   .none-found No records found.
 - else
   .d-flex.align-items-end.mb-4
     .w-50
-      .input-group
-        %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-        %button.btn.btn-secondary Search
-    .pl-2.ml-auto= "#{number_with_delimiter @clients.count} clients"
+      = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @report.id, measure_id: @question, cell_id: @cell, table: @table), method: :post, class: 'mb-0') do
+        .input-group
+          = text_field_tag :q, @search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @search_term.present?
+          .input-group-append
+            = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
+            - if @search_term.present?
+              = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
+    .pl-2.ml-auto
+      - if @search_term.present?
+        %div
+          Showing
+          = number_with_delimiter @filtered_count
+          of
+          = number_with_delimiter @total_count
+          = 'client'.pluralize(@total_count)
+      - else
+        = "#{number_with_delimiter @total_count} #{'client'.pluralize(@total_count)} total"
+      - if @pagy.pages > 1
+        %span.text-muted.d-block
+          = "(page #{@pagy.page} of #{@pagy.pages})"
+
+  = render 'common/pagination_top', item_name: 'client'
+
   .card.overflow-x-scroll{style: "height: 800px"}
-    %table.table.table-sm.table-bordered.table-fixed.datatable
+    %table.table.table-sm.table-bordered.table-fixed
       %thead.table-dark
         %tr
           %th
@@ -29,11 +48,11 @@
             %th= header
       %tbody
         - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
-        - # @clients are either Episodes or Returns
-        - @clients.preload(client: [:data_source, :source_clients]).find_each.with_index do |client, i|
+        - # @clients are either Episodes or Returns (already preloaded in controller)
+        - @clients.each.with_index do |client, i|
           - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
           %tr
-            %th.table-dark= i + 1
+            %th.table-dark= (@pagy.offset + i + 1)
             - @headers.each_key do |k|
               %td{style: 'max-width: 600px;'}
                 - if k.to_sym == :client_id
@@ -50,12 +69,5 @@
                     = hmis_external_link(hmis_client, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
                 - else
                   = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
-  = content_for :page_js do
-    :javascript
-      table = $('.datatable').DataTable({
-        paging: false,
-        "dom": 'lrtip'
-      });
-      $('#table_search').keyup(function(){
-        table.search($(this).val()).draw();
-      });
+
+  = render 'common/pagination_bottom', item_name: 'client'
