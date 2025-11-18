@@ -325,6 +325,55 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
         it_behaves_like 'merge of records related by PersonalID'
       end
+
+      context 'with exit records' do
+        let!(:record1) { create(:hmis_hud_exit, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_hud_exit, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
+
+      context 'with assessment records' do
+        let!(:record1) { create(:hmis_hud_assessment, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_hud_assessment, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
+
+      context 'with assessment question records' do
+        let!(:record1) { create(:hmis_assessment_question, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_assessment_question, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
+
+      context 'with assessment result records' do
+        let!(:record1) { create(:hmis_assessment_result, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_assessment_result, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
+
+      context 'with custom assessment records' do
+        let!(:record1) { create(:hmis_custom_assessment, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_custom_assessment, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
+
+      context 'with custom case note records' do
+        let!(:record1) { create(:hmis_hud_custom_case_note, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_hud_custom_case_note, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
+
+      context 'with custom service records' do
+        let!(:record1) { create(:hmis_custom_service, client: client1, data_source: data_source) }
+        let!(:record2) { create(:hmis_custom_service, client: client2, data_source: data_source) }
+
+        it_behaves_like 'merge of records related by PersonalID'
+      end
     end
 
     describe 'client_id relationships' do
