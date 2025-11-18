@@ -163,13 +163,14 @@ module Hmis
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
 
+      # todo @martha - here name_scope includes all the names, even ones that are not updated
       # Capture pre-merge name mappings before updating
       build_and_update_merge_mappings(key: 'names', scope: name_scope, attributes: 'PersonalID')
 
       # Update all names to point to client_to_retain
       primary_found = false
+      client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
       name_scope.sort_by(&:id).each do |name|
-        client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
         custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
         # consider this name "primary" it matches the name on the client_to_retain's Client record
         primary = (client_val == custom_client_name_val) && !primary_found
