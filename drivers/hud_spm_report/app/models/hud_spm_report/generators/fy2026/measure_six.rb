@@ -41,27 +41,28 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def run_6a_1(table_name)
-      rows = {
-        2 => 'Exit was from SO',
-        3 => 'Exit was from ES',
-        4 => 'Exit was from TH',
-        5 => 'Exit was from SH',
-        6 => 'Exit was from PH',
-        7 => 'TOTAL Returns to Homelessness',
-      }
-      columns = {
-        'B' => 'Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)',
-        'C' => 'Number Returning to Homelessness in Less than 6 Months (0 - 180 days)',
-        'D' => 'Percentage of Returns in Less than 6 Months (0 - 180 days)',
-        'E' => 'Number Returning to Homelessness from 6 to 12 Months (181 - 365 days)',
-        'F' => 'Percentage of Returns from 6 to 12 Months (181 - 365 days)',
-        'G' => 'Number Returning to Homelessness from 13 to 24 Months (366 - 730 days)',
-        'H' => 'Percentage of Returns from 13 to 24 Months (366 - 730 days)',
-        'I' => 'Number of Returns in 2 Years',
-        'J' => 'Percentage of Returns in 2 Years',
-      }
-      prepare_table(table_name, rows, columns)
-      seed_zero_answers(table_name, rows.keys, columns.keys)
+      prepare_table(
+        table_name,
+        {
+          2 => 'Exit was from SO',
+          3 => 'Exit was from ES',
+          4 => 'Exit was from TH',
+          5 => 'Exit was from SH',
+          6 => 'Exit was from PH',
+          7 => 'TOTAL Returns to Homelessness',
+        },
+        {
+          'B' => 'Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)',
+          'C' => 'Number Returning to Homelessness in Less than 6 Months (0 - 180 days)',
+          'D' => 'Percentage of Returns in Less than 6 Months (0 - 180 days)',
+          'E' => 'Number Returning to Homelessness from 6 to 12 Months (181 - 365 days)',
+          'F' => 'Percentage of Returns from 6 to 12 Months (181 - 365 days)',
+          'G' => 'Number Returning to Homelessness from 13 to 24 Months (366 - 730 days)',
+          'H' => 'Percentage of Returns from 13 to 24 Months (366 - 730 days)',
+          'I' => 'Number of Returns in 2 Years',
+          'J' => 'Percentage of Returns in 2 Years',
+        },
+      )
     end
 
     COLUMNS = {
@@ -71,44 +72,27 @@ module HudSpmReport::Generators::Fy2026
     }.freeze
 
     private def run_6c_1(table_name)
-      rows = {
-        2 => 'Universe: Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
-        3 => 'Of the persons above, those who exited to permanent destinations',
-        4 => '% Successful exits',
-      }
-      prepare_table(table_name, rows, COLUMNS)
-      seed_zero_answers(table_name, rows.keys, COLUMNS.keys)
+      prepare_table(
+        table_name,
+        {
+          2 => 'Universe: Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
+          3 => 'Of the persons above, those who exited to permanent destinations',
+          4 => '% Successful exits',
+        },
+        COLUMNS,
+      )
     end
 
     private def run_6c_2(table_name)
-      rows = {
-        2 => 'Universe: Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
-        3 => 'Of persons above, count those who remained in PH-PSH projects and those who exited to permanent housing destinations',
-        4 => '% Successful exits/retention',
-      }
-      prepare_table(table_name, rows, COLUMNS)
-      seed_zero_answers(table_name, rows.keys, COLUMNS.keys)
-    end
-
-    private def seed_zero_answers(table_name, row_numbers, column_names)
-      now = Time.current
-      cell_records = []
-
-      row_numbers.each do |row_number|
-        column_names.each do |column_name|
-          cell_records << {
-            report_instance_id: @report.id,
-            question: table_name,
-            cell_name: "#{column_name}#{row_number}",
-            universe: false,
-            summary: 0,
-            created_at: now,
-            updated_at: now,
-          }
-        end
-      end
-
-      HudReports::ReportCell.insert_all(cell_records)
+      prepare_table(
+        table_name,
+        {
+          2 => 'Universe: Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
+          3 => 'Of persons above, count those who remained in PH-PSH projects and those who exited to permanent housing destinations',
+          4 => '% Successful exits/retention',
+        },
+        COLUMNS,
+      )
     end
   end
 end

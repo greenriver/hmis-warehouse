@@ -244,20 +244,16 @@ module HudSpmReport::Generators::Fy2026
       )
 
       # Build all cell records for bulk insert
-      now = Time.current
-      cell_records = []
+      cells = []
 
       # Row 1: Column headers
       COLUMNS.each do |column|
-        cell_records << {
-          report_instance_id: @report.id,
+        cells << @report.report_cells.build(
           question: table_name,
           cell_name: "#{column.column_letter}1",
           universe: false,
-          summary: column.variable_name,
-          created_at: now,
-          updated_at: now,
-        }
+          summary: column.variable_name
+        )
       end
 
       # Row 2: Values
@@ -265,19 +261,16 @@ module HudSpmReport::Generators::Fy2026
         raw_value = column.get_raw_value(self)
         formatted_value = column.format_value(raw_value)
 
-        cell_records << {
-          report_instance_id: @report.id,
+        cells << @report.report_cells.build(
           question: table_name,
           cell_name: "#{column.column_letter}2",
           universe: false,
-          summary: formatted_value,
-          created_at: now,
-          updated_at: now,
-        }
+          summary: formatted_value
+        )
       end
 
       # Bulk insert all cells in a single operation
-      HudReports::ReportCell.insert_all(cell_records)
+      HudReports::ReportCell.import(cells)
     end
 
     def metadata(column)
