@@ -24,5 +24,10 @@ FactoryBot.define do
       file.client_file.attach(evaluator.blob) if evaluator.blob
       file.tag_list = evaluator.tags.map(&:id)
     end
+
+    trait :without_validations do
+      # allow test factories to bypass validations (specifically file_exists_and_not_too_large)
+      to_create { |instance| instance.save(validate: false) }
+    end
   end
 end

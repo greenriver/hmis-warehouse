@@ -42,8 +42,7 @@ module Hmis
       'addresses' => 'PersonalID',
       'contact_points' => 'PersonalID',
       'custom_data_elements' => 'owner_id',
-      'warehouse_files' => 'client_id',
-      'hmis_files' => 'client_id',
+      'files' => 'client_id',
       'mci_ids' => 'source_id',
       'mci_unique_ids' => 'source_id',
       'scan_cards' => 'client_id',
@@ -262,8 +261,7 @@ module Hmis
 
     def update_client_id_foreign_keys
       candidates = [
-        [::GrdaWarehouse::ClientFile, 'warehouse_files'],
-        [Hmis::File, 'hmis_files'],
+        [Hmis::File, 'files'],
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
