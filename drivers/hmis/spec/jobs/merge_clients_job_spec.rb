@@ -146,7 +146,12 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         audit = Hmis::ClientMergeAudit.first
         mappings = audit.mappings_for(key)
         expect(mappings[record2.id]).to eq({ mapping_field => client2.send(client_field || mapping_field) })
-        # expect(mappings.keys).not_to include(record1.id) # todo @martha - commented out because of client name
+        # TODO- discuss, should we add this expectation?
+        # currently the behavior is not consistent. some related records are only stored in the mappings if they are updated,
+        # others are always stored even if they pointed at the retained client originally and aren't touched.
+        # - client names
+        # - custom data elements
+        # expect(mappings.keys).not_to include(record1.id)
       end
     end
 
@@ -440,39 +445,47 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     describe 'custom data elements (owner_id relationships)' do
       let(:repeatable_data_element_definition) { create(:hmis_custom_data_element_definition_for_primary_language) }
-      let!(:client1_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'English', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
-      let!(:client2_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Russian', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
-
       let(:non_repeatable_data_element_definition) { create(:hmis_custom_data_element_definition_for_color) }
-      let!(:client1_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'Blue', data_element_definition: non_repeatable_data_element_definition, data_source: data_source) }
-      let!(:client2_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Red', data_element_definition:  non_repeatable_data_element_definition, data_source: data_source) }
 
-      before(:each) { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
+      context 'with repeatable and non-repeatable custom data elements' do
+        let!(:client1_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'English', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
+        let!(:client2_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Russian', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
+        let!(:client1_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'Blue', data_element_definition: non_repeatable_data_element_definition, data_source: data_source) }
+        let!(:client2_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Red', data_element_definition:  non_repeatable_data_element_definition, data_source: data_source) }
 
-      it 'merges repeating custom data elements' do
-        client1.reload
-        scope = client1.custom_data_elements.where(value_string: ['English', 'Russian'])
+        before(:each) { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
 
-        expect(scope.map(&:value_string).to_set.length).to eq(2)
-        expect(scope.all?(&:valid?)).to be_truthy
+        it 'merges repeating custom data elements' do
+          client1.reload
+          scope = client1.custom_data_elements.where(value_string: ['English', 'Russian'])
+
+          expect(scope.map(&:value_string).to_set.length).to eq(2)
+          expect(scope.all?(&:valid?)).to be_truthy
+        end
+
+        it 'merges non-repeating custom data elements, choosing newest' do
+          client1.reload
+
+          scope = client1.custom_data_elements.where(value_string: ['Red', 'Blue'])
+
+          expect(scope.map(&:value_string).to_set.length).to eq(1)
+          expect(scope.first.value_string).to eq('Red') # Created later than Blue
+        end
+
+        it 'stores custom data element mappings' do
+          audit = Hmis::ClientMergeAudit.first
+          cde_mappings = audit.mappings_for('custom_data_elements')
+          expect(cde_mappings).to be_a(Hash)
+          expect(cde_mappings[client2_custom_data_element.id]).to eq({ 'owner_id' => client2.id })
+          expect(cde_mappings[client2_nr_custom_data_element.id]).to eq({ 'owner_id' => client2.id })
+        end
       end
 
-      it 'merges non-repeating custom data elements, choosing newest' do
-        client1.reload
+      context 'setup to check mappings' do
+        let!(:record1) { create(:hmis_custom_data_element, owner: client1, value_string: 'English', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
+        let!(:record2) { create(:hmis_custom_data_element, owner: client2, value_string: 'Russian', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
 
-        scope = client1.custom_data_elements.where(value_string: ['Red', 'Blue'])
-
-        expect(scope.map(&:value_string).to_set.length).to eq(1)
-        expect(scope.first.value_string).to eq('Red') # Created later than Blue
-      end
-
-      it 'stores custom data element mappings' do
-        audit = Hmis::ClientMergeAudit.first
-        cde_mappings = audit.mappings_for('custom_data_elements')
-        expect(cde_mappings).to be_a(Hash)
-        # todo @martha - same situation for custom data elements, where the mapping is stored even when not changed
-        expect(cde_mappings[client2_custom_data_element.id]).to eq({ 'owner_id' => client2.id })
-        expect(cde_mappings[client2_nr_custom_data_element.id]).to eq({ 'owner_id' => client2.id })
+        it_behaves_like 'merge that saves mappings', 'custom_data_elements', 'owner_id', 'id'
       end
     end
 
@@ -520,7 +533,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
           expect(client1.ac_hmis_mci_unique_id&.value).to eq(record2.value)
         end
 
-        # todo @martha - this isn't the case, it doesn't match the shared example
+        # todo @martha(2) - this isn't the case, it doesn't match the shared example
         # it_behaves_like 'merge that saves mappings', 'mci_unique_ids', 'source_id', 'id'
       end
 
@@ -535,7 +548,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
           expect(client1.ac_hmis_mci_unique_id&.value).to eq(record1.value)
         end
 
-        # todo @martha - this isn't the case, it doesn't save the mapping due to implementation, needs update?
+        # todo @martha(2) - this isn't the case, it doesn't save the mapping due to implementation, needs update?
         # it_behaves_like 'merge that saves mappings', 'mci_unique_ids', 'source_id', 'id'
       end
 
