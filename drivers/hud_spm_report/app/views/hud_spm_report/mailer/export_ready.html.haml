@@ -1,0 +1,19 @@
+%p
+  Hello #{@user.name},
+
+%p
+  Your System Performance Measures (SPM) export "#{@name}" has finished generating.
+
+%p
+  You can download it using the link below:
+
+%p
+  = link_to "Download #{@name}", @url
+
+%p
+  This link will expire eventually.
+
+%p
+  Thank you,
+  %br
+  The HMIS Warehouse Team

@@ -83,10 +83,15 @@ module HudSpmReport
     end
 
     def render_xlsx_response
-      # For Excel downloads, load all records
-      @clients = base_scope.preload(client: [:data_source, :source_clients])
-      @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-      headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
+      HudSpmReport::CellExportJob.perform_later(
+        user_id: current_user.id,
+        report_id: @report.id,
+        measure_id: @question,
+        cell_id: @cell,
+        table: @table
+      )
+      flash[:notice] = "Your export is being generated. You will receive an email with a download link shortly."
+      redirect_back(fallback_location: hud_reports_spm_path(@report))
     end
 
     private def handle_invalid_query(message)
