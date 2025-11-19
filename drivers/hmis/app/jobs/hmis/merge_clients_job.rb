@@ -155,8 +155,14 @@ module Hmis
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
 
-      # Capture pre-merge name mappings before updating
-      build_and_update_merge_mappings(key: 'names', scope: name_scope, attributes: 'PersonalID')
+      # Capture pre-merge name mappings
+      build_and_update_merge_mappings(
+        key: 'names',
+        # Only capture mappings for names that we will update
+        # (not names that are already associated with the retained client)
+        scope: name_scope.where.not(personal_id: client_to_retain.personal_id),
+        attributes: 'PersonalID',
+      )
 
       # Update all names to point to client_to_retain
       primary_found = false
@@ -180,7 +186,7 @@ module Hmis
       element_ids = clients.flat_map(&:custom_data_elements).map(&:id)
 
       # Capture pre-merge CDE mappings before updating
-      cde_scope = Hmis::Hud::CustomDataElement.where(id: element_ids)
+      cde_scope = Hmis::Hud::CustomDataElement.where(id: element_ids).where.not(owner_id: client_to_retain.id)
       build_and_update_merge_mappings(key: 'custom_data_elements', scope: cde_scope, attributes: 'owner_id')
       cde_scope.update_all(owner_id: client_to_retain.id)
 

@@ -156,12 +156,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         audit = Hmis::ClientMergeAudit.first
         mappings = audit.mappings_for(key)
         expect(mappings[record2.id]).to eq({ mapping_field => client2.send(client_field || mapping_field) })
-        # TODO- discuss, should we add this expectation?
-        # currently the behavior is not consistent. some related records are only stored in the mappings if they are updated,
-        # others are always stored even if they pointed at the retained client originally and aren't touched.
-        # - client names
-        # - custom data elements
-        # expect(mappings.keys).not_to include(record1.id)
+        expect(mappings.keys).not_to include(record1.id) if record1.present?
       end
     end
 
@@ -527,6 +522,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       end
 
       context 'where merged client has mci_unique_id' do
+        let!(:record1) { nil } # no mci_unique_id on client1, but explicitly create the fixture so the shared example works
         let!(:record2) { create :mci_unique_id_external_id, source: client2, remote_credential: mci_unique_id_cred }
 
         it 'retains mci_unique_id' do
