@@ -44,7 +44,7 @@ module HudReports
 
     # Override in subclass to enable idempotent retry behavior.
     # When true, partial runs can be safely retried by resetting incomplete questions.
-    # When false, retries will fail-fast to generating reports with polluted data
+    # When false, retries will fail-fast
     def self.supports_idempotent_retry?
       false
     end

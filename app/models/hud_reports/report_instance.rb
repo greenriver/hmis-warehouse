@@ -113,9 +113,10 @@ module HudReports
 
     def reset_question(question)
       cells = report_cells.where(question: question)
-      # NOTE: We only clean up the linkage here. The specific Report/Question implementation
-      # is responsible for cleaning up any 'snapshot' records (e.g. SpmEnrollment)
-      # that these members point to, if necessary.
+      # NOTE: This method handles the generic cleanup of report cells and universe members.
+      # For question-specific cleanup of derived records (e.g., SPM's Return records),
+      # implement the QuestionBase::reset_derived_data hook, which is called automatically
+      # before this method during a retry.
       HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
       cells.delete_all
     end
