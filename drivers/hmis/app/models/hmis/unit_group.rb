@@ -14,7 +14,7 @@
 #   - Enables the definition of CE `eligibility_requirements` and `priority_scheme`
 #     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
 #
-# @see docs/features/hmis/readme_for_hmis_units.md For documentation on unit groups and their role in CE workflows
+# @see docs/features/hmis_units.md For documentation on unit groups and their role in CE workflows
 module Hmis
   class UnitGroup < HmisBase
     acts_as_paranoid

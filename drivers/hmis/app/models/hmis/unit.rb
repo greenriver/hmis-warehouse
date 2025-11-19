@@ -15,7 +15,7 @@
 # Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
 # Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 #
-# @see docs/features/hmis/readme_for_hmis_units.md For detailed documentation on units, unit occupancy workflows, and CE referrals
+# @see docs/features/hmis_units.md For detailed documentation on units, unit occupancy workflows, and CE referrals
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   acts_as_paranoid
