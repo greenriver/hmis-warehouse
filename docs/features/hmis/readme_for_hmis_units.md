@@ -14,14 +14,13 @@ Units in HMIS represent a generic unit of capacity in a project. A unit is a res
 
   Units can be in various states:
   - **Vacant**: Unit is unoccupied.
-  - **Vacant and Accepting Referrals** [CE Only]: Unit is unoccupied, and has been marked as available to accept referrals. The Unit has an associated open Opportunity.
   - **Occupied**: Currently occupied by one or more enrollments. A Unit cannot be occupied by more than one household at a time.
+  - **Vacant and Accepting Referrals** [CE Only]: Unit is unoccupied, and has been marked as available to accept referrals. The Unit has an associated open Opportunity.
+  - **Occupied and Accepting Referrals**: the backend allows this, but we don't yet support this from the UI. (icebox ticket #7537)
 
 - **Household Unit Occupancy**: A household can occupy more than one unit. Each enrollment in the household has its own unit occupancy record. This design allows for:
   - Multiple units per household for larger families
   - Individual tracking of each household member's unit assignment
-
-  When a household member exits, their unit occupancy is released. If all household members have exited, the unit becomes vacant.
 
 ## Direct Enrollment into Units
 
@@ -29,13 +28,13 @@ For projects that enroll clients directly (without CE referrals), the unit occup
 
 - **Unit Creation**: User adds a unit to the project. The unit starts in a vacant state.
 
-- **Initial Enrollment**: User enrolls a client into the project, directly selecting a unit from the list of vacant units. The selected unit becomes occupied.
+- **Initial Enrollment**: User enrolls a client into the project, directly selecting a unit from the list of vacant units. The selected unit becomes occupied. This requires an installation-specific enrollment form patch, such as require_units_on_enrollments.json
 
 - **Adding Household Members**: When adding additional household members to the project, users can select from:
   - Vacant units, or
   - Units already assigned to the household
 
-- **Unit Assignment Changes**: If configured, unit assignment can be changed directly from the enrollment dashboard. This allows users to reassign enrollments to different units as needed.
+- **Unit Assignment Changes**: If configured by Occurrence Point form, the unit assignment can be changed directly from the enrollment dashboard. This allows users to reassign enrollments to different units as needed.
 
 - **Household Member Exits**: When a household member exits, their unit occupancy is released. If they were the last enrollment occupying that unit, the unit becomes vacant again and can be assigned to another client.
 
