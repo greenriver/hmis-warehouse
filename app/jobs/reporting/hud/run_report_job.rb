@@ -63,7 +63,10 @@ module Reporting::Hud
     protected def run_report(report, generator, email:)
       capture_failure(report) do
         generator.prepare_report
+        completed_questions = report.completed_questions
         generator.class.questions.each do |q, klass|
+          next if completed_questions.include?(q)
+
           klass.new(generator, report).run! if report.build_for_questions.include?(q)
         end
       end

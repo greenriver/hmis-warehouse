@@ -85,12 +85,6 @@ Examples include:
 
 These models act as a stable foundation for the various questions in the report.
 
-When a report uses snapshot models, the `HudReports::ReportInstance#snapshot_status` field can be used to coordinate long-running snapshot generation across retries. Generators or measures should:
-
-- mark the snapshot as `pending` or `started` before building snapshot records,
-- delete any partial snapshot records if a previous run was interrupted, and
-- mark the snapshot as `completed` once the snapshot universe has been fully generated.
-
 ## Supported Reports
 
 The framework supports the following HUD reports:

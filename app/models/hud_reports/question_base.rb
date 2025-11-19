@@ -41,6 +41,7 @@ module HudReports
     end
 
     def run!
+      @report.reset_question(self.class.question_number)
       run_question!
       remaining_questions = @report.remaining_questions - [self.class.question_number]
       @report.update(remaining_questions: remaining_questions)

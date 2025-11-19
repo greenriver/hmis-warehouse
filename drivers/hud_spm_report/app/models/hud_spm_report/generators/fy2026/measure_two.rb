@@ -37,6 +37,8 @@ module HudSpmReport::Generators::Fy2026
         ['2a and 2b', :run_2a_and_b],
       ]
 
+      HudSpmReport::Fy2026::Return.where(report_instance_id: @report.id).delete_all
+
       @report.start(self.class.question_number, tables.map(&:first))
 
       tables.each do |name, msg|

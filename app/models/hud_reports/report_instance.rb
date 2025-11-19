@@ -123,6 +123,12 @@ module HudReports
       report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
     end
 
+    def reset_question(question)
+      cells = report_cells.where(question: question)
+      HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
+      cells.delete_all
+    end
+
     private def job_failed?
       related_job.present? && related_job.failed?
     end
