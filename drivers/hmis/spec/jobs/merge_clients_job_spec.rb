@@ -556,10 +556,6 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
           end.to change(HmisExternalApis::ExternalId.mci_unique_ids, :count).by(-1)
           expect(client1.ac_hmis_mci_unique_id&.value).to eq(record1.value)
         end
-
-        # TODO- discuss, do we need to add this expectation? I think no, because in this case the discarded unique ID is not updated.
-        # but I think it's fully deleted (not soft deleted) so this might be something to flag for unmerge
-        # it_behaves_like 'merge that saves mappings', 'mci_unique_ids', 'source_id', 'id'
       end
 
       context 'where clients have the same mci_unique_id' do
