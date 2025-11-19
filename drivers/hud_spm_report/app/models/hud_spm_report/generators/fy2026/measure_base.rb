@@ -18,9 +18,17 @@ module HudSpmReport::Generators::Fy2026
 
     private def enrollment_set
       enrollments = @report.spm_enrollments
-      return enrollments if enrollments.exists?
+      return enrollments if @report.snapshot_completed? && enrollments.exists?
+
+      if @report.snapshot_started? || enrollments.exists?
+        @report.spm_enrollments.delete_all
+      end
+
+      @report.mark_snapshot_started!
 
       HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(@report)
+      @report.mark_snapshot_completed!
+
       @report.spm_enrollments
     end
 

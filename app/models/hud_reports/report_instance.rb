@@ -7,6 +7,7 @@
 ###
 
 # A HUD Report instance
+# @see docs/features/hud-report-framework.md
 #
 # While the model supports STI, this is not commonly used to identify report type. Instead, the report_name is used to
 # indicate the type of report. For example:
@@ -35,6 +36,30 @@ module HudReports
     scope :created_recently, -> { where(created_at: 24.hours.ago .. Time.current) }
     scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
     scope :for_report, ->(report_name) { where(report_name: report_name) }
+
+    def snapshot_pending?
+      snapshot_status == HudReports::GeneratorBase::PENDING
+    end
+
+    def snapshot_started?
+      snapshot_status == HudReports::GeneratorBase::STARTED
+    end
+
+    def snapshot_completed?
+      snapshot_status == HudReports::GeneratorBase::COMPLETED
+    end
+
+    def mark_snapshot_pending!
+      update!(snapshot_status: HudReports::GeneratorBase::PENDING)
+    end
+
+    def mark_snapshot_started!
+      update!(snapshot_status: HudReports::GeneratorBase::STARTED)
+    end
+
+    def mark_snapshot_completed!
+      update!(snapshot_status: HudReports::GeneratorBase::COMPLETED)
+    end
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
