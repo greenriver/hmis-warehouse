@@ -252,7 +252,7 @@ module HudSpmReport::Generators::Fy2026
           question: table_name,
           cell_name: "#{column.column_letter}1",
           universe: false,
-          summary: column.variable_name
+          summary: column.variable_name,
         )
       end
 
@@ -265,7 +265,7 @@ module HudSpmReport::Generators::Fy2026
           question: table_name,
           cell_name: "#{column.column_letter}2",
           universe: false,
-          summary: formatted_value
+          summary: formatted_value,
         )
       end
 

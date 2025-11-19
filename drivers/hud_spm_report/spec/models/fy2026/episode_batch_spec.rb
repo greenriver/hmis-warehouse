@@ -21,7 +21,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
         client: client,
         project: project,
         entry_date: '2023-01-01'.to_date,
-        exit_date: '2023-01-31'.to_date
+        exit_date: '2023-01-31'.to_date,
       )
 
       # Create a "ghost" enrollment for the same client but different data source
@@ -31,7 +31,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
         client: client,
         project: project,
         entry_date: '2023-01-01'.to_date,
-        exit_date: '2023-01-31'.to_date
+        exit_date: '2023-01-31'.to_date,
       )
       # Manually override the data source to simulate the collision
       other_enrollment.update_column(:data_source_id, other_data_source.id)
@@ -40,14 +40,14 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
       # Valid bed night
       create_bed_night_service(
         enrollment: enrollment_in_batch,
-        date: '2023-01-15'.to_date
+        date: '2023-01-15'.to_date,
       )
 
       # Irrelevant bed night (same PersonalID, different Data Source)
       # We need to force this service to have the other data source ID
       s = create_bed_night_service(
         enrollment: other_enrollment,
-        date: '2023-01-15'.to_date
+        date: '2023-01-15'.to_date,
       )
       s.update_column(:data_source_id, other_data_source.id)
 
@@ -56,7 +56,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
 
       # Create a SpmEnrollment scope for just the batch enrollment
       spm_enrollments = HudSpmReport::Fy2026::SpmEnrollment.where(
-        enrollment_id: enrollment_in_batch.id
+        enrollment_id: enrollment_in_batch.id,
       )
 
       # Ensure we have the correct client ID (from the SPM record)
@@ -67,7 +67,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
         included_project_types,
         excluded_project_types,
         include_self_reported_and_ph,
-        report
+        report,
       )
 
       # Calculate using the correct client ID
@@ -89,7 +89,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
         client: client,
         project: project,
         entry_date: '2023-01-01'.to_date,
-        exit_date: '2023-01-10'.to_date
+        exit_date: '2023-01-10'.to_date,
       )
       create_bed_night_service(enrollment: enrollment_1, date: '2023-01-05'.to_date)
 
@@ -98,7 +98,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
         client: client,
         project: project,
         entry_date: '2023-02-01'.to_date,
-        exit_date: '2023-02-10'.to_date
+        exit_date: '2023-02-10'.to_date,
       )
       create_bed_night_service(enrollment: enrollment_2, date: '2023-02-05'.to_date)
 
@@ -116,7 +116,7 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
         included_project_types,
         excluded_project_types,
         include_self_reported_and_ph,
-        report
+        report,
       )
 
       episodes = batch.calculate_batch([spm_client_id])
@@ -130,20 +130,20 @@ RSpec.describe HudSpmReport::Fy2026::EpisodeBatch, type: :model do
     end
 
     it 'handles empty batches gracefully' do
-        project = create_project(project_type: 1)
-        report = setup_report([project.id])
+      project = create_project(project_type: 1)
+      report = setup_report([project.id])
 
-        spm_enrollments = HudSpmReport::Fy2026::SpmEnrollment.none
+      spm_enrollments = HudSpmReport::Fy2026::SpmEnrollment.none
 
-        batch = described_class.new(
-          spm_enrollments,
-          included_project_types,
-          excluded_project_types,
-          include_self_reported_and_ph,
-          report
-        )
+      batch = described_class.new(
+        spm_enrollments,
+        included_project_types,
+        excluded_project_types,
+        include_self_reported_and_ph,
+        report,
+      )
 
-        expect(batch.calculate_batch([])).to eq([])
+      expect(batch.calculate_batch([])).to eq([])
     end
   end
 end

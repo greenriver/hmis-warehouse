@@ -11,16 +11,6 @@ module HudSpmReport::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path
 
-    def prepare_report
-      super
-
-      # Pre-create enrollment set to track timing separately
-      start_time = Time.current
-      HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
-      enrollment_duration = Time.current - start_time
-      Rails.logger.info "SPM FY2026: Enrollment set creation completed in #{enrollment_duration.round(2)}s (#{report.spm_enrollments.count} enrollments)"
-    end
-
     def self.fiscal_year
       'FY 2026'
     end

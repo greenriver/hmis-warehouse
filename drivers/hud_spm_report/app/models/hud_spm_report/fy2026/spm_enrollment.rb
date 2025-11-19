@@ -384,7 +384,7 @@ module HudSpmReport::Fy2026
       results = {}
       enrollment_scope = GrdaWarehouse::Hud::Enrollment.
         heads_of_households.
-        order(:data_source_id, :household_id, e_t[:move_in_date].asc.nulls_last).
+        order(:data_source_id, :household_id, e_t[:move_in_date].asc.nulls_last, :id).
         select(
           :id,
           :household_id,

@@ -18,7 +18,8 @@ module Filters
 
     def initialize(attributes = {})
       # Extract user from attributes hash if present
-      user = attributes.is_a?(Hash) ? attributes.delete(:user) : nil
+      user = attributes[:user] if attributes.is_a?(Hash) || attributes.respond_to?(:[])
+      attributes = attributes.except(:user) if user && attributes.respond_to?(:except)
       super(attributes)
       # Cache @user instance to avoid extra database lookups while still setting user_id for consistency
       @user = user if user
