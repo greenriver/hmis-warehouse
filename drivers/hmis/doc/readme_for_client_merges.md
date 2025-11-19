@@ -88,7 +88,7 @@ The interaction between HMIS client merges and warehouse clients works as follow
 
 1. When clients are merged in HMIS, the `WarehouseClient` linking records for the **source clients that are being deleted** are destroyed immediately as part of the merge.
 2. The destruction of `WarehouseClient` records may leave some warehouse destination clients without any remaining source clients
-3. Later, when the `IdentifyDuplicates` job runs, it identifies and cleans up "orphaned" warehouse clients that no longer have any source clients
+3. Later, when the `ClientCleanup` job runs, it identifies and cleans up "orphaned" warehouse clients that no longer have any source clients
 
 However, note that **warehouse clients are not necessarily deleted** because:
 - A warehouse destination client may have multiple source clients
