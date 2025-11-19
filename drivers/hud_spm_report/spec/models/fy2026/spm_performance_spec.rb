@@ -132,7 +132,6 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
       end.to(
         make_database_queries(count: (enrollment_set_query_count - 25)...(enrollment_set_query_count + 25)).
           and(perform_under(enrollment_set_timing_secs).secs.sample(1).times.warmup(0)),
-        'SpmEnrollment.create_enrollment_set query budget',
       )
     end
 
@@ -154,6 +153,51 @@ RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints:
         )
 
         expect(report.report_cells.where(question: klass.question_number)).to exist
+      end
+    end
+  end
+end
+
+RSpec.describe 'FY2026 SPM performance budget with services', type: :model, exclude_fixpoints: true do
+  include_context 'SPM performance dataset'
+
+  let(:enrollment_set_query_count) { 75 }
+  let(:enrollment_set_timing_secs) { 15 }
+  let(:measure_configs) do
+    [
+      {
+        klass: HudSpmReport::Generators::Fy2026::MeasureOne,
+        query_count: 240, # Slight bump for service queries
+        timing_secs: 15,
+      },
+      # Measure 6 is also service dependent (income) but we are only adding bed nights here
+    ]
+  end
+  let(:question_names) { measure_configs.map { |config| config[:klass].question_number } }
+
+  before do
+    # Add bed nights to all enrollments
+    # Using direct creation to avoid overhead in this before block, but adhering to factories is safer
+    GrdaWarehouse::Hud::Enrollment.find_each do |enrollment|
+      create_bed_night_service(enrollment: enrollment, date: enrollment.entry_date)
+    end
+  end
+
+  it 'limits queries for measure runs with services' do
+    measure_configs.each do |config|
+      klass = config[:klass]
+      query_count = config[:query_count]
+      timing_secs = config[:timing_secs]
+      query_budget = (query_count - 25)...(query_count + 25)
+
+      HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
+      aggregate_failures(klass.name) do
+        expect do
+          run_measure(report, klass)
+        end.to(
+          make_database_queries(count: query_budget).
+            and(perform_under(timing_secs).secs.sample(1).times.warmup(0)),
+        )
       end
     end
   end

@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 module HudSpmReport::Fy2026
+  # Calculates homeless episodes for Measure 1 (Length of Time Persons Remain Homeless)
+  # Optimized to load services in batches for a set of clients
   class EpisodeBatch
     def initialize(enrollments, included_project_types, excluded_project_types, include_self_reported_and_ph, report)
       @enrollments = enrollments # are SpmEnrollment
@@ -39,25 +41,18 @@ module HudSpmReport::Fy2026
       # enrollments_for_clients = spm_enrollments.group_by(&:client_id)
 
       # Services are really expensive to preload, for unknown reasons, however, the overall set of information we need is fairly small
-      # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
-      # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
       enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, :enrollment).group_by(&:client_id)
       batch_personal_ids = enrollments_for_clients.values.flatten.map(&:personal_id).uniq
-      allowed_enrollment_keys = enrollments_for_clients.values.flatten.each_with_object(Set.new) do |enrollment, memo|
-        memo.add([enrollment.enrollment.EnrollmentID, enrollment.personal_id, enrollment.data_source_id])
-      end
       data_source_ids = enrollments_for_clients.values.flatten.map(&:data_source_id).uniq
-      service_scope = GrdaWarehouse::Hud::Service.bed_night.
+      # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
+      # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
+      batch_services = GrdaWarehouse::Hud::Service.bed_night.
         between(start_date: nil, end_date: @filter.end). # We don't need anything after the report end date, but may need services before the start date
-        where(PersonalID: batch_personal_ids)
-      service_scope = service_scope.where(data_source_id: data_source_ids) if data_source_ids.present?
-      batch_services = Hash.new { |h, k| h[k] = [] }
-      service_scope.pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).each do |enrollment_id, personal_id, data_source_id, date_provided|
-        key = [enrollment_id, personal_id, data_source_id]
-        next unless allowed_enrollment_keys.include?(key)
-
-        batch_services[key] << date_provided
-      end
+        where(PersonalID: batch_personal_ids). # impose some basic limit so we don't load the entire set of services
+        where(data_source_id: data_source_ids). # Filter by data_source_id to reduce irrelevant records
+        pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).
+        group_by { |r| r.shift(3) }.
+        transform_values(&:flatten)
 
       episodes = []
       bed_nights_per_episode = []
