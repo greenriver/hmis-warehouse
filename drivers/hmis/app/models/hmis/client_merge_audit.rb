@@ -69,22 +69,6 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
     mappings_for('source_clients')[client_id]&.dig('destination_id')&.to_i
   end
 
-  # Get IDs of records that were destroyed during merge
-  # @param record_type [String] The record type (e.g., 'custom_data_elements', 'referral_household_members')
-  # @return [Array<String>] Array of destroyed record IDs as strings
-  def destroyed_record_ids(record_type)
-    key = "destroyed_#{record_type}"
-    pre_merge_mappings[key] || []
-  end
-
-  # Check if a specific record was destroyed during merge
-  # @param record_type [String] The record type
-  # @param record_id [Integer] The record ID
-  # @return [Boolean] True if the record was destroyed
-  def record_destroyed?(record_type, record_id)
-    destroyed_record_ids(record_type).include?(record_id.to_s)
-  end
-
   private
 
   PRE_MERGE_MAPPING_EXPECTED_FIELDS = {
