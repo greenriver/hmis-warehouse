@@ -46,7 +46,9 @@ module HopwaCaper
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
 
-    scope :head_of_household, -> { where(relationship_to_hoh: 1) }
+    def self.head_of_household
+      where(relationship_to_hoh: 1)
+    end
 
     INSURANCE_FIELDS = [
       :Medicaid,
@@ -100,7 +102,7 @@ module HopwaCaper
         age: client.age_on([report.start_date, enrollment.entry_date].max),
         dob: client.dob,
         dob_quality: client.dob_data_quality,
-        sex: client.sex,
+        genders: client.gender_multi.sort,
         races: client.race_multi.sort,
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
@@ -119,8 +121,8 @@ module HopwaCaper
         chronically_homeless: enrollment.chronically_homeless_at_start,
         prior_living_situation: enrollment.living_situation || 99,
         rental_subsidy_type: enrollment.rental_subsidy_type,
-        viral_load_suppression: hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 },
-        ever_prescribed_anti_retroviral_therapy: hiv_disabilities.any? { |d| d.anti_retroviral == 1 },
+        viral_load_suppression: (hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 }),
+        ever_prescribed_anti_retroviral_therapy: (hiv_disabilities.any? { |d| d.anti_retroviral == 1 }),
       )
     end
 
