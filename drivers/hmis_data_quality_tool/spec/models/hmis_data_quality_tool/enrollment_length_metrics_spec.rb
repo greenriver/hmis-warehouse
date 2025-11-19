@@ -30,7 +30,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
         it 'does not flag short stays' do
           # Should not be flagged if under 90 days
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More', invalid_count: 0)
+          expect_result(key: :lot_es_90_issues, invalid_count: 0)
         end
       end
 
@@ -49,7 +49,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags long ES stays' do
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More', invalid_count: 1)
+          expect_result(key: :lot_es_90_issues, invalid_count: 1)
         end
       end
 
@@ -68,8 +68,8 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags very long ES stays' do
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More', invalid_count: 1)
+          expect_result(key: :lot_es_90_issues, invalid_count: 1)
+          expect_result(key: :lot_es_180_issues, invalid_count: 1)
         end
       end
 
@@ -88,9 +88,9 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags very long ES stays' do
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More', invalid_count: 1)
+          expect_result(key: :lot_es_90_issues, invalid_count: 1)
+          expect_result(key: :lot_es_180_issues, invalid_count: 1)
+          expect_result(key: :lot_es_365_issues, invalid_count: 1)
         end
       end
     end
@@ -113,7 +113,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag recent service' do
-          expect_result(title: 'Possible Missed Exit - ES NbN, No Service in 90 Days or More', invalid_count: 0)
+          expect_result(key: :days_since_last_service_es_90_issues, invalid_count: 0)
         end
       end
 
@@ -134,7 +134,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing service' do
-          expect_result(title: 'Possible Missed Exit - ES NbN, No Service in 90 Days or More', invalid_count: 1)
+          expect_result(key: :days_since_last_service_es_90_issues, invalid_count: 1)
         end
       end
     end
@@ -155,7 +155,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags long SO stays' do
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More', invalid_count: 1)
+          expect_result(key: :days_since_last_service_so_90_issues, invalid_count: 1)
         end
       end
 
@@ -174,8 +174,8 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags long SO stays' do
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More', invalid_count: 1)
+          expect_result(key: :days_since_last_service_so_90_issues, invalid_count: 1)
+          expect_result(key: :days_since_last_service_so_180_issues, invalid_count: 1)
         end
       end
 
@@ -194,9 +194,9 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags long SO stays' do
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More', invalid_count: 1)
+          expect_result(key: :days_since_last_service_so_90_issues, invalid_count: 1)
+          expect_result(key: :days_since_last_service_so_180_issues, invalid_count: 1)
+          expect_result(key: :days_since_last_service_so_365_issues, invalid_count: 1)
         end
       end
 
@@ -215,7 +215,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid move-in dates' do
-          expect_result(title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More', invalid_count: 0)
+          expect_result(key: :days_since_last_service_so_90_issues, invalid_count: 0)
         end
       end
     end
@@ -238,7 +238,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing move-in date' do
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More', invalid_count: 1)
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
         end
       end
 
@@ -259,8 +259,8 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing move-in date' do
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More', invalid_count: 1)
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
+          expect_result(key: :days_in_ph_prior_to_move_in_180_issues, invalid_count: 1)
         end
       end
 
@@ -281,9 +281,9 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing move-in date' do
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More', invalid_count: 1)
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More', invalid_count: 1)
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
+          expect_result(key: :days_in_ph_prior_to_move_in_180_issues, invalid_count: 1)
+          expect_result(key: :days_in_ph_prior_to_move_in_365_issues, invalid_count: 1)
         end
       end
 
@@ -305,7 +305,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid move-in dates' do
-          expect_result(title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More', invalid_count: 0)
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 0)
         end
       end
     end
