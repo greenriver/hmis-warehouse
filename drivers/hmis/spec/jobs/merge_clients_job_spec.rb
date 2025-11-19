@@ -37,6 +37,16 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
       audit = Hmis::ClientMergeAudit.first
       expect(audit.client_merge_histories.count).to eq(1)
+
+      # Stores pre-merge state
+      expect(audit.pre_merge_state).to be_present
+      expect(audit.pre_merge_state).to be_a(Array)
+      expect(audit.pre_merge_state).to contain_exactly(
+        # Serialize attributes as JSON to match how they're stored in the database
+        JSON.parse(client1.attributes.to_json),
+        JSON.parse(client2.attributes.to_json),
+      )
+
       # Stores pre-merge mappings
       expect(audit.pre_merge_mappings).to be_present
       expect(audit.pre_merge_mappings).to be_a(Hash)
