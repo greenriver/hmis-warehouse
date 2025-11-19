@@ -83,9 +83,6 @@ module Hmis
     #   client_locations: {}, # [id => { 'client_id' => value }]
     #   source_clients: {}, # [client_id => { 'destination_id' => value }]
     # }
-    # Note: Enrollment-related records (assessments, services, disabilities, etc.)
-    # are tied to enrollments via EnrollmentID, so we don't need to store separate
-    # mappings for them. They will be updated when enrollments are transferred.
     def build_and_update_merge_mappings(key:, scope:, attributes:)
       mapping = {}
       scope.each do |record|
@@ -185,8 +182,7 @@ module Hmis
       # Capture pre-merge CDE mappings before updating
       cde_scope = Hmis::Hud::CustomDataElement.where(id: element_ids)
       build_and_update_merge_mappings(key: 'custom_data_elements', scope: cde_scope, attributes: 'owner_id')
-
-      Hmis::Hud::CustomDataElement.where(id: element_ids).update_all(owner_id: client_to_retain.id)
+      cde_scope.update_all(owner_id: client_to_retain.id)
 
       Rails.logger.info 'uniqify custom data elements for each definition'
 
@@ -203,7 +199,7 @@ module Hmis
         values = elements.sort_by(&:DateUpdated)
 
         # Destroy duplicate CDEs. Some may have been in pre_merge_mappings, which is fine and will help us restore them later if unmerge is needed.
-        # Any manual or automated restoration process should account for the fact that CDEDs may have been deleted and need to be recreated, not just moved over.
+        # Any manual or automated restoration process should account for the fact that CDEDs may have been deleted and need to be recreated, not just moved.
         values[0..-2].each(&:destroy!)
       end
     end
@@ -345,14 +341,10 @@ module Hmis
       end
       update_merge_mappings('source_clients', mappings) if mappings.any?
 
-      # Now delete them
       warehouse_clients.find_each(&:destroy!)
     end
 
     def update_personal_id_foreign_keys
-      # Enrollment-related records (assessments, services, disabilities, etc.) are tied to enrollments
-      # via EnrollmentID, so we only need to capture enrollment mappings. The enrollment-related records
-      # will be updated when enrollments are transferred during un-merge.
       candidates = [
         Hmis::Hud::Assessment,
         Hmis::Hud::AssessmentQuestion,
@@ -388,8 +380,9 @@ module Hmis
 
         next unless candidate_scope.exists?
 
-        # Capture mappings for enrollments, addresses, and contact_points
-        # (enrollment-related records are tied via EnrollmentID, so we don't need separate mappings for them)
+        # Capture mappings for enrollments, addresses, and contact_points.
+        # Enrollment-related records (assessments, services, disabilities, etc.) are tied to enrollments
+        # via EnrollmentID, so we don't need separate mappings for them.
         case candidate.name
         when 'Hmis::Hud::Enrollment'
           build_and_update_merge_mappings(key: 'enrollments', scope: candidate_scope, attributes: 'PersonalID')
