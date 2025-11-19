@@ -394,8 +394,8 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       end
 
       context 'with client files' do
-        let!(:record1) { create(:file, :without_validations, client_id: client1.id) }
-        let!(:record2) { create(:file, :without_validations, client_id: client2.id) }
+        let!(:record1) { create(:file, :skip_validate, client_id: client1.id) }
+        let!(:record2) { create(:file, :skip_validate, client_id: client2.id) }
 
         it_behaves_like 'merge of records related by client_id'
         it_behaves_like 'merge that saves mappings', 'files', 'client_id', 'id'

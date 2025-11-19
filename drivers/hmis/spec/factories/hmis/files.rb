@@ -25,7 +25,7 @@ FactoryBot.define do
       file.tag_list = evaluator.tags.map(&:id)
     end
 
-    trait :without_validations do
+    trait :skip_validate do
       # allow test factories to bypass validations (specifically file_exists_and_not_too_large)
       to_create { |instance| instance.save(validate: false) }
     end
