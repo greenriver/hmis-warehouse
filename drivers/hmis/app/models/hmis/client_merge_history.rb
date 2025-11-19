@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# See drivers/hmis/doc/readme_for_client_merges.md
+# See docs/features/hmis_client_merges.md
 
 class Hmis::ClientMergeHistory < Hmis::HmisBase
   belongs_to :client_merge_audit, class_name: 'Hmis::ClientMergeAudit', optional: false, foreign_key: :client_merge_audit_id, inverse_of: :client_merge_histories
