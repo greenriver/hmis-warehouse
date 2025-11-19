@@ -7261,7 +7261,7 @@ type Mutation {
   """
   Void a referral request
   """
-  voidReferralRequest(referralRequestId: ID!): VoidReferralRequestPayload
+  voidReferralRequest(referralRequestId: ID!): VoidReferralRequestPayload @deprecated(reason: "External ReferralRequests integration is deprecated and will be removed in a future release")
 }
 
 """
