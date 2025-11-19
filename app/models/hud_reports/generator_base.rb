@@ -42,6 +42,13 @@ module HudReports
       fiscal_year.downcase.delete(' ').to_sym
     end
 
+    # Override in subclass to enable idempotent retry behavior.
+    # When true, partial runs can be safely retried by resetting incomplete questions.
+    # When false, retries will fail-fast to generating reports with polluted data
+    def self.supports_idempotent_retry?
+      false
+    end
+
     def queue
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys

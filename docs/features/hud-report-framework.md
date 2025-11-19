@@ -1,14 +1,14 @@
 # HUD Report Framework
 
-The HUD Report Framework provides a standardized structure for generating compliance reports (APR, CAPER, SPM, etc.) from HMIS data. It manages the report lifecycle, data aggregation, and result storage, allowing individual report drivers to focus on specific business logic and calculations.
+The HUD Report Framework generates compliance reports (APR, CAPER, SPM, etc.) from HMIS data. It handles report lifecycle, data aggregation, and result storage. Individual report drivers implement specific business logic and calculations.
 
 ## Architecture
 
 The framework relies on three core components:
 
-1.  **Report Instance**: Represents a single execution of a report. It stores configuration (dates, projects, CoCs) and tracks the state of the run.
-2.  **Generator**: The orchestrator for a specific report type (e.g., `HudApr::Generators::Fy2026::Generator`). It defines the report's structure, including which questions or measures to run.
-3.  **Question/Measure**: Encapsulates the logic for a single section of the report. It handles data retrieval, calculation, and result formatting.
+1.  **Report Instance**: Represents a single report execution. Stores configuration (dates, projects, CoCs) and tracks state.
+2.  **Generator**: Orchestrates a specific report type (e.g., `HudApr::Generators::Fy2026::Generator`). Defines report structure and which questions run.
+3.  **Question/Measure**: Implements logic for a single report section. Handles data retrieval, calculation, and result formatting.
 
 ```mermaid
 classDiagram
@@ -26,64 +26,115 @@ classDiagram
     class QuestionBase {
         +run!()
         +universe()
+        +reset_derived_data()
+    }
+    class ReportCell {
+        +question
+        +cell_name
+        +value
+    }
+    class UniverseMember {
+        +polymorphic_id
+        +client_id
+    }
+    class SnapshotModel {
+        +derived_data
     }
 
     ReportInstance --* GeneratorBase : configures
     GeneratorBase --* QuestionBase : orchestrates
     QuestionBase --o ReportInstance : updates results
+    ReportInstance --* ReportCell : contains
+    ReportCell --* UniverseMember : has many
+    UniverseMember --> SnapshotModel : points to
+    ReportCell ..> QuestionBase : references (by name)
 ```
 
 ## Report Structure
 
 ### Generators
-Generators extend `HudReports::GeneratorBase`. They serve as the entry point and configuration hub for a report family.
-
-A generator is responsible for:
-- Defining the report title and fiscal year.
-- Listing the `questions` (sections) that comprise the report.
-- Providing report-level scopes (e.g., default project types).
+Generators extend `HudReports::GeneratorBase` and define:
+- Report title and fiscal year
+- Questions (sections) in the report
+- Report-level scopes (e.g., default project types)
 
 ### Questions and Measures
-Questions (or Measures in SPM) extend `HudReports::QuestionBase`. Each class corresponds to a specific table or section in the final report.
-
-A question is responsible for:
-- Defining the "universe" of data relevant to that section.
-- Calculating aggregates (counts, averages, medians).
-- Storing results into specific "cells" (row/column coordinates).
+Questions (or Measures in SPM) extend `HudReports::QuestionBase`. Each class corresponds to a table or section in the final report. Questions define the data universe, calculate aggregates, and store results in cells (row/column coordinates).
 
 ## Data Processing Pipeline
 
-The reporting process follows a linear pipeline:
-
-1.  **Initialization**: A `ReportInstance` is created with user-provided parameters (date range, project selection).
-2.  **Queuing**: The Generator queues a background job (`Reporting::Hud::RunReportJob`).
-3.  **Execution**: The job instantiates the Generator and iterates through the defined questions.
-4.  **Data Gathering**:
-    - Questions fetch raw HMIS data (Enrollments, Clients, Services).
-    - Data is filtered by report parameters (CoC, Date Range).
-    - Derived attributes (e.g., Age, Chronic Status) are calculated.
-5.  **Snapshotting**: Complex reports often create intermediate "snapshot" records (e.g., `AprClient`, `SpmEnrollment`) to cache calculated values for performance.
-6.  **Aggregation**: The question logic aggregates the data into the required format.
-7.  **Completion**: Results are saved to the `ReportInstance`, and the report is marked as complete.
+1.  **Initialization**: Create a `ReportInstance` with parameters (date range, project selection)
+2.  **Queuing**: Generator queues `Reporting::Hud::RunReportJob`
+3.  **Execution**: Job instantiates the Generator and iterates through questions
+4.  **Data Gathering**: Questions fetch HMIS data (Enrollments, Clients, Services), filter by report parameters (CoC, Date Range), and calculate derived attributes (Age, Chronic Status)
+5.  **Snapshotting**: Some reports create intermediate snapshot records (e.g., `AprClient`, `SpmEnrollment`) that cache calculated values
+6.  **Aggregation**: Questions aggregate data into report format
+7.  **Completion**: Results are saved to `ReportInstance`
 
 ## Data Management
 
 ### Universes and Cells
-The framework uses the concept of a "Universe" to define the set of records (Clients or Enrollments) that apply to a specific report section or cell.
+- **Universe**: A collection of records matching specific criteria (e.g., "All adults in Emergency Shelter")
+- **Cell**: A data point in the report output (e.g., "Question 5, Row 1, Column A")
 
-- **Universe**: A collection of records that meet specific criteria (e.g., "All adults in Emergency Shelter").
-- **Cell**: A specific data point in the report output (e.g., "Question 5, Row 1, Column A").
-
-Questions populate cells by associating a universe with a specific cell identifier. This allows the system to support "drill-down" functionality, where users can see the specific clients behind a number.
+`HudReports::ReportCell` represents a cell and links to underlying data via `HudReports::UniverseMember`, a polymorphic join model. This connects report cells to snapshot models (`SpmEnrollment`, `AprClient`) and caches PII for drill-down tables in the UI.
 
 ### Snapshot Models
-To improve performance and consistency, many reports use snapshot models. Instead of recalculating complex logic (like "Chronic Homelessness status on entry") for every question, the report calculates it once and stores it in a temporary or report-specific table.
+Many reports use snapshot models to cache calculated values (e.g., "Chronic Homelessness status on entry") in temporary or report-specific tables.
 
-Examples include:
-- **APR/CAPER**: Uses `AprClient` to store age, household type, and disability status for the report period.
-- **SPM**: Uses `SpmEnrollment` to normalize enrollment data across different project types.
+Examples:
+- **APR/CAPER**: `AprClient` stores age, household type, and disability status
+- **SPM**: `SpmEnrollment` normalizes enrollment data across project types
 
-These models act as a stable foundation for the various questions in the report.
+## Retry and Idempotency
+
+The framework supports retrying failed or partial report runs on an opt-in basis.
+
+### Enabling Retry Support
+
+Reports declare retry support by overriding `supports_idempotent_retry?`:
+
+```ruby
+class Generator < ::HudReports::GeneratorBase
+  def self.supports_idempotent_retry?
+    true  # Enables retry support
+  end
+end
+```
+
+Default: `supports_idempotent_retry?` returns `false` (retries disabled).
+
+### Retry Behavior
+
+**With `supports_idempotent_retry? == true` (e.g., SPM)**:
+
+1. Completed questions are skipped (won't run again)
+2. Incomplete/failed questions are reset (cells and universe members deleted before re-running)
+3. Shared snapshot data (e.g., `SpmEnrollment`) is reused if already created
+
+**With `supports_idempotent_retry? == false` (default, e.g., PIT)**:
+
+1. Retries fail immediately if the report was previously started (checked via `started_at` timestamp)
+2. Reports using lazy-evaluation or shared universe patterns use this mode
+3. Users create a new report instead of retrying
+
+### Architectural Patterns
+
+Reports use several different patterns and are not uniform.
+
+**Eager Snapshot with Retry Support (SPM)**:
+- Generator creates snapshot data during `prepare_report`
+- Snapshot status prevents recreation on retry
+- Measures implement a `::reset_derived_data` class method to remove derived data (e.g., `Return` records) before a question is retried.
+- Questions consume the shared snapshot
+- Retry-safe: snapshots are isolated and questions are independent
+
+**Lazy Shared Universe without Retry (PIT)**:
+- First question populates a shared universe
+- Subsequent questions reuse the universe data
+- No question-level reset occurs
+- Not retry-safe: questions are interdependent
+- Retries are blocked when questions have completed
 
 ## Supported Reports
 

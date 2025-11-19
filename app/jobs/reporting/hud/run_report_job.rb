@@ -62,8 +62,16 @@ module Reporting::Hud
 
     protected def run_report(report, generator, email:)
       capture_failure(report) do
+        # Fail-fast if attempting to retry a report that doesn't support idempotent retry
+        # Check started_at to catch all retry scenarios (completed questions, partial runs, mid-question failures)
+        if report.started_at.present? && !generator.class.supports_idempotent_retry?
+          raise "Cannot retry #{generator.class.name}: this report does not support idempotent retry. " \
+                "Report was previously started at #{report.started_at}. Please create a new report instead."
+        end
+
         generator.prepare_report
         completed_questions = report.completed_questions
+
         generator.class.questions.each do |q, klass|
           next if completed_questions.include?(q)
 

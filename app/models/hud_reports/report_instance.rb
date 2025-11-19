@@ -37,20 +37,8 @@ module HudReports
     scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
     scope :for_report, ->(report_name) { where(report_name: report_name) }
 
-    def snapshot_pending?
-      snapshot_status == HudReports::GeneratorBase::PENDING
-    end
-
-    def snapshot_started?
-      snapshot_status == HudReports::GeneratorBase::STARTED
-    end
-
     def snapshot_completed?
       snapshot_status == HudReports::GeneratorBase::COMPLETED
-    end
-
-    def mark_snapshot_pending!
-      update!(snapshot_status: HudReports::GeneratorBase::PENDING)
     end
 
     def mark_snapshot_started!
@@ -125,6 +113,9 @@ module HudReports
 
     def reset_question(question)
       cells = report_cells.where(question: question)
+      # NOTE: We only clean up the linkage here. The specific Report/Question implementation
+      # is responsible for cleaning up any 'snapshot' records (e.g. SpmEnrollment)
+      # that these members point to, if necessary.
       HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
       cells.delete_all
     end

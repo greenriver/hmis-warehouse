@@ -41,7 +41,7 @@ module HudReports
     end
 
     def run!
-      @report.reset_question(self.class.question_number)
+      reset_question_if_needed
       run_question!
       remaining_questions = @report.remaining_questions - [self.class.question_number]
       @report.update(remaining_questions: remaining_questions)
@@ -69,6 +69,22 @@ module HudReports
 
     def self.table_descriptions
       {}
+    end
+
+    # Override in subclasses to clean up derived data associated with this question
+    def self.reset_derived_data(_report_instance)
+      # Default implementation is a no-op
+    end
+
+    private
+
+    # Resets this question's cells if the generator supports idempotent retry.
+    # Safe to call on fresh runs - reset_question is a no-op if no cells exist.
+    def reset_question_if_needed
+      return unless @generator.class.supports_idempotent_retry?
+
+      self.class.reset_derived_data(@report)
+      @report.reset_question(self.class.question_number)
     end
   end
 end
