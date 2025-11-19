@@ -84,4 +84,38 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   def record_destroyed?(record_type, record_id)
     destroyed_record_ids(record_type).include?(record_id.to_s)
   end
+
+  private
+
+  PRE_MERGE_MAPPING_EXPECTED_FIELDS = {
+    'enrollments' => 'PersonalID',
+    'names' => 'PersonalID',
+    'addresses' => 'PersonalID',
+    'contact_points' => 'PersonalID',
+    'custom_data_elements' => 'owner_id',
+    'files' => 'client_id',
+    'mci_ids' => 'source_id',
+    'mci_unique_ids' => 'source_id',
+    'scan_cards' => 'client_id',
+    'client_locations' => 'client_id',
+    'source_clients' => 'destination_id',
+  }.freeze
+
+  def validate_pre_merge_mappings_structure
+    return unless pre_merge_mappings.keys.any?
+
+    unexpected_keys = pre_merge_mappings.keys - PRE_MERGE_MAPPING_EXPECTED_FIELDS.keys
+    errors.add(:pre_merge_mappings, "mapping keys #{unexpected_keys.join(', ')} are unexpected") if unexpected_keys.any?
+
+    # Validate that all mapping values contain only the expected field
+    pre_merge_mappings.each do |key, mappings|
+      mappings.each do |record_id, attributes|
+        expected_field = PRE_MERGE_MAPPING_EXPECTED_FIELDS[key]
+        unless attributes.is_a?(Hash) && attributes.keys == [expected_field]
+          message = "Invalid mapping structure for #{key}: record #{record_id} must contain only '#{expected_field}'. Got: #{attributes.inspect}"
+          errors.add(:pre_merge_mappings, message)
+        end
+      end
+    end
+  end
 end

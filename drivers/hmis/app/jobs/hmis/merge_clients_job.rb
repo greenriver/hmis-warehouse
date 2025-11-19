@@ -17,42 +17,6 @@ module Hmis
     attr_accessor :data_source_id
     attr_accessor :merge_audit
 
-    # This merge job stores a pre_merge_mappings hash in the merge audit record, mapping
-    # record ids to the values of the foreign key field that they pointed to before the merge.
-    # {
-    #   enrollments: {}, # [id => { PersonalID => value }]
-    #   names: {}, # [id => { PersonalID => value }]
-    #   addresses: {}, # [id => { PersonalID => value }]
-    #   contact_points: {}, # [id => { PersonalID => value }]
-    #   custom_data_elements: {}, # [id => { owner_id => value }]
-    #   files: {}, # [id => { client_id => value }]
-    #   mci_ids: {}, # [id => { source_id => value }]
-    #   mci_unique_ids: {}, # [id => { source_id => value }]
-    #   scan_cards: {}, # [id => { client_id => value }]
-    #   client_locations: {}, # [id => { client_id => value }]
-    #   source_clients: {}, # [client_id => { destination_id => warehouse_destination_client_id }]
-    # }
-
-    # Note: Enrollment-related records (assessments, services, disabilities, etc.)
-    # are tied to enrollments via EnrollmentID, so we don't need to store separate
-    # mappings for them. They will be updated when enrollments are transferred.
-
-    # This PRE_MERGE_MAPPING_EXPECTED_FIELDS is used for validating the pre_merge_mappings structure.
-    # It maps the key, such as 'enrollment', to the foreign key field, such as 'PersonalID'.
-    PRE_MERGE_MAPPING_EXPECTED_FIELDS = {
-      'enrollments' => 'PersonalID',
-      'names' => 'PersonalID',
-      'addresses' => 'PersonalID',
-      'contact_points' => 'PersonalID',
-      'custom_data_elements' => 'owner_id',
-      'files' => 'client_id',
-      'mci_ids' => 'source_id',
-      'mci_unique_ids' => 'source_id',
-      'scan_cards' => 'client_id',
-      'client_locations' => 'client_id',
-      'source_clients' => 'destination_id',
-    }.freeze
-
     def perform(client_ids:, actor_id:)
       raise 'You cannot merge less than two clients' if Array.wrap(client_ids).length < 2
 
@@ -104,6 +68,24 @@ module Hmis
 
     private
 
+    # This merge job stores a pre_merge_mappings hash in the merge audit record, mapping
+    # record ids to the values of the foreign key field that they pointed to before the merge.
+    # {
+    #   enrollments: {}, # [id => { 'PersonalID' => value }]
+    #   names: {}, # [id => { 'PersonalID' => value }]
+    #   addresses: {}, # [id => { 'PersonalID' => value }]
+    #   contact_points: {}, # [id => { 'PersonalID' => value }]
+    #   custom_data_elements: {}, # [id => { 'owner_id' => value }]
+    #   files: {}, # [id => { 'client_id' => value }]
+    #   mci_ids: {}, # [id => { 'source_id' => value }]
+    #   mci_unique_ids: {}, # [id => { 'source_id' => value }]
+    #   scan_cards: {}, # [id => { 'client_id' => value }]
+    #   client_locations: {}, # [id => { 'client_id' => value }]
+    #   source_clients: {}, # [client_id => { 'destination_id' => value }]
+    # }
+    # Note: Enrollment-related records (assessments, services, disabilities, etc.)
+    # are tied to enrollments via EnrollmentID, so we don't need to store separate
+    # mappings for them. They will be updated when enrollments are transferred.
     def build_and_update_merge_mappings(key:, scope:, attributes:)
       mapping = {}
       scope.each do |record|
@@ -113,18 +95,7 @@ module Hmis
     end
 
     def update_merge_mappings(key, mappings)
-      return unless merge_audit
-
-      # Validate the structure of incoming mappings
       key_str = key.to_s
-      expected_field = PRE_MERGE_MAPPING_EXPECTED_FIELDS[key_str]
-      raise "Unknown mapping key: #{key_str}. Expected one of #{PRE_MERGE_MAPPING_EXPECTED_FIELDS.keys.join(', ')}" unless expected_field
-
-      # Validate that all mapping values contain only the expected field
-      mappings.each do |record_id, attributes|
-        raise "Invalid mapping structure for #{key_str}: record #{record_id} must contain only '#{expected_field}'. Got: #{attributes.inspect}" unless attributes.is_a?(Hash) && attributes.keys == [expected_field]
-      end
-
       current_mappings = merge_audit.pre_merge_mappings || {}
       current_mappings[key_str] = (current_mappings[key_str] || {}).merge(mappings.stringify_keys)
       merge_audit.update_column(:pre_merge_mappings, current_mappings)
@@ -367,6 +338,7 @@ module Hmis
       warehouse_clients = ::GrdaWarehouse::WarehouseClient.
         where(source_id: clients_needing_reference_updates.map(&:id))
 
+      # don't use build_and_update_merge_mappings here, since we need to key by record.source_id
       mappings = {}
       warehouse_clients.find_each do |wc|
         mappings[wc.source_id] = { 'destination_id' => wc.destination_id }

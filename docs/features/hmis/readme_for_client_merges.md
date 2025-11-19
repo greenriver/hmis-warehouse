@@ -77,9 +77,10 @@ Some record types are **deduplicated** during the merge process to avoid having 
 - **MCI IDs**: External IDs with duplicate values are deduplicated.
 
 **Note:** Enrollments and other related records are **not** deduplicated. 
-All enrollments from merged clients are preserved on the retained client.
-This is because, even if they overlap (bad data), the merge job doesn't have a straightforward way to determine which one to keep.
-This would need to be cleaned up manually by the user post-merge.
+All enrollments from merged clients are preserved on the retained client,
+because the merge job doesn't have a straightforward way to determine which one to keep.
+If both merged clients have enrollments in the same project that overlap,
+post-merge this would be bad data that needs to be cleaned up manually by the user.
 
 ### Warehouse Clients and Client Merges
 
