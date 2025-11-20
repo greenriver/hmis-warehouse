@@ -134,6 +134,25 @@ module HudSpmReport::Fy2026
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
 
+    # Fields selected from Enrollment table for SPM enrollment set creation.
+    # Review this list when updating to a new fiscal year.
+    ENROLLMENT_SELECT_FIELDS = [
+      :id,                    # Primary key, used for enrollment_id reference
+      :PersonalID,            # Service lookup key in Episode (accessed as personal_id)
+      :ProjectID,             # Project ID reference in Episode (accessed as project_id)
+      :EnrollmentID,          # Service lookup key in Episode calculation
+      :data_source_id,        # Data source identifier, household key component
+      :EntryDate,             # Entry date, used throughout
+      :HouseholdID,           # Household grouping, used to fetch HoH context
+      :RelationshipToHoH,     # Determines head_of_household? status for move-in logic
+      :LivingSituation,       # Prior living situation for literal homelessness checks
+      :LengthOfStay,          # Length of stay at prior residence
+      :LOSUnderThreshold,     # Length of stay under threshold flag
+      :PreviousStreetESSH,    # Previously in ES/SH/Street flag
+      :DateToStreetESSH,      # Start of homelessness date
+      :MoveInDate,            # Move-in date for PH projects
+    ].freeze
+
     def self.enrollment_scope_for_members
       GrdaWarehouse::Hud::Enrollment.preload(
         :client,
@@ -143,33 +162,7 @@ module HudSpmReport::Fy2026
         :income_benefits_at_entry,
         :income_benefits,
         project: :funders,
-      ).select(
-        :id,
-        :EnrollmentID,
-        :PersonalID,
-        :ProjectID,
-        :EntryDate,
-        :HouseholdID,
-        :RelationshipToHoH,
-        :EnrollmentCoC,
-        :LivingSituation,
-        :RentalSubsidyType,
-        :LengthOfStay,
-        :LOSUnderThreshold,
-        :PreviousStreetESSH,
-        :DateToStreetESSH,
-        :TimesHomelessPastThreeYears,
-        :MonthsHomelessPastThreeYears,
-        :DisablingCondition,
-        :DateOfEngagement,
-        :MoveInDate,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-        :data_source_id,
-      )
+      ).select(*ENROLLMENT_SELECT_FIELDS)
     end
 
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
@@ -383,8 +376,8 @@ module HudSpmReport::Fy2026
     private_class_method def self.collect_household_info(query)
       results = {}
       enrollment_scope = GrdaWarehouse::Hud::Enrollment.
-        heads_of_households.
-        order(:data_source_id, :household_id, e_t[:move_in_date].asc.nulls_last, :id).
+        heads_of_households. # Only RelationshipToHoH == 1
+        order(:data_source_id, :household_id, :entry_date, e_t[:move_in_date].asc.nulls_last, :id).
         select(
           :id,
           :household_id,
@@ -397,7 +390,7 @@ module HudSpmReport::Fy2026
       query.enrollment_batches(enrollment_scope) do |batch|
         batch.each do |enrollment|
           key = [enrollment.data_source_id, enrollment.household_id]
-          # With ordering, first valid enrollment per household wins
+          # First HoH per household wins: earliest entry date, then earliest move-in date
           results[key] ||= to_household_info(enrollment)
         end
       end

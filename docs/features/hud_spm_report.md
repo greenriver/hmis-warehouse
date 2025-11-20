@@ -3,12 +3,13 @@
 ### Introduction
 - For HUD’s official specification, see https://www.hudexchange.info/resource/4483/system-performance-measures-tools/.
 - Legacy generators for FY2020, FY2023, and FY2024 remain in the driver for backward compatibility, but FY2026 is the active implementation.
-- `HudSpmReport.current_generator` switches between FY2026 and FY2024 based on the configured default report version.
+- `HudSpmReport.current_generator` is generally fixed to point to the most-recent version, however during transition periods (usually September) it may point to the next fiscal year in some environments.
 
 ### Architecture
 - The SPM feature ships as a Rails driver under `drivers/hud_spm_report`. Controllers inherit from the shared HUD reports controller stack and mount under the `/hud_reports/spms` namespace.
-- The FY2026 generator exposes metadata (title, question list, filter class, upload capabilities) to the HUD reports framework. Each question maps to a dedicated measure class that encapsulates table preparation and summary calculation logic.
+- The generator exposes metadata (title, question list, filter class, upload capabilities) to the HUD reports framework. Each question maps to a dedicated measure class that encapsulates table preparation and summary calculation logic.
 - `Generator.questions` returns the ordered measure list (Measures 1–7 plus HDX upload). HUD report answers reference these classes via the question number.
+- Generally speaking, the code for SPMs should be written in such a way that it is self contained with year-specific logic in the driver.  There are a variety of shared concerns for standard functionality that has historically stayed consistent year-over-year which can be used (households, ages, incomes, etc. -- see `models/concerns/hud_reports`) however if the logic for the SPM differs from the historic standard, code should be copied into the driver and altered in-situ rather than applying overrides to the shared components.
 
 ### Key Classes
 - **SpmEnrollment**: Denormalized enrollment records that capture client identity, age, project, destination, income history, homelessness status, and funding eligibility. These records back most measure universes and expose scopes for active method definitions and literal homelessness checks.
