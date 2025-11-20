@@ -97,7 +97,7 @@ module AcHmis
       return if mci_id.blank? && mci_unique_id.blank? && first_name.blank? && last_name.blank?
 
       # Validate required fields
-      if mci_id.blank? || mci_unique_id.blank? || first_name.blank? || last_name.blank?
+      if mci_id.blank? || mci_unique_id.blank? || (first_name.blank? && last_name.blank?)
         error_msg = "Row #{row_number}: Missing required fields (MCI_ID, MCI_UNIQ_ID, FNAME, LNAME)"
         @stats[:errors] << error_msg
         puts "ERROR: #{error_msg}"
@@ -119,9 +119,9 @@ module AcHmis
 
       # Step 1: Look up by MCI Unique ID
       # If found, skip - do not update Name/DOB, do not add MCI ID
-      client = find_client_by_mci_unique_id(mci_unique_id)
-      if client
-        # puts "Row #{row_number}: Skipped - Client found by MCI Unique ID #{mci_unique_id} (Client ID: #{client.id})"
+      client_id = find_client_id_by_mci_unique_id(mci_unique_id)
+      if client_id.present?
+        # puts "Row #{row_number}: Skipped - Client found by MCI Unique ID #{mci_unique_id} (Client ID: #{client_id})"
         @stats[:skipped_mci_unique_id_found] += 1
         return
       end
@@ -222,22 +222,40 @@ module AcHmis
       nil
     end
 
-    def find_client_by_mci_unique_id(mci_unique_id)
-      Hmis::Hud::Client.first_by_external_id(
-        namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE,
-        value: mci_unique_id.to_s,
-      )
+    def mci_unique_id_to_source_client_id
+      @mci_unique_id_to_source_client_id ||= begin
+        puts 'Building MCI Unique ID lookup map...'
+        HmisExternalApis::ExternalId.mci_unique_ids.pluck(:value, :source_id).to_h
+      end
+    end
+
+    def mci_id_to_source_clients
+      @mci_id_to_source_clients ||= begin
+        puts 'Building MCI ID lookup map...'
+        hash = {}
+        HmisExternalApis::ExternalId.mci_ids.find_in_batches(batch_size: 5000) do |batch|
+          # Preload clients for this batch
+          client_ids = batch.map(&:source_id).compact.uniq
+          clients_by_id = Hmis::Hud::Client.where(id: client_ids).index_by(&:id)
+          batch.each do |external_id|
+            client = clients_by_id[external_id.source_id]
+            next unless client # Skip if client was deleted
+
+            key = external_id.value.to_s
+            hash[key] ||= []
+            hash[key] << client unless hash[key].include?(client)
+          end
+        end
+        hash
+      end
+    end
+
+    def find_client_id_by_mci_unique_id(mci_unique_id)
+      mci_unique_id_to_source_client_id[mci_unique_id.to_s]
     end
 
     def find_clients_by_mci_id(mci_id)
-      id_scope = HmisExternalApis::ExternalId.
-        where(
-          value: mci_id.to_s,
-          namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
-          source_type: 'Hmis::Hud::Client',
-        )
-
-      Hmis::Hud::Client.where(id: id_scope.select(:source_id)).order(:id).to_a
+      mci_id_to_source_clients[mci_id.to_s] || []
     end
 
     def data_source
@@ -302,9 +320,9 @@ module AcHmis
 
     def print_summary
       puts 'IMPORT SUMMARY'
-      puts "# rows found by MCI Unique ID (skipped): #{@stats[:skipped_mci_unique_id_found]}"
-      puts "# rows found by MCI ID (skipped or updated): #{@stats[:skipped_mci_id_found]}"
-      puts "Clients created: #{@stats[:created]}"
+      puts "Found by MCI Unique ID (skipped): #{@stats[:skipped_mci_unique_id_found]}"
+      puts "Found by MCI ID (skipped or updated): #{@stats[:skipped_mci_id_found]}"
+      puts "Created: #{@stats[:created]}"
       puts "Errors: #{@stats[:errors].length}"
       puts "Warnings: #{@stats[:warnings].length}"
 
