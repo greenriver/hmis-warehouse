@@ -36,7 +36,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid income data' do
-          expect_result(title: 'Income From Any Source at Entry', invalid_count: 0)
+          expect_result(key: :income_from_any_source_at_entry, invalid_count: 0)
         end
       end
 
@@ -62,7 +62,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing income data' do
-          expect_result(title: 'Income From Any Source at Entry', invalid_count: 1)
+          expect_result(key: :income_from_any_source_at_entry, invalid_count: 1)
         end
       end
     end
@@ -97,7 +97,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid income data' do
-          expect_result(title: 'Income From Any Source at Annual Assessment', invalid_count: 0)
+          expect_result(key: :income_from_any_source_at_annual, invalid_count: 0)
         end
       end
 
@@ -129,7 +129,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing income data' do
-          expect_result(title: 'Income From Any Source at Annual Assessment', invalid_count: 1)
+          expect_result(key: :income_from_any_source_at_annual, invalid_count: 1)
         end
       end
     end
@@ -158,7 +158,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid income data' do
-          expect_result(title: 'Income From Any Source at Exit', invalid_count: 0)
+          expect_result(key: :income_from_any_source_at_exit, invalid_count: 0)
         end
       end
 
@@ -185,7 +185,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing income data' do
-          expect_result(title: 'Income From Any Source at Exit', invalid_count: 1)
+          expect_result(key: :income_from_any_source_at_exit, invalid_count: 1)
         end
       end
     end
@@ -217,7 +217,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags cash income mismatch' do
-            expect_result(title: 'Cash Income Matches Expected Value at Entry', invalid_count: 1)
+            expect_result(key: :cash_income_as_expected_at_entry, invalid_count: 1)
           end
         end
 
@@ -246,7 +246,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags cash income mismatch' do
-            expect_result(title: 'Cash Income Matches Expected Value at Entry', invalid_count: 1)
+            expect_result(key: :cash_income_as_expected_at_entry, invalid_count: 1)
           end
         end
       end
@@ -281,7 +281,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags cash income mismatch' do
-            expect_result(title: 'Cash Income Matches Expected Value at Annual Assessment', invalid_count: 1)
+            expect_result(key: :cash_income_as_expected_at_annual, invalid_count: 1)
           end
         end
 
@@ -314,7 +314,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags cash income mismatch' do
-            expect_result(title: 'Cash Income Matches Expected Value at Annual Assessment', invalid_count: 1)
+            expect_result(key: :cash_income_as_expected_at_annual, invalid_count: 1)
           end
         end
       end
@@ -346,7 +346,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags cash income mismatch' do
-            expect_result(title: 'Cash Income Matches Expected Value at Exit', invalid_count: 1)
+            expect_result(key: :cash_income_as_expected_at_exit, invalid_count: 1)
           end
         end
 
@@ -376,7 +376,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags cash income mismatch' do
-            expect_result(title: 'Cash Income Matches Expected Value at Exit', invalid_count: 1)
+            expect_result(key: :cash_income_as_expected_at_exit, invalid_count: 1)
           end
         end
       end
@@ -407,7 +407,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags NCB mismatch' do
-            expect_result(title: 'Non-Cash Benefits Matches Expected Value at Entry', invalid_count: 1)
+            expect_result(key: :ncb_as_expected_at_entry, invalid_count: 1)
           end
         end
 
@@ -434,7 +434,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags NCB mismatch' do
-            expect_result(title: 'Non-Cash Benefits Matches Expected Value at Entry', invalid_count: 1)
+            expect_result(key: :ncb_as_expected_at_entry, invalid_count: 1)
           end
         end
       end
@@ -467,7 +467,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags NCB mismatch' do
-            expect_result(title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment', invalid_count: 1)
+            expect_result(key: :ncb_as_expected_at_annual, invalid_count: 1)
           end
         end
 
@@ -498,7 +498,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags NCB mismatch' do
-            expect_result(title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment', invalid_count: 1)
+            expect_result(key: :ncb_as_expected_at_annual, invalid_count: 1)
           end
         end
       end
@@ -528,7 +528,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags NCB mismatch' do
-            expect_result(title: 'Non-Cash Benefits Matches Expected Value at Exit', invalid_count: 1)
+            expect_result(key: :ncb_as_expected_at_exit, invalid_count: 1)
           end
         end
 
@@ -556,7 +556,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags NCB mismatch' do
-            expect_result(title: 'Non-Cash Benefits Matches Expected Value at Exit', invalid_count: 1)
+            expect_result(key: :ncb_as_expected_at_exit, invalid_count: 1)
           end
         end
       end
@@ -591,7 +591,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags income amount mismatch' do
-            expect_result(title: 'Total Monthly Income Matches Sources at Entry', invalid_count: 1)
+            expect_result(key: :income_source_amounts_match_total_at_entry, invalid_count: 1)
           end
         end
       end
@@ -625,7 +625,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags income amount mismatch' do
-            expect_result(title: 'Total Monthly Income Matches Sources at Exit', invalid_count: 1)
+            expect_result(key: :income_source_amounts_match_total_at_exit, invalid_count: 1)
           end
         end
       end
@@ -656,7 +656,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags total monthly income mismatch' do
-          expect_result(title: 'Total Monthly Income at Exit', invalid_count: 1)
+          expect_result(key: :total_monthly_income_at_exit, invalid_count: 1)
         end
       end
 
@@ -684,7 +684,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags total monthly income mismatch' do
-          expect_result(title: 'Total Monthly Income at Exit', invalid_count: 1)
+          expect_result(key: :total_monthly_income_at_exit, invalid_count: 1)
         end
       end
     end

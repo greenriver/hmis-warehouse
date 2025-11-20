@@ -44,7 +44,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag matching bed counts' do
-          expect_result(title: 'Sum of Dedicated Beds does not Equal Total Beds')
+          expect_result(key: :dedicated_bed_issues)
         end
       end
 
@@ -77,7 +77,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags mismatched bed counts' do
-          expect_result(title: 'Sum of Dedicated Beds does not Equal Total Beds', invalid_count: 1)
+          expect_result(key: :dedicated_bed_issues, invalid_count: 1)
         end
       end
 
@@ -110,7 +110,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag zero beds' do
-          expect_result(title: 'Sum of Dedicated Beds does not Equal Total Beds')
+          expect_result(key: :dedicated_bed_issues)
         end
       end
     end

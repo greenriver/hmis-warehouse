@@ -33,7 +33,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           # Verify clients are found in the report
           expect(@report.clients.count).to be > 0
 
-          expect_result(title: 'Name', invalid_count: 0)
+          expect_result(key: :name_issues, invalid_count: 0)
         end
       end
 
@@ -50,7 +50,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags name issues' do
-          expect_result(title: 'Name', invalid_count: 1)
+          expect_result(key: :name_issues, invalid_count: 1)
         end
       end
 
@@ -67,7 +67,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags name issues' do
-          expect_result(title: 'Name', invalid_count: 1)
+          expect_result(key: :name_issues, invalid_count: 1)
         end
       end
     end
@@ -83,7 +83,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid SSNs' do
-          expect_result(title: 'Social Security Number', invalid_count: 0)
+          expect_result(key: :ssn_issues, invalid_count: 0)
         end
       end
 
@@ -97,7 +97,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags SSN issues' do
-          expect_result(title: 'Social Security Number', invalid_count: 1)
+          expect_result(key: :ssn_issues, invalid_count: 1)
         end
       end
 
@@ -111,7 +111,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags SSN issues' do
-          expect_result(title: 'Social Security Number', invalid_count: 1)
+          expect_result(key: :ssn_issues, invalid_count: 1)
         end
       end
 
@@ -125,7 +125,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags SSN issues' do
-          expect_result(title: 'Social Security Number', invalid_count: 1)
+          expect_result(key: :ssn_issues, invalid_count: 1)
         end
       end
     end
@@ -141,7 +141,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid DOBs' do
-          expect_result(title: 'DOB', invalid_count: 0)
+          expect_result(key: :dob_issues, invalid_count: 0)
         end
       end
 
@@ -154,7 +154,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags DOB issues' do
-          expect_result(title: 'DOB', invalid_count: 1)
+          expect_result(key: :dob_issues, invalid_count: 1)
         end
       end
 
@@ -168,7 +168,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags DOB issues' do
-          expect_result(title: 'DOB', invalid_count: 1)
+          expect_result(key: :dob_issues, invalid_count: 1)
         end
       end
 
@@ -182,7 +182,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags DOB issues' do
-          expect_result(title: 'DOB', invalid_count: 1)
+          expect_result(key: :dob_issues, invalid_count: 1)
         end
       end
     end
@@ -207,7 +207,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid race data' do
-          expect_result(title: 'Race', invalid_count: 0)
+          expect_result(key: :race_issues, invalid_count: 0)
         end
       end
 
@@ -230,7 +230,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags race issues' do
-          expect_result(title: 'Race', invalid_count: 1)
+          expect_result(key: :race_issues, invalid_count: 1)
         end
       end
 
@@ -253,7 +253,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags race issues' do
-          expect_result(title: 'Race', invalid_count: 1)
+          expect_result(key: :race_issues, invalid_count: 1)
         end
       end
     end
@@ -269,7 +269,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid veteran status' do
-          expect_result(title: 'Veteran Status', invalid_count: 0)
+          expect_result(key: :veteran_issues, invalid_count: 0)
         end
       end
 
@@ -283,7 +283,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags veteran status issues' do
-          expect_result(title: 'Veteran Status', invalid_count: 1)
+          expect_result(key: :veteran_issues, invalid_count: 1)
         end
       end
 
@@ -298,7 +298,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
         it 'does not flag veteran status for children' do
           # Children are not in the denominator
-          expect_result(title: 'Veteran Status', total: 0, invalid_count: 0)
+          expect_result(key: :veteran_issues, total: 0, invalid_count: 0)
         end
       end
     end

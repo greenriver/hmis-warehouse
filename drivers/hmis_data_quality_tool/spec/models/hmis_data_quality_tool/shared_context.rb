@@ -111,9 +111,9 @@ RSpec.shared_context 'DQ Tool test setup', shared_context: :metadata do
   end
 
   # Helper method to DRY up result checking
-  def expect_result(title:, total: 1, invalid_count: 0, report: nil)
+  def expect_result(key:, total: 1, invalid_count: 0, report: nil)
     report ||= @report
-    result = report.results.find { |r| r.title == title }
+    result = report.results.find { |r| r.slug.to_s == key.to_s }
     expect(result).to be_present
     expect(result.total).to eq(total)
     expect(result.invalid_count).to eq(invalid_count)
