@@ -29,7 +29,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid disabling condition' do
-          expect_result(title: 'Disabling Condition', invalid_count: 0)
+          expect_result(key: :disabling_condition_issues, invalid_count: 0)
         end
       end
 
@@ -48,7 +48,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags disabling condition issues' do
-          expect_result(title: 'Disabling Condition', invalid_count: 1)
+          expect_result(key: :disabling_condition_issues, invalid_count: 1)
         end
       end
     end
@@ -69,7 +69,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid living situation' do
-          expect_result(title: 'Prior Living Situation', invalid_count: 0)
+          expect_result(key: :living_situation_issues, invalid_count: 0)
         end
       end
 
@@ -88,7 +88,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags living situation issues' do
-          expect_result(title: 'Prior Living Situation', invalid_count: 1)
+          expect_result(key: :living_situation_issues, invalid_count: 1)
         end
       end
     end
@@ -109,8 +109,8 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid HoH' do
-          expect_result(title: 'No Head of Household', invalid_count: 0)
-          expect_result(title: 'Multiple Heads of Household', invalid_count: 0)
+          expect_result(key: :no_hoh_issues, invalid_count: 0)
+          expect_result(key: :multiple_hoh_issues, invalid_count: 0)
         end
       end
 
@@ -129,7 +129,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags no HoH issues' do
-          expect_result(title: 'No Head of Household', invalid_count: 1)
+          expect_result(key: :no_hoh_issues, invalid_count: 1)
         end
       end
 
@@ -159,7 +159,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags multiple HoH issues' do
-          expect_result(title: 'Multiple Heads of Household', total: 2, invalid_count: 2)
+          expect_result(key: :multiple_hoh_issues, total: 2, invalid_count: 2)
         end
       end
     end
@@ -179,7 +179,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid exit dates' do
-          expect_result(title: 'Exit Before Entry', invalid_count: 0)
+          expect_result(key: :exit_date_issues, invalid_count: 0)
         end
       end
 
@@ -197,7 +197,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags exit date issues' do
-          expect_result(title: 'Exit Before Entry', invalid_count: 1)
+          expect_result(key: :exit_date_issues, invalid_count: 1)
         end
       end
     end
@@ -218,7 +218,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid destinations' do
-          expect_result(title: 'Destination', invalid_count: 0)
+          expect_result(key: :destination_issues, invalid_count: 0)
         end
       end
 
@@ -237,7 +237,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags destination issues' do
-          expect_result(title: 'Destination', invalid_count: 1)
+          expect_result(key: :destination_issues, invalid_count: 1)
         end
       end
     end
@@ -274,7 +274,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags future entry date issues' do
-          expect_result(title: 'Future Entry Date', invalid_count: 1)
+          expect_result(key: :future_entry_date_issues, invalid_count: 1)
         end
       end
 
@@ -292,7 +292,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags future exit date issues' do
-          expect_result(title: 'Future Exit Date', invalid_count: 1)
+          expect_result(key: :future_exit_date_issues, invalid_count: 1)
         end
       end
     end
@@ -314,7 +314,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags move-in date issues' do
-          expect_result(title: 'Move-In Before Entry Date', invalid_count: 1)
+          expect_result(key: :move_in_prior_to_start_issues, invalid_count: 1)
         end
       end
 
@@ -334,7 +334,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags move-in date issues' do
-          expect_result(title: 'Move-In After Exit Date', invalid_count: 1)
+          expect_result(key: :move_in_post_exit_issues, invalid_count: 1)
         end
       end
     end
@@ -358,7 +358,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid operating dates' do
-          expect_result(title: 'Enrollment Active Outside of Project Operating Dates', invalid_count: 0)
+          expect_result(key: :enrollment_outside_project_operating_dates_issues, invalid_count: 0)
         end
       end
 
@@ -380,7 +380,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags operating date issues' do
-          expect_result(title: 'Enrollment Active Outside of Project Operating Dates', invalid_count: 1)
+          expect_result(key: :enrollment_outside_project_operating_dates_issues, invalid_count: 1)
         end
       end
     end
@@ -401,7 +401,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags unaccompanied youth under 12' do
-          expect_result(title: 'Unaccompanied Youth < 12 Years Old', invalid_count: 1)
+          expect_result(key: :unaccompanied_youth_issues, invalid_count: 1)
         end
       end
 
@@ -431,7 +431,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag accompanied youth' do
-          expect_result(title: 'Unaccompanied Youth < 12 Years Old', invalid_count: 0)
+          expect_result(key: :unaccompanied_youth_issues, invalid_count: 0)
         end
       end
     end
@@ -453,7 +453,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing enrollment CoC' do
-          expect_result(title: 'Head of Household is Missing Enrollment CoC', invalid_count: 1)
+          expect_result(key: :hoh_client_location_issues, invalid_count: 1)
         end
       end
 
@@ -473,7 +473,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag matching CoC' do
-          expect_result(title: 'Head of Household is Missing Enrollment CoC', invalid_count: 0)
+          expect_result(key: :hoh_client_location_issues, invalid_count: 0)
         end
       end
     end
@@ -499,7 +499,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing DV data' do
-          expect_result(title: 'Survivor of Domestic Violence', invalid_count: 1)
+          expect_result(key: :dv_at_entry, invalid_count: 1)
         end
       end
 
@@ -523,7 +523,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid DV data' do
-          expect_result(title: 'Survivor of Domestic Violence', invalid_count: 0)
+          expect_result(key: :dv_at_entry, invalid_count: 0)
         end
       end
     end
@@ -550,7 +550,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when disabilities are collected' do
-          expect_result(title: 'Disability at entry', invalid_count: 0)
+          expect_result(key: :disability_at_entry_collected, invalid_count: 0)
         end
       end
 
@@ -575,7 +575,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when disabilities are not collected' do
-          expect_result(title: 'Disability at entry', invalid_count: 1)
+          expect_result(key: :disability_at_entry_collected, invalid_count: 1)
         end
       end
     end
@@ -604,7 +604,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid VAMC station' do
-          expect_result(title: 'VAMC Station Number is Missing', invalid_count: 0)
+          expect_result(key: :vamc_station, invalid_count: 0)
         end
       end
 
@@ -631,7 +631,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing VAMC station' do
-          expect_result(title: 'VAMC Station Number is Missing', invalid_count: 1)
+          expect_result(key: :vamc_station, invalid_count: 1)
         end
       end
     end
@@ -659,7 +659,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when veteran is in household' do
-          expect_result(title: 'No Veteran in Household', invalid_count: 0)
+          expect_result(key: :no_veteran_in_household, invalid_count: 0)
         end
       end
 
@@ -685,7 +685,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when no veteran is in household' do
-          expect_result(title: 'No Veteran in Household', invalid_count: 1)
+          expect_result(key: :no_veteran_in_household, invalid_count: 1)
         end
       end
     end
@@ -713,7 +713,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when HoH is a veteran' do
-          expect_result(title: 'Head of Household is not a Veteran', invalid_count: 0)
+          expect_result(key: :hoh_not_veteran, invalid_count: 0)
         end
       end
 
@@ -739,7 +739,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when HoH is not a veteran' do
-          expect_result(title: 'Head of Household is not a Veteran', invalid_count: 1)
+          expect_result(key: :hoh_not_veteran, invalid_count: 1)
         end
       end
     end
@@ -762,7 +762,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when date to street is present' do
-          expect_result(title: 'Approximate Date Homeless', invalid_count: 0)
+          expect_result(key: :date_to_street_issues, invalid_count: 0)
         end
       end
 
@@ -783,7 +783,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when date to street is missing' do
-          expect_result(title: 'Approximate Date Homeless', invalid_count: 1)
+          expect_result(key: :date_to_street_issues, invalid_count: 1)
         end
       end
     end
@@ -807,7 +807,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when times homeless is present' do
-          expect_result(title: 'Number Times Homeless', invalid_count: 0)
+          expect_result(key: :times_homeless_issues, invalid_count: 0)
         end
       end
 
@@ -829,7 +829,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when times homeless is missing' do
-          expect_result(title: 'Number Times Homeless', invalid_count: 1)
+          expect_result(key: :times_homeless_issues, invalid_count: 1)
         end
       end
     end
@@ -853,7 +853,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when months homeless is present' do
-          expect_result(title: 'Number of Months Homeless', invalid_count: 0)
+          expect_result(key: :months_homeless_issues, invalid_count: 0)
         end
       end
 
@@ -875,7 +875,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when months homeless is missing' do
-          expect_result(title: 'Number of Months Homeless', invalid_count: 1)
+          expect_result(key: :months_homeless_issues, invalid_count: 1)
         end
       end
     end
@@ -898,7 +898,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag timely entry date entry' do
-          expect_result(title: 'Time for Record Entry of Entry Date', invalid_count: 0)
+          expect_result(key: :entry_date_entry_issues, invalid_count: 0)
         end
       end
 
@@ -919,7 +919,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags untimely entry date entry' do
-          expect_result(title: 'Time for Record Entry of Entry Date', invalid_count: 1)
+          expect_result(key: :entry_date_entry_issues, invalid_count: 1)
         end
       end
     end
@@ -949,7 +949,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid current living situation' do
-          expect_result(title: 'Current Living Situation', invalid_count: 0)
+          expect_result(key: :current_living_situation_issues, invalid_count: 0)
         end
       end
 
@@ -977,7 +977,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags invalid current living situation' do
-          expect_result(title: 'Current Living Situation', invalid_count: 1)
+          expect_result(key: :current_living_situation_issues, invalid_count: 1)
         end
       end
     end
@@ -1001,7 +1001,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag timely exit date entry' do
-          expect_result(title: 'Time for Record Entry of Exit Date', invalid_count: 0)
+          expect_result(key: :exit_date_entry_issues, invalid_count: 0)
         end
       end
 
@@ -1023,7 +1023,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags untimely exit date entry' do
-          expect_result(title: 'Time for Record Entry of Exit Date', invalid_count: 1)
+          expect_result(key: :exit_date_entry_issues, invalid_count: 1)
         end
       end
     end
@@ -1059,7 +1059,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag when annual assessments are complete' do
-          expect_result(title: 'Incomplete Annual Assessments', invalid_count: 0)
+          expect_result(key: :annual_assessment_issues, invalid_count: 0)
         end
       end
 
@@ -1081,7 +1081,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags when annual assessments are missing' do
-          expect_result(title: 'Incomplete Annual Assessments', invalid_count: 1)
+          expect_result(key: :annual_assessment_issues, invalid_count: 1)
         end
       end
     end
