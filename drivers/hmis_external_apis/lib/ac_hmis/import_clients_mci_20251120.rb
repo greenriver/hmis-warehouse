@@ -16,9 +16,9 @@ require 'roo'
 # 2. If not found, look up client by MCI ID. If found, ensure MCI Unique ID matches (do not update Name/DOB).
 # 3. If not found by either, create new client with provided name and DOB, and associate both MCI ID and MCI Unique ID.
 #
-# Usage: AcHmis::OneTimeImportMci20251119.new(filename, dry_run: true).perform
+# Usage: AcHmis::ImportClientsMci20251120.new(filename, dry_run: true).perform
 module AcHmis
-  class OneTimeImportMci20251119
+  class ImportClientsMci20251120
     attr_reader :file_path, :dry_run
 
     def initialize(file_path, dry_run: false)
