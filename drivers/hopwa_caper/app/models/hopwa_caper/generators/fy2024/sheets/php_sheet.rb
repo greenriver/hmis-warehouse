@@ -8,9 +8,9 @@
 
 module HopwaCaper::Generators::Fy2024::Sheets
   class PhpSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q4: PHP'.freeze
+    QUESTION_NUMBER = 'Q4: PHP'
     QUESTION_NUMBERS = ['Q4'].freeze
-    SHEET_TITLE = 'Complete this section for all Households served with HOPWA Permanent Housing Placement (PHP) assistance by your organization in the reporting year.'.freeze
+    SHEET_TITLE = 'Complete this section for all Households served with HOPWA Permanent Housing Placement (PHP) assistance by your organization in the reporting year.'
     CONTENTS = [
       { method: :households_served_sheet, label: 'Households Served by this Activity' },
       { method: :expenditures_sheet, label: 'PHP Expenditures for Households Served by this Activity' },

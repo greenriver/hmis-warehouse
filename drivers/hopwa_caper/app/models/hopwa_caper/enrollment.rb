@@ -121,8 +121,8 @@ module HopwaCaper
         chronically_homeless: enrollment.chronically_homeless_at_start,
         prior_living_situation: enrollment.living_situation || 99,
         rental_subsidy_type: enrollment.rental_subsidy_type,
-        viral_load_suppression: (hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 }),
-        ever_prescribed_anti_retroviral_therapy: (hiv_disabilities.any? { |d| d.anti_retroviral == 1 }),
+        viral_load_suppression: hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 },
+        ever_prescribed_anti_retroviral_therapy: hiv_disabilities.any? { |d| d.anti_retroviral == 1 },
       )
     end
 

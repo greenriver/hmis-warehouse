@@ -48,14 +48,6 @@ module HmisDataQualityTool
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
         dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudHelper.util.dob_data_quality(v)} (#{v})" } },
-        man: { title: 'Man', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        woman: { title: 'Woman', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        culturally_specific: { title: 'Culturally Specific', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        different_identity: { title: 'DifferentIdentity', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        transgender: { title: 'Transgender', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        questioning: { title: 'Questioning', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudHelper.util.gender_none(v)} (#{v})" } },
         am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
         asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
         black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
@@ -192,14 +184,6 @@ module HmisDataQualityTool
       report_item.reporting_age = source_client.age_on(report.filter.end)
       report_item.personal_id = source_client.PersonalID
       report_item.data_source_id = source_client.data_source_id
-      report_item.man = source_client.Man
-      report_item.woman = source_client.Woman
-      report_item.culturally_specific = source_client.CulturallySpecific
-      report_item.different_identity = source_client.DifferentIdentity
-      report_item.non_binary = source_client.NonBinary
-      report_item.transgender = source_client.Transgender
-      report_item.questioning = source_client.Questioning
-      report_item.gender_none = source_client.GenderNone
       report_item.am_ind_ak_native = source_client.AmIndAKNative
       report_item.asian = source_client.Asian
       report_item.black_af_american = source_client.BlackAfAmerican
@@ -280,7 +264,8 @@ module HmisDataQualityTool
             en_services = en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
             nbn_en.services.where(RecordType: 200, DateProvided: en_services).pluck(:DateProvided)
           else
-            nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+            # The en enrollment is not a NBN enrollment, so we need to check for the NBN services overlapping the en enrollment date range
+            nbn_en.services.where(RecordType: 200, DateProvided: en.EntryDate..end_date).pluck(:DateProvided)
           end
           overlaps << [simple_enrollment(nbn_en), simple_enrollment(en)].sort_by { |m| m[:id] } if services_in_range.any?
         end
@@ -361,50 +346,6 @@ module HmisDataQualityTool
 
     def self.sections(_)
       {
-        gender_issues: {
-          title: 'Gender',
-          description: 'Gender fields and Gender None are incompatible, or invalid gender response was recorded, or the responses are compatible, but Gender None is "Data not collected" (99)',
-          required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :personal_id,
-            :first_name,
-            :last_name,
-            :reporting_age,
-            :man,
-            :woman,
-            :culturally_specific,
-            :different_identity,
-            :non_binary,
-            :transgender,
-            :questioning,
-            :gender_none,
-          ],
-          denominator: ->(_item) { true },
-          limiter: ->(item) {
-            # any fall outside accepted options
-            values = [
-              item.man,
-              item.woman,
-              item.culturally_specific,
-              item.different_identity,
-              item.non_binary,
-              item.transgender,
-              item.questioning,
-            ]
-            return true if (values - HudHelper.util.no_yes_options.keys).any?
-
-            # any are yes and GenderNone is present and not 99
-            return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
-
-            # all are no and GenderNone is not in 8, 9
-            # note: GenderNone 99 will trigger an error even though all 0s and a 99 is a valid respons
-            # because gender is required to be asked
-            return true if values.all? { |m| m.in?([0]) } && ! item.gender_none.in?([8, 9])
-
-            false
-          },
-        },
         race_issues: {
           title: 'Race',
           description: 'Race fields and Race None are incompatible, or invalid race response was recorded, or the responses are compatible, but Race None is "Data not collected" (99)',

@@ -19,7 +19,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       question_sheet(question: tables.first) do |sheet|
         add_sheet_header(sheet, title: self.class::SHEET_TITLE)
         contents.each do |opts|
-          opts => {method:, label:}
+          opts => { method:, label: }
           # header
           sheet.append_row(label: label) if label
           send(method, sheet)
