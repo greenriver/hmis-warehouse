@@ -66,7 +66,8 @@ module Health
         credentials['host'],
         credentials['username'],
         password: credentials['password'] || credentials.password,
-        auth_methods: ['publickey', 'password'],
+        auth_methods: ['password'],
+        encryption: ['chacha20-poly1305@openssh.com'],
         keepalive: true,
         keepalive_interval: 60,
       ) do |connection|
