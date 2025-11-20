@@ -1089,6 +1089,7 @@ GEM
     with_advisory_lock (5.1.0)
       activerecord (>= 6.1)
       zeitwerk (>= 2.6)
+    x25519 (1.0.10)
     xpath (3.2.0)
       nokogiri (~> 1.8)
     yabeda (0.13.1)
@@ -1348,6 +1349,7 @@ DEPENDENCIES
   webmock
   whenever
   with_advisory_lock
+  x25519
   yabeda-prometheus
   yabeda-puma-plugin
   yabeda-rails
@@ -1773,6 +1775,7 @@ CHECKSUMS
   websocket-extensions (0.1.5) sha256=1c6ba63092cda343eb53fc657110c71c754c56484aad42578495227d717a8241
   whenever (1.0.0) sha256=d9b71417c43960f5eb125b77207174cba4691091cedae0d282a29cfc72eaa246
   with_advisory_lock (5.1.0) sha256=0692cd82013b271c59aa5e1f603b741ab94926dbce098990fbace5dd5412fed7
+  x25519 (1.0.10) sha256=ec9c446a6c601b226410a8d3812bc3eed7daef837f8a20bb0b314b2a6cabaa12
   xpath (3.2.0) sha256=6dfda79d91bb3b949b947ecc5919f042ef2f399b904013eb3ef6d20dd3a4082e
   yabeda (0.13.1) sha256=3213025f22b7746602c8a4c41e2ed82d73a90bdc5489f6ef472142b06c1cf954
   yabeda-prometheus (0.9.1) sha256=b87d80cae8cffbeb527c25d288eafa8eed9c1fb56cf49616db5c8611768cd5fd

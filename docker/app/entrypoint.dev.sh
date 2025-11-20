@@ -28,5 +28,9 @@ bundle config --global set build.sassc --disable-march-tune-native
 bundle install --quiet || echo "bundle install failed"
 yarn install --silent --frozen-lockfile || echo "yarn install failed"
 
+echo 'Generating .pgpass file from environment variables...'
+bundle exec ./bin/generate_pgpass.rb > ~/.pgpass
+chmod 600 ~/.pgpass
+
 # Then exec the container's main process (what's set as CMD in the Dockerfile).
 exec "$@"
