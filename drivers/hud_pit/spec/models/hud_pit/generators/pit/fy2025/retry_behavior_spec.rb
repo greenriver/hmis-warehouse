@@ -73,5 +73,27 @@ RSpec.describe 'HUD PIT FY2025 retry behavior', type: :model do
 
       expect(report).to be_completed
     end
+
+    it 'preserves and reuses the original failure when multiple retries are attempted' do
+      report = create_and_queue_report([project.id])
+      report.start_report
+
+      related_job = instance_double(Delayed::Job, last_error: 'ActiveRecord::StatementInvalid: Something bad happened')
+      allow_any_instance_of(HudReports::ReportInstance).to receive(:related_job).and_return(related_job)
+
+      # First retry attempt
+      expect { run_job_for(report) }.to raise_error(Reporting::Hud::RunReportJob::NonIdempotentRetryError) do |error|
+        expect(error.message).to include('Something bad happened')
+        expect(report.reload.error_details).to eq(error.message)
+
+        # Setup for second retry with the first error message
+        allow(related_job).to receive(:last_error).and_return(error.message)
+      end
+
+      # Second retry should reuse the same original failure
+      expect { run_job_for(report) }.to raise_error(Reporting::Hud::RunReportJob::NonIdempotentRetryError) do |error|
+        expect(error.message).to eq(report.error_details)
+      end
+    end
   end
 end
