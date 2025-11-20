@@ -34,6 +34,280 @@ module MaYyaReport
       ma_yya_report_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
+    # Constants to define which columns are shown on detail pages
+    DETAIL_BASE_COLUMNS = [:first_name, :last_name, :client_id, :entry_date, :age].freeze
+    DETAIL_MEMBER_COLUMNS = [:first_name, :last_name].freeze
+    DETAIL_COLUMN_GROUPS = {
+      default: [],
+      street_outreach: [
+        :enrolled_in_street_outreach,
+        :currently_homeless,
+        :at_risk_of_homelessness,
+        :referral_source,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      initial_contact: [
+        :initial_contact,
+        :currently_homeless,
+        :at_risk_of_homelessness,
+        :referral_source,
+        :enrolled_in_street_outreach,
+        :project_type_at_entry,
+        :entry_current_living_situation_code,
+        :previous_universe_entry_date,
+        :previous_universe_project_type,
+        :homeless_enrollment_project_type,
+      ],
+      prevention_case_management: [
+        :at_risk_of_homelessness,
+        :latest_non_homeless_cls_in_range,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      rehousing_case_management: [
+        :currently_homeless,
+        :latest_homeless_cls_in_range,
+        :latest_homeless_cls_in_range_code,
+        :homeless_enrollment_started_prior_to_range,
+        :homeless_enrollment_started_during_range,
+        :homeless_enrollment_project_type_during_range,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      core_totals: [
+        :currently_homeless,
+        :at_risk_of_homelessness,
+        :homelessness_basis,
+        :project_type_at_entry,
+        :homeless_enrollment_project_type,
+        :entry_current_living_situation_code,
+      ],
+      demographics_age_gender: [:gender],
+      demographics_race_language: [:race, :language],
+      demographics_disability: [:mental_health_disorder, :substance_use_disorder, :physical_disability, :developmental_disability],
+      demographics_other: [
+        :pregnant,
+        :due_date,
+        :household_ages,
+        :sexual_orientation,
+        :current_school_attendance,
+        :current_educational_status,
+        :most_recent_education_status,
+        :education_status_date,
+        :health_insurance,
+        :employed,
+        :former_foster_ward,
+        :former_juvenile_justice_ward,
+        :voluntary_dcf_service,
+        :voluntary_dys_yes_service,
+        :exchange_for_sex,
+      ],
+      demographics_lgbtq: [:sexual_orientation, :gender],
+      outcomes_prevention: [
+        :first_prevention_date,
+        :first_prevention_date_in_last_year,
+        :latest_homeless_entry_date,
+        :latest_homeless_cls,
+        :latest_homeless_cls_code,
+        :homelessness_basis,
+      ],
+      outcomes_rehousing: [:first_homeless_date, :first_homeless_date_in_last_year, :permanent_exit_date, :latest_homeless_entry_date, :homelessness_basis],
+    }.freeze
+
+    DETAIL_SUBSECTION_GROUPS = {
+      'A1' => :street_outreach,
+      'A2' => :initial_contact,
+      'A3' => :prevention_case_management,
+      'A4' => :rehousing_case_management,
+      'A_Total' => :core_totals,
+      'D1' => :demographics_age_gender,
+      'D2' => :demographics_race_language,
+      'D3' => :demographics_disability,
+      'D4' => :demographics_other,
+      'E1' => :demographics_age_gender,
+      'E2' => :demographics_race_language,
+      'E3' => :demographics_disability,
+      'E4' => :demographics_other,
+      'F1' => :outcomes_prevention,
+      'F2' => :outcomes_rehousing,
+      'G1' => :demographics_age_gender,
+      'G2' => :demographics_race_language,
+      'G3' => :demographics_lgbtq,
+      'H1' => :demographics_age_gender,
+      'H2' => :demographics_race_language,
+      'H3' => :demographics_lgbtq,
+    }.freeze
+
+    # Allow for custom client address data from HMIS where available
+    DETAIL_CELL_OVERRIDES = {
+      F2d: [:zip_codes],
+    }.freeze
+
+    PROJECT_TYPE_COLUMNS = [
+      :project_type_at_entry,
+      :homeless_enrollment_project_type,
+      :previous_universe_project_type,
+      :homeless_enrollment_project_type_during_range,
+    ].freeze
+
+    CURRENT_LIVING_SITUATION_COLUMNS = [
+      :entry_current_living_situation_code,
+      :latest_homeless_cls_code,
+      :latest_homeless_cls_in_range_code,
+    ].freeze
+
+    DETAIL_CELL_DESCRIPTIONS = {
+      A1a: 'Enrolled in Street Outreach or had a referral source of Outreach Project (7) and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
+      A1b: 'Referral source Outreach Project (7) and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335).',
+      A2a: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
+      A2b: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335).',
+      A3a: 'YYA with a entry date during the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A3b: 'YYA with a entry date prior to the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date.',
+      A4a: 'YYA with a entry date during the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH).',
+      A4b: 'YYA with a entry date prior to the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date, or enrolled in a homeless project (ES, SH, SO, or TH).',
+      TotalYYAServedPrevention: 'Unduplicated of YYA in A1b, A2b, A3a, or A3b.',
+      TotalYYAServedHomeless: 'Unduplicated of YYA in A1a, A2a, A4a, or A4b.',
+      D1a: 'Of the Total YYA Served in Prevention, those who were under 18.',
+      D1b: 'Of the Total YYA Served in Prevention, those who identified as Man.',
+      D1c: 'Of the Total YYA Served in Prevention, those who identified as Woman.',
+      D1d: 'Of the Total YYA Served in Prevention, those who identified as Transgender.',
+      D1e: 'Of the Total YYA Served in Prevention, those who identified as Non-Binary.',
+      D1f: 'Of the Total YYA Served in Prevention, those who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+      D1g: 'Of the Total YYA Served in Prevention, those with no Gender Data collected.',
+      D2a: 'Of the Total YYA Served in Prevention, those who identified as White.',
+      D2b: 'Of the Total YYA Served in Prevention, those who identified as African American.',
+      D2c: 'Of the Total YYA Served in Prevention, those who identified as Asian.',
+      D2d: 'Of the Total YYA Served in Prevention, those who identified as American Indian/Alaska Native.',
+      D2e: 'Of the Total YYA Served in Prevention, those who identified as Native Hawaiian/Other Pacific Islander.',
+      D2f: 'Of the Total YYA Served in Prevention, those who identified as Middle Eastern or North African.',
+      D2g: 'Of the Total YYA Served in Prevention, those who identified as Hispanic/Latina/e/o.',
+      D2h: 'Of the Total YYA Served in Prevention, those who identified as Other/Multi-racial (race).',
+      D2i: 'Of the Total YYA Served in Prevention, those whose primary language was English.',
+      D2j: 'Of the Total YYA Served in Prevention, those whose primary language was Spanish.',
+      D2k: 'Of the Total YYA Served in Prevention, those whose primary language was Other.',
+      D3a: 'Of the Total YYA Served in Prevention, those who reported having a Mental Health Disorder.',
+      D3b: 'Of the Total YYA Served in Prevention, those who reported having a Substance Use Disorder.',
+      D3c: 'Of the Total YYA Served in Prevention, those who reported having a Medical/Physical Disability.',
+      D3d: 'Of the Total YYA Served in Prevention, those who reported having a Developmental Disability.',
+      D4a: 'Of the Total YYA Served in Prevention, those who were pregnant or custodial parenting.',
+      D4b: 'Of the Total YYA Served in Prevention, those who were LGBTQ+.',
+      D4c: 'Of the Total YYA Served in Prevention, those who had completed high school or GED/HiSET.',
+      D4d: 'Of the Total YYA Served in Prevention, those who were enrolled (full or part time) in a 2 or 4 year college.',
+      D4e: 'Of the Total YYA Served in Prevention, those who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program).',
+      D4f: 'Of the Total YYA Served in Prevention, those who had health insurance at intake.',
+      D4g: 'Of the Total YYA Served in Prevention, those who were working a full or part time job (Employment Status).',
+      D4h: 'Of the Total YYA Served in Prevention, those who were Formerly a Ward of Child Welfare/Foster Care Agency.',
+      D4i: 'Of the Total YYA Served in Prevention, those who were in voluntary services with DCF.',
+      D4j: 'Of the Total YYA Served in Prevention, those who were Formerly a Ward of Juvenile Justice System.',
+      D4k: 'Of the Total YYA Served in Prevention, those who were in voluntary services with DYS/YES program.',
+      D4l: 'Of the Total YYA Served in Prevention, those who had ever received anything in exchange for sex (ESN/Commercial Sexual Exploitation/Sex Trafficking).',
+
+      E1a: 'Of the Total YYA Homeless/Rehousing, those who were under 18.',
+      E1b: 'Of the Total YYA Homeless/Rehousing, those who identified as Man.',
+      E1c: 'Of the Total YYA Homeless/Rehousing, those who identified as Woman.',
+      E1d: 'Of the Total YYA Homeless/Rehousing, those who identified as Transgender.',
+      E1e: 'Of the Total YYA Homeless/Rehousing, those who identified as Non-Binary.',
+      E1f: 'Of the Total YYA Homeless/Rehousing, those who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+      E1g: 'Of the Total YYA Homeless/Rehousing, those with no Gender Data collected.',
+      E2a: 'Of the Total YYA Homeless/Rehousing, those who identified as White.',
+      E2b: 'Of the Total YYA Homeless/Rehousing, those who identified as African American.',
+      E2c: 'Of the Total YYA Homeless/Rehousing, those who identified as Asian.',
+      E2d: 'Of the Total YYA Homeless/Rehousing, those who identified as American Indian/Alaska Native.',
+      E2e: 'Of the Total YYA Homeless/Rehousing, those who identified as Native Hawaiian/Other Pacific Islander.',
+      E2f: 'Of the Total YYA Homeless/Rehousing, those who identified as Middle Eastern or North African.',
+      E2g: 'Of the Total YYA Homeless/Rehousing, those who identified as Hispanic/Latina/e/o.',
+      E2h: 'Of the Total YYA Homeless/Rehousing, those who identified as Other/Multi-racial (race).',
+      E2i: 'Of the Total YYA Homeless/Rehousing, those whose primary language was English.',
+      E2j: 'Of the Total YYA Homeless/Rehousing, those whose primary language was Spanish.',
+      E2k: 'Of the Total YYA Homeless/Rehousing, those whose primary language was Other.',
+      E3a: 'Of the Total YYA Homeless/Rehousing, those who reported having a Mental Health Disorder.',
+      E3b: 'Of the Total YYA Homeless/Rehousing, those who reported having a Substance Use Disorder.',
+      E3c: 'Of the Total YYA Homeless/Rehousing, those who reported having a Medical/Physical Disability.',
+      E3d: 'Of the Total YYA Homeless/Rehousing, those who reported having a Developmental Disability.',
+      E4a: 'Of the Total YYA Homeless/Rehousing, those who were pregnant or custodial parenting.',
+      E4b: 'Of the Total YYA Homeless/Rehousing, those who were LGBTQ+.',
+      E4c: 'Of the Total YYA Homeless/Rehousing, those who had completed high school or GED/HiSET.',
+      E4d: 'Of the Total YYA Homeless/Rehousing, those who were enrolled (full or part time) in a 2 or 4 year college.',
+      E4e: 'Of the Total YYA Homeless/Rehousing, those who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program).',
+      E4f: 'Of the Total YYA Homeless/Rehousing, those who had health insurance at intake.',
+      E4g: 'Of the Total YYA Homeless/Rehousing, those who were working a full or part time job (Employment Status).',
+      E4h: 'Of the Total YYA Homeless/Rehousing, those who were Formerly a Ward of Child Welfare/Foster Care Agency.',
+      E4i: 'Of the Total YYA Homeless/Rehousing, those who were in voluntary services with DCF.',
+      E4j: 'Of the Total YYA Homeless/Rehousing, those who were Formerly a Ward of Juvenile Justice System.',
+      E4k: 'Of the Total YYA Homeless/Rehousing, those who were in voluntary services with DYS/YES program.',
+      E4l: 'Of the Total YYA Homeless/Rehousing, those who had ever received anything in exchange for sex (ESN/Commercial Sexual Exploitation/Sex Trafficking).',
+
+      F1a: 'YYA with an ongoing enrollment during the reporting period had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date and did not have a subsequent enrollment in a homeless project (ES, SH, SO, or TH) or a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
+      F1b: 'YYA with an entry date within 2 years before the report start date who, do not have a homeless enrollment during the reporting period and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      F1c: 'YYA with an entry date within 2 years before the report start date who, do not have a homeless enrollment during the reporting period and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date and did not have a subsequent enrollment in a homeless project (ES, SH, SO, or TH) or a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
+      F1d: 'YYA with an entry date within 1 year before the report start date who, do not have a homeless enrollment during the reporting period and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      F1e: 'YYA with an entry date within 1 year before the report start date who, do not have a homeless enrollment during the reporting period and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date and did not have a subsequent enrollment in a homeless project (ES, SH, SO, or TH) or a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
+      F2a: 'YYA with an ongoing enrollment during the reporting period with a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH) and had a Current Living Situation (410, 435, 421, or 411) collected after the entry date or a destination (422, 423, 410, 435, 421, or 411).',
+      F2b: 'YYA with an entry date within 2 years before the report start date who, had an enrollment in a homeless project (ES, SH, SO, or TH) or a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date and had a Current Living Situation (410, 435, 421, or 411) collected after the entry date or a destination (422, 423, 410, 435, 421, or 411).',
+      F2c: 'YYA with an entry date within 2 years before the report start date who, had an enrollment in a homeless project (ES, SH, SO, or TH) or a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date and had a Current Living Situation (410, 435, 421, or 411) collected after the entry date or a destination (422, 423, 410, 435, 421, or 411) and had a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected after the entry date or were enrolled in a homeless project (ES, SH, SO, or TH).',
+      F2d: 'YYA with an entry date within 1 year before the report start date who, had an enrollment in a homeless project (ES, SH, SO, or TH) or a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date and had a Current Living Situation (410, 435, 421, or 411) collected after the entry date or a destination (422, 423, 410, 435, 421, or 411).',
+      F2e: 'YYA with an entry date within 1 year before the report start date who, had an enrollment in a homeless project (ES, SH, SO, or TH) or a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date and had a Current Living Situation (410, 435, 421, or 411) collected after the entry date or a destination (422, 423, 410, 435, 421, or 411) and had a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected after the entry date or were enrolled in a homeless project (ES, SH, SO, or TH).',
+
+      G1a: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who were under 18.',
+      G1b: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Man.',
+      G1c: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Woman.',
+      G1d: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Transgender.',
+      G1e: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Non-Binary.',
+      G1f: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+      G1g: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those with no Gender Data collected.',
+      G2a: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as White.',
+      G2b: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as African American.',
+      G2c: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Asian.',
+      G2d: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as American Indian/Alaska Native.',
+      G2e: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Native Hawaiian/Other Pacific Islander.',
+      G2f: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Middle Eastern or North African.',
+      G2g: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Hispanic/Latina/e/o.',
+      G2h: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who identified as Other/Multi-racial (race).',
+      G3a: 'Of the Total YYA Served in Prevention who remained housed during the reporting period (F1a), those who were LGBTQ+.',
+
+      H1a: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who were under 18.',
+      H1b: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Man.',
+      H1c: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Woman.',
+      H1d: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Transgender.',
+      H1e: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Non-Binary.',
+      H1f: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+      H1g: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those with no Gender Data collected.',
+      H2a: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as White.',
+      H2b: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as African American.',
+      H2c: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Asian.',
+      H2d: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as American Indian/Alaska Native.',
+      H2e: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Native Hawaiian/Other Pacific Islander.',
+      H2f: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Middle Eastern or North African.',
+      H2g: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Hispanic/Latina/e/o.',
+      H2h: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who identified as Other/Multi-racial (race).',
+      H3a: 'Of the Total YYA Served in Prevention who transitioned into stabilized housing during the reporting period (F2a), those who were LGBTQ+.',
+    }.freeze
+
+    def detail_columns_for(cell_name)
+      cell = cell_name.to_sym
+      columns = DETAIL_BASE_COLUMNS.dup
+      columns.concat(DETAIL_COLUMN_GROUPS.fetch(detail_column_group_for(cell), []))
+      columns.concat(DETAIL_CELL_OVERRIDES.fetch(cell, []))
+      columns.uniq
+    end
+
+    def detail_header_for(column)
+      column.to_s.humanize
+    end
+
+    def member_level_column?(column)
+      DETAIL_MEMBER_COLUMNS.include?(column.to_sym)
+    end
+
+    def detail_description(cell_name)
+      cell = cell_name.to_sym
+      DETAIL_CELL_DESCRIPTIONS[cell] || nil
+    end
+
     private def create_universe
       previous_period_filter = filter.deep_dup
       previous_period_filter.end = filter.start - 1.day
@@ -64,7 +338,7 @@ module MaYyaReport
       end.map { |client| client[:client_id] }
     end
 
-    private def filter
+    def filter
       @filter ||= ::Filters::FilterBase.new(
         user_id: user_id,
         enforce_one_year_range: false,
@@ -187,7 +461,7 @@ module MaYyaReport
           },
         },
         'G' => {
-          section_label: 'G. Demographics of Rehousing Outcomes: youth served in prevention who remained housed during the reporting period (YTD should be unduplicated and match F-1a.))',
+          section_label: 'G. Demographics of Rehousing Outcomes: youth served in prevention who remained housed during the reporting period (YTD should be unduplicated and match F-1a.)',
           subsections: {
             'G1' => {
               subsection_label: '1. Age and Gender',
@@ -204,7 +478,7 @@ module MaYyaReport
           },
         },
         'H' => {
-          section_label: 'H. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing during the reporting period (YTD should be unduplicated and match F-2a.)))',
+          section_label: 'H. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing during the reporting period (YTD should be unduplicated and match F-2a.)',
           subsections: {
             'H1' => {
               subsection_label: '1. Age and Gender',
@@ -718,6 +992,19 @@ module MaYyaReport
       end.to_h
     end
 
+    private def detail_column_group_for(cell_name)
+      subsection_key = cell_to_subsection[cell_name]
+      DETAIL_SUBSECTION_GROUPS.fetch(subsection_key, :default)
+    end
+
+    private def cell_to_subsection
+      @cell_to_subsection ||= nested_cell_definitions.flat_map do |_, section|
+        section[:subsections].flat_map do |subsection_key, subsection|
+          subsection[:cells].keys.map { |cell_key| [cell_key, subsection_key] }
+        end
+      end.to_h
+    end
+
     def cell(cell_name)
       report_cells.find_by(name: cell_name)
     end
@@ -731,8 +1018,25 @@ module MaYyaReport
     end
 
     def format_value(value, key)
-      return HudHelper.util.gender(value) if key == 'gender'
-      return format_race(value) if key == 'race'
+      column = key.to_sym
+
+      return format_lookup_value(value) { HudHelper.util.current_living_situation(value) } if CURRENT_LIVING_SITUATION_COLUMNS.include?(column)
+
+      return format_lookup_value(value) { HudHelper.util.project_type(value) } if PROJECT_TYPE_COLUMNS.include?(column)
+
+      case column
+      when :referral_source
+        return format_lookup_value(value) { HudHelper.util.referral_source(value) }
+      when :sexual_orientation
+        return format_lookup_value(value) { HudHelper.util.sexual_orientation(value) }
+      when :current_school_attendance
+        return format_lookup_value(value) { HudHelper.util.current_school_attended(value) }
+      when :most_recent_education_status
+        return format_lookup_value(value) { HudHelper.util.most_recent_ed_status(value) }
+      end
+
+      return HudHelper.util.gender(value) if column == :gender
+      return format_race(value) if column == :race
 
       case value
       when Array
@@ -753,6 +1057,15 @@ module MaYyaReport
       elsif value.in?(HudHelper.util.race_nones.keys)
         return HudHelper.util.race_none(value)
       end
+
+      value
+    end
+
+    private def format_lookup_value(value)
+      return value if value.nil?
+
+      label = yield
+      return "#{label} (#{value})" if label.present?
 
       value
     end

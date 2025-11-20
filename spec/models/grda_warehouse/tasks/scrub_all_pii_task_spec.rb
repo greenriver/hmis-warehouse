@@ -75,7 +75,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { hud_client.last_name }.to(nil).
         and change { hud_client.ssn }.to(nil).
         and change { hud_client.dob }.to(scrubbed_dob).
-        and change { hud_client.age }.to(scrubbed_age).
+        and change { hud_client.age(today) }.to(scrubbed_age).
         # apr
         and change { apr_client.first_name }.to(nil).
         and change { apr_client.last_name }.to(nil).
