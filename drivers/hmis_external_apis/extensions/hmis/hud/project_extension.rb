@@ -13,10 +13,11 @@ module HmisExternalApis
         extend ActiveSupport::Concern
 
         included do
+          # Legacy External ReferralRequests sent to LINK from this project
           has_many :external_referral_requests, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', dependent: :destroy
-          # "incoming" referral postings for this project
+          # Legacy External "incoming" ReferralPostings for this project.
+          # They may be incoming from another HMIS project, or incoming from the external LINK system.
           has_many :external_referral_postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', dependent: :destroy
-          has_many :external_unit_availability_syncs, class_name: 'HmisExternalApis::AcHmis::UnitAvailabilitySync', dependent: :destroy
         end
       end
     end

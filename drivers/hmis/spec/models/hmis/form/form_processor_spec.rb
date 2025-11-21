@@ -813,14 +813,23 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'processing without saving does not persist unit assignment' do
-      # Assign existing enrollment to unit 1
+      # Set up existing enrollment that is already assigned to old_unit
       e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
-      unit = create(:hmis_unit, project: p1)
-      expect(e2.current_unit).to be_nil
-      hud_values = complete_hud_values.merge('currentUnit' => unit.id)
-      process_record(record: e2, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
-      e2.reload
-      expect(e2.current_unit).to be_nil
+      old_unit = create(:hmis_unit, project: p1)
+      e2.assign_unit(unit: old_unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
+      e2.reload # reloading makes sure the enrollment's active_unit_occupancy is up-to-date
+      expect(e2.active_unit_occupancy.unit).to eq(old_unit)
+
+      # Use the form processor to reassign the enrollment to new_unit, but without saving
+      new_unit = create(:hmis_unit, project: p1)
+      hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
+      expect do
+        process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition, save: false)
+      end.not_to change(Hmis::UnitOccupancy, :count)
+
+      # Since the form processor was run without saving, the unit assignment is unchanged
+      expect(e2.reload.active_unit_occupancy.unit).to eq(old_unit)
     end
 
     it 'does not change unit occupancy if unchanged' do
@@ -851,6 +860,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
       process_record(record: e2, hud_values: hud_values, user: hmis_user, definition: definition)
       e2.reload
+      old_uo.reload
       expect(old_uo.end_date).to be_present
       expect(e2.active_unit_occupancy).not_to eq(old_uo)
       expect(e2.current_unit).to eq(new_unit)

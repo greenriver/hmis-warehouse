@@ -39,6 +39,13 @@ module MaYyaReport::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          filename = "#{@report.title} - #{Time.current.to_fs(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def destroy
@@ -49,12 +56,14 @@ module MaYyaReport::WarehouseReports
 
     def details
       cell = params[:cell].to_sym
+      @cell_key = cell
       @cell = @report.label(cell)
 
       text = @report.cell_label(cell)
       @cell = "#{@cell}: #{text}" if text.present?
 
       @members = @report.cell(params[:cell]).members.preload(universe_membership: { service_history_enrollment: [:project] })
+      @detail_columns = @report.detail_columns_for(cell)
 
       respond_to do |format|
         format.html {}
@@ -86,7 +95,7 @@ module MaYyaReport::WarehouseReports
       {
         start: day_in_last_quarter.beginning_of_quarter,
         end: day_in_last_quarter.end_of_quarter,
-      }.merge(last_report&.options&.symbolize_keys)
+      }.merge(last_report&.options&.symbolize_keys || {})
     end
 
     def report_options(filter)

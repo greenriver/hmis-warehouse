@@ -339,4 +339,105 @@ RSpec.describe MaYyaReport::Report do
       expect(first_call).to be(second_call)
     end
   end
+
+  describe 'detail column mapping' do
+    describe '#detail_columns_for' do
+      it 'includes the base columns for any cell' do
+        columns = report.detail_columns_for(:A1a)
+        expect(columns).to include(:first_name, :last_name, :client_id, :entry_date, :age)
+      end
+
+      it 'adds subsection specific columns' do
+        columns = report.detail_columns_for(:A1a)
+        expect(columns).to include(
+          :enrolled_in_street_outreach,
+          :referral_source,
+          :project_type_at_entry,
+          :homeless_enrollment_project_type,
+          :entry_current_living_situation_code,
+        )
+      end
+
+      it 'adds rehousing specific supporting columns' do
+        columns = report.detail_columns_for(:A4a)
+        expect(columns).to include(:latest_homeless_cls_in_range_code, :homeless_enrollment_project_type_during_range)
+      end
+
+      it 'adds previous universe project type context' do
+        columns = report.detail_columns_for(:A2a)
+        expect(columns).to include(:previous_universe_project_type)
+      end
+
+      it 'adds homeless cls codes where needed' do
+        columns = report.detail_columns_for(:F1a)
+        expect(columns).to include(:latest_homeless_cls_code)
+      end
+
+      it 'adds cell specific overrides' do
+        columns = report.detail_columns_for(:F2d)
+        expect(columns).to include(:zip_codes)
+      end
+    end
+
+    describe '#member_level_column?' do
+      it 'identifies member level columns' do
+        expect(report.member_level_column?(:first_name)).to be(true)
+        expect(report.member_level_column?(:age)).to be(false)
+      end
+    end
+
+    describe '#detail_header_for' do
+      it 'humanizes column names' do
+        expect(report.detail_header_for(:project_type_at_entry)).to eq('Project type at entry')
+      end
+    end
+  end
+
+  describe '#format_value' do
+    it 'formats current living situation codes with labels and ids' do
+      value = 101
+      label = HudHelper.util.current_living_situation(value)
+      expect(report.format_value(value, 'entry_current_living_situation_code')).to eq("#{label} (#{value})")
+    end
+
+    it 'formats project type columns with labels and ids' do
+      value = 1
+      label = HudHelper.util.project_type(value)
+      expect(report.format_value(value, 'project_type_at_entry')).to eq("#{label} (#{value})")
+    end
+
+    it 'formats referral sources with labels and ids' do
+      value = 7
+      label = HudHelper.util.referral_source(value)
+      expect(report.format_value(value, 'referral_source')).to eq("#{label} (#{value})")
+    end
+
+    it 'formats sexual orientation values with labels and ids' do
+      value = 2
+      label = HudHelper.util.sexual_orientation(value)
+      expect(report.format_value(value, 'sexual_orientation')).to eq("#{label} (#{value})")
+    end
+
+    it 'formats current school attendance values with labels and ids' do
+      value = 2
+      label = HudHelper.util.current_school_attended(value)
+      expect(report.format_value(value, 'current_school_attendance')).to eq("#{label} (#{value})")
+    end
+
+    it 'formats most recent education status values with labels and ids' do
+      value = 5
+      label = HudHelper.util.most_recent_ed_status(value)
+      expect(report.format_value(value, 'most_recent_education_status')).to eq("#{label} (#{value})")
+    end
+  end
+
+  describe '#detail_description' do
+    it 'returns a cell specific description when provided' do
+      expect(report.detail_description(:A1a)).to include('Enrolled in Street Outreach')
+    end
+
+    it 'returns nil when no description exists' do
+      expect(report.detail_description(:NonexistentCell)).to be_nil
+    end
+  end
 end

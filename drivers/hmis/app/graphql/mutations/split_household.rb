@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -43,10 +45,8 @@ module Mutations
           enrollment.household_id = new_household_id
           enrollment.relationship_to_hoh = map_enrollment_id_to_relationship[enrollment.id.to_s]
 
-          # Release the unit, so that we don't end with a unit occupied by 2 different households
-          # (which could occur if any of the remaining enrollments occupy the same unit)
-          enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
-
+          # Release the unit, so that we don't end with a unit occupied by 2 different households.
+          enrollment.release_unit!(user: current_user)
           enrollment.save!
         end
 
