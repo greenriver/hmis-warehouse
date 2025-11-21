@@ -83,14 +83,20 @@ module HudSpmReport
     end
 
     def render_xlsx_response
-      HudSpmReport::CellExportJob.perform_later(
-        user_id: current_user.id,
-        report_id: @report.id,
-        measure_id: @question,
-        cell_id: @cell,
-        table: @table
+      export = current_user.document_exports.create!(
+        type: 'HudSpmReport::DocumentExports::CellDetailExport',
+        status: DocumentExportBehavior::PENDING_STATUS,
+        query_string: {
+          report_id: @report.id,
+          measure_id: @question,
+          cell_id: @cell,
+          table: @table,
+        }.to_query,
       )
-      flash[:notice] = "Your export is being generated. You will receive an email with a download link shortly."
+
+      HudSpmReport::CellDetailExportJob.perform_later(export_id: export.id)
+
+      flash[:notice] = "Your cell-detail export is being generated. You will receive an email with a download link shortly."
       redirect_back(fallback_location: hud_reports_spm_path(@report))
     end
 

@@ -118,6 +118,7 @@ class DocumentExportsControllerBase < ApplicationController
       'TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport',
       'HopwaCaper::DocumentExports::HopwaCaperExport',
       'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
+      'HudSpmReport::DocumentExports::CellDetailExport',
     ]
   end
 end
