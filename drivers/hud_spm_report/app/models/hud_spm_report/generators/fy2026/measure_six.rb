@@ -10,6 +10,10 @@
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
 module HudSpmReport::Generators::Fy2026
+  # Measure 6 is a placeholder in the FY2026 generator.
+  #
+  # This measure tracks "Category 3" homelessness (families/youth defined as homeless under other
+  # federal statutes). This category requires specific HUD approval for CoCs to serve and report on.
   class MeasureSix < MeasureBase
     def self.question_number
       'Measure 6'
@@ -41,6 +45,8 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def run_6a_1(table_name)
+      # NOTE: This measure is intentionally left blank/unimplemented.
+      # It prepares the table structure but does not populate it with data.
       prepare_table(
         table_name,
         {
