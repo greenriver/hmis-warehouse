@@ -96,7 +96,7 @@ module HudSpmReport
 
       HudSpmReport::CellDetailExportJob.perform_later(export_id: export.id)
 
-      flash[:notice] = "Your cell-detail export is being generated. You will receive an email with a download link shortly."
+      flash[:notice] = 'Your cell-detail export is being generated. You will receive an email with a download link shortly.'
       redirect_back(fallback_location: hud_reports_spm_path(@report))
     end
 
