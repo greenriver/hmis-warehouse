@@ -2,25 +2,21 @@
 
 module HudSpmReport
   class CellExportJob < ::BaseJob
-    require 'axlsx'
-    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-
     def perform(user_id:, report_id:, measure_id:, cell_id:, table:)
       user = User.find(user_id)
-      report = HudReports::ReportInstance.find(report_id)
+      report = ::HudReports::ReportInstance.find(report_id)
 
-      # Determine generator class
-      generator_class = possible_generator_classes[report_version(report)]
-      generator = generator_class.new(report)
+      generator_class = generator_class_for(report)
+      version = report_version(report)
+      raise ArgumentError, "Unsupported SPM generator version: #{version}" unless generator_class
 
-      # Setup vars
-      question = generator.valid_question_number(measure_id)
+      question = generator_class.valid_question_number(measure_id)
       cell = report.valid_cell_name(cell_id)
-      name = "#{generator.file_prefix} #{question} #{cell}"
-      headers = generator.column_headings(question)
+      name = "#{generator_class.file_prefix} #{question} #{cell}"
+      headers = generator_class.column_headings(question)
 
       # Build scope
-      scope = generator.client_scope(question).
+      scope = generator_class.client_scope(question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(table).for_cell(cell)).
         merge(::HudReports::ReportInstance.where(id: report.id)).
@@ -38,7 +34,7 @@ module HudSpmReport
         # Adjust headers (stringify and remove PII if configured)
         final_headers = headers.transform_keys(&:to_s)
         unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-          final_headers = final_headers.except(*generator.pii_columns)
+          final_headers = final_headers.except(*generator_class.pii_columns)
         end
 
         sheet.add_row(final_headers.values, style: title)
@@ -78,8 +74,12 @@ module HudSpmReport
       }
     end
 
+    def generator_class_for(report)
+      possible_generator_classes[report_version(report)]
+    end
+
     def report_version(report)
-      (report.options['report_version'].presence || 'fy2024').to_sym
+      report.options&.dig('report_version').presence
     end
   end
 end
