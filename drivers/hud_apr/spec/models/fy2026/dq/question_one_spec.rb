@@ -128,8 +128,7 @@ RSpec.describe HudApr::Generators::Dq::Fy2026::QuestionOne, type: :model, exclud
       # Column C: "Count of Clients" (all clients)
 
       # Total persons served
-      # TODO: This assertion is failing (gets 5, expects 6). Skipping for now.
-      # expect(@report.answer(question: @table_name, cell: 'B2').summary).to eq(6)
+      expect(@report.answer(question: @table_name, cell: 'B2').summary).to eq(6)
       expect(@report.answer(question: @table_name, cell: 'C2').summary).to eq(7)
 
       # Number of adults (age 18 or over)

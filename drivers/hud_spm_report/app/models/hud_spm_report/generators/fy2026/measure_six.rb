@@ -9,11 +9,10 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
+#
+# Measure 6 is a placeholder in the FY2026 generator.
+#
 module HudSpmReport::Generators::Fy2026
-  # Measure 6 is a placeholder in the FY2026 generator.
-  #
-  # This measure tracks "Category 3" homelessness (families/youth defined as homeless under other
-  # federal statutes). This category requires specific HUD approval for CoCs to serve and report on.
   class MeasureSix < MeasureBase
     def self.question_number
       'Measure 6'
