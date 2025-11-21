@@ -345,7 +345,7 @@ module HudSpmReport::Generators::Fy2026
       dq_filter.data_source_ids = []
       dq_filter.project_ids = project_ids
 
-      generator = HudApr::Generators::Dq::Fy2024::Generator
+      generator = HudApr::Generators::Dq::Fy2026::Generator
       report = ::HudReports::ReportInstance.from_filter(dq_filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
       generator.new(report).run!(email: false, manual: false)
 
