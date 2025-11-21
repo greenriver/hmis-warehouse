@@ -73,7 +73,7 @@ module HudSpmReport
           final_headers = normalized_headers(headers, generator)
           sheet.add_row(final_headers.values, style: title)
           preload_policies(clients)
-          clients.each do |client|
+          clients.find_each do |client|
             pii_policy = user.reporting_policy_for_project(project_id: client.project_id, mode: :download)
             row = final_headers.keys.map do |key|
               client.display_value(key, pii_policy: pii_policy, include_content_tag: false)
