@@ -38,6 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               name
               status
+              stale
               referral {
                 id
                 status
@@ -118,6 +119,32 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         prios = result.dig('data', 'unit', 'prioritySchemes')
         # Should only include project-level rules, ordered by priority_rank then id
         expect(prios.map { |r| r['expression'] }).to eq(['proj_high', 'proj_low'])
+      end
+    end
+
+    describe 'querying for staleness' do
+      context 'when the opportunity is not stale' do
+        let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: nil, unit: unit }
+
+        it 'returns opportunity with stale = false' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          opportunity = result.dig('data', 'unit', 'latestOpportunity')
+          expect(opportunity['stale']).to eq(false)
+        end
+      end
+
+      context 'when the opportunity is stale' do
+        let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: nil, unit: unit, stale: true }
+
+        it 'returns opportunity with stale = true' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          opportunity = result.dig('data', 'unit', 'latestOpportunity')
+          expect(opportunity['stale']).to eq(true)
+        end
       end
     end
 
