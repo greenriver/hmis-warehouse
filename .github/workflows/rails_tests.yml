@@ -1,5 +1,7 @@
 name: Rails Tests
 
+# @see docs/features/ci-test-bucketing.md
+
 on:
   push:
     branches:
@@ -74,6 +76,7 @@ jobs:
           POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
         # Set health checks to wait until postgres has started
         options: >-
+          --name pg_container
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
@@ -176,11 +179,10 @@ jobs:
           TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
-          bin/db_prep
-
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
+          bin/db_prep
 
       - name: Precompile assets
         env:
