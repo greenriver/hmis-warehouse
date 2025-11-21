@@ -1,0 +1,16 @@
+.card
+  .overflow-x-scroll
+    %table.table.table-sm.table-bordered
+      %thead.table-dark
+        %tr
+          %th
+          - headers.each_value do |header|
+            %th= header
+      %tbody
+        - list.each.with_index do |record, i|
+          - pii_policy = current_user.reporting_policy_for_project(project_id: record.project_id)
+          %tr
+            %th= i + 1
+            - headers.each_key do |field|
+              %td{style: 'max-width: 600px;'}
+                = record.display_value(field, pii_policy: pii_policy, include_content_tag: true)

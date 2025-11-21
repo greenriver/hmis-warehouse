@@ -474,11 +474,12 @@ module ApplicationHelper
   #
   # @example Usage:
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
+  #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card', list_locals: { headers: headers })
   #
-  def render_paginated_list(scope:, item_name:, list_partial:)
+  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {})
     pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
     pagy, list = controller.send(pagy_sym, scope)
-    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial)
+    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, list_locals: list_locals)
   end
 
   # Renders a paginated list of the items in `list` with pagination controls at the top and bottom based
@@ -489,18 +490,20 @@ module ApplicationHelper
   # @param [Array] list The list of items to render.
   # @param [String] item_name The singular name of the item being listed, used for messages.
   # @param [String] list_partial The path to the partial used to render the list items.
+  # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
   #
   # @return [String] HTML markup for the paginated list with controls.
   #
   # @example Usage:
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
+  #   render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user', list_partial: 'users/card', list_locals: { show_actions: true })
   #
-  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:)
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {})
     return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
 
     capture do
       concat render('common/pagination_top', item_name: item_name, pagy: pagy)
-      concat render(list_partial, list: list)
+      concat render(list_partial, { list: list }.merge(list_locals))
       concat render('common/pagination_bottom', item_name: item_name, pagy: pagy)
     end
   end
