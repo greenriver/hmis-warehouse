@@ -57,15 +57,19 @@ module HopwaCaper::Generators::Fy2026::Sheets
         )
       end
 
+      # Only include households that have services in the reporting period
+      households_with_services = relevant_services.select(:report_household_id).distinct.pluck(:report_household_id)
+      multi_type_household_ids = households_with_services - seen_household_ids.uniq
+
       add_household_enrollments_row(
         sheet,
         label: 'How many households received more than one type of STRMU assistance?',
-        enrollments: relevant_enrollments.where.not(report_household_id: seen_household_ids.uniq.sort),
+        enrollments: relevant_enrollments.where(report_household_id: multi_type_household_ids),
       )
       add_household_enrollments_row(
         sheet,
         label: 'STRMU Households Total',
-        enrollments: relevant_enrollments,
+        enrollments: relevant_enrollments.where(report_household_id: households_with_services),
       )
     end
 

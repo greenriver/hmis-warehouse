@@ -131,7 +131,18 @@ module HopwaCaper
     def self.detail_headers
       special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
       remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
-      cols = special + (column_names - special - remove)
+      # Move 'sex' to appear right after 'races' (which should be near gender-related columns)
+      other_cols = column_names - special - remove - ['sex']
+      cols = special + other_cols
+
+      # Insert 'sex' after 'races' if races exists, otherwise add near the front
+      races_index = cols.index('races')
+      if races_index
+        cols.insert(races_index + 1, 'sex')
+      else
+        cols.insert(special.length, 'sex')
+      end
+
       cols.map do |header|
         label = case header
         when 'destination_client_id'
@@ -145,6 +156,15 @@ module HopwaCaper
         end
         [header, label]
       end.to_h
+    end
+
+    private
+
+    def transform_value(column, value, pii_policy)
+      return HudHelper.util('2026').sex(value) if column == 'sex'
+      return HudHelper.util('2026').percent_ami(value) if column == 'percent_ami'
+
+      super
     end
   end
 end

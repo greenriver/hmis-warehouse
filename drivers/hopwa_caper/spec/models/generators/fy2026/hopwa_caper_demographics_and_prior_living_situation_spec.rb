@@ -281,4 +281,58 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
       expect(all_rows.size).to be > 25 # Should have full report structure
     end
   end
+
+  context 'with poor DOB quality but valid age (Issue 4)' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:poor_dob_quality_client) do
+      create(
+        :hud_client,
+        DOB: today - 35.years,
+        DOBDataQuality: 8, # Client doesn't know
+        White: 1,
+        Sex: 1,
+        data_source: data_source,
+      )
+    end
+
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: poor_dob_quality_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    before do
+      create(
+        :hud_service,
+        enrollment: hoh_enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 100,
+        date_provided: hoh_enrollment.entry_date,
+        data_source: data_source,
+      )
+    end
+
+    it 'includes client in age/sex/race breakdown despite poor DOB quality' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      enrollment = report.hopwa_caper_enrollments.first
+      expect(enrollment.hiv_positive).to be(true)
+      expect(enrollment.dob_quality).to eq(8)
+      expect(enrollment.age).to eq(34)
+      expect(enrollment.sex).to eq(1)
+
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+
+      # Client should appear in the age/sex/race breakdown table (Male 31-50 & White)
+      rows_to_table(all_rows.slice(2, 11)).yield_self do |table|
+        expect(table['White']['Male 31-50']).to eq(1)
+      end
+    end
+  end
 end

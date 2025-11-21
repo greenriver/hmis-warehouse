@@ -134,4 +134,69 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
       end
     end
   end
+
+  context 'with percent AMI values for drilldown display (Issue 8)' do
+    let(:client_with_ami) do
+      create(
+        :hud_client,
+        DOB: today - 40.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 1,
+        data_source: data_source,
+      )
+    end
+
+    let(:enrollment_with_ami) do
+      create_hiv_positive_enrollment(
+        client: client_with_ami,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    let!(:income_benefit) do
+      create(
+        :hud_income_benefit,
+        enrollment: enrollment_with_ami,
+        InformationDate: report_start_date + 5.days,
+        IncomeFromAnySource: 1,
+        TotalMonthlyIncome: 1500,
+        PercentAMI: 1, # Less than 30%
+        data_source: data_source,
+      )
+    end
+
+    before do
+      create(
+        :hud_service,
+        enrollment: enrollment_with_ami,
+        record_type: hopwa_supportive_service,
+        type_provided: case_management_code,
+        fa_amount: 100,
+        date_provided: enrollment_with_ami.entry_date,
+        data_source: data_source,
+      )
+    end
+
+    it 'transforms percent_ami to human-readable strings in drilldowns' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      enrollment = report.hopwa_caper_enrollments.first
+      expect(enrollment.percent_ami).to eq(1)
+
+      # Verify transform_value converts the code to a string
+      transformed = enrollment.send(:transform_value, 'percent_ami', 1, nil)
+      expect(transformed).to eq('Less than 30%')
+
+      # Test other percent_ami codes
+      expect(enrollment.send(:transform_value, 'percent_ami', 2, nil)).to eq('30% to 50%')
+      expect(enrollment.send(:transform_value, 'percent_ami', 3, nil)).to eq('Greater than 50%')
+      expect(enrollment.send(:transform_value, 'percent_ami', 4, nil)).to eq('Greater than 80%')
+      expect(enrollment.send(:transform_value, 'percent_ami', 99, nil)).to eq('Data not collected')
+    end
+  end
 end
