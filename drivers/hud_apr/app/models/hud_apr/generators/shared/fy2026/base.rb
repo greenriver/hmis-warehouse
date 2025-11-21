@@ -594,17 +594,24 @@ module HudApr::Generators::Shared::Fy2026
           :youth_education_statuses,
           project: [
             :funders,
+            :ce_participations,
+            :project_cocs,
           ],
           client: [
             assessments: [
-              enrollment: :project,
+              enrollment: { project: :ce_participations },
             ],
             events: [
-              enrollment: :project,
+              enrollment: { project: :ce_participations },
             ],
           ],
         ],
-        client: [:source_events, :source_assessments],
+        client: [
+          { source_events: { enrollment: { project: :ce_participations } } },
+          { source_assessments: { enrollment: { project: :ce_participations } } },
+          { events: { enrollment: { project: :ce_participations } } },
+          { assessments: { enrollment: { project: :ce_participations } } },
+        ],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end

@@ -33,4 +33,4 @@
 - **Measure 5** (`MeasureFive`): Identifies first-time homelessness by checking prior enrollments during the two-year lookback window.
 - **Measure 6** (`MeasureSix`): Measures successful placements and returns for TH/SH projects (part a/b) and Category 3 homelessness (part c).
 - **Measure 7** (`MeasureSeven`): Evaluates exits to permanent housing for Street Outreach and mixed project types, and retention for RRH/PH move-ins.
-- **HDX Upload**: Generates the HDX 2.0 CSV submission by mapping SPM cell values to HDX columns through strongly typed metadata definitions.
+- **HDX Upload**: Generates the HDX 2.0 CSV submission by mapping SPM cell values to HDX columns through strongly typed metadata definitions. This measure generates multiple sub-reports (HUD Data Quality (DQ))
