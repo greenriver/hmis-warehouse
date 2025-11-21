@@ -263,8 +263,17 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Project Access',
         sub_category: 'Referrals',
       },
+      can_view_outgoing_referral_details: {
+        description: 'Ability to view all outgoing referrals from the project',
+        requirements: [:can_view_project],
+        administrative: false,
+        access: [:viewable],
+        category: 'Project Access',
+        sub_category: 'Referrals',
+      },
       can_manage_outgoing_referrals: {
-        description: 'Ability to "refer out" from the Project',
+        description: 'Ability to "refer out" from the project. Grants access to view outgoing referral summaries. For full referral details, use "Can view outgoing referral details".',
+        # Does NOT depend on can_view_outgoing_referral_details, since that permission grants full referral detail access, whereas this permission only grants summary-level access
         administrative: false,
         access: [:editable],
         category: 'Project Access',
