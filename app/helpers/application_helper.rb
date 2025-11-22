@@ -476,7 +476,7 @@ module ApplicationHelper
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card', list_locals: { headers: headers })
   #
-  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {})
+  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {}.freeze)
     pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
     pagy, list = controller.send(pagy_sym, scope)
     render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, list_locals: list_locals)
@@ -498,7 +498,7 @@ module ApplicationHelper
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user', list_partial: 'users/card', list_locals: { show_actions: true })
   #
-  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {})
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {}.freeze)
     return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
 
     capture do

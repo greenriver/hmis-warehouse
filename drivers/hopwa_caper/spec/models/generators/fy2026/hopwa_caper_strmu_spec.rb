@@ -180,7 +180,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
     end
   end
 
-  context 'with household overlapping report but no services in period (Issue 1)' do
+  context 'with household overlapping report but no services in period' do
     let(:household_with_services_id) { Hmis::Hud::Base.generate_uuid }
     let(:household_no_services_id) { Hmis::Hud::Base.generate_uuid }
 

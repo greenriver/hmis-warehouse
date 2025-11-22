@@ -177,37 +177,17 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
   end
 
   context 'with Hispanic ethnicity demographics' do
-    let(:household_id) { Hmis::Hud::Base.generate_uuid }
-    let(:hispanic_client) do
-      create(
-        :hud_client,
-        DOB: today - 25.years,
-        DOBDataQuality: 1,
-        HispanicLatinaeo: 1,
-        AmIndAKNative: 1,
-        Sex: 1,
-        data_source: data_source,
-      )
-    end
-
-    let!(:hoh_enrollment) do
-      create_hiv_positive_enrollment(
-        client: hispanic_client,
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: today - 25.years,
+          DOBDataQuality: 1,
+          HispanicLatinaeo: 1,
+          AmIndAKNative: 1,
+          Sex: 1,
+        },
         project: project,
         entry_date: report_start_date + 1.day,
-        household_id: household_id,
-      )
-    end
-
-    before do
-      create(
-        :hud_service,
-        enrollment: hoh_enrollment,
-        record_type: hopwa_financial_assistance,
-        type_provided: rental_assistance,
-        fa_amount: 100,
-        date_provided: hoh_enrollment.entry_date,
-        data_source: data_source,
       )
     end
 
@@ -230,36 +210,16 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
   end
 
   context 'with unknown or missing demographic data' do
-    let(:household_id) { Hmis::Hud::Base.generate_uuid }
-    let(:unknown_demographics_client) do
-      create(
-        :hud_client,
-        DOB: nil,
-        DOBDataQuality: 99,
-        RaceNone: 9,
-        Sex: 99,
-        data_source: data_source,
-      )
-    end
-
-    let!(:hoh_enrollment) do
-      create_hiv_positive_enrollment(
-        client: unknown_demographics_client,
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: nil,
+          DOBDataQuality: 99,
+          RaceNone: 9,
+          Sex: 99,
+        },
         project: project,
         entry_date: report_start_date + 1.day,
-        household_id: household_id,
-      )
-    end
-
-    before do
-      create(
-        :hud_service,
-        enrollment: hoh_enrollment,
-        record_type: hopwa_financial_assistance,
-        type_provided: rental_assistance,
-        fa_amount: 100,
-        date_provided: hoh_enrollment.entry_date,
-        data_source: data_source,
       )
     end
 
@@ -273,46 +233,26 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
       expect(enrollment.hiv_positive).to be(true)
       expect(enrollment.dob_quality).to eq(99)
       expect(enrollment.sex).to eq(99)
-      expect(enrollment.races).to include(unknown_demographics_client.RaceNone) # Preserve RaceNone response for reporting
+      expect(enrollment.races).to include(setup[:client].RaceNone)
 
       # Verify the report generates without errors
       all_rows = question_as_rows(question_number: 'Q1', report: report)
       expect(all_rows).to be_present
-      expect(all_rows.size).to be > 25 # Should have full report structure
+      expect(all_rows.size).to be > 25
     end
   end
 
-  context 'with poor DOB quality but valid age (Issue 4)' do
-    let(:household_id) { Hmis::Hud::Base.generate_uuid }
-    let(:poor_dob_quality_client) do
-      create(
-        :hud_client,
-        DOB: today - 35.years,
-        DOBDataQuality: 8, # Client doesn't know
-        White: 1,
-        Sex: 1,
-        data_source: data_source,
-      )
-    end
-
-    let!(:hoh_enrollment) do
-      create_hiv_positive_enrollment(
-        client: poor_dob_quality_client,
+  context 'with poor DOB quality but valid age' do
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: today - 35.years,
+          DOBDataQuality: 8,
+          White: 1,
+          Sex: 1,
+        },
         project: project,
         entry_date: report_start_date + 1.day,
-        household_id: household_id,
-      )
-    end
-
-    before do
-      create(
-        :hud_service,
-        enrollment: hoh_enrollment,
-        record_type: hopwa_financial_assistance,
-        type_provided: rental_assistance,
-        fa_amount: 100,
-        date_provided: hoh_enrollment.entry_date,
-        data_source: data_source,
       )
     end
 
@@ -336,7 +276,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
     end
   end
 
-  context 'with HIV+ beneficiaries (Issue 5)' do
+  context 'with HIV+ beneficiaries' do
     let(:household_id) { Hmis::Hud::Base.generate_uuid }
     let(:hoh_client) do
       create(

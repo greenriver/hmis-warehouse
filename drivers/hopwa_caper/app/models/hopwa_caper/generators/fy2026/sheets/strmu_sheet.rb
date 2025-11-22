@@ -58,8 +58,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
       end
 
       # Only include households that have services in the reporting period
-      households_with_services = relevant_services.select(:report_household_id).distinct.pluck(:report_household_id)
-      multi_type_household_ids = households_with_services - seen_household_ids.uniq
+      households_with_services = relevant_services.distinct.pluck(:report_household_id).sort
+      multi_type_household_ids = (households_with_services - seen_household_ids.uniq).sort
 
       add_household_enrollments_row(
         sheet,

@@ -48,6 +48,8 @@ module HopwaCaper
 
     scope :head_of_household, -> { where(relationship_to_hoh: 1) }
 
+    scope :active_after, ->(date) { where('exit_date IS NULL OR exit_date > ?', date) }
+
     INSURANCE_FIELDS = [
       :Medicaid,
       :Medicare,
@@ -69,6 +71,7 @@ module HopwaCaper
       :Unemployment,
       :OtherIncomeSource
     ].freeze
+
     def self.from_hud_record(enrollment:, report:, client:)
       project = enrollment.project
       # get deterministic order
@@ -128,22 +131,41 @@ module HopwaCaper
       enrollment.enrollment_id
     end
 
+    DETAIL_HEADER_ORDER = [
+      'personal_id',
+      'hmis_enrollment_id',
+      'first_name',
+      'last_name',
+      'destination_client_id',
+      'age',
+      'dob',
+      'dob_quality',
+      'genders',
+      'races',
+      'sex',
+      'veteran',
+      'entry_date',
+      'exit_date',
+      'relationship_to_hoh',
+      'project_funders',
+      'project_type',
+      'income_benefit_source_types',
+      'medical_insurance_types',
+      'hiv_positive',
+      'hopwa_eligible',
+      'chronically_homeless',
+      'prior_living_situation',
+      'rental_subsidy_type',
+      'exit_destination',
+      'housing_assessment_at_exit',
+      'subsidy_information',
+      'ever_prescribed_anti_retroviral_therapy',
+      'viral_load_suppression',
+      'percent_ami',
+    ].freeze
+
     def self.detail_headers
-      special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
-      # Move 'sex' to appear right after 'races' (which should be near gender-related columns)
-      other_cols = column_names - special - remove - ['sex']
-      cols = special + other_cols
-
-      # Insert 'sex' after 'races' if races exists, otherwise add near the front
-      races_index = cols.index('races')
-      if races_index
-        cols.insert(races_index + 1, 'sex')
-      else
-        cols.insert(special.length, 'sex')
-      end
-
-      cols.map do |header|
+      DETAIL_HEADER_ORDER.map do |header|
         label = case header
         when 'destination_client_id'
           'Warehouse Client ID'
@@ -151,6 +173,10 @@ module HopwaCaper
           'HMIS Personal ID'
         when 'hmis_enrollment_id'
           'HMIS Enrollment ID'
+        when 'hiv_positive'
+          'HIV positive'
+        when 'percent_ami'
+          'Percent AMI'
         else
           header.humanize
         end

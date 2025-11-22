@@ -10,13 +10,12 @@
       %i.icon.icon-download2
       Download Excel
 
-- project_ids = @enrollments.map(&:project_id).uniq + @services.map(&:project_id).uniq
-- current_user.policy_context.preload_project_dependencies(project_ids)
-
 - if @enrollments.any?
+  %h3 Enrollments
   = render_paginated_list(scope: @enrollments, item_name: 'enrollment', list_partial: 'list', list_locals: { headers: HopwaCaper::Enrollment.detail_headers })
 
 - if @services.any?
+  %h3 Services
   = render_paginated_list(scope: @services, item_name: 'service', list_partial: 'list', list_locals: { headers: HopwaCaper::Service.detail_headers })
 
 - if @enrollments.empty? && @services.empty?

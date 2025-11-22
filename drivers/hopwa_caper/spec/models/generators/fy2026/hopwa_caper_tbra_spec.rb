@@ -109,7 +109,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
     end
   end
 
-  context 'with various exit scenarios for continued assistance (Issue 2)' do
+  context 'with various exit scenarios for continued assistance' do
     let!(:no_exit_enrollment) do
       create_hiv_positive_enrollment(
         client: create(:hud_client, data_source: data_source),
