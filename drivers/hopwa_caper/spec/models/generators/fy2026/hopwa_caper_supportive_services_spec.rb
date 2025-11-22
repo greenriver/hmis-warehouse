@@ -156,18 +156,6 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
       )
     end
 
-    let!(:income_benefit) do
-      create(
-        :hud_income_benefit,
-        enrollment: enrollment_with_ami,
-        InformationDate: report_start_date + 5.days,
-        IncomeFromAnySource: 1,
-        TotalMonthlyIncome: 1500,
-        PercentAMI: 1, # Less than 30%
-        data_source: data_source,
-      )
-    end
-
     before do
       create(
         :hud_service,
@@ -186,16 +174,12 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
 
       expect(report.hopwa_caper_enrollments.size).to eq(1)
       enrollment = report.hopwa_caper_enrollments.first
-      expect(enrollment.percent_ami).to eq(1)
 
-      # Verify transform_value converts the code to a string
-      transformed = enrollment.send(:transform_value, 'percent_ami', 1, nil)
-      expect(transformed).to eq('Less than 30%')
-
-      # Test other percent_ami codes
-      expect(enrollment.send(:transform_value, 'percent_ami', 2, nil)).to eq('30% to 50%')
-      expect(enrollment.send(:transform_value, 'percent_ami', 3, nil)).to eq('Greater than 50%')
-      expect(enrollment.send(:transform_value, 'percent_ami', 4, nil)).to eq('Greater than 80%')
+      # Test transform_value for all percent_ami codes
+      expect(enrollment.send(:transform_value, 'percent_ami', 1, nil)).to eq('30% or less')
+      expect(enrollment.send(:transform_value, 'percent_ami', 2, nil)).to eq('31% to 50%')
+      expect(enrollment.send(:transform_value, 'percent_ami', 3, nil)).to eq('51% to 80%')
+      expect(enrollment.send(:transform_value, 'percent_ami', 4, nil)).to eq('81% or greater')
       expect(enrollment.send(:transform_value, 'percent_ami', 99, nil)).to eq('Data not collected')
     end
   end

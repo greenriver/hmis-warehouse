@@ -335,4 +335,122 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
       end
     end
   end
+
+  context 'with HIV+ beneficiaries (Issue 5)' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_client) do
+      create(
+        :hud_client,
+        DOB: today - 45.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 1,
+        data_source: data_source,
+      )
+    end
+    let(:hiv_positive_beneficiary) do
+      create(
+        :hud_client,
+        DOB: today - 12.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 0,
+        data_source: data_source,
+      )
+    end
+    let(:hiv_negative_beneficiary) do
+      create(
+        :hud_client,
+        DOB: today - 8.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 0,
+        data_source: data_source,
+      )
+    end
+
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    let!(:hiv_pos_beneficiary_enrollment) do
+      enrollment = create_enrollment(
+        client: hiv_positive_beneficiary,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 3,
+      )
+      # Create HIV disability for this beneficiary
+      create(
+        :hud_disability,
+        data_source: data_source,
+        enrollment: enrollment,
+        information_date: enrollment.entry_date,
+        disability_type: hiv_positive,
+        disability_response: 1,
+      )
+      enrollment
+    end
+
+    let!(:hiv_neg_beneficiary_enrollment) do
+      create_enrollment(
+        client: hiv_negative_beneficiary,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 3,
+      )
+    end
+
+    before do
+      [hoh_enrollment, hiv_pos_beneficiary_enrollment, hiv_neg_beneficiary_enrollment].each do |enrollment|
+        create(
+          :hud_service,
+          enrollment: enrollment,
+          record_type: hopwa_financial_assistance,
+          type_provided: rental_assistance,
+          fa_amount: 100,
+          date_provided: enrollment.entry_date,
+          data_source: data_source,
+        )
+      end
+    end
+
+    it 'correctly counts HIV+ status for beneficiaries vs HOPWA-eligible individuals' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(3)
+
+      # HOPWA-eligible individual (HoH) should be HIV+
+      hoh = report.hopwa_caper_enrollments.find_by(personal_id: hoh_client.PersonalID)
+      expect(hoh.hopwa_eligible).to be(true)
+      expect(hoh.hiv_positive).to be(true)
+
+      # HIV+ beneficiary should be marked as HIV+
+      hiv_pos_ben = report.hopwa_caper_enrollments.find_by(personal_id: hiv_positive_beneficiary.PersonalID)
+      expect(hiv_pos_ben.hopwa_eligible).to be(false)
+      expect(hiv_pos_ben.hiv_positive).to be(true)
+
+      # HIV- beneficiary should be marked as HIV-
+      hiv_neg_ben = report.hopwa_caper_enrollments.find_by(personal_id: hiv_negative_beneficiary.PersonalID)
+      expect(hiv_neg_ben.hopwa_eligible).to be(false)
+      expect(hiv_neg_ben.hiv_positive).to be(false)
+
+      # Verify counts in the report output
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+      lookup = all_rows.to_h { |row| [row[0], row[1]] }.compact_blank
+
+      expect(lookup.fetch('Total number of HOPWA-eligible individuals served with HOPWA assistance:')).to eq(1)
+      expect(lookup.fetch('Total number of other household members (beneficiaries) served with HOPWA assistance:')).to eq(2)
+      expect(lookup.fetch('How many other household members (beneficiaries) are HIV+?')).to eq(1)
+      expect(lookup.fetch('How many other household members (beneficiaries) are HIV negative or have an unknown HIV status?')).to eq(1)
+    end
+  end
 end

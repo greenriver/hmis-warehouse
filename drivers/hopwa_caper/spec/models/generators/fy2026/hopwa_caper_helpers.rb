@@ -55,7 +55,7 @@ module HopwaCaperHelpers
       household_id: household_id,
       relationship_to_ho_h: relationship_to_ho_h,
     ).tap do |enrollment|
-      enrolment = create(
+      create(
         :hud_disability,
         disability_type: hiv_positive,
         enrollment: enrollment,
@@ -74,8 +74,6 @@ module HopwaCaperHelpers
           destination: destination,
         )
       end
-
-      enrollment
     end
   end
 

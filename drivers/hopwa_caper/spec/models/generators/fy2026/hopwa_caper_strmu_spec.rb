@@ -199,7 +199,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
         client: create(:hud_client, data_source: data_source),
         project: project,
         entry_date: report_start_date - 30.days, # Overlaps report period
-        exit_date: report_end_date + 30.days,     # Exits after report period
+        exit_date: report_end_date + 30.days, # Exits after report period
         household_id: household_no_services_id,
       )
     end
