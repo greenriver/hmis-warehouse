@@ -30,6 +30,7 @@ require 'zlib'
 require 'base64'
 
 module HmisCsvImporter::Importer
+  # @see docs/features/hmis-csv-importer.md
   class Importer
     include TsqlImport
     include NotifierConfig

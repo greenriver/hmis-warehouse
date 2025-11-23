@@ -1,54 +1,48 @@
-## HmisCsvImporter README
+# HMIS CSV Importer
 
-### Importer Modules
+This feature imports, normalizes, and validates HMIS CSV data in the HUD standard format into the data warehouse.
 
-Importing and processing logic for HMIS CSV files in the most recent HUD format.
+## Architecture
 
-This will:
-1. import and normalize the CSVs into a data lake
-2. run necessary ETL to bring them into a structured, validated set of tables
-3. bring any changes into the warehouse proper
+The importer operates in two distinct phases: Loading and Importing.
 
-Prior versions are handled by iteratively detecting the version and applying
-transforms to migrate the files to the most recent version.
+### Loader
 
-#### HmisCsvImporter::Loader
+The Loader (`HmisCsvImporter::Loader`) ingests raw CSV files from a directory. It normalizes file names and headers, detects the HUD CSV version, and loads the raw data into temporary staging tables. It handles:
 
-The loader reads a source directory containing HMIS CSV files and inserts the data into a set of tables
-with the HMIS columns as strings.
+- Version detection and auto-migration of older formats.
+- Normalization of CSV headers (case-insensitive mapping).
+- Bulk loading of raw string data via PostgreSQL `COPY`.
 
-Class `Loader` is the entry point to this module.
+### Importer
 
-#### HmisCsvImporter::Importer
+The Importer (`HmisCsvImporter::Importer`) processes the staged data into the warehouse. It validates the data, transforms it into typed records, and merges it with existing warehouse data.
 
-The importer processes the data from the loader to produce a structured, validated input, and incorporate
-any new or changed data into the warehouse.
+The import process follows these stages:
 
-Class `Importer` is the entry point to this module.
+1. **Pre-processing**: Converts raw strings to typed values, calculates checksums for change detection, and runs row-level validations.
+2. **Validation**: Executes complex, cross-record validations on the dataset.
+3. **Aggregation**: (Optional) Combines records based on configured rules (e.g., merging split enrollments).
+4. **Cleanup**: Runs data correction tasks to fix known data quality issues (e.g., broken relationships).
+5. **Ingestion**: Merges the processed data into the warehouse.
 
-##### Row Pre-Processing
+## Ingestion Logic
 
-Row pre-processing (`pre-process!`) consumes the records stored in the string tables and inserts the data via a
-second set of tables with typed HMIS columns by applying model-specific transformations (e.g, converting strings
-to dates, de-identifying clients), and applying row level validations to detect inconsistencies such as
-missing required fields, or invalid values. If the records cannot be processed individually (e.g, to combine
- enrollments), the rows are inserted into a separate table for aggregated pre-processing.
+The ingestion phase reconciles the imported data with the existing warehouse state:
 
-##### Aggregated Pre-Processing
+- **Scope**: Operations are scoped to the projects and date range defined in the source files (`Export.csv` and `Project.csv`).
+- **Change Detection**: Uses checksums and `DateUpdated` timestamps to identify changed records.
+- **Updates**: Updates existing records if the incoming data is newer or if the source checksum differs.
+- **Deletions**: Soft-deletes records that exist in the warehouse within the import scope but are missing from the import file.
 
-Aggregated pre-processing (`aggregate!`) consumes the pre-processed rows from the aggregation tables and
-inserts the processed data into the the pre-processed tables.
+## Integration
 
-##### Ingestion
+The importer connects with:
 
-Finally, the pre-processed records are merged into the warehouse tables ('ingest!').
+- **Data Sources**: Each import is associated with a `DataSource`, which defines configuration and thresholds for error reporting.
+- **Jobs**: Background jobs handle the execution and cleanup of imports.
+- **Notifications**: Specific thresholds (errors, record counts) trigger notifications to configured users.
 
-#### HmisCsvValidation
+## Validation
 
-CSV validators are configurable rules to check, and potentially enforce, well-formedness properties of imported
-data.
-
-Row validation classes:
-* `HmisCsvImporter::HmisCsvValidation::Validation`: Failed checks are logged for later reference, but do not otherwise
-affect row processing.
-* `HmisCsvImporter::HmisCsvValidation::Error`: Failed checks are logged for later reference, and the row is excluded from the import.
+Data quality is enforced via `HmisCsvValidation`. Validators define rules that can either warn (log error but continue) or block (exclude row) depending on severity.
