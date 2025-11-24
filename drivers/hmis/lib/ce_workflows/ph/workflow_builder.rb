@@ -10,7 +10,9 @@
 module CeWorkflows::Ph
   class WorkflowBuilder
     FORMS = {
-      initial_outgoing_referral: 'direct_referral_workflow_initial_outgoing_referral',
+      benefits_referral: 'benefits_referral',
+      shelter_referral: 'shelter_referral',
+      outreach_referral: 'outreach_referral',
       provider_decision: 'direct_referral_workflow_provider_decision',
     }.freeze
 
@@ -25,10 +27,31 @@ module CeWorkflows::Ph
       raise 'This class destroys data and should not be run in production' if Rails.env.production? && !@unsafe_run_in_production
     end
 
-    def build_direct_referral_workflow
-      identifier = 'direct_referral_workflow'
-      name = 'Direct Referral Workflow'
+    def build_benefits_referral_workflow
+      build_direct_referral_workflow(
+        identifier: 'benefits_referral',
+        name: 'Benefits Referral',
+        outgoing_step_form_identifier: FORMS.fetch(:benefits_referral),
+      )
+    end
 
+    def build_shelter_referral_workflow
+      build_direct_referral_workflow(
+        identifier: 'shelter_referral',
+        name: 'Shelter Referral',
+        outgoing_step_form_identifier: FORMS.fetch(:shelter_referral),
+      )
+    end
+
+    def build_outreach_referral_workflow
+      build_direct_referral_workflow(
+        identifier: 'outreach_referral',
+        name: 'Outreach Referral',
+        outgoing_step_form_identifier: FORMS.fetch(:outreach_referral),
+      )
+    end
+
+    def build_direct_referral_workflow(identifier:, name:, outgoing_step_form_identifier:)
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier) unless @unsafe_run_in_production
 
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, name, @data_source)
@@ -40,10 +63,10 @@ module CeWorkflows::Ph
       accept_event = CeWorkflows::Shared::CeBuilderUtils.create_accept_event(template)
       decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template)
 
-      # Step 1: Send referral (notes-only form)
+      # Step 1: Send referral
       send_referral_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Send Referral',
-        form_definition_identifier: FORMS.fetch(:initial_outgoing_referral),
+        form_definition_identifier: outgoing_step_form_identifier,
         template: template,
         swimlane: provider_swimlane, # Swimlane is irrelevant since this is just for direct referrals and is completed by the sending project
       )

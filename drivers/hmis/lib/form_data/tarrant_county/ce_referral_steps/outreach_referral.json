@@ -1,0 +1,981 @@
+{
+    "item": [
+      {
+        "item": [
+          {
+            "text": "Family or Adult-Only Household?",
+            "type": "OPEN_CHOICE",
+            "link_id": "family_or_adult_only",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_family_or_adult_only"
+            },
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Family"
+              },
+              {
+                "code": "Adult-Only"
+              }
+            ]
+          },
+          {
+            "text": "Number of Adults",
+            "type": "INTEGER",
+            "link_id": "number_of_adults",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_number_of_adults"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Adult-Only"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ANY",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Number of Children",
+            "type": "INTEGER",
+            "link_id": "number_of_children",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_number_of_children"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Relationship to HoH",
+                "type": "CHOICE",
+                "link_id": "adult1_relationship_to_hoh",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_adult1_relationship_to_hoh"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_adults",
+                    "answer_number": 0
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN",
+                "pick_list_options": [
+                  {
+                    "code": "HoH (Self)"
+                  },
+                  {
+                    "code": "Child"
+                  },
+                  {
+                    "code": "Spouse or partner"
+                  },
+                  {
+                    "code": "Other relative"
+                  },
+                  {
+                    "code": "Unrelated household member"
+                  }
+                ]
+              },
+              {
+                "text": "Sex",
+                "type": "STRING",
+                "link_id": "adult1_sex",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_adult1_sex"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_adults",
+                    "answer_number": 0
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Adult 1",
+            "type": "GROUP",
+            "link_id": "adult_1",
+            "component": "HORIZONTAL_GROUP",
+            "enable_when": [
+              {
+                "operator": "GREATER_THAN",
+                "question": "number_of_adults",
+                "answer_number": 0
+              }
+            ],
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Relationship to HoH",
+                "type": "CHOICE",
+                "link_id": "adult2_relationship_to_hoh",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_adult2_relationship_to_hoh"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_adults",
+                    "answer_number": 1
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN",
+                "pick_list_options": [
+                  {
+                    "code": "HoH (Self)"
+                  },
+                  {
+                    "code": "Child"
+                  },
+                  {
+                    "code": "Spouse or partner"
+                  },
+                  {
+                    "code": "Other relative"
+                  },
+                  {
+                    "code": "Unrelated household member"
+                  }
+                ]
+              },
+              {
+                "text": "Sex",
+                "type": "STRING",
+                "link_id": "adult2_sex",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_adult2_sex"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_adults",
+                    "answer_number": 0
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Adult 2",
+            "type": "GROUP",
+            "link_id": "adult_2",
+            "component": "HORIZONTAL_GROUP",
+            "enable_when": [
+              {
+                "operator": "GREATER_THAN",
+                "question": "number_of_adults",
+                "answer_number": 1
+              }
+            ],
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Additional Relationship to HoH & Sex Details",
+                "type": "TEXT",
+                "link_id": "additional_adult_details",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_additional_adult_details"
+                },
+                "required": true,
+                "read_only": false,
+                "warn_if_empty": false,
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Details for Adult 3 and Greater",
+            "type": "GROUP",
+            "link_id": "adult_3",
+            "component": "HORIZONTAL_GROUP",
+            "enable_when": [
+              {
+                "operator": "GREATER_THAN",
+                "question": "number_of_adults",
+                "answer_number": 2
+              }
+            ],
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Relationship to HoH",
+                "type": "CHOICE",
+                "link_id": "child1_relationship_to_hoh",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child1_relationship_to_hoh"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_children",
+                    "answer_number": 0
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN",
+                "pick_list_options": [
+                  {
+                    "code": "HoH (Self)"
+                  },
+                  {
+                    "code": "Child"
+                  },
+                  {
+                    "code": "Spouse or partner"
+                  },
+                  {
+                    "code": "Other relative"
+                  },
+                  {
+                    "code": "Unrelated household member"
+                  }
+                ]
+              },
+              {
+                "text": "Age",
+                "type": "INTEGER",
+                "link_id": "child1_age",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child1_age"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 1
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Sex",
+                "type": "STRING",
+                "link_id": "child1_sex",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child1_sex"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 1
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Child 1",
+            "type": "GROUP",
+            "link_id": "child_1",
+            "component": "HORIZONTAL_GROUP",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Relationship to HoH",
+                "type": "CHOICE",
+                "link_id": "child2_relationship_to_hoh",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child2_relationship_to_hoh"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_children",
+                    "answer_number": 1
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN",
+                "pick_list_options": [
+                  {
+                    "code": "HoH (Self)"
+                  },
+                  {
+                    "code": "Child"
+                  },
+                  {
+                    "code": "Spouse or partner"
+                  },
+                  {
+                    "code": "Other relative"
+                  },
+                  {
+                    "code": "Unrelated household member"
+                  }
+                ]
+              },
+              {
+                "text": "Age",
+                "type": "INTEGER",
+                "link_id": "child2_age",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child2_age"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 2
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Sex",
+                "type": "STRING",
+                "link_id": "child2_sex",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child2_sex"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 2
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Child 2",
+            "type": "GROUP",
+            "link_id": "child_2",
+            "component": "HORIZONTAL_GROUP",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Relationship to HoH",
+                "type": "CHOICE",
+                "link_id": "child3_relationship_to_hoh",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child3_relationship_to_hoh"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_children",
+                    "answer_number": 2
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN",
+                "pick_list_options": [
+                  {
+                    "code": "HoH (Self)"
+                  },
+                  {
+                    "code": "Child"
+                  },
+                  {
+                    "code": "Spouse or partner"
+                  },
+                  {
+                    "code": "Other relative"
+                  },
+                  {
+                    "code": "Unrelated household member"
+                  }
+                ]
+              },
+              {
+                "text": "Age",
+                "type": "INTEGER",
+                "link_id": "child3_age",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child3_age"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 3
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Sex",
+                "type": "STRING",
+                "link_id": "child3_sex",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child3_sex"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 3
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Child 3",
+            "type": "GROUP",
+            "link_id": "child_3",
+            "component": "HORIZONTAL_GROUP",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Relationship to HoH",
+                "type": "CHOICE",
+                "link_id": "child4_relationship_to_hoh",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child4_relationship_to_hoh"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN",
+                    "question": "number_of_children",
+                    "answer_number": 3
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN",
+                "pick_list_options": [
+                  {
+                    "code": "HoH (Self)"
+                  },
+                  {
+                    "code": "Child"
+                  },
+                  {
+                    "code": "Spouse or partner"
+                  },
+                  {
+                    "code": "Other relative"
+                  },
+                  {
+                    "code": "Unrelated household member"
+                  }
+                ]
+              },
+              {
+                "text": "Age",
+                "type": "INTEGER",
+                "link_id": "child4_age",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child4_age"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 4
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Sex",
+                "type": "STRING",
+                "link_id": "child4_sex",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_child4_sex"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 4
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Child 4",
+            "type": "GROUP",
+            "link_id": "child_4",
+            "component": "HORIZONTAL_GROUP",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "Additional Relationship to HoH, Age, & Sex Details",
+                "type": "TEXT",
+                "link_id": "additional_child_details",
+                "mapping": {
+                  "custom_field_key": "ce_outreach_referral_additional_child_details"
+                },
+                "required": true,
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "GREATER_THAN_EQUAL",
+                    "question": "number_of_children",
+                    "answer_number": 5
+                  }
+                ],
+                "warn_if_empty": false,
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Details for Child 5 and Greater",
+            "type": "GROUP",
+            "link_id": "details_for_child_5_and_greater",
+            "component": "HORIZONTAL_GROUP",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Does the family wish to enter shelter at this time?",
+            "type": "CHOICE",
+            "link_id": "does_the_family_wish_to_enter_shelter_at",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_does_the_family_wish_to_enter_shelter_at"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Have they been referred to a family shelter?",
+            "type": "CHOICE",
+            "link_id": "shelter_referral",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_shelter_referral"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "does_the_family_wish_to_enter_shelter_at",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Is the client a youth (18-24)?",
+            "type": "CHOICE",
+            "link_id": "is_the_client_a_youth_18_24",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_is_the_client_a_youth_18_24"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Adult-Only"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ANY",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          }
+        ],
+        "text": "Household Information",
+        "type": "GROUP",
+        "link_id": "household_information",
+        "disabled_display": "HIDDEN"
+      },
+      {
+        "item": [
+          {
+            "text": "Where is the client sleeping?",
+            "type": "CHOICE",
+            "link_id": "where_is_the_client_sleeping",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_where_is_the_client_sleeping"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Adult-Only"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ANY",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Car"
+              },
+              {
+                "code": "Outside"
+              },
+              {
+                "code": "Other place not meant for habitation"
+              }
+            ]
+          },
+          {
+            "text": "Location – provide as much detail as possible",
+            "type": "TEXT",
+            "link_id": "location_provide_as_much_detail",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_location_provide_as_much_detail"
+            },
+            "required": false,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Adult-Only"
+              }
+            ],
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Are there any barriers that will make it difficult to locate the client?",
+            "type": "CHOICE",
+            "link_id": "location_barriers",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_location_barriers"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Adult-Only"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Barrier Details",
+            "type": "TEXT",
+            "link_id": "barrier_details",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_barrier_details"
+            },
+            "required": false,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "location_barriers",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": true,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Are there any dogs at the client’s location?",
+            "type": "CHOICE",
+            "link_id": "are_there_any_dogs_at_the_clients_locati",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_are_there_any_dogs_at_the_clients_locati"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_adult_only",
+                "answer_code": "Adult-Only"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          }
+        ],
+        "text": "Location Details",
+        "type": "GROUP",
+        "link_id": "location_details",
+        "disabled_display": "HIDDEN"
+      },
+      {
+        "item": [
+          {
+            "text": "Phone Number(s)",
+            "type": "TEXT",
+            "link_id": "phone_number_s",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_phone_number_s"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Email(s)",
+            "type": "TEXT",
+            "link_id": "email_s",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_email_s"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "What is the best way to contact client?",
+            "type": "TEXT",
+            "link_id": "best_way_to_contact_client",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_best_way_to_contact_client"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "What is the best way to find the client?",
+            "type": "TEXT",
+            "link_id": "what_is_the_best_way_to_find_the_client",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_what_is_the_best_way_to_find_the_client"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "On a typical day, where does the client go for lunch? ",
+            "type": "TEXT",
+            "link_id": "on_a_typical_day_where_does_the_client_g",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_on_a_typical_day_where_does_the_client_g"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          }
+        ],
+        "text": "Contact Information",
+        "type": "GROUP",
+        "link_id": "contact_information",
+        "enable_when": [
+          {
+            "operator": "EQUAL",
+            "question": "family_or_adult_only",
+            "answer_code": "Family"
+          },
+          {
+            "operator": "EQUAL",
+            "question": "family_or_adult_only",
+            "answer_code": "Adult-Only"
+          }
+        ],
+        "enable_behavior": "ANY",
+        "disabled_display": "HIDDEN"
+      },
+      {
+        "item": [
+          {
+            "text": "Referrer Notes",
+            "type": "TEXT",
+            "link_id": "referrer_notes",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_referrer_notes"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          }
+        ],
+        "text": "Referrer Questions",
+        "type": "GROUP",
+        "link_id": "referrer_questions",
+        "enable_when": [
+          {
+            "operator": "EQUAL",
+            "question": "family_or_adult_only",
+            "answer_code": "Family"
+          },
+          {
+            "operator": "EQUAL",
+            "question": "family_or_adult_only",
+            "answer_code": "Adult-Only"
+          }
+        ],
+        "enable_behavior": "ANY",
+        "disabled_display": "HIDDEN"
+      }
+    ]
+  }
