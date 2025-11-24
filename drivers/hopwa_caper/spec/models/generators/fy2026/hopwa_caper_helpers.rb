@@ -47,7 +47,7 @@ module HopwaCaperHelpers
   end
 
   # Create an HIV+ enrollment with standard disability attributes
-  def create_hiv_positive_enrollment(client:, project:, entry_date:, household_id:, relationship_to_ho_h: 1)
+  def create_hiv_positive_enrollment(client:, project:, entry_date:, household_id:, relationship_to_ho_h: 1, exit_date: nil, destination: nil)
     create_enrollment(
       client: client,
       project: project,
@@ -64,7 +64,56 @@ module HopwaCaperHelpers
         viral_load: 100,
         data_source: data_source,
       )
+      if exit_date.present?
+        create(
+          :hud_exit,
+          enrollment: enrollment,
+          exit_date: exit_date,
+          data_source: data_source,
+          personal_id: client.personal_id,
+          destination: destination,
+        )
+      end
     end
+  end
+
+  # Create client with enrollment and service in one call
+  def create_enrolled_client_with_service(
+    client_attrs:,
+    project:,
+    entry_date:,
+    household_id: nil,
+    relationship_to_ho_h: 1,
+    service_type: nil,
+    type_provided: nil,
+    service_date: nil,
+    fa_amount: 100
+  )
+    household_id ||= Hmis::Hud::Base.generate_uuid
+    service_date ||= entry_date
+    service_type ||= hopwa_financial_assistance
+    type_provided ||= rental_assistance
+
+    client = create(:hud_client, **client_attrs.merge(data_source: data_source))
+    enrollment = create_hiv_positive_enrollment(
+      client: client,
+      project: project,
+      entry_date: entry_date,
+      household_id: household_id,
+      relationship_to_ho_h: relationship_to_ho_h,
+    )
+
+    service = create(
+      :hud_service,
+      enrollment: enrollment,
+      record_type: service_type,
+      type_provided: type_provided,
+      fa_amount: fa_amount,
+      date_provided: service_date,
+      data_source: data_source,
+    )
+
+    { client: client, enrollment: enrollment, service: service, household_id: household_id }
   end
 
   # Create standard income benefits (Medicaid + Earned income)
