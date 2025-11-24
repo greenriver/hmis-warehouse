@@ -301,7 +301,8 @@ module Types
     end
 
     def outgoing_direct_ce_referrals(**args)
-      access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
+      policy = current_user.policy_for(object, policy_type: :hmis_project)
+      access_denied! unless policy.can_view_outgoing_referral_summaries?
 
       referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
       resolve_ce_referrals(referral_scope, sort_order: :created_at, dangerous_skip_permission_check: true, **args)

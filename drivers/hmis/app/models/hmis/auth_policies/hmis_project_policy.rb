@@ -33,6 +33,16 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_manage_outgoing_referrals)
   end
 
+  def can_view_outgoing_referral_details?
+    # can_view_outgoing_referral_details grants full detail access
+    project_permissions.include?(:can_view_outgoing_referral_details)
+  end
+
+  def can_view_outgoing_referral_summaries?
+    # can_manage_outgoing_referrals only grants summary-level access
+    project_permissions.include?(:can_view_outgoing_referral_details) || project_permissions.include?(:can_manage_outgoing_referrals)
+  end
+
   protected
 
   memoize def project_permissions

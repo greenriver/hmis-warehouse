@@ -10280,6 +10280,7 @@ type QueryAccess {
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
+  canViewOutgoingReferralDetails: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
   canViewPrioritizedClientLists: Boolean!
