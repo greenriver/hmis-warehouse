@@ -65,11 +65,14 @@ module Hmis::Ce
         merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals))
 
       # Referrals that the user can view because they have can_view_outgoing_referral_details in the source project
+      viewable_source_project_ids = Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_outgoing_referral_details).pluck(:id)
+
       access_through_source_ids = base_scope.
-        joins(:source_project).
-        merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_outgoing_referral_details)).
-        pluck(:id)
-      access_through_source = base_scope.where(id: access_through_source_ids)
+        joins(:source_enrollment).
+        merge(Hmis::Hud::Enrollment.where(project_pk: viewable_source_project_ids)).pluck(:id)
+
+      # Query referral IDs first so the relation passed to #or is structurally compatible.
+      access_through_source = Hmis::Ce::Referral.where(id: access_through_source_ids)
 
       access_through_project.
         or(own_referrals).
