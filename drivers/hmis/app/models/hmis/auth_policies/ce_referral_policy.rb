@@ -35,6 +35,16 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
     # whereas can_manage_outgoing_referrals only grants summary level permission.
     return true if source_project_permissions.include?(:can_view_outgoing_referral_details)
 
+    can_view_floating?
+  end
+
+  def can_view_in_target_project?
+    return false unless project_permissions.include?(:can_view_project)
+
+    project_permissions.include?(:can_view_referrals) || can_view_floating?
+  end
+
+  def can_view_floating?
     # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
     # Referral only becomes viewable once the assigned step becomes available.
     # Note that the user does *not* need can_view_project in this case

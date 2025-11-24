@@ -29,6 +29,7 @@ module Hmis::Ce
     belongs_to :referred_by, class_name: 'Hmis::User'
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     belongs_to :source_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
+    has_one :source_project, class_name: 'Hmis::Hud::Project', through: :source_enrollment, source: :project
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
@@ -42,7 +43,8 @@ module Hmis::Ce
       # What makes a referral viewable by a user?
       # - If they have can_view_referrals at the target project, OR
       # - If they have can_view_own_referrals, AND are assigned a step in the referral, OR
-      # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral
+      # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral, OR
+      # - If they have can_view_outgoing_referrals at the *source* project
 
       base_scope = joins(:target_project)
 
@@ -62,7 +64,16 @@ module Hmis::Ce
       own_referrals = base_scope.where(id: own_referral_ids).or(own_referrals_via_swimlane).
         merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals))
 
-      access_through_project.or(own_referrals)
+      # Referrals that the user can view because they have can_view_outgoing_referral_details in the source project
+      access_through_source_ids = base_scope.
+        joins(:source_project).
+        merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_outgoing_referral_details)).
+        pluck(:id)
+      access_through_source = base_scope.where(id: access_through_source_ids)
+
+      access_through_project.
+        or(own_referrals).
+        or(access_through_source)
     end
 
     # Referrals that have a step assigned to the specified user. Excludes referrals if the assigned step(s) are unavailable.

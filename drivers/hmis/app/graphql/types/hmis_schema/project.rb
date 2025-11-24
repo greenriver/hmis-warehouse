@@ -110,6 +110,7 @@ module Types
       can :view_units
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
+      can :view_outgoing_referral_details
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households

@@ -1109,6 +1109,7 @@ type CeReferralAccess {
   """
   canCreateReferralNote: Boolean!
   canViewReferralDetails: Boolean!
+  canViewReferralInTargetProject: Boolean!
   canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!
   id: ID!
@@ -9712,6 +9713,7 @@ type ProjectAccess {
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOutgoingReferralDetails: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
   canViewPrioritizedClientLists: Boolean!
