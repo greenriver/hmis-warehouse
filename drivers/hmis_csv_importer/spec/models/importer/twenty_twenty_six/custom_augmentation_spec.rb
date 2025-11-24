@@ -273,4 +273,59 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
       end
     end
   end
+
+  describe 'dirty tracking for custom augmentation updates' do
+    self.use_transactional_tests = false
+
+    let(:cleanup_calls) { [] }
+
+    before do
+      cleanup_import_state
+      allow(GrdaWarehouse::Tasks::ServiceHistory::Enrollment).
+        to receive(:ensure_there_are_no_extra_enrollments_in_service_history).
+        and_wrap_original do |original, client_ids|
+          cleanup_calls << client_ids
+          original.call(client_ids)
+        end
+    end
+
+    after { cleanup_import_state }
+
+    context 'when augmenting enrollments' do
+      before do
+        import_custom_augmentation_fixture('baseline')
+        enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
+        raise 'Tracked enrollment not found' unless enrollment
+
+        enrollment.update_columns(processed_as: 'baseline')
+        import_custom_augmentation_fixture('with_custom')
+      end
+
+      it 'marks augmented enrollments as needing processing' do
+        enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
+        expect(enrollment.processed_as).to be_nil
+      end
+    end
+
+    context 'when augmenting clients' do
+      before do
+        import_custom_augmentation_fixture('baseline')
+        client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: '2f4b963171644a8b9902bdfe79a4b403')
+        raise 'Tracked client not found' unless client
+
+        client.update_columns(demographic_dirty: false)
+        import_custom_augmentation_fixture('with_custom_gender')
+      end
+
+      it 'marks augmented clients dirty' do
+        client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: '2f4b963171644a8b9902bdfe79a4b403')
+        expect(client.demographic_dirty).to eq(true)
+      end
+
+      it 'queues cleanup for updated clients' do
+        expect(cleanup_calls).not_to be_empty
+        expect(cleanup_calls.last).to be_present
+      end
+    end
+  end
 end

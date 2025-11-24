@@ -30,7 +30,7 @@ require 'zlib'
 require 'base64'
 
 module HmisCsvImporter::Importer
-  # @see docs/features/hmis-csv-importer.md
+  # @see docs/features/hmis-csv-importer.md for architecture and design details.
   class Importer
     include TsqlImport
     include NotifierConfig
@@ -832,18 +832,7 @@ module HmisCsvImporter::Importer
             klass.hud_key => hud_keys,
           ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
             destination = source.as_destination_record
-            destination.pending_date_deleted = nil
-            case klass.hud_key
-            when :PersonalID
-              destination.demographic_dirty = true
-            when :EnrollmentID
-              destination.processed_as = nil
-            when :ExitID
-              # These are tracked separately so we can bulk update them at the end
-              track_dirty_enrollment(destination.EnrollmentID)
-            end
-            # ensure we always have the right data_source_id
-            destination.data_source_id = data_source.id
+            prepare_destination_for_update(klass, destination)
             batch << destination
             if batch.count == INSERT_BATCH_SIZE
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
@@ -855,7 +844,6 @@ module HmisCsvImporter::Importer
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
                   ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
-                  @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
@@ -874,7 +862,6 @@ module HmisCsvImporter::Importer
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
               ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
-              @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
           else
@@ -908,32 +895,45 @@ module HmisCsvImporter::Importer
       destination_class = klass.reflect_on_association(:destination_record).klass
       bm = Benchmark.measure do
         batch = []
-        upsert_columns = klass.upsert_column_names(version: importer_log.version)
+        upsert_columns = augmentation_upsert_columns(klass)
 
-        scope = existing_destination_data_scope(klass)
+        # Drive from the source data (the augmentation file) rather than the warehouse
+        # This prevents scanning the entire warehouse table when only a few records are being updated
+        # and is generally more memory efficient for sparse updates
+        klass.should_import.where(importer_log_id: @importer_log.id).find_in_batches(batch_size: SELECT_BATCH_SIZE) do |source_batch|
+          hud_keys = source_batch.map { |r| r[klass.hud_key] }
 
-        scope.in_batches(of: SELECT_BATCH_SIZE) do |relation|
-          hud_keys = relation.pluck(klass.hud_key)
-          klass.should_import.where(
-            importer_log_id: @importer_log.id,
-            klass.hud_key => hud_keys,
-          ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+          # Identify which of these source records match valid existing destination records
+          # We must respect the existing_destination_data_scope (date range, project constraints)
+          valid_keys = existing_destination_data_scope(klass).
+            where(klass.hud_key => hud_keys).
+            pluck(klass.hud_key).
+            to_set
+
+          source_batch.each do |source|
+            next unless valid_keys.include?(source[klass.hud_key])
+
             destination = source.as_destination_record
-            destination.pending_date_deleted = nil
-            destination.data_source_id = data_source.id
+            prepare_destination_for_update(klass, destination)
             batch << destination
 
-            if batch.count == INSERT_BATCH_SIZE
-              Rails.logger.info "Processing #{batch.count} augmentation records in bulk for #{file_name}"
-              process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
-              batch = []
-            end
+            next unless batch.count == INSERT_BATCH_SIZE
+
+            Rails.logger.info "Processing #{batch.count} augmentation records in bulk for #{file_name}"
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
+            batch = []
           end
         end
 
         if batch.present?
           Rails.logger.info "Processing final batch of #{batch.count} augmentation records in bulk for #{file_name}"
           process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
+        end
+
+        # If we tracked any dirty enrollments (from Exit augmentation), bulk update them now
+        if klass.hud_key == :ExitID && dirty_enrollment_ids.present?
+          GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
+            update_all(processed_as: nil)
         end
 
         Rails.logger.info "Completed applying augmentation updates for #{file_name}"
@@ -949,6 +949,45 @@ module HmisCsvImporter::Importer
       Rails.logger.debug do
         "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
       end
+    end
+
+    private def prepare_destination_for_update(klass, destination)
+      destination.pending_date_deleted = nil
+      destination.data_source_id = data_source.id
+      mark_record_dirty(klass, destination)
+    end
+
+    private def mark_record_dirty(klass, destination)
+      case klass.hud_key
+      when :PersonalID
+        destination.demographic_dirty = true
+        track_updated_client(destination.PersonalID)
+      when :EnrollmentID
+        destination.processed_as = nil
+      when :ExitID
+        # These are tracked separately so we can bulk update them at the end
+        track_dirty_enrollment(destination.EnrollmentID)
+      end
+    end
+
+    private def track_updated_client(personal_id)
+      return if personal_id.blank?
+
+      @updated_source_client_ids << personal_id
+    end
+
+    private def augmentation_upsert_columns(klass)
+      columns = klass.upsert_column_names(version: importer_log.version)
+      columns << :pending_date_deleted
+      case klass.hud_key
+      when :PersonalID
+        columns << :demographic_dirty
+      when :EnrollmentID
+        columns << :processed_as
+        # Exit records don't have processed_as; their dirty tracking
+        # is handled via enrollment bulk update after processing
+      end
+      columns.uniq
     end
 
     # Compare source_hash new and old, if they are identical, we don't need to do anything
