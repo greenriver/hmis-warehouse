@@ -813,13 +813,15 @@ module HmisCsvImporter::Importer
       # Exports are always inserts, never updates
       return if klass.hud_key == :ExportID
 
+      # Custom augmentation files have their own optimized path
+      return apply_augmentation_updates(klass, file_name) if custom_augmentation?(klass)
+
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
-        upsert_columns = klass.upsert_column_names(version: importer_log.version) if custom_augmentation?(klass)
 
         Rails.logger.info "Processing existing records for #{file_name} in batches"
 
@@ -843,7 +845,7 @@ module HmisCsvImporter::Importer
             # ensure we always have the right data_source_id
             destination.data_source_id = data_source.id
             batch << destination
-            if batch.count == INSERT_BATCH_SIZE && !custom_augmentation?(klass)
+            if batch.count == INSERT_BATCH_SIZE
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
               # so these must be processed more slowly
               if klass.hud_key == :PersonalID
@@ -858,14 +860,14 @@ module HmisCsvImporter::Importer
                 note_processed(file_name, batch.count, 'updated')
               else
                 Rails.logger.info "Processing #{batch.count} records in bulk for #{file_name}"
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
               end
               batch = []
             end
           end
         end
         if batch.present? # ensure we get the last batch
-          if klass.hud_key == :PersonalID && !custom_augmentation?(klass)
+          if klass.hud_key == :PersonalID
             Rails.logger.info "Processing final batch of #{batch.count} records individually for #{file_name}"
             batch.each do |incoming|
               destination_class.where(
@@ -877,7 +879,7 @@ module HmisCsvImporter::Importer
             note_processed(file_name, batch.count, 'updated')
           else
             Rails.logger.info "Processing final batch of #{batch.count} records in bulk for #{file_name}"
-            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
           end
         end
 
@@ -888,6 +890,55 @@ module HmisCsvImporter::Importer
         end
         Rails.logger.info "Completed applying updates for #{file_name}"
       end
+      records = summary_for(file_name, 'updated') || 0
+      stats = {
+        up_secs: bm.real.round(3),
+        up_rps: ((records / bm.real).round(3) unless records.zero?),
+        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+      }
+      importer_log.summary[file_name].merge!(stats)
+      Rails.logger.debug do
+        "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
+      end
+    end
+
+    # Process updates for custom augmentation files
+    # These files only update existing records and never add new ones
+    private def apply_augmentation_updates(klass, file_name)
+      destination_class = klass.reflect_on_association(:destination_record).klass
+      bm = Benchmark.measure do
+        batch = []
+        upsert_columns = klass.upsert_column_names(version: importer_log.version)
+
+        scope = existing_destination_data_scope(klass)
+
+        scope.in_batches(of: SELECT_BATCH_SIZE) do |relation|
+          hud_keys = relation.pluck(klass.hud_key)
+          klass.should_import.where(
+            importer_log_id: @importer_log.id,
+            klass.hud_key => hud_keys,
+          ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+            destination = source.as_destination_record
+            destination.pending_date_deleted = nil
+            destination.data_source_id = data_source.id
+            batch << destination
+
+            if batch.count == INSERT_BATCH_SIZE
+              Rails.logger.info "Processing #{batch.count} augmentation records in bulk for #{file_name}"
+              process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
+              batch = []
+            end
+          end
+        end
+
+        if batch.present?
+          Rails.logger.info "Processing final batch of #{batch.count} augmentation records in bulk for #{file_name}"
+          process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
+        end
+
+        Rails.logger.info "Completed applying augmentation updates for #{file_name}"
+      end
+
       records = summary_for(file_name, 'updated') || 0
       stats = {
         up_secs: bm.real.round(3),
