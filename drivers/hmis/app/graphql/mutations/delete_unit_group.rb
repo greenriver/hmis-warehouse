@@ -22,7 +22,7 @@ module Mutations
 
       # Validate that there are no units in the group
       if unit_group.units.count > 0
-        errors.add(:base, :invalid, full_message: 'Cannot delete unit group with existing units')
+        errors.add(:base, :invalid, full_message: 'Cannot delete unit group with units')
         return { unit_group: nil, errors: errors }
       end
 

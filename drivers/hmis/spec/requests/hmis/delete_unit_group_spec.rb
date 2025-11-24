@@ -59,7 +59,7 @@ RSpec.describe 'DeleteUnitGroup Mutation', type: :request do
 
         errors = result.dig('data', 'deleteUnitGroup', 'errors')
         expect(errors).not_to be_empty
-        expect(errors.first['fullMessage']).to eq('Cannot delete unit group with existing units')
+        expect(errors.first['fullMessage']).to eq('Cannot delete unit group with units')
       end.to not_change(Hmis::UnitGroup, :count).
         and not_change(unit_group.reload, :deleted_at)
     end
