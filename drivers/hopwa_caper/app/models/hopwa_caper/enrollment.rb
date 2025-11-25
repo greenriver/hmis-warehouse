@@ -46,7 +46,9 @@ module HopwaCaper
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
 
-    scope :head_of_household, -> { where(relationship_to_hoh: 1) }
+    def self.head_of_household
+      where(relationship_to_hoh: 1)
+    end
 
     INSURANCE_FIELDS = [
       :Medicaid,
@@ -100,7 +102,7 @@ module HopwaCaper
         age: client.age_on([report.start_date, enrollment.entry_date].max),
         dob: client.dob,
         dob_quality: client.dob_data_quality,
-        sex: client.sex,
+        genders: client.gender_multi.sort,
         races: client.race_multi.sort,
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
