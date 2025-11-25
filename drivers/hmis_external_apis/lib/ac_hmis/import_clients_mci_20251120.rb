@@ -71,6 +71,9 @@ module AcHmis
       # Create header index map
       header_map = headers.each_with_index.to_h
 
+      # Validate uniqueness of MCI Unique IDs before processing
+      validate_unique_ids(sheet, header_map)
+
       # Process each data row (starting from row 2, since row 1 is headers)
       row_number = 1
       sheet.each_row_streaming(offset: 1, pad_cells: true) do |row|
@@ -84,6 +87,34 @@ module AcHmis
       return unless missing_headers.any?
 
       raise "Missing required headers: #{missing_headers.join(', ')}"
+    end
+
+    def validate_unique_ids(sheet, header_map)
+      mci_unique_ids_seen = {}
+
+      row_number = 1
+      sheet.each_row_streaming(offset: 1, pad_cells: true) do |row|
+        row_number += 1
+        mci_unique_id = get_cell_value(row, header_map['MCI_UNIQ_ID'])
+
+        # Skip empty rows
+        next if mci_unique_id.blank?
+
+        # Track MCI Unique ID occurrences
+        mci_unique_id_key = mci_unique_id.to_s
+        if mci_unique_ids_seen.key?(mci_unique_id_key)
+          error_msg = "Duplicate MCI Unique ID found: #{mci_unique_id} appears in rows #{mci_unique_ids_seen[mci_unique_id_key]} and #{row_number}"
+          @stats[:errors] << error_msg
+          puts "ERROR: #{error_msg}"
+        else
+          mci_unique_ids_seen[mci_unique_id_key] = row_number
+        end
+      end
+
+      # Raise error if duplicates found
+      return unless @stats[:errors].any?
+
+      raise 'File validation failed: Found duplicate MCI IDs or MCI Unique IDs in the file'
     end
 
     def process_row(row, header_map, row_number)
