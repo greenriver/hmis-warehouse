@@ -6,19 +6,14 @@
 
 # frozen_string_literal: true
 
-require 'net/sftp'
-
 module Health
   class ImportConfigPassword < ImportConfig
     def connect
-      Net::SFTP.start(
+      Sftp::Cli.start(
         host_name,
         username,
         password: password,
-        encryption: ['chacha20-poly1305@openssh.com'],
-        # verbose: :debug,
         port: port_number,
-        auth_methods: ['password'],
       ) do |connection|
         yield connection
       end

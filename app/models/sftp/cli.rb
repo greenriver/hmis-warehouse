@@ -11,14 +11,24 @@ require 'shellwords'
 require 'open3'
 
 # Wrapper around the system's sftp CLI client that provides a Net::SFTP-compatible API.
-# Each operation executes as a separate sftp connection using batch mode (-b -) with heredoc input.
+# Each operation executes as a separate sftp connection using batch mode.
 # Password authentication uses sshpass with a temporary file to avoid exposing credentials in process lists.
+#
 # Sample usage:
-# Sftp::Cli.start('example.com', 'username', password: 'password') do |sftp|
-#   sftp.dir.glob('path/to/directory', '*.csv') do |file|
-#     puts file.name
+#   Sftp::Cli.start('example.com', 'username', password: 'password', skip_verify_host_key: true) do |sftp|
+#     sftp.dir.glob('/path/to/directory', '*.csv').each do |file|
+#       puts file.name
+#     end
 #   end
-# end
+#
+# Options:
+#   password: - Password for authentication (uses sshpass)
+#   port: - Port number (default: 22)
+#   keys: - Array of SSH key file paths
+#   keys_only: - Only use key authentication
+#   skip_verify_host_key: - Skip host key verification (adds -o StrictHostKeyChecking=no)
+#   keepalive: - Enable SSH keepalive to prevent disconnection (default: false)
+#   keepalive_interval: - Seconds between keepalive messages (default: 60)
 module Sftp
   class Cli
     class Error < StandardError; end
@@ -38,19 +48,19 @@ module Sftp
       @username = username
       @options = options
       @password_file = nil
-      @batch_files = []
     end
 
-    # Removes temporary password file and batch files if any were created.
+    # Returns the command that would be executed (for debugging).
+    def debug_command
+      build_command_parts.join(' ')
+    end
+
+    # Removes temporary password file if one was created.
     def cleanup
-      if @password_file
-        File.unlink(@password_file.path) if File.exist?(@password_file.path)
-        @password_file = nil
-      end
-      @batch_files.each do |batch_file|
-        File.unlink(batch_file.path) if File.exist?(batch_file.path)
-      end
-      @batch_files.clear
+      return unless @password_file
+
+      File.unlink(@password_file.path) if File.exist?(@password_file.path)
+      @password_file = nil
     end
 
     # Returns a proxy object for directory operations (e.g., dir.glob).
@@ -78,13 +88,18 @@ module Sftp
       @file ||= FileProxy.new(self)
     end
 
+    # No-op for compatibility with Net::SFTP (each operation is a separate connection).
+    def loop
+      # Intentionally empty
+    end
+
     private
 
     # Executes an sftp command and raises StatusException on failure.
-    # Captures both stdout and stderr, filtering error messages for clearer exceptions.
+    # Passes commands via stdin instead of batch file to work with sshpass.
     def execute_sftp_command(command)
-      cmd_parts = build_sftp_command_parts(command)
-      output, status = Open3.capture2e(*cmd_parts)
+      stdin_data = "#{Array(command).join("\n")}\nquit\n"
+      output, status = Open3.capture2e(*build_command_parts, stdin_data: stdin_data)
       return if status.success?
 
       error_msg = output.lines.grep(/error|failed|denied|refused/i).join("\n")
@@ -95,8 +110,8 @@ module Sftp
     # Executes an sftp command and returns the output.
     # Used for operations like 'ls' that need to parse the response.
     def execute_sftp_with_output(command)
-      cmd_parts = build_sftp_command_parts(command)
-      output, status = Open3.capture2e(*cmd_parts)
+      stdin_data = "#{Array(command).join("\n")}\nquit\n"
+      output, status = Open3.capture2e(*build_command_parts, stdin_data: stdin_data)
       return output if status.success?
 
       error_msg = output.lines.grep(/error|failed|denied|refused/i).join("\n")
@@ -105,21 +120,7 @@ module Sftp
     end
 
     # Builds the command parts as an array for safe execution with Open3.
-    # Uses a temporary batch file to pass commands to sftp, which is safer than heredoc.
-    # The batch file is tracked and cleaned up in the cleanup method.
-    def build_sftp_command_parts(sftp_commands)
-      commands = Array(sftp_commands).join("\n")
-      batch_file = Tempfile.new('sftp_batch')
-      batch_file.write("#{commands}\nquit\n")
-      batch_file.close
-      File.chmod(0o600, batch_file.path)
-      @batch_files << batch_file
-
-      build_base_command_parts(include_batch_file: batch_file.path)
-    end
-
-    # Builds the base command parts as an array for safe execution.
-    def build_base_command_parts(include_batch_file: nil)
+    def build_command_parts
       ensure_password_file if password_auth?
 
       sftp_parts = ['sftp']
@@ -129,8 +130,6 @@ module Sftp
         sftp_parts << '-o' << 'PreferredAuthentications=publickey' if @options[:keys_only]
       end
       sftp_parts.concat(build_ssh_options_parts)
-      # -b flag must come before the destination
-      sftp_parts << '-b' << include_batch_file if include_batch_file
       sftp_parts << "#{@username}@#{@host}"
 
       if password_auth?
@@ -143,8 +142,12 @@ module Sftp
     # Builds SSH option flags as separate -o flag=value pairs for the sftp command.
     def build_ssh_options_parts
       opts = []
-      opts << '-o' << 'PasswordAuthentication=yes' if password_auth?
       opts << '-o' << 'StrictHostKeyChecking=no' if @options[:skip_verify_host_key]
+      if @options[:keepalive]
+        interval = @options[:keepalive_interval] || 60
+        opts << '-o' << "ServerAliveInterval=#{interval}"
+        opts << '-o' << 'ServerAliveCountMax=3'
+      end
       opts
     end
 
@@ -181,80 +184,55 @@ module Sftp
         @connection = connection
       end
 
+      # Iterates over all entries in a directory, yielding RemoteFile objects.
+      def foreach(directory)
+        escaped_dir = @connection.send(:escape_path, directory)
+        output = @connection.send(:execute_sftp_with_output, "cd #{escaped_dir}\nls -la")
+        parse_ls_long_output(output).each { |entry| yield entry }
+      end
+
       # Lists files in the given directory matching the glob pattern.
-      # Returns an array of RemoteFile objects with name, size, and mtime attributes.
-      # Uses 'cd' followed by 'ls -l' to ensure we're listing the correct directory.
+      # Returns an array of RemoteFile objects with name attribute.
       def glob(directory, pattern)
         escaped_dir = @connection.send(:escape_path, directory)
-        output = @connection.send(:execute_sftp_with_output, "cd #{escaped_dir}\nls -l")
-        parse_ls_output(output, directory, pattern)
+        output = @connection.send(:execute_sftp_with_output, "cd #{escaped_dir}\nls -1")
+        parse_ls_output(output, pattern)
       end
 
       private
 
-      # Parses the output of 'ls -l' command, extracting file metadata.
-      # Filters files by the glob pattern and creates RemoteFile objects with attributes.
-      # Note: ls -l returns modification time (mtime), not creation time.
-      def parse_ls_output(output, directory, pattern)
-        files = []
-        pattern_regex = glob_to_regex(pattern)
-
-        output.each_line do |line|
+      # Parses the output of 'ls -la' command, preserving the full line as longname.
+      def parse_ls_long_output(output)
+        output.each_line.filter_map do |line|
           line = line.strip
-          next if line.start_with?('sftp>') || line.empty?
-          next unless line.match?(/^[-d]/)
+          next if line.empty? || line.start_with?('sftp>')
 
-          # Parse ls -l format: permissions links owner group size date time name
-          # Example: -rw-r--r-- 1 user group 1234 Jan 15 10:30 file.csv
-          # Or:      -rw-r--r-- 1 user group 1234 Jan 15 2024 file.csv
-          match = line.match(/^[-d](?:[rwx-]{9})\s+\d+\s+\S+\s+\S+\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+[\d:]+|\w{3}\s+\d{1,2}\s+\d{4})\s+(.+)$/)
+          # Extract filename from the end of ls -l output
+          # Format: -rw-r--r-- 1 user group 1234 Jan 15 10:30 filename
+          match = line.match(/\s(\S+)$/)
           next unless match
 
-          size, date_str, filename = match.captures
-          filename = filename.strip
-          next unless filename.match?(pattern_regex)
-
-          files << RemoteFile.new(
-            name: filename,
-            directory: directory,
-            size: size.to_i,
-            mtime: parse_date(date_str),
-          )
+          RemoteFile.new(name: match[1], longname: line)
         end
+      end
 
-        files
+      # Parses the output of 'ls -1' command (one filename per line).
+      # Filters files by the glob pattern and creates RemoteFile objects.
+      def parse_ls_output(output, pattern)
+        pattern_regex = glob_to_regex(pattern)
+
+        output.each_line.filter_map do |line|
+          filename = line.strip
+          next if filename.empty? || filename.start_with?('sftp>')
+
+          RemoteFile.new(name: filename, longname: filename) if filename.match?(pattern_regex)
+        end
       end
 
       # Converts a glob pattern (e.g., "*.csv") to a regex for matching filenames.
       def glob_to_regex(pattern)
         regex_str = pattern.gsub('.', '\.').gsub('*', '.*').gsub('?', '.')
         Regexp.new("^#{regex_str}$", Regexp::IGNORECASE)
-      end
-
-      # Parses date strings from ls -l output.
-      # Handles both formats: "Jan 15 10:30" (current year) and "Jan 15 2024" (past year).
-      def parse_date(date_str)
-        date_str = date_str.strip
-        if date_str.match?(/\d{4}$/)
-          begin
-            Time.strptime(date_str, '%b %d %Y')
-          rescue StandardError
-            Time.current
-          end
-        else
-          # For dates without year, assume current year
-          parsed = begin
-            Time.strptime("#{date_str} #{Time.current.year}", '%b %d %H:%M %Y')
-          rescue StandardError
-            nil
-          end
-          parsed ||= begin
-            Time.strptime("#{date_str} #{Time.current.year}", '%b %d %Y')
-          rescue StandardError
-            nil
-          end
-          parsed || Time.current
-        end
       end
     end
 
@@ -282,17 +260,7 @@ module Sftp
       end
     end
 
-    # Represents a file on the remote server with metadata.
-    # Provides an 'attributes' method that returns file metadata.
-    # Note: mtime (modification time) is what ls -l provides
-    # for compatibility with Net::SFTP API usage in existing code.
-    RemoteFile = Struct.new(:name, :directory, :size, :mtime, keyword_init: true) do
-      def attributes
-        @attributes ||= Attributes.new(mtime)
-      end
-    end
-
-    # Container for file attributes, matching Net::SFTP::Attributes API.
-    Attributes = Struct.new(:mtime, keyword_init: true)
+    # Represents a file on the remote server.
+    RemoteFile = Struct.new(:name, :longname, keyword_init: true)
   end
 end

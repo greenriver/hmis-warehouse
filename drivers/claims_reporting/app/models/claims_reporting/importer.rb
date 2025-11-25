@@ -8,7 +8,7 @@
 
 # Class to handle upsert style inserts from ZIPED CSVs (and potentially other flat file formats
 # into ClaimsReporting::* data tables.
-require 'net/sftp'
+
 require 'zip'
 
 module ClaimsReporting
@@ -50,14 +50,11 @@ module ClaimsReporting
     private def using_sftp(credentials)
       credentials ||= default_credentials
       host = credentials['host'].presence or raise "'host:' must be provided or set via ImportConfig"
-      Net::SFTP.start(
+      Sftp::Cli.start(
         host,
         credentials['username'],
         password: credentials['password'] || credentials.password,
-        auth_methods: ['password'],
-        encryption: ['chacha20-poly1305@openssh.com'],
         keepalive: true,
-        keepalive_interval: 60,
       ) do |connection|
         yield connection
       end
