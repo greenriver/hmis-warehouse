@@ -16,7 +16,7 @@ module Mutations
       unit_group = Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
 
       access_denied! unless unit_group.present?
-      access_denied! unless current_user.permissions_for?(unit_group.project, :can_manage_units)
+      access_denied! unless current_user.policy_for(unit_group.project, policy_type: :hmis_project).can_manage_units?
 
       errors = HmisErrors::Errors.new
 
