@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 require 'English'
+require 'shellwords'
+require 'open3'
 
 # Wrapper around the system's sftp CLI client that provides a Net::SFTP-compatible API.
 # Each operation executes as a separate sftp connection using batch mode (-b -) with heredoc input.
@@ -36,14 +38,19 @@ module Sftp
       @username = username
       @options = options
       @password_file = nil
+      @batch_files = []
     end
 
-    # Removes temporary password file if one was created for authentication.
+    # Removes temporary password file and batch files if any were created.
     def cleanup
-      return unless @password_file
-
-      File.unlink(@password_file.path) if File.exist?(@password_file.path)
-      @password_file = nil
+      if @password_file
+        File.unlink(@password_file.path) if File.exist?(@password_file.path)
+        @password_file = nil
+      end
+      @batch_files.each do |batch_file|
+        File.unlink(batch_file.path) if File.exist?(batch_file.path)
+      end
+      @batch_files.clear
     end
 
     # Returns a proxy object for directory operations (e.g., dir.glob).
@@ -76,10 +83,9 @@ module Sftp
     # Executes an sftp command and raises StatusException on failure.
     # Captures both stdout and stderr, filtering error messages for clearer exceptions.
     def execute_sftp_command(command)
-      cmd = build_sftp_command(command)
-      output = `#{cmd} 2>&1`
-      status = $CHILD_STATUS.exitstatus
-      return if status.zero?
+      cmd_parts = build_sftp_command_parts(command)
+      output, status = Open3.capture2e(*cmd_parts)
+      return if status.success?
 
       error_msg = output.lines.grep(/error|failed|denied|refused/i).join("\n")
       error_msg = output if error_msg.empty?
@@ -89,49 +95,57 @@ module Sftp
     # Executes an sftp command and returns the output.
     # Used for operations like 'ls' that need to parse the response.
     def execute_sftp_with_output(command)
-      cmd = build_sftp_command(command)
-      output = `#{cmd} 2>&1`
-      status = $CHILD_STATUS.exitstatus
-      return output if status.zero?
+      cmd_parts = build_sftp_command_parts(command)
+      output, status = Open3.capture2e(*cmd_parts)
+      return output if status.success?
 
       error_msg = output.lines.grep(/error|failed|denied|refused/i).join("\n")
       error_msg = output if error_msg.empty?
       raise StatusException, "SFTP command failed: #{command}\n#{error_msg}"
     end
 
-    # Builds the complete shell command that executes sftp in batch mode.
-    # Uses heredoc (<<EOF) to pass commands to sftp via stdin, with -b - flag for batch mode.
-    def build_sftp_command(sftp_commands)
-      base_cmd = build_base_command
+    # Builds the command parts as an array for safe execution with Open3.
+    # Uses a temporary batch file to pass commands to sftp, which is safer than heredoc.
+    # The batch file is tracked and cleaned up in the cleanup method.
+    def build_sftp_command_parts(sftp_commands)
       commands = Array(sftp_commands).join("\n")
-      "#{base_cmd} -b - <<EOF\n#{commands}\nquit\nEOF"
+      batch_file = Tempfile.new('sftp_batch')
+      batch_file.write("#{commands}\nquit\n")
+      batch_file.close
+      File.chmod(0o600, batch_file.path)
+      @batch_files << batch_file
+
+      build_base_command_parts(include_batch_file: batch_file.path)
     end
 
-    # Constructs the base sftp command with authentication and connection options.
-    # Prepends sshpass if password authentication is needed, adds port/key options as required.
-    def build_base_command
+    # Builds the base command parts as an array for safe execution.
+    def build_base_command_parts(include_batch_file: nil)
       ensure_password_file if password_auth?
 
-      parts = []
-      parts << 'sshpass' << %(-f #{@password_file.path}) if password_auth?
-      parts << 'sftp'
-      parts << %(-P #{@options[:port]}) if @options[:port]
+      sftp_parts = ['sftp']
+      sftp_parts << '-P' << @options[:port].to_s if @options[:port]
       if key_auth?
-        parts << %(-i #{@options[:keys].first})
-        parts << '-o PreferredAuthentications=publickey' if @options[:keys_only]
+        sftp_parts << '-i' << @options[:keys].first
+        sftp_parts << '-o' << 'PreferredAuthentications=publickey' if @options[:keys_only]
       end
-      parts << build_ssh_options
-      parts << %(#{@username}@#{@host})
+      sftp_parts.concat(build_ssh_options_parts)
+      # -b flag must come before the destination
+      sftp_parts << '-b' << include_batch_file if include_batch_file
+      sftp_parts << %(#{@username}@#{@host})
 
-      parts.join(' ')
+      if password_auth?
+        ['sshpass', '-f', @password_file.path] + sftp_parts
+      else
+        sftp_parts
+      end
     end
 
-    # Builds SSH option flags for the sftp command.
-    def build_ssh_options
+    # Builds SSH option flags as separate -o flag=value pairs for the sftp command.
+    def build_ssh_options_parts
       opts = []
-      opts << '-o PasswordAuthentication=yes' if password_auth?
-      opts << '-o StrictHostKeyChecking=no' if @options[:append_all_supported_algorithms]
-      opts.join(' ')
+      opts << '-o' << 'PasswordAuthentication=yes' if password_auth?
+      opts << '-o' << 'StrictHostKeyChecking=no' if @options[:append_all_supported_algorithms]
+      opts
     end
 
     # Returns true if password authentication should be used.
