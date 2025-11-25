@@ -55,6 +55,7 @@ module ClaimsReporting
         credentials['username'],
         password: credentials['password'] || credentials.password,
         keepalive: true,
+        skip_verify_host_key: true,
       ) do |connection|
         yield connection
       end

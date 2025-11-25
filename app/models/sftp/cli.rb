@@ -69,8 +69,9 @@ module Sftp
     end
 
     # Downloads a file from the remote server to a local path using sftp 'get' command.
-    def download!(remote_path, local_path)
-      execute_sftp_command("get #{escape_path(remote_path)} #{escape_path(local_path)}")
+    def download!(remote_path, local_path, recursive: false)
+      command = recursive ? 'get -r' : 'get'
+      execute_sftp_command("#{command} #{escape_path(remote_path)} #{escape_path(local_path)}")
     end
 
     # Uploads a file from a local path to the remote server using sftp 'put' command.
