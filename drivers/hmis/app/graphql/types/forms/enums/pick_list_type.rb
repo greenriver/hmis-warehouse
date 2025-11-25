@@ -32,6 +32,7 @@ module Types
     value 'AVAILABLE_UNITS_FOR_ENROLLMENT', 'Units available for the given Enrollment at the given project. List is limited to units with the same unit type currently occupied by the household, if any.'
     value 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT', 'Units available for the given Enrollment at the given project. Includes all available units at project even if they have a different type from what the household is currently occupying.'
     value 'ALL_SERVICE_TYPES'
+    value 'CUSTOM_SERVICE_TYPES'
     value 'ALL_SERVICE_CATEGORIES'
     value 'CUSTOM_SERVICE_CATEGORIES'
     value 'AVAILABLE_SERVICE_TYPES'

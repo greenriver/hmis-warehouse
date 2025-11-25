@@ -218,6 +218,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(options.pluck('code')).to include(custom_category.id.to_s)
       expect(options.pluck('code')).not_to include(hud_category.id.to_s)
     end
+
+    it 'returns custom-only service type pick list' do
+      response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_TYPES') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.length).to eq(Hmis::Hud::CustomServiceType.custom.count)
+      expect(options.pluck('code')).to include(custom_type.id.to_s)
+      expect(options.pluck('code')).not_to include(hud_type.id.to_s)
+    end
   end
 
   describe 'Resolving available Service Types for a Project' do

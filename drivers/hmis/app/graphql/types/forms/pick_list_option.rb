@@ -108,6 +108,8 @@ module Types
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
         service_types_picklist
+      when 'CUSTOM_SERVICE_TYPES'
+        service_types_picklist(custom_only: true)
       when 'ALL_SERVICE_CATEGORIES'
         service_categories_picklist
       when 'CUSTOM_SERVICE_CATEGORIES'
@@ -351,8 +353,10 @@ module Types
       end
     end
 
-    def self.service_types_picklist
-      options = Hmis::Hud::CustomServiceType.
+    def self.service_types_picklist(custom_only: false)
+      scope = custom_only ? Hmis::Hud::CustomServiceType.custom : Hmis::Hud::CustomServiceType.all
+
+      options = scope.
         preload(:custom_service_category).to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:group_label] + obj[:label] }
