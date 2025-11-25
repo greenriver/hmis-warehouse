@@ -126,6 +126,7 @@ RUN apt-get update && apt-get upgrade -y \
   libyaml-dev \
   libproj-dev \
   openssh-client \
+  sshpass \
   proj-bin \
   libzstd-dev \
   liblz4-dev \
