@@ -509,14 +509,38 @@ module ApplicationHelper
     end
   end
 
+  # Overrides Pagy's default URL generation when custom_url is set via pagy.vars[:custom_url].
+  # Used when rendering paginated lists via AJAX where the current request path differs from
+  # the desired pagination base URL.
+  #
+  # @param [Pagy] pagy Pagination object
+  # @param [Integer] page Target page number
+  # @param [Boolean] absolute Ignored when custom_url is present
+  # @param [Hash] vars Additional vars (ignored when custom_url is present)
+  #
+  # @return [String] Pagination URL with merged query parameters
+  #
+  # Parameter precedence: Current request params override custom URL params, allowing users
+  # to maintain filter state while paginating. Page parameter is always set to the target page
+  # (or removed if page is 1).
+  #
   def pagy_url_for(pagy, page, absolute: false, **vars)
-    return super unless pagy.vars[:custom_url].present?
-
-    # Supports setting the url from the calling context, which is needed for HMIS exports since the JS is in a different context
     custom_url = pagy.vars[:custom_url]
-    params = {}
-    params[pagy.vars[:page_param]] = page unless page == 1
-    "#{custom_url}#{params.any? ? "?#{params.to_query}" : ''}"
+    return super unless custom_url
+
+    uri = URI.parse(custom_url)
+    base_params = Rack::Utils.parse_query(uri.query)
+    merged_params = base_params.merge(request.query_parameters)
+    page_key = pagy.vars[:page_param].to_s
+
+    if page == 1
+      merged_params.delete(page_key)
+    else
+      merged_params[page_key] = page
+    end
+
+    uri.query = merged_params.to_query.presence
+    uri.to_s
   end
 
   def small_population_brackets
