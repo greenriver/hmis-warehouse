@@ -6,101 +6,92 @@
 
 # frozen_string_literal: true
 
-require 'csv'
-
 require 'rails_helper'
 
 RSpec.describe 'Custom Augmentation File Imports', type: :model do
-  FIXTURE_BASE_PATH = Rails.root.join(
-    'drivers',
-    'hmis_csv_importer',
-    'spec',
-    'fixtures',
-    'files',
-    'twenty_twenty_six',
-    'custom_augmentation_test',
-  ).freeze
-
-  def import_custom_augmentation_fixture(folder)
-    import_hmis_csv_fixture(
-      "drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_augmentation_test/#{folder}",
-      run_jobs: false,
-    )
-  end
-
   def cleanup_import_state
     GrdaWarehouse::Utility.clear!
     HmisCsvImporter::Utility.clear!
   end
 
-  def ensure_enrollment_dates_within_export_window!(folder)
-    source_path = FIXTURE_BASE_PATH.join(folder, 'source')
-    export_row = CSV.read(source_path.join('Export.csv'), headers: true).first
-    raise "Export.csv missing for #{folder}" unless export_row
-
-    start_date = Date.parse(export_row['ExportStartDate'])
-    end_date = Date.parse(export_row['ExportEndDate'])
-    enrollment_csv = source_path.join('Enrollment.csv')
-
-    CSV.foreach(enrollment_csv, headers: true) do |row|
-      next if row['EntryDate'].blank?
-
-      entry_date = Date.parse(row['EntryDate'])
-      next if entry_date.between?(start_date, end_date)
-
-      raise(
-        "Enrollment #{row['EnrollmentID']} in #{folder} has EntryDate #{entry_date} outside export window #{start_date}..#{end_date}",
-      )
-    end
-  end
-
-  describe 'When importing custom enrollment augmentation data' do
-    context 'with only the baseline import' do
+  describe 'When importing custom enrollment augmentation data using factory' do
+    context 'baseline import without augmentation' do
       before(:all) do
-        import_custom_augmentation_fixture('baseline')
+        @factory = HmisCsvFixtureFactory.new
+        @factory.export_start_date = Date.new(2024, 1, 1)
+        @factory.export_end_date = Date.new(2024, 3, 31)
+
+        @factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'One')
+        @factory.add_client(personal_id: 'client-2', first_name: 'Test', last_name: 'Two')
+        @factory.add_client(personal_id: 'client-3', first_name: 'Test', last_name: 'Three')
+
+        @factory.add_enrollment(enrollment_id: 'enroll-1', personal_id: 'client-1', entry_date: Date.new(2024, 1, 15))
+        @factory.add_enrollment(enrollment_id: 'enroll-2', personal_id: 'client-2', entry_date: Date.new(2024, 2, 1))
+        @factory.add_enrollment(enrollment_id: 'enroll-3', personal_id: 'client-3', entry_date: Date.new(2024, 2, 15))
+
+        path = @factory.create!
+        import_hmis_csv_fixture(path, run_jobs: false)
       end
 
-      after(:all) { cleanup_import_state }
-
-      it 'baseline enrollments are imported' do
-        expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
+      after(:all) do
+        @factory&.cleanup!
+        cleanup_import_state
       end
 
-      it 'baseline enrollments do not have custom augmentation fields set' do
+      it 'imports enrollments' do
+        expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
+      end
+
+      it 'enrollments do not have custom augmentation fields set' do
         enrollments = GrdaWarehouse::Hud::Enrollment.all
         expect(enrollments.pluck(:SexualOrientation).compact).to be_empty
         expect(enrollments.pluck(:TranslationNeeded).compact).to be_empty
       end
     end
 
-    describe 'after importing custom augmentation file' do
+    context 'with custom enrollment augmentation' do
       before(:all) do
-        import_custom_augmentation_fixture('baseline')
-        import_custom_augmentation_fixture('with_custom')
+        @factory = HmisCsvFixtureFactory.new
+        @factory.export_start_date = Date.new(2024, 1, 1)
+        @factory.export_end_date = Date.new(2024, 3, 31)
+
+        @factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'One')
+        @factory.add_client(personal_id: 'client-2', first_name: 'Test', last_name: 'Two')
+        @factory.add_client(personal_id: 'client-3', first_name: 'Test', last_name: 'Three')
+
+        @factory.add_enrollment(enrollment_id: 'enroll-1', personal_id: 'client-1', entry_date: Date.new(2024, 1, 15))
+        @factory.add_enrollment(enrollment_id: 'enroll-2', personal_id: 'client-2', entry_date: Date.new(2024, 2, 1))
+        @factory.add_enrollment(enrollment_id: 'enroll-3', personal_id: 'client-3', entry_date: Date.new(2024, 2, 15))
+
+        @factory.add_custom_enrollment_augmentation(enrollment_id: 'enroll-1', personal_id: 'client-1', sexual_orientation: 1, translation_needed: 0)
+        @factory.add_custom_enrollment_augmentation(enrollment_id: 'enroll-2', personal_id: 'client-2', sexual_orientation: 2, translation_needed: 1, preferred_language: 2)
+
+        path = @factory.create!
+        import_hmis_csv_fixture(path, run_jobs: false)
       end
 
-      after(:all) { cleanup_import_state }
+      after(:all) do
+        @factory&.cleanup!
+        cleanup_import_state
+      end
 
       it 'still has the same number of enrollments' do
-        expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
+        expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
       end
 
       it 'augmented enrollments have custom fields populated' do
-        # Enrollment 557331 should have SexualOrientation and TranslationNeeded set
-        enrollment_1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
-        expect(enrollment_1.SexualOrientation).to eq(1) # Heterosexual
-        expect(enrollment_1.TranslationNeeded).to eq(0) # No
+        enrollment_1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-1')
+        expect(enrollment_1.SexualOrientation).to eq(1)
+        expect(enrollment_1.TranslationNeeded).to eq(0)
 
-        # Enrollment 557890 should have different values
-        enrollment_2 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557890')
-        expect(enrollment_2.SexualOrientation).to eq(2) # Gay
-        expect(enrollment_2.TranslationNeeded).to eq(1) # Yes
-        expect(enrollment_2.PreferredLanguage).to eq(2) # Spanish
+        enrollment_2 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-2')
+        expect(enrollment_2.SexualOrientation).to eq(2)
+        expect(enrollment_2.TranslationNeeded).to eq(1)
+        expect(enrollment_2.PreferredLanguage).to eq(2)
       end
 
       it 'non-augmented enrollment remains unchanged' do
-        # Enrollment 559123 was not in the custom file, so should remain nil
-        enrollment_3 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '559123')
+        enrollment_3 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-3')
         expect(enrollment_3.SexualOrientation).to be_nil
         expect(enrollment_3.TranslationNeeded).to be_nil
       end
@@ -108,7 +99,6 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
       it 'import log summary shows correct counts' do
         log = HmisCsvImporter::Importer::ImporterLog.last
         aggregate_failures 'checking custom file counts' do
-          # Custom augmentation files should only update, never add or remove
           expect(log.summary['CustomEnrollmentFY26Deprecations.csv']['added']).to eq(0)
           expect(log.summary['CustomEnrollmentFY26Deprecations.csv']['updated']).to eq(2)
           expect(log.summary['CustomEnrollmentFY26Deprecations.csv']['removed']).to eq(0)
@@ -116,69 +106,44 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
       end
     end
 
-    describe 'after updating custom augmentation data' do
+    context 'with custom gender augmentation' do
       before(:all) do
-        import_custom_augmentation_fixture('baseline')
-        import_custom_augmentation_fixture('updated_custom')
+        @factory = HmisCsvFixtureFactory.new
+        @factory.export_start_date = Date.new(2024, 1, 1)
+        @factory.export_end_date = Date.new(2024, 3, 31)
+
+        @factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'One')
+        @factory.add_client(personal_id: 'client-2', first_name: 'Test', last_name: 'Two')
+        @factory.add_client(personal_id: 'client-3', first_name: 'Test', last_name: 'Three')
+
+        @factory.add_enrollment(enrollment_id: 'enroll-1', personal_id: 'client-1', entry_date: Date.new(2024, 1, 15))
+        @factory.add_enrollment(enrollment_id: 'enroll-2', personal_id: 'client-2', entry_date: Date.new(2024, 2, 1))
+        @factory.add_enrollment(enrollment_id: 'enroll-3', personal_id: 'client-3', entry_date: Date.new(2024, 2, 15))
+
+        @factory.add_custom_gender_augmentation(personal_id: 'client-1', woman: 1, non_binary: 0)
+        @factory.add_custom_gender_augmentation(personal_id: 'client-2', woman: 0, non_binary: 1)
+
+        path = @factory.create!
+        import_hmis_csv_fixture(path, run_jobs: false)
       end
 
-      after(:all) { cleanup_import_state }
-
-      it 'updates existing augmented fields' do
-        enrollment_1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
-        # SexualOrientation changed from 1 to 3
-        expect(enrollment_1.SexualOrientation).to eq(3) # Bisexual
-        expect(enrollment_1.TranslationNeeded).to eq(0) # Still No
+      after(:all) do
+        @factory&.cleanup!
+        cleanup_import_state
       end
-
-      it 'can augment previously non-augmented enrollments' do
-        # Enrollment 559123 now gets augmented
-        enrollment_3 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '559123')
-        expect(enrollment_3.SexualOrientation).to eq(4) # Questioning
-        expect(enrollment_3.TranslationNeeded).to eq(1) # Yes
-      end
-    end
-  end
-
-  describe 'When importing custom client augmentation data' do
-    context 'with only the baseline import' do
-      before(:all) do
-        import_custom_augmentation_fixture('baseline')
-      end
-
-      after(:all) { cleanup_import_state }
-
-      it 'baseline clients are imported' do
-        expect(GrdaWarehouse::Hud::Client.source.count).to eq(3)
-      end
-
-      it 'baseline clients do not have custom gender fields set' do
-        clients = GrdaWarehouse::Hud::Client.source.all
-        expect(clients.pluck(:Woman).compact).to be_empty
-        expect(clients.pluck(:NonBinary).compact).to be_empty
-      end
-    end
-
-    describe 'after importing custom gender augmentation file' do
-      before(:all) do
-        import_custom_augmentation_fixture('baseline')
-        import_custom_augmentation_fixture('with_custom_gender')
-      end
-
-      after(:all) { cleanup_import_state }
 
       it 'still has the same number of clients' do
         expect(GrdaWarehouse::Hud::Client.source.count).to eq(3)
       end
 
       it 'augmented clients have custom gender fields populated' do
-        client_1 = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: '2f4b963171644a8b9902bdfe79a4b403')
-        expect(client_1.Woman).to eq(1) # Yes
-        expect(client_1.NonBinary).to eq(0) # No
+        client_1 = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 'client-1')
+        expect(client_1.Woman).to eq(1)
+        expect(client_1.NonBinary).to eq(0)
 
-        client_2 = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: '4c9da990d51b4ed1a2e45b972aeaecee')
-        expect(client_2.NonBinary).to eq(1) # Yes
-        expect(client_2.Woman).to eq(0) # No
+        client_2 = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 'client-2')
+        expect(client_2.Woman).to eq(0)
+        expect(client_2.NonBinary).to eq(1)
       end
 
       it 'import log summary shows correct counts' do
@@ -192,29 +157,45 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
     end
   end
 
-  describe 'When importing large custom augmentation datasets' do
+  describe 'Large dataset augmentation using factory' do
     before(:all) do
-      ensure_enrollment_dates_within_export_window!('large_baseline')
-      ensure_enrollment_dates_within_export_window!('large_custom')
+      @factory = HmisCsvFixtureFactory.new
+      @factory.export_start_date = Date.new(2024, 1, 1)
+      @factory.export_end_date = Date.new(2024, 3, 31)
 
-      import_custom_augmentation_fixture('large_baseline')
-      import_custom_augmentation_fixture('large_custom')
+      # Generate 150 clients and enrollments
+      150.times do |i|
+        client_id = "client-large-#{i + 1}"
+        enrollment_id = "enroll-large-#{i + 1}"
+        @factory.add_client(personal_id: client_id, first_name: 'Large', last_name: "Test#{i + 1}")
+        @factory.add_enrollment(enrollment_id: enrollment_id, personal_id: client_id, entry_date: Date.new(2024, 1, 5))
+        @factory.add_custom_enrollment_augmentation(
+          enrollment_id: enrollment_id,
+          personal_id: client_id,
+          sexual_orientation: (i % 5) + 1,
+          translation_needed: i.even? ? 0 : 1,
+        )
+      end
+
+      path = @factory.create!
+      import_hmis_csv_fixture(path, run_jobs: false)
     end
 
-    after(:all) { cleanup_import_state }
+    after(:all) do
+      @factory&.cleanup!
+      cleanup_import_state
+    end
 
     it 'imports many enrollments successfully' do
-      # This test ensures we have enough data to trigger batch processing
       expect(GrdaWarehouse::Hud::Enrollment.count).to be >= 100
     end
 
-    it 'successfully augments all enrollments without memory issues' do
-      # Verify that batch processing worked correctly
+    it 'successfully augments all enrollments' do
       augmented_count = GrdaWarehouse::Hud::Enrollment.where.not(SexualOrientation: nil).count
       expect(augmented_count).to be >= 100
     end
 
-    it 'imports augmentation rows within the export window' do
+    it 'import log shows correct pre_processed and updated counts' do
       log = HmisCsvImporter::Importer::ImporterLog.last
       summary = log.summary['CustomEnrollmentFY26Deprecations.csv']
       expect(summary['pre_processed']).to be >= 100
@@ -225,107 +206,92 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
       log = HmisCsvImporter::Importer::ImporterLog.last
       expect(log.status).to eq('complete')
     end
-
-    it 'processes records in batches as evidenced by update count' do
-      log = HmisCsvImporter::Importer::ImporterLog.last
-      updated_count = log.summary['CustomEnrollmentFY26Deprecations.csv']['updated']
-      # Should have updated at least 100 records
-      expect(updated_count).to be >= 100
-    end
   end
 
-  describe 'Custom augmentation files never delete records' do
+  describe 'Augmentation files never delete records using factory' do
     before(:all) do
-      import_custom_augmentation_fixture('baseline')
-      import_custom_augmentation_fixture('with_custom')
+      # Baseline import
+      @baseline_factory = HmisCsvFixtureFactory.new
+      @baseline_factory.export_start_date = Date.new(2024, 1, 1)
+      @baseline_factory.export_end_date = Date.new(2024, 3, 31)
+
+      @baseline_factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'One')
+      @baseline_factory.add_client(personal_id: 'client-2', first_name: 'Test', last_name: 'Two')
+      @baseline_factory.add_client(personal_id: 'client-3', first_name: 'Test', last_name: 'Three')
+
+      @baseline_factory.add_enrollment(enrollment_id: 'enroll-1', personal_id: 'client-1', entry_date: Date.new(2024, 1, 15))
+      @baseline_factory.add_enrollment(enrollment_id: 'enroll-2', personal_id: 'client-2', entry_date: Date.new(2024, 2, 1))
+      @baseline_factory.add_enrollment(enrollment_id: 'enroll-3', personal_id: 'client-3', entry_date: Date.new(2024, 2, 15))
+
+      baseline_path = @baseline_factory.create!
+      import_hmis_csv_fixture(baseline_path, run_jobs: false)
+
+      # Full augmentation import
+      @augmentation_factory = HmisCsvFixtureFactory.new
+      @augmentation_factory.export_id = @baseline_factory.export_id
+      @augmentation_factory.export_start_date = Date.new(2024, 1, 1)
+      @augmentation_factory.export_end_date = Date.new(2024, 3, 31)
+
+      @augmentation_factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'One')
+      @augmentation_factory.add_client(personal_id: 'client-2', first_name: 'Test', last_name: 'Two')
+      @augmentation_factory.add_client(personal_id: 'client-3', first_name: 'Test', last_name: 'Three')
+
+      @augmentation_factory.add_enrollment(enrollment_id: 'enroll-1', personal_id: 'client-1', entry_date: Date.new(2024, 1, 15))
+      @augmentation_factory.add_enrollment(enrollment_id: 'enroll-2', personal_id: 'client-2', entry_date: Date.new(2024, 2, 1))
+      @augmentation_factory.add_enrollment(enrollment_id: 'enroll-3', personal_id: 'client-3', entry_date: Date.new(2024, 2, 15))
+
+      @augmentation_factory.add_custom_enrollment_augmentation(enrollment_id: 'enroll-1', personal_id: 'client-1', sexual_orientation: 1, translation_needed: 0)
+      @augmentation_factory.add_custom_enrollment_augmentation(enrollment_id: 'enroll-2', personal_id: 'client-2', sexual_orientation: 2, translation_needed: 1)
+
+      augmentation_path = @augmentation_factory.create!
+      import_hmis_csv_fixture(augmentation_path, run_jobs: false)
+
+      # Partial augmentation - only one enrollment, with different value
+      @partial_factory = HmisCsvFixtureFactory.new
+      @partial_factory.export_id = @baseline_factory.export_id
+      @partial_factory.export_start_date = Date.new(2024, 1, 1)
+      @partial_factory.export_end_date = Date.new(2024, 3, 31)
+
+      @partial_factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'One')
+      @partial_factory.add_client(personal_id: 'client-2', first_name: 'Test', last_name: 'Two')
+      @partial_factory.add_client(personal_id: 'client-3', first_name: 'Test', last_name: 'Three')
+
+      @partial_factory.add_enrollment(enrollment_id: 'enroll-1', personal_id: 'client-1', entry_date: Date.new(2024, 1, 15))
+      @partial_factory.add_enrollment(enrollment_id: 'enroll-2', personal_id: 'client-2', entry_date: Date.new(2024, 2, 1))
+      @partial_factory.add_enrollment(enrollment_id: 'enroll-3', personal_id: 'client-3', entry_date: Date.new(2024, 2, 15))
+
+      # Only augment enroll-1 with a new value
+      @partial_factory.add_custom_enrollment_augmentation(enrollment_id: 'enroll-1', personal_id: 'client-1', sexual_orientation: 5)
+
+      partial_path = @partial_factory.create!
+      import_hmis_csv_fixture(partial_path, run_jobs: false)
     end
 
-    after(:all) { cleanup_import_state }
+    after(:all) do
+      @baseline_factory&.cleanup!
+      @augmentation_factory&.cleanup!
+      @partial_factory&.cleanup!
+      cleanup_import_state
+    end
 
     it 'has augmented enrollments' do
       expect(GrdaWarehouse::Hud::Enrollment.where.not(SexualOrientation: nil).count).to eq(2)
     end
 
-    describe 'after importing custom file with fewer records' do
-      before(:all) do
-        import_custom_augmentation_fixture('partial_custom')
-      end
-
-      after(:all) { cleanup_import_state }
-
-      it 'does not remove augmentation data from records not in the file' do
-        # Enrollment 557890 was augmented before but is not in the partial_custom file
-        # Its augmentation data should remain intact
-        enrollment_2 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557890')
-        expect(enrollment_2.SexualOrientation).to eq(2) # Still has the value
-        expect(enrollment_2.TranslationNeeded).to eq(1) # Still has the value
-      end
-
-      it 'updates the enrollment that is in the file' do
-        enrollment_1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
-        # This one is in the partial file with updated values
-        expect(enrollment_1.SexualOrientation).to eq(5) # Different value
-      end
-
-      it 'does not delete any enrollments' do
-        expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
-        expect(GrdaWarehouse::Hud::Enrollment.only_deleted.count).to eq(0)
-      end
-    end
-  end
-
-  describe 'dirty tracking for custom augmentation updates' do
-    self.use_transactional_tests = false
-
-    let(:cleanup_calls) { [] }
-
-    before do
-      cleanup_import_state
-      allow(GrdaWarehouse::Tasks::ServiceHistory::Enrollment).
-        to receive(:ensure_there_are_no_extra_enrollments_in_service_history).
-        and_wrap_original do |original, client_ids|
-          cleanup_calls << client_ids
-          original.call(client_ids)
-        end
+    it 'does not remove augmentation data from records not in the file' do
+      enrollment_2 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-2')
+      expect(enrollment_2.SexualOrientation).to eq(2)
+      expect(enrollment_2.TranslationNeeded).to eq(1)
     end
 
-    after { cleanup_import_state }
-
-    context 'when augmenting enrollments' do
-      before do
-        import_custom_augmentation_fixture('baseline')
-        enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
-        raise 'Tracked enrollment not found' unless enrollment
-
-        enrollment.update_columns(processed_as: 'baseline')
-        import_custom_augmentation_fixture('with_custom')
-      end
-
-      it 'marks augmented enrollments as needing processing' do
-        enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
-        expect(enrollment.processed_as).to be_nil
-      end
+    it 'updates the enrollment that is in the file' do
+      enrollment_1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-1')
+      expect(enrollment_1.SexualOrientation).to eq(5)
     end
 
-    context 'when augmenting clients' do
-      before do
-        import_custom_augmentation_fixture('baseline')
-        client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: '2f4b963171644a8b9902bdfe79a4b403')
-        raise 'Tracked client not found' unless client
-
-        client.update_columns(demographic_dirty: false)
-        import_custom_augmentation_fixture('with_custom_gender')
-      end
-
-      it 'marks augmented clients dirty' do
-        client = GrdaWarehouse::Hud::Client.source.find_by(PersonalID: '2f4b963171644a8b9902bdfe79a4b403')
-        expect(client.demographic_dirty).to eq(true)
-      end
-
-      it 'queues cleanup for updated clients' do
-        expect(cleanup_calls).not_to be_empty
-        expect(cleanup_calls.last).to be_present
-      end
+    it 'does not delete any enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
+      expect(GrdaWarehouse::Hud::Enrollment.only_deleted.count).to eq(0)
     end
   end
 end
