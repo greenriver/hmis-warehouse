@@ -14,6 +14,8 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
     HmisCsvImporter::Utility.clear!
   end
 
+  before(:all) { cleanup_import_state }
+
   describe 'When importing custom enrollment augmentation data using factory' do
     context 'baseline import without augmentation' do
       before(:all) do
