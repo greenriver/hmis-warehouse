@@ -101,6 +101,7 @@ RUN apt-get update && apt-get upgrade -y \
   gnupg-agent \
   gpg \
   imagemagick \
+  less \
   libcurl4 \
   libcurl4-openssl-dev \
   libffi-dev \
@@ -114,6 +115,8 @@ RUN apt-get update && apt-get upgrade -y \
   libmagic-dev \
   libmagic1 \
   libpq-dev \
+  libsodium23 \
+  libsodium-dev \
   libreadline-dev \
   libx11-6 \
   libxext6 \
@@ -122,6 +125,7 @@ RUN apt-get update && apt-get upgrade -y \
   libxslt1-dev \
   libyaml-dev \
   libproj-dev \
+  openssh-client \
   proj-bin \
   libzstd-dev \
   liblz4-dev \
@@ -137,9 +141,11 @@ RUN apt-get update && apt-get upgrade -y \
   ripgrep \
   pinentry-tty \
   shared-mime-info \
+  ssh \
   software-properties-common \
   tar \
   tini \
+  tmux \
   tzdata \
   unzip \
   vim \
