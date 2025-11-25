@@ -140,6 +140,7 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
       row = enforce_lengths(row)
+      row = sanitize_string_fields(row)
       row = enforce_rounding(row)
 
       row
@@ -177,6 +178,16 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       @rounded_columns ||= hmis_configuration_for_class.select do |_, m|
         m[:check].in?([:money, :integer])
       end
+    end
+
+    # Remove forbidden characters from string fields and strip whitespace from the ends
+    def sanitize_string_fields(row)
+      row.each do |key, value|
+        next unless value.is_a?(String)
+
+        row[key] = value.gsub(/[<>\[\]{}]/, '')&.strip
+      end
+      row
     end
 
     # Helper method to get hmis_configuration for both standard and custom exporters
