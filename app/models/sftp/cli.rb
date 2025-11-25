@@ -131,7 +131,7 @@ module Sftp
       sftp_parts.concat(build_ssh_options_parts)
       # -b flag must come before the destination
       sftp_parts << '-b' << include_batch_file if include_batch_file
-      sftp_parts << %(#{@username}@#{@host})
+      sftp_parts << "#{@username}@#{@host}"
 
       if password_auth?
         ['sshpass', '-f', @password_file.path] + sftp_parts
@@ -186,7 +186,7 @@ module Sftp
       # Uses 'cd' followed by 'ls -l' to ensure we're listing the correct directory.
       def glob(directory, pattern)
         escaped_dir = @connection.send(:escape_path, directory)
-        output = @connection.send(:execute_sftp_with_output, %(cd #{escaped_dir}\nls -l))
+        output = @connection.send(:execute_sftp_with_output, "cd #{escaped_dir}\nls -l")
         parse_ls_output(output, directory, pattern)
       end
 
@@ -228,7 +228,7 @@ module Sftp
       # Converts a glob pattern (e.g., "*.csv") to a regex for matching filenames.
       def glob_to_regex(pattern)
         regex_str = pattern.gsub('.', '\.').gsub('*', '.*').gsub('?', '.')
-        Regexp.new(%(^#{regex_str}$), Regexp::IGNORECASE)
+        Regexp.new("^#{regex_str}$", Regexp::IGNORECASE)
       end
 
       # Parses date strings from ls -l output.
@@ -244,12 +244,12 @@ module Sftp
         else
           # For dates without year, assume current year
           parsed = begin
-            Time.strptime(%(#{date_str} #{Time.current.year}), '%b %d %H:%M %Y')
+            Time.strptime("#{date_str} #{Time.current.year}", '%b %d %H:%M %Y')
           rescue StandardError
             nil
           end
           parsed ||= begin
-            Time.strptime(%(#{date_str} #{Time.current.year}), '%b %d %Y')
+            Time.strptime("#{date_str} #{Time.current.year}", '%b %d %Y')
           rescue StandardError
             nil
           end
