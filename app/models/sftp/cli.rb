@@ -167,9 +167,9 @@ module Sftp
       return if @password_file && File.exist?(@password_file.path)
 
       @password_file = Tempfile.new('sftp_password')
+      File.chmod(0o600, @password_file.path)
       @password_file.write(@options[:password] || '')
       @password_file.close
-      File.chmod(0o600, @password_file.path)
     end
 
     # Escapes special characters in file paths for safe use in SFTP batch commands.
@@ -208,11 +208,13 @@ module Sftp
           next if line.empty? || line.start_with?('sftp>')
 
           # Extract filename from the end of ls -l output
-          # Format: -rw-r--r-- 1 user group 1234 Jan 15 10:30 filename
-          match = line.match(/\s(\S+)$/)
+          # Format: -rw-r--r-- 1 user group 1234 Jan 15 10:30 filename with spaces.txt
+          # Match everything after the date/time pattern (month day time or month day year)
+          match = line.match(/\s+(\w{3}\s+\d{1,2}\s+[\d:]+\s+|\w{3}\s+\d{1,2}\s+\d{4}\s+)(.+)$/)
           next unless match
 
-          RemoteFile.new(name: match[1], longname: line)
+          filename = match[2].strip
+          RemoteFile.new(name: filename, longname: line)
         end
       end
 
@@ -231,7 +233,8 @@ module Sftp
 
       # Converts a glob pattern (e.g., "*.csv") to a regex for matching filenames.
       def glob_to_regex(pattern)
-        regex_str = pattern.gsub('.', '\.').gsub('*', '.*').gsub('?', '.')
+        escaped = Regexp.escape(pattern)
+        regex_str = escaped.gsub('.', '\.').gsub('*', '.*').gsub('?', '.')
         Regexp.new("^#{regex_str}$", Regexp::IGNORECASE)
       end
     end
