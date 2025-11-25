@@ -144,7 +144,7 @@ module Sftp
     def build_ssh_options_parts
       opts = []
       opts << '-o' << 'PasswordAuthentication=yes' if password_auth?
-      opts << '-o' << 'StrictHostKeyChecking=no' if @options[:append_all_supported_algorithms]
+      opts << '-o' << 'StrictHostKeyChecking=no' if @options[:skip_verify_host_key]
       opts
     end
 
@@ -169,9 +169,10 @@ module Sftp
       File.chmod(0o600, @password_file.path)
     end
 
-    # Escapes special characters in file paths for safe use in shell commands.
+    # Escapes special characters in file paths for safe use in SFTP batch commands.
+    # Note: This is for SFTP command escaping, not shell escaping.
     def escape_path(path)
-      path.to_s.gsub(' ', '\\ ').gsub('(', '\\(').gsub(')', '\\)').gsub('[', '\\[').gsub(']', '\\]').gsub('*', '\\*').gsub('?', '\\?')
+      Shellwords.escape(path.to_s)
     end
 
     # Proxy for directory operations, providing Net::SFTP-compatible API.
@@ -181,7 +182,7 @@ module Sftp
       end
 
       # Lists files in the given directory matching the glob pattern.
-      # Returns an array of RemoteFile objects with name, size, and createtime attributes.
+      # Returns an array of RemoteFile objects with name, size, and mtime attributes.
       # Uses 'cd' followed by 'ls -l' to ensure we're listing the correct directory.
       def glob(directory, pattern)
         escaped_dir = @connection.send(:escape_path, directory)
@@ -193,6 +194,7 @@ module Sftp
 
       # Parses the output of 'ls -l' command, extracting file metadata.
       # Filters files by the glob pattern and creates RemoteFile objects with attributes.
+      # Note: ls -l returns modification time (mtime), not creation time.
       def parse_ls_output(output, directory, pattern)
         files = []
         pattern_regex = glob_to_regex(pattern)
@@ -216,7 +218,7 @@ module Sftp
             name: filename,
             directory: directory,
             size: size.to_i,
-            createtime: parse_date(date_str),
+            mtime: parse_date(date_str),
           )
         end
 
@@ -281,14 +283,16 @@ module Sftp
     end
 
     # Represents a file on the remote server with metadata.
-    # Provides an 'attributes' method that returns file metadata like createtime.
-    RemoteFile = Struct.new(:name, :directory, :size, :createtime, keyword_init: true) do
+    # Provides an 'attributes' method that returns file metadata.
+    # Note: mtime (modification time) is what ls -l provides
+    # for compatibility with Net::SFTP API usage in existing code.
+    RemoteFile = Struct.new(:name, :directory, :size, :mtime, keyword_init: true) do
       def attributes
-        @attributes ||= Attributes.new(createtime)
+        @attributes ||= Attributes.new(mtime)
       end
     end
 
     # Container for file attributes, matching Net::SFTP::Attributes API.
-    Attributes = Struct.new(:createtime, keyword_init: true)
+    Attributes = Struct.new(:mtime, keyword_init: true)
   end
 end
