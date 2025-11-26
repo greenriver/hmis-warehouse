@@ -17,6 +17,23 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::ExportConcern do
       def initialize(options)
         @options = options
       end
+
+      # Override string columns so we can use the test columns without matching the actual configuration
+      def string_columns
+        {
+          Field1: { type: :string },
+          Field2: { type: :string },
+          Field3: { type: :string },
+          Field4: { type: :string },
+          Field5: { type: :string },
+          Field6: { type: :string },
+          EmptyField: { type: :string },
+          BlankField: { type: :string },
+          StringField: { type: :string },
+          OnlyForbidden: { type: :string },
+          SpecialChars: { type: :string },
+        }
+      end
     end
   end
 

@@ -173,7 +173,6 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
     # > As of October 1, 2025, HMIS CSV exports must allow for the export of all UTF-8 characters as entered by users, with the exception of the following: < > [ ] { }
     def sanitize_string_fields(row)
       string_columns.each do |col, _|
-        next if row[col].blank?
         next unless row[col].is_a?(String)
 
         # Remove forbidden characters and replace multiple spaces with a single space
