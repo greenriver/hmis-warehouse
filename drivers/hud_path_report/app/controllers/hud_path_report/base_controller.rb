@@ -32,11 +32,15 @@ module HudPathReport
 
     # NOTE filter differs slightly from the base version
     private def filter
+      # Override the filter class for display in app/views/hud_reports/_parameters.haml
+      # Without this override, filter base will include project types that aren't applicable
+      @filter_class ||= filter_class
       year = if Date.current.month >= 10
         Date.current.year
       else
         Date.current.year - 1
       end
+
       # Some sane defaults, using the previous report if available
       @filter = filter_class.new(user_id: current_user.id)
       if filter_params.blank?
@@ -59,7 +63,7 @@ module HudPathReport
         end
       end
       # Override with params if set
-      @filter.set_from_params(filter_params) if filter_params.present?
+      @filter.update(filter_params) if filter_params.present?
     end
 
     def active_report_versions
