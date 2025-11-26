@@ -469,16 +469,17 @@ module ApplicationHelper
   # @param [ActiveRecord::Relation] scope The scope used to fetch the paginated list
   # @param [String] item_name The singular name of the item being listed, used for messages.
   # @param [String] list_partial The path to the partial used to render the list items.
+  # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
   #
   # @return [String] HTML markup for the paginated list with controls.
   #
   # @example Usage:
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
   #
-  def render_paginated_list(scope:, item_name:, list_partial:)
+  def render_paginated_list(scope:, item_name:, list_partial:, url: nil)
     pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
     pagy, list = controller.send(pagy_sym, scope)
-    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial)
+    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, url: url)
   end
 
   # Renders a paginated list of the items in `list` with pagination controls at the top and bottom based
@@ -489,20 +490,57 @@ module ApplicationHelper
   # @param [Array] list The list of items to render.
   # @param [String] item_name The singular name of the item being listed, used for messages.
   # @param [String] list_partial The path to the partial used to render the list items.
+  # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
   #
   # @return [String] HTML markup for the paginated list with controls.
   #
   # @example Usage:
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
   #
-  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:)
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, url: nil)
     return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
+
+    pagy.vars[:custom_url] = url if url.present?
 
     capture do
       concat render('common/pagination_top', item_name: item_name, pagy: pagy)
       concat render(list_partial, list: list)
       concat render('common/pagination_bottom', item_name: item_name, pagy: pagy)
     end
+  end
+
+  # Overrides Pagy's default URL generation when custom_url is set via pagy.vars[:custom_url].
+  # Used when rendering paginated lists via AJAX where the current request path differs from
+  # the desired pagination base URL.
+  #
+  # @param [Pagy] pagy Pagination object
+  # @param [Integer] page Target page number
+  # @param [Boolean] absolute Ignored when custom_url is present
+  # @param [Hash] vars Additional vars (ignored when custom_url is present)
+  #
+  # @return [String] Pagination URL with merged query parameters
+  #
+  # Parameter precedence: Current request params override custom URL params, allowing users
+  # to maintain filter state while paginating. Page parameter is always set to the target page
+  # (or removed if page is 1).
+  #
+  def pagy_url_for(pagy, page, absolute: false, **vars)
+    custom_url = pagy.vars[:custom_url]
+    return super unless custom_url
+
+    uri = URI.parse(custom_url)
+    base_params = Rack::Utils.parse_query(uri.query)
+    merged_params = base_params.merge(request.query_parameters)
+    page_key = pagy.vars[:page_param].to_s
+
+    if page == 1
+      merged_params.delete(page_key)
+    else
+      merged_params[page_key] = page
+    end
+
+    uri.query = merged_params.to_query.presence
+    uri.to_s
   end
 
   def small_population_brackets
