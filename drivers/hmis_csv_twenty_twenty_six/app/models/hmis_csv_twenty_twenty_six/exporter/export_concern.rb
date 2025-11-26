@@ -139,8 +139,8 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
-      row = enforce_lengths(row)
       row = sanitize_string_fields(row)
+      row = enforce_lengths(row)
       row = enforce_rounding(row)
 
       row
@@ -168,9 +168,29 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       row
     end
 
+    # Remove forbidden characters from string fields and strip whitespace from the ends
+    # Per the FY26 CSV specification:
+    # > As of October 1, 2025, HMIS CSV exports must allow for the export of all UTF-8 characters as entered by users, with the exception of the following: < > [ ] { }
+    def sanitize_string_fields(row)
+      string_columns.each do |col, _|
+        next if row[col].blank?
+        next unless row[col].is_a?(String)
+
+        # Remove forbidden characters and replace multiple spaces with a single space
+        row[col] = row[col].gsub(/[<>\[\]{}]/, '').gsub(/\s+/, ' ').strip
+      end
+      row
+    end
+
     def length_limited_columns
       @length_limited_columns ||= hmis_configuration_for_class.select do |col, m|
         m.key?(:limit) && ! hashed_column?(col)
+      end
+    end
+
+    def string_columns
+      @string_columns ||= hmis_configuration_for_class.select do |_, m|
+        m[:type] == :string
       end
     end
 
@@ -178,16 +198,6 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       @rounded_columns ||= hmis_configuration_for_class.select do |_, m|
         m[:check].in?([:money, :integer])
       end
-    end
-
-    # Remove forbidden characters from string fields and strip whitespace from the ends
-    def sanitize_string_fields(row)
-      row.each do |key, value|
-        next unless value.is_a?(String)
-
-        row[key] = value.gsub(/[<>\[\]{}]/, '')&.strip
-      end
-      row
     end
 
     # Helper method to get hmis_configuration for both standard and custom exporters
