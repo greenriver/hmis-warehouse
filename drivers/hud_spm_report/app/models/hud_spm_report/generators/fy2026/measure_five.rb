@@ -104,7 +104,7 @@ module HudSpmReport::Generators::Fy2026
       enrollments = enrollment_set.where(entry_date: filter.range, project_type: project_types)
       earliest_enrollments = HudSpmReport::Fy2026::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
 
-      members = earliest_enrollments.map do |enrollment|
+      members = earliest_enrollments.preload(:client).map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
       universe.add_universe_members(members)

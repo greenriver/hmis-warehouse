@@ -42,7 +42,9 @@ module HudReports
     def run!
       run_question!
       remaining_questions = @report.remaining_questions - [self.class.question_number]
+      # puts "starting #{self.class.question_number} at #{Time.current.strftime("%H:%M:%S")}"
       @report.update(remaining_questions: remaining_questions)
+      # puts "completed #{self.class.question_number} at #{Time.current.strftime("%H:%M:%S")}"
     rescue StandardError => e
       # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
       # and we'd like to get the backtrace from the original exception
