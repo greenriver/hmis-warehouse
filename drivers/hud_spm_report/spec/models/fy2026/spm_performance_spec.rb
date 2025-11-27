@@ -13,7 +13,13 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   include_context 'SPM test setup'
 
   let(:projects) do
-    5.times.map { create_project(project_type: 1) }
+    [
+      create_project(project_type: 0),
+      create_project(project_type: 1),
+      create_project(project_type: 2),
+      create_project(project_type: 3),
+      create_project(project_type: 8),
+    ]
   end
 
   let(:household_count) { 35 }
@@ -145,7 +151,7 @@ RSpec.describe 'FY2026 SPM performance budget with large dataset', type: :model,
   let(:measure_two_config) { { query_count: 400..450, timing_secs: 15 } }
   let(:measure_three_config) { { query_count: 85..135, timing_secs: 15 } }
   let(:measure_four_config) { { query_count: 195..245, timing_secs: 15 } }
-  let(:measure_five_config) { { query_count: 120..160, timing_secs: 15, debug: true } }
+  let(:measure_five_config) { { query_count: 120..160, timing_secs: 15,  } }
   let(:measure_six_config) { { query_count: 15..65, timing_secs: 15 } }
   let(:measure_seven_config) { { query_count: 110..150, timing_secs: 15 } }
   let(:hdx_upload_config) { { query_count: 605..655, timing_secs: 15 } }
@@ -172,8 +178,10 @@ RSpec.describe 'FY2026 SPM performance budget with services', type: :model, excl
   let(:question_names) { measure_configs.map { |config| config[:klass].question_number } }
 
   before do
-    GrdaWarehouse::Hud::Enrollment.find_each do |enrollment|
-      create_bed_night_service(enrollment: enrollment, date: enrollment.entry_date)
+    GrdaWarehouse::Hud::Enrollment.preload(:project).find_each do |enrollment|
+      7.times do
+        create_bed_night_service(enrollment: enrollment, date: enrollment.entry_date) if enrollment.project.project_type == 1
+      end
     end
   end
 

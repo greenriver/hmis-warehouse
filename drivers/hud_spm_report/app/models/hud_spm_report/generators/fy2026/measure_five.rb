@@ -115,6 +115,7 @@ module HudSpmReport::Generators::Fy2026
     def create_priors_universe(universe_name, report_members)
       universe = @report.universe(universe_name)
 
+      puts "measure five universe: #{universe.count}"
       if report_members.count.positive?
         report_enrollments = HudSpmReport::Fy2026::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
         filter = ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
