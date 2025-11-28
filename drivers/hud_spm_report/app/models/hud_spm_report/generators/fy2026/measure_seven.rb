@@ -183,7 +183,7 @@ module HudSpmReport::Generators::Fy2026
       members = enrollments.map do |enrollment|
         [enrollment.client_id, enrollment]
       end.to_h
-      universe.add_universe_members(members)
+      universe.add_universe_members_from_client_ids(members)
 
       universe.members
     end
@@ -205,7 +205,7 @@ module HudSpmReport::Generators::Fy2026
       members = enrollments.map do |enrollment|
         [enrollment.client_id, enrollment]
       end.to_h
-      universe.add_universe_members(members)
+      universe.add_universe_members_from_client_ids(members)
 
       universe.members
     end
@@ -233,7 +233,7 @@ module HudSpmReport::Generators::Fy2026
       end.to_h
 
       universe = @report.universe(:m7b2)
-      universe.add_universe_members(members)
+      universe.add_universe_members_from_client_ids(members)
       universe.members
     end
 

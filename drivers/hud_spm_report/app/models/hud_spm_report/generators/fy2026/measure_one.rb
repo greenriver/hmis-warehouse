@@ -194,7 +194,7 @@ module HudSpmReport::Generators::Fy2026
         members = episodes.map do |episode|
           [episode.client_id, episode]
         end.to_h
-        @universe.add_universe_members(members)
+        @universe.add_universe_members_from_client_ids(members)
       end
       @universe.members
     end

@@ -129,7 +129,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     report.reload
   end
 
-  def bulk_build_standard_enrollments(source_clients:, projects:, project_coc_codes:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, enrollments:, exits:)
+  def bulk_build_standard_enrollments(source_clients:, projects:, project_coc_codes:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, enrollments:, exits:, include_move_in: false)
     household_count.times do |household_index|
       household_id = SecureRandom.uuid
       members_per_household.times do |member_index|
@@ -153,7 +153,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
             relationship_to_ho_h: relationship,
             household_id: household_id,
             living_situation: 100,
-            move_in_date: relationship == 1 ? entry_date : nil,
+            move_in_date: include_move_in && relationship == 1 ? entry_date : nil,
             enrollment_coc: project_coc_codes[project_index],
           )
           enrollments << enrollment
@@ -171,7 +171,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     end
   end
 
-  def bulk_build_measure_two_enrollments(source_clients:, projects:, project_coc_codes:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, enrollments:, exits:)
+  def bulk_build_measure_two_enrollments(source_clients:, projects:, project_coc_codes:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, enrollments:, exits:, include_move_in: false)
     # For Measure Two: exits need to be 2 years before report period
     # Report period is typically base_entry_date to base_entry_date + 1.year
     # So exits should be around base_entry_date - 730.days (2 years before)
@@ -202,7 +202,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
             relationship_to_ho_h: relationship,
             household_id: household_id,
             living_situation: 100,
-            move_in_date: relationship == 1 ? entry_date : nil,
+            move_in_date: include_move_in && relationship == 1 ? entry_date : nil,
             enrollment_coc: project_coc_codes[project_index],
           )
           enrollments << enrollment
@@ -262,8 +262,10 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   # 3. Bulk imports warehouse_client links
   # 4. Bulk imports enrollments and exits
   # 5. Optionally bulk creates bed nights for ES Night-by-Night enrollments
+  # 6. Optionally bulk creates CoC funders for projects
+  # 7. Optionally bulk creates income benefits for enrollments
   # This reduces database round trips from thousands to a handful
-  def bulk_build_households(projects:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, create_bed_nights: false, measure_two_pattern: false)
+  def bulk_build_households(projects:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, create_bed_nights: false, measure_two_pattern: false, create_coc_funders: false, create_income_benefits: false, include_move_in: false)
     total_clients = household_count * members_per_household
 
     # Build all client records in memory first
@@ -311,6 +313,9 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     # Get project CoC codes once
     project_coc_codes = projects.map { |p| p.project_cocs.min_by(&:id).coc_code }
 
+    # Bulk create CoC funders if requested
+    bulk_create_coc_funders(projects: projects, start_date: base_entry_date) if create_coc_funders
+
     # Build all enrollment and exit records in memory
     enrollments = []
     exits = []
@@ -326,6 +331,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
         enrollments_per_member: enrollments_per_member,
         enrollments: enrollments,
         exits: exits,
+        include_move_in: include_move_in,
       )
     else
       bulk_build_standard_enrollments(
@@ -338,6 +344,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
         enrollments_per_member: enrollments_per_member,
         enrollments: enrollments,
         exits: exits,
+        include_move_in: include_move_in,
       )
     end
 
@@ -352,26 +359,97 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     GrdaWarehouse::Hud::Exit.import(exits, validate: false)
 
     # Bulk create bed nights for ES Night-by-Night enrollments
-    return unless create_bed_nights
+    if create_bed_nights
+      bed_nights = []
+      # Preload projects and exits to avoid N+1 queries
+      GrdaWarehouse::Hud::Enrollment.where(id: enrollments.map(&:id)).preload(:project, :exit).find_each do |enrollment|
+        next unless enrollment.project.project_type == 1
+        next unless enrollment.exit&.exit_date
 
-    bed_nights = []
-    # Preload projects and exits to avoid N+1 queries
-    GrdaWarehouse::Hud::Enrollment.where(id: enrollments.map(&:id)).preload(:project, :exit).find_each do |enrollment|
-      next unless enrollment.project.project_type == 1
+        (enrollment.entry_date...enrollment.exit.exit_date).each do |date|
+          bed_nights << build(
+            :hud_service,
+            enrollment: enrollment,
+            personal_id: enrollment.personal_id,
+            data_source: enrollment.data_source,
+            record_type: 200,
+            date_provided: date,
+          )
+        end
+      end
+
+      GrdaWarehouse::Hud::Service.import(bed_nights, validate: false) if bed_nights.any?
+    end
+
+    # Bulk create income benefits
+    bulk_create_income_benefits(enrollments: enrollments, base_entry_date: base_entry_date) if create_income_benefits
+  end
+
+  def bulk_create_coc_funders(projects:, start_date:)
+    funders = projects.map do |project|
+      build(
+        :hud_funder,
+        project: project,
+        data_source: project.data_source,
+        Funder: HudHelper.util('2026').spm_coc_funders.first,
+        StartDate: start_date - 3.years,
+        EndDate: nil,
+      )
+    end
+    GrdaWarehouse::Hud::Funder.import(funders, validate: false)
+  end
+
+  def bulk_create_income_benefits(enrollments:)
+    income_benefits = []
+
+    GrdaWarehouse::Hud::Enrollment.where(id: enrollments.map(&:id)).preload(:exit).find_each do |enrollment|
+      # Entry income (stage 1)
+      income_benefits << build(
+        :hud_income_benefit,
+        enrollment: enrollment,
+        personal_id: enrollment.personal_id,
+        data_source: enrollment.data_source,
+        data_collection_stage: 1,
+        information_date: enrollment.entry_date,
+        earned_amount: 500,
+        other_income_amount: 100,
+        total_monthly_income: 600,
+      )
+
+      # Annual assessment or exit income (stage 5 or 3)
+      # Create annual assessment if enrolled long enough, otherwise exit income
       next unless enrollment.exit&.exit_date
 
-      (enrollment.entry_date...enrollment.exit.exit_date).each do |date|
-        bed_nights << build(
-          :hud_service,
+      assessment_date = enrollment.entry_date + 365.days
+      if enrollment.exit.exit_date >= assessment_date
+        # Annual assessment (stage 5)
+        income_benefits << build(
+          :hud_income_benefit,
           enrollment: enrollment,
           personal_id: enrollment.personal_id,
           data_source: enrollment.data_source,
-          record_type: 200,
-          date_provided: date,
+          data_collection_stage: 5,
+          information_date: assessment_date,
+          earned_amount: 700,
+          other_income_amount: 200,
+          total_monthly_income: 900,
+        )
+      else
+        # Exit income (stage 3) - increased income for variety
+        income_benefits << build(
+          :hud_income_benefit,
+          enrollment: enrollment,
+          personal_id: enrollment.personal_id,
+          data_source: enrollment.data_source,
+          data_collection_stage: 3,
+          information_date: enrollment.exit.exit_date,
+          earned_amount: 650,
+          other_income_amount: 150,
+          total_monthly_income: 800,
         )
       end
     end
 
-    GrdaWarehouse::Hud::Service.import(bed_nights, validate: false) if bed_nights.any?
+    GrdaWarehouse::Hud::IncomeBenefit.import(income_benefits, validate: false) if income_benefits.any?
   end
 end

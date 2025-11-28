@@ -234,7 +234,7 @@ module HudSpmReport::Generators::Fy2026
       members = client_enrollments.map do |enrollment|
         [enrollment.client_id, enrollment]
       end.to_h
-      @stayers.add_universe_members(members)
+      @stayers.add_universe_members_from_client_ids(members)
 
       @stayers.members
     end
@@ -258,7 +258,7 @@ module HudSpmReport::Generators::Fy2026
       members = client_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
-      @leavers.add_universe_members(members)
+      @leavers.add_universe_members_from_client_ids(members)
 
       @leavers.members
     end

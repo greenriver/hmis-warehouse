@@ -27,6 +27,12 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   let(:enrollments_per_member) { 10 }
   let(:create_bed_nights) { false }
   let(:measure_two_pattern) { false }
+  let(:create_coc_funders) { false }
+  let(:create_income_benefits) { false }
+  let(:include_move_in) { false }
+  let(:expected_spm_enrollment_count) do
+    household_count * members_per_household * enrollments_per_member
+  end
 
   let(:report) do
     filter = default_filter.dup
@@ -43,6 +49,7 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   end
 
   before do
+    # puts "started bulk_build_households at #{Time.current.strftime("%H:%M:%S")}"
     bulk_build_households(
       projects: projects,
       base_entry_date: default_filter.start,
@@ -51,8 +58,16 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
       enrollments_per_member: enrollments_per_member,
       create_bed_nights: create_bed_nights,
       measure_two_pattern: measure_two_pattern,
+      create_coc_funders: create_coc_funders,
+      create_income_benefits: create_income_benefits,
+      include_move_in: include_move_in,
     )
-    ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: GrdaWarehouse::Tasks::ServiceHistory::Enrollment.pluck(:id)).perform
+    # puts "started RebuildEnrollmentsByBatchJob at #{Time.current.strftime("%H:%M:%S")}"
+    ServiceHistory::RebuildEnrollmentsByBatchJob.new(
+      enrollment_ids: GrdaWarehouse::Tasks::ServiceHistory::Enrollment.pluck(:id),
+      progress: false,
+    ).perform
+    # puts "started ServiceHistoryServiceMaterialized at #{Time.current.strftime("%H:%M:%S")}"
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
     raise 'expected all enrollments to be processed' unless GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.count.zero?
 
@@ -71,7 +86,7 @@ RSpec.shared_context 'SPM measure configs', shared_context: :metadata do
   let(:measure_seven_config) { nil }
   let(:hdx_upload_config) { nil }
 
-  let(:enrollment_set_query_count) { 31 }
+  let(:enrollment_set_query_count) { 40 }
   let(:enrollment_set_timing_secs) { 10 }
 
   let(:question_names) { all_measure_classes.map(&:question_number) }
@@ -96,10 +111,6 @@ RSpec.shared_examples 'SPM performance budget validation' do
     expect(report.report_cells.where(question: measure_class.question_number)).to exist
   end
 
-  def expected_spm_enrollment_count
-    household_count * members_per_household * enrollments_per_member
-  end
-
   it 'limits queries for enrollment creation and each measure run' do
     aggregate_failures do
       range = 10
@@ -110,13 +121,12 @@ RSpec.shared_examples 'SPM performance budget validation' do
           and(perform_under(enrollment_set_timing_secs).secs.sample(1).times.warmup(0)),
       )
 
-      expected_count = expected_spm_enrollment_count
-      expect(report.spm_enrollments.count).to eq(expected_count)
-      puts "total enrollments: #{expected_count}"
+      expect(report.spm_enrollments.count).to eq(expected_spm_enrollment_count)
+      # puts "total enrollments: #{expected_spm_enrollment_count}"
 
-      opts = {range: range}
+      opts = { range: range }
 
-      #Rails.logger.level = 0
+      # Rails.logger.level = 0
       assert_performance(measure_name: 'MeasureOne', measure_config: measure_one_config, **opts)
       assert_performance(measure_name: 'MeasureTwo', measure_config: measure_two_config, **opts)
       assert_performance(measure_name: 'MeasureThree', measure_config: measure_three_config, **opts)
@@ -139,7 +149,7 @@ RSpec.describe 'FY2026 SPM MeasureOne performance budget', type: :model, exclude
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureOne] }
   let(:create_bed_nights) { true }
-  let(:measure_one_config) { { query_count: 243} }
+  let(:measure_one_config) { { query_count: 243 } }
   let(:projects) do
     [
       create_project(project_type: 0),
@@ -157,10 +167,11 @@ RSpec.describe 'FY2026 SPM MeasureOne performance budget', type: :model, exclude
   end
 
   context 'with large dataset' do
+    skip 'expensive test - enable by removing skip'
+
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
-    let(:enrollment_set_query_count) { 47 }
-    let(:measure_one_config) { { query_count: 260} }
+    let(:measure_one_config) { { query_count: 260 } }
 
     include_examples 'SPM performance budget validation'
   end
@@ -171,9 +182,13 @@ RSpec.describe 'FY2026 SPM MeasureTwo performance budget', type: :model, exclude
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureTwo] }
-  let(:measure_two_config) { { query_count: 415} }
+  let(:measure_two_config) { { query_count: 415 } }
   let(:household_count) { 5 }
   let(:measure_two_pattern) { true }
+  let(:expected_spm_enrollment_count) { super() * 2 }
+  let(:expected_spm_enrollment_count) do
+    (household_count * members_per_household * enrollments_per_member) * 2
+  end
 
   # Measure Two needs: SO, ES, TH, SH, PH project types
   let(:projects) do
@@ -187,19 +202,17 @@ RSpec.describe 'FY2026 SPM MeasureTwo performance budget', type: :model, exclude
     ]
   end
 
-  # Measure Two pattern creates 2 enrollments per iteration: exit + return
-  def expected_spm_enrollment_count
-    household_count * members_per_household * enrollments_per_member * 2
-  end
-
   context 'with standard dataset' do
     include_examples 'SPM performance budget validation'
   end
 
   context 'with large dataset' do
+    skip 'expensive test - enable by removing skip'
+
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
     let(:enrollment_set_query_count) { 63 }
+    let(:enrollment_set_timing_secs) { 20 }
 
     include_examples 'SPM performance budget validation'
   end
@@ -210,7 +223,7 @@ RSpec.describe 'FY2026 SPM MeasureThree performance budget', type: :model, exclu
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureThree] }
-  let(:measure_three_config) { { query_count: 147} }
+  let(:measure_three_config) { { query_count: 147 } }
   let(:household_count) { 5 }
   let(:create_bed_nights) { true }
   let(:projects) do
@@ -227,6 +240,8 @@ RSpec.describe 'FY2026 SPM MeasureThree performance budget', type: :model, exclu
   end
 
   context 'with large dataset' do
+    skip 'expensive test - enable by removing skip'
+
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
 
@@ -239,17 +254,22 @@ RSpec.describe 'FY2026 SPM MeasureFour performance budget', type: :model, exclud
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureFour] }
-  let(:measure_four_config) { { query_count: 209} }
+  let(:measure_four_config) { { query_count: 233 } }
   let(:household_count) { 5 }
+  let(:create_coc_funders) { true }
+  let(:create_income_benefits) { true }
 
   context 'with standard dataset' do
     include_examples 'SPM performance budget validation'
   end
 
   context 'with large dataset' do
-    let(:household_count) { super() * 5 }
+    skip 'expensive test - enable by removing skip'
 
-     include_examples 'SPM performance budget validation'
+    let(:household_count) { 200 }
+    let(:enrollments_per_member) { 2 }
+
+    include_examples 'SPM performance budget validation'
   end
 end
 
@@ -258,15 +278,34 @@ RSpec.describe 'FY2026 SPM MeasureFive performance budget', type: :model, exclud
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureFive] }
-  let(:measure_five_config) { { query_count: 144} }
+  let(:measure_five_config) { { query_count: 144 } }
   let(:household_count) { 5 }
+
+  # Measure 5.1 uses ES, SH, TH
+  # Measure 5.2 uses ES, SH, TH, PH
+  let(:projects) do
+    [
+      create_project(project_type: 0),  # ES
+      create_project(project_type: 1),  # ES Night-by-Night
+      create_project(project_type: 2),  # TH
+      create_project(project_type: 3),  # PH
+      create_project(project_type: 8),  # SH
+    ]
+  end
+
+  # Note: Current bulk_build pattern creates all enrollments starting at report period start,
+  # so no clients will have prior enrollments in the 24-month lookback. This still exercises
+  # the query paths but primarily tests the "first-time homeless" scenario.
 
   context 'with standard dataset' do
     include_examples 'SPM performance budget validation'
   end
 
-   context 'with large dataset' do
-    let(:household_count) { super() * 5 }
+  context 'with large dataset' do
+    skip 'expensive test - enable by removing skip'
+
+    let(:household_count) { 100 }
+    # let(:enrollments_per_member) { 2 }
 
     include_examples 'SPM performance budget validation'
   end
@@ -278,7 +317,7 @@ RSpec.describe 'FY2026 SPM MeasureSix performance budget', type: :model, exclude
 
   # note, this measure is an empty placeholder, don't bother testing n+1 queries
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureSix] }
-  let(:measure_six_config) { { query_count: 32} }
+  let(:measure_six_config) { { query_count: 32 } }
   let(:household_count) { 1 }
 
   context 'with standard dataset' do
@@ -291,18 +330,34 @@ RSpec.describe 'FY2026 SPM MeasureSeven performance budget', type: :model, exclu
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureSeven] }
-  let(:measure_seven_config) { { query_count: 153} }
+  let(:measure_seven_config) { { query_count: 153 } }
   let(:household_count) { 5 }
+  let(:include_move_in) { true }
+
+  # Measure 7 uses SO, ES, TH, SH, and PH projects
+  let(:projects) do
+    [
+      create_project(project_type: 4),  # SO
+      create_project(project_type: 0),  # ES
+      create_project(project_type: 1),  # ES Night-by-Night
+      create_project(project_type: 2),  # TH
+      create_project(project_type: 3),  # PH
+      create_project(project_type: 8),  # SH
+    ]
+  end
 
   context 'with standard dataset' do
     include_examples 'SPM performance budget validation'
   end
 
   context 'with large dataset' do
-    let(:household_count) { super() * 5 }
+    skip 'expensive test - enable by removing skip'
 
-     include_examples 'SPM performance budget validation'
-   end
+    let(:household_count) { 200 }
+    let(:enrollments_per_member) { 2 }
+
+    include_examples 'SPM performance budget validation'
+  end
 end
 
 RSpec.describe 'FY2026 SPM HdxUpload performance budget', type: :model, exclude_fixpoints: true do
@@ -310,15 +365,29 @@ RSpec.describe 'FY2026 SPM HdxUpload performance budget', type: :model, exclude_
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::HdxUpload] }
-  let(:hdx_upload_config) { { query_count: 1691} }
+  let(:hdx_upload_config) { { query_count: 2609 } }
   let(:household_count) { 5 }
+  let(:projects) do
+    [
+      create_project(project_type: 0),  # ES
+      create_project(project_type: 1),  # ES Night-by-Night
+      create_project(project_type: 2),  # TH
+      create_project(project_type: 3),  # PH (PSH)
+      create_project(project_type: 4),  # SO
+      create_project(project_type: 8),  # SH
+      create_project(project_type: 13), # RRH
+    ]
+  end
 
   context 'with standard dataset' do
     include_examples 'SPM performance budget validation'
   end
 
   context 'with large dataset' do
-    let(:household_count) { super() * 5 }
+    skip 'expensive test - enable by removing skip'
+
+    let(:household_count) { 200 }
+    let(:enrollments_per_member) { 2 }
 
     include_examples 'SPM performance budget validation'
   end

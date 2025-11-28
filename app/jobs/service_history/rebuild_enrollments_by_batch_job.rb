@@ -42,6 +42,10 @@ module ServiceHistory
         :exit,
         :current_living_situations,
         :client,
+        :data_source,
+        :export,
+        :service_history_enrollment,
+        # :services,
       )
     end
   end
