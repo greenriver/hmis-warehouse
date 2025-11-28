@@ -14,9 +14,7 @@ module HudPathReport::Filters
       []
     end
 
-    def project_type_code_options_for_select
-      HudHelper.util.project_type_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze
-    end
+    def project_type_code_options_for_select = path_project_types_for_select
 
     def path_project_types_for_select
       HudHelper.util.project_type_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze
