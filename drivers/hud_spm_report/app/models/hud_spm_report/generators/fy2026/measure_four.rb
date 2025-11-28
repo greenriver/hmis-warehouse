@@ -232,7 +232,7 @@ module HudSpmReport::Generators::Fy2026
       client_enrollments = HudSpmReport::Fy2026::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: staying_enrollments)
 
       members = client_enrollments.map do |enrollment|
-        [enrollment.client, enrollment]
+        [enrollment.client_id, enrollment]
       end.to_h
       @stayers.add_universe_members(members)
 

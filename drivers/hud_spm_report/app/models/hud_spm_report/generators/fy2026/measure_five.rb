@@ -104,8 +104,8 @@ module HudSpmReport::Generators::Fy2026
       enrollments = enrollment_set.where(entry_date: filter.range, project_type: project_types)
       earliest_enrollments = HudSpmReport::Fy2026::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
 
-      members = earliest_enrollments.preload(:client).map do |enrollment|
-        [enrollment.client, enrollment]
+      members = earliest_enrollments.map do |enrollment|
+        [enrollment.client_id, enrollment]
       end.to_h
       universe.add_universe_members(members)
 
@@ -115,7 +115,6 @@ module HudSpmReport::Generators::Fy2026
     def create_priors_universe(universe_name, report_members)
       universe = @report.universe(universe_name)
 
-      puts "measure five universe: #{universe.count}"
       if report_members.count.positive?
         report_enrollments = HudSpmReport::Fy2026::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
         filter = ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
@@ -140,7 +139,7 @@ module HudSpmReport::Generators::Fy2026
         end
 
         members = universe_enrollments.map do |enrollment|
-          [enrollment.client, enrollment]
+          [enrollment.client_id, enrollment]
         end.to_h
         universe.add_universe_members(members)
       end

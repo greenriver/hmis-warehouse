@@ -135,8 +135,8 @@ module HudSpmReport::Generators::Fy2026
           group_on: :client_id,
           scope: spm_enrollments,
         )
-        members = uniq_members.preload(:client).map do |enrollment|
-          [enrollment.client, enrollment]
+        members = uniq_members.map do |enrollment|
+          [enrollment.client_id, enrollment]
         end
         universe.add_universe_members(members.to_h)
       end

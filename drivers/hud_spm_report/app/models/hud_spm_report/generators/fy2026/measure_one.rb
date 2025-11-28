@@ -192,7 +192,7 @@ module HudSpmReport::Generators::Fy2026
         next unless episodes.present?
 
         members = episodes.map do |episode|
-          [episode.client, episode]
+          [episode.client_id, episode]
         end.to_h
         @universe.add_universe_members(members)
       end

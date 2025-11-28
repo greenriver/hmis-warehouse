@@ -75,13 +75,17 @@ module HudReports
 
     # Add members to the universe of this cell
     #
-    # @param members [Hash<Client, ReportClientBase] the members to be associated with this cell
+    # @param members [Hash<Client | Integer, ReportClientBase] the members to be associated with this cell
     def add_universe_members(members)
-      UniverseMember.import!(
-        members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
-        validate: false,
-        on_duplicate_key_ignore: true,
-      )
+      keys = members.keys.filter { |key| key.is_a?(Integer) }
+      clients_by_id = GrdaWarehouse::Hud::Client.select(:id, :first_name, :last_name).where(id: keys).index_by(&:id)
+
+      rows = members.map do |key, universe_client|
+        client = clients_by_id[key] || client
+        new_member(warehouse_client: client, universe_client: universe_client)
+      end
+
+      UniverseMember.import!(rows, validate: false, on_duplicate_key_ignore: true)
     end
 
     def completed_in

@@ -181,7 +181,7 @@ module HudSpmReport::Generators::Fy2026
       enrollments = enrollments.where.not(spm_e_t[:destination].in(M7A_REJECTED))
 
       members = enrollments.map do |enrollment|
-        [enrollment.client, enrollment]
+        [enrollment.client_id, enrollment]
       end.to_h
       universe.add_universe_members(members)
 
@@ -203,7 +203,7 @@ module HudSpmReport::Generators::Fy2026
       enrollments = enrollments.where.not(spm_e_t[:destination].in(M7B_REJECTED))
 
       members = enrollments.map do |enrollment|
-        [enrollment.client, enrollment]
+        [enrollment.client_id, enrollment]
       end.to_h
       universe.add_universe_members(members)
 
@@ -229,7 +229,7 @@ module HudSpmReport::Generators::Fy2026
       combined_scope = HudSpmReport::Fy2026::SpmEnrollment.where(id: (latest_stays.pluck(:id) + latest_exits.pluck(:id)) - excluded_ids)
 
       members = combined_scope.map do |enrollment|
-        [enrollment.client, enrollment]
+        [enrollment.client_id, enrollment]
       end.to_h
 
       universe = @report.universe(:m7b2)
