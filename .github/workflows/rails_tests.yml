@@ -1,5 +1,7 @@
 name: Rails Tests
 
+# @see docs/features/ci-test-bucketing.md
+
 on:
   push:
     branches:

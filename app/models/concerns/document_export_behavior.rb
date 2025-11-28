@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+#
+# @see docs/features/document-export.md
+
 module DocumentExportBehavior
   extend ActiveSupport::Concern
   include Rails.application.routes.url_helpers
