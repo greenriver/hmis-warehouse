@@ -129,6 +129,132 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     report.reload
   end
 
+  def bulk_build_standard_enrollments(source_clients:, projects:, project_coc_codes:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, enrollments:, exits:)
+    household_count.times do |household_index|
+      household_id = SecureRandom.uuid
+      members_per_household.times do |member_index|
+        client_index = (household_index * members_per_household) + member_index
+        client = source_clients[client_index]
+        relationship = member_index.zero? ? 1 : 2
+
+        enrollments_per_member.times do |enrollment_index|
+          project = projects[(household_index + enrollment_index) % projects.length]
+          project_index = projects.index(project)
+          entry_date = base_entry_date + enrollment_index.days
+          exit_date = entry_date + 1.day
+
+          enrollment = build(
+            :hud_enrollment,
+            client: client,
+            project: project,
+            data_source: data_source,
+            entry_date: entry_date,
+            date_to_street_essh: entry_date - 30.days,
+            relationship_to_ho_h: relationship,
+            household_id: household_id,
+            living_situation: 100,
+            move_in_date: relationship == 1 ? entry_date : nil,
+            enrollment_coc: project_coc_codes[project_index],
+          )
+          enrollments << enrollment
+
+          exit_record = build(
+            :hud_exit,
+            personal_id: client.personal_id,
+            data_source_id: data_source.id,
+            exit_date: exit_date,
+            destination: 30,
+          )
+          exits << exit_record
+        end
+      end
+    end
+  end
+
+  def bulk_build_measure_two_enrollments(source_clients:, projects:, project_coc_codes:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, enrollments:, exits:)
+    # For Measure Two: exits need to be 2 years before report period
+    # Report period is typically base_entry_date to base_entry_date + 1.year
+    # So exits should be around base_entry_date - 730.days (2 years before)
+    exit_base_date = base_entry_date - 730.days
+
+    household_count.times do |household_index|
+      household_id = SecureRandom.uuid
+      members_per_household.times do |member_index|
+        client_index = (household_index * members_per_household) + member_index
+        client = source_clients[client_index]
+        relationship = member_index.zero? ? 1 : 2
+
+        enrollments_per_member.times do |enrollment_index|
+          project = projects[(household_index + enrollment_index) % projects.length]
+          project_index = projects.index(project)
+
+          # First enrollment: exit to permanent housing 2 years before report period
+          entry_date = exit_base_date - 30.days + enrollment_index.days
+          exit_date = exit_base_date + enrollment_index.days
+
+          enrollment = build(
+            :hud_enrollment,
+            client: client,
+            project: project,
+            data_source: data_source,
+            entry_date: entry_date,
+            date_to_street_essh: entry_date - 30.days,
+            relationship_to_ho_h: relationship,
+            household_id: household_id,
+            living_situation: 100,
+            move_in_date: relationship == 1 ? entry_date : nil,
+            enrollment_coc: project_coc_codes[project_index],
+          )
+          enrollments << enrollment
+
+          # Exit to permanent housing (410 = Rental by client, no ongoing housing subsidy)
+          exit_record = build(
+            :hud_exit,
+            personal_id: client.personal_id,
+            data_source_id: data_source.id,
+            exit_date: exit_date,
+            destination: 410,
+          )
+          exits << exit_record
+
+          # Second enrollment: return to homelessness in different time windows
+          # Stagger returns across 0-180, 181-365, 366-730 day windows
+          days_to_return = case enrollment_index % 3
+          when 0 then 90   # 0-180 days
+          when 1 then 270  # 181-365 days
+          else 500         # 366-730 days
+          end
+
+          return_entry_date = exit_date + days_to_return.days
+          return_exit_date = return_entry_date + 7.days
+
+          return_enrollment = build(
+            :hud_enrollment,
+            client: client,
+            project: project,
+            data_source: data_source,
+            entry_date: return_entry_date,
+            date_to_street_essh: return_entry_date - 30.days,
+            relationship_to_ho_h: relationship,
+            household_id: SecureRandom.uuid, # Different household for return
+            living_situation: 116, # Place not meant for habitation
+            enrollment_coc: project_coc_codes[project_index],
+          )
+          enrollments << return_enrollment
+
+          return_exit_record = build(
+            :hud_exit,
+            personal_id: client.personal_id,
+            data_source_id: data_source.id,
+            exit_date: return_exit_date,
+            destination: 30, # No exit interview completed
+          )
+          exits << return_exit_record
+        end
+      end
+    end
+  end
+
   # Optimized bulk insert for performance testing
   # Instead of individual creates (O(n) database calls), this method:
   # 1. Builds all records in memory
@@ -137,7 +263,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   # 4. Bulk imports enrollments and exits
   # 5. Optionally bulk creates bed nights for ES Night-by-Night enrollments
   # This reduces database round trips from thousands to a handful
-  def bulk_build_households(projects:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, create_bed_nights: false)
+  def bulk_build_households(projects:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, create_bed_nights: false, measure_two_pattern: false)
     total_clients = household_count * members_per_household
 
     # Build all client records in memory first
@@ -189,44 +315,30 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     enrollments = []
     exits = []
 
-    household_count.times do |household_index|
-      household_id = SecureRandom.uuid
-      members_per_household.times do |member_index|
-        client_index = (household_index * members_per_household) + member_index
-        client = source_clients[client_index]
-        relationship = member_index.zero? ? 1 : 2
-
-        enrollments_per_member.times do |enrollment_index|
-          project = projects[(household_index + enrollment_index) % projects.length]
-          project_index = projects.index(project)
-          entry_date = base_entry_date + enrollment_index.days
-          exit_date = entry_date + 1.day
-
-          enrollment = build(
-            :hud_enrollment,
-            client: client,
-            project: project,
-            data_source: data_source,
-            entry_date: entry_date,
-            date_to_street_essh: entry_date - 30.days,
-            relationship_to_ho_h: relationship,
-            household_id: household_id,
-            living_situation: 100,
-            move_in_date: relationship == 1 ? entry_date : nil,
-            enrollment_coc: project_coc_codes[project_index],
-          )
-          enrollments << enrollment
-
-          exit_record = build(
-            :hud_exit,
-            personal_id: client.personal_id,
-            data_source_id: data_source.id,
-            exit_date: exit_date,
-            destination: 301,
-          )
-          exits << exit_record
-        end
-      end
+    if measure_two_pattern
+      bulk_build_measure_two_enrollments(
+        source_clients: source_clients,
+        projects: projects,
+        project_coc_codes: project_coc_codes,
+        base_entry_date: base_entry_date,
+        household_count: household_count,
+        members_per_household: members_per_household,
+        enrollments_per_member: enrollments_per_member,
+        enrollments: enrollments,
+        exits: exits,
+      )
+    else
+      bulk_build_standard_enrollments(
+        source_clients: source_clients,
+        projects: projects,
+        project_coc_codes: project_coc_codes,
+        base_entry_date: base_entry_date,
+        household_count: household_count,
+        members_per_household: members_per_household,
+        enrollments_per_member: enrollments_per_member,
+        enrollments: enrollments,
+        exits: exits,
+      )
     end
 
     # Bulk import enrollments

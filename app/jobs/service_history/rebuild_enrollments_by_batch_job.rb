@@ -36,12 +36,12 @@ module ServiceHistory
     end
 
     def enrollment_scope
-     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(id: @enrollment_ids).preload(
-       :destination_client,
-       :project,
-       :exit,
-       :current_living_situations,
-       :client,
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(id: @enrollment_ids).preload(
+        :destination_client,
+        :project,
+        :exit,
+        :current_living_situations,
+        :client,
       )
     end
   end
