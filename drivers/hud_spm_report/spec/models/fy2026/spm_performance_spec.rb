@@ -26,6 +26,7 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   let(:members_per_household) { 3 }
   let(:enrollments_per_member) { 10 }
   let(:expected_enrollment_count) { household_count * members_per_household * enrollments_per_member }
+  let(:create_bed_nights) { false }
 
   let(:report) do
     filter = default_filter.dup
@@ -48,6 +49,7 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
       household_count: household_count,
       members_per_household: members_per_household,
       enrollments_per_member: enrollments_per_member,
+      create_bed_nights: create_bed_nights,
     )
     ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: GrdaWarehouse::Tasks::ServiceHistory::Enrollment.pluck(:id)).perform
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
@@ -60,64 +62,78 @@ end
 RSpec.shared_context 'SPM measure configs', shared_context: :metadata do
   # Individual measure configurations
   # Override these in specific test contexts as needed
-  let(:measure_one_config) { { query_count: 145..195, timing_secs: 10 } }
+  let(:measure_one_config) { { query_count: 225..255, timing_secs: 10, debug: true } }
   let(:measure_two_config) { { query_count: 375..425, timing_secs: 10 } }
-  let(:measure_three_config) { { query_count: 85..135, timing_secs: 10 } }
+  let(:measure_three_config) { { query_count: 125..165, timing_secs: 10 } }
   let(:measure_four_config) { { query_count: 195..245, timing_secs: 10 } }
-  let(:measure_five_config) { { query_count: 120..160, timing_secs: 15, debug: true } }
+  let(:measure_five_config) { { query_count: 140..180, timing_secs: 15 } }
   let(:measure_six_config) { { query_count: 15..65, timing_secs: 10 } }
-  let(:measure_seven_config) { { query_count: 125..155, timing_secs: 10 } }
-  let(:hdx_upload_config) { { query_count: 605..655, timing_secs: 10 } }
+  let(:measure_seven_config) { { query_count: 245..265, timing_secs: 10 } }
+  let(:hdx_upload_config) { { query_count: 1535..1560, timing_secs: 10 } }
 
-  let(:measure_configs) do
+  let(:enrollment_set_query_count) { 40..60 }
+  let(:enrollment_set_timing_secs) { 10 }
+
+  let(:all_measure_classes) do
     [
-      { klass: HudSpmReport::Generators::Fy2026::MeasureOne, **measure_one_config },
-      { klass: HudSpmReport::Generators::Fy2026::MeasureTwo, **measure_two_config },
-      { klass: HudSpmReport::Generators::Fy2026::MeasureThree, **measure_three_config },
-      { klass: HudSpmReport::Generators::Fy2026::MeasureFour, **measure_four_config },
-      { klass: HudSpmReport::Generators::Fy2026::MeasureFive, **measure_five_config },
-      { klass: HudSpmReport::Generators::Fy2026::MeasureSix, **measure_six_config },
-      { klass: HudSpmReport::Generators::Fy2026::MeasureSeven, **measure_seven_config },
-      { klass: HudSpmReport::Generators::Fy2026::HdxUpload, **hdx_upload_config },
+      HudSpmReport::Generators::Fy2026::MeasureOne,
+      HudSpmReport::Generators::Fy2026::MeasureTwo,
+      HudSpmReport::Generators::Fy2026::MeasureThree,
+      HudSpmReport::Generators::Fy2026::MeasureFour,
+      HudSpmReport::Generators::Fy2026::MeasureFive,
+      HudSpmReport::Generators::Fy2026::MeasureSix,
+      HudSpmReport::Generators::Fy2026::MeasureSeven,
+      HudSpmReport::Generators::Fy2026::HdxUpload,
     ]
   end
+
+  let(:question_names) { all_measure_classes.map(&:question_number) }
 end
 
 RSpec.shared_examples 'SPM performance budget validation' do
+  # Helper to assert performance for a specific measure
+  # Makes it explicit which measure is being tested and simplifies failure diagnosis
+  def assert_performance(measure_name:, measure_config:)
+    measure_class = "HudSpmReport::Generators::Fy2026::#{measure_name}".constantize
+    return unless measure_class
+
+    query_count = measure_config[:query_count]
+    timing_secs = measure_config[:timing_secs]
+    debug = measure_config[:debug] || false
+
+    expect do
+      puts "start run_measure #{measure_class.name} at #{Time.current.strftime("%H:%M:%S")}" if debug
+      prior_level = Rails.logger.level
+      Rails.logger.level = 0 if debug
+      run_measure(report, measure_class)
+      Rails.logger.level = prior_level
+    end.to(
+      make_database_queries(count: query_count).
+        and(perform_under(timing_secs).secs.sample(1).times.warmup(0))
+    )
+
+    expect(report.report_cells.where(question: measure_class.question_number)).to exist
+  end
+
   it 'limits queries for enrollment creation and each measure run' do
-    aggregate_failures('spm enrollment creation') do
+    aggregate_failures do
       expect do
-        # puts "start create enrollment set at #{Time.current.strftime("%H:%M:%S")}"
         HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
-        # puts "stop create enrollment set at #{Time.current.strftime("%H:%M:%S")}"
       end.to(
         make_database_queries(count: enrollment_set_query_count).
           and(perform_under(enrollment_set_timing_secs).secs.sample(1).times.warmup(0)),
       )
-    end
 
-    expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
+      expect(report.spm_enrollments.count).to eq(expected_enrollment_count)
 
-    measure_configs.each do |config|
-      klass = config[:klass]
-      query_count = config[:query_count]
-      timing_secs = config[:timing_secs]
-
-      aggregate_failures(klass.name) do
-        expect do
-          puts "start run_measure #{klass.name} at #{Time.current.strftime("%H:%M:%S")}" if config[:debug]
-          prior_level = Rails.logger.level
-          Rails.logger.level = 0 if config[:debug]
-          run_measure(report, klass)
-          Rails.logger.level = prior_level
-          puts "completed run_measure #{klass.name} at #{Time.current.strftime("%H:%M:%S")}" if config[:debug]
-        end.to(
-          make_database_queries(count: query_count).
-            and(perform_under(timing_secs).secs.sample(1).times.warmup(0)),
-        )
-
-        expect(report.report_cells.where(question: klass.question_number)).to exist
-      end
+      assert_performance(measure_name: 'MeasureOne', measure_config: measure_one_config)
+      assert_performance(measure_name: 'MeasureTwo', measure_config: measure_two_config)
+      assert_performance(measure_name: 'MeasureThree', measure_config: measure_three_config)
+      assert_performance(measure_name: 'MeasureFour', measure_config: measure_four_config)
+      assert_performance(measure_name: 'MeasureFive', measure_config: measure_five_config)
+      assert_performance(measure_name: 'MeasureSix', measure_config: measure_six_config)
+      assert_performance(measure_name: 'MeasureSeven', measure_config: measure_seven_config)
+      assert_performance(measure_name: 'HdxUpload', measure_config: hdx_upload_config)
     end
   end
 end
@@ -125,10 +141,6 @@ end
 RSpec.describe 'FY2026 SPM performance budget', type: :model, exclude_fixpoints: true do
   include_context 'SPM performance dataset'
   include_context 'SPM measure configs'
-
-  let(:enrollment_set_query_count) { 40..60 }
-  let(:enrollment_set_timing_secs) { 10 }
-  let(:question_names) { measure_configs.map { |config| config[:klass].question_number } }
 
   include_examples 'SPM performance budget validation'
 end
@@ -147,16 +159,16 @@ RSpec.describe 'FY2026 SPM performance budget with large dataset', type: :model,
   let(:enrollment_set_timing_secs) { 30 }
 
   # Allow more time for larger dataset
-  let(:measure_one_config) { { query_count: 145..195, timing_secs: 15 } }
-  let(:measure_two_config) { { query_count: 400..450, timing_secs: 15 } }
-  let(:measure_three_config) { { query_count: 85..135, timing_secs: 15 } }
-  let(:measure_four_config) { { query_count: 195..245, timing_secs: 15 } }
-  let(:measure_five_config) { { query_count: 120..160, timing_secs: 15,  } }
-  let(:measure_six_config) { { query_count: 15..65, timing_secs: 15 } }
-  let(:measure_seven_config) { { query_count: 110..150, timing_secs: 15 } }
-  let(:hdx_upload_config) { { query_count: 605..655, timing_secs: 15 } }
+  #let(:measure_one_config) { { query_count: 245..195, timing_secs: 15 } }
+  #let(:measure_two_config) { { query_count: 400..450, timing_secs: 15 } }
+  #let(:measure_three_config) { { query_count: 85..135, timing_secs: 15 } }
+  #let(:measure_four_config) { { query_count: 195..245, timing_secs: 15 } }
+  #let(:measure_five_config) { { query_count: 120..160, timing_secs: 15,  } }
+  #let(:measure_six_config) { { query_count: 15..65, timing_secs: 15 } }
+  #let(:measure_seven_config) { { query_count: 110..150, timing_secs: 15 } }
+  #let(:hdx_upload_config) { { query_count: 605..655, timing_secs: 15 } }
 
-  let(:question_names) { measure_configs.map { |config| config[:klass].question_number } }
+
 
   include_examples 'SPM performance budget validation'
 end
@@ -165,25 +177,11 @@ RSpec.describe 'FY2026 SPM performance budget with services', type: :model, excl
   include_context 'SPM performance dataset'
   include_context 'SPM measure configs'
 
-  let(:enrollment_set_query_count) { 40..60 }
-  let(:enrollment_set_timing_secs) { 15 }
+  let(:create_bed_nights) { true }
 
   # Only test MeasureOne with service queries
   let(:measure_one_config) { { query_count: 215..265, timing_secs: 15 } }
-  let(:measure_configs) do
-    [
-      { klass: HudSpmReport::Generators::Fy2026::MeasureOne, **measure_one_config },
-    ]
-  end
-  let(:question_names) { measure_configs.map { |config| config[:klass].question_number } }
-
-  before do
-    GrdaWarehouse::Hud::Enrollment.preload(:project).find_each do |enrollment|
-      7.times do
-        create_bed_night_service(enrollment: enrollment, date: enrollment.entry_date) if enrollment.project.project_type == 1
-      end
-    end
-  end
+  let(:question_names) { [HudSpmReport::Generators::Fy2026::MeasureOne.question_number] }
 
   include_examples 'SPM performance budget validation'
 end

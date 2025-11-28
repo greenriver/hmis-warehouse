@@ -135,8 +135,9 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   # 2. Bulk imports clients (source + destination)
   # 3. Bulk imports warehouse_client links
   # 4. Bulk imports enrollments and exits
+  # 5. Optionally bulk creates bed nights for ES Night-by-Night enrollments
   # This reduces database round trips from thousands to a handful
-  def bulk_build_households(projects:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:)
+  def bulk_build_households(projects:, base_entry_date:, household_count:, members_per_household:, enrollments_per_member:, create_bed_nights: false)
     total_clients = household_count * members_per_household
 
     # Build all client records in memory first
@@ -237,5 +238,28 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
       exit_record.enrollment_id = enrollments[index].id
     end
     GrdaWarehouse::Hud::Exit.import(exits, validate: false)
+
+    # Bulk create bed nights for ES Night-by-Night enrollments
+    return unless create_bed_nights
+
+    bed_nights = []
+    # Preload projects and exits to avoid N+1 queries
+    GrdaWarehouse::Hud::Enrollment.where(id: enrollments.map(&:id)).preload(:project, :exit).find_each do |enrollment|
+      next unless enrollment.project.project_type == 1
+      next unless enrollment.exit&.exit_date
+
+      (enrollment.entry_date...enrollment.exit.exit_date).each do |date|
+        bed_nights << build(
+          :hud_service,
+          enrollment: enrollment,
+          personal_id: enrollment.personal_id,
+          data_source: enrollment.data_source,
+          record_type: 200,
+          date_provided: date,
+        )
+      end
+    end
+
+    GrdaWarehouse::Hud::Service.import(bed_nights, validate: false) if bed_nights.any?
   end
 end

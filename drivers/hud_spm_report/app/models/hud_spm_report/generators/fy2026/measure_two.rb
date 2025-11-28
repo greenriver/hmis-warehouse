@@ -150,7 +150,7 @@ module HudSpmReport::Generators::Fy2026
       @universe = @report.universe(table_name)
       returns = HudSpmReport::Fy2026::Return.compute_returns(@report, enrollment_set)
 
-      members = returns.map do |enrollment|
+      members = returns.preload(:client). map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
       @universe.add_universe_members(members)
