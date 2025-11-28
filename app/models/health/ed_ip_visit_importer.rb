@@ -62,13 +62,11 @@ module Health
 
     private def using_sftp
       credentials = sftp_credentials
-      Net::SFTP.start(
+      Sftp::Cli.start(
         credentials['host'],
         credentials['username'],
         password: credentials['password'] || credentials.password,
-        auth_methods: ['publickey', 'password'],
         keepalive: true,
-        keepalive_interval: 60,
       ) do |connection|
         yield connection
       end

@@ -36,7 +36,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid insurance data' do
-          expect_result(title: 'Insurance From Any Source at Entry', invalid_count: 0)
+          expect_result(key: :insurance_from_any_source_at_entry, invalid_count: 0)
         end
       end
 
@@ -62,7 +62,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing insurance data' do
-          expect_result(title: 'Insurance From Any Source at Entry', invalid_count: 1)
+          expect_result(key: :insurance_from_any_source_at_entry, invalid_count: 1)
         end
       end
     end
@@ -94,7 +94,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid insurance data' do
-          expect_result(title: 'Insurance From Any Source at Annual Assessment', invalid_count: 0)
+          expect_result(key: :insurance_from_any_source_at_annual, invalid_count: 0)
         end
       end
 
@@ -124,7 +124,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing insurance data' do
-          expect_result(title: 'Insurance From Any Source at Annual Assessment', invalid_count: 1)
+          expect_result(key: :insurance_from_any_source_at_annual, invalid_count: 1)
         end
       end
     end
@@ -153,7 +153,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag valid insurance data' do
-          expect_result(title: 'Insurance From Any Source at Exit', invalid_count: 0)
+          expect_result(key: :insurance_from_any_source_at_exit, invalid_count: 0)
         end
       end
 
@@ -180,7 +180,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags missing insurance data' do
-          expect_result(title: 'Insurance From Any Source at Exit', invalid_count: 1)
+          expect_result(key: :insurance_from_any_source_at_exit, invalid_count: 1)
         end
       end
     end
@@ -210,7 +210,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags insurance mismatch' do
-            expect_result(title: 'Insurance Matches Expected Value at Entry', invalid_count: 1)
+            expect_result(key: :insurance_as_expected_at_entry, invalid_count: 1)
           end
         end
 
@@ -237,7 +237,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags insurance mismatch' do
-            expect_result(title: 'Insurance Matches Expected Value at Entry', invalid_count: 1)
+            expect_result(key: :insurance_as_expected_at_entry, invalid_count: 1)
           end
         end
       end
@@ -270,7 +270,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags insurance mismatch' do
-            expect_result(title: 'Insurance Matches Expected Value at Annual Assessment', invalid_count: 1)
+            expect_result(key: :insurance_as_expected_at_annual, invalid_count: 1)
           end
         end
 
@@ -301,7 +301,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags insurance mismatch' do
-            expect_result(title: 'Insurance Matches Expected Value at Annual Assessment', invalid_count: 1)
+            expect_result(key: :insurance_as_expected_at_annual, invalid_count: 1)
           end
         end
       end
@@ -331,7 +331,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags insurance mismatch' do
-            expect_result(title: 'Insurance Matches Expected Value at Exit', invalid_count: 1)
+            expect_result(key: :insurance_as_expected_at_exit, invalid_count: 1)
           end
         end
 
@@ -359,7 +359,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags insurance mismatch' do
-            expect_result(title: 'Insurance Matches Expected Value at Exit', invalid_count: 1)
+            expect_result(key: :insurance_as_expected_at_exit, invalid_count: 1)
           end
         end
       end

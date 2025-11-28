@@ -1209,8 +1209,8 @@ module HmisDataQualityTool
           so_missed_exit_length: 365,
         },
         days_in_ph_prior_to_move_in_90_issues: {
-          title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
+          title: 'Possible Missed Move In Date, Time in Enrollment 90 Days or More',
+          description: 'There is an expectation that clients will eventually move into housing, these clients have been without a move-in date 90 days ore more, or have an invalid move-in date ',
           required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
@@ -1233,8 +1233,8 @@ module HmisDataQualityTool
           ph_missed_exit_length: 90,
         },
         days_in_ph_prior_to_move_in_180_issues: {
-          title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
+          title: 'Possible Missed Move In Date, Time in Enrollment 180 Days or More',
+          description: 'There is an expectation that clients will eventually move into housing, these clients have been without a move-in date 180 days ore more, or have an invalid move-in date',
           required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,
@@ -1257,8 +1257,8 @@ module HmisDataQualityTool
           ph_missed_exit_length: 180,
         },
         days_in_ph_prior_to_move_in_365_issues: {
-          title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
+          title: 'Possible Missed Move In Date, Time in Enrollment 365 Days or More',
+          description: 'There is an expectation that clients will eventually move into housing, these clients have been without a move-in date 365 days or more, or have an invalid move-in date',
           required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
           detail_columns: default_detail_columns + [
             :project_type,

@@ -8,12 +8,8 @@
 
 # Class to handle upsert style inserts from ZIPED CSVs (and potentially other flat file formats
 # into ClaimsReporting::* data tables.
-require 'net/sftp'
-require 'zip'
 
-# support curve25519-sha256
-# verify with bundle exec ruby -r x25519  -r net/ssh -e "p Net::SSH::Transport::Algorithms::ALGORITHMS[:kex]"
-require 'x25519'
+require 'zip'
 
 module ClaimsReporting
   class Importer
@@ -54,13 +50,12 @@ module ClaimsReporting
     private def using_sftp(credentials)
       credentials ||= default_credentials
       host = credentials['host'].presence or raise "'host:' must be provided or set via ImportConfig"
-      Net::SFTP.start(
+      Sftp::Cli.start(
         host,
         credentials['username'],
         password: credentials['password'] || credentials.password,
-        auth_methods: ['publickey', 'password'],
         keepalive: true,
-        keepalive_interval: 60,
+        skip_verify_host_key: true,
       ) do |connection|
         yield connection
       end

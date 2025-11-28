@@ -34,7 +34,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag non-overlapping enrollments' do
-          expect_result(title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH', invalid_count: 0)
+          expect_result(key: :overlapping_entry_exit_issues, invalid_count: 0)
         end
       end
 
@@ -58,7 +58,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags overlapping enrollments' do
-          expect_result(title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH', invalid_count: 1)
+          expect_result(key: :overlapping_entry_exit_issues, invalid_count: 1)
         end
       end
 
@@ -82,7 +82,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags overlapping TH enrollments' do
-          expect_result(title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH', invalid_count: 1)
+          expect_result(key: :overlapping_entry_exit_issues, invalid_count: 1)
         end
       end
     end
@@ -118,7 +118,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags overlapping NBN enrollments' do
-          expect_result(title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH', invalid_count: 1)
+          expect_result(key: :overlapping_nbn_issues, invalid_count: 1)
         end
       end
     end
@@ -148,7 +148,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags overlapping PH enrollments' do
-          expect_result(title: 'Overlapping Moved-in PH', invalid_count: 1)
+          expect_result(key: :overlapping_post_move_in_issues, invalid_count: 1)
         end
       end
     end
@@ -193,7 +193,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags overlapping homeless service after PH move-in' do
-          expect_result(title: 'Overlapping Homeless Service After Move-in in PH', invalid_count: 1)
+          expect_result(key: :overlapping_pre_move_in_issues, invalid_count: 1)
         end
       end
     end
@@ -217,7 +217,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags missing service' do
-            expect_result(title: 'Possible Missed Exit - ES NbN, No Service in 90 Days or More', invalid_count: 1)
+            expect_result(key: :days_since_last_service_es_90_issues, invalid_count: 1)
           end
         end
       end
@@ -240,7 +240,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags missing service' do
-            expect_result(title: 'Possible Missed Exit - ES NbN, No Service in 180 Days or More', invalid_count: 1)
+            expect_result(key: :days_since_last_service_es_180_issues, invalid_count: 1)
           end
         end
       end
@@ -263,7 +263,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           end
 
           it 'flags missing service' do
-            expect_result(title: 'Possible Missed Exit - ES NbN, No Service in 365 Days or More', invalid_count: 1)
+            expect_result(key: :days_since_last_service_es_365_issues, invalid_count: 1)
           end
         end
       end
@@ -285,7 +285,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags homeless living situation' do
-          expect_result(title: 'HP - Homeless Prior Living Situation', invalid_count: 1)
+          expect_result(key: :homeless_living_situation_issues, invalid_count: 1)
         end
       end
 
@@ -304,7 +304,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag non-homeless living situation' do
-          expect_result(title: 'HP - Homeless Prior Living Situation', invalid_count: 0)
+          expect_result(key: :homeless_living_situation_issues, invalid_count: 0)
         end
       end
     end
@@ -325,7 +325,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'flags non-homeless living situation' do
-          expect_result(title: 'RRH - Non-Homeless Prior Living Situation', invalid_count: 1)
+          expect_result(key: :non_homeless_living_situation_issues, invalid_count: 1)
         end
       end
 
@@ -344,7 +344,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
 
         it 'does not flag homeless living situation' do
-          expect_result(title: 'RRH - Non-Homeless Prior Living Situation', invalid_count: 0)
+          expect_result(key: :non_homeless_living_situation_issues, invalid_count: 0)
         end
       end
     end
