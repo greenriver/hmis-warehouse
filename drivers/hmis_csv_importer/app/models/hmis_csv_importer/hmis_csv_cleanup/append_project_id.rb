@@ -9,21 +9,20 @@
 module HmisCsvImporter::HmisCsvCleanup
   class AppendProjectId < Base
     def cleanup!
-      project_batch = []
+      project_scope.find_in_batches do |project_batch|
+        project_batch.each do |project|
+          project.ProjectName = "#{project.ProjectName} (#{project.ProjectID})"
+          project.set_source_hash
+        end
 
-      project_scope.find_each do |project|
-        project.ProjectName = "#{project.ProjectName} (#{project.ProjectID})"
-        project.set_source_hash
-        project_batch << project
+        project_source.import(
+          project_batch,
+          on_duplicate_key_update: {
+            conflict_target: conflict_target(project_source),
+            columns: [:ProjectName, :source_hash],
+          },
+        )
       end
-
-      project_source.import(
-        project_batch,
-        on_duplicate_key_update: {
-          conflict_target: conflict_target(project_source),
-          columns: [:ProjectName, :source_hash],
-        },
-      )
     end
 
     def project_scope
