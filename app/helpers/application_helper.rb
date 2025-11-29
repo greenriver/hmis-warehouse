@@ -470,7 +470,7 @@ module ApplicationHelper
   # @param [String] item_name The singular name of the item being listed, used for messages.
   # @param [String] list_partial The path to the partial used to render the list items.
   # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
-  # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.  
+  # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
   #
   # @return [String] HTML markup for the paginated list with controls.
   #
@@ -494,7 +494,6 @@ module ApplicationHelper
   # @param [String] list_partial The path to the partial used to render the list items.
   # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
   # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
-  #
   # @return [String] HTML markup for the paginated list with controls.
   #
   # @example Usage:
