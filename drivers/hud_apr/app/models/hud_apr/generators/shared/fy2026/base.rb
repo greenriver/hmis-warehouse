@@ -113,6 +113,9 @@ module HudApr::Generators::Shared::Fy2026
           enrollments = enrollments_by_client_id[client.id]
           next unless enrollments.present?
 
+          Rails.logger.level = 0
+          #byebug
+
           last_service_history_enrollment = enrollments.last
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
@@ -530,6 +533,7 @@ module HudApr::Generators::Shared::Fy2026
 
     private def clients_with_enrollments(batch, scope: enrollment_scope, **)
       scope.
+        preload(:project).
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).

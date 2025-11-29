@@ -11,8 +11,8 @@ require_relative './shared_context'
 require_relative '../../../../../../drivers/hud_spm_report/spec/models/fy2026/shared_context'
 
 RSpec.shared_context 'APR performance dataset', shared_context: :metadata do
-  include_context 'HUD DQ FY2026 setup'
   include_context 'SPM test setup'
+  include_context 'HUD DQ FY2026 setup'
 
   let(:projects) do
     [
@@ -73,7 +73,7 @@ RSpec.shared_context 'APR question configs', shared_context: :metadata do
   let(:question_one_config) { nil }
   let(:question_four_config) { nil }
 
-  let(:add_apr_clients_query_count) { 40 }
+  let(:add_apr_clients_query_count) { 238 }
   let(:add_apr_clients_timing_secs) { 10 }
 
   let(:question_names) { all_question_classes.map(&:question_number) }

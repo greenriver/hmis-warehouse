@@ -13,9 +13,7 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
 
   let(:user) do
-    user = User.setup_system_user
-    user.coc_codes = ['MA-500']
-    user
+    User.setup_system_user
   end
 
   let(:dq_filter) do
