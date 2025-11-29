@@ -66,6 +66,7 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
+      # puts "started add_apr_clients at #{Time.current.strftime("%H:%M:%S")}"
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
         # Pre-calculate some values
@@ -510,6 +511,7 @@ module HudApr::Generators::Shared::Fy2026
           report_ce_event_universe.import(events)
         end
       end
+      # puts "completed add_apr_clients at #{Time.current.strftime("%H:%M:%S")}"
     end
 
     private def apr_client_dob_quality(source_client)

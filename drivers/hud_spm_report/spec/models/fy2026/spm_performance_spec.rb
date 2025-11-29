@@ -9,6 +9,14 @@
 require 'rails_helper'
 require_relative './shared_context'
 
+# exercise the SPM to identify performance issues.
+# "standard": about 100 enrollments
+# "large": about 1,200 enrollments
+# Note:
+# the large data sets are expensive to run (almost entirely due to RebuildEnrollmentsByBatchJob, which is not part of the report but is needed to get the data setup). These expensive specs do not run by default, but can be run with by calling it by line number:
+# `rspec ./drivers/hud_spm_report/spec/models/fy2026/spm_performance_spec.rb:line`
+#
+
 RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
   include_context 'SPM test setup'
 
@@ -62,12 +70,10 @@ RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
       create_income_benefits: create_income_benefits,
       include_move_in: include_move_in,
     )
-    # puts "started RebuildEnrollmentsByBatchJob at #{Time.current.strftime("%H:%M:%S")}"
     ServiceHistory::RebuildEnrollmentsByBatchJob.new(
       enrollment_ids: GrdaWarehouse::Tasks::ServiceHistory::Enrollment.pluck(:id),
       progress: false,
     ).perform
-    # puts "started ServiceHistoryServiceMaterialized at #{Time.current.strftime("%H:%M:%S")}"
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
     raise 'expected all enrollments to be processed' unless GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.count.zero?
 
@@ -166,9 +172,7 @@ RSpec.describe 'FY2026 SPM MeasureOne performance budget', type: :model, exclude
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: true do
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
     let(:measure_one_config) { { query_count: 260 } }
@@ -206,9 +210,7 @@ RSpec.describe 'FY2026 SPM MeasureTwo performance budget', type: :model, exclude
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: 'expensive test' do
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
     let(:enrollment_set_query_count) { 63 }
@@ -239,9 +241,7 @@ RSpec.describe 'FY2026 SPM MeasureThree performance budget', type: :model, exclu
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: 'expensive test' do
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
 
@@ -263,9 +263,7 @@ RSpec.describe 'FY2026 SPM MeasureFour performance budget', type: :model, exclud
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: 'expensive test' do
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
 
@@ -301,11 +299,9 @@ RSpec.describe 'FY2026 SPM MeasureFive performance budget', type: :model, exclud
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: 'expensive test' do
     let(:household_count) { 100 }
-    # let(:enrollments_per_member) { 2 }
+    let(:enrollments_per_member) { 2 }
 
     include_examples 'SPM performance budget validation'
   end
@@ -350,9 +346,7 @@ RSpec.describe 'FY2026 SPM MeasureSeven performance budget', type: :model, exclu
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: 'expensive test' do
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
 
@@ -383,9 +377,7 @@ RSpec.describe 'FY2026 SPM HdxUpload performance budget', type: :model, exclude_
     include_examples 'SPM performance budget validation'
   end
 
-  context 'with large dataset' do
-    skip 'expensive test - enable by removing skip'
-
+  context 'with large dataset', skip: 'expensive test' do
     let(:household_count) { 200 }
     let(:enrollments_per_member) { 2 }
 

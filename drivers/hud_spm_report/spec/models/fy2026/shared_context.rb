@@ -382,7 +382,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     end
 
     # Bulk create income benefits
-    bulk_create_income_benefits(enrollments: enrollments, base_entry_date: base_entry_date) if create_income_benefits
+    bulk_create_income_benefits(enrollments: enrollments) if create_income_benefits
   end
 
   def bulk_create_coc_funders(projects:, start_date:)

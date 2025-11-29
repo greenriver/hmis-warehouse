@@ -12,7 +12,11 @@ require_relative '../../../../../../spec/shared_contexts/hud_enrollment_builders
 RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
 
-  let(:user) { User.setup_system_user }
+  let(:user) do
+    user = User.setup_system_user
+    user.coc_codes = ['MA-500']
+    user
+  end
 
   let(:dq_filter) do
     Filters::HudFilterBase.new(
