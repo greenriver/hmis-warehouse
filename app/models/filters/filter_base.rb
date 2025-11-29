@@ -821,7 +821,7 @@ module Filters
     end
 
     def project_type_code_options_for_select
-      HudHelper.util.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+      HudHelper.util.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.invert.freeze
     end
 
     def project_options_for_select(user:)
