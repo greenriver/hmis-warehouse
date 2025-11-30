@@ -77,24 +77,27 @@ module HudReports
     #
     # @param members [Hash<Client, ReportClientBase] the members to be associated with this cell
     def add_universe_members(members)
-      UniverseMember.import!(
-        members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
-        validate: false,
-        on_duplicate_key_ignore: true,
-      )
+      rows = members.map do |client, universe_client|
+        row = new_member(warehouse_client: client, universe_client: universe_client)
+        raise ArgumentError, "could not determine universe member type #{client.class}" unless row
+
+        row
+      end
+      UniverseMember.import!(rows, validate: false, on_duplicate_key_ignore: true)
     end
 
     # Add members to the universe of this cell
     #
-    # @param members [Hash<Client | Integer>, ReportClientBase] the members to be associated with this cell
+    # @param members [Hash<Integer>, ReportClientBase] the members to be associated with this cell
     def add_universe_members_from_client_ids(members)
-      # if the keys of members are integers, assume they are clients ids
       clients_by_id = GrdaWarehouse::Hud::Client.
         select(:id, :first_name, :last_name).
         where(id: members.keys).
         index_by(&:id)
 
       rows = members.map do |key, universe_client|
+        raise ArgumentError, "invalid member key of type #{key.class}" unless key.is_a?(Integer)
+
         client = clients_by_id.fetch(key)
         new_member(warehouse_client: client, universe_client: universe_client)
       end
