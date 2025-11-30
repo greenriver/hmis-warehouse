@@ -117,7 +117,7 @@ RSpec.shared_examples 'APR performance budget validation' do
       # Verify APR clients were created
       apr_clients = HudApr::Fy2020::AprClient.where(report_instance_id: report.id)
       expect(apr_clients.count).to eq(expected_apr_client_count)
-      puts "total APR clients: #{expected_apr_client_count}"
+      # puts "total APR clients: #{expected_apr_client_count}"
 
       opts = { range: range }
 

@@ -34,12 +34,20 @@ module HudReports::Incomes
       #   b. and the lesser of (30 days after the [anniversary date], [report end date])
 
       anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
+      date_range = anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min
 
-      enrollment.send(assessment_relation).
-        where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
-        select do |i|
-        i.InformationDate <= report_end_date
-      end.max_by(&:InformationDate)
+      # Check if association is loaded. If so, filter in memory to avoid N+1 queries.
+      # Note: This assumes the association was preloaded without additional date filtering.
+      if enrollment.association(assessment_relation).loaded?
+        enrollment.send(assessment_relation).select do |i|
+          i.InformationDate.in?(date_range) && i.InformationDate <= report_end_date
+        end.max_by(&:InformationDate)
+      else
+        enrollment.send(assessment_relation).
+          where(InformationDate: date_range).
+          select { |i| i.InformationDate <= report_end_date }.
+          max_by(&:InformationDate)
+      end
     end
 
     private def income_sources(income)
