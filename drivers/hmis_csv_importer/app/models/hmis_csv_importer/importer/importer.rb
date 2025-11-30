@@ -870,11 +870,7 @@ module HmisCsvImporter::Importer
           end
         end
 
-        # If we tracked any dirty enrollments, we can mark them all dirty now
-        if klass.hud_key == :ExitID
-          GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
-            update_all(processed_as: nil)
-        end
+        flush_dirty_enrollments_for_exit(klass)
         Rails.logger.info "Completed applying updates for #{file_name}"
       end
       records = summary_for(file_name, 'updated') || 0
@@ -930,11 +926,7 @@ module HmisCsvImporter::Importer
           process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
         end
 
-        # If we tracked any dirty enrollments (from Exit augmentation), bulk update them now
-        if klass.hud_key == :ExitID && dirty_enrollment_ids.present?
-          GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
-            update_all(processed_as: nil)
-        end
+        flush_dirty_enrollments_for_exit(klass)
 
         Rails.logger.info "Completed applying augmentation updates for #{file_name}"
       end
@@ -1058,6 +1050,22 @@ module HmisCsvImporter::Importer
 
     private def dirty_enrollment_ids
       @track_dirty_enrollment
+    end
+
+    private def clear_dirty_enrollment_ids
+      @track_dirty_enrollment = nil
+    end
+
+    # Flush tracked dirty enrollments to the database and clear the tracking set
+    # Used after processing Exit records to mark associated enrollments for reprocessing
+    private def flush_dirty_enrollments_for_exit(klass)
+      return unless klass.hud_key == :ExitID
+      return unless dirty_enrollment_ids.present?
+
+      GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
+        update_all(processed_as: nil)
+      # Clear the set to prevent duplicate processing if multiple Exit files are imported
+      clear_dirty_enrollment_ids
     end
 
     private def import_options(klass, columns)
