@@ -831,9 +831,7 @@ module HmisCsvImporter::Importer
             importer_log_id: @importer_log.id,
             klass.hud_key => hud_keys,
           ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-            destination = source.as_destination_record
-            prepare_destination_for_update(klass, destination)
-            batch << destination
+            batch << prepare_destination_for_update(klass, source.as_destination_record)
             if batch.count == INSERT_BATCH_SIZE
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
               # so these must be processed more slowly
@@ -909,9 +907,7 @@ module HmisCsvImporter::Importer
           source_batch.each do |source|
             next unless valid_keys.include?(source[klass.hud_key])
 
-            destination = source.as_destination_record
-            prepare_destination_for_update(klass, destination)
-            batch << destination
+            batch << prepare_destination_for_update(klass, source.as_destination_record)
 
             next unless batch.count == INSERT_BATCH_SIZE
 
@@ -943,10 +939,28 @@ module HmisCsvImporter::Importer
       end
     end
 
+    ##
+    # Prepares a destination record for updating during the import process.
+    #
+    # This method modifies the destination record by:
+    # - Removing the pending deletion flag
+    # - Ensuring the correct data source ID is set
+    # - Marking the record dirty based on its type (Client, Enrollment, or Exit)
+    #
+    # Side effects:
+    # - For Client records: sets demographic_dirty flag and tracks client ID for post-processing
+    # - For Enrollment records: clears processed_as to trigger service history regeneration
+    # - For Exit records: tracks enrollment ID for batch update of associated enrollments
+    #
+    # @param klass [Class] The source class being processed
+    # @param destination [ActiveRecord::Base] The destination record to prepare
+    # @return [ActiveRecord::Base] The prepared destination record
+    #
     private def prepare_destination_for_update(klass, destination)
       destination.pending_date_deleted = nil
       destination.data_source_id = data_source.id
       mark_record_dirty(klass, destination)
+      destination
     end
 
     private def mark_record_dirty(klass, destination)
