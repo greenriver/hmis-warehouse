@@ -40,12 +40,11 @@ module HudReports::Incomes
       # Note: This assumes the association was preloaded without additional date filtering.
       if enrollment.association(assessment_relation).loaded?
         enrollment.send(assessment_relation).select do |i|
-          i.InformationDate.in?(date_range) && i.InformationDate <= report_end_date
+          date_range.cover?(i.InformationDate)
         end.max_by(&:InformationDate)
       else
         enrollment.send(assessment_relation).
           where(InformationDate: date_range).
-          select { |i| i.InformationDate <= report_end_date }.
           max_by(&:InformationDate)
       end
     end

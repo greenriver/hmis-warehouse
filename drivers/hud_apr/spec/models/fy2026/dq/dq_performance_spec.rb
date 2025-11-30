@@ -8,10 +8,10 @@
 
 require 'rails_helper'
 require_relative './shared_context'
-require_relative '../../../../../../drivers/hud_spm_report/spec/models/fy2026/shared_context'
+require_relative '../../../../../../spec/shared_contexts/hud_report_performance_helpers'
 
 RSpec.shared_context 'APR performance dataset', shared_context: :metadata do
-  include_context 'SPM test setup'
+  include_context 'HUD report performance helpers'
   include_context 'HUD DQ FY2026 setup'
 
   let(:projects) do

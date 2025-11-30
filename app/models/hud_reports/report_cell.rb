@@ -86,7 +86,7 @@ module HudReports
 
     # Add members to the universe of this cell
     #
-    # @param members [Hash<Client | Integer, ReportClientBase] the members to be associated with this cell
+    # @param members [Hash<Client | Integer>, ReportClientBase] the members to be associated with this cell
     def add_universe_members_from_client_ids(members)
       # if the keys of members are integers, assume they are clients ids
       clients_by_id = GrdaWarehouse::Hud::Client.

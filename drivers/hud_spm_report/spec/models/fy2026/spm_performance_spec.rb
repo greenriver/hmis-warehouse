@@ -189,7 +189,6 @@ RSpec.describe 'FY2026 SPM MeasureTwo performance budget', type: :model, exclude
   let(:measure_two_config) { { query_count: 415 } }
   let(:household_count) { 5 }
   let(:measure_two_pattern) { true }
-  let(:expected_spm_enrollment_count) { super() * 2 }
   let(:expected_spm_enrollment_count) do
     (household_count * members_per_household * enrollments_per_member) * 2
   end

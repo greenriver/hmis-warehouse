@@ -30,7 +30,7 @@ RSpec.shared_context 'HUD report test helpers', shared_context: :metadata do
         end: end_date,
         coc_codes: coc_codes,
         enforce_one_year_range: enforce_one_year_range,
-      }.merge(additional_options)
+      }.merge(additional_options),
     )
   end
 
