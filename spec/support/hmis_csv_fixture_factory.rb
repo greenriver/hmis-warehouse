@@ -9,12 +9,13 @@
 require 'csv'
 require 'fileutils'
 
-# Factory for programmatically building HMIS CSV fixture bundles.
-# Generates a temp directory with Export.csv, Organization.csv, Project.csv,
-# ProjectCoC.csv, User.csv, Client.csv, Enrollment.csv, and optional custom files.
+# Factory for programmatically building versioned HMIS CSV fixture bundles.
+# Uses HudHelper.util(version) and HmisStructure modules to generate fixtures that match HUD specifications.
+#
+# Supported HUD CSV versions: 2020, 2022, 2024, 2026 (default: 2026)
 #
 # Usage:
-#   factory = HmisCsvFixtureFactory.new
+#   factory = HmisCsvFixtureFactory.new(version: '2026')
 #   factory.export_start_date = Date.new(2024, 1, 1)
 #   factory.export_end_date = Date.new(2024, 3, 31)
 #   factory.add_client(personal_id: 'client-1', first_name: 'Test', last_name: 'User')
@@ -28,8 +29,11 @@ class HmisCsvFixtureFactory
   attr_accessor :export_id, :export_start_date, :export_end_date, :export_date
   attr_accessor :organization_id, :organization_name
   attr_accessor :project_id, :project_name, :project_type, :coc_code
+  attr_reader :version
 
-  def initialize
+  def initialize(version: '2026')
+    @version = version
+    @util = HudHelper.util(version) # Access HUD utility methods (e.g., @util.project_type(1))
     @export_id = SecureRandom.hex(16)
     @export_start_date = Date.new(2024, 1, 1)
     @export_end_date = Date.new(2024, 3, 31)
@@ -118,157 +122,148 @@ class HmisCsvFixtureFactory
     @timestamp ||= Time.current.strftime('%Y-%m-%d %H:%M:%S')
   end
 
+  # Convert snake_case to PascalCase with proper acronym handling (e.g., enrollment_id -> EnrollmentID)
+  def camelize_hud_key(key)
+    key.to_s.camelize.gsub(/Id$/, 'ID')
+  end
+
+  # Build a CSV row with defaults from HmisStructure configuration
+  # Column order is preserved from hmis_configuration to ensure correct CSV output
+  def build_row(model_class, overrides = {})
+    config = model_class.hmis_configuration(version: @version)
+    normalized_overrides = overrides.transform_keys(&:to_s)
+
+    # Build row maintaining column order from config
+    config.transform_keys(&:to_s).each_with_object({}) do |(key, spec), row|
+      row[key] = normalized_overrides.fetch(key) { default_value_for_column(key, spec[:type]) }
+    end
+  end
+
+  # Generate appropriate default values based on column name and type
+  # Special handling for audit fields (DateCreated, DateUpdated) vs DateDeleted
+  def default_value_for_column(column_name, type)
+    case type
+    when :datetime
+      # Only populate audit timestamps, leave DateDeleted empty
+      ['DateCreated', 'DateUpdated'].include?(column_name) ? timestamp : ''
+    else
+      '' # All other types default to empty string
+    end
+  end
+
   def write_export_csv(dir)
-    row = {
-      'ExportID' => @export_id,
-      'SourceType' => 3,
-      'SourceID' => '',
-      'SourceName' => 'Test Warehouse',
-      'SourceContactFirst' => 'Automated',
-      'SourceContactLast' => 'Export',
-      'SourceContactPhone' => '',
-      'SourceContactExtension' => '',
-      'SourceContactEmail' => '',
-      'ExportDate' => @export_date.strftime('%Y-%m-%d %H:%M:%S'),
-      'ExportStartDate' => @export_start_date.strftime('%Y-%m-%d'),
-      'ExportEndDate' => @export_end_date.strftime('%Y-%m-%d'),
-      'SoftwareName' => 'Test HMIS',
-      'SoftwareVersion' => '1',
-      'CSVVersion' => '2026 v1.0',
-      'ExportPeriodType' => 3,
-      'ExportDirective' => 3,
-      'HashStatus' => 1,
-      'ImplementationID' => 'Test Warehouse',
-    }
+    row = build_row(GrdaWarehouse::Hud::Export, {
+                      'ExportID' => @export_id,
+                      'SourceType' => 3,
+                      'SourceName' => 'Test Warehouse',
+                      'SourceContactFirst' => 'Automated',
+                      'SourceContactLast' => 'Export',
+                      'ExportDate' => @export_date.strftime('%Y-%m-%d %H:%M:%S'),
+                      'ExportStartDate' => @export_start_date.strftime('%Y-%m-%d'),
+                      'ExportEndDate' => @export_end_date.strftime('%Y-%m-%d'),
+                      'SoftwareName' => 'Test HMIS',
+                      'SoftwareVersion' => '1',
+                      'ExportPeriodType' => 3,
+                      'ExportDirective' => 3,
+                      'HashStatus' => 1,
+                    })
+
+    # Add version-specific fields
+    csv_version_label = @version == '2026' ? '2026 v1.0' : @version
+    row['CSVVersion'] = csv_version_label if @version.in?(['2022', '2024', '2026'])
+    row['ImplementationID'] = 'Test Warehouse' if @version.in?(['2024', '2026'])
+
     write_csv_from_hashes(dir, 'Export.csv', [row])
   end
 
   def write_organization_csv(dir)
-    row = {
-      'OrganizationID' => @organization_id,
-      'OrganizationName' => @organization_name,
-      'VictimServiceProvider' => '',
-      'OrganizationCommonName' => '',
-      'DateCreated' => timestamp,
-      'DateUpdated' => timestamp,
-      'UserID' => 'user-1',
-      'DateDeleted' => '',
-      'ExportID' => @export_id,
-    }
+    row = build_row(GrdaWarehouse::Hud::Organization, {
+                      'OrganizationID' => @organization_id,
+                      'OrganizationName' => @organization_name,
+                      'VictimServiceProvider' => 0,
+                      'DateCreated' => timestamp,
+                      'DateUpdated' => timestamp,
+                      'UserID' => 'user-1',
+                      'ExportID' => @export_id,
+                    })
     write_csv_from_hashes(dir, 'Organization.csv', [row])
   end
 
   def write_project_csv(dir)
-    row = {
-      'ProjectID' => @project_id,
-      'OrganizationID' => @organization_id,
-      'ProjectName' => @project_name,
-      'ProjectCommonName' => '',
-      'OperatingStartDate' => '',
-      'OperatingEndDate' => '',
-      'ContinuumProject' => 0,
-      'ProjectType' => @project_type,
-      'HousingType' => '',
-      'RRHSubType' => '',
-      'ResidentialAffiliation' => '',
-      'TargetPopulation' => 4,
-      'HOPWAMedAssistedLivingFac' => '',
-      'PITCount' => '',
-      'DateCreated' => timestamp,
-      'DateUpdated' => timestamp,
-      'UserID' => 'user-1',
-      'DateDeleted' => '',
-      'ExportID' => @export_id,
-    }
+    row = build_row(GrdaWarehouse::Hud::Project, {
+                      'ProjectID' => @project_id,
+                      'OrganizationID' => @organization_id,
+                      'ProjectName' => @project_name,
+                      'OperatingStartDate' => @export_start_date.strftime('%Y-%m-%d'),
+                      'ContinuumProject' => 0,
+                      'ProjectType' => @project_type,
+                      'TargetPopulation' => 4,
+                      'DateCreated' => timestamp,
+                      'DateUpdated' => timestamp,
+                      'UserID' => 'user-1',
+                      'ExportID' => @export_id,
+                    })
     write_csv_from_hashes(dir, 'Project.csv', [row])
   end
 
   def write_project_coc_csv(dir)
-    row = {
-      'ProjectCoCID' => "coc-#{@project_id}",
-      'ProjectID' => @project_id,
-      'CoCCode' => @coc_code,
-      'Geocode' => '',
-      'Address1' => '',
-      'Address2' => '',
-      'City' => '',
-      'State' => '',
-      'Zip' => '',
-      'GeographyType' => '',
-      'DateCreated' => timestamp,
-      'DateUpdated' => timestamp,
-      'UserID' => 'user-1',
-      'DateDeleted' => '',
-      'ExportID' => @export_id,
-    }
+    row = build_row(GrdaWarehouse::Hud::ProjectCoc, {
+                      'ProjectCoCID' => "coc-#{@project_id}",
+                      'ProjectID' => @project_id,
+                      'CoCCode' => @coc_code,
+                      'Geocode' => @coc_code, # Required field, use CoC code as geocode
+                      'DateCreated' => timestamp,
+                      'DateUpdated' => timestamp,
+                      'UserID' => 'user-1',
+                      'ExportID' => @export_id,
+                    })
     write_csv_from_hashes(dir, 'ProjectCoC.csv', [row])
   end
 
   def write_user_csv(dir)
-    row = {
-      'UserID' => 'user-1',
-      'UserFirstName' => 'Test',
-      'UserLastName' => 'User',
-      'UserPhone' => '',
-      'UserExtension' => '',
-      'UserEmail' => 'test@example.com',
-      'DateCreated' => timestamp,
-      'DateUpdated' => timestamp,
-      'DateDeleted' => '',
-      'ExportID' => @export_id,
-    }
+    row = build_row(GrdaWarehouse::Hud::User, {
+                      'UserID' => 'user-1',
+                      'UserFirstName' => 'Test',
+                      'UserLastName' => 'User',
+                      'UserEmail' => 'test@example.com',
+                      'DateCreated' => timestamp,
+                      'DateUpdated' => timestamp,
+                      'ExportID' => @export_id,
+                    })
     write_csv_from_hashes(dir, 'User.csv', [row])
   end
 
   def write_client_csv(dir)
     rows = @clients.map do |c|
-      {
+      build_row(GrdaWarehouse::Hud::Client, {
         'PersonalID' => c[:personal_id],
         'FirstName' => c[:first_name],
-        'MiddleName' => '',
         'LastName' => c[:last_name],
-        'NameSuffix' => '',
-        'NameDataQuality' => '',
-        'SSN' => '',
+        'NameDataQuality' => 99,
         'SSNDataQuality' => 99,
         'DOB' => c[:dob].strftime('%Y-%m-%d'),
         'DOBDataQuality' => 99,
-        'Sex' => '',
         'AmIndAKNative' => 0,
         'Asian' => 0,
         'BlackAfAmerican' => 0,
-        'HispanicLatinao' => 0,
+        'HispanicLatinaeo' => 0,
         'MidEastNAfrican' => 0,
         'NativeHIPacific' => 0,
         'White' => 0,
         'RaceNone' => 99,
-        'AdditionalRaceEthnicity' => '',
         'VeteranStatus' => 99,
-        'YearEnteredService' => '',
-        'YearSeparated' => '',
-        'WorldWarII' => '',
-        'KoreanWar' => '',
-        'VietnamWar' => '',
-        'DesertStorm' => '',
-        'AfghanistanOEF' => '',
-        'IraqOIF' => '',
-        'IraqOND' => '',
-        'OtherTheater' => '',
-        'MilitaryBranch' => '',
-        'DischargeStatus' => '',
         'DateCreated' => timestamp,
         'DateUpdated' => timestamp,
         'UserID' => 'user-1',
-        'DateDeleted' => '',
         'ExportID' => @export_id,
-      }
+      }.merge(c.except(:personal_id, :first_name, :last_name, :dob)))
     end
     write_csv_from_hashes(dir, 'Client.csv', rows)
   end
 
   def write_enrollment_csv(dir)
     rows = @enrollments.map do |e|
-      {
+      build_row(GrdaWarehouse::Hud::Enrollment, {
         'EnrollmentID' => e[:enrollment_id],
         'PersonalID' => e[:personal_id],
         'ProjectID' => e[:project_id],
@@ -277,144 +272,63 @@ class HmisCsvFixtureFactory
         'RelationshipToHoH' => 1,
         'EnrollmentCoC' => @coc_code,
         'LivingSituation' => 116,
-        'RentalSubsidyType' => '',
-        'LengthOfStay' => '',
-        'LOSUnderThreshold' => '',
-        'PreviousStreetESSH' => '',
-        'DateToStreetESSH' => '',
-        'TimesHomelessPastThreeYears' => '',
-        'MonthsHomelessPastThreeYears' => '',
         'DisablingCondition' => 99,
-        'DateOfEngagement' => '',
-        'MoveInDate' => '',
-        'DateOfPATHStatus' => '',
-        'ClientEnrolledInPATH' => '',
-        'ReasonNotEnrolled' => '',
-        'PercentAMI' => '',
-        'ReferralSource' => '',
-        'CountOutreachReferralApproaches' => '',
-        'DateOfBCPStatus' => '',
-        'EligibleForRHY' => '',
-        'ReasonNoServices' => '',
-        'RunawayYouth' => '',
-        'FormerWardChildWelfare' => '',
-        'ChildWelfareYears' => '',
-        'ChildWelfareMonths' => '',
-        'FormerWardJuvenileJustice' => '',
-        'JuvenileJusticeYears' => '',
-        'JuvenileJusticeMonths' => '',
-        'UnemploymentFam' => '',
-        'MentalHealthDisorderFam' => '',
-        'PhysicalDisabilityFam' => '',
-        'AlcoholDrugUseDisorderFam' => '',
-        'InsufficientIncome' => '',
-        'IncarceratedParent' => '',
-        'VAMCStation' => '',
-        'TargetScreenReqd' => '',
-        'TimeToHousingLoss' => '',
-        'AnnualPercentAMI' => '',
-        'LiteralHomelessHistory' => '',
-        'ClientLeaseholder' => '',
-        'HOHLeaseholder' => '',
-        'SubsidyAtRisk' => '',
-        'EvictionHistory' => '',
-        'CriminalRecord' => '',
-        'IncarceratedAdult' => '',
-        'PrisonDischarge' => '',
-        'SexOffender' => '',
-        'DisabledHoH' => '',
-        'CurrentPregnant' => '',
-        'SingleParent' => '',
-        'DependentUnder6' => '',
-        'HH5Plus' => '',
-        'CoCPrioritized' => '',
-        'HPScreeningScore' => '',
-        'ThresholdScore' => '',
-        'MentalHealthConsultation' => '',
         'DateCreated' => timestamp,
         'DateUpdated' => timestamp,
         'UserID' => 'user-1',
-        'DateDeleted' => '',
         'ExportID' => @export_id,
-      }
+      }.merge(e.except(:enrollment_id, :personal_id, :project_id, :entry_date, :household_id)))
     end
     write_csv_from_hashes(dir, 'Enrollment.csv', rows)
   end
 
   def write_custom_enrollment_augmentation_csv(dir)
-    rows = @custom_enrollment_augmentations.map do |a|
-      {
-        'EnrollmentID' => a[:enrollment_id],
-        'PersonalID' => a[:personal_id],
-        'SexualOrientation' => a[:sexual_orientation] || '',
-        'SexualOrientationOther' => a[:sexual_orientation_other] || '',
-        'TranslationNeeded' => a[:translation_needed] || '',
-        'PreferredLanguage' => a[:preferred_language] || '',
-        'PreferredLanguageDifferent' => a[:preferred_language_different] || '',
+    rows = @custom_enrollment_augmentations.map do |attrs|
+      build_row(HmisCsvTwentyTwentySix::Importer::Custom::CustomEnrollmentFy26Deprecation, {
         'DateCreated' => timestamp,
         'DateUpdated' => timestamp,
         'UserID' => 'user-1',
-        'DateDeleted' => '',
         'ExportID' => @export_id,
-      }
+      }.merge(attrs.transform_keys { |k| camelize_hud_key(k) }))
     end
     write_csv_from_hashes(dir, 'CustomEnrollmentFY26Deprecations.csv', rows)
   end
 
   def write_custom_gender_csv(dir)
-    rows = @custom_gender_augmentations.map do |a|
-      {
-        'PersonalID' => a[:personal_id],
-        'Woman' => a[:woman] || '',
-        'Man' => a[:man] || '',
-        'NonBinary' => a[:non_binary] || '',
-        'CulturallySpecific' => a[:culturally_specific] || '',
-        'Transgender' => a[:transgender] || '',
-        'Questioning' => a[:questioning] || '',
-        'DifferentIdentity' => a[:different_identity] || '',
-        'GenderNone' => a[:gender_none] || '',
-        'DifferentIdentityText' => a[:different_identity_text] || '',
+    rows = @custom_gender_augmentations.map do |attrs|
+      build_row(HmisCsvTwentyTwentySix::Importer::Custom::CustomGender, {
         'DateCreated' => timestamp,
         'DateUpdated' => timestamp,
         'UserID' => 'user-1',
-        'DateDeleted' => '',
         'ExportID' => @export_id,
-      }
+      }.merge(attrs.transform_keys { |k| camelize_hud_key(k) }))
     end
     write_csv_from_hashes(dir, 'CustomGender.csv', rows)
   end
 
   # Write empty placeholder files for required HUD tables we don't populate
   def write_empty_files(dir)
-    empty_files = [
-      'Affiliation.csv', 'Assessment.csv', 'AssessmentQuestions.csv', 'AssessmentResults.csv', 'CEParticipation.csv', 'CurrentLivingSituation.csv', 'EmploymentEducation.csv', 'Event.csv', 'Exit.csv', 'Funder.csv', 'HMISParticipation.csv', 'Inventory.csv', 'Services.csv', 'YouthEducationStatus.csv'
-    ]
-    empty_files.each do |filename|
-      # Write just headers for these files
-      write_empty_hud_file(dir, filename)
-    end
-  end
-
-  def write_empty_hud_file(dir, filename)
-    # Minimal headers for empty HUD files
-    headers_map = {
-      'Affiliation.csv' => ['AffiliationID', 'ProjectID', 'ResProjectID', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'Assessment.csv' => ['AssessmentID', 'EnrollmentID', 'PersonalID', 'AssessmentDate', 'AssessmentLocation', 'AssessmentType', 'AssessmentLevel', 'PrioritizationStatus', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'AssessmentQuestions.csv' => ['AssessmentQuestionID', 'AssessmentID', 'EnrollmentID', 'PersonalID', 'AssessmentQuestionGroup', 'AssessmentQuestionOrder', 'AssessmentQuestion', 'AssessmentAnswer', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'AssessmentResults.csv' => ['AssessmentResultID', 'AssessmentID', 'EnrollmentID', 'PersonalID', 'AssessmentResultType', 'AssessmentResult', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'CEParticipation.csv' => ['CEParticipationID', 'ProjectID', 'AccessPoint', 'PreventionAssessment', 'CrisisAssessment', 'HousingAssessment', 'DirectServices', 'ReceivesReferrals', 'CEParticipationStatusStartDate', 'CEParticipationStatusEndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'CurrentLivingSituation.csv' => ['CurrentLivingSitID', 'EnrollmentID', 'PersonalID', 'InformationDate', 'CurrentLivingSituation', 'CLSSubsidyType', 'VerifiedBy', 'LeaveSituation14Days', 'SubsequentResidence', 'ResourcesToObtain', 'LeaseOwn60Day', 'MovedTwoOrMore', 'LocationDetails', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'EmploymentEducation.csv' => ['EmploymentEducationID', 'EnrollmentID', 'PersonalID', 'InformationDate', 'LastGradeCompleted', 'SchoolStatus', 'Employed', 'EmploymentType', 'NotEmployedReason', 'DataCollectionStage', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'Event.csv' => ['EventID', 'EnrollmentID', 'PersonalID', 'EventDate', 'Event', 'ProbSolDivRRResult', 'ReferralCaseManageAfter', 'LocationCrisisorPHHousing', 'ReferralResult', 'ResultDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'Exit.csv' => ['ExitID', 'EnrollmentID', 'PersonalID', 'ExitDate', 'Destination', 'OtherDestination', 'HousingAssessment', 'SubsidyInformation', 'ProjectCompletionStatus', 'EarlyExitReason', 'ExchangeForSex', 'ExchangeForSexPastThreeMonths', 'CountOfExchangeForSex', 'AskedOrForcedToExchangeForSex', 'AskedOrForcedToExchangeForSexPastThreeMonths', 'WorkplaceViolenceThreats', 'WorkplacePromiseDifference', 'CoercedToContinueWork', 'LaborExploitPastThreeMonths', 'CounselingReceived', 'IndividualCounseling', 'FamilyCounseling', 'GroupCounseling', 'SessionCountAtExit', 'PostExitCounselingPlan', 'SessionsInPlan', 'DestinationSafeClient', 'DestinationSafeWorker', 'PosAdultConnections', 'PosPeerConnections', 'PosCommunityConnections', 'AftercareDate', 'AftercareProvided', 'EmailSocialMedia', 'Telephone', 'InPersonIndividual', 'InPersonGroup', 'CMExitReason', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'Funder.csv' => ['FunderID', 'ProjectID', 'Funder', 'OtherFunder', 'GrantID', 'StartDate', 'EndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'HMISParticipation.csv' => ['HMISParticipationID', 'ProjectID', 'HMISParticipationType', 'HMISParticipationStatusStartDate', 'HMISParticipationStatusEndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'Inventory.csv' => ['InventoryID', 'ProjectID', 'CoCCode', 'HouseholdType', 'Availability', 'UnitInventory', 'BedInventory', 'CHVetBedInventory', 'YouthVetBedInventory', 'VetBedInventory', 'CHYouthBedInventory', 'YouthBedInventory', 'CHBedInventory', 'OtherBedInventory', 'ESBedType', 'InventoryStartDate', 'InventoryEndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'Services.csv' => ['ServicesID', 'EnrollmentID', 'PersonalID', 'DateProvided', 'RecordType', 'TypeProvided', 'OtherTypeProvided', 'SubTypeProvided', 'FAAmount', 'ReferralOutcome', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
-      'YouthEducationStatus.csv' => ['YouthEducationStatusID', 'EnrollmentID', 'PersonalID', 'InformationDate', 'CurrentSchoolAttend', 'MostRecentEdStatus', 'CurrentEdStatus', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+    empty_models = {
+      'Affiliation.csv' => GrdaWarehouse::Hud::Affiliation,
+      'Assessment.csv' => GrdaWarehouse::Hud::Assessment,
+      'AssessmentQuestions.csv' => GrdaWarehouse::Hud::AssessmentQuestion,
+      'AssessmentResults.csv' => GrdaWarehouse::Hud::AssessmentResult,
+      'CEParticipation.csv' => GrdaWarehouse::Hud::CeParticipation,
+      'CurrentLivingSituation.csv' => GrdaWarehouse::Hud::CurrentLivingSituation,
+      'EmploymentEducation.csv' => GrdaWarehouse::Hud::EmploymentEducation,
+      'Event.csv' => GrdaWarehouse::Hud::Event,
+      'Exit.csv' => GrdaWarehouse::Hud::Exit,
+      'Funder.csv' => GrdaWarehouse::Hud::Funder,
+      'HMISParticipation.csv' => GrdaWarehouse::Hud::HmisParticipation,
+      'Inventory.csv' => GrdaWarehouse::Hud::Inventory,
+      'Services.csv' => GrdaWarehouse::Hud::Service,
+      'YouthEducationStatus.csv' => GrdaWarehouse::Hud::YouthEducationStatus,
     }
-    headers = headers_map[filename] || ['ID']
-    write_csv(dir, filename, headers, [])
+
+    empty_models.each do |filename, model_class|
+      headers = model_class.hmis_configuration(version: @version).keys.map(&:to_s)
+      write_csv(dir, filename, headers, [])
+    end
   end
 
   def write_csv_from_hashes(dir, filename, rows_of_hashes)
