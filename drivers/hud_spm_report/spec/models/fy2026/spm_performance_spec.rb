@@ -13,8 +13,7 @@ require_relative './shared_context'
 # "standard": about 100 enrollments
 # "large": about 1,200 enrollments
 # Note:
-# the large data sets are expensive to run (almost entirely due to RebuildEnrollmentsByBatchJob, which is not part of the report but is needed to get the data setup). These expensive specs do not run by default, but can be run with by calling it by line number:
-# `rspec ./drivers/hud_spm_report/spec/models/fy2026/spm_performance_spec.rb:line`
+# the large data sets are expensive to run (almost entirely due to RebuildEnrollmentsByBatchJob, which is not part of the report but is needed to get the data setup). These expensive specs are disabled by default.
 #
 
 RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do

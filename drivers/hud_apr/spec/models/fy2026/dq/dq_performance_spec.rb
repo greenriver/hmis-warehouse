@@ -10,6 +10,10 @@ require 'rails_helper'
 require_relative './shared_context'
 require_relative '../../../../../../spec/shared_contexts/hud_report_performance_helpers'
 
+# Note:
+# the large data sets are expensive to run (almost entirely due to RebuildEnrollmentsByBatchJob, which is not part of the report but is needed to get the data setup). These expensive specs are disabled by default.
+#
+
 RSpec.shared_context 'APR performance dataset', shared_context: :metadata do
   include_context 'HUD report performance helpers'
   include_context 'HUD DQ FY2026 setup'
