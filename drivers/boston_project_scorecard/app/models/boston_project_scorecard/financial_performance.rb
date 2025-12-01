@@ -77,6 +77,12 @@ module BostonProjectScorecard
         0
       end
 
+      def supportive_services_score
+        return 0 unless supportive_services?
+
+        10
+      end
+
       def returned_funds_percent
         return unless returned_funds.present? && contracted_budget.present?
 

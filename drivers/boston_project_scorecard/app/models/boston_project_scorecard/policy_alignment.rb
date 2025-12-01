@@ -63,6 +63,27 @@ module BostonProjectScorecard
         # 6 points, divided by nuumber of options, round to 1 decimal place
         (vulnerable_subpopulations_served_value.length * (6 / vulnerable_subpopulations_served_options.length.to_f)).round(1)
       end
+
+      def substance_use_treatment_service_options
+        {
+          'Project\'s purpose is to provide substance use treatment for people experiencing homelessness, with required service and treatment participation' => 'Project\'s purpose is to provide substance use treatment for people experiencing homelessness, with required service and treatment participation',
+          'Substance use treatment is available on-site' => 'Substance use treatment is available on-site',
+          'Project will provide sober housing for people in recovery' => 'Project will provide sober housing for people in recovery',
+        }
+      end
+
+      def substance_use_treatment_service_value
+        return if substance_use_treatment_service.nil?
+
+        substance_use_treatment_service.reject(&:blank?)
+      end
+
+      def substance_use_treatment_service_score
+        return if substance_use_treatment_service_value.nil?
+
+        # 6 points, divided by nuumber of options, round to 1 decimal place
+        (substance_use_treatment_service_value.length * (6 / substance_use_treatment_service_options.length.to_f)).round(1)
+      end
     end
   end
 end

@@ -146,6 +146,8 @@ module BostonProjectScorecard
         :materials_concern,
         :lms_completed,
         :self_certified,
+        :supportive_services,
+        :returns_to_homelessness,
       ].freeze
     end
 
@@ -153,6 +155,7 @@ module BostonProjectScorecard
       [
         :subpopulations_served,
         :vulnerable_subpopulations_served,
+        :substance_use_treatment_service,
       ]
     end
 
@@ -195,6 +198,8 @@ module BostonProjectScorecard
         one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
         one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42')).to_f)
 
+        two_value = percentage(answer(apr, 'Q23c', 'B6') / (answer(apr, 'Q23c', 'B40') - answer(apr, 'Q23c', 'B42')).to_f)
+
         adult_with_earned_income_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
         employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
         other_increased_retained = answer(apr, 'Q19a1', 'D4') + answer(apr, 'Q19a1', 'E4') + answer(apr, 'Q19a1', 'F4') + answer(apr, 'Q19a2', 'D4') + answer(apr, 'Q19a2', 'E4') + answer(apr, 'Q19a2', 'F4')
@@ -210,6 +215,7 @@ module BostonProjectScorecard
             comparison_apr_id: comparison_apr.id,
             rrh_exits_to_ph: one_a_value,
             psh_stayers_or_to_ph: one_b_value,
+            returns_to_homelessness: two_value,
             increased_stayer_employment_income: percentage(answer(apr, 'Q19a1', 'J2')),
             increased_stayer_other_income: percentage(answer(apr, 'Q19a1', 'J4')),
             increased_leaver_employment_income: percentage(answer(apr, 'Q19a2', 'J2')),

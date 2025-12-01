@@ -11,12 +11,12 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 6}
+      %th.bg-info.align-middle.text-center{rowspan: 5}
         Project financial performance based on CoC/DND monitoring and invoicing
         %br
         .text-danger
           * These are done through the funding periods
-      %td 10. Invoice Timeliness
+      %td 11. Invoice Timeliness
       %td CoC monitoring report/ Agency external audit
       %th.align-middle.text-center{rowspan: 5}
         Weight
@@ -30,7 +30,7 @@
       %td= f.input :invoicing_timeliness, collection: @report.invoicing_timeliness_options, as: :pretty_boolean_group, label: "Choose one:"
       %td= @report.invoicing_timeliness_score
     %tr
-      %td 11. Invoice Accuracy
+      %td 12. Invoice Accuracy
       %td CoC monitoring report/ Agency external audit
       %td
         3 pts: Invoices regularly complete and accurate
@@ -42,7 +42,7 @@
       %td= @report.invoicing_accuracy_score
     %tr
       %td
-        12. Is the project efficient with funds? Is the cost per household served in the project (using the total grant award) aligned with the average cost per household across the CoC portfolio? ($19,497 per household for PSH and $14,022 per household for RRH)
+        13. Is the project efficient with funds? Is the cost per household served in the project (using the total grant award) aligned with the average cost per household across the CoC portfolio? ($19,497 per household for PSH and $14,022 per household for RRH)
       %td
         Project APR
         %br
@@ -62,7 +62,7 @@
       %td= @report.efficiency_score
     %tr
       %td
-        13. Required match based on project budget
+        14. Required match based on project budget
         %p
         Was the match reported at end of operating year greater than the minimum required?
       %td
@@ -77,7 +77,7 @@
       %td= @report.required_match_score
     %tr
       %td
-        14. Project Returns
+        15. Project Returns
         %p
         What % of unobligated funds in the most recent grant application year were returned?
       %td Most Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budget
