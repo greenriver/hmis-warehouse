@@ -171,15 +171,33 @@ module AcHmis
         end
 
         client = clients.sole
-        existing_mci_unique_id = client.ac_hmis_mci_unique_id&.value
+        existing_mci_unique_id_record = client.ac_hmis_mci_unique_id
+        existing_mci_unique_id = existing_mci_unique_id_record&.value
         # Perform any necessary updates to the MCI Unique ID:
         # Case 1: MCI Unique ID exists but doesn't match the value in the file. Update it to match the file, and log a warning.
         # Case 2: MCI Unique ID does not exist. Add it to the client.
         # Case 3: MCI Unique ID exists and matches the value in the file. Do nothing.
         if existing_mci_unique_id.present? && existing_mci_unique_id != mci_unique_id
-          warning_msg = "Row #{row_number}: Client found by MCI ID #{mci_id} but has different MCI Unique ID (#{existing_mci_unique_id} vs #{mci_unique_id}) - updating to match file"
-          @stats[:warnings] << warning_msg
           @stats[:mci_unique_id_mismatch] += 1
+          base_msg = "Row #{row_number}: Client##{client.id} found by MCI ID #{mci_id} but has different MCI Unique ID (#{existing_mci_unique_id} vs #{mci_unique_id})."
+          # If MCI Unique ID on the client was added in the past 6 months, don't update it. Retain the existing MCI Unique ID.
+          if existing_mci_unique_id_record.created_at > 6.months.ago
+            warning_msg = "#{base_msg} Existing MCI Unique ID was added in the past 6 months. Skipping."
+            @stats[:warnings] << warning_msg
+            puts "WARNING: #{warning_msg}"
+            return
+          end
+
+          # Safety Check: fuzzy identity match before linking this client to the specific MCI Unique ID (and un-linking the existing MCI Unique ID)
+          unless identity_match?(client, first_name, last_name, dob)
+            warning_msg = "#{base_msg} IDENTITY MISMATCH - Name/DOB differs significantly. File: #{first_name} #{last_name} (#{dob}), DB: #{client.first_name} #{client.last_name} (#{client.dob}). Skipping."
+            @stats[:warnings] << warning_msg
+            puts "WARNING: #{warning_msg}"
+            return
+          end
+
+          warning_msg = "#{base_msg} Identity match confirmed, updating MCI Unique ID to match file."
+          @stats[:warnings] << warning_msg
           puts "WARNING: #{warning_msg}"
 
           # Update the MCI Unique ID to match what's in the file
@@ -235,6 +253,8 @@ module AcHmis
 
     def normalize_name(name)
       return nil if name.blank?
+      # leave name as-is if it's not all caps
+      return name unless name.upcase == name
 
       # Convert all caps to proper case (Title Case)
       # Handle both spaces and hyphens: "HYPHENATED-NAME" -> "Hyphenated-Name"
@@ -347,6 +367,43 @@ module AcHmis
 
     def mci_unique_creds
       @mci_unique_creds ||= GrdaWarehouse::RemoteCredential.where(slug: HmisExternalApis::AcHmis::DataWarehouseApi::SYSTEM_ID).first!
+    end
+
+    # Fuzzy identity matching to verify client matches file data before linking MCI Unique IDs
+    # Returns true if names and DOB match (with some tolerance for minor variations)
+    def identity_match?(client, first_name, last_name, dob)
+      # Normalize names for comparison (case-insensitive, strip whitespace)
+      client_first = normalize_for_comparison(client.first_name)
+      client_last = normalize_for_comparison(client.last_name)
+      file_first = normalize_for_comparison(first_name)
+      file_last = normalize_for_comparison(last_name)
+
+      first_name_matches = client_first == file_first
+      last_name_matches = client_last == file_last
+
+      # if first AND last names match, consider it a match
+      return true if first_name_matches && last_name_matches
+
+      # if neither first NOR last name matches, return early. Not a match.
+      return false unless first_name_matches || last_name_matches
+
+      # If DOB is provided in file, it should match the client's DOB year
+      if dob.present?
+        return false if client.dob.blank? # File has DOB but client doesn't - mismatch
+
+        return client.dob.year == dob.year # Matching same year is sufficient
+      end
+
+      # If file doesn't have DOB, we can't verify it, so rely on name match only
+      # (This allows matching when DOB is missing from file but present in DB)
+      true
+    end
+
+    def normalize_for_comparison(name)
+      return '' if name.blank?
+
+      # Normalize to lowercase, strip whitespace, and remove extra spaces
+      name.to_s.downcase.strip.gsub(/\s+/, ' ')
     end
 
     def print_summary
