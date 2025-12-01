@@ -56,6 +56,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
         viral_load_available: 1,
         viral_load: 100,
         data_source: data_source,
+        disability_response: 1,
       )
     end
 
