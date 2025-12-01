@@ -111,6 +111,8 @@ module Types
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :view_outgoing_referral_details
+      # TODO(#8067) - reduce duplication of logic with HmisProjectPolicy once we establish a frontend pattern for permission requirements
+      composite_perm :can_view_outgoing_referral_summaries, permissions: [:manage_outgoing_referrals, :view_outgoing_referral_details], mode: :any
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households

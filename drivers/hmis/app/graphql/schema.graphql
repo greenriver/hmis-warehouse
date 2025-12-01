@@ -9719,6 +9719,7 @@ type ProjectAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewOutgoingReferralDetails: Boolean!
+  canViewOutgoingReferralSummaries: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
   canViewPrioritizedClientLists: Boolean!
