@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hmis-csv-importer.md
 module HmisCsvImporter
   def self.import!(file_path, data_source_id, upload, deidentified:)
     log = ::HmisCsvImporter::ImportLog.create(
