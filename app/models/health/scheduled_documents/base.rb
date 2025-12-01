@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-require 'net/sftp'
-
 module Health
   class ScheduledDocuments::Base < HealthBase
     self.table_name = :scheduled_documents
@@ -71,9 +69,13 @@ module Health
     end
 
     def send_via_sftp(file_name:, data:)
-      # append_all_supported_algorithms: true is weaker because allows Net::SFTP to use non-preferred encryption algorithms
-      # But can talk to more servers as a result.
-      Net::SFTP.start(hostname, username, password: password, port: (port.presence || 22), append_all_supported_algorithms: true) do |sftp|
+      Sftp::Cli.start(
+        hostname,
+        username,
+        password: password,
+        port: port.presence || 22,
+        keepalive: true,
+      ) do |sftp|
         sftp.file.open(File.join(file_path, file_name), 'w') do |f|
           f.puts data
         end
