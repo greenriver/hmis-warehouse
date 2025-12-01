@@ -31,7 +31,7 @@ module Mutations
 
       {
         unit_group: unit_group,
-        errors: errors,
+        errors: [],
       }
     end
   end
