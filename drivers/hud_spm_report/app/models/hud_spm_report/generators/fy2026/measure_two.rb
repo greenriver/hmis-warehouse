@@ -32,6 +32,10 @@ module HudSpmReport::Generators::Fy2026
       }.freeze
     end
 
+    def self.reset_derived_data(report_instance)
+      HudSpmReport::Fy2026::Return.where(report_instance_id: report_instance.id).delete_all
+    end
+
     def run_question!
       tables = [
         ['2a and 2b', :run_2a_and_b],
