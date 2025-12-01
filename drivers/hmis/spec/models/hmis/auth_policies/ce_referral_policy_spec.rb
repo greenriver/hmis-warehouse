@@ -53,7 +53,6 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       it 'returns true if user also has can_view_project' do
         create_access_control(user, project, with_permission: [:can_view_referrals, :can_view_project])
         expect(policy.can_view?).to be true
-        expect(policy.can_view_in_target_project?).to be true
       end
 
       it 'returns false if user does not have can_view_project' do
@@ -76,7 +75,6 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       it 'returns true if user is assigned to the referral' do
         step.assignments.create!(user: user)
         expect(policy.can_view?).to be true
-        expect(policy.can_view_in_target_project?).to be false # because user doesn't have can_view_project
       end
 
       it 'returns false if user is not assigned to the referral' do
@@ -152,29 +150,11 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       it 'returns true when user has can_view_outgoing_referral_details on source project' do
         create_access_control(user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details])
         expect(policy.can_view?).to be true
-        expect(policy.can_view_in_target_project?).to be false
       end
 
       it 'returns false when user only has can_manage_outgoing_referrals (summary access only)' do
         create_access_control(user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals])
         expect(policy.can_view?).to be false
-      end
-
-      describe '#can_view_in_target_project?' do
-        it 'returns false if user has can_view_project but not can_view_referrals' do
-          # Niche scenario: Even though the user can view the referral (through the source project),
-          # and they can view the target project, they can't view this referral *in* the target project context,
-          # because they don't have can_view_referrals at that project.
-          create_access_control(user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details])
-          create_access_control(user, project, with_permission: [:can_view_project])
-          expect(policy.can_view_in_target_project?).to be false
-        end
-
-        it 'returns true if user has both can_view_project and can_view_referrals' do
-          create_access_control(user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details])
-          create_access_control(user, project, with_permission: [:can_view_project, :can_view_referrals])
-          expect(policy.can_view_in_target_project?).to be true
-        end
       end
     end
 

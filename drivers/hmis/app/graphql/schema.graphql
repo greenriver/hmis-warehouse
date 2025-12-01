@@ -1109,12 +1109,6 @@ type CeReferralAccess {
   """
   canCreateReferralNote: Boolean!
   canViewReferralDetails: Boolean!
-
-  """
-  Whether the user can view this referral in the target project context
-  (separately from their ability to view the project itself)
-  """
-  canViewReferralInTargetProject: Boolean!
   canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!
   id: ID!
