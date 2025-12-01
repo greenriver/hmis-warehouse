@@ -2,13 +2,7 @@
 
 require 'json'
 
-#
-# Rebalancing procedure:
-# 1) run rspec with profiling enabled, output results to json. Maybe this should happen on every run but for now it requires manually changing the rails_tests.yml gh workflow so it invokes rspec with "--format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000"
-# 2) download profiles from GH artifacts into rspec_profiles directory (manually finding the archive and downloading)
-# 3) (optional) run `rails ci:profile_stats[rspec_profiles]` and review the results to assist with tuning, such as total buckets
-# 4) run `rails ci:build_bucket_assignments[rspec_profiles]` which updates `.github/rspec_buckets.json` based on the rspec profiles
-#
+# @see docs/features/ci-test-bucketing.md
 namespace :ci do
   desc 'Analyze rspec profiles, write bucket assignments to file'
   task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|

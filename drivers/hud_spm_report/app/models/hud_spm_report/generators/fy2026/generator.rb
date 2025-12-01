@@ -22,6 +22,10 @@ module HudSpmReport::Generators::Fy2026
       'SPM'
     end
 
+    def self.supports_idempotent_retry?
+      true
+    end
+
     def self.default_project_type_codes
       HudHelper.util('2026').residential_project_type_numbers_by_code.keys
     end

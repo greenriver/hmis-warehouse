@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'memery'
+# @see docs/features/hud-report-framework.md
 module HudReports
   class GeneratorBase
     include ArelHelper
@@ -39,6 +40,13 @@ module HudReports
 
     def self.report_year_slug
       fiscal_year.downcase.delete(' ').to_sym
+    end
+
+    # Override in subclass to enable idempotent retry behavior.
+    # When true, partial runs can be safely retried by resetting incomplete questions.
+    # When false, retries will fail-fast
+    def self.supports_idempotent_retry?
+      false
     end
 
     def queue
