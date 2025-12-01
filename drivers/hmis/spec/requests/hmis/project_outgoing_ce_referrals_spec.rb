@@ -63,7 +63,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               access {
                 canViewReferralDetails
                 canViewSourceEnrollmentDetails
-                canViewReferralInTargetProject
               }
             }
           }
@@ -91,7 +90,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'access' => {
               'canViewReferralDetails' => false,
               'canViewSourceEnrollmentDetails' => false,
-              'canViewReferralInTargetProject' => false,
             },
           ),
           a_hash_including(
@@ -104,7 +102,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'access' => {
               'canViewReferralDetails' => false,
               'canViewSourceEnrollmentDetails' => false,
-              'canViewReferralInTargetProject' => false,
             },
           ),
         )
@@ -145,7 +142,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'access' => {
                 'canViewReferralDetails' => false,
                 'canViewSourceEnrollmentDetails' => true,
-                'canViewReferralInTargetProject' => false,
               },
             ),
             a_hash_including(
@@ -153,7 +149,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'access' => {
                 'canViewReferralDetails' => false,
                 'canViewSourceEnrollmentDetails' => true,
-                'canViewReferralInTargetProject' => false,
               },
             ),
           )
@@ -182,7 +177,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'access' => {
               'canViewReferralDetails' => true,
               'canViewSourceEnrollmentDetails' => false,
-              'canViewReferralInTargetProject' => true,
             },
           ),
           # for the other project, can't view client name or other referral details
@@ -194,7 +188,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'access' => {
               'canViewReferralDetails' => false,
               'canViewSourceEnrollmentDetails' => false,
-              'canViewReferralInTargetProject' => false,
             },
           ),
         )
@@ -210,8 +203,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
         expect(outgoing_referrals.count).to eq(2)
         expect(outgoing_referrals.map { |referral| referral['access']['canViewReferralDetails'] }).to include(true, true)
-        # User can view referral details via source project, but not in target project context
-        expect(outgoing_referrals.map { |referral| referral['access']['canViewReferralInTargetProject'] }).to include(false, false)
       end
     end
 
