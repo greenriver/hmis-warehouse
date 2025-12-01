@@ -265,7 +265,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_outgoing_referral_details: {
         description: 'Ability to view all outgoing referrals from the project',
-        requirements: [:can_view_project],
+        requirements: [:can_view_project], # Requirement: this permission requires view permission for the referral's *source* project
         administrative: false,
         access: [:viewable],
         category: 'Project Access',
