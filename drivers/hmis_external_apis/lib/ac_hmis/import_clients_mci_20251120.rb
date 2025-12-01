@@ -27,6 +27,7 @@ module AcHmis
     end
 
     EXPECTED_HEADERS = ['MCI_ID', 'MCI_UNIQ_ID', 'FNAME', 'LNAME', 'DOB'].freeze
+    BATCH_SIZE = 1000
 
     def perform
       puts "Starting MCI import from #{file_path}"
@@ -41,9 +42,23 @@ module AcHmis
         warnings: [],
       }
 
+      # Initialize batch collections
+      @clients_to_create = {} # {row_number => Client object}
+      @mci_ids_to_create = {} # {row_number => mci_id value}
+      @mci_unique_ids_to_create = {} # {row_number => mci_unique_id value}
+
       begin
         Hmis::Hud::Base.transaction do
           read_and_process_file
+
+          # Perform bulk imports after processing all rows
+          unless dry_run
+            bulk_create_clients! if @clients_to_create.any?
+            bulk_create_external_ids! if @mci_ids_to_create.any? || @mci_unique_ids_to_create.any?
+            # Trigger duplicate identification once at the end
+            Hmis::Hud::Client.warehouse_identify_duplicate_clients if @clients_to_create.any?
+          end
+
           # Rollback if there were any errors (warnings don't prevent import)
           if @stats[:errors].any?
             error_count = @stats[:errors].length
@@ -181,7 +196,7 @@ module AcHmis
           @stats[:mci_unique_id_mismatch] += 1
           base_msg = "Row #{row_number}: Client##{client.id} found by MCI ID #{mci_id} but has different MCI Unique ID (#{existing_mci_unique_id} vs #{mci_unique_id})."
           # If MCI Unique ID on the client was added in the past 6 months, don't update it. Retain the existing MCI Unique ID.
-          if existing_mci_unique_id_record.created_at > 6.months.ago
+          if existing_mci_unique_id_record.updated_at > 6.months.ago
             warning_msg = "#{base_msg} Existing MCI Unique ID was added in the past 6 months. Skipping."
             @stats[:warnings] << warning_msg
             puts "WARNING: #{warning_msg}"
@@ -223,12 +238,11 @@ module AcHmis
         return
       end
 
-      # Step 3: Create new client
+      # Step 3: Collect new client for bulk creation
       if dry_run
         puts "[DRY RUN] Row #{row_number}: Would create new client: MCI ID: #{mci_id}, MCI Unique ID: #{mci_unique_id}"
       else
-        client = create_client(first_name, last_name, dob, mci_id, mci_unique_id)
-        puts "Row #{row_number}: Created new client (Client ID: #{client.id}): MCI ID: #{mci_id}, MCI Unique ID: #{mci_unique_id}"
+        collect_client_for_bulk_create(first_name, last_name, dob, mci_id, mci_unique_id, row_number)
       end
       @stats[:created] += 1
     end
@@ -317,8 +331,13 @@ module AcHmis
       @system_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
-    def create_client(first_name, last_name, dob, mci_id, mci_unique_id)
-      client = Hmis::Hud::Client.create!(
+    def collect_client_for_bulk_create(first_name, last_name, dob, mci_id, mci_unique_id, row_number)
+      now = Time.current
+      personal_id = SecureRandom.uuid.gsub(/-/, '')
+
+      # Create and initialize a Client object
+      client = Hmis::Hud::Client.new(
+        PersonalID: personal_id,
         data_source: data_source,
         user: system_user,
         first_name: first_name,
@@ -328,15 +347,81 @@ module AcHmis
         dob_data_quality: dob.present? ? 1 : 99, # If present, assume Full DOB reported
         veteran_status: 99, # Not collected
         ssn_data_quality: 99, # Not collected
+        DateCreated: now,
+        DateUpdated: now,
       )
 
-      # Create MCI ID external ID
-      create_mci_id(client, mci_id)
+      # Calculate source_hash using the same method as the callback
+      client.set_source_hash
 
-      # Create MCI Unique ID external id
-      create_mci_unique_id(client, mci_unique_id)
+      # Store client object and ExternalId values separately
+      @clients_to_create[row_number] = client
+      @mci_ids_to_create[row_number] = mci_id
+      @mci_unique_ids_to_create[row_number] = mci_unique_id
+    end
 
-      client
+    def bulk_create_clients!
+      return if @clients_to_create.empty?
+
+      puts "Bulk creating #{@clients_to_create.length} clients..."
+
+      # Convert Client objects to arrays for import
+      clients_array = @clients_to_create.values
+      personal_ids = clients_array.map(&:PersonalID)
+
+      # Import in batches - import! updates objects in place with their IDs
+      clients_array.each_slice(BATCH_SIZE) do |batch|
+        Hmis::Hud::Client.import!(
+          batch,
+          validate: false,
+          timestamps: false, # We're setting DateCreated/DateUpdated manually
+        )
+      end
+
+      # Reload clients to ensure IDs are set
+      created_clients = Hmis::Hud::Client.where(PersonalID: personal_ids, data_source: data_source).index_by(&:PersonalID)
+
+      # Update hash with created clients (now have IDs)
+      @clients_to_create.each do |row_number, client|
+        created_client = created_clients[client.PersonalID]
+        @clients_to_create[row_number] = created_client
+        puts "Row #{row_number}: Created new client (Client ID: #{created_client.id}): MCI ID: #{@mci_ids_to_create[row_number]}, MCI Unique ID: #{@mci_unique_ids_to_create[row_number]}"
+      end
+    end
+
+    def bulk_create_external_ids!
+      external_ids = []
+
+      # Build ExternalId records from the stored mappings
+      @clients_to_create.each do |row_number, client|
+        # Create MCI ID ExternalId
+        external_ids << {
+          source_type: 'Hmis::Hud::Client',
+          source_id: client.id,
+          value: @mci_ids_to_create[row_number].to_s,
+          namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
+          remote_credential_id: mci_creds.id,
+        }
+
+        # Create MCI Unique ID ExternalId
+        external_ids << {
+          source_type: 'Hmis::Hud::Client',
+          source_id: client.id,
+          value: @mci_unique_ids_to_create[row_number].to_s,
+          namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE,
+          remote_credential_id: mci_unique_creds.id,
+        }
+      end
+
+      return if external_ids.empty?
+
+      puts "Bulk creating #{external_ids.length} ExternalIds..."
+
+      # Import all ExternalIds at once
+      HmisExternalApis::ExternalId.import!(
+        external_ids,
+        validate: false,
+      )
     end
 
     def create_mci_id(client, mci_id)
