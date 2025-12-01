@@ -44,7 +44,7 @@ module Hmis::Ce
       # - If they have can_view_referrals at the target project, OR
       # - If they have can_view_own_referrals, AND are assigned a step in the referral, OR
       # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral, OR
-      # - If they have can_view_outgoing_referrals at the *source* project
+      # - If they have can_view_outgoing_referral_details at the *source* project
 
       base_scope = joins(:target_project)
 
