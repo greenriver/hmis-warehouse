@@ -8,9 +8,13 @@
 
 module HudPathReport::Filters
   class PathFilter < ::Filters::HudFilterBase
+    # Don't set any defaults for project types, they get used in a variety of places and
+    # make it impossible to run a report that doesn't include all projects in a type
     def default_project_type_codes
-      path_project_types
+      []
     end
+
+    def project_type_code_options_for_select = path_project_types_for_select
 
     def path_project_types_for_select
       HudHelper.util.project_type_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze

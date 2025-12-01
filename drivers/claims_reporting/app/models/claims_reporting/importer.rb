@@ -291,7 +291,7 @@ module ClaimsReporting
     private def record_progress(new_results)
       raise 'Need record_start before we can record_progres ' unless import.present?
 
-      results = (import.results || {}).merge(new_results)
+      results = (import.results || {}).deep_stringify_keys.merge(new_results.deep_stringify_keys)
       import.update!(results: results)
       results
     end
