@@ -194,6 +194,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when user has can_view_outgoing_referral_details permission at the source project' do
+      let!(:source_ac) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details]) }
+
+      it 'allows viewing outgoing referrals with full details' do
+        response, result = post_graphql(id: source_project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
+        expect(outgoing_referrals.count).to eq(2)
+        expect(outgoing_referrals.map { |referral| referral['access']['canViewReferralDetails'] }).to include(true, true)
+      end
+    end
+
     context 'with waitlist referrals whose source enrollment is from this project' do
       # Create a 'waitlist' as opposed to 'direct' referral. It should NOT be included in the query results
       let!(:source_enrollment3) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project) }
@@ -228,7 +240,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'raises access denied error when user does not have can_manage_outgoing_referrals' do
+    it 'raises access denied error when user does not have can_view_outgoing_referral_details or can_manage_outgoing_referrals' do
       remove_permissions(source_ac, :can_manage_outgoing_referrals)
       expect_gql_error(post_graphql(id: source_project.id) { query }, message: 'access denied')
     end
