@@ -1,0 +1,15 @@
+.container.py-4
+  .row.justify-content-center
+    .col-lg-8
+      %h1= @page.title
+
+      %hr
+
+      .content-body
+        = simple_format(@page.content)
+
+      .text-muted.small.mt-4
+        Last updated: #{@page.updated_at.to_fs(:long)}
+
+      .mt-4
+        = link_to 'Back to Edit', edit_admin_content_page_path(@page), class: 'btn btn-secondary'

@@ -837,6 +837,13 @@ Rails.application.routes.draw do
       end
     end
     resources :links
+    resources :content_pages do
+      get :preview, on: :member
+    end
+    resources :compliance_requirements, except: [:show] do
+      post :activate, on: :member
+      post :deactivate, on: :member
+    end
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]

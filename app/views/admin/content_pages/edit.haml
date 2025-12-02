@@ -1,0 +1,16 @@
+= render partial: 'breadcrumbs'
+
+%h1
+  Edit:
+  = @page.title
+
+- if @page.compliance_requirements.active.any?
+  .alert.alert-info
+    %strong Note:
+    This page is linked to active compliance requirements. If you make material changes to the content,
+    consider bumping the revision on linked requirements to require users to re-agree.
+    %ul.mb-0.mt-2
+      - @page.compliance_requirements.active.each do |req|
+        %li= link_to req.name, edit_admin_compliance_requirement_path(req)
+
+= render 'form'

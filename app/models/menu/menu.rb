@@ -402,6 +402,22 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_content_pages_path,
+        title: 'Content Pages',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_compliance_requirements_path,
+        title: 'Compliance Requirements',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
         visible: ->(user) { user.can_edit_theme? }, # rubocop:disable Style/SymbolProc
         path: edit_admin_theme_path,
         title: 'Theme',

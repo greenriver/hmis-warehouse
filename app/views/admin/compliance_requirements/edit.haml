@@ -1,0 +1,12 @@
+= render partial: 'breadcrumbs'
+
+%h1
+  Edit:
+  = @requirement.name
+
+- if @requirement.agreements.exists?
+  .alert.alert-info
+    %strong Note:
+    This requirement has existing user agreements. Increasing the revision number will require all users to re-agree.
+
+= render 'form'

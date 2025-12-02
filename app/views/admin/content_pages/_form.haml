@@ -1,0 +1,16 @@
+.row
+  .col-sm-8
+    - url = @page.persisted? ? admin_content_page_path(@page) : admin_content_pages_path
+    = simple_form_for @page, url: url, as: :content_page do |f|
+      = f.error_notification
+      .form-inputs
+        - if f.object.persisted?
+          = f.input :slug, disabled: true, hint: 'Slug cannot be changed after creation.'
+        - else
+          = f.input :slug, hint: 'URL-friendly identifier (lowercase letters, numbers, underscores). Auto-generated from title if blank.'
+        = f.input :title, required: true
+        = f.input :content, as: :text, input_html: { rows: 20 }, hint: 'Plain text content. HTML support coming soon.'
+
+      .form-actions.mt-3
+        = f.button :submit, 'Save', class: 'btn btn-primary'
+        = link_to 'Cancel', admin_content_pages_path, class: 'btn btn-secondary ml-2'
