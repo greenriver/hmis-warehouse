@@ -32,6 +32,7 @@ module CeWorkflows::Ph
         identifier: 'benefits_referral',
         name: 'Benefits Referral',
         outgoing_step_form_identifier: FORMS.fetch(:benefits_referral),
+        outgoing_step_name: 'Benefits Referral Details',
       )
     end
 
@@ -40,6 +41,7 @@ module CeWorkflows::Ph
         identifier: 'shelter_referral',
         name: 'Shelter Referral',
         outgoing_step_form_identifier: FORMS.fetch(:shelter_referral),
+        outgoing_step_name: 'Shelter Referral Details',
       )
     end
 
@@ -48,10 +50,11 @@ module CeWorkflows::Ph
         identifier: 'outreach_referral',
         name: 'Outreach Referral',
         outgoing_step_form_identifier: FORMS.fetch(:outreach_referral),
+        outgoing_step_name: 'Outreach Referral Details',
       )
     end
 
-    def build_direct_referral_workflow(identifier:, name:, outgoing_step_form_identifier:)
+    def build_direct_referral_workflow(identifier:, name:, outgoing_step_form_identifier:, outgoing_step_name:)
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier) unless @unsafe_run_in_production
 
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, name, @data_source)
@@ -65,7 +68,7 @@ module CeWorkflows::Ph
 
       # Step 1: Send referral
       send_referral_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Send Referral',
+        name: outgoing_step_name,
         form_definition_identifier: outgoing_step_form_identifier,
         template: template,
         swimlane: provider_swimlane, # Swimlane is irrelevant since this is just for direct referrals and is completed by the sending project
