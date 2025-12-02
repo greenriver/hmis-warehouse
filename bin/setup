@@ -32,10 +32,9 @@ FileUtils.chdir APP_ROOT do
     end
   end
 
-  unless File.exist?('.pgpass')
-    puts "\n== Creating .pgpass"
-    FileUtils.cp 'sample.pgpass', '.pgpass'
-  end
+  puts "\n== Generating .pgpass from environment variables"
+  system! 'bundle exec ./bin/generate_pgpass.rb > .pgpass'
+  system! 'chmod 600 .pgpass'
 
   unless File.exist?('.env.local')
     puts "\n== Creating .env.local"

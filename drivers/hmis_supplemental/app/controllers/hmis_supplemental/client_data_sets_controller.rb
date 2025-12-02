@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # a "tab" on the client dashboard for viewing a data set.
 # This controller is for both client and enrollment-based data sets
 module HmisSupplemental

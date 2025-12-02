@@ -10,7 +10,7 @@ class NotifyUser < DatabaseMailer
   def vispdat_completed(vispdat_id)
     @vispdat = GrdaWarehouse::Vispdat::Base.where(id: vispdat_id).first
     @user = User.active.where(id: @vispdat.user_id).first
-    users_to_notify = User.active.where(notify_on_vispdat_completed: true)
+    users_to_notify = User.active.notifies_on_vispdat_completed
     users_to_notify = users_to_notify.where.not(id: @user.id) if @user.present?
     users_to_notify.each do |user|
       mail(to: user.email, subject: 'A VI-SPDAT was completed.')
@@ -30,7 +30,7 @@ class NotifyUser < DatabaseMailer
   def client_added(client_id)
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
     @user = User.active.where(id: @client.creator_id).first
-    users_to_notify = User.active.where(notify_on_client_added: true)
+    users_to_notify = User.active.notifies_on_client_added
     users_to_notify = users_to_notify.where.not(id: @user.id) if @user.present?
     users_to_notify.each do |user|
       mail(to: user.email, subject: 'A Client was added.')
@@ -80,7 +80,7 @@ class NotifyUser < DatabaseMailer
 
   def anomaly_identified(client_id:, user_id:)
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
-    users_to_notify = User.active.where(notify_on_anomaly_identified: true).
+    users_to_notify = User.active.notifies_on_anomaly_identified.
       where.not(id: user_id).map(&:email)
     mail(to: users_to_notify, subject: 'Client anomaly identified')
   end
@@ -254,5 +254,29 @@ class NotifyUser < DatabaseMailer
     return unless @user.active?
 
     mail(to: @user.email, subject: 'You have received a Secure File')
+  end
+
+  def metric_threshold_crossed(user_id:, alert_code:, crossings:, calculation_date:)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    @crossings = crossings
+    @calculation_date = calculation_date
+    @alert_code = alert_code
+
+    # Build mapping of metric display names to metric definition IDs
+    @metric_definition_ids = {}
+    crossings.each_key do |metric_name|
+      metric_def = GrdaWarehouse::Monitoring::MetricDefinition.active.find_by(
+        display_name: metric_name,
+      )
+      # Verify the alert_code matches (safety check)
+      @metric_definition_ids[metric_name] = metric_def.id if metric_def && metric_def.alert_code == alert_code
+    end
+
+    alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
+    subject = alert_definition&.email_subject || 'Threshold Monitoring: Threshold Crossed'
+
+    mail(to: @user.email, subject: subject)
   end
 end

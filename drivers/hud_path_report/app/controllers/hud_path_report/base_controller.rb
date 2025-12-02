@@ -32,13 +32,17 @@ module HudPathReport
 
     # NOTE filter differs slightly from the base version
     private def filter
+      # Override the filter class for display in app/views/hud_reports/_parameters.haml
+      # Without this override, filter base will include project types that aren't applicable
+      @filter_class ||= filter_class
       year = if Date.current.month >= 10
         Date.current.year
       else
         Date.current.year - 1
       end
+
       # Some sane defaults, using the previous report if available
-      @filter = filter_class.new(user_id: current_user.id)
+      @filter = @filter_class.new(user_id: current_user.id)
       if filter_params.blank?
         prior_report = generator.find_report(current_user)
         options = prior_report&.options
@@ -59,16 +63,11 @@ module HudPathReport
         end
       end
       # Override with params if set
-      @filter.set_from_params(filter_params) if filter_params.present?
+      @filter.update(filter_params) if filter_params.present?
     end
 
-    # This method allow picking the version of the report, we only need this during the transition
-    TodoOrDie('Remove active_report_versions once we are on FY 2026', by: '2025-11-01')
     def active_report_versions
-      return {} if default_report_version == :fy2026 && ! Rails.env.development?
-
       {
-        fy2024: 'FY 2024',
         fy2026: 'FY 2026',
       }.invert.freeze
     end

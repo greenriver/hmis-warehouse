@@ -169,6 +169,19 @@ module LongitudinalSpm
       ]
     end
 
+    def project_types_for_table(table)
+      case table
+      when '7a.1'
+        'SO'
+      when '7b.1'
+        'ES, SH, TH, RRH'
+      when '7b.2'
+        'PH excluding RRH'
+      else
+        ''
+      end
+    end
+
     def spm_measures
       # if we're running the report, return the current version
       return spm_measures_2024 unless spms.present?

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Household::Enrolled
   extend ActiveSupport::Concern
   include PerformanceDashboard::Household::Enrolled::Household

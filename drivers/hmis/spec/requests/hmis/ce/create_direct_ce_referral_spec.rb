@@ -144,6 +144,29 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
       end
     end
 
+    context 'when form validation fails' do
+      before do
+        fake_errors = HmisErrors::Errors.new
+        fake_errors.add(:base, :invalid, full_message: 'fake error')
+        allow_any_instance_of(Hmis::WorkflowExecution::Engine).to receive(:validate_step).and_return(fake_errors.errors)
+      end
+
+      it 'does not create a referral and returns errors' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+
+          errors = result.dig('data', 'createDirectCeReferral', 'errors')
+          expect(errors).to be_present
+          expect(errors.first['fullMessage']).to include('fake error')
+
+          referral_data = result.dig('data', 'createDirectCeReferral', 'referral')
+          expect(referral_data).to be_nil
+        end.to not_change(Hmis::Ce::Referral, :count).
+          and not_change(Hmis::WorkflowExecution::Instance, :count)
+      end
+    end
+
     context 'when the unit group has a direct referral workflow template' do
       let!(:direct_referral_workflow_template) { create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: ds1) }
       let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template, direct_referral_workflow_template: direct_referral_workflow_template) }

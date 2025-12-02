@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :qa_source, class: 'Health::SdhCaseManagementNote' do
     title { 'SdhCaseManagementNote' }

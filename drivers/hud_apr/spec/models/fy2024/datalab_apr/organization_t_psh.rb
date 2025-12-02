@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab organization t psh apr', shared_context: :metadata do
   describe 'Datalab 2024 APR - Organization T - PSH' do
     let(:results_dir) { 'apr/organization_t_psh' }

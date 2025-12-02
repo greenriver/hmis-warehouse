@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # report on invalid HUD references
 class AppResourceMonitor::HudReferencesInspector
   def self.enrollment_references

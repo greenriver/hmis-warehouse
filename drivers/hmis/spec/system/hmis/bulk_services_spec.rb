@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -11,6 +13,10 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Bulk Services behavior', type: :system do
   include_context 'hmis base setup'
   include_context 'hmis service setup'
+
+  # consistent time for avoid failures when run across day boundaries
+  before(:each)  { freeze_time }
+  after(:each) { travel_back }
 
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
 

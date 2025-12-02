@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 if ENV['RUN_SYSTEM_TESTS']
   require_relative './e2e_tests'
@@ -89,6 +89,13 @@ RSpec.shared_context 'SystemSpecHelper' do
     choices
   end
 
+  def mui_clear_select(from:)
+    label = find('label', text: from)
+    scroll_to(label, align: :center)
+    input_id = label['for']
+    find("[id='#{input_id}'] + div > button[aria-label='Clear']", visible: :all).trigger(:click)
+  end
+
   def mui_select_value_for(select_label)
     label = find('label', text: select_label)
     id = label['for']
@@ -109,13 +116,15 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 
   def mui_table_expect(expected, row_index:, column_header:, from:)
+    # Wait for table to have rows before proceeding
+    expect(from).to have_css('tbody tr', minimum: row_index + 1)
+
     header_cells = from.all('thead th')
     column_index = header_cells.find_index { |cell| !!cell.text.match(column_header) }
     expect(column_index).not_to be_nil
 
     rows = from.all('tbody tr')
-    row = rows[row_index]
-    cell = row.all('td')[column_index]
+    cell = rows[row_index].all('td')[column_index]
     expect(cell.text).to match(expected)
   end
 

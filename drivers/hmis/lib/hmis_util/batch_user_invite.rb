@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisUtil
   class BatchUserInvite
     # The "users" shape is meant to be easily copied from a spreadsheet.

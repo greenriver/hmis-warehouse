@@ -23,7 +23,7 @@
         Calculation
         - if ! @report.show_spm_link? && measure.present?
           .ml-auto
-            .badge.badge-secondary= "SPM #{measure}"
+            .badge.text-bg-secondary= "SPM #{measure}"
       %p= @report.detail_calculation_description_for(key)
     - if @report.show_spm_link? && measure.present? && !pdf
       .col-2.ml-6.p-0

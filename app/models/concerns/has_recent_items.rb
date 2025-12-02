@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HasRecentItems
   extend ActiveSupport::Concern
   included do
@@ -56,13 +58,13 @@ module HasRecentItems
 
     # This method should not be converted to 'recent?'
     # It does not query whether this item is recent, it declares a recent item type on the inheriting class
-    # rubocop:disable Naming/PredicateName
+    # rubocop:disable Naming/PredicatePrefix
     def has_recent(item_type, item_class_name, name: nil)
       association_name = name || "recent_#{item_type}".to_sym
       has_many association_name, through: :recent_item_links, source: :item, source_type: item_class_name
       @recent_item_types = {} if @recent_item_types.nil?
       @recent_item_types[association_name] = item_class_name
     end
-    # rubocop:enable Naming/PredicateName
+    # rubocop:enable Naming/PredicatePrefix
   end
 end

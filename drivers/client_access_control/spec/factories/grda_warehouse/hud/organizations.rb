@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :vt_organization, class: 'GrdaWarehouse::Hud::Organization' do
     association :data_source, factory: :vt_source_data_source

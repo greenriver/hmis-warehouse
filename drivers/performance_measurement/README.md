@@ -118,7 +118,7 @@ The data flow from SPM to PM happens in these key steps:
 2. **PM Data Extraction**: Uses `spm_fields` to map SPM data to PM client fields
    ```ruby
    spm_fields.each do |parts|
-     cells = parts[:cells]  # e.g., [['1a', 'D2']]
+     cells = parts[:cells]  # e.g., [['1a', 'D3']]
      cells.each do |cell|
        members = cell_members(spec[:report], *cell)
        members.each do |member|

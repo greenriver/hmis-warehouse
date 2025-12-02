@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module UserConcern
   extend ActiveSupport::Concern
@@ -96,15 +96,42 @@ module UserConcern
     end
 
     scope :receives_file_notifications, -> do
-      where(receive_file_upload_notifications: true)
+      subscribed_to_alert('file_upload')
     end
 
     scope :receives_account_request_notifications, -> do
-      where(receive_account_request_notifications: true)
+      subscribed_to_alert('account_request')
     end
 
     scope :receives_new_account_notifications, -> do
-      where(notify_on_new_account: true)
+      subscribed_to_alert('new_account')
+    end
+
+    scope :notifies_on_vispdat_completed, -> do
+      subscribed_to_alert('vispdat_completed')
+    end
+
+    scope :notifies_on_client_added, -> do
+      subscribed_to_alert('client_added')
+    end
+
+    scope :notifies_on_anomaly_identified, -> do
+      subscribed_to_alert('anomaly_identified')
+    end
+
+    # Generic scope for finding users subscribed to a specific alert by code
+    # Note: Cannot join across databases, so we query contact_alert_subscriptions first
+    scope :subscribed_to_alert, ->(alert_code) do
+      definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
+      return none unless definition
+
+      # Get user IDs from warehouse database
+      subscribed_user_ids = GrdaWarehouse::Contact::User.
+        joins(:contact_alert_subscriptions).
+        merge(GrdaWarehouse::ContactAlertSubscription.where(alert_definition_id: definition.id, active: true)).
+        pluck(:entity_id)
+
+      where(id: subscribed_user_ids)
     end
 
     scope :active, -> do
@@ -491,9 +518,8 @@ module UserConcern
           or(arel_table[:last_name].matches("#{term}%")).
           or(arel_table[:email].matches("#{term}%"))
 
-        User.where(prefix_condition)
+        where(prefix_condition)
       end.inject(&:or)
-
       if sort_by_best_match
         sql = <<-SQL.squish
           similarity(

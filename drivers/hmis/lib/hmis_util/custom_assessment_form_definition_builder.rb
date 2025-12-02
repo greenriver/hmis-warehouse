@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'nokogiri'
 
 # Quick and dirty builder class to assist with complex assessments. Manages CDEDS, link-ids

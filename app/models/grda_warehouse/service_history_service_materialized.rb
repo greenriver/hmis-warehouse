@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
   self.table_name = :service_history_services_materialized
   include ArelHelper

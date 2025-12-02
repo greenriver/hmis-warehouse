@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class BackgroundRender::StreetToHomeJob < BackgroundRenderJob
   def render_html(partial:, filters:, user_id:)
     current_user = User.find(user_id)

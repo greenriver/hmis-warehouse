@@ -1,9 +1,11 @@
 - title = "Project Contacts for #{@entity.name(current_user, ignore_confidential_status: can_edit_projects?)}"
-- content_for :modal_title, title
+- content_for :title, title
 = render 'breadcrumbs'
 .row.mt-4.mb-2
-  .col-sm-12
-    = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary pull-right mb-2' do
+  .col-sm-8
+    %h1= title
+  .col-sm-4.d-flex
+    = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary mb-2 ml-auto' do
       %span.icon-plus
       Add a Contact
 .row
@@ -18,6 +20,8 @@
               %th
                 Email
               %th
+                Alert Subscriptions
+              %th
           %tbody
             - @contacts.each do |contact|
               %tr
@@ -26,6 +30,11 @@
                     = contact.full_name
                 %td
                   = contact.email
+                %td
+                  - if contact.alert_definitions.any?
+                    = contact.alert_definitions.map(&:name).join(', ')
+                  - else
+                    %span.text-muted None
                 %td
                   :ruby
                     items = []

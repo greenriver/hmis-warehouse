@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class FixImportOverrideUniqueness < ActiveRecord::Migration[7.0]
   def up
     # Remove uniqueness constraint so we can delete duplicates

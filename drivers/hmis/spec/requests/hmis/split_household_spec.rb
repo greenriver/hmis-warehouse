@@ -103,6 +103,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(remaining.id)
   end
 
+  context 'when the household has a unit assignment' do
+    let!(:unit) { create :hmis_unit, project: p1 }
+
+    let!(:uo_remaining) { create :hmis_unit_occupancy, unit: unit, enrollment: remaining, start_date: 2.weeks.ago }
+    let!(:uo_new_hoh) { create :hmis_unit_occupancy, unit: unit, enrollment: new_hoh, start_date: 2.weeks.ago }
+    let!(:uo_child) { create :hmis_unit_occupancy, unit: unit, enrollment: child, start_date: 2.weeks.ago }
+
+    it 'releases the unit from the split-out household members' do
+      expect([remaining, new_hoh, child]).to all(have_attributes(active_unit_occupancy: have_attributes(unit: unit)))
+
+      expect do
+        perform_mutation
+        [remaining, new_hoh, child].each(&:reload)
+      end.to change(new_hoh, :active_unit_occupancy).to(nil).
+        and change(child, :active_unit_occupancy).to(nil).
+        and not_change(remaining, :active_unit_occupancy)
+
+      # The split household has been unassigned from the unit, but the historical unit occupancy is still present
+      [new_hoh, child].each do |enrollment|
+        expect(enrollment.unit_occupancies.count).to eq(1)
+        old_occupancy = enrollment.unit_occupancies.sole
+        expect(old_occupancy.unit).to eq(unit)
+        # Regression #8379 - occupancy period should be updated with end date, not deleted
+        expect(old_occupancy.occupancy_period).to be_present
+        expect(old_occupancy.end_date).to be_present
+      end
+    end
+  end
+
   it 'fails when the user does not have can_split_households permission' do
     remove_permissions(access_control, :can_split_households)
     input = {

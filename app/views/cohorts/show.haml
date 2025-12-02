@@ -21,6 +21,8 @@
 
 = render 'nav', system_cohort: @cohort.system_cohort, active_tab: 'cohort'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
+- if @cohort.auto_maintained? && can_configure_cohorts?
+  .well= render 'automation_status'
 = render 'text_size_options'
 = render 'thresholds'
 
@@ -42,11 +44,8 @@
     .col-sm-12
       - if @cohort_clients.preload(:clients).any?
         = render 'client_table'
-      - elsif @cohort.auto_maintained?
+      - else
         .none-found
-          %p
-            Clients will be populated based on enrollments in the #{@cohort.project_group.name} project group.
-            %br
-            If you just created this cohort, clients will be added within a bit, refresh to check.
+          No clients found
 
   = render 'cohort_client_form'

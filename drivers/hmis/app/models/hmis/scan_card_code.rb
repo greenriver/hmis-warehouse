@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::ScanCardCode < Hmis::HmisBase
   self.table_name = 'hmis_scan_card_codes'
   acts_as_paranoid

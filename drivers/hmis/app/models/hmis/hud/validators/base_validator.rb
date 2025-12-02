@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
   def skip_all_validations?(record)
     record.skip_validations == [:all]

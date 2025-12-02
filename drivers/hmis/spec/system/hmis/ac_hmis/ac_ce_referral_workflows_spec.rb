@@ -40,6 +40,10 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
+  # consistent time for avoid failures when run across day boundaries
+  before(:each)  { freeze_time }
+  after(:each) { travel_back }
+
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
   let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'A') }
 
@@ -127,6 +131,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     let!(:household_member) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Jane', last_name: 'D') }
     let!(:household_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: household_member, entry_date: 30.days.ago, household_id: source_enrollment.household_id, relationship_to_ho_h: 2) }
 
+    let(:referral_warning_message) { 'At least one client in the household already has an open enrollment or in-progress referral in this project.' }
+
     it 'completes the direct referral happy path' do
       # Navigate to source project and create the direct referral
       visit "/projects/#{source_project.id}/referrals"
@@ -135,6 +141,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       mui_select(target_project.project_name, from: 'Project')
       mui_select(unit_group.name, from: 'Unit Group')
       fill_in 'Resource Coordinator Notes', with: 'Direct referral for Alice A to Family Shelter'
+      expect(page).not_to have_content(referral_warning_message)
       click_button 'Refer Household'
       expect(page).to have_content('Displaying 1 of 1 outgoing referral')
 
@@ -193,22 +200,11 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         expect(target_enrollment.project).to eq(target_project)
         expect(target_enrollment.current_unit).to eq(unit)
 
-        # Provider can add household members to the target enrollment
-        visit "/client/#{client1.id}/enrollments/#{target_enrollment.id}/household"
-        find("[role='button']", text: 'Add Household Member').click
-        fill_in 'Search for Client', with: 'Jane D'
-        click_button 'Search'
-        click_button 'Add to Household'
-        mui_select 'Child', from: 'Relationship to HoH'
-        click_button 'Enroll'
-        table = find("table[aria-label='Manage Household']")
-        expect(page).not_to have_content('Enroll Jane D') # Confirm the modal has exited before proceeding
-        mui_table_expect('Alice A', row_index: 0, column_header: 'Name', from: table)
-        mui_table_expect('Jane D', row_index: 1, column_header: 'Name', from: table)
-
-        # Household member was enrolled into the same unit
-        expect(target_enrollment.reload.household_members.count).to eq(2)
-        expect(target_enrollment.household_members.all.map(&:current_unit)).to eq([unit, unit])
+        # Household members from the source enrollment are enrolled into the target enrollment
+        expect(target_enrollment.household_members.count).to eq(2)
+        household_member_enrollment = target_enrollment.household_members.find_by(client: household_member)
+        expect(household_member_enrollment.relationship_to_hoh).to eq(2)
+        expect(household_member_enrollment.current_unit).to eq(unit)
       end
 
       # CE Staff completes the Confirm Success step
@@ -253,6 +249,34 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         option = mui_find_select_option(unavailable_unit_group.name, from: 'Unit Group')
         expect(option['aria-disabled']).to eq('true')
       end
+    end
+
+    shared_examples 'allows referral with warning' do
+      it 'displays a warning message, but allows the referral to be sent' do
+        visit "/projects/#{source_project.id}/referrals"
+        click_link 'Send Referral'
+        mui_select('Alice A and 1 other', from: 'HoH Enrollment')
+        mui_select(target_project.project_name, from: 'Project')
+        mui_select(unit_group.name, from: 'Unit Group')
+        fill_in 'Resource Coordinator Notes', with: 'note'
+
+        # Ensure warning is displayed because the client is already enrolled in the target project (based on project_can_accept_referral)
+        expect(page).to have_content(referral_warning_message)
+
+        expect do
+          click_button 'Refer Household'
+        end.to change(Hmis::Ce::Referral, :count).by(1)
+      end
+    end
+
+    context 'when the client is already enrolled in the target project' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, data_source: ds1, project: target_project, client: client1, entry_date: 30.days.ago) }
+      it_behaves_like 'allows referral with warning'
+    end
+
+    context 'when the client has an active referral to the target project' do
+      let!(:referral) { create(:hmis_ce_referral, client: client1, project: target_project, data_source: target_project.data_source, status: 'in_progress') }
+      it_behaves_like 'allows referral with warning'
     end
   end
 

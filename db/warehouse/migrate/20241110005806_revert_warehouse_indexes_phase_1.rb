@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The 20241010005805_prune_warehouse_indexes_phase_1 ran on staging and removed some indexes that
 # proved to be in use.
 class RevertWarehouseIndexesPhase1 < ActiveRecord::Migration[7.0]

@@ -55,6 +55,9 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
+  # Skip http-to-https redirect for the default health check endpoint.
+  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new($stdout).
     tap  { |logger| logger.formatter = ::Logger::Formatter.new }.
@@ -103,7 +106,7 @@ Rails.application.configure do
     }
   end
 
-  cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
+  cache_ssl = ENV.fetch('CACHE_SSL') { 'false' } == 'true'
   cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
   redis_config = Rails.application.config_for(:cache_store).merge(
     {

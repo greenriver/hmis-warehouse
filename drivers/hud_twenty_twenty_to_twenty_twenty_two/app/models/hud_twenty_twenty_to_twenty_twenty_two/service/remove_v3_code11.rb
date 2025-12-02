@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudTwentyTwentyToTwentyTwentyTwo::Service
   class RemoveV3Code11
     def process(row)

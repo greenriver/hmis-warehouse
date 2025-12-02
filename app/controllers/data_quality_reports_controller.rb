@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DataQualityReportsController < ApplicationController
   include AjaxModalRails::Controller
   skip_before_action :authenticate_user!, only: [:show, :answers]

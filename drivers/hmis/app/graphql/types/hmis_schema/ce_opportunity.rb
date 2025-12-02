@@ -13,7 +13,12 @@ module Types
     field :status, HmisSchema::Enums::CeOpportunityStatus, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
-    field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
+    field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false do
+      # Use a custom filter type for opportunity candidates, instead of the usual pattern of defining CeCandidateFilters.
+      # This enables us to accept a filter "exclude_declined_clients" on the opportunity candidates query,
+      # and filter candidates by whether they have been declined from other opportunities in this opportunity's unit group.
+      argument :filters, HmisSchema::CeOpportunityCandidatesFilterOptions, required: false
+    end
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :project_id, ID, null: false
@@ -29,6 +34,7 @@ module Types
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
+    field :stale, Boolean, null: false
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -50,10 +56,13 @@ module Types
       Hmis::Ce::Match::Candidate.for_opportunity(object).find_by(id: id)
     end
 
-    def candidates # not for batch
+    def candidates(filters: nil) # not for batch
       return Hmis::Ce::Match::Candidate.none unless policy_for(object, policy_type: :ce_opportunity).can_view_candidates?
 
-      Hmis::Ce::Match::Candidate.for_opportunity(object).prioritized
+      Hmis::Ce::FilteredCandidatesQuery.new(
+        opportunity: object,
+        exclude_declined_clients: filters&.exclude_declined_clients,
+      ).resolve
     end
 
     def referral

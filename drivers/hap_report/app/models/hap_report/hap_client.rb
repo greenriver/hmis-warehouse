@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HapReport
   class HapClient < GrdaWarehouseBase
     self.table_name = :hap_report_clients
