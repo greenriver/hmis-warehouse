@@ -56,6 +56,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
         viral_load_available: 1,
         viral_load: 100,
         data_source: data_source,
+        disability_response: 1,
       )
     end
 
@@ -177,6 +178,67 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       expect(rows.fetch('STRMU Households Total')).to eq(2)
       expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(1)
+    end
+  end
+
+  context 'with household overlapping report but no services in period' do
+    let(:household_with_services_id) { Hmis::Hud::Base.generate_uuid }
+    let(:household_no_services_id) { Hmis::Hud::Base.generate_uuid }
+
+    let!(:enrollment_with_services) do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        exit_date: nil,
+        household_id: household_with_services_id,
+      )
+    end
+
+    let!(:enrollment_no_services) do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date - 30.days, # Overlaps report period
+        exit_date: report_end_date + 30.days, # Exits after report period
+        household_id: household_no_services_id,
+      )
+    end
+
+    before do
+      # Household 1: Has a service during the reporting period
+      create(
+        :hud_service,
+        enrollment: enrollment_with_services,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 500,
+        date_provided: report_start_date + 5.days,
+        data_source: data_source,
+      )
+
+      # Household 2: Has NO services during the reporting period
+      # (Service is BEFORE the report period)
+      create(
+        :hud_service,
+        enrollment: enrollment_no_services,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 500,
+        date_provided: report_start_date - 10.days, # Before report period
+        data_source: data_source,
+      )
+    end
+
+    it 'only counts households with services in the reporting period' do
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      # Only the household with services in the period should be counted
+      expect(rows.fetch('STRMU Households Total')).to eq(1)
+      expect(rows.fetch('How many households were served with STRMU rental assistance only?')).to eq(1)
+
+      # The household without services should NOT be in "more than one type"
+      expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(0)
     end
   end
 end

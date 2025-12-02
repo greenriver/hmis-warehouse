@@ -84,7 +84,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       add_household_enrollments_row(
         sheet,
         label: 'How many households continued receiving this type of HOPWA assistance into the next year?',
-        enrollments: scope.where(exit_date: nil),
+        enrollments: scope.active_after(@report.end_date),
       )
 
       filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ExitDestinationFilter.all_destinations

@@ -177,37 +177,17 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
   end
 
   context 'with Hispanic ethnicity demographics' do
-    let(:household_id) { Hmis::Hud::Base.generate_uuid }
-    let(:hispanic_client) do
-      create(
-        :hud_client,
-        DOB: today - 25.years,
-        DOBDataQuality: 1,
-        HispanicLatinaeo: 1,
-        AmIndAKNative: 1,
-        Sex: 1,
-        data_source: data_source,
-      )
-    end
-
-    let!(:hoh_enrollment) do
-      create_hiv_positive_enrollment(
-        client: hispanic_client,
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: today - 25.years,
+          DOBDataQuality: 1,
+          HispanicLatinaeo: 1,
+          AmIndAKNative: 1,
+          Sex: 1,
+        },
         project: project,
         entry_date: report_start_date + 1.day,
-        household_id: household_id,
-      )
-    end
-
-    before do
-      create(
-        :hud_service,
-        enrollment: hoh_enrollment,
-        record_type: hopwa_financial_assistance,
-        type_provided: rental_assistance,
-        fa_amount: 100,
-        date_provided: hoh_enrollment.entry_date,
-        data_source: data_source,
       )
     end
 
@@ -230,36 +210,16 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
   end
 
   context 'with unknown or missing demographic data' do
-    let(:household_id) { Hmis::Hud::Base.generate_uuid }
-    let(:unknown_demographics_client) do
-      create(
-        :hud_client,
-        DOB: nil,
-        DOBDataQuality: 99,
-        RaceNone: 9,
-        Sex: 99,
-        data_source: data_source,
-      )
-    end
-
-    let!(:hoh_enrollment) do
-      create_hiv_positive_enrollment(
-        client: unknown_demographics_client,
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: nil,
+          DOBDataQuality: 99,
+          RaceNone: 9,
+          Sex: 99,
+        },
         project: project,
         entry_date: report_start_date + 1.day,
-        household_id: household_id,
-      )
-    end
-
-    before do
-      create(
-        :hud_service,
-        enrollment: hoh_enrollment,
-        record_type: hopwa_financial_assistance,
-        type_provided: rental_assistance,
-        fa_amount: 100,
-        date_provided: hoh_enrollment.entry_date,
-        data_source: data_source,
       )
     end
 
@@ -273,12 +233,164 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivin
       expect(enrollment.hiv_positive).to be(true)
       expect(enrollment.dob_quality).to eq(99)
       expect(enrollment.sex).to eq(99)
-      expect(enrollment.races).to include(unknown_demographics_client.RaceNone) # Preserve RaceNone response for reporting
+      expect(enrollment.races).to include(setup[:client].RaceNone)
 
       # Verify the report generates without errors
       all_rows = question_as_rows(question_number: 'Q1', report: report)
       expect(all_rows).to be_present
-      expect(all_rows.size).to be > 25 # Should have full report structure
+      expect(all_rows.size).to be > 25
+    end
+  end
+
+  context 'with poor DOB quality but valid age' do
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: today - 35.years,
+          DOBDataQuality: 8,
+          White: 1,
+          Sex: 1,
+        },
+        project: project,
+        entry_date: report_start_date + 1.day,
+      )
+    end
+
+    it 'includes client in age/sex/race breakdown despite poor DOB quality' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      enrollment = report.hopwa_caper_enrollments.first
+      expect(enrollment.hiv_positive).to be(true)
+      expect(enrollment.dob_quality).to eq(8)
+      expect(enrollment.age).to eq(34)
+      expect(enrollment.sex).to eq(1)
+
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+
+      # Client should appear in the age/sex/race breakdown table (Male 31-50 & White)
+      rows_to_table(all_rows.slice(2, 11)).yield_self do |table|
+        expect(table['White']['Male 31-50']).to eq(1)
+      end
+    end
+  end
+
+  context 'with HIV+ beneficiaries' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_client) do
+      create(
+        :hud_client,
+        DOB: today - 45.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 1,
+        data_source: data_source,
+      )
+    end
+    let(:hiv_positive_beneficiary) do
+      create(
+        :hud_client,
+        DOB: today - 12.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 0,
+        data_source: data_source,
+      )
+    end
+    let(:hiv_negative_beneficiary) do
+      create(
+        :hud_client,
+        DOB: today - 8.years,
+        DOBDataQuality: 1,
+        White: 1,
+        Sex: 0,
+        data_source: data_source,
+      )
+    end
+
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    let!(:hiv_pos_beneficiary_enrollment) do
+      enrollment = create_enrollment(
+        client: hiv_positive_beneficiary,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 3,
+      )
+      # Create HIV disability for this beneficiary
+      create(
+        :hud_disability,
+        data_source: data_source,
+        enrollment: enrollment,
+        information_date: enrollment.entry_date,
+        disability_type: hiv_positive,
+        disability_response: 1,
+      )
+      enrollment
+    end
+
+    let!(:hiv_neg_beneficiary_enrollment) do
+      create_enrollment(
+        client: hiv_negative_beneficiary,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 3,
+      )
+    end
+
+    before do
+      [hoh_enrollment, hiv_pos_beneficiary_enrollment, hiv_neg_beneficiary_enrollment].each do |enrollment|
+        create(
+          :hud_service,
+          enrollment: enrollment,
+          record_type: hopwa_financial_assistance,
+          type_provided: rental_assistance,
+          fa_amount: 100,
+          date_provided: enrollment.entry_date,
+          data_source: data_source,
+        )
+      end
+    end
+
+    it 'correctly counts HIV+ status for beneficiaries vs HOPWA-eligible individuals' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(3)
+
+      # HOPWA-eligible individual (HoH) should be HIV+
+      hoh = report.hopwa_caper_enrollments.find_by(personal_id: hoh_client.PersonalID)
+      expect(hoh.hopwa_eligible).to be(true)
+      expect(hoh.hiv_positive).to be(true)
+
+      # HIV+ beneficiary should be marked as HIV+
+      hiv_pos_ben = report.hopwa_caper_enrollments.find_by(personal_id: hiv_positive_beneficiary.PersonalID)
+      expect(hiv_pos_ben.hopwa_eligible).to be(false)
+      expect(hiv_pos_ben.hiv_positive).to be(true)
+
+      # HIV- beneficiary should be marked as HIV-
+      hiv_neg_ben = report.hopwa_caper_enrollments.find_by(personal_id: hiv_negative_beneficiary.PersonalID)
+      expect(hiv_neg_ben.hopwa_eligible).to be(false)
+      expect(hiv_neg_ben.hiv_positive).to be(false)
+
+      # Verify counts in the report output
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+      lookup = all_rows.to_h { |row| [row[0], row[1]] }.compact_blank
+
+      expect(lookup.fetch('Total number of HOPWA-eligible individuals served with HOPWA assistance:')).to eq(1)
+      expect(lookup.fetch('Total number of other household members (beneficiaries) served with HOPWA assistance:')).to eq(2)
+      expect(lookup.fetch('How many other household members (beneficiaries) are HIV+?')).to eq(1)
+      expect(lookup.fetch('How many other household members (beneficiaries) are HIV negative or have an unknown HIV status?')).to eq(1)
     end
   end
 end

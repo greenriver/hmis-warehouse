@@ -8,7 +8,7 @@
 
 class GrdaWarehouse::Utility
   def self.clear!
-    raise 'Refusing to wipe a production warehouse' if Rails.env.production?
+    raise "Refusing to wipe a #{Rails.env.inspect} warehouse" unless Rails.env.test?
 
     tables = [
       GrdaWarehouse::ServiceHistoryEnrollment,

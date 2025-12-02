@@ -134,4 +134,45 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
       end
     end
   end
+
+  context 'with percent AMI values for drilldown display' do
+    let!(:setup) do
+      create_enrolled_client_with_service(
+        client_attrs: {
+          DOB: today - 40.years,
+          DOBDataQuality: 1,
+          White: 1,
+          Sex: 1,
+        },
+        project: project,
+        entry_date: report_start_date + 1.day,
+        service_type: hopwa_supportive_service,
+        type_provided: case_management_code,
+      )
+    end
+
+    it 'transforms percent_ami and sex to human-readable strings in drilldowns' do
+      report = create_report([project])
+      run_report(report)
+
+      expect(report.hopwa_caper_enrollments.size).to eq(1)
+      enrollment = report.hopwa_caper_enrollments.first
+
+      # Test display_value transforms percent_ami codes correctly
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 1, calculate_cell: false)).to eq('30% or less')
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 2, calculate_cell: false)).to eq('31% to 50%')
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 3, calculate_cell: false)).to eq('51% to 80%')
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 4, calculate_cell: false)).to eq('81% or greater')
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 99, calculate_cell: false)).to eq('Data not collected')
+
+      # Test display_value transforms sex codes correctly
+      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 0, calculate_cell: false)).to eq('Female')
+      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 1, calculate_cell: false)).to eq('Male')
+      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 99, calculate_cell: false)).to eq('Data not collected')
+
+      # Test nil handling
+      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
+    end
+  end
 end
