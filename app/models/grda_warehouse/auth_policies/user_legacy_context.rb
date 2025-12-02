@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'memery'
 
@@ -98,7 +98,11 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   memoize def permissions_for_access_group_ids(access_group_ids)
     access_group_ids += system_access_group_ids(:data_sources)
     return EMPTY_SET if access_group_ids.blank?
-    return EMPTY_SET unless user.access_groups.where(id: access_group_ids).exists?
+
+    # Check if the user is a member of any of the access groups, or if the user's own access group is included
+    access_group_exists = user.access_groups.where(id: access_group_ids).exists?
+    access_group_exists ||= access_group_ids.include?(user.access_group.id) if user.access_group.present?
+    return EMPTY_SET unless access_group_exists
 
     legacy_permissions
   end

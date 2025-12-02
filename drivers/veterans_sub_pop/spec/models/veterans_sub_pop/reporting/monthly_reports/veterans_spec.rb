@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe VeteransSubPop::Reporting::MonthlyReports::Veterans, type: :model do

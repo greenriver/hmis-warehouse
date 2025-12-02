@@ -39,6 +39,17 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end.to raise_error(ActiveRecord::RecordInvalid, /Status must be one of/)
     end
 
+    it 'does not save a referral with an invalid target enrollment in the wrong project' do
+      referral = create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source)
+      other_enrollment = create(:hmis_hud_enrollment, data_source: data_source, client: referral.client)
+      referral.target_enrollment = other_enrollment
+
+      expect(referral.valid?).to be_falsy
+      expect do
+        referral.save!
+      end.to raise_error(ActiveRecord::RecordInvalid, /must be in same project/)
+    end
+
     ['initialized', 'in_progress', 'accepted'].each do |status|
       context "when there is an existing #{status} referral" do
         let!(:existing) { create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: status) }
@@ -55,9 +66,9 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     context 'when there is an existing referral' do
-      let(:workflow_template) { opportunity.workflow_template }
+      let(:workflow_template) { opportunity.unit_group.workflow_template }
       let!(:workflow_instance) { workflow_template.instances.create! }
-      let!(:existing) { create(:hmis_ce_referral, workflow_instance: workflow_instance) }
+      let!(:existing) { create(:hmis_ce_referral, workflow_instance: workflow_instance, data_source: data_source) }
 
       it 'does not allow creating a new referral with the same instance' do
         referral = build(:hmis_ce_referral, workflow_instance: workflow_instance)

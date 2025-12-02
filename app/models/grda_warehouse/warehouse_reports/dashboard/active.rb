@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Active < GrdaWarehouse::WarehouseReports::Dashboard::Base
     attr_accessor :range

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class BackgroundRenderJob < BaseJob
   include CableReady::Broadcaster
   queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)

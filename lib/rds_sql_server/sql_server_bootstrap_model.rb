@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Must connect to "master" database to create the writable database we'll use
 class SqlServerBootstrapModel < ActiveRecord::Base
   rds = Rds.new

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool::DqConcern
   extend ActiveSupport::Concern
   included do
@@ -51,13 +53,39 @@ module HmisDataQualityTool::DqConcern
       headers.select { |k, _| k.in?(columns) }
     end
 
-    def download_value(key)
+    def transform_value(key, value, pii_policy)
+      case key
+      when /.*first_name$/, /.*last_name$/, /.*middle_name$/, /.*full_name$/, /.*brief_name$/
+        GrdaWarehouse::PiiProvider.viewable_name(value, policy: pii_policy)
+      when /^dob$/
+        GrdaWarehouse::PiiProvider.viewable_dob(value, policy: pii_policy)
+      when /^ssn$/
+        GrdaWarehouse::PiiProvider.viewable_ssn(value, policy: pii_policy)
+      when /.*hiv_aids/
+        GrdaWarehouse::PiiProvider.viewable_hiv_status(value, policy: pii_policy)
+      else
+        value
+      end
+    end
+
+    def download_value(key, pii_policy:)
       translator = self.class.detail_headers[key][:translator]
-      value = public_send(key)
+      value = transform_value(key, public_send(key), pii_policy)
       return translator.call(value) if translator.present?
       return value == true ? 'Yes' : 'No' if value.in?([true, false])
 
       value
+    end
+
+    # Returns the project_id to use for PII policy checks
+    # For items with multiple projects (like Client), finds the first one the user has access to
+    # Falls back to the first project_id if none are accessible
+    def project_id_for_policy(viewable_project_ids:)
+      if respond_to?(:project_ids) && project_ids.present?
+        (project_ids & viewable_project_ids)&.first || project_ids.first
+      else
+        project_id
+      end
     end
 
     # returns [stay_length_category, stay_length_limit]

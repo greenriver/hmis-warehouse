@@ -25,7 +25,7 @@ require_relative '../lib/util/rails_trusted_proxies_config'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -126,6 +126,10 @@ module BostonHmis
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
 
+    # Maintain Rails 7.0 behavior for specific settings
+    config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
+    config.active_record.default_column_serializer = YAML # Keep historic behavior
+
     # Extension points
     config.sub_populations = {}
     config.census = {}
@@ -144,42 +148,5 @@ module BostonHmis
     config.help_links = []
     config.location_processors = []
     config.queued_tasks = {}
-
-    # FIX for service history services change
-    config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
-      GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
-      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
-    end
-
-    # Fix for chronic calculator
-    # Previously, imported data where the enrollment was in a literally homeless project
-    # where the client would accumulate days between entry & exit that counted toward
-    # "Chronically Homeless at start", the current date was used to make the chronic
-    # determination instead of the exit date
-    config.queued_tasks[:ch_enrollment_exited_rebuild] = -> do
-      # Invalidate the calculation for any enrollment with an exit date
-      # that was previously marked chronic at entry
-      GrdaWarehouse::ChEnrollment.joins(enrollment: :exit).
-        where(chronically_homeless_at_entry: true).
-        update_all(processed_as: nil)
-      GrdaWarehouse::ChEnrollment.maintain!
-    end
-
-    # Force a one time rebuild of destination clients to incorporate changes to ClientCleanup
-    config.queued_tasks[:client_cleanup_veteran_details] = -> do
-      GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
-        GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
-      end
-    end
-
-    # Migrate from collections.coc_codes JSON column to using GrdaWarehouse::Lookups::CocCode
-    config.queued_tasks[:migrate_collection_coc_codes] = -> do
-      ::Collection.migrate_from_local_coc_codes
-    end
-
-    # Initial setup of HUD item lists
-    config.queued_tasks[:initialize_hud_list_items_table] = -> do
-      GrdaWarehouse::HudListItem.maintain!
-    end
   end
 end

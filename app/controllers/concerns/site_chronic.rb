@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 #
 # SiteChronic is a wrapper around the Chronic and HudChronic concerns that selects the appropriate chronic definition
 # based on the site configuration.

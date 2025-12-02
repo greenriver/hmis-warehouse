@@ -1,0 +1,15 @@
+Threshold Monitoring Thresholds Crossed
+
+The following clients have crossed metric thresholds on #{@calculation_date.strftime('%B %d, %Y')}:
+
+- @crossings.each do |metric_id, snapshot_info|
+  - metric_name = snapshot_info[:display_name]
+  \
+  #{metric_name}
+  = '-' * metric_name.length
+  #{snapshot_info[:total_count]} #{'client'.pluralize(snapshot_info[:total_count])} crossed the threshold for this metric.
+  View details: #{admin_metric_definition_url(id: metric_id)}
+
+\
+You are receiving this notification because you are subscribed to threshold monitoring alerts.
+To manage your alert subscriptions, contact your administrator.

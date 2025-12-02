@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # bundle exec rails runner 'TestHealthMailer.ping("somebody@greenriver.com").deliver_now'
 
 class TestHealthMailer < HealthMailer

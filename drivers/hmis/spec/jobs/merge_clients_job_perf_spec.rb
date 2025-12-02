@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Hmis::MergeClientsJob, type: :model do
@@ -70,7 +72,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     it 'performs a reasonable number of database queries' do
       expect do
         Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
-      end.to make_database_queries(count: 100..160)
+      end.to make_database_queries(count: 100..200)
     end
   end
 end

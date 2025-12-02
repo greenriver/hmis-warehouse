@@ -11,11 +11,13 @@
 # ServiceHistoryService flatten HUD Service and related records to serve reporting needs. These records are generated
 # automatically. ServiceHistoryService records records are a superset of HUD Services, they include "synthetic" services
 # that are implied but not recorded, such as bed-nights at EE projects.
+#
+# @see docs/features/service_history.md
 class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
 
-  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], query_constraints: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services, optional: true
+  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services, optional: true
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :enrollment, through: :service_history_enrollment
 

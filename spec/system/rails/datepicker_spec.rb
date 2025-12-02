@@ -21,7 +21,7 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
     setup_access_control(user, role, collection)
   end
 
-  describe 'Date Picker', js: true do
+  describe DatePickerInput, js: true do
     before { sign_in_user(user) }
 
     it 'Correctly adjusts dates' do
@@ -50,6 +50,21 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
         picker.trigger(:blur)
         # Ensure the date was set correctly
         expect(picker.value).to eq(expected_date)
+      end
+
+      # check the four-letter month
+      sept_expected_date = 'Sep 1, 2025'
+      ['Sept 1, 2025'].each do |date|
+        fill_in picker[:id], with: date
+        picker.trigger(:blur)
+        expect(picker.value).to eq(sept_expected_date)
+      end
+
+      # check the full month too
+      ['September 1, 2025'].each do |date|
+        fill_in picker[:id], with: date
+        picker.trigger(:blur)
+        expect(picker.value).to eq(sept_expected_date)
       end
     end
   end

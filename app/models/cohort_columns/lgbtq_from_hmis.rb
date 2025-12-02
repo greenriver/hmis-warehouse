@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class LgbtqFromHmis < ReadOnly
     attribute :column, String, lazy: true, default: :lgbtq_from_hmis

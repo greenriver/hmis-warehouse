@@ -10,12 +10,17 @@ module Mutations
   class AcHmis::FetchAhaScore < CleanBaseMutation
     description 'Return AHA score for client'
 
+    AhaFailedReason = Types::BaseEnum.build('AhaFailedReason') do
+      value 'NO_MCI_UNIQUE_ID', 'Client does not have an MCI unique ID'
+    end
+
     argument :client_id, ID, required: true
 
     field :score, Integer, null: true
     field :mci_quality_indicator, Integer, null: true
     field :dw_client_id, String, null: true
     field :generator, String, null: true
+    field :aha_failed_reason, AhaFailedReason, null: true
 
     def resolve(client_id:)
       errors = HmisErrors::Errors.new
@@ -27,15 +32,18 @@ module Mutations
       access_denied! unless client.present?
 
       aha = HmisExternalApis::AcHmis::Aha.new
-      result = aha.fetch_score(client)
-
-      return { score: -1 } if result.nil?
+      begin
+        result = aha.fetch_score(client)
+      rescue HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError => _e
+        return { score: -1, aha_failed_reason: 'NO_MCI_UNIQUE_ID' }
+      end
 
       {
         score: result.score,
         mci_quality_indicator: result.mci_quality_indicator,
         dw_client_id: result.dw_client_id,
         generator: result.generator,
+        aha_failed_reason: nil,
       }
     end
   end

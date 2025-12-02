@@ -37,8 +37,8 @@ module Cohorts
             set_cohort_clients
             # Allow for individual refresh
             @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i) if params[:cohort_client_id].present?
-            render plain: JSON.fast_generate(data_for_table), type: :json
-            # The above is > 50% faster then
+            render plain: JSON.generate(data_for_table), type: :json
+            # The above is > 50% faster than
             # render json: data_for_table
           else
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map { |k, v| [k, v.to_i] }.to_h

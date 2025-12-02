@@ -12,9 +12,11 @@ module PerformanceMeasurement
     self.table_name = :pm_clients
     acts_as_paranoid
 
+    attr_accessor :included_in_ph_permanent_or_stayer
+
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
-    has_many :client_projects, primary_key: [:client_id, :report_id], query_constraints: [:client_id, :report_id]
+    has_many :client_projects, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', optional: true, foreign_key: :client_id
 
     # Gender scopes

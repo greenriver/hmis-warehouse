@@ -189,7 +189,14 @@ module PerformanceMeasurement::ResultCalculation
     def count_of_homeless_clients_in_range(detail, project: nil)
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
+      comparison_count = if existing_static_comparison_spm.present?
+        # Get Homeless count (ES, SH, TH) from SPM
+        count = existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+        # add in SO count from SHS
+        count + client_count(field, :comparison, project_id: project&.project_id)
+      else
+        client_count(field, :comparison, project_id: project&.project_id)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
@@ -214,7 +221,11 @@ module PerformanceMeasurement::ResultCalculation
     def count_of_sheltered_homeless_clients(detail, project: nil)
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
+      comparison_count = if existing_static_comparison_spm.present?
+        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+      else
+        client_count(field, :comparison, project_id: project&.project_id)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(

@@ -1,0 +1,54 @@
+-# Display all alert contact relationships for a user
+-# Shows system contact and all project/organization contacts with their subscriptions
+-# Uses preloaded @user_contacts from controller to avoid N+1 queries
+- if @user_contacts.any?
+  .contact-relationships.mt-4.mb-4
+    %h3 Other Subscriptions
+    .card
+      .card-body
+        %p.text-muted
+          This user receives alerts through the following associations.
+        - org_contacts = @user_contacts.select { |c| c.type == 'GrdaWarehouse::Contact::Organization' }
+        - project_contacts = @user_contacts.select { |c| c.type == 'GrdaWarehouse::Contact::Project' }
+        - has_any_contacts = @user.system_contact.present? || org_contacts.any? || project_contacts.any?
+
+        - if has_any_contacts
+          %table.table.table-sm.table-striped
+            %thead
+              %tr
+                %th Contact Type
+                %th Entity
+                %th Subscriptions
+                %th.text-end Actions
+            %tbody
+              - org_contacts.each do |contact|
+                %tr
+                  %td
+                    %span.badge.bg-info Organization
+                  %td= contact.entity.name
+                  %td
+                    - subscriptions = contact.alert_definitions.select(&:active?).map(&:name)
+                    - if subscriptions.any?
+                      = subscriptions.join(', ')
+                    - else
+                      %span.text-muted None
+                  %td.text-end
+                    = link_to edit_organization_contact_path(contact.entity, contact), target: :_blank do
+                      Edit Contact
+                      %span.icon-link-ext
+
+              - project_contacts.each do |contact|
+                %tr
+                  %td
+                    %span.badge.bg-success Project
+                  %td= contact.entity.name
+                  %td
+                    - subscriptions = contact.alert_definitions.select(&:active?).map(&:name)
+                    - if subscriptions.any?
+                      = subscriptions.join(', ')
+                    - else
+                      %span.text-muted None
+                  %td.text-end
+                    = link_to edit_project_contact_path(contact.entity, contact), target: :_blank do
+                      Edit Contact
+                      %span.icon-link-ext

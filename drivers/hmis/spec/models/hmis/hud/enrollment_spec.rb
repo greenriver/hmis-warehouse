@@ -470,4 +470,61 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
   end
+
+  describe 'assign_unit' do
+    let!(:project) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1) }
+    let!(:unit) { create(:hmis_unit, project: project) }
+
+    it 'assigns unit successfully' do
+      enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+      enrollment.save!
+      expect(enrollment.current_unit).to eq(unit)
+    end
+
+    it 'does nothing if already assigned to same unit' do
+      enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+      enrollment.save!
+      enrollment.reload
+
+      expect do
+        enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+        enrollment.save!
+      end.not_to change(enrollment.unit_occupancies, :count)
+    end
+
+    it 'raises error if already assigned to different unit' do
+      enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+      enrollment.save!
+      enrollment.reload
+
+      other_unit = create(:hmis_unit, project: project)
+      expect do
+        enrollment.assign_unit(unit: other_unit, start_date: Date.current, user: hmis_user)
+      end.to raise_error('Enrollment is already assigned to a different unit')
+    end
+
+    it 'raises error if unit occupied by different household' do
+      other_enrollment = create(:hmis_hud_enrollment, project: project, data_source: ds1)
+      other_enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+      other_enrollment.save!
+
+      expect do
+        enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+      end.to raise_error('Unit is already assigned to a different household')
+    end
+
+    it 'allows same household members to share unit' do
+      enrollment.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+      enrollment.save!
+
+      hh_member = create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: enrollment.household_id)
+      expect do
+        hh_member.assign_unit(unit: unit, start_date: Date.current, user: hmis_user)
+        hh_member.save!
+      end.not_to raise_error
+
+      expect(hh_member.current_unit).to eq(unit)
+    end
+  end
 end

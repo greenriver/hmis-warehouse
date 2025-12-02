@@ -84,7 +84,10 @@ module CeWorkflows::Shared
       puts "Deleting existing CE data associated with #{template_identifier}"
 
       templates = Hmis::WorkflowDefinition::Template.where(identifier: template_identifier)
-      opportunities = Hmis::Ce::Opportunity.where(workflow_template_identifier: template_identifier)
+      # Find opportunities through unit groups that use this template
+      unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
+        or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier))
+      opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
       instances = Hmis::WorkflowExecution::Instance.where(template: templates)
       steps = Hmis::WorkflowExecution::Step.where(instance: instances)
       referrals = Hmis::Ce::Referral.where(workflow_instance: instances)

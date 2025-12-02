@@ -4,10 +4,20 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+#####
+# DEPRECATED 🚨
+# The UnitAvailabilitySync class has been deprecated. This model is no longer used
+# and will be removed in a future release. The table will be dropped via migration.
+#####
+
 module HmisExternalApis::AcHmis
   # Track local and synced changes
   class UnitAvailabilitySync < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_unit_availability_syncs'
+    has_paper_trail
+
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :unit_type, class_name: 'Hmis::UnitType'
     belongs_to :user, class_name: 'Hmis::User'

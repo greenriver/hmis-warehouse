@@ -4,7 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
+  # @see docs/features/cohorts.md
   class CohortTab < GrdaWarehouseBase
     include ArelHelper
     acts_as_paranoid

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class AccountMailer < Devise::Mailer
   default template_path: 'devise/mailer'
 

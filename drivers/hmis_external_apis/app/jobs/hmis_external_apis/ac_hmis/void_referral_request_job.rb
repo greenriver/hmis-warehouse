@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Void a previously made referral request
 # We should only call it if we have no Postings for this request
 module HmisExternalApis::AcHmis

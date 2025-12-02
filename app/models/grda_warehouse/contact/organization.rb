@@ -4,9 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Contact
   class Organization < Base
-    belongs_to :Organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: :entity_id
-
+    belongs_to :entity, polymorphic: true
   end
 end

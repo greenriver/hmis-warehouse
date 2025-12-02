@@ -8,6 +8,7 @@ class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
   def apply(scope)
     scope = super(scope)
     project_ids = visible_project_ids
+    return scope.none if project_ids.blank? && input.project_group_ids.present?
     return scope if project_ids.blank?
 
     # seems to be order dependent (merge before in_project)

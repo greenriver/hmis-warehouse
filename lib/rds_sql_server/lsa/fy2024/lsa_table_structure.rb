@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 steps = [
   'lib/rds_sql_server/lsa/fy2024/sample_code/01 Temp Reporting and Reference Tables.sql',
   'lib/rds_sql_server/lsa/fy2024/sample_code/02 LSA Output Tables.sql',

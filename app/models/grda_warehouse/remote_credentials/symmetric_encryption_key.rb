@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class RemoteCredentials::SymmetricEncryptionKey < GrdaWarehouse::RemoteCredential
     # FIXME: we have a convention of repurposing the attributes of the remote credential class. Needs refactor

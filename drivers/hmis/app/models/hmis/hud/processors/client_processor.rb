@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module Hmis::Hud::Processors
   class ClientProcessor < Base
     # DO NOT CHANGE: Frontend code sends these values
     # Indicates that a new MCI ID should be created.
-    MCI_CREATE_MCI_ID_VALUE = '_CREATE_MCI_ID'.freeze
+    MCI_CREATE_MCI_ID_VALUE = '_CREATE_MCI_ID'
 
     def process(field, value)
       attribute_name = ar_attribute_name(field)

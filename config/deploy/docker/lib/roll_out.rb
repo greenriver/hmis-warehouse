@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'English'
 require 'amazing_print'
@@ -54,7 +54,7 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  SERVICE_NAME_VERSION = '-2'.freeze
+  SERVICE_NAME_VERSION = '-2'
 
   def initialize(args:, image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, service_registry_arns:) # rubocop:disable Metrics/ParameterLists
     self.cluster                  = _cluster_name

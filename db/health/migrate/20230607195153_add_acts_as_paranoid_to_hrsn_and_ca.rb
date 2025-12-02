@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddActsAsParanoidToHrsnAndCa < ActiveRecord::Migration[6.1]
   def change
     add_column :thrive_assessments, :deleted_at, :datetime

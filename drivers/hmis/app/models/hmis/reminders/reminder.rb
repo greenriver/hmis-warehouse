@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis
   module Reminders
     Reminder = Struct.new(:topic, :due_date, :overdue, :enrollment, :form_definition_id, :assessment_id, keyword_init: true) do

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   # This mutation is only for creating a new draft of a published form.
   # To create a brand-new form, use CreateFormDefinition

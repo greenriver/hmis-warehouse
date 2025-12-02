@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DocumentExportsController < DocumentExportsControllerBase
   private def document_export_class
     GrdaWarehouse::DocumentExport

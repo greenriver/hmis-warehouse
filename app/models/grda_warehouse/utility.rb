@@ -4,11 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class GrdaWarehouse::Utility
   def self.clear!
-    raise 'Refusing to wipe a production warehouse' if Rails.env.production?
+    raise "Refusing to wipe a #{Rails.env.inspect} warehouse" unless Rails.env.test?
 
     tables = [
       GrdaWarehouse::ServiceHistoryEnrollment,

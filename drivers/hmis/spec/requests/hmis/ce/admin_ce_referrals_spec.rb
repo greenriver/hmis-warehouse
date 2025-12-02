@@ -158,6 +158,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when querying referrals by organization' do
+      let!(:project2) { create :hmis_hud_project, data_source: ds1, user: u1 }
+      let!(:referral2) { create(:hmis_ce_referral, project: project2, data_source: ds1) }
+
+      let(:variables) do
+        {
+          filters: {
+            organization: [project.organization.id],
+          },
+        }
+      end
+
+      it 'filters correctly' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.dig(0, 'id')).to eq(referral.id.to_s) # referral2 is excluded
+      end
+    end
+
     context 'with many referrals' do
       before do
         create_list(:hmis_ce_referral, 40, project: project, data_source: ds1)

@@ -11,8 +11,8 @@ module HmisCsvImporter::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Importer::Project', primary_key: [:ProjectID, :data_source_id], query_constraints: [:ProjectID, :data_source_id]
-      has_many :loaded_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Loader::Project', primary_key: [:ProjectID, :data_source_id], query_constraints: [:ProjectID, :data_source_id]
+      has_many :imported_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Importer::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
+      has_many :loaded_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Loader::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
 
       def convert_to_aggregated!
         existing = HmisCsvImporter::Aggregated::Enrollment.where(data_source_id: data_source_id, ProjectID: self.ProjectID).exists?
@@ -34,7 +34,7 @@ module HmisCsvImporter::GrdaWarehouse::Hud
         scope.find_in_batches do |batch|
           look_asides = []
           batch.each do |row|
-            data = row.slice(row.class.hmis_structure(version: '2020').keys)
+            data = row.slice(row.class.hmis_structure(version: HudHelper.current_version).keys)
             data.merge!(
               source_type: row.class.name,
               source_id: row.id,

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddTimestampToMhxSubmissions < ActiveRecord::Migration[6.1]
   def change
     add_column :mhx_submissions, :timestamp, :string

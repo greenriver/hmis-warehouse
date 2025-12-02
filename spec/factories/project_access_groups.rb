@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :project_access_group, class: 'GrdaWarehouse::ProjectAccessGroup' do
     sequence(:name) { |n| "Project Group #{n}" }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :report_result, class: 'ReportResult' do
     percent_complete { 0 }
