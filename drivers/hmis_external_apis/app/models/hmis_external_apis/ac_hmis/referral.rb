@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   # A request for a service for a household. The service is not necessarily housing.
   class Referral < ::HmisExternalApis::HmisExternalApisBase

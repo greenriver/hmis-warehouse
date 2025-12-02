@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Census
   class AdultsWithChildrenTwentyfivePlusHohFactory
     def self.get_client_counts(batch, project_type)

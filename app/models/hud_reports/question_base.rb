@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# @see docs/features/hud-report-framework.md
 module HudReports
   class QuestionBase
     include NotifierConfig
@@ -38,6 +41,7 @@ module HudReports
     end
 
     def run!
+      prepare_for_run
       run_question!
       remaining_questions = @report.remaining_questions - [self.class.question_number]
       @report.update(remaining_questions: remaining_questions)
@@ -65,6 +69,22 @@ module HudReports
 
     def self.table_descriptions
       {}
+    end
+
+    # Override in subclasses to clean up derived data associated with this question
+    def self.reset_derived_data(_report_instance)
+      # Default implementation is a no-op
+    end
+
+    private
+
+    # Resets this question's cells if the generator supports idempotent retry.
+    # Safe to call on fresh runs - reset_question is a no-op if no cells exist.
+    def prepare_for_run
+      return unless @generator.class.supports_idempotent_retry?
+
+      self.class.reset_derived_data(@report)
+      @report.reset_question(self.class.question_number)
     end
   end
 end

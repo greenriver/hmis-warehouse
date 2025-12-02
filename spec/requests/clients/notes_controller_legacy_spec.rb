@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../app/models/grda_warehouse/client_notes/base'
 require_relative '../../../app/models/grda_warehouse/client_notes/chronic_justification'

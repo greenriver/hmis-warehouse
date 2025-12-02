@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module HmisDataQualityTool
   class Report < HudReports::ReportInstance
@@ -555,7 +555,6 @@ module HmisDataQualityTool
           ssn_issues: Client,
           dob_issues: Client,
           race_issues: Client,
-          gender_issues: Client,
           veteran_issues: Client,
           afghanistan_oef: Enrollment,
           iraq_oif: Enrollment,

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # https://files.hudexchange.info/resources/documents/Notice-CPD-18-08-2019-HIC-PIT-Data-Collection-Notice.pdf
 #
 # https://files.hudexchange.info/resources/documents/2019-HIC-and-PIT-Count-Data-Submission-Guidance.pdf

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddCanAdministrateConfigPermission < ActiveRecord::Migration[7.0]
   def up
     ::Hmis::Role.ensure_permissions_exist

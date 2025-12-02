@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab hp esg caper', shared_context: :metadata do
   describe 'Datalab 2023 CAPER - HP ESG' do
     let(:results_dir) { 'caper/hp_esg' }

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HUD SPM Report Generator: Number of Homeless Persons
 module HudSpmReport::Generators::Fy2020
   class MeasureThree < Base

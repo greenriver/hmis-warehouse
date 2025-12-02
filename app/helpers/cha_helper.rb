@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ChaHelper
   def cha_section_is_blank?(answers)
     answers.values.map do |question_answer|

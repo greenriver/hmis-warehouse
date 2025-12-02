@@ -105,7 +105,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           expect_gql_error(
             post_graphql(**variables) { mutation },
-            message: 'Unit must be in a Unit Group to be marked available',
+            message: /Unit must be in a Unit Group/,
           )
         end.to not_change(Hmis::Ce::Opportunity, :count)
       end

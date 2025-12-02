@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class UtilizationController < HealthController
     # This controller serves both BH CP data and pilot data, so it can't use the BH CP permissions

@@ -13,6 +13,8 @@
 #     to be used for CE Opportunities created for units within this group.
 #   - Enables the definition of CE `eligibility_requirements` and `priority_scheme`
 #     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
+#
+# @see docs/features/hmis_units.md For documentation on unit groups and their role in CE workflows
 module Hmis
   class UnitGroup < HmisBase
     acts_as_paranoid
@@ -24,6 +26,7 @@ module Hmis
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
     has_many :unit_types, through: :units # TODO(#8157) - Unit should have at most 1 unit type. Remove when no longer used
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
+    has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
     belongs_to :workflow_template,
@@ -72,6 +75,10 @@ module Hmis
       # Default to workflow_template if direct_referral_workflow_template is not found.
       # This is for backwards compatibility while we switch over.
       direct_referral_workflow_template || workflow_template
+    end
+
+    def any_workflow_template?
+      workflow_template.present? || direct_referral_workflow_template.present?
     end
 
     # Form definition to use for direct referrals to this Unit Group, if any.

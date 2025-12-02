@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'amazing_print'
 require_relative 'deployer'
 require_relative 'aws_sdk_helpers'
@@ -5,7 +7,7 @@ require_relative 'aws_sdk_helpers'
 class EcsTools
   include AwsSdkHelpers::Helpers
 
-  HOST  = 'ecs0.openpath.host'.freeze
+  HOST  = 'ecs0.openpath.host'
   IMAGE = ENV['IMAGE']
 
   def shell

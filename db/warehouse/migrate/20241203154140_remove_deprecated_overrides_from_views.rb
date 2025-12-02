@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveDeprecatedOverridesFromViews < ActiveRecord::Migration[7.0]
   def up
     update_analytics_views(2)

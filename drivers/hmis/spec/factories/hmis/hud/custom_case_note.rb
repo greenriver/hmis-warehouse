@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 FactoryBot.define do
   factory :hmis_hud_custom_case_note, class: 'Hmis::Hud::CustomCaseNote' do

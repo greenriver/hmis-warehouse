@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: the rails mailer does not appear to be aware of drivers; templates are in main view directory
 class BostonProjectScorecard::ScorecardMailer < ::DatabaseMailer
   def scorecard_prefilled(report, contact)

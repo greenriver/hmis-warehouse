@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Run with:
 # r = HudLsa::Generators::Fy2024::LsaComparisonTool.new('var/lsa/sample', 'var/lsa/generated')
 # r.compare

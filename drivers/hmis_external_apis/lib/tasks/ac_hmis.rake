@@ -7,16 +7,6 @@
 # frozen_string_literal: true
 
 namespace :ac_hmis do
-  # rails driver:hmis_external_apis:ac_hmis:update_unit_availability
-  # or to force an update
-  # rails driver:hmis_external_apis:ac_hmis:update_unit_availability[force]
-  task :update_unit_availability, [:force] => :environment do |_task, args|
-    next unless HmisEnforcement.hmis_enabled? && HmisExternalApis::AcHmis::LinkApi.enabled?
-
-    force = args.force == 'force'
-    HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(force: force)
-  end
-
   # rails driver:hmis_external_apis:ac_hmis:import_housing_assessments[bucket_name,s3_key,<ce_project_id>,<form_definition_identifier>]
   task :import_housing_assessments, [:bucket_name, :s3_key, :project_id, :form_definition_identifier] => :environment do |_task, args|
     next unless HmisEnforcement.hmis_enabled?

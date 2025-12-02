@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateAnyCareplans < ActiveRecord::Migration[6.1]
   def change
     create_table :any_careplans do |t|

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ConvertSheProjectNameLength < ActiveRecord::Migration[7.0]
   def up
     drop_view :service_history

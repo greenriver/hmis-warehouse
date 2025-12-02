@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class ClientMergeHistory < GrdaWarehouseBase
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :merged_into, optional: true

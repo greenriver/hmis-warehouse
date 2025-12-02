@@ -34,6 +34,7 @@ module Types
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
+    field :stale, Boolean, null: false
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPit::Generators::Pit::Fy2022
   class Children < Base
     QUESTION_NUMBER = 'Households with only Children'.freeze

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
@@ -94,7 +94,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
 
   # Unit occupancy
-  # All unit occupancies, including historical
+  # All unit occupancies, including historical. @see docs/features/hmis_units.md For detailed documentation on unit occupancy workflows
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, autosave: true
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
@@ -102,7 +102,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # All referrals where this enrollment is the source enrollment. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id
-  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
+  # The referral that created this enrollment (if any)
+  has_one :source_ce_referral, class_name: 'Hmis::Ce::Referral', foreign_key: :target_enrollment_id
+
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
@@ -456,14 +459,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_members.heads_of_households.first&.entry_date
   end
 
-  # track change via attr to avoid adding complexity to form processor
-  attr_accessor :unit_occupancy_changes
-  after_save :track_unit_occupancy_changes, if: :unit_occupancy_changes
-  def track_unit_occupancy_changes
-    unit_type, user_id, project_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id, :project_id)
-    unit_type.track_availability(project_id: project_id, user_id: user_id)
-  end
-
   # Assigns a unit to this enrollment, building a new unit occupancy record. The enrollment must be saved to persist the assignment.
   #
   # This method handles the business logic for unit assignment including:
@@ -504,8 +499,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       raise 'Cannot assign to a unit with locked opportunity' unless is_same_client || is_same_household
     end
 
-    # include project id here since it may not be available during after_save hooks due to WIP
-    self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
     occupancy = unit_occupancies.build(unit: unit)
     occupancy.build_occupancy_period(
       start_date: start_date,

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Users::AccountRequestsController < ApplicationController
   skip_before_action :authenticate_user!
   before_action :require_account_requests_enabled?

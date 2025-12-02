@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Adapter class for resolving a set of CustomDataElements along with their CustomDataElementDefinition ("cded").
 # Resolved as Types::HmisSchema::CustomDataElement
 module Hmis::Hud

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
   # For use in the the view
   attribute :gender, Symbol, default: :all

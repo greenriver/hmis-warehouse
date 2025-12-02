@@ -74,7 +74,7 @@ module Mutations
         errors.push(*validations)
         errors.drop_warnings! if confirmed
         errors.deduplicate!
-        return { errors: errors } if errors.any?
+        raise ActiveRecord::Rollback if errors.any?
 
         engine.start_step!(step, user: current_user)
 
@@ -84,6 +84,8 @@ module Mutations
 
         engine.complete_step!(step, user: current_user, submitted_values: values_by_link_id)
       end
+
+      return { errors: errors } if errors.any?
 
       { referral: referral }
     end

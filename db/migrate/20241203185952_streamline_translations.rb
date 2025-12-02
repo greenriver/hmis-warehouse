@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StreamlineTranslations < ActiveRecord::Migration[7.0]
   def up
     translations.each do |old_key, new_key|

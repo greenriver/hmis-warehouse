@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Filters
   class HudChronic < ::ModelForm
     attribute :on, Date, default: ->(_r, _) { GrdaWarehouse::HudChronic.most_recent_day }

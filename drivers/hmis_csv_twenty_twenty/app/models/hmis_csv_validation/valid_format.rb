@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisCsvValidation::ValidFormat < HmisCsvValidation::Validation
   def self.check_validity!(item, column, regex: nil)
     value = item[column]

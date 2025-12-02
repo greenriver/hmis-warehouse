@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Synthetic
   class YouthEducationStatus < GrdaWarehouseBase
     self.table_name = 'synthetic_youth_education_statuses'
