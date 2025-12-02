@@ -200,7 +200,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(50)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
-        end.to make_database_queries(count: 25..35)
+        end.to make_database_queries(count: 30..40)
       end
     end
 

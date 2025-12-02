@@ -177,5 +177,23 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         end
       end
     end
+
+    context 'user can_view_outgoing_referral_details in source project' do
+      let!(:source_project) { create(:hmis_hud_project, data_source: ds1) }
+      let!(:source_enrollment) { create(:hmis_hud_enrollment, project: source_project, data_source: ds1) }
+      let!(:referral) do
+        create(
+          :hmis_ce_referral,
+          opportunity: opportunity,
+          source_enrollment: source_enrollment,
+          data_source: ds1,
+        )
+      end
+      let!(:acl) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details]) }
+
+      it 'includes referral with source enrollment from that project' do
+        expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
+      end
+    end
   end
 end
