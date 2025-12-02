@@ -21,8 +21,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool, priority_expression: 'cde.custom_assessment.custom_question_1' }
 
   let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: candidate_pool) }
-  let!(:unit) { create(:hmis_unit_in_group, project: p1, unit_group: unit_group) }
-  let!(:opportunity) { create :hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool, unit: unit }
+  let!(:unit) { create(:hmis_unit, project: p1, unit_group: unit_group) }
+  let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: candidate_pool, unit: unit }
 
   describe 'ceOpportunity candidates query' do
     let(:query) do
@@ -89,8 +89,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     # One of the candidates has been declined from another opportunity in the same unit group
-    let!(:other_unit) { create(:hmis_unit_in_group, project: p1, unit_group: unit_group) }
-    let!(:other_opportunity) { create(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool, unit: other_unit) }
+    let!(:other_unit) { create(:hmis_unit, project: p1, unit_group: unit_group) }
+    let!(:other_opportunity) { create(:hmis_ce_opportunity, candidate_pool: candidate_pool, unit: other_unit) }
     let!(:declined_referral) { create(:hmis_ce_referral, data_source: ds1, client: client_1, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago) }
 
     it 'returns candidates in prioritized order' do
@@ -139,7 +139,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has no candidates' do
       let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: nil) }
-      let!(:opportunity) { create :hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: nil, unit: unit }
+      let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: nil, unit: unit }
 
       it 'returns an empty candidates array' do
         response, result = post_graphql(**variables) { query }
@@ -173,7 +173,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
       let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
       let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: candidate_pool_with_anonymous) }
-      let(:opportunity) { create :hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool_with_anonymous }
+      let(:opportunity) { create :hmis_ce_opportunity, candidate_pool: candidate_pool_with_anonymous, unit: create(:hmis_unit, project: p1, unit_group: unit_group) }
 
       let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
       let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
@@ -264,8 +264,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
             create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client.destination_client, priority_score: 50)
 
-            other_unit = create(:hmis_unit_in_group, project: p1, unit_group: unit_group)
-            other_opportunity = create(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: candidate_pool, unit: other_unit)
+            other_unit = create(:hmis_unit, project: p1, unit_group: unit_group)
+            other_opportunity = create(:hmis_ce_opportunity, candidate_pool: candidate_pool, unit: other_unit)
             create(:hmis_ce_referral, data_source: ds1, client: client, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago)
 
             # re-assess half of them
