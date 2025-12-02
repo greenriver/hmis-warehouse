@@ -174,7 +174,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Management',
       },
       can_view_prioritized_client_lists: {
-        description: 'Ability to view client waitlists in the project',
+        description: 'Ability to view prioritized eligible client list in the project',
         administrative: false,
         access: [:viewable],
         category: 'Referrals',
@@ -182,7 +182,7 @@ class Hmis::Role < ::ApplicationRecord
         proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_start_referrals: {
-        description: 'Ability to initiate referrals from the client waitlist in the project',
+        description: 'Ability to initiate referrals from the eligible client list in the project',
         requirements: [:can_view_referrals, :can_view_prioritized_client_lists],
         administrative: false,
         access: [:editable],
@@ -223,7 +223,7 @@ class Hmis::Role < ::ApplicationRecord
         proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_view_client_eligible_opportunities: {
-        description: 'Ability to view the Client page showing all Opportunities a client is eligible for. This is a global permission (not per-project).',
+        description: 'Ability to view the Client page showing all available units that a client is eligible for. This is a global permission (not per-project).',
         administrative: true,
         global: true,
         access: [:viewable],
@@ -256,35 +256,35 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Management',
         proc: -> { Hmis::Ce.configuration.enabled? },
       },
-      can_manage_incoming_referrals: { # TODO - Deprecate and delete
-        description: 'Ability to accept/deny incoming referrals in the Project',
+      can_manage_incoming_referrals: { # TODO(#8142) - Remove this permission when legacy referral system is removed
+        description: '[Legacy] Ability to accept/deny incoming referrals in the Project',
         administrative: false,
         access: [:editable],
         category: 'Project Access',
-        sub_category: 'Referrals',
+        sub_category: 'Referrals [Legacy]',
       },
       can_view_outgoing_referral_details: {
         description: 'Ability to view all outgoing referrals from the project',
         requirements: [:can_view_project], # Requirement: this permission requires view permission for the referral's *source* project
         administrative: false,
         access: [:viewable],
-        category: 'Project Access',
-        sub_category: 'Referrals',
+        category: 'Referrals',
+        sub_category: 'Access',
       },
       can_manage_outgoing_referrals: {
-        description: 'Ability to "refer out" from the project. Grants access to view outgoing referral summaries. For full referral details, use "Can view outgoing referral details".',
+        description: 'Ability to send direct referrals from the project. Grants access to view outgoing referral summaries. For full outgoing referral detail visibility, use "Can view outgoing referral details".',
         # Does NOT depend on can_view_outgoing_referral_details, since that permission grants full referral detail access, whereas this permission only grants summary-level access
         administrative: false,
         access: [:editable],
-        category: 'Project Access',
-        sub_category: 'Referrals',
+        category: 'Referrals',
+        sub_category: 'Workflow',
       },
-      can_manage_denied_referrals: { # TODO - Deprecate and delete
-        description: 'Ability to manage denied referrals in the Project',
+      can_manage_denied_referrals: { # TODO(#8142) - Remove this permission when legacy referral system is removed
+        description: '[Legacy] Ability to manage denied referrals in the Project',
         administrative: true,
         access: [:editable],
         category: 'Project Access',
-        sub_category: 'Referrals',
+        sub_category: 'Referrals [Legacy]',
       },
       can_impersonate_users: {
         description: 'Ability to impersonate other users',
