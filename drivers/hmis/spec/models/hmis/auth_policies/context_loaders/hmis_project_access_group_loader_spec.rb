@@ -3,14 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader, type: :model do
-  before(:all) do
-    cleanup_test_environment
-  end
-
-  after(:all) do
-    cleanup_test_environment
-  end
-
   let!(:data_source) { create(:grda_warehouse_data_source) }
   let!(:organization) { create(:hmis_hud_organization, data_source: data_source) }
   let!(:project) { create(:hmis_hud_project, data_source: data_source, organization: organization) }
