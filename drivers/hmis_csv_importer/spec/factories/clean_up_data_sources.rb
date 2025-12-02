@@ -29,6 +29,17 @@ FactoryBot.define do
     end
   end
 
+  factory :importer_append_project_ids, class: 'GrdaWarehouse::DataSource' do
+    name { 'Append Project Ids' }
+    short_name { 'ProjectID' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Project': ['HmisCsvImporter::HmisCsvCleanup::AppendProjectId'],
+      }
+    end
+  end
+
   factory :importer_prepend_organization_ids, class: 'GrdaWarehouse::DataSource' do
     name { 'Prepend Organization Ids' }
     short_name { 'OrganizationID' }
@@ -36,6 +47,17 @@ FactoryBot.define do
     import_cleanups do
       {
         'Organization': ['HmisCsvImporter::HmisCsvCleanup::PrependOrganizationId'],
+      }
+    end
+  end
+
+  factory :importer_append_organization_ids, class: 'GrdaWarehouse::DataSource' do
+    name { 'Append Organization Ids' }
+    short_name { 'OrganizationID' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Organization': ['HmisCsvImporter::HmisCsvCleanup::AppendOrganizationId'],
       }
     end
   end

@@ -38,7 +38,7 @@ module Hmis::AuthPolicies::ContextLoaders
       @cache.merge!(results)
 
       # For projects that don't have any access groups, add `nil` to the cache, so that we don't check the db again
-      no_access_project_ids = project_ids - results.keys
+      no_access_project_ids = new_project_ids - results.keys
       @cache.merge!(no_access_project_ids.index_with(nil))
     end
 
