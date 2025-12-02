@@ -82,7 +82,7 @@ module Hmis
       end
 
       def parse_timestamp(timestamp_raw)
-        Time.zone.parse(timestamp_raw)
+        Time.parse(timestamp_raw).in_time_zone
       rescue ArgumentError
         nil
       end
