@@ -42,7 +42,7 @@ RSpec.describe Hmis::ActivityLogs::Correlator do
       controller: 'ActiveStorage::Blobs::RedirectController',
       action: 'show',
       method: 'GET',
-    }.merge(overrides).to_json
+    }.merge(overrides.symbolize_keys).to_json
   end
 
   def file_access_path(signed_id)
