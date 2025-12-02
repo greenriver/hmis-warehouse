@@ -42,6 +42,7 @@ class ApplicationController < ActionController::Base
   helper_method :locale
   before_action :enforce_2fa!
   before_action :require_training!
+  before_action :require_compliance_agreement!
   before_action :health_emergency?
 
   before_action :prepare_exception_notifier
@@ -229,6 +230,8 @@ class ApplicationController < ActionController::Base
         'account_emails',
         'account_passwords',
         'user_training',
+        'compliance_agreements',
+        'content_pages',
       ],
     ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
   end
@@ -256,6 +259,15 @@ class ApplicationController < ActionController::Base
     return unless lms.any_training_required?
 
     redirect_to user_training_path
+  end
+
+  def require_compliance_agreement!
+    return unless current_user
+    return if current_user.pending_compliance_requirements.empty?
+    return if allowed_setup_controllers
+
+    store_location_for(:user, request.fullpath) if request.get?
+    redirect_to compliance_agreement_path
   end
 
   def health_emergency?

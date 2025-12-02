@@ -10,6 +10,8 @@ module GrdaWarehouse::Compliance
   # Defines a policy that users must agree to before accessing the site.
   # Links to a ContentPage that contains the actual terms/policy text.
   # Agreements expire when revision increments or expires_after_days is reached.
+  #
+  # @see docs/features/compliance-requirements.md
   class Requirement < GrdaWarehouseBase
     self.table_name = 'compliance_requirements'
 

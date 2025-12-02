@@ -38,6 +38,8 @@ Rails.application.routes.draw do
   end
 
   get '/user_training', to: 'user_training#index'
+  resources :content_pages, only: [:show], param: :slug, path: 'pages'
+  resource :compliance_agreement, only: [:show, :create], controller: 'compliance_agreements'
 
   def healthcare_routes
     namespace :health do

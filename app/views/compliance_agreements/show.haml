@@ -1,0 +1,40 @@
+- content_for :title, @current_requirement.name
+
+.container.py-5
+  .row.justify-content-center
+    .col-lg-8
+      - if @pending_requirements.size > 1
+        .alert.alert-info.mb-4
+          Reviewing requirement #{@pending_requirements.to_a.index(@current_requirement) + 1} of #{@pending_requirements.size}
+
+      .card
+        .card-header.bg-primary.text-white
+          %h2.mb-0= @content_page.title
+          %small.opacity-75= @current_requirement.name
+
+        .card-body
+          .policy-content.mb-4{style: 'max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 1rem; background: #fafafa;'}
+            = simple_format(@content_page.content)
+
+          = form_tag compliance_agreement_path, method: :post do
+            = hidden_field_tag :requirement_id, @current_requirement.id
+
+            .form-check.mb-3
+              = check_box_tag :agree, '1', false, class: 'form-check-input', id: 'agree_checkbox'
+              = label_tag :agree, class: 'form-check-label' do
+                I have read and agree to the #{@current_requirement.name}
+
+            .d-flex.justify-content-between
+              = link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'btn btn-outline-secondary'
+              = submit_tag 'Continue', class: 'btn btn-primary', disabled: true, id: 'submit_btn'
+
+        - if @current_requirement.expires_after_days
+          .card-footer.text-muted.small
+            This agreement expires after #{@current_requirement.expires_after_days} days
+
+= content_for :page_js do
+  :javascript
+    document.getElementById('agree_checkbox').addEventListener('change', function() {
+      document.getElementById('submit_btn').disabled = !this.checked;
+    });
+

@@ -9,6 +9,8 @@
 module GrdaWarehouse::Compliance
   # Records user acceptance of a compliance requirement.
   # Tracks which requirement revision was agreed to for audit purposes.
+  #
+  # @see docs/features/compliance-requirements.md
   class Agreement < GrdaWarehouseBase
     self.table_name = 'compliance_agreements'
 
