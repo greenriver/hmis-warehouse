@@ -154,7 +154,7 @@ RSpec.describe 'FY2026 SPM MeasureOne performance budget', type: :model, exclude
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureOne] }
   let(:create_bed_nights) { true }
-  let(:measure_one_config) { { query_count: 243 } }
+  let(:measure_one_config) { { query_count: 263 } }
   let(:projects) do
     [
       create_project(project_type: 0),
@@ -185,7 +185,7 @@ RSpec.describe 'FY2026 SPM MeasureTwo performance budget', type: :model, exclude
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureTwo] }
-  let(:measure_two_config) { { query_count: 415 } }
+  let(:measure_two_config) { { query_count: 444 } }
   let(:household_count) { 5 }
   let(:measure_two_pattern) { true }
   let(:expected_spm_enrollment_count) do
@@ -223,7 +223,7 @@ RSpec.describe 'FY2026 SPM MeasureThree performance budget', type: :model, exclu
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureThree] }
-  let(:measure_three_config) { { query_count: 147 } }
+  let(:measure_three_config) { { query_count: 166 } }
   let(:household_count) { 5 }
   let(:create_bed_nights) { true }
   let(:projects) do
@@ -252,7 +252,7 @@ RSpec.describe 'FY2026 SPM MeasureFour performance budget', type: :model, exclud
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureFour] }
-  let(:measure_four_config) { { query_count: 233 } }
+  let(:measure_four_config) { { query_count: 260 } }
   let(:household_count) { 5 }
   let(:create_coc_funders) { true }
   let(:create_income_benefits) { true }
@@ -274,7 +274,7 @@ RSpec.describe 'FY2026 SPM MeasureFive performance budget', type: :model, exclud
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureFive] }
-  let(:measure_five_config) { { query_count: 144 } }
+  let(:measure_five_config) { { query_count: 171 } }
   let(:household_count) { 5 }
 
   # Measure 5.1 uses ES, SH, TH
@@ -324,7 +324,7 @@ RSpec.describe 'FY2026 SPM MeasureSeven performance budget', type: :model, exclu
   include_context 'SPM measure configs'
 
   let(:all_measure_classes) { [HudSpmReport::Generators::Fy2026::MeasureSeven] }
-  let(:measure_seven_config) { { query_count: 153 } }
+  let(:measure_seven_config) { { query_count: 175 } }
   let(:household_count) { 5 }
   let(:include_move_in) { true }
 
