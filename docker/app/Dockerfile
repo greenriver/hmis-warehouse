@@ -168,6 +168,10 @@ RUN chmod +x /usr/local/bin/install_pg_repack.sh \
 
 WORKDIR /app
 
+# Shim legacy gemspecs that still call the removed Gem::Specification#has_rdoc=
+COPY docker/app/has_rdoc_patch.rb /usr/local/lib/ruby/has_rdoc_patch.rb
+ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
+
 # CVE-2025-58767, note rexml is bundled with ruby, and must be explicitly pinned
 RUN gem update --system \
   && gem update rexml \
