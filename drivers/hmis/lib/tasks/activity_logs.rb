@@ -44,7 +44,8 @@ module Hmis
         return unless timestamp_raw.present? && message_raw.present?
 
         payload = parse_payload(message_raw)
-        return unless payload && payload['tenant'] == @tenant
+        return if payload.blank?
+        return unless payload['tenant'].blank? || payload['tenant'] == @tenant
 
         # Validate this is an ActiveStorage blob redirect request
         return unless payload['controller'] == 'ActiveStorage::Blobs::RedirectController'
@@ -155,19 +156,21 @@ module Hmis
       end
 
       def find_matches(timestamp:, path:)
+        # earliest log entries are 11/27/2023
+
         # Extract client_id from the CloudWatch path once, before searching activity logs
         path_client_id = get_client_id_from_path(path)
         return unless path_client_id
 
         # Find the GraphQL request occurring before the Active Storage access. Add 10 second allowance for clock skew
         window = (timestamp - @tolerance_seconds.seconds)..(timestamp + 10.seconds)
-
-        Hmis::ActivityLog.where(created_at: window).order(:id).detect do |record|
+        Hmis::ActivityLog.where(created_at: window).find_each do |record|
           log_client_id = client_id_from_log_record(record)
           next unless log_client_id
 
-          log_client_id == path_client_id
+          return record if log_client_id == path_client_id
         end
+        nil
       end
     end
   end
