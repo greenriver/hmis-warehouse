@@ -183,11 +183,31 @@ module HopwaCaper
 
     private
 
-    def transform_value(column, value, pii_policy)
-      return HudHelper.util('2026').sex(value) if column == 'sex'
-      return HudHelper.util('2026').percent_ami(value) if column == 'percent_ami'
+    # HUD data elements that support "Data not collected (99)"
+    HUD_FIELDS_WITH_99 = %w[
+      sex
+      dob_quality
+      percent_ami
+      exit_destination
+      housing_assessment_at_exit
+    ].freeze
 
-      super
+    def transform_value(column, value, pii_policy)
+      # Treat nil as 99 (Data not collected) for HUD fields that support it
+      value = 99 if value.nil? && HUD_FIELDS_WITH_99.include?(column)
+
+      case column
+      when 'sex'
+        HudHelper.util('2026').sex(value)
+      when 'percent_ami'
+        HudHelper.util('2026').percent_ami(value)
+      when 'housing_assessment_at_exit'
+        HudHelper.util('2026').housing_assessment_at_exit(value)
+      when 'dob_quality'
+        HudHelper.util('2026').dob_data_quality(value)
+      else
+        super
+      end
     end
   end
 end
