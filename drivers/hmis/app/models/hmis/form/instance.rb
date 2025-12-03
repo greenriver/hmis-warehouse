@@ -80,7 +80,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                      )
                    end
 
-  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role)) }
+  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role)).distinct }
 
   scope :published, -> { joins(:definition).merge(Hmis::Form::Definition.published) }
   scope :published_or_retired, -> { joins(:definition).merge(Hmis::Form::Definition.published_or_retired) }
