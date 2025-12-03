@@ -8,10 +8,21 @@
 
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   MedicalInsuranceFilter = Struct.new(:label, :types, keyword_init: true) do
+    # Filter households based on medical insurance across all household members.
+    # Includes households where ANY member has the specified medical insurance types.
     def apply(scope)
-      scope.where(
-        SqlHelper.non_empty_array_subset_condition(field: 'medical_insurance_types', type: 'varchar', set: types),
-      )
+      # Get unique household IDs from the current scope to constrain household lookups
+      household_ids = scope.select(:report_household_id).distinct
+
+      # Look at ALL members of households in scope, not just the scoped members
+      # Use && operator to check for array overlap (ANY element in common)
+      q_set = SqlHelper.quote_sql_array(types, type: 'varchar')
+      cond = HopwaCaper::Enrollment.
+        where(report_household_id: household_ids).
+        where("medical_insurance_types && #{q_set}").
+        select(:report_household_id).
+        distinct
+      scope.where(report_household_id: cond)
     end
 
     def self.all
