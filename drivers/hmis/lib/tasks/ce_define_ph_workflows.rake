@@ -1,7 +1,7 @@
 # CE workflow definition for PH
-# Usage: rails driver:hmis:ce_define_ph_workflow
-desc 'Create a CE workflow definition for PH'
-task ce_define_ph_direct_workflow: [:environment] do
+# Usage: rails driver:hmis:ce_define_ph_workflows
+desc 'Create CE workflow definitions for PH'
+task ce_define_ph_workflows: [:environment] do
   raise 'This task destroys data and should not be run in production!' if Rails.env.production?
   raise unless HmisEnforcement.hmis_enabled?
 
@@ -16,10 +16,15 @@ task ce_define_ph_direct_workflow: [:environment] do
   CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
 
   puts "Creating workflow template in data source #{data_source.id} (#{data_source.name})"
-
-  builder = CeWorkflows::Ph::WorkflowBuilder.new(data_source)
-  template = builder.build_direct_referral_workflow
-
-  puts 'Generated Mermaid Diagram:'
-  puts template.to_mermaid_diagram
+  
+  templates = []
+  Hmis::Hud::Base.transaction do
+    builder = CeWorkflows::Ph::WorkflowBuilder.new(data_source)
+    templates << builder.build_benefits_referral_workflow
+    templates << builder.build_shelter_referral_workflow
+    templates << builder.build_outreach_referral_workflow
+  end
+  
+  puts 'Generated Mermaid Diagrams:'
+  puts templates.map(&:to_mermaid_diagram).join("\n\n")
 end
