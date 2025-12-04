@@ -15,11 +15,9 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
       household_ids = scope.select(:report_household_id).distinct
 
       # Look at ALL members of households in scope, not just the scoped members
-      # Use && operator to check for array overlap (ANY element in common)
-      q_set = SqlHelper.quote_sql_array(types, type: 'varchar')
       cond = HopwaCaper::Enrollment.
         where(report_household_id: household_ids).
-        where("medical_insurance_types && #{q_set}").
+        where(SqlHelper.array_overlap_condition(field: 'medical_insurance_types', set: types, type: 'varchar')).
         select(:report_household_id).
         distinct
       scope.where(report_household_id: cond)

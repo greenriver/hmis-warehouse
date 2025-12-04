@@ -9,10 +9,8 @@
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   ProjectFunderFilter = Struct.new(:label, :types, keyword_init: true) do
     def apply(scope)
-      # Use overlap operator to find projects with ANY of the specified funders
-      # (not subset, since projects can have multiple funding sources)
-      q_set = SqlHelper.quote_sql_array(funders, type: 'integer')
-      scope.where("project_funders && #{q_set}")
+      # Find projects with ANY of the specified funders (not subset, since projects can have multiple funding sources)
+      scope.where(SqlHelper.array_overlap_condition(field: 'project_funders', set: funders, type: 'integer'))
     end
 
     def funders

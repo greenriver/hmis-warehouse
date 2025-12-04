@@ -44,7 +44,12 @@ module SqlHelper
     type ? "#{result}::#{type}[]" : result
   end
 
-  # Generates a SQL condition to check if a field is a non-empty subset of a given set.
+  # Generates a SQL condition to check if a field contains ONLY values from a given set (and is non-empty).
+  # Uses PostgreSQL's <@ (contained-by/subset) operator.
+  #
+  # IMPORTANT: This checks that ALL elements in the field are in the set. If the field has ANY elements
+  # not in the set, this will return false. For checking if the field has ANY elements from the set,
+  # use `array_overlap_condition` instead.
   #
   # @param field [String] The name of the database field to check.
   # @param set [Array] The set to compare against.
@@ -52,12 +57,42 @@ module SqlHelper
   #
   # @return [String] A SQL condition string.
   #
-  # @example
+  # @example Use this when you want EXCLUSIVE matching (field contains ONLY these values)
+  #   # Field has ['ruby', 'rails'] -> TRUE
+  #   # Field has ['ruby'] -> TRUE
+  #   # Field has ['ruby', 'python'] -> FALSE (python not in set)
   #   SqlHelper.non_empty_array_subset_condition(field: 'tags', set: ['ruby', 'rails'], type: 'text')
   #   # => "tags <@ '{\"ruby\",\"rails\"}'::text[] AND tags != '{}'::text[]"
+  #
+  # @example For checking if field has ANY of these values, use array_overlap_condition instead
+  #   # Field has ['ruby', 'python'] with set ['ruby', 'rails'] -> TRUE (has ruby)
+  #   SqlHelper.array_overlap_condition(field: 'tags', set: ['ruby', 'rails'], type: 'text')
   module_function def non_empty_array_subset_condition(field:, set:, type:)
     empty_q_set = SqlHelper.quote_sql_array([], type: type)
     q_set = SqlHelper.quote_sql_array(set, type: type)
     "#{field} <@ #{q_set} AND #{field} != #{empty_q_set}"
+  end
+
+  # Generates a SQL condition to check if a field has ANY overlap with a given set.
+  # Uses PostgreSQL's && (overlap) operator to check for array intersection.
+  #
+  # This checks if the field contains AT LEAST ONE element from the set. The field can also
+  # contain other elements not in the set.
+  #
+  # @param field [String] The name of the database field to check.
+  # @param set [Array] The set to compare against.
+  # @param type [String] The SQL type of the array (e.g., 'integer', 'text', 'varchar').
+  #
+  # @return [String] A SQL condition string.
+  #
+  # @example Use this when you want to find records with ANY of these values
+  #   # Field has ['ruby', 'python'] -> TRUE (has ruby)
+  #   # Field has ['rails'] -> TRUE (has rails)
+  #   # Field has ['python', 'java'] -> FALSE (no overlap)
+  #   SqlHelper.array_overlap_condition(field: 'tags', set: ['ruby', 'rails'], type: 'text')
+  #   # => "tags && '{\"ruby\",\"rails\"}'::text[]"
+  module_function def array_overlap_condition(field:, set:, type:)
+    q_set = SqlHelper.quote_sql_array(set, type: type)
+    "#{field} && #{q_set}"
   end
 end

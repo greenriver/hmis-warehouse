@@ -18,14 +18,11 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
       if types.present?
         # Household has income if ANY member has the specified income types
         # Look at ALL members of households in scope, not just the scoped members
-        # Use && operator to check for array overlap (ANY element in common)
-        q_set = SqlHelper.quote_sql_array(types, type: :varchar)
         cond = HopwaCaper::Enrollment.
           where(report_household_id: household_ids).
-          where("income_benefit_source_types && #{q_set}").
+          where(SqlHelper.array_overlap_condition(field: 'income_benefit_source_types', set: types, type: :varchar)).
           select(:report_household_id).
           distinct
-        scope.where(report_household_id: cond)
       else
         # Household has no income only if ALL members have empty income_benefit_source_types
         cond = HopwaCaper::Enrollment.
@@ -33,8 +30,8 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
           group(:report_household_id).
           having("BOOL_AND(income_benefit_source_types = '{}'::varchar[])").
           select(:report_household_id)
-        scope.where(report_household_id: cond)
       end
+      scope.where(report_household_id: cond)
     end
 
     def self.all

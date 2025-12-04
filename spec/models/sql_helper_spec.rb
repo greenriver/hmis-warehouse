@@ -88,4 +88,46 @@ RSpec.describe SqlHelper do
       expect(result).to eq(expected)
     end
   end
+
+  describe '.array_overlap_condition' do
+    it 'generates correct SQL condition for string arrays' do
+      result = described_class.array_overlap_condition(
+        field: 'tags',
+        set: ['ruby', 'rails'],
+        type: 'text',
+      )
+      expected = "tags && '{\"ruby\",\"rails\"}'::text[]"
+      expect(result).to eq(expected)
+    end
+
+    it 'generates correct SQL condition for integer arrays' do
+      result = described_class.array_overlap_condition(
+        field: 'funders',
+        set: [1, 2, 3],
+        type: 'integer',
+      )
+      expected = "funders && '{1,2,3}'::integer[]"
+      expect(result).to eq(expected)
+    end
+
+    it 'generates correct SQL condition for varchar arrays' do
+      result = described_class.array_overlap_condition(
+        field: 'income_types',
+        set: ['SNAP', 'SSI'],
+        type: 'varchar',
+      )
+      expected = "income_types && '{\"SNAP\",\"SSI\"}'::varchar[]"
+      expect(result).to eq(expected)
+    end
+
+    it 'handles empty set correctly' do
+      result = described_class.array_overlap_condition(
+        field: 'tags',
+        set: [],
+        type: 'text',
+      )
+      expected = "tags && '{}'::text[]"
+      expect(result).to eq(expected)
+    end
+  end
 end

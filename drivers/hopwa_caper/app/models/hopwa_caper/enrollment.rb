@@ -184,12 +184,12 @@ module HopwaCaper
     private
 
     # HUD data elements that support "Data not collected (99)"
-    HUD_FIELDS_WITH_99 = %w[
-      sex
-      dob_quality
-      percent_ami
-      exit_destination
-      housing_assessment_at_exit
+    HUD_FIELDS_WITH_99 = [
+      'sex',
+      'dob_quality',
+      'percent_ami',
+      'exit_destination',
+      'housing_assessment_at_exit',
     ].freeze
 
     def transform_value(column, value, pii_policy)
