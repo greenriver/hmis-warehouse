@@ -24,11 +24,11 @@ else
       false
     end
     class << self
-      def has_many(*) # rubocop:disable Naming/PredicateName
+      def has_many(*) # rubocop:disable Naming/PredicatePrefix
         []
       end
 
-      def has_one(*) # rubocop:disable Naming/PredicateName
+      def has_one(*) # rubocop:disable Naming/PredicatePrefix
       end
 
       def belongs_to(*)

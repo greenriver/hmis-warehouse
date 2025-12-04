@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateCaAssessments < ActiveRecord::Migration[6.1]
   def change
     create_table :ca_assessments do |t|

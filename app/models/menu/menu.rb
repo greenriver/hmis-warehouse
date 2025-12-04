@@ -460,7 +460,7 @@ class Menu::Menu
         user: user,
         visible: ->(user) { user.can_edit_warehouse_alerts? }, # rubocop:disable Style/SymbolProc
         path: admin_metric_definitions_path,
-        title: 'Warehouse Metrics',
+        title: 'Threshold Monitoring',
       ),
     )
     menu.add_child(

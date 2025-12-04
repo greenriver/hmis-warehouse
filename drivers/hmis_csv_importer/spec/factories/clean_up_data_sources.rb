@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :importer_cleanup_move_ins_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Clean Up Move In Dates' }

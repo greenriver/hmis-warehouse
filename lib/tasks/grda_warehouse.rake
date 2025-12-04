@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 namespace :grda_warehouse do
   def self.safely_execute(&block)
@@ -432,7 +432,7 @@ namespace :grda_warehouse do
       end
     end
 
-    # Collect client metrics daily
+    # Collect threshold monitoring data daily
     if DateTime.current.hour == GrdaWarehouse::Monitoring::MetricDefinition::COLLECTION_HOUR
       safely_execute do
         CollectClientMetricsJob.perform_later

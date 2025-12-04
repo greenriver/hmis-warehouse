@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :she_entry, class: 'GrdaWarehouse::ServiceHistoryEnrollment' do
     record_type { :entry }

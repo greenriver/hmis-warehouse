@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :vispdat, class: 'GrdaWarehouse::Vispdat::Individual' do
     association :client, factory: :grda_warehouse_hud_client

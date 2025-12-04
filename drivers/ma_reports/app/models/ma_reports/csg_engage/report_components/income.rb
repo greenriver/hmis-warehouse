@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MaReports::CsgEngage::ReportComponents
   class Income < Base
     attr_accessor :amount, :description, :income_source, :payer_name

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # ==  Hmis::Hud::Processors::Base
 #
@@ -13,7 +13,7 @@
 # * factory references the active record instance that we should assign values to, see the x_processor definition
 class Hmis::Hud::Processors::Base
   # DO NOT CHANGE: Frontend code sends this value
-  HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
+  HIDDEN_FIELD_VALUE = '_HIDDEN'
 
   # @param [Hmis::Form::FormProcessor] processor active record model that persists form data and models
   def initialize(processor)

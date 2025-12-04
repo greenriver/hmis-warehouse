@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :signable_careplan, class: 'Health::SignableDocument' do
     user_id { 1 }

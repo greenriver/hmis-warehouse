@@ -73,6 +73,9 @@ module Importing
       end
 
       run_maintenance_task('Generate service history and related records') do
+        # Purge service history for deleted data sources before generating new records
+        GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call
+
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments

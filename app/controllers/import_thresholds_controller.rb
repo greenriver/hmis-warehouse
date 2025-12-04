@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ImportThresholdsController < ApplicationController
   include AjaxModalRails::Controller
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show]

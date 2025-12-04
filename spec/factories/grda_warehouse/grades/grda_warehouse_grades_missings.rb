@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :missing_grade_a, class: 'GrdaWarehouse::Grades::Missing' do
     grade { 'A' }

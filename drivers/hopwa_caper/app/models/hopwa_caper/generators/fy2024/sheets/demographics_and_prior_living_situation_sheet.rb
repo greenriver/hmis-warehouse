@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # https://files.hudexchange.info/resources/documents/HOPWA-Consolidated-APR-CAPER-User-Manual-Chapter-16.pdf
 module HopwaCaper::Generators::Fy2024::Sheets
   class DemographicsAndPriorLivingSituationSheet < Base

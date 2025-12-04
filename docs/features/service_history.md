@@ -178,6 +178,9 @@ The cached data in `WarehouseClientsProcessed` is used by:
     -   `rebuild_service_history!` - Main method that determines whether to rebuild or patch
     -   `calculate_hash` - Computes the hash used for change detection
     -   `invalidate_source_data!` - Clears the cached hash to force a rebuild
+-   **Service History Purge Task:** `app/models/grda_warehouse/tasks/service_history/purge_for_deleted_data_sources.rb`
+    -   Purges service history records for soft-deleted data sources
+    -   Usage: `GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call(dry_run: false)`
 -   **Cached Aggregations:** `app/models/grda_warehouse/warehouse_clients_processed.rb`
     -   Stores aggregated data like `last_homeless_date`, `last_intentional_contacts`, and homeless day counts
     -   Updated automatically by `RunDailyImportsJob` after service history generation

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class EdIpVisitImporter
     def sftp_credentials
@@ -64,7 +66,8 @@ module Health
         credentials['host'],
         credentials['username'],
         password: credentials['password'] || credentials.password,
-        auth_methods: ['publickey', 'password'],
+        auth_methods: ['password'],
+        encryption: ['chacha20-poly1305@openssh.com'],
         keepalive: true,
         keepalive_interval: 60,
       ) do |connection|

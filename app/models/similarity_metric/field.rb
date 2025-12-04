@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SimilarityMetric
   # a similarity metric identified by a single field/attribute of a HUD client
   class Field < Base

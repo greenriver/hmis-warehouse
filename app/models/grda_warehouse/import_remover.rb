@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: this potentially leaves a folder of CSVs lying around in var/hmis_import/
 
 module GrdaWarehouse

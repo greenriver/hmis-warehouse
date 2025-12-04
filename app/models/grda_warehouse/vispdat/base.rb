@@ -13,13 +13,13 @@ module GrdaWarehouse::Vispdat
     ####################
     # Constants
     ####################
-    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/
+    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/ unless const_defined?(:US_PHONE_NUMBERS)
 
     ####################
     # enums
     ####################
 
-    enum contact_method: {
+    enum :contact_method, {
       contact_phone: 'contact_phone',
       contact_virtual: 'contact_virtual',
       contact_in_person: 'contact_in_person',
@@ -29,7 +29,7 @@ module GrdaWarehouse::Vispdat
       alias_method :contact_answers, :contact_methods
     end
 
-    enum language_answer: [
+    enum :language_answer, [
       :language_english,
       :language_spanish,
       :language_french,
@@ -43,7 +43,7 @@ module GrdaWarehouse::Vispdat
       :language_punjabi,
       :language_german,
     ]
-    enum sleep_answer: {
+    enum :sleep_answer, {
       sleep_shelters: 0,
       sleep_transitional_housing: 1,
       sleep_safe_haven: 2,
@@ -53,7 +53,7 @@ module GrdaWarehouse::Vispdat
       sleep_couch_surfing: 6,
     }
 
-    enum homeless_period: [:days, :weeks, :months, :years]
+    enum :homeless_period, [:days, :weeks, :months, :years]
 
     [
       :attacked,
@@ -83,10 +83,10 @@ module GrdaWarehouse::Vispdat
       :trauma,
       :picture,
     ].each do |field|
-      enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
+      enum "#{field}_answer", { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
     end
 
-    enum when_answer: [:morning, :afternoon, :evening, :night]
+    enum :when_answer, [:morning, :afternoon, :evening, :night]
 
     ####################
     # Associations

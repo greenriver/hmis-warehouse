@@ -35,9 +35,12 @@ module HmisExternalApis::AcHmis
   class Aha
     SYSTEM_ID = 'ac_hmis_aha'
     AHA_GENERATOR = 'AHA'
+    VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
+    # Custom error class for MciUniqueId so the mutation can catch it
+    class NoMciUniqueIdError < HmisErrors::ApiError; end
 
     def fetch_score(client)
       # Collect MCI unique IDs for this client and all source clients with the same destination client
@@ -46,7 +49,7 @@ module HmisExternalApis::AcHmis
         c.ac_hmis_mci_unique_id&.value
       end.uniq
 
-      return nil if mci_uniq_ids.empty?
+      raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
       payload = if mci_uniq_ids.size > 1
         { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(',') }
@@ -57,29 +60,40 @@ module HmisExternalApis::AcHmis
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
 
+      # If the API returns "No client found" error, the external system was unable to find the MCI Unique ID.
+      # Raise the same error as if the client had no MCI Unique ID, so the mutation/frontend handle it in the same way.
+      # Note: this is a hotfix for a bug introduced in release-188. IF we need to differentiate between the two cases,
+      # we can add a new error class and adjust end-user messaging.
+      raise NoMciUniqueIdError if client_not_found_response?(result)
+
       data = result.parsed_body&.dig('data')
       raise(Error, "AHA response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
       score_objects = data.flat_map do |response_client|
         response_client.dig('scores')&.filter_map do |score_obj|
           score_value = score_obj.dig('score')
+          next unless score_obj.dig('generator') == AHA_GENERATOR # non-AHA scores
 
           raise(Error, 'Received blank score') if score_value.blank?
-          raise(Error, "Received invalid score: #{score_value.inspect}") unless score_value.is_a?(Numeric) && score_value % 1 == 0 && score_value <= 10
+          raise(Error, "Received invalid score: #{score_value.inspect}") unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_AHA_SCORES.include?(score_value.to_i)
 
           OpenStruct.new(
+            # AHA Score
             score: score_value.to_i,
+            # This field is a 0/1 flag indicating whether the Alt-AHA should be performed or not. (1 = Alt-AHA is required, 0 = Alt-AHA is not required).
             mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
+            # MCI Unique ID that is associated with the AHA score
             dw_client_id: Array.wrap(response_client.dig('dw_client_id') || response_client.dig('dw_client_id_dw_client_id'))&.first,
+            # Generator is always 'AHA'
             generator: score_obj.dig('generator'),
           )
         end
       end
 
-      highest_aha_score = score_objects.compact.
-        filter { |score_object| score_object.generator == AHA_GENERATOR }.
-        max_by(&:score)
-      return nil if highest_aha_score.nil? || highest_aha_score.score&.negative?
+      # Find the highest AHA score
+      highest_aha_score = score_objects.compact.max_by(&:score)
+
+      raise(Error, 'Response does not contain AHA score') unless highest_aha_score.present?
 
       highest_aha_score
     end
@@ -107,9 +121,6 @@ module HmisExternalApis::AcHmis
       # Check if HTTP status indicates success (200-299 range)
       return result if http_status_successful?(result.http_status)
 
-      # Handle specific case: 404 with "No client found" shouldn't raise, just return no ID
-      return result if client_not_found_response?(result)
-
       raise(Error, "AHA HTTP error: Received non-200 HTTP status: #{result.http_status}")
     end
 
@@ -118,7 +129,7 @@ module HmisExternalApis::AcHmis
     end
 
     def client_not_found_response?(result)
-      result.http_status == 404 && result.parsed_body&.dig('message') == 'No client found.'
+      result.parsed_body&.dig('message')&.match?(/no client found/i)
     end
   end
 end

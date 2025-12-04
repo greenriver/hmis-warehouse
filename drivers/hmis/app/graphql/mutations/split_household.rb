@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class SplitHousehold < CleanBaseMutation
     argument :splitting_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true

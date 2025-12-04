@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'report context', shared_context: :metadata do
   def default_setup_path
     'drivers/homeless_summary_report/spec/fixtures/files/default'

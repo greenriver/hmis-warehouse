@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # A reporting table to power the enrollment related answers for project data quality reports.
 
 # Some notes on completeness from the HUD Glossary
@@ -141,16 +143,16 @@ module Reporting::DataQualityReports
       where should_have_income_annual_assessment: true
     end
 
-    def is_adult? date: # rubocop:disable Naming/PredicateName
+    def is_adult? date: # rubocop:disable Naming/PredicatePrefix
       age = calculate_age date: date
       age.present? && age > 18
     end
 
-    def is_exited? exit_record:, report_start:, report_end: # rubocop:disable Naming/PredicateName
+    def is_exited? exit_record:, report_start:, report_end: # rubocop:disable Naming/PredicatePrefix
       exit_record.present? && exit_record.ExitDate.in?(report_start..report_end)
     end
 
-    def is_entered? entry_date:, report_start:, report_end: # rubocop:disable Naming/PredicateName
+    def is_entered? entry_date:, report_start:, report_end: # rubocop:disable Naming/PredicatePrefix
       entry_date.in?(report_start..report_end)
     end
 
@@ -158,18 +160,18 @@ module Reporting::DataQualityReports
       GrdaWarehouse::Hud::Client.age date: date, dob: dob
     end
 
-    def is_stayer? report_end:, exit_date: # rubocop:disable Naming/PredicateName
+    def is_stayer? report_end:, exit_date: # rubocop:disable Naming/PredicatePrefix
       return true if exit_date.blank?
 
       exit_date > report_end
     end
 
-    def is_leaver? report_end:, exit_date: # rubocop:disable Naming/PredicateName
+    def is_leaver? report_end:, exit_date: # rubocop:disable Naming/PredicatePrefix
       exit_date.present? && exit_date <= report_end
     end
 
     # Blanks should not be allowed according to the spec
-    def is_head_of_household? enrollment: # rubocop:disable Naming/PredicateName
+    def is_head_of_household? enrollment: # rubocop:disable Naming/PredicatePrefix
       enrollment.RelationshipToHoH.blank? || enrollment.RelationshipToHoH == 1
     end
 
@@ -189,7 +191,7 @@ module Reporting::DataQualityReports
       dob.present? && dob > entry_date
     end
 
-    def is_active? project:, service_dates:, report_start:, report_end: # rubocop:disable Naming/PredicateName
+    def is_active? project:, service_dates:, report_start:, report_end: # rubocop:disable Naming/PredicatePrefix
       return true unless project.bed_night_tracking?
 
       ((report_start..report_end).to_a & service_dates).any?

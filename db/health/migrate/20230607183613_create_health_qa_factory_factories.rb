@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateHealthQaFactoryFactories < ActiveRecord::Migration[6.1]
   def change
     create_table :health_qa_factory_factories do |t|

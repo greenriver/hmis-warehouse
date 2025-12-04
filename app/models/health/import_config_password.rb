@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'net/sftp'
 
 module Health
@@ -13,9 +15,10 @@ module Health
         host_name,
         username,
         password: password,
+        encryption: ['chacha20-poly1305@openssh.com'],
         # verbose: :debug,
         port: port_number,
-        auth_methods: ['publickey', 'password'],
+        auth_methods: ['password'],
       ) do |connection|
         yield connection
       end

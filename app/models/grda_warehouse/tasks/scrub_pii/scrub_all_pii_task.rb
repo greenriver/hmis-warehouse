@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Tasks::ScrubPii
   # Best-effort to scrub personally identifiable information (PII) from all warehouse and reporting tables
   # * Suitable for sanitizing a production database for staging/development use

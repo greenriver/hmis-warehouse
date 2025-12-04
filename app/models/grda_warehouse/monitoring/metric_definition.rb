@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/metric-tracking.md
 module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase
     include ArelHelper
@@ -56,14 +57,18 @@ module GrdaWarehouse::Monitoring
 
     # Initialize default metric definitions
     # Called once via TaskQueue to populate the table
+    # Uses advisory lock to prevent concurrent execution - returns immediately if lock is held
     def self.maintain!
-      available_calculators.each do |calculator_class|
-        attrs = calculator_class.metric_definition_attributes
-        find_or_create_by!(
-          name: attrs[:name],
-          entity_type: attrs[:entity_type],
-        ) do |metric|
-          metric.assign_attributes(attrs.except(*non_database_attributes))
+      lock_name = 'metric_definition_maintain'
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        available_calculators.each do |calculator_class|
+          attrs = calculator_class.metric_definition_attributes
+          find_or_create_by!(
+            name: attrs[:name],
+            entity_type: attrs[:entity_type],
+          ) do |metric|
+            metric.assign_attributes(attrs.except(*non_database_attributes))
+          end
         end
       end
     end
@@ -122,54 +127,23 @@ module GrdaWarehouse::Monitoring
     # Only includes metrics that have an alert_code defined
     # Excludes initial observations (first snapshot for each entity/metric)
     # Limits to 50 clients per metric to prevent overwhelming emails
+    # Uses optimized threshold_crossings_for_date internally
     def self.threshold_crossings_for_alerts(calculation_date, limit: 50)
       results = {}
 
       active.each do |metric|
         next unless metric.alert_code # Skip metrics without alert codes
 
-        # Get all snapshots where the threshold crossing occurred on this date
-        current_snapshots = metric.metric_snapshots.
+        # Get all entity_ids that have crossings on this date
+        entity_ids = metric.metric_snapshots.
           where(initial_observation_date: calculation_date).
-          order(:entity_id, :id).
-          to_a
+          distinct.
+          pluck(:entity_id)
 
-        next if current_snapshots.empty?
+        next if entity_ids.empty?
 
-        # Get all entity_ids that have crossings
-        entity_ids = current_snapshots.map(&:entity_id).uniq
-
-        # Load all snapshots for these entities in one query to avoid N+1
-        # We need all snapshots to find the previous one for each current snapshot
-        all_snapshots_for_entities = metric.metric_snapshots.
-          where(entity_type: metric.entity_type, entity_id: entity_ids).
-          order(:entity_id, :id).
-          to_a
-
-        # Group snapshots by entity_id for efficient lookup
-        snapshots_by_entity = all_snapshots_for_entities.group_by(&:entity_id)
-
-        # Build crossings array by finding previous snapshot for each current snapshot
-        crossings = []
-        current_snapshots.each do |snapshot|
-          entity_snapshots = snapshots_by_entity[snapshot.entity_id] || []
-
-          # Find the index of current snapshot in the entity's snapshot list
-          snapshot_index = entity_snapshots.index { |s| s.id == snapshot.id }
-
-          # Skip if this is the first snapshot (no previous snapshot exists)
-          next unless snapshot_index && snapshot_index > 0
-
-          # Get the previous snapshot
-          previous_snapshot = entity_snapshots[snapshot_index - 1]
-
-          # Add crossing data
-          crossings << {
-            entity_id: snapshot.entity_id,
-            current_value: snapshot.initial_value,
-            previous_value: previous_snapshot.current_value,
-          }
-        end
+        # Use optimized method to get crossings
+        crossings = metric.threshold_crossings_for_date(calculation_date, entity_ids: entity_ids)
 
         next if crossings.empty?
 
@@ -178,7 +152,8 @@ module GrdaWarehouse::Monitoring
         total_count = crossings.count
         truncated = total_count > limit
 
-        results[metric.alert_code][metric.display_name] = {
+        results[metric.alert_code][metric.id] = {
+          display_name: metric.display_name,
           data: crossings.first(limit),
           total_count: total_count,
           truncated: truncated,
@@ -186,6 +161,55 @@ module GrdaWarehouse::Monitoring
       end
 
       results
+    end
+
+    # Get threshold crossings for this metric on a specific date
+    # Returns array of hashes with entity_id, current_value, previous_value
+    # Excludes initial observations (first snapshot for each entity/metric)
+    # Optimized to use window function to find previous snapshots - only loads 2 records per entity max
+    def threshold_crossings_for_date(calculation_date, entity_ids:)
+      return [] if entity_ids.empty?
+
+      # Use a single query that finds current snapshots and their immediate previous snapshots
+      # Uses lateral join to efficiently find only the previous snapshot per entity
+      # This ensures we only load 2 records per entity at most (current + previous)
+      entity_ids_placeholder = entity_ids.map { '?' }.join(',')
+      sql = <<-SQL.squish
+        SELECT
+          current_snapshots.id,
+          current_snapshots.entity_id,
+          current_snapshots.initial_value AS current_value,
+          previous_snapshots.current_value AS previous_value
+        FROM metric_snapshots AS current_snapshots
+        LEFT JOIN LATERAL (
+          SELECT current_value
+          FROM metric_snapshots AS prev
+          WHERE prev.metric_definition_id = current_snapshots.metric_definition_id
+            AND prev.entity_id = current_snapshots.entity_id
+            AND prev.id < current_snapshots.id
+          ORDER BY prev.id DESC
+          LIMIT 1
+        ) AS previous_snapshots ON true
+        WHERE current_snapshots.metric_definition_id = ?
+          AND current_snapshots.entity_id IN (#{entity_ids_placeholder})
+          AND current_snapshots.initial_observation_date = ?
+          AND previous_snapshots.current_value IS NOT NULL
+      SQL
+
+      results = self.class.connection.execute(
+        ActiveRecord::Base.sanitize_sql_array([sql, id, *entity_ids, calculation_date]),
+      )
+
+      crossings = []
+      results.each do |row|
+        crossings << {
+          entity_id: row['entity_id'],
+          current_value: row['current_value'],
+          previous_value: row['previous_value'],
+        }
+      end
+
+      crossings
     end
   end
 end

@@ -15,3 +15,14 @@ CVE-2025-47907
 # this version of rexml is included with the default ruby in the container, but not used
 # as we install a newer version for the application (fixed in rexml 3.4.2 or later)
 CVE-2025-58767
+
+# owner of esbuild indicates these are false-positive
+# https://github.com/evanw/esbuild/issues/4311
+CVE-2025-47912
+CVE-2025-58183
+CVE-2025-58186
+CVE-2025-58187
+CVE-2025-58188
+CVE-2025-61724
+CVE-2025-61723
+CVE-2025-58189
