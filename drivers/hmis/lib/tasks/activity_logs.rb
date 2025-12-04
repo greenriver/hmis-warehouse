@@ -88,7 +88,7 @@ module Hmis
         nil
       end
 
-      def get_client_id_from_path(path)
+      def get_file_from_path(path)
         # The path is expected to be in the format:
         # /rails/active_storage/blobs/redirect/<signed_id>/<filename>
         # The regex below extracts the signed_id.
@@ -101,9 +101,10 @@ module Hmis
         # This logic assumes a blob is only ever attached to one record,
         # or that the first attachment is always the correct one.
         attachment = blob.attachments.first
-        return unless attachment&.record.is_a?(Hmis::File)
+        return unless attachment&.record_type.in?(['Hmis::File', 'GrdaWarehouse::ClientFile', 'GrdaWarehouse::File'])
 
-        attachment.record.client_id
+        # Use unscoped to include soft-deleted files
+        Hmis::File.with_deleted.find_by(id: attachment.record_id)
       rescue ActiveSupport::MessageVerifier::InvalidSignature
         @invalid_signed_ids += 1
         nil
@@ -159,12 +160,24 @@ module Hmis
         # earliest log entries are 11/27/2023
 
         # Extract client_id from the CloudWatch path once, before searching activity logs
-        path_client_id = get_client_id_from_path(path)
-        return unless path_client_id
+        path_file = get_file_from_path(path)
+        return unless path_file
 
         # Find the GraphQL request occurring before the Active Storage access. Add 10 second allowance for clock skew
         window = (timestamp - @tolerance_seconds.seconds)..(timestamp + 10.seconds)
-        Hmis::ActivityLog.where(created_at: window).find_each do |record|
+        activity_log_scope = Hmis::ActivityLog.where(created_at: window)
+
+        # first try and locate the log using file id
+        resolved_object_id = "File/#{path_file.id}"
+        activity_log_scope.where.not(resolved_fields: nil).find_each do |record|
+          return record if resolved_object_id.in?(record.resolved_fields.keys)
+        end
+
+        path_client_id = path_file&.client_id
+        return unless path_client_id
+
+        # try and locate the log using client id
+        activity_log_scope.find_each do |record|
           log_client_id = client_id_from_log_record(record)
           next unless log_client_id
 
