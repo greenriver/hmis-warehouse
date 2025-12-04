@@ -241,4 +241,76 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
       end
     end
   end
+
+  describe '#transform_value' do
+    let(:enrollment) do
+      described_class.new(
+        report_instance_id: report.id,
+        destination_client_id: client.id,
+        enrollment_id: hud_enrollment.id,
+      )
+    end
+    let(:pii_policy) { double('pii_policy') }
+
+    context 'when transforming percent_ami' do
+      it 'converts float value 1.0 to "30% or less"' do
+        enrollment.percent_ami = 1.0
+        result = enrollment.transform_value('percent_ami', 1.0, pii_policy)
+        expect(result).to eq('30% or less')
+      end
+
+      it 'converts float value 2.0 to "31% to 50%"' do
+        enrollment.percent_ami = 2.0
+        result = enrollment.transform_value('percent_ami', 2.0, pii_policy)
+        expect(result).to eq('31% to 50%')
+      end
+
+      it 'converts float value 3.0 to "51% to 80%"' do
+        enrollment.percent_ami = 3.0
+        result = enrollment.transform_value('percent_ami', 3.0, pii_policy)
+        expect(result).to eq('51% to 80%')
+      end
+
+      it 'converts float value 4.0 to "81% or greater"' do
+        enrollment.percent_ami = 4.0
+        result = enrollment.transform_value('percent_ami', 4.0, pii_policy)
+        expect(result).to eq('81% or greater')
+      end
+
+      it 'converts float value 99.0 to "Data not collected"' do
+        enrollment.percent_ami = 99.0
+        result = enrollment.transform_value('percent_ami', 99.0, pii_policy)
+        expect(result).to eq('Data not collected')
+      end
+
+      it 'converts nil value to "Data not collected"' do
+        enrollment.percent_ami = nil
+        result = enrollment.transform_value('percent_ami', nil, pii_policy)
+        expect(result).to eq('Data not collected')
+      end
+
+      it 'handles integer values correctly' do
+        enrollment.percent_ami = 1
+        result = enrollment.transform_value('percent_ami', 1, pii_policy)
+        expect(result).to eq('30% or less')
+      end
+    end
+
+    context 'when transforming other fields with data not collected support' do
+      it 'converts nil sex to "Data not collected"' do
+        result = enrollment.transform_value('sex', nil, pii_policy)
+        expect(result).to eq('Data not collected')
+      end
+
+      it 'converts nil housing_assessment_at_exit to "Data not collected"' do
+        result = enrollment.transform_value('housing_assessment_at_exit', nil, pii_policy)
+        expect(result).to eq('Data not collected')
+      end
+
+      it 'does not convert nil for fields without data not collected support' do
+        result = enrollment.transform_value('hiv_positive', nil, pii_policy)
+        expect(result).to be_nil
+      end
+    end
+  end
 end
