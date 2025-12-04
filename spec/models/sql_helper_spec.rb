@@ -120,14 +120,14 @@ RSpec.describe SqlHelper do
       expect(result).to eq(expected)
     end
 
-    it 'handles empty set correctly' do
-      result = described_class.array_overlap_condition(
-        field: 'tags',
-        set: [],
-        type: 'text',
-      )
-      expected = "tags && '{}'::text[]"
-      expect(result).to eq(expected)
+    it 'raises error for empty set' do
+      expect do
+        described_class.array_overlap_condition(
+          field: 'tags',
+          set: [],
+          type: 'text',
+        )
+      end.to raise_error(ArgumentError, /Set cannot be empty/)
     end
   end
 end

@@ -183,18 +183,19 @@ module HopwaCaper
 
     private
 
-    # HUD data elements that support "Data not collected (99)"
-    HUD_FIELDS_WITH_99 = [
-      'sex',
-      'dob_quality',
-      'percent_ami',
-      'exit_destination',
-      'housing_assessment_at_exit',
-    ].freeze
+    def fields_supporting_data_not_collected
+      @fields_supporting_data_not_collected ||= [
+        'sex',
+        'dob_quality',
+        'percent_ami',
+        'exit_destination',
+        'housing_assessment_at_exit',
+      ].to_set.freeze
+    end
 
     def transform_value(column, value, pii_policy)
       # Treat nil as 99 (Data not collected) for HUD fields that support it
-      value = 99 if value.nil? && HUD_FIELDS_WITH_99.include?(column)
+      value = 99 if value.nil? && fields_supporting_data_not_collected.include?(column)
 
       case column
       when 'sex'
