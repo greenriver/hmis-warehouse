@@ -170,9 +170,16 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
       expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 1, calculate_cell: false)).to eq('Male')
       expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 99, calculate_cell: false)).to eq('Data not collected')
 
-      # Test nil handling
-      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
+      # Test nil handling - nil should be treated as 99 (Data not collected)
+      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
+      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
+      expect(enrollment.display_value('dob_quality', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
+      expect(enrollment.display_value('exit_destination', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
+      expect(enrollment.display_value('housing_assessment_at_exit', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
+
+      # Verify that fields without 99 option still return nil
+      expect(enrollment.display_value('rental_subsidy_type', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
+      expect(enrollment.display_value('subsidy_information', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
     end
   end
 end
