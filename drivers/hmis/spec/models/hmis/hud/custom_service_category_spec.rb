@@ -16,9 +16,7 @@ RSpec.describe Hmis::Hud::CustomServiceCategory, type: :model do
       ::HmisUtil::ServiceTypes.seed_hud_service_types(data_source.id)
     end
 
-    let!(:empty_category) do
-      create(:hmis_custom_service_category, data_source: data_source, name: 'Empty Category')
-    end
+    let!(:empty_category) { create(:hmis_custom_service_category, data_source: data_source, name: 'Empty Category') }
 
     let!(:custom_only_category) { create(:hmis_custom_service_category, data_source: data_source, name: 'Custom Only') }
     let!(:custom_service_1) { create(:hmis_custom_service_type, custom_service_category: custom_only_category, data_source: data_source, name: 'Custom Service 1') }
