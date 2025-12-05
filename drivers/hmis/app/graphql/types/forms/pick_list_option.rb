@@ -97,6 +97,7 @@ module Types
       end
     end
 
+    # todo @martha - avoid warning for cyclomatic complexity
     # "Static" pick list options that do not depend on any other data
     def self.static_options_for_type(pick_list_type, user:)
       case pick_list_type
@@ -195,26 +196,34 @@ module Types
           { code: identifier, label: description }
         end
       when 'PROJECT_CONFIG_TYPES'
-        # Project config types for selection on the Admin Project Config page.
-        # Hide Coordinated Entry options if CE is not enabled in the installation.
-        Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
-          next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
-
-          {
-            code: key,
-            label: enum.description,
-          }
-        end.compact
+        project_config_types_picklist
       when 'CE_REFERRAL_STATUSES'
-        # To avoid key collisions, we display only custom statuses in the picklist.
-        # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
-        # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
-        Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
-          next if status.key.to_s == 'initialized' # skip initialized, user-facing display for this state is just 'in progress'
-
-          { code: status.key, label: status.name }
-        end.compact
+        ce_referral_statuses_picklist
       end
+    end
+
+    def self.project_config_types_picklist
+      # Project config types for selection on the Admin Project Config page.
+      # Hide Coordinated Entry options if CE is not enabled in the installation.
+      Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
+        next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
+
+        {
+          code: key,
+          label: enum.description,
+        }
+      end.compact
+    end
+
+    def self.ce_referral_statuses_picklist
+      # To avoid key collisions, we display only custom statuses in the picklist.
+      # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
+      # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
+      Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
+        next if status.key.to_s == 'initialized' # skip initialized, user-facing display for this state is just 'in progress'
+
+        { code: status.key, label: status.name }
+      end.compact
     end
 
     def self.eligible_staff_assignment_user_picklist(project)
