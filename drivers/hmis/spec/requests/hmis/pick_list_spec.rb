@@ -262,7 +262,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
         expect(options.pluck('code')).to include(hud_only_category.id.to_s, custom_only_category.id.to_s)
 
-        # Verify structure
         custom_option = options.find { |o| o['code'] == custom_only_category.id.to_s }
         expect(custom_option['label']).to eq('Custom Only Category')
       end
@@ -290,7 +289,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(options.pluck('code')).to include(hud_only_category.id.to_s)
         expect(options.pluck('code')).not_to include(custom_only_category.id.to_s)
 
-        # Verify it matches seeded HUD categories
         expect(options.length).to eq(HudHelper.util.record_types.size)
         expect(options.map { |o| o['label'] }).to match_array(HudHelper.util.record_types.values)
       end
