@@ -10,7 +10,6 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Hud::CustomServiceCategory, type: :model do
   let!(:data_source) { create(:hmis_data_source) }
-  let!(:user) { create(:hmis_hud_user, data_source: data_source) }
 
   describe 'scopes' do
     before do
@@ -18,12 +17,12 @@ RSpec.describe Hmis::Hud::CustomServiceCategory, type: :model do
     end
 
     let!(:empty_category) do
-      create(:hmis_custom_service_category, data_source: data_source, user: user, name: 'Empty Category')
+      create(:hmis_custom_service_category, data_source: data_source, name: 'Empty Category')
     end
 
-    let!(:custom_only_category) { create(:hmis_custom_service_category, data_source: data_source, user: user, name: 'Custom Only') }
-    let!(:custom_service_1) { create(:hmis_custom_service_type, custom_service_category: custom_only_category, data_source: data_source, user: user, name: 'Custom Service 1') }
-    let!(:custom_service_2) { create(:hmis_custom_service_type, custom_service_category: custom_only_category, data_source: data_source, user: user, name: 'Custom Service 2') }
+    let!(:custom_only_category) { create(:hmis_custom_service_category, data_source: data_source, name: 'Custom Only') }
+    let!(:custom_service_1) { create(:hmis_custom_service_type, custom_service_category: custom_only_category, data_source: data_source, name: 'Custom Service 1') }
+    let!(:custom_service_2) { create(:hmis_custom_service_type, custom_service_category: custom_only_category, data_source: data_source, name: 'Custom Service 2') }
 
     describe '.hud_only' do
       it 'returns categories where all service types are HUD' do
