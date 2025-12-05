@@ -97,7 +97,6 @@ module Types
       end
     end
 
-    # todo @martha - avoid warning for cyclomatic complexity
     # "Static" pick list options that do not depend on any other data
     def self.static_options_for_type(pick_list_type, user:)
       case pick_list_type
