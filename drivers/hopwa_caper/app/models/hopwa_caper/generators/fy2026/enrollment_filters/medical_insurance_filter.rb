@@ -8,10 +8,12 @@
 
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   MedicalInsuranceFilter = Struct.new(:label, :types, keyword_init: true) do
+    include HouseholdScopedFilter
+
+    # Filter households based on medical insurance across all household members.
+    # Includes households where ANY member has the specified medical insurance types.
     def apply(scope)
-      scope.where(
-        SqlHelper.non_empty_array_subset_condition(field: 'medical_insurance_types', type: 'varchar', set: types),
-      )
+      households_with_any_member_having(scope, field: 'medical_insurance_types', values: types, type: 'varchar')
     end
 
     def self.all
