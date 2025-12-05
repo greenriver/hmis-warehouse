@@ -46,6 +46,10 @@ module HopwaCaper
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
 
+    scope :latest_by_distinct_hoh_client_id, -> {
+      distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
+    }
+
     scope :head_of_household, -> { where(relationship_to_hoh: 1) }
 
     scope :active_after, ->(date) { where('exit_date IS NULL OR exit_date > ?', date) }

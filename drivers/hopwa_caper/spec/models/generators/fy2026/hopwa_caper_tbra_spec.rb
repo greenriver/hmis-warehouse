@@ -155,6 +155,39 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
     end
   end
 
+  context 'with same household re-enrolling in different projects' do
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:project_a) do
+      create_hopwa_project(funder: funder)
+    end
+    let(:project_b) do
+      create_hopwa_project(funder: funder)
+    end
+
+    let!(:first_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project_a,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    let!(:second_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project_b,
+        entry_date: report_start_date + 6.months,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    it 'counts the household only once by HoH destination_client_id' do
+      _, rows = run_and_extract_rows([project_a, project_b], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+    end
+  end
+
   context 'with various exit scenarios for continued assistance' do
     let!(:no_exit_enrollment) do
       create_hiv_positive_enrollment(
