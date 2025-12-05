@@ -20,13 +20,25 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
 
   validates_presence_of :name, allow_blank: false
 
-  scope :non_hud, -> do
-    # Returns categories that are empty or have any service type with a null hud_record_type.
-    # Excludes "stock" categories that are seeded initially, which only contain HUD service types.
+  # Helper scope: categories that have at least one HUD service type (non-null hud_record_type)
+  scope :with_hud_types, -> do
+    joins(:service_types).where.not(service_types: { hud_record_type: nil }).distinct
+  end
+
+  # Helper scope: categories that have at least one custom service type (null hud_record_type)
+  scope :with_custom_types, -> do
     left_joins(:service_types).where(service_types: { hud_record_type: nil }).distinct
   end
 
-  scope :hud, -> { where.not(id: non_hud.select(:id)) }
+  # Returns categories where all service types have a non-null hud_record_type (HUD types only)
+  scope :hud_only, -> do
+    with_hud_types.where.not(id: with_custom_types.select(:id))
+  end
+
+  # Returns categories where all service types have a null hud_record_type (custom types only)
+  scope :custom_only, -> do
+    with_custom_types.where.not(id: with_hud_types.select(:id))
+  end
 
   def to_pick_list_option
     {

@@ -393,12 +393,12 @@ module Types
     private_class_method :service_types_picklist
 
     def self.hud_service_categories_picklist
-      scope = Hmis::Hud::CustomServiceCategory.hud
+      scope = Hmis::Hud::CustomServiceCategory.hud_only
       service_categories_picklist(scope: scope)
     end
 
     def self.custom_service_categories_picklist
-      scope = Hmis::Hud::CustomServiceCategory.non_hud
+      scope = Hmis::Hud::CustomServiceCategory.custom_only
       service_categories_picklist(scope: scope)
     end
 
