@@ -23,6 +23,7 @@ Exports are configured through `Filters::HmisExport` with the following paramete
 
 - **Date range**: Start and end dates for the reporting period
 - **Projects**: Selected projects, project groups, organizations, or data sources
+- **CoC codes**: Limits export to projects operating in specified Continuum of Care codes
 - **Period type**: Determines which records are included (operating period, update period, etc.)
 - **Directive**: Controls data completeness (projects only, projects and related, etc.)
 - **Hash status**: PII hashing level (none, partial, full)
