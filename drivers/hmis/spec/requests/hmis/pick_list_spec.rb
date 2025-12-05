@@ -205,16 +205,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'service type and category pick lists' do
-    before do
-      # Seed the HUD service types/categories
-      ::HmisUtil::ServiceTypes.seed_hud_service_types(ds1.id)
-    end
+    include_context 'hmis service setup'
 
-    let!(:hud_only_category) { Hmis::Hud::CustomServiceCategory.hud_only.first }
-    let!(:hud_type) { Hmis::Hud::CustomServiceType.hud.first }
-    let!(:custom_only_category) { create :hmis_custom_service_category, data_source: ds1, name: 'Custom Only Category' }
-    let!(:custom_type_1) { create :hmis_custom_service_type, custom_service_category: custom_only_category, data_source: ds1, name: 'Custom Type 1' }
-    let!(:custom_type_2) { create :hmis_custom_service_type, custom_service_category: custom_only_category, data_source: ds1, name: 'Custom Type 2' }
+    let(:hud_only_category) { Hmis::Hud::CustomServiceCategory.hud_only.first }
+    let(:hud_type) { Hmis::Hud::CustomServiceType.hud.first }
+    let!(:custom_only_category) { create :hmis_custom_service_category, data_source: ds1, user: u1, name: 'Custom Only Category' }
+    let!(:custom_type_1) { create :hmis_custom_service_type, custom_service_category: custom_only_category, data_source: ds1, user: u1, name: 'Custom Type 1' }
+    let!(:custom_type_2) { create :hmis_custom_service_type, custom_service_category: custom_only_category, data_source: ds1, user: u1, name: 'Custom Type 2' }
 
     describe 'ALL_SERVICE_TYPES' do
       it 'returns all service types' do
