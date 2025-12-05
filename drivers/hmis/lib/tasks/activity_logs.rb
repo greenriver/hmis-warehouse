@@ -10,7 +10,7 @@ module Hmis
     class Correlator
       attr_reader :total_considered, :matched, :unmatched_rows, :suspicious_rows, :invalid_signed_ids
 
-      def initialize(csv_path:, tenant:, tolerance_seconds: 60)
+      def initialize(csv_path:, tenant:, tolerance_seconds: 300)
         @csv_path = csv_path
         @tenant = tenant
         @tolerance_seconds = tolerance_seconds.to_i
@@ -91,12 +91,10 @@ module Hmis
       def get_files_from_name(path)
         encoded_filename = path.split('/').last
         decoded = CGI.unescape(encoded_filename)
-        files = Hmis::File.with_deleted.order(:id).where(name: decoded).limit(2)
+        files = Hmis::File.with_deleted.order(:id).where(name: decoded).limit(5)
 
-        if files.size > 1
-          raise "found more than 1 files named #{decoded.inspect}"
-          return nil
-        end
+        raise 'found more than 4 files named' if files.size > 4
+
         files
       end
 
@@ -187,22 +185,20 @@ module Hmis
         activity_log_scope = Hmis::ActivityLog.where(created_at: window)
 
         # first try and locate the log using file id
-        resolved_object_ids = path_files.map  { |f| "File/#{f.id}" }
+        resolved_object_ids = path_files.map { |f| "File/#{f.id}" }
         activity_log_scope.where.not(resolved_fields: nil).find_each do |record|
           return record if (resolved_object_ids & record.resolved_fields.keys).any?
         end
 
-        return # skipping
-
-        path_client_id = path_file&.client_id
-        return unless path_client_id
+        path_client_ids = path_files.map(&:client_id).compact
+        return if path_client_ids.blank?
 
         # try and locate the log using client id
         activity_log_scope.find_each do |record|
           log_client_id = client_id_from_log_record(record)
           next unless log_client_id
 
-          return record if log_client_id == path_client_id
+          return record if log_client_id.in?(path_client_ids)
         end
         nil
       end
