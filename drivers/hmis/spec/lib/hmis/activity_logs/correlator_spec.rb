@@ -197,7 +197,7 @@ RSpec.describe Hmis::ActivityLogs::Correlator do
 
     it 'records the message as unmatched if activity log is outside the time window' do
       create(:hmis_activity_log,
-             created_at: timestamp - 2.minutes,
+             created_at: timestamp - 6.minutes,
              operation_name: 'GetClient',
              variables: { 'id' => client.id })
       write_csv([[timestamp_str, message]])
@@ -251,7 +251,7 @@ RSpec.describe Hmis::ActivityLogs::Correlator do
 
     it 'does not match activity logs just outside backward tolerance' do
       create(:hmis_activity_log,
-             created_at: timestamp - 61.seconds,
+             created_at: timestamp - 301.seconds,
              operation_name: 'GetClient',
              variables: { 'id' => client.id })
       write_csv([[timestamp_str, message]])
