@@ -391,6 +391,7 @@ module GrdaWarehouse::Tasks
       # DifferentIdentity
       # GenderNone
       # DifferentIdentityText
+      # Sex
       # VeteranStatus
       #
       # YearEnteredService
@@ -412,6 +413,7 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
       dest_attr = choose_best_gender(dest_attr, source_clients)
       dest_attr = choose_best_race(dest_attr, source_clients)
+      dest_attr = choose_best_sex(dest_attr, source_clients)
 
       dest_attr
     end
@@ -600,6 +602,14 @@ module GrdaWarehouse::Tasks
 
     private def gender_columns
       @gender_columns ||= ::HudHelper.util.gender_fields - [:GenderNone]
+    end
+
+    def choose_best_sex dest_attr, source_clients
+      GrdaWarehouse::SexSelector.call(
+        dest_attr: dest_attr,
+        source_clients: source_clients,
+        use_oldest: false,
+      )
     end
 
     def choose_best_race dest_attr, source_clients
@@ -806,6 +816,7 @@ module GrdaWarehouse::Tasks
         DifferentIdentity: c_t[:DifferentIdentity].to_sql,
         GenderNone: c_t[:GenderNone].to_sql,
         DifferentIdentityText: c_t[:DifferentIdentityText].to_sql,
+        Sex: c_t[:Sex].to_sql,
         VeteranStatus: c_t[:VeteranStatus].to_sql,
         YearEnteredService: c_t[:YearEnteredService].to_sql,
         YearSeparated: c_t[:YearSeparated].to_sql,
