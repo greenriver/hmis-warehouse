@@ -107,13 +107,17 @@ module Types
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
-        service_types_picklist
+        all_service_types_picklist
       when 'CUSTOM_SERVICE_TYPES'
-        service_types_picklist(custom_only: true)
+        custom_service_types_picklist
+      when 'HUD_SERVICE_TYPES'
+        hud_service_types_picklist
       when 'ALL_SERVICE_CATEGORIES'
-        service_categories_picklist
+        all_service_categories_picklist
       when 'CUSTOM_SERVICE_CATEGORIES'
-        service_categories_picklist(custom_only: true)
+        custom_service_categories_picklist
+      when 'HUD_SERVICE_CATEGORIES'
+        hud_service_categories_picklist
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -353,9 +357,22 @@ module Types
       end
     end
 
-    def self.service_types_picklist(custom_only: false)
-      scope = custom_only ? Hmis::Hud::CustomServiceType.custom : Hmis::Hud::CustomServiceType.all
+    def self.hud_service_types_picklist
+      scope = Hmis::Hud::CustomServiceType.hud
+      service_types_picklist(scope: scope)
+    end
 
+    def self.custom_service_types_picklist
+      scope = Hmis::Hud::CustomServiceType.custom
+      service_types_picklist(scope: scope)
+    end
+
+    def self.all_service_types_picklist
+      scope = Hmis::Hud::CustomServiceType.all
+      service_types_picklist(scope: scope)
+    end
+
+    def self.service_types_picklist(scope:)
       options = scope.
         preload(:custom_service_category).to_a.
         map(&:to_pick_list_option).
@@ -365,10 +382,24 @@ module Types
 
       options
     end
+    private_class_method :service_types_picklist
 
-    def self.service_categories_picklist(custom_only: false)
-      scope = custom_only ? Hmis::Hud::CustomServiceCategory.non_hud : Hmis::Hud::CustomServiceCategory.all
+    def self.hud_service_categories_picklist
+      scope = Hmis::Hud::CustomServiceCategory.hud
+      service_categories_picklist(scope: scope)
+    end
 
+    def self.custom_service_categories_picklist
+      scope = Hmis::Hud::CustomServiceCategory.non_hud
+      service_categories_picklist(scope: scope)
+    end
+
+    def self.all_service_categories_picklist
+      scope = Hmis::Hud::CustomServiceCategory.all
+      service_categories_picklist(scope: scope)
+    end
+
+    def self.service_categories_picklist(scope:)
       options = scope.to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:label] }
@@ -377,6 +408,7 @@ module Types
 
       options
     end
+    private_class_method :service_categories_picklist
 
     def self.available_service_types_picklist(project, bulk_only: false)
       return [] unless project.present?

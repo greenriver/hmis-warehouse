@@ -26,6 +26,8 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
     left_joins(:service_types).where(service_types: { hud_record_type: nil }).distinct
   end
 
+  scope :hud, -> { where.not(id: non_hud.select(:id)) }
+
   def to_pick_list_option
     {
       code: id.to_s,

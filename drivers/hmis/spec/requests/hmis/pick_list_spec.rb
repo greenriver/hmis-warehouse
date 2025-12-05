@@ -176,7 +176,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'returns grouped service type pick list' do
     response, result = post_graphql(pick_list_type: 'ALL_SERVICE_TYPES') { query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
     opt = Hmis::Hud::CustomServiceType.first.to_pick_list_option
@@ -192,7 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'returns service category pick list' do
     response, result = post_graphql(pick_list_type: 'ALL_SERVICE_CATEGORIES') { query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
     opt = Hmis::Hud::CustomServiceCategory.first.to_pick_list_option
@@ -210,23 +210,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:hud_type) { create :hmis_custom_service_type, custom_service_category: hud_category, data_source: ds1, name: 'HUD type', hud_record_type: 141, hud_type_provided: 1 }
     let!(:custom_type) { create :hmis_custom_service_type, custom_service_category: custom_category, data_source: ds1, name: 'Custom type' }
 
-    it 'returns custom-only service category pick list' do
+    it 'CUSTOM_SERVICE_CATEGORIES returns custom-only service category pick list' do
       response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_CATEGORIES') { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       options = result.dig('data', 'pickList')
       expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.non_hud.count)
       expect(options.pluck('code')).to include(custom_category.id.to_s)
       expect(options.pluck('code')).not_to include(hud_category.id.to_s)
     end
 
-    it 'returns custom-only service type pick list' do
+    it 'CUSTOM_SERVICE_TYPES returns custom-only service type pick list' do
       response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_TYPES') { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       options = result.dig('data', 'pickList')
       expect(options.length).to eq(Hmis::Hud::CustomServiceType.custom.count)
       expect(options.pluck('code')).to include(custom_type.id.to_s)
       expect(options.pluck('code')).not_to include(hud_type.id.to_s)
     end
+
+    it 'HUD_SERVICE_TYPES returns HUD-only service type pick list' do
+      response, result = post_graphql(pick_list_type: 'HUD_SERVICE_TYPES') { query }
+      expect(response.status).to eq(200), result.inspect
+      options = result.dig('data', 'pickList')
+      expect(options.length).to eq(Hmis::Hud::CustomServiceType.hud.count)
+      expect(options.pluck('code')).to include(hud_type.id.to_s)
+      expect(options.pluck('code')).not_to include(custom_type.id.to_s)
+    end
+
+    # todo @martha - add more spec for new pick lists
   end
 
   describe 'Resolving available Service Types for a Project' do

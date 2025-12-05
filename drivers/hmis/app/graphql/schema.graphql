@@ -7722,6 +7722,8 @@ enum PickListType {
   """
   FORM_TYPES
   GEOCODE
+  HUD_SERVICE_CATEGORIES
+  HUD_SERVICE_TYPES
 
   """
   Open HoH enrollments at the project.
