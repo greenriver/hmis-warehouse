@@ -99,7 +99,7 @@ The `ExportConcern` excludes these fields from length validation when hashed sin
 
 ## Recurring Exports
 
-See [Recurring HMIS Exports](./recurring_hmis_exports.md) for automated scheduling and S3 delivery.
+For automated scheduling and S3 delivery, see [Recurring HMIS Exports](./recurring_hmis_exports.md).
 
 ## Related Code
 
