@@ -31,14 +31,20 @@ module GrdaWarehouse
   class SexSelector
     Candidate = Struct.new(:value, :tie_breakers, keyword_init: true)
 
-    def self.call(dest_attr:, source_clients:, use_oldest: false)
-      new(dest_attr: dest_attr, source_clients: source_clients, use_oldest: use_oldest).call
+    VALID_PRIORITIZATION_METHODS = [:newest_first].freeze
+
+    def self.call(dest_attr:, source_clients:, prioritization_method: :newest_first)
+      new(dest_attr: dest_attr, source_clients: source_clients, prioritization_method: prioritization_method).call
     end
 
-    def initialize(dest_attr:, source_clients:, use_oldest: false)
+    def initialize(dest_attr:, source_clients:, prioritization_method: :newest_first)
       @dest_attr = dest_attr.with_indifferent_access
       @source_clients = Array.wrap(source_clients).map { |client| normalize_source(client) }
-      @use_oldest = use_oldest
+      @prioritization_method = prioritization_method
+
+      return if VALID_PRIORITIZATION_METHODS.include?(@prioritization_method)
+
+      raise ArgumentError, "Invalid prioritization_method: #{@prioritization_method}. Valid methods: #{VALID_PRIORITIZATION_METHODS.join(', ')}"
     end
 
     def call
@@ -63,8 +69,6 @@ module GrdaWarehouse
       return unless coerced_value
       return unless coerced_value.in?(valid_sex_values)
 
-      date_key = timestamp_for(source[:DateUpdated])
-
       # Prefer 0 or 1 (Female/Male) over 8, 9, 99
       # Lower priority number = higher preference
       priority = if coerced_value.in?([0, 1])
@@ -73,7 +77,7 @@ module GrdaWarehouse
         1
       end
 
-      tie_breakers = [priority, date_key, source_identifier_for(source)]
+      tie_breakers = [priority, priority_modifier(source), source_identifier_for(source)]
 
       Candidate.new(value: coerced_value, tie_breakers: tie_breakers)
     end
@@ -94,6 +98,27 @@ module GrdaWarehouse
       base
     end
 
+    def priority_modifier(source)
+      case @prioritization_method
+      when :newest_first
+        newest_first_priority_modifier(source)
+      else
+        raise ArgumentError, "Invalid prioritization_method: #{@prioritization_method}. Valid methods: #{VALID_PRIORITIZATION_METHODS.join(', ')}"
+      end
+    end
+
+    def newest_first_priority_modifier(source)
+      timestamp = timestamp_for(source[:DateUpdated])
+      # Negate to prefer newer (larger) timestamps when using min_by
+      # Larger timestamps become more negative, so they sort first
+      # If timestamp is nil, use +Float::INFINITY so missing dates sort last (after negation)
+      if timestamp.nil?
+        Float::INFINITY
+      else
+        -timestamp
+      end
+    end
+
     def timestamp_for(value)
       timestamp =
         case value
@@ -107,17 +132,7 @@ module GrdaWarehouse
           raise ArgumentError, "invalid timestamp #{value.inspect}"
         end
 
-      timestamp ||= default_date_key
-      timestamp *= -1 unless use_oldest?
       timestamp
-    end
-
-    def use_oldest?
-      @use_oldest
-    end
-
-    def default_date_key
-      use_oldest? ? Float::INFINITY : -Float::INFINITY
     end
 
     def source_identifier_for(source)

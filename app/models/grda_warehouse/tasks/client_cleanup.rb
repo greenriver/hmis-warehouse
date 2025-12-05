@@ -608,7 +608,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::SexSelector.call(
         dest_attr: dest_attr,
         source_clients: source_clients,
-        use_oldest: false,
+        prioritization_method: :newest_first,
       )
     end
 

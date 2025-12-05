@@ -10,12 +10,12 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::SexSelector do
   subject(:selected) do
-    described_class.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: use_oldest)
+    described_class.call(dest_attr: dest_attr, source_clients: source_clients, prioritization_method: prioritization_method)
   end
 
   let(:dest_attr) { {} }
   let(:source_clients) { [] }
-  let(:use_oldest) { false }
+  let(:prioritization_method) { :newest_first }
   let(:hud_util) { instance_double('HudUtil') }
 
   before do
@@ -180,11 +180,11 @@ RSpec.describe GrdaWarehouse::SexSelector do
         expect(selected[:Sex]).to eq(1)
       end
 
-      context 'when configured to use the oldest record' do
-        let(:use_oldest) { true }
+      context 'when configured with an unsupported prioritization method' do
+        let(:prioritization_method) { :oldest_first }
 
-        it 'selects the oldest record' do
-          expect(selected[:Sex]).to eq(0)
+        it 'raises an error for unsupported prioritization method' do
+          expect { selected }.to raise_error(ArgumentError, /Invalid prioritization_method: oldest_first/)
         end
       end
     end
@@ -232,8 +232,6 @@ RSpec.describe GrdaWarehouse::SexSelector do
     end
 
     context 'when preferring newest records but one DateUpdated is missing' do
-      let(:use_oldest) { false }
-
       let(:source_clients) do
         [
           {
@@ -459,6 +457,23 @@ RSpec.describe GrdaWarehouse::SexSelector do
 
       it 'raises an ArgumentError' do
         expect { selected }.to raise_error(ArgumentError, /invalid timestamp/)
+      end
+    end
+
+    context 'when an invalid prioritization_method is provided' do
+      let(:prioritization_method) { :invalid_method }
+      let(:source_clients) do
+        [
+          {
+            Sex: 0,
+            DateUpdated: Time.zone.local(2023, 1, 1),
+            id: 1,
+          },
+        ]
+      end
+
+      it 'raises an ArgumentError' do
+        expect { selected }.to raise_error(ArgumentError, /Invalid prioritization_method: invalid_method/)
       end
     end
   end
