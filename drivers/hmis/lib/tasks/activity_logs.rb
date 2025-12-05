@@ -88,6 +88,18 @@ module Hmis
         nil
       end
 
+      def get_files_from_name(path)
+        encoded_filename = path.split('/').last
+        decoded = CGI.unescape(encoded_filename)
+        files = Hmis::File.with_deleted.order(:id).where(name: decoded).limit(2)
+
+        if files.size > 1
+          raise "found more than 1 files named #{decoded.inspect}"
+          return nil
+        end
+        files
+      end
+
       def get_file_from_path(path)
         # The path is expected to be in the format:
         # /rails/active_storage/blobs/redirect/<signed_id>/<filename>
@@ -161,17 +173,26 @@ module Hmis
 
         # Extract client_id from the CloudWatch path once, before searching activity logs
         path_file = get_file_from_path(path)
-        return unless path_file
+        path_files = []
+        if path_file
+          path_files = [path_file]
+        else
+          path_files = get_files_from_name(path)
+        end
+
+        return if path_files.blank?
 
         # Find the GraphQL request occurring before the Active Storage access. Add 10 second allowance for clock skew
         window = (timestamp - @tolerance_seconds.seconds)..(timestamp + 10.seconds)
         activity_log_scope = Hmis::ActivityLog.where(created_at: window)
 
         # first try and locate the log using file id
-        resolved_object_id = "File/#{path_file.id}"
+        resolved_object_ids = path_files.map  { |f| "File/#{f.id}" }
         activity_log_scope.where.not(resolved_fields: nil).find_each do |record|
-          return record if resolved_object_id.in?(record.resolved_fields.keys)
+          return record if (resolved_object_ids & record.resolved_fields.keys).any?
         end
+
+        return # skipping
 
         path_client_id = path_file&.client_id
         return unless path_client_id
