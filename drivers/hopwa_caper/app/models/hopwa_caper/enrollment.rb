@@ -201,7 +201,7 @@ module HopwaCaper
       when 'sex'
         HudHelper.util('2026').sex(value)
       when 'percent_ami'
-        HudHelper.util('2026').percent_ami(value)
+        HudHelper.util('2026').percent_ami(value.to_i) # db has this as a float, it should be a numeric integer code
       when 'housing_assessment_at_exit'
         HudHelper.util('2026').housing_assessment_at_exit(value)
       when 'dob_quality'
