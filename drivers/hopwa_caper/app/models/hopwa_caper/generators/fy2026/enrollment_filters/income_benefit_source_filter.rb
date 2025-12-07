@@ -8,15 +8,13 @@
 
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   IncomeBenefitSourceFilter = Struct.new(:label, :types, keyword_init: true) do
-    include HouseholdScopedFilter
-
-    # Filter households based on income sources across all household members.
-    # - For specific income types: households where ANY member has those income sources
-    # - For no income (types: []): households where ALL members have no income sources
+    # Filter households based on income sources aggregated at the household level.
+    # - For specific income types: households where aggregated values overlap
+    # - For no income (types: []): households where aggregated values are empty
     def apply(scope)
-      return households_with_any_member_having(scope, field: 'income_benefit_source_types', values: types, type: 'varchar') if types.present?
+      return scope.where.overlaps(household_income_benefit_source_types: types.map(&:to_s)) if types.present?
 
-      households_with_no_member_having(scope, field: 'income_benefit_source_types')
+      scope.where(household_income_benefit_source_types: [])
     end
 
     def self.all

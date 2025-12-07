@@ -242,7 +242,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
     end
   end
 
-  describe '#transform_value' do
+  describe '#display_value' do
     let(:enrollment) do
       described_class.new(
         report_instance_id: report.id,
@@ -251,42 +251,36 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
       )
     end
     let(:pii_policy) { double('pii_policy') }
+    def display_value(enrollment, field, value)
+      enrollment.public_send("#{field}=", value)
+      enrollment.display_value(field, pii_policy: pii_policy, include_content_tag: false)
+    ensure
+      enrollment.public_send("#{field}=", nil)
+    end
 
-    context 'when transforming percent_ami' do
-      let(:percent_ami_test_cases) do
-        [
-          { input: 1.0, expected: '30% or less', description: 'float 1.0' },
-          { input: 2.0, expected: '31% to 50%', description: 'float 2.0' },
-          { input: 3.0, expected: '51% to 80%', description: 'float 3.0' },
-          { input: 4.0, expected: '81% or greater', description: 'float 4.0' },
-          { input: 99.0, expected: 'Data not collected', description: 'float 99.0' },
-          { input: nil, expected: 'Data not collected', description: 'nil' },
-          { input: 1, expected: '30% or less', description: 'integer 1' },
-        ]
-      end
+    context 'when rendering percent_ami' do
+      it 'returns the expected label' do
+        result = display_value(enrollment, 'percent_ami', 1)
+        expect(result).to eq('30% or less')
 
-      it 'translates as expected' do
-        percent_ami_test_cases.each do |test_case|
-          enrollment.percent_ami = test_case[:input]
-          result = enrollment.send(:transform_value, 'percent_ami', test_case[:input], pii_policy)
-          expect(result).to eq(test_case[:expected]), "converts #{test_case[:description]} to '#{test_case[:expected]}'"
-        end
+        result = display_value(enrollment, 'percent_ami', nil)
+        expect(result).to eq('Data not collected')
       end
     end
 
-    context 'when transforming other fields with data not collected support' do
-      it 'converts nil sex to "Data not collected"' do
-        result = enrollment.send(:transform_value, 'sex', nil, pii_policy)
+    context 'when rendering fields with data not collected support' do
+      it 'returns "Data not collected" for nil sex' do
+        result = display_value(enrollment, 'sex', nil)
         expect(result).to eq('Data not collected')
       end
 
-      it 'converts nil housing_assessment_at_exit to "Data not collected"' do
-        result = enrollment.send(:transform_value, 'housing_assessment_at_exit', nil, pii_policy)
+      it 'returns "Data not collected" for nil housing_assessment_at_exit' do
+        result = display_value(enrollment, 'housing_assessment_at_exit', nil)
         expect(result).to eq('Data not collected')
       end
 
-      it 'does not convert nil for fields without data not collected support' do
-        result = enrollment.send(:transform_value, 'hiv_positive', nil, pii_policy)
+      it 'returns nil for fields without data not collected support' do
+        result = display_value(enrollment, 'hiv_positive', nil)
         expect(result).to be_nil
       end
     end

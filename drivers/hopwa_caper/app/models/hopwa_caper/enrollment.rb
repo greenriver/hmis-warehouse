@@ -148,6 +148,8 @@ module HopwaCaper
       'project_type',
       'income_benefit_source_types',
       'medical_insurance_types',
+      'household_income_benefit_source_types',
+      'household_medical_insurance_types',
       'hiv_positive',
       'hopwa_eligible',
       'chronically_homeless',
@@ -201,7 +203,7 @@ module HopwaCaper
       when 'sex'
         HudHelper.util('2026').sex(value)
       when 'percent_ami'
-        HudHelper.util('2026').percent_ami(value.to_i) # db has this as a float, it should be a numeric integer code
+        HudHelper.util('2026').percent_ami(value)
       when 'housing_assessment_at_exit'
         HudHelper.util('2026').housing_assessment_at_exit(value)
       when 'dob_quality'
