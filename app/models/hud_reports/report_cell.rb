@@ -91,6 +91,7 @@ module HudReports
     # @param members [Hash<Integer>, ReportClientBase] the members to be associated with this cell
     def add_universe_members_from_client_ids(members)
       clients_by_id = GrdaWarehouse::Hud::Client.
+        with_deleted. # allow the SPM to continue even if the client record is soft-deleted
         select(:id, :first_name, :last_name).
         where(id: members.keys).
         index_by(&:id)

@@ -117,6 +117,7 @@ module HudReports
       # For question-specific cleanup of derived records (e.g., SPM's Return records),
       # implement the QuestionBase::reset_derived_data hook, which is called automatically
       # before this method during a retry.
+      @universe_cache&.delete(question)
       HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
       cells.delete_all
     end
