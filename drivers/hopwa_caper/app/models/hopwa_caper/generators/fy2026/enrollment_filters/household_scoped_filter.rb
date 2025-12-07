@@ -7,32 +7,30 @@
 ###
 
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
-  # Provides helpers for filters that need to consider all household members while
-  # respecting the original scope constraints (report instance, project filters, etc.).
+  # Helpers for filtering households based on attributes across all household members.
+  # All methods preserve the original scope's constraints (report instance, date ranges, project filters).
   module HouseholdScopedFilter
     private
 
+    # Returns all members of households present in the scope, preserving all scope constraints.
+    # Example: if scope is "TBRA enrollments Jan-Dec 2024", returns all household members
+    # who are also in TBRA during Jan-Dec 2024.
     def household_members(scope)
-      HopwaCaper::Enrollment.
-        from("#{HopwaCaper::Enrollment.table_name} household_members").
-        joins("INNER JOIN (#{scoped_households(scope).to_sql}) scoped_households ON scoped_households.report_household_id = household_members.report_household_id")
+      household_ids = scope.distinct.pluck(:report_household_id)
+      scope.unscope(:select, :order, :limit, :offset).where(report_household_id: household_ids)
     end
 
-    def scoped_households(scope)
-      scope.
-        unscope(:select, :order, :limit, :offset).
-        select(:report_household_id).
-        distinct
-    end
-
-    # Filter to households where ANY member has at least one of the specified array values.
-    # Returns a scope filtered to households matching the condition.
+    # Filters to households where ANY member has at least one of the specified values.
+    # Loads records into memory for simplicity since datasets are small.
     def households_with_any_member_having(scope, field:, values:, type:)
-      household_ids = household_members(scope).
-        where(SqlHelper.array_overlap_condition(field: "household_members.#{field}", set: values, type: type)).
-        select(:report_household_id).
-        distinct
-      scope.where(report_household_id: household_ids)
+      all_members = household_members(scope).to_a
+
+      matching_household_ids = all_members.group_by(&:report_household_id).filter_map do |household_id, members|
+        has_match = members.any? { |member| (member.public_send(field) & values.map(&:to_s)).any? }
+        household_id if has_match
+      end
+
+      scope.where(report_household_id: matching_household_ids)
     end
   end
 end
