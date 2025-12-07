@@ -66,7 +66,6 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      # puts "started add_apr_clients at #{Time.current.strftime("%H:%M:%S")}"
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
         # Pre-calculate some values
@@ -157,7 +156,7 @@ module HudApr::Generators::Shared::Fy2026
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
+          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program, assessment_relation_preloaded: true)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -511,7 +510,6 @@ module HudApr::Generators::Shared::Fy2026
           report_ce_event_universe.import(events)
         end
       end
-      # puts "completed add_apr_clients at #{Time.current.strftime("%H:%M:%S")}"
     end
 
     private def apr_client_dob_quality(source_client)
