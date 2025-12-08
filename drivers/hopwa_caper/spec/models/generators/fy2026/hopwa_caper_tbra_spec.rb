@@ -130,6 +130,42 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       end
     end
 
+    context 'with aggregated household income and medical insurance arrays' do
+      it 'aggregates medical insurance across any household member' do
+        create(
+          :hud_income_benefit,
+          enrollment: beneficiary_enrollment,
+          Medicaid: 1,
+          information_date: report_start_date + 2.days,
+          data_source: data_source,
+          personal_id: beneficiary_client.PersonalID,
+        )
+
+        report, rows = run_and_extract_rows([project], 'Q2')
+
+        expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
+        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([['Medicaid']])
+      end
+
+      it 'sets household income and medical insurance arrays to empty when none are present' do
+        [hoh_enrollment, beneficiary_enrollment].each do |enrollment|
+          create(
+            :hud_income_benefit,
+            enrollment: enrollment,
+            information_date: report_start_date + 3.days,
+            data_source: data_source,
+            personal_id: enrollment.personal_id,
+          )
+        end
+
+        report, rows = run_and_extract_rows([project], 'Q2')
+
+        expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
+        expect(report.hopwa_caper_enrollments.pluck(:household_income_benefit_source_types).uniq).to eq([[]])
+        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([[]])
+      end
+    end
+
     context 'with a prior enrollments' do
       before do
         previous_enrollment = create_enrollment(
@@ -152,6 +188,39 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
         expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(0)
         expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
       end
+    end
+  end
+
+  context 'with same household re-enrolling in different projects' do
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:project_a) do
+      create_hopwa_project(funder: funder)
+    end
+    let(:project_b) do
+      create_hopwa_project(funder: funder)
+    end
+
+    let!(:first_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project_a,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    let!(:second_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project_b,
+        entry_date: report_start_date + 6.months,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    it 'counts the household only once by HoH destination_client_id' do
+      _, rows = run_and_extract_rows([project_a, project_b], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
     end
   end
 
