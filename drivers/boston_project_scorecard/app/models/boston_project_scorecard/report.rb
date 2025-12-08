@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/boston-project-scorecard.md
 module BostonProjectScorecard
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
