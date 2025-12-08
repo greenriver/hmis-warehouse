@@ -29,7 +29,7 @@ module BostonProjectScorecard
       def subpopulations_served_score
         return if subpopulations_served_value.nil?
 
-        # 6 points, divided by nuumber of options, round to one decimal place
+        # 6 points, divided by number of options, round to one decimal place
         (subpopulations_served_value.length * (6 / subpopulations_served_options.length.to_f)).round(1)
       end
 
@@ -60,7 +60,7 @@ module BostonProjectScorecard
       def vulnerable_subpopulations_served_score
         return if vulnerable_subpopulations_served_value.nil?
 
-        # 6 points, divided by nuumber of options, round to 1 decimal place
+        # 6 points, divided by number of options, round to 1 decimal place
         (vulnerable_subpopulations_served_value.length * (6 / vulnerable_subpopulations_served_options.length.to_f)).round(1)
       end
 
@@ -81,8 +81,14 @@ module BostonProjectScorecard
       def substance_use_treatment_service_score
         return if substance_use_treatment_service_value.nil?
 
-        # 6 points, divided by nuumber of options, round to 1 decimal place
+        # 6 points, divided by number of options, round to 1 decimal place
         (substance_use_treatment_service_value.length * (6 / substance_use_treatment_service_options.length.to_f)).round(1)
+      end
+
+      def supportive_services_score
+        return 0 unless supportive_services?
+
+        10
       end
     end
   end

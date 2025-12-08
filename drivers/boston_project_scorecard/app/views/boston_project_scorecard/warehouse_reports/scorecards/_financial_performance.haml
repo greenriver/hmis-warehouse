@@ -18,15 +18,15 @@
           * These are done through the funding periods
       %td 11. Invoice Timeliness
       %td CoC monitoring report/ Agency external audit
-      %th.align-middle.text-center{rowspan: 5}
-        Weight
-        #{@report.financial_performance_weight}%
       %td
         3 pts: Invoices regularly submitted on time
         %br
         2 pts: Invoices submitted usually on time
         %br
         1 pt: Invoices submitted quarterly or less frequently than monthly
+      %th.align-middle.text-center{rowspan: 5}
+        Weight
+        #{@report.financial_performance_weight}%
       %td= f.input :invoicing_timeliness, collection: @report.invoicing_timeliness_options, as: :pretty_boolean_group, label: "Choose one:"
       %td= @report.invoicing_timeliness_score
     %tr

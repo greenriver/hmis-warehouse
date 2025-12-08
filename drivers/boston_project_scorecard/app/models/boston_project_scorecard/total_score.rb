@@ -31,7 +31,7 @@ module BostonProjectScorecard
       end
 
       def project_performance_weight
-        38
+        50
       end
 
       def project_performance_weighted_score
@@ -51,7 +51,7 @@ module BostonProjectScorecard
       end
 
       def data_quality_weight
-        12
+        10
       end
 
       def data_quality_weighted_score
@@ -64,7 +64,6 @@ module BostonProjectScorecard
           invoicing_accuracy_score,
           efficiency_score,
           required_match_score,
-          supportive_services_score,
           returned_funds_score,
         ].compact.sum
       end
@@ -74,7 +73,7 @@ module BostonProjectScorecard
       end
 
       def financial_performance_weight
-        29
+        30
       end
 
       def financial_performance_weighted_score
@@ -86,6 +85,7 @@ module BostonProjectScorecard
           project_type_score,
           subpopulations_served_score,
           substance_use_treatment_service_score,
+          supportive_services_score,
         ].compact.sum
       end
 
@@ -94,7 +94,7 @@ module BostonProjectScorecard
       end
 
       def policy_alignment_weight
-        21
+        25
       end
 
       def policy_alignment_weighted_score
