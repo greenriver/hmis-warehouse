@@ -10,7 +10,7 @@ require 'csv'
 require 'memery'
 # validator = GrdaWarehouse::Tasks::HmisCsvValidator.new(path)
 # validator.run!
-# validator.write_errors_to_csv!("validator_output.csv")
+# validator.write_errors_to_csv!(File.join(path, "validator_output.csv"))
 module GrdaWarehouse::Tasks
   class HmisCsvValidator
     include Memery
@@ -29,14 +29,18 @@ module GrdaWarehouse::Tasks
         HmisCsvTwentyTwentyTwo
       when '2024'
         HmisCsvTwentyTwentyFour
+      when '2026'
+        HmisCsvTwentyTwentySix
       else
         raise 'invalid version'
       end
 
       klass.importable_files_map.each do |filename, klass_name|
+        next if filename.include?('Custom')
+
         Rails.logger.debug "Checking #{filename}"
         file_path = File.join(path, filename)
-        downcase_converter = ->(header) { header.downcase }
+        downcase_converter = lambda(&:downcase)
         unique_keys = []
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize

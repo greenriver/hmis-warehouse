@@ -1579,7 +1579,6 @@ Style/SymbolProc:
     - 'app/models/concerns/known_categories/age.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/tasks/hmis_csv_splitter.rb'
-    - 'app/models/grda_warehouse/tasks/hmis_csv_validator.rb'
     - 'app/models/health/document_exports/housing_status_changes_export.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'drivers/boston_reports/app/models/boston_reports/street_to_home.rb'
