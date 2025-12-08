@@ -51,7 +51,7 @@ module BostonProjectScorecard
       end
 
       def data_quality_weight
-        10
+        5
       end
 
       def data_quality_weighted_score
@@ -73,7 +73,7 @@ module BostonProjectScorecard
       end
 
       def financial_performance_weight
-        30
+        20
       end
 
       def financial_performance_weighted_score
