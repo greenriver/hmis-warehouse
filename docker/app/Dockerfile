@@ -193,6 +193,11 @@ FROM base AS dev-build
 
 USER root
 
+RUN install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && chmod a+r /etc/apt/keyrings/docker.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
 COPY docker/app/entrypoint.dev.sh /usr/bin/
 COPY docker/app/entrypoint.spec.sh /usr/bin/
 COPY docker/app/entrypoint.dj-eks-test.sh /usr/bin/
@@ -201,7 +206,11 @@ ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 RUN git config --global --add safe.directory /app \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
-  neovim less docker.io python3 zsh openssh-client \
+  docker-ce-cli \
+  less \
+  python3 \
+  zsh \
+  openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
 USER ${USER_ID}
