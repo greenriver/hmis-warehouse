@@ -8,6 +8,7 @@
 
 require 'net/sftp'
 
+# NOTE: this class appears unused at this time.  If we switch to key-based authentication, this should be updated to use Sftp::Cli.  Sftp::Cli may also need updates to support key-based authentication.
 module Health
   class ImportConfigSsh < ImportConfig
     def connect

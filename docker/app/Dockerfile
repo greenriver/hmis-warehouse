@@ -101,6 +101,7 @@ RUN apt-get update && apt-get upgrade -y \
   gnupg-agent \
   gpg \
   imagemagick \
+  less \
   libcurl4 \
   libcurl4-openssl-dev \
   libffi-dev \
@@ -114,6 +115,8 @@ RUN apt-get update && apt-get upgrade -y \
   libmagic-dev \
   libmagic1 \
   libpq-dev \
+  libsodium23 \
+  libsodium-dev \
   libreadline-dev \
   libx11-6 \
   libxext6 \
@@ -122,6 +125,8 @@ RUN apt-get update && apt-get upgrade -y \
   libxslt1-dev \
   libyaml-dev \
   libproj-dev \
+  openssh-client \
+  sshpass \
   proj-bin \
   libzstd-dev \
   liblz4-dev \
@@ -137,9 +142,11 @@ RUN apt-get update && apt-get upgrade -y \
   ripgrep \
   pinentry-tty \
   shared-mime-info \
+  ssh \
   software-properties-common \
   tar \
   tini \
+  tmux \
   tzdata \
   unzip \
   vim \
@@ -160,6 +167,10 @@ RUN chmod +x /usr/local/bin/install_pg_repack.sh \
   && echo "export PATH=$PG_BIN_DIR:\$PATH" >> /etc/bash.bashrc
 
 WORKDIR /app
+
+# Shim legacy gemspecs that still call the removed Gem::Specification#has_rdoc=
+COPY docker/app/has_rdoc_patch.rb /usr/local/lib/ruby/has_rdoc_patch.rb
+ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 
 # CVE-2025-58767, note rexml is bundled with ruby, and must be explicitly pinned
 RUN gem update --system \
