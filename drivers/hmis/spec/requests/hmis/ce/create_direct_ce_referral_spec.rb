@@ -16,6 +16,8 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1) }
   let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: client) }
 
+  # Override the referral from ce_spec_helper.rb to prevent it from being created in the database
+  # This test creates its own referral via the mutation instead
   let!(:referral) { nil }
 
   let!(:target_project_ce_config) { create(:hmis_project_ce_config, project: project, receives_direct_referrals: true) }
