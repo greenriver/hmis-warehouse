@@ -8,14 +8,21 @@
 
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   IncomeBenefitSourceFilter = Struct.new(:label, :types, keyword_init: true) do
+    include HouseholdScopedFilter
+
+    # Filter households based on income sources across all household members.
+    # - For specific income types: includes households where ANY member has those income sources
+    # - For no income (types: []): includes households where ALL members have no income sources
     def apply(scope)
-      cond = if types.present?
-        SqlHelper.non_empty_array_subset_condition(field: 'income_benefit_source_types', type: :varchar, set: types)
-      else
-        # no benefits
-        "income_benefit_source_types = '{}'::varchar[]"
-      end
-      scope.where(cond)
+      return households_with_any_member_having(scope, field: 'income_benefit_source_types', values: types, type: 'varchar') if types.present?
+
+      # Household has no income only if ALL members have empty income_benefit_source_types.
+      # Ensure households have at least one member to avoid matching orphaned household IDs.
+      household_ids = household_members(scope).
+        group(:report_household_id).
+        having("COUNT(*) > 0 AND BOOL_AND(household_members.income_benefit_source_types = '{}'::varchar[])").
+        select(:report_household_id)
+      scope.where(report_household_id: household_ids)
     end
 
     def self.all
