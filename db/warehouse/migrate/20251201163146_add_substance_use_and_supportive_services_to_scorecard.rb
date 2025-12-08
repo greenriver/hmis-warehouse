@@ -9,6 +9,6 @@
 class AddSubstanceUseAndSupportiveServicesToScorecard < ActiveRecord::Migration[7.2]
   def change
     add_column :boston_project_scorecard_reports, :substance_use_treatment_service, :jsonb
-    add_column :boston_project_scorecard_reports, :supportive_services, :boolean, default: false
+    add_column :boston_project_scorecard_reports, :supportive_services, :boolean, default: false, null: false
   end
 end
