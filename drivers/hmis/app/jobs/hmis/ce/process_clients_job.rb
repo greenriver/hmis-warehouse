@@ -97,6 +97,14 @@ module Hmis::Ce
       log_info("Processing #{markers.count} dirty clients against active pools")
       client_scope = ::GrdaWarehouse::Hud::Client.destination.where(id: markers.map(&:trackable_id))
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active
+      # here the change may not make sense. the opportunity is locked (referral in progress),
+      # but if that referral is closed as declined, it will be open again. it would be stale,
+      # but even so, I think the expected behavior would be to show an up-to-date client waitlist for the stale requirements
+      # (same as would happen if an open opportunity were made stale.)
+
+      # other-hand argument: maybe there's no need to reevaluate them against stale requirements
+      # and we should just expect the opportunity will get refreshed soon
+      # what are actual community use-cases for stale opportunities?
 
       pools_processed = 0
       pools_skipped = 0

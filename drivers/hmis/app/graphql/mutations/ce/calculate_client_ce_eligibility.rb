@@ -76,7 +76,9 @@ module Mutations
       clients = GrdaWarehouse::Hud::Client.where(id: client.id)
 
       # Evaluate client against active candidate pools
-      Hmis::Ce::Match::CandidatePool.active.find_each do |pool|
+      Hmis::Ce::Match::CandidatePool.receiving_referrals.find_each do |pool|
+        # here the change seems appropriate - we want to find out what project (types) in general the client is eligible for.
+        # it would be confusing if this is returning project types based on outdated requirements because there are still locked opportunities
         evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, pool, field_map)
         result = evaluator.call(client, field_value_overrides: field_value_overrides)
 

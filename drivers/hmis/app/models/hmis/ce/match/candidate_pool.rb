@@ -50,6 +50,18 @@ module Hmis::Ce::Match
       where(id: all_active_ids)
     }
 
+    # A more restrictive scope than `active` for user-facing queries.
+    # Only includes pools that can actually receive referrals (have open opportunities or are
+    # referenced by unit groups). Excludes pools whose only active opportunities are locked.
+    scope :receiving_referrals, -> {
+      # Similar logic to `active` scope above, but excludes locked opportunities
+      receiving_ids_for_opportunities = ::Hmis::Ce::Opportunity.receiving_referrals.distinct.pluck(:candidate_pool_id).compact
+      # Same logic as above - unit groups referencing this pool
+      receiving_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.distinct.pluck(:candidate_pool_id).compact
+      all_receiving_ids = (receiving_ids_for_opportunities + receiving_ids_for_unit_groups).sort.uniq
+      where(id: all_receiving_ids)
+    }
+
     # orphan pools can be safely deleted after a period if inactivity.
     # currently we consider a pool orphaned if it is not tied to any opportunities or unit groups.
     #
