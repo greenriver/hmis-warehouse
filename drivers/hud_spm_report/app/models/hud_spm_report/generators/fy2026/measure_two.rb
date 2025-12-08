@@ -155,9 +155,9 @@ module HudSpmReport::Generators::Fy2026
       returns = HudSpmReport::Fy2026::Return.compute_returns(@report, enrollment_set)
 
       members = returns.map do |enrollment|
-        [enrollment.client, enrollment]
+        [enrollment.client_id, enrollment]
       end.to_h
-      @universe.add_universe_members(members)
+      @universe.add_universe_members_from_client_ids(members)
 
       @universe.members
     end

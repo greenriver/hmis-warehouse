@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud_spm_report.md
 module HudSpmReport::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path

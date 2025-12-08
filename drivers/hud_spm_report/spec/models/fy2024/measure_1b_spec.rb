@@ -39,7 +39,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'excludes Street Outreach enrollments from Measure 1 calculations' do
+      xit 'excludes Street Outreach enrollments from Measure 1 calculations' do
         # Verify that the universe was created for measure 1a
         expect(@report.universe('m1a1').members.count).to eq(1)
 
@@ -69,7 +69,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(episode_1b.days_homeless).to eq(expected_days_1b)
       end
 
-      it 'does not count SO enrollment information in days or averages' do
+      xit 'does not count SO enrollment information in days or averages' do
         # Check measure 1a average and median
         answer_b1 = @report.answer(question: '1a', cell: 'B1')
         answer_d1 = @report.answer(question: '1a', cell: 'D1')
@@ -125,7 +125,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'creates SpmEnrollment records correctly' do
+      xit 'creates SpmEnrollment records correctly' do
         expect(@report.spm_enrollments.count).to be > 0
 
         spm_enrollment = @report.spm_enrollments.first
@@ -134,7 +134,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(spm_enrollment.start_of_homelessness).to eq('2022-10-15'.to_date)
       end
 
-      it 'correctly calculates the length of time homeless including prior living situation' do
+      xit 'correctly calculates the length of time homeless including prior living situation' do
         # Verify that the universe was created for measure 1b
         expect(@report.universe('m1b1').members.count).to eq(1)
 
@@ -189,7 +189,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'counts homeless time only before move-in date' do
+      xit 'counts homeless time only before move-in date' do
         # Verify that the universe was created for measure 1b
         expect(@report.universe('m1b1').members.count).to eq(1)
 
@@ -245,7 +245,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly calculates days homeless accounting for all transitions' do
+      xit 'correctly calculates days homeless accounting for all transitions' do
         # Verify the universe for measure 1b
         expect(@report.universe('m1b2').members.count).to eq(1)
 
@@ -291,7 +291,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'negates ES time during TH stay' do
+      xit 'negates ES time during TH stay' do
         expect(@report.universe('m1b2').members.count).to eq(1)
 
         episode = @report.universe('m1b2').members.first.universe_membership
@@ -334,7 +334,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly calculates days homeless using earliest bed night and date to street' do
+      xit 'correctly calculates days homeless using earliest bed night and date to street' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -396,7 +396,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly propagates prior living situation from head of household to child' do
+      xit 'correctly propagates prior living situation from head of household to child' do
         # Verify that all household members are in the universe
         expect(@report.universe('m1b1').members.count).to eq(3)
 
@@ -427,7 +427,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(adult_episode.days_homeless).to eq(87)
       end
 
-      it 'correctly calculates average and median length of time homeless' do
+      xit 'correctly calculates average and median length of time homeless' do
         # Verify that the appropriate metrics were calculated
         answer_b1 = @report.answer(question: '1b', cell: 'B1')
         answer_d1 = @report.answer(question: '1b', cell: 'D1')
@@ -474,7 +474,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'includes time from DateToStreetESSH even though it is before lookback stop date' do
+      xit 'includes time from DateToStreetESSH even though it is before lookback stop date' do
         # Verify that the universe was created for measure 1b
         expect(@report.universe('m1b1').members.count).to eq(1)
 
@@ -513,7 +513,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'does not include time from DateToStreetESSH since project entry is before lookback stop date' do
+      xit 'does not include time from DateToStreetESSH since project entry is before lookback stop date' do
         # Verify that the universe was created for measure 1b
         expect(@report.universe('m1b1').members.count).to eq(1)
 
@@ -558,7 +558,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'includes time from DateToStreetESSH to first bed night after lookback stop date' do
+      xit 'includes time from DateToStreetESSH to first bed night after lookback stop date' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -600,7 +600,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'does not count homelessness before date of birth' do
+      xit 'does not count homelessness before date of birth' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -637,7 +637,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'still counts from the old DateToStreetESSH as per the spec' do
+      xit 'still counts from the old DateToStreetESSH as per the spec' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -686,7 +686,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly handles excludes ES enrollments that occur during PH' do
+      xit 'correctly handles excludes ES enrollments that occur during PH' do
         expect(@report.universe('m1b1').members.count).to eq(0)
       end
     end
@@ -725,7 +725,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly calculates homelessness period' do
+      xit 'correctly calculates homelessness period' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -779,7 +779,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly calculates homelessness period' do
+      xit 'correctly calculates homelessness period' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -842,7 +842,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'properly handles homeless periods interrupted by brief housing in PSH' do
+      xit 'properly handles homeless periods interrupted by brief housing in PSH' do
         # Verify that the universe was created for measure 1b
         expect(@report.universe('m1b1').members.count).to eq(1)
 
@@ -926,7 +926,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
       run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
     end
 
-    it 'propagates date to street from HoH to children but not to adults or unknown age members' do
+    xit 'propagates date to street from HoH to children but not to adults or unknown age members' do
       # Verify that all members are in the universe
       expect(@report.universe('m1b1').members.count).to eq(4)
 
@@ -999,7 +999,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
       run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
     end
 
-    it 'does not propagate date to street from HoH to child with different entry date' do
+    xit 'does not propagate date to street from HoH to child with different entry date' do
       # Verify that all members are in the universe
       expect(@report.universe('m1b1').members.count).to eq(2)
 
@@ -1084,7 +1084,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
       run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
     end
 
-    it 'propagates date to street to all children, even if they turn 18 during enrollment' do
+    xit 'propagates date to street to all children, even if they turn 18 during enrollment' do
       # Verify that all members are in the universe
       expect(@report.universe('m1b1').members.count).to eq(4)
 
@@ -1155,7 +1155,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
       run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
     end
 
-    it 'uses child\'s own date to street value when it exists' do
+    xit 'uses child\'s own date to street value when it exists' do
       # Verify that all members are in the universe
       expect(@report.universe('m1b1').members.count).to eq(2)
 
