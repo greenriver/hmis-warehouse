@@ -87,6 +87,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:pool_4) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
       let!(:pool_4_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_4, status: 'closed' }
 
+      # cruft: Pool 5 has only locked opportunities (no open opportunities), so it should not be receiving referrals
+      let!(:client_proxy_eligible_for_pool_5_only) do
+        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Locked', last_name: 'Only')
+        create(:hmis_ce_client_proxy, client: source_client.destination_client)
+      end
+      let!(:pool_5) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_eligible_for_pool_5_only] }
+      let!(:pool_5_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_5, status: 'locked' }
+
       it 'raises if the user does not have permission' do
         remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
         expect_access_denied post_graphql(**variables) { query }
@@ -110,6 +118,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         # Client Proxy that belongs to inactive pool is excluded
         expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_inactive_pools.id.to_s))
+      end
+
+      it 'excludes clients belonging to pools with only locked opportunities (regression #8626)' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+        # Client Proxy that belongs to a pool with only locked opportunities is excluded
+        expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_eligible_for_pool_5_only.id.to_s))
       end
 
       it 'includes clients belonging to active candidate pools' do
