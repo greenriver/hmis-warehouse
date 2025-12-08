@@ -52,9 +52,10 @@ module Hmis::Ce::Match
 
     # A more restrictive scope than `active` for user-facing queries.
     # Only includes pools that can actually receive referrals (have open opportunities or are
-    # referenced by unit groups). Excludes pools whose only active opportunities are locked.
+    # referenced by unit groups). Excludes pools whose only active opportunities are locked,
+    # if they are no longer referenced by any unit groups.
     scope :receiving_referrals, -> {
-      # Similar logic to `active` scope above, but excludes locked opportunities
+      # Similar logic to `active` scope above, but only includes opportunities receiving referrals. (Excludes locked opportunities)
       receiving_ids_for_opportunities = ::Hmis::Ce::Opportunity.receiving_referrals.distinct.pluck(:candidate_pool_id).compact
       # Same logic as above - unit groups referencing this pool
       receiving_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.distinct.pluck(:candidate_pool_id).compact

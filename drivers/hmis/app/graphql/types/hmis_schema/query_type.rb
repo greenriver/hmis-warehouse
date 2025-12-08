@@ -629,9 +629,8 @@ module Types
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
+        # Only return clients who are eligible for candidate pools that are currently receiving referrals.
         merge(Hmis::Ce::Match::CandidatePool.receiving_referrals).
-        # here the changes is desirable; we only want to return clients who are eligible for some opportunities,
-        # avoiding the bug where a client is returned in this list but their opportunity list is blank
         distinct.order(:id)
 
       scope = scope.apply_filters(filters) if filters

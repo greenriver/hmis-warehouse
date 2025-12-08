@@ -109,9 +109,6 @@ module Hmis::Ce
         max_processed_trackable_id = [marker.trackable_id, max_processed_trackable_id].compact.max
         pool = ::Hmis::Ce::Match::CandidatePool.find_by(id: marker.trackable_id)
         unless pool&.active?
-          # not sure about this for the same reason in process_clients_job. just because the opportunity is stale
-          # doesn't mean it's expected/acceptable behavior for its client list to get out of date
-          # skip processing inactive pools and remove dangling markers
           pool ? marker.mark_processed : marker.destroy!
           next
         end
@@ -163,7 +160,7 @@ module Hmis::Ce
       log_info('Starting reconciliation of untracked pools')
 
       # Find and mark untracked active pools
-      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active. # here, the change doesn't seem desirable
+      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
 
