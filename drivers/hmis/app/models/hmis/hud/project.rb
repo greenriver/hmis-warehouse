@@ -59,6 +59,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
   has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
+  has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
 
   # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
