@@ -40,7 +40,7 @@ module GrdaWarehouse::Tasks
 
         Rails.logger.debug "Checking #{filename}"
         file_path = File.join(path, filename)
-        downcase_converter = lambda(&:downcase)
+        downcase_converter = ->(header) { header.downcase } # rubocop:disable Style/SymbolProc
         unique_keys = []
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
