@@ -127,8 +127,8 @@ include RailsDrivers::Extensions  # Magically includes all extensions
 # app/models/grda_warehouse/hud/client.rb
 
 # Include extensions at the end so they can override default behavior
-include ClientAccessControl::GrdaWarehouse::Hud::ClientExtension if defined?(ClientAccessControl)
-include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension if defined?(CustomImportsBostonService)
+include ClientAccessControl::GrdaWarehouse::Hud::ClientExtension
+include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension
 # ... etc for each driver that extends this model
 ```
 
@@ -152,7 +152,7 @@ module DriverExtensions
       concern_path = parts[3..-1].join('/').sub('_extension.rb', '_extension').camelize
       full_constant = "#{module_name}::#{concern_path}"
 
-      include full_constant.constantize if defined?(full_constant.constantize)
+      include full_constant.constantize
     end
   end
 end
@@ -202,27 +202,8 @@ end
 ```
 
 **Proposed**:
-```ruby
-if defined?(AccessLogs)
-  # do something
-end
-```
+* Not needed, all files will be loaded and explicitly included as necessary.
 
-**Alternative** (more explicit):
-```ruby
-# config/initializers/drivers.rb
-module Drivers
-  def self.loaded?(driver_name)
-    const_name = driver_name.to_s.camelize
-    Object.const_defined?(const_name)
-  end
-end
-
-# Usage:
-if Drivers.loaded?(:access_logs)
-  # do something
-end
-```
 
 ## Implementation Plan
 
@@ -255,7 +236,7 @@ end
      include RailsDrivers::Extensions
 
      # Add explicit includes:
-     include DriverName::Path::To::Extension if defined?(DriverName)
+     include DriverName::Path::To::Extension
      ```
    - Run model-specific specs after each batch
    - Commit after each successful batch
@@ -288,9 +269,7 @@ end
    grep -r "RailsDrivers.loaded" --include="*.rb" .
    ```
 
-2. **Replace checks** (1-2 hours)
-   - Replace with `defined?(DriverName)`
-   - Or use custom `Drivers.loaded?(:driver_name)` helper
+2. **Remove checks** (1-2 hours)
    - Test each replacement
 
 ### Phase 5: Remove rails_drivers
