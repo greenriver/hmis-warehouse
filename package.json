@@ -13,7 +13,6 @@
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.4",
     "@popperjs/core": "^2.11.8",
-    "@rails/actiontext": "^8.1.100",
     "@sentry/browser": "^7.101.1",
     "@stimulus/polyfills": "^2.0.0",
     "ag-grid-community": "^33.3.2",
@@ -41,7 +40,6 @@
     "sass": "^1.77.4",
     "select2": "^4.1.0-rc.0",
     "topojson-client": "^3.1.0",
-    "trix": "^2.1.15",
     "yarn-deduplicate": "^6.0.2"
   },
   "devDependencies": {
