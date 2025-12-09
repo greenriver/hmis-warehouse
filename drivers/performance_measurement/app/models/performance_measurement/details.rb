@@ -822,7 +822,7 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons with a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project divided by the number of persons housed by PH projects.',
           calculation_column: :moved_in_destination_positive,
           measure: 'Measure 7',
-          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # NOTE: these are hard-coded in result_calculation.rb since it's somewhat complex
           # tables: [ '7b.2'],
           # cells: ['C2', 'C3'],
           detail_columns: [

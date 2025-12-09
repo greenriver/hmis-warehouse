@@ -1254,6 +1254,8 @@ module PerformanceMeasurement
         {
           cells: [['7b.2', 'C2']],
           title: 'RRH, PH with Move-in or Permanent Exit',
+          # NOTE: SPM does not include RRH in 7b.2
+          # Can we get the number of RRH from Measure 1b B2 limited to RRH with move-in, then filter for stayer or positive exit
           measure: :m7,
           history_source: :m7b_history,
           questions: [

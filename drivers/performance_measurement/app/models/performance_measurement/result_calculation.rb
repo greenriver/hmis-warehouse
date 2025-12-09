@@ -773,7 +773,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def moved_in_positive_destinations(detail, project: nil)
-      return unless project.blank? || project.hud_project&.ph?
+      return unless project.blank? || project.hud_project&.ph? # ph? includes RRH
 
       field = detail[:calculation_column]
 
