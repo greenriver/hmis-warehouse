@@ -19,7 +19,13 @@ module PerformanceMeasurement::ResultCalculation
       # increase year over year
       when
         :income
-        progress = percent_changed(reporting_value, comparison_value)
+        # Special case where comparison value was zero and current value is positive.
+        # Increase is just the current value.
+        if comparison_value.zero? && reporting_value.positive?
+          progress = reporting_value
+        else
+          progress = percent_changed(reporting_value, comparison_value)
+        end
         progress >= goal_value
       # decrease year over year
       when :people
