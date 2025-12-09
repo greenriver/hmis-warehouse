@@ -92,9 +92,9 @@ RSpec.describe GrdaWarehouse::ContentPage, type: :model do
 
   describe 'scopes' do
     it '.ordered sorts by title then id' do
-      page_b = create(:content_page, title: 'Banana')
-      page_a = create(:content_page, title: 'Apple')
-      page_c = create(:content_page, title: 'Cherry')
+      create(:content_page, title: 'Banana')
+      create(:content_page, title: 'Apple')
+      create(:content_page, title: 'Cherry')
 
       expect(GrdaWarehouse::ContentPage.ordered.pluck(:title)).to eq(['Apple', 'Banana', 'Cherry'])
     end

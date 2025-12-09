@@ -111,4 +111,3 @@ RSpec.describe 'Compliance Agreement Enforcement', type: :request do
     end
   end
 end
-

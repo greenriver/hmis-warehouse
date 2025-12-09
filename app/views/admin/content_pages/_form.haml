@@ -4,12 +4,10 @@
     = simple_form_for @page, url: url, as: :content_page do |f|
       = f.error_notification
       .form-inputs
-        - if f.object.persisted?
-          = f.input :slug, disabled: true, hint: 'Slug cannot be changed after creation.'
-        - else
-          = f.input :slug, hint: 'URL-friendly identifier (lowercase letters, numbers, underscores). Auto-generated from title if blank.'
-        = f.input :title, required: true
-        = f.input :content, as: :text, input_html: { rows: 20, id: 'markdown-editor' }
+        - slug_hint = 'URL-friendly identifier. Page will be available at (https://my.site/pages/<slug>). Cannot be changed after creation.'
+        = f.input :slug, disabled: @page.persisted?, hint: slug_hint
+        = f.input :title, required: true, label: 'Page Title', hint: 'Title displayed in the browser tab or bookmark'
+        = f.input :content, as: :text, input_html: { rows: 20, id: 'markdown-editor' }, label: 'Markdown formatted content'
 
       .form-actions.mt-3
         = f.button :submit, 'Save', class: 'btn btn-primary'

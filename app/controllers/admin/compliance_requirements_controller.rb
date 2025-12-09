@@ -8,13 +8,13 @@
 
 module Admin
   class ComplianceRequirementsController < ApplicationController
+    skip_before_action :require_compliance_agreement!, raise: false
     before_action :require_can_manage_config!
     before_action :set_requirement, only: [:edit, :update, :destroy, :activate, :deactivate]
 
     def index
       @requirements = requirement_scope.ordered.includes(:content_page)
       @pagy, @requirements = pagy(@requirements)
-      @agreement_counts = GrdaWarehouse::Compliance::Agreement.group(:compliance_requirement_id).count
     end
 
     def new
@@ -72,9 +72,9 @@ module Admin
     end
 
     def requirement_params
-      params
-        .require(:compliance_requirement)
-        .permit(:name, :content_page_id, :expires_after_days, :revision, :position)
+      params.
+        require(:compliance_requirement).
+        permit(:name, :content_page_id, :expires_after_days, :revision, :position)
     end
   end
 end

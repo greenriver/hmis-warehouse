@@ -41,8 +41,8 @@ class ApplicationController < ActionController::Base
 
   helper_method :locale
   before_action :enforce_2fa!
-  before_action :require_training!
   before_action :require_compliance_agreement!
+  before_action :require_training!
   before_action :health_emergency?
 
   before_action :prepare_exception_notifier
@@ -266,9 +266,11 @@ class ApplicationController < ActionController::Base
     return if current_user.pending_compliance_requirements.empty?
     return if allowed_setup_controllers
 
-    store_location_for(:user, request.fullpath) if request.get?
     redirect_to compliance_agreement_path
   end
+
+  # is the user in a portal (tos agreement)
+  helper_method def user_access_captured? = false
 
   def health_emergency?
     health_emergency.present? && current_user&.can_see_health_emergency?

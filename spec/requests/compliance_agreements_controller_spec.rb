@@ -6,7 +6,7 @@ RSpec.describe ComplianceAgreementsController, type: :request do
   let!(:user) { create(:acl_user) }
   let!(:role) { create(:admin_role) }
   let!(:collection) { create(:collection) }
-  let!(:content_page) { create(:content_page, title: 'Terms of Service') }
+  let!(:content_page) { create(:content_page, title: 'Terms of Service', content: '# Expected H1 Content') }
   let!(:requirement) { create(:compliance_requirement, content_page: content_page, active: true) }
 
   before do
@@ -23,7 +23,9 @@ RSpec.describe ComplianceAgreementsController, type: :request do
 
       it 'displays the requirement content' do
         get compliance_agreement_path
-        expect(response.body).to include('Terms of Service')
+        # expect(response.body).to include('Your Terms')
+        page = Capybara.string(response.body)
+        expect(page).to have_css('h1', text: 'Expected H1 Content')
       end
 
       it 'displays the agreement checkbox' do
@@ -47,9 +49,9 @@ RSpec.describe ComplianceAgreementsController, type: :request do
   describe 'POST #create' do
     context 'when user agrees' do
       it 'creates a compliance agreement' do
-        expect {
+        expect do
           post compliance_agreement_path, params: { requirement_id: requirement.id, agree: '1' }
-        }.to change(GrdaWarehouse::Compliance::Agreement, :count).by(1)
+        end.to change(GrdaWarehouse::Compliance::Agreement, :count).by(1)
       end
 
       it 'records the correct revision' do
@@ -78,9 +80,9 @@ RSpec.describe ComplianceAgreementsController, type: :request do
 
     context 'when user does not agree' do
       it 'does not create a compliance agreement' do
-        expect {
+        expect do
           post compliance_agreement_path, params: { requirement_id: requirement.id, agree: '0' }
-        }.not_to change(GrdaWarehouse::Compliance::Agreement, :count)
+        end.not_to change(GrdaWarehouse::Compliance::Agreement, :count)
       end
 
       it 'renders show with alert' do
@@ -106,4 +108,3 @@ RSpec.describe ComplianceAgreementsController, type: :request do
     end
   end
 end
-

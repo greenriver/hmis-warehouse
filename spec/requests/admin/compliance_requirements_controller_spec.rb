@@ -20,7 +20,7 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       end
 
       it 'displays existing requirements' do
-        requirement = create(:compliance_requirement, name: 'Test Requirement')
+        create(:compliance_requirement, name: 'Test Requirement')
         get admin_compliance_requirements_path
         expect(response.body).to include('Test Requirement')
       end
@@ -62,9 +62,9 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       let(:valid_attrs) { { name: 'Terms of Service', content_page_id: content_page.id, revision: 1 } }
 
       it 'creates compliance requirement' do
-        expect {
+        expect do
           post admin_compliance_requirements_path, params: { compliance_requirement: valid_attrs }
-        }.to change(GrdaWarehouse::Compliance::Requirement, :count).by(1)
+        end.to change(GrdaWarehouse::Compliance::Requirement, :count).by(1)
       end
 
       it 'redirects to index' do
@@ -77,9 +77,9 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       let(:invalid_attrs) { { name: '', content_page_id: nil } }
 
       it 'does not create compliance requirement' do
-        expect {
+        expect do
           post admin_compliance_requirements_path, params: { compliance_requirement: invalid_attrs }
-        }.not_to change(GrdaWarehouse::Compliance::Requirement, :count)
+        end.not_to change(GrdaWarehouse::Compliance::Requirement, :count)
       end
 
       it 'renders new template' do
@@ -149,9 +149,9 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
 
     context 'when requirement has no agreements' do
       it 'deletes the compliance requirement' do
-        expect {
+        expect do
           delete admin_compliance_requirement_path(requirement)
-        }.to change(GrdaWarehouse::Compliance::Requirement, :count).by(-1)
+        end.to change(GrdaWarehouse::Compliance::Requirement, :count).by(-1)
       end
 
       it 'redirects to index' do
@@ -165,9 +165,9 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       let!(:agreement) { create(:compliance_agreement, requirement: requirement, user: agreeing_user) }
 
       it 'does not delete the compliance requirement' do
-        expect {
+        expect do
           delete admin_compliance_requirement_path(requirement)
-        }.not_to change(GrdaWarehouse::Compliance::Requirement, :count)
+        end.not_to change(GrdaWarehouse::Compliance::Requirement, :count)
       end
 
       it 'redirects with alert' do

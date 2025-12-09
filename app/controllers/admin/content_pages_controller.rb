@@ -9,7 +9,7 @@
 module Admin
   class ContentPagesController < ApplicationController
     before_action :require_can_manage_config!
-    before_action :set_page, only: [:show, :edit, :update, :destroy, :preview]
+    before_action :set_page, only: [:show, :edit, :update, :destroy]
 
     def index
       @pages = page_scope.ordered
@@ -53,10 +53,6 @@ module Admin
         redirect_to admin_content_pages_path, notice: 'Content page deleted.'
       end
     end
-
-   #def preview
-   #  render layout: 'content_only'
-   #end
 
     private
 

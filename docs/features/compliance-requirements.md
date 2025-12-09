@@ -26,7 +26,7 @@ Content pages can exist without requiring agreement (help pages, about pages). R
 
 ### Admin Controllers
 
-- `Admin::ContentPagesController` — CRUD for content pages with preview
+- `Admin::ContentPagesController` — CRUD for content pages
 - `Admin::ComplianceRequirementsController` — CRUD with activate/deactivate actions
 
 ### Public Controllers
@@ -105,6 +105,24 @@ Multiple requirements are presented one at a time in position order.
 | Content update | Admin bumps requirement `revision` |
 | Time-based | `expires_after_days` sets `expires_at` on agreement |
 | Manual | Admin deactivates/reactivates requirement |
+
+## Example Configuration
+
+### Terms of Service & Privacy Policy
+
+To configure a mandatory Terms of Service agreement and an Privacy Policy link in the footer:
+
+1.  **Create Content Pages**: Navigate to `Warehouse Admin > Configuration > Content Pages`.
+    - Create a "Terms of Service" page with the slug `tos`.
+    - Create a "Privacy Policy" page with the slug `privacy_policy`.
+
+2.  **Create Compliance Requirement**: Navigate to `Warehouse Admin > Configuration > Compliance Requirements`.
+    - Create a new "Terms of Service" requirement.
+    - Link it to the `tos` content page you created. This forces users to agree before proceeding.
+
+3.  **Create Footer Links**: Navigate to `Warehouse Admin > Configuration > Links`.
+    - Create a footer link to the "Privacy Policy" with the relative URL `/pages/privacy_policy`.
+    - You can optionally add a link to the Terms of Service in the footer as well.
 
 ## Related Files
 

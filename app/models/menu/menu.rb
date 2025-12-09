@@ -17,6 +17,8 @@ class Menu::Menu
   end
 
   def site_menu
+    return [limited_menu] if context.user_access_captured?
+
     [].tap do |menu|
       menu << reports_menu
       menu << clients_menu
@@ -812,5 +814,16 @@ class Menu::Menu
     )
     menu.add_child(sub_menu)
     menu
+  end
+
+  def limited_menu
+    Menu::Item.new(
+      user: user,
+      visible: ->(_user) { true },
+      path: destroy_user_session_path,
+      title: Translation.translate('Sign Out'),
+      icon: 'icon-exit',
+      data: { method: :delete },
+    )
   end
 end

@@ -39,4 +39,3 @@ RSpec.describe ContentPagesController, type: :request do
     end
   end
 end
-

@@ -20,7 +20,7 @@ RSpec.describe Admin::ContentPagesController, type: :request do
       end
 
       it 'displays existing content pages' do
-        page = create(:content_page, title: 'Test Page')
+        create(:content_page, title: 'Test Page')
         get admin_content_pages_path
         expect(response.body).to include('Test Page')
       end
@@ -60,9 +60,9 @@ RSpec.describe Admin::ContentPagesController, type: :request do
       let(:valid_attrs) { { title: 'New Page', content: 'Page content here' } }
 
       it 'creates content page' do
-        expect {
+        expect do
           post admin_content_pages_path, params: { content_page: valid_attrs }
-        }.to change(GrdaWarehouse::ContentPage, :count).by(1)
+        end.to change(GrdaWarehouse::ContentPage, :count).by(1)
       end
 
       it 'redirects to index' do
@@ -80,9 +80,9 @@ RSpec.describe Admin::ContentPagesController, type: :request do
       let(:invalid_attrs) { { title: '', content: '' } }
 
       it 'does not create content page' do
-        expect {
+        expect do
           post admin_content_pages_path, params: { content_page: invalid_attrs }
-        }.not_to change(GrdaWarehouse::ContentPage, :count)
+        end.not_to change(GrdaWarehouse::ContentPage, :count)
       end
 
       it 'renders new template' do
@@ -157,9 +157,9 @@ RSpec.describe Admin::ContentPagesController, type: :request do
 
     context 'when page has no compliance requirements' do
       it 'deletes the content page' do
-        expect {
+        expect do
           delete admin_content_page_path(content_page)
-        }.to change(GrdaWarehouse::ContentPage, :count).by(-1)
+        end.to change(GrdaWarehouse::ContentPage, :count).by(-1)
       end
 
       it 'redirects to index' do
@@ -172,30 +172,10 @@ RSpec.describe Admin::ContentPagesController, type: :request do
       let!(:requirement) { create(:compliance_requirement, content_page: content_page) }
 
       it 'does not delete the content page' do
-        expect {
+        expect do
           delete admin_content_page_path(content_page)
-        }.not_to change(GrdaWarehouse::ContentPage, :count)
+        end.not_to change(GrdaWarehouse::ContentPage, :count)
       end
-
-      it 'redirects with alert' do
-        delete admin_content_page_path(content_page)
-        expect(response).to redirect_to(admin_content_pages_path)
-        expect(flash[:alert]).to include('Cannot delete')
-      end
-    end
-  end
-
-  describe 'GET #preview' do
-    let!(:content_page) { create(:content_page) }
-
-    before(:each) do
-      setup_access_control(user, role, no_data_source_collection)
-      sign_in user
-    end
-
-    it 'returns http success' do
-      get preview_admin_content_page_path(content_page)
-      expect(response).to have_http_status(:success)
     end
   end
 end

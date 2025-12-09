@@ -3,11 +3,9 @@
 .container
   .row.justify-content-center
     .col-lg-8
-      %p
-        Before you continue, please read and agree to the terms of service
       .card
         .card-header
-          %h2= @content_page.title
+          %h2= @current_requirement.name
 
         .card-body
           .policy-content.mb-4{style: 'max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 1rem; background: #fafafa;'}
@@ -19,7 +17,7 @@
             .form-check.mb-3
               = check_box_tag :agree, '1', false, class: 'form-check-input', id: 'agree_checkbox'
               = label_tag :agree, class: 'form-check-label', for: 'agree_checkbox' do
-                I have read and agree to the #{@current_requirement.name}
+                I have read and agree to the terms above
 
             .text-right
               = submit_tag 'Continue', class: 'btn btn-primary', disabled: true, id: 'submit_btn'

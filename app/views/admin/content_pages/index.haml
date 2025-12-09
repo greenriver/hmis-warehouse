@@ -8,47 +8,10 @@
 
   .row.mb-4
     .col-8
-      %p Manage content pages that can be displayed to users or linked to compliance requirements.
+      %p Manage content pages that can be displayed to users or linked to compliance requirements. Note, these are public pages, available to anonymous users.
     .col-4.text-right
       = link_to new_admin_content_page_path, class: 'btn btn-primary mb-2' do
         %span.icon-plus
         New Content Page
 
-  - if @pagy.count.positive?
-    = render 'common/pagination_top', item_name: 'page'
-    .table-responsive
-      %table.table.table-striped
-        %thead
-          %tr
-            %th Title
-            %th Slug
-            %th Linked Requirements
-            %th Last Updated
-            %th
-        %tbody
-          - @pages.each do |page|
-            %tr
-              %td= link_to page.title, edit_admin_content_page_path(page)
-              %td
-                %code= page.slug
-              %td
-                - if page.compliance_requirements.any?
-                  = page.compliance_requirements.pluck(:name).join(', ')
-                - else
-                  %span.text-muted None
-              %td= page.updated_at.to_fs(:short)
-              %td
-                .btn-group
-                  = link_to preview_admin_content_page_path(page), target: '_blank', class: 'btn btn-sm btn-outline-secondary' do
-                    %span.icon-eye
-                    Preview
-                  - unless page.compliance_requirements.exists?
-                    = link_to admin_content_page_path(page), method: :delete, data: { confirm: "Delete '#{page.title}'?" }, class: 'btn btn-sm btn-danger' do
-                      %span.icon-cross
-                      Delete
-    = render 'common/pagination_bottom', item_name: 'page'
-  - else
-    .none-found
-      No content pages found.
-      = link_to 'Create one', new_admin_content_page_path
-      to get started.
+  = render_paginated_list(scope: @pages, item_name: 'page', list_partial: 'admin/content_pages/list')

@@ -38,6 +38,8 @@ class ComplianceAgreementsController < ApplicationController
 
   private
 
+  def user_access_captured? = true
+
   def record_agreement(requirement)
     now = Time.current
     expires_at = requirement.expires_after_days ? now + requirement.expires_after_days.days : nil

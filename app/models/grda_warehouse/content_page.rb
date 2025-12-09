@@ -30,7 +30,7 @@ module GrdaWarehouse
     end
 
     def render_content
-      markdown =  Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
       markdown.render(content).html_safe
     end
 

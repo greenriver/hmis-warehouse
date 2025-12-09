@@ -29,12 +29,12 @@ module GrdaWarehouse::Compliance
     scope :active, -> { where(active: true) }
 
     def self.pending_for_user(user)
-      valid_requirement_ids = GrdaWarehouse::Compliance::Agreement
-        .for_user(user)
-        .not_expired
-        .joins(:requirement)
-        .where('compliance_agreements.revision >= compliance_requirements.revision')
-        .select(:compliance_requirement_id)
+      valid_requirement_ids = GrdaWarehouse::Compliance::Agreement.
+        for_user(user).
+        not_expired.
+        joins(:requirement).
+        where('compliance_agreements.revision >= compliance_requirements.revision').
+        select(:compliance_requirement_id)
 
       active.where.not(id: valid_requirement_ids)
     end
