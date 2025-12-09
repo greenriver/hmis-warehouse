@@ -61,4 +61,23 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport, type
     expect(row['CreatedByUserID']).to eq(hud_user.id.to_s)
     expect(row['UpdatedByUserID']).to eq(hud_user.id.to_s)
   end
+
+  context 'with associated HUD CE Event/Assessment record IDs' do
+    let!(:hud_event) { create(:hmis_hud_event, data_source: ds, client: client, enrollment: enrollment) }
+    let!(:hud_assessment) { create(:hmis_hud_assessment, data_source: ds, client: client, enrollment: enrollment) }
+
+    before do
+      assessment.form_processor.update!(ce_event: hud_event, ce_assessment: hud_assessment)
+    end
+    it 'makes a csv with expected values' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+      expect(result.length).to eq(1)
+      row = result.first
+
+      expect(row['CustomAssessmentID']).to eq(assessment.id.to_s)
+      expect(row['HudEventID']).to eq(hud_event.id.to_s)
+      expect(row['HudAssessmentID']).to eq(hud_assessment.id.to_s)
+    end
+  end
 end
