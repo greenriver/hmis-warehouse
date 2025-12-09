@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Active Record Preload API', type: :model do
-  before(:each) do
+  before(:all) do
     GrdaWarehouse::Utility.clear!
   end
 
