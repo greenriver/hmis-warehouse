@@ -55,8 +55,8 @@ class ComplianceAgreementsController < ApplicationController
     if remaining.any?
       redirect_to compliance_agreement_path, notice: 'Agreement recorded. Please review the next requirement.'
     else
-      redirect_to stored_location_for(:user) || current_user.my_root_path || root_path,
-                  notice: 'Agreement recorded.'
+      path = current_user.my_root_path || root_path
+      redirect_to path, notice: 'Agreement recorded.'
     end
   end
 end

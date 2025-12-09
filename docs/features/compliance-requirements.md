@@ -94,7 +94,7 @@ resource :compliance_agreement, only: [:show, :create]
 3. If pending, user redirects to `/compliance_agreement`
 4. User views content and checks agreement checkbox
 5. On submit, `Compliance::Agreement` records the requirement revision and expiration
-6. User returns to original destination (via `stored_location_for`)
+6. User returns to the home page
 
 Multiple requirements are presented one at a time in position order.
 
