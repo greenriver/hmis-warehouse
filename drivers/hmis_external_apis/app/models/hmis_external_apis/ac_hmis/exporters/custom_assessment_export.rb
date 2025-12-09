@@ -57,8 +57,8 @@ module HmisExternalApis::AcHmis::Exporters
         'DateUpdated',        # Timestamp when the assessment was last updated
         'CreatedByUserID',    # Maps to User.csv
         'UpdatedByUserID',    # Maps to User.csv
-        'HudEventID',         # ID matching Event.csv in HMIS CSV export (database id), if assessment created associated event
-        'HudAssessmentID',    # ID matching Assessment.csv in HMIS CSV export (database id), if assessment created associated assessment
+        'HudCeEventID',       # ID matching Event.csv in HMIS CSV export (database id), if assessment created associated event
+        'HudCeAssessmentID',  # ID matching Assessment.csv in HMIS CSV export (database id), if assessment created associated assessment
       ]
     end
 

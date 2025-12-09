@@ -76,8 +76,8 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport, type
       row = result.first
 
       expect(row['CustomAssessmentID']).to eq(assessment.id.to_s)
-      expect(row['HudEventID']).to eq(hud_event.id.to_s)
-      expect(row['HudAssessmentID']).to eq(hud_assessment.id.to_s)
+      expect(row['HudCeEventID']).to eq(hud_event.id.to_s)
+      expect(row['HudCeAssessmentID']).to eq(hud_assessment.id.to_s)
     end
   end
 end
