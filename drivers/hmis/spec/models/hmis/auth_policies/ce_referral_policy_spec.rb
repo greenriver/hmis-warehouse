@@ -134,6 +134,30 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       end
     end
 
+    context 'with permissions on source project' do
+      let!(:source_project) { create(:hmis_hud_project, data_source: data_source) }
+      let!(:source_enrollment) { create(:hmis_hud_enrollment, project: source_project, client: client, data_source: data_source) }
+      let!(:referral) do
+        create(
+          :hmis_ce_referral,
+          client: client,
+          opportunity: opportunity,
+          workflow_instance: workflow_instance,
+          source_enrollment: source_enrollment,
+        )
+      end
+
+      it 'returns true when user has can_view_outgoing_referral_details on source project' do
+        create_access_control(user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details])
+        expect(policy.can_view?).to be true
+      end
+
+      it 'returns false when user only has can_manage_outgoing_referrals (summary access only)' do
+        create_access_control(user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals])
+        expect(policy.can_view?).to be false
+      end
+    end
+
     it 'returns false if user has no relevant permissions' do
       expect(policy.can_view?).to be false
     end

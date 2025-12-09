@@ -56,6 +56,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
         viral_load_available: 1,
         viral_load: 100,
         data_source: data_source,
+        disability_response: 1,
       )
     end
 
@@ -82,6 +83,51 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       expect(rows.fetch('How many HOPWA-eligible individuals served with TBRA this year have ever been prescribed Anti-Retroviral Therapy?')).to eq(1)
       expect(rows.fetch('How many HOPWA-eligible persons served with TBRA have shown an improved viral load or achieved viral suppression?')).to eq(1)
       expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(1)
+    end
+
+    context 'with income sources on non-HoH member' do
+      it 'counts household income based on any household member' do
+        # Only the beneficiary (non-HoH) has income sources
+        create(
+          :hud_income_benefit,
+          enrollment: beneficiary_enrollment,
+          SNAP: 1,
+          Unemployment: 1,
+          information_date: report_start_date + 5.days,
+          data_source: data_source,
+          personal_id: beneficiary_client.PersonalID,
+        )
+
+        _, rows = run_and_extract_rows([project], 'Q2')
+
+        # Household should be counted as having income sources
+        expect(rows.fetch('Other Welfare Assistance (Supplemental Nutrition Assistance Program, WIC, TANF, etc.)')).to eq(1)
+        expect(rows.fetch('Unemployment Insurance')).to eq(1)
+        # Household should NOT be counted as having no income
+        expect(rows.fetch('How many households maintained no sources of income?')).to eq(0)
+      end
+
+      it 'counts as no income only when all household members have no income' do
+        # Neither HoH nor beneficiary has income sources
+        # Create income_benefit records with no income sources (all fields = 0)
+        [hoh_enrollment, beneficiary_enrollment].each do |enrollment|
+          create(
+            :hud_income_benefit,
+            enrollment: enrollment,
+            information_date: report_start_date + 5.days,
+            data_source: data_source,
+            personal_id: enrollment.personal_id,
+          )
+        end
+
+        _, rows = run_and_extract_rows([project], 'Q2')
+
+        # Household should be counted as having no income
+        expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
+        # Household should NOT be counted as having any specific income sources
+        expect(rows.fetch('Earned Income from Employment')).to eq(0)
+        expect(rows.fetch('Unemployment Insurance')).to eq(0)
+      end
     end
 
     context 'with a prior enrollments' do

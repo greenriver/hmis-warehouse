@@ -75,19 +75,17 @@ module HopwaCaper
     def self.from_hud_record(enrollment:, report:, client:)
       project = enrollment.project
       # get deterministic order
-      hiv_disabilities = enrollment.disabilities.filter(&:hiv?).sort_by(&:id)
+      hiv_disabilities = enrollment.disabilities.
+        filter { |r| r.hiv? && r.disability_response == 1 }.
+        sort_by(&:id)
 
-      report_date_range = report.start_date..report.end_date
-      income_benefit_source_types = enrollment.income_benefits.flat_map do |record|
-        next unless record.InformationDate.in?(report_date_range)
+      # Determines current income/insurance status using most recent assessment as of report end date
+      latest_income_benefit = enrollment.income_benefits.
+        select { |r| r.InformationDate && r.InformationDate <= report.end_date }.
+        max_by { |r| [r.InformationDate, r.id] }
 
-        INCOME_SOURCE_FIELDS.filter { |field| record[field] == 1 }
-      end
-      medical_insurance_types = enrollment.income_benefits.flat_map do |record|
-        next unless record.InformationDate.in?(report_date_range)
-
-        INSURANCE_FIELDS.filter { |field| record[field] == 1 }
-      end
+      income_benefit_source_types = INCOME_SOURCE_FIELDS.filter { |field| latest_income_benefit&.[](field) == 1 }
+      medical_insurance_types = INSURANCE_FIELDS.filter { |field| latest_income_benefit&.[](field) == 1 }
 
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
       new(
@@ -140,7 +138,6 @@ module HopwaCaper
       'age',
       'dob',
       'dob_quality',
-      'genders',
       'races',
       'sex',
       'veteran',
@@ -186,11 +183,32 @@ module HopwaCaper
 
     private
 
-    def transform_value(column, value, pii_policy)
-      return HudHelper.util('2026').sex(value) if column == 'sex'
-      return HudHelper.util('2026').percent_ami(value) if column == 'percent_ami'
+    def fields_supporting_data_not_collected
+      @fields_supporting_data_not_collected ||= [
+        'sex',
+        'dob_quality',
+        'percent_ami',
+        'exit_destination',
+        'housing_assessment_at_exit',
+      ].to_set.freeze
+    end
 
-      super
+    def transform_value(column, value, pii_policy)
+      # Treat nil as 99 (Data not collected) for HUD fields that support it
+      value = 99 if value.nil? && fields_supporting_data_not_collected.include?(column)
+
+      case column
+      when 'sex'
+        HudHelper.util('2026').sex(value)
+      when 'percent_ami'
+        HudHelper.util('2026').percent_ami(value)
+      when 'housing_assessment_at_exit'
+        HudHelper.util('2026').housing_assessment_at_exit(value)
+      when 'dob_quality'
+        HudHelper.util('2026').dob_data_quality(value)
+      else
+        super
+      end
     end
   end
 end

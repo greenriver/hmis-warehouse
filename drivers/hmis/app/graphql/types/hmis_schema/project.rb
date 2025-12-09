@@ -110,6 +110,9 @@ module Types
       can :view_units
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
+      can :view_outgoing_referral_details
+      # TODO(#8067) - reduce duplication of logic with HmisProjectPolicy once we establish a frontend pattern for permission requirements
+      composite_perm :can_view_outgoing_referral_summaries, permissions: [:manage_outgoing_referrals, :view_outgoing_referral_details], mode: :any
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
@@ -301,7 +304,8 @@ module Types
     end
 
     def outgoing_direct_ce_referrals(**args)
-      access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
+      policy = current_user.policy_for(object, policy_type: :hmis_project)
+      access_denied! unless policy.can_view_outgoing_referral_summaries?
 
       referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
       resolve_ce_referrals(referral_scope, sort_order: :created_at, dangerous_skip_permission_check: true, **args)
