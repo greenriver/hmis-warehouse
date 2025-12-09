@@ -190,7 +190,7 @@ module HmisExternalApis::AcHmis
       return if from_link?
 
       # don't auto-exit if the environment specifies not to
-      return if AppConfigProperty.where(key: 'hmis_external_apis/legacy_referrals/keep_source_enrollment_open', value: '1')
+      return if AppConfigProperty.where(key: 'hmis_external_apis/legacy_referrals/keep_source_enrollment_open', value: '1').exists?
 
       # for find the origin household through the enrollment
       referral_household = referral&.enrollment&.household
