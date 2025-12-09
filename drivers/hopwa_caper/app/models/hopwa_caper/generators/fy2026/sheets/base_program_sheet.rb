@@ -51,7 +51,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
       members = @report.
         hopwa_caper_enrollments.
         head_of_household.
-        where(report_household_id: enrollments.select(:report_household_id)).as_report_members
+        where(report_household_id: enrollments.select(:report_household_id)).
+        latest_by_distinct_client_id.
+        as_report_members
       sheet.append_row(label: label) do |row|
         row.append_cell_members(members: members)
       end

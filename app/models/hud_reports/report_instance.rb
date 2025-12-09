@@ -117,6 +117,7 @@ module HudReports
       # For question-specific cleanup of derived records (e.g., SPM's Return records),
       # implement the QuestionBase::reset_derived_data hook, which is called automatically
       # before this method during a retry.
+      @universe_cache&.delete(question)
       HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
       cells.delete_all
     end
@@ -211,7 +212,8 @@ module HudReports
     # @param question [String] the question name (e.g., 'Q1')
     # @return [ReportCell] the universe cell
     def universe(question)
-      universe_scope(question).first_or_create
+      @universe_cache ||= {}
+      @universe_cache[question] ||= universe_scope(question).first_or_create
     end
 
     # DANGER. This deletes the reports data without changing its state.
