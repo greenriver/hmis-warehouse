@@ -16,6 +16,8 @@
       = stylesheet_link_tag 'application', media: 'all'
     = stylesheet_link_tag 'print', media: 'print'
 
+    = stylesheet_link_tag "actiontext"
+
     - colors = Rails.cache.fetch('system-colors', expires_in: 5.minutes) { GrdaWarehouse::SystemColor.as_css.html_safe }
     - if colors.present?
       %style{ type: 'text/css' }

@@ -18,6 +18,8 @@ module GrdaWarehouse
     belongs_to :updated_by, class_name: 'User', optional: true
     has_many :compliance_requirements, class_name: 'GrdaWarehouse::Compliance::Requirement', dependent: :restrict_with_error
 
+    has_rich_text :content
+
     before_validation :set_slug, on: :create
 
     validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_]+\z/, message: 'only lowercase letters, numbers, and underscores' }
