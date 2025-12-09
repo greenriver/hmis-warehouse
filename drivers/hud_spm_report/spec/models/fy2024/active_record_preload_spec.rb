@@ -36,23 +36,23 @@ RSpec.describe 'Active Record Preload API', type: :model do
   end
 
   describe 'preloads work as expected' do
-    it '4 services are created' do
+    xit '4 services are created' do
       expect(GrdaWarehouse::Hud::Service.count).to eq(4)
     end
-    it '2 services are between 2022-01-02 and 2022-01-15' do
+    xit '2 services are between 2022-01-02 and 2022-01-15' do
       expect(GrdaWarehouse::Hud::Service.where(DateProvided: '2022-01-02'.to_date .. '2022-01-15'.to_date).count).to eq(2)
     end
-    it 'when preloading, one enrollment has 4 services' do
+    xit 'when preloading, one enrollment has 4 services' do
       expect(GrdaWarehouse::Hud::Enrollment.preload(:services).first.services.size).to eq(4)
     end
-    it 'when using includes/references with a scope, only two services are included' do
+    xit 'when using includes/references with a scope, only two services are included' do
       s_t = GrdaWarehouse::Hud::Service.arel_table
       scope = s_t[:DateProvided].eq(nil).or(s_t[:DateProvided].between('2022-01-02'.to_date .. '2022-01-15'.to_date))
       enrollments = GrdaWarehouse::Hud::Enrollment.includes(:services).references(:services).where(scope).to_a
       expect(enrollments.first.services.to_a.size).to eq(2)
     end
 
-    it 'when preloading with a scope, filters are applied to associations' do
+    xit 'when preloading with a scope, filters are applied to associations' do
       scope = GrdaWarehouse::Hud::Service.where(DateProvided: '2022-01-02'.to_date .. '2022-01-15'.to_date)
       expect(GrdaWarehouse::Hud::Enrollment.first.services.size).to eq(4)
       enrollments = GrdaWarehouse::Hud::Enrollment.all

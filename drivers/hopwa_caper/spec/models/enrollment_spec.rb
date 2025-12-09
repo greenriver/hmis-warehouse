@@ -241,4 +241,48 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
       end
     end
   end
+
+  describe '#display_value' do
+    let(:enrollment) do
+      described_class.new(
+        report_instance_id: report.id,
+        destination_client_id: client.id,
+        enrollment_id: hud_enrollment.id,
+      )
+    end
+    let(:pii_policy) { double('pii_policy') }
+    def display_value(enrollment, field, value)
+      enrollment.public_send("#{field}=", value)
+      enrollment.display_value(field, pii_policy: pii_policy, include_content_tag: false)
+    ensure
+      enrollment.public_send("#{field}=", nil)
+    end
+
+    context 'when rendering percent_ami' do
+      it 'returns the expected label' do
+        result = display_value(enrollment, 'percent_ami', 1)
+        expect(result).to eq('30% or less')
+
+        result = display_value(enrollment, 'percent_ami', nil)
+        expect(result).to eq('Data not collected')
+      end
+    end
+
+    context 'when rendering fields with data not collected support' do
+      it 'returns "Data not collected" for nil sex' do
+        result = display_value(enrollment, 'sex', nil)
+        expect(result).to eq('Data not collected')
+      end
+
+      it 'returns "Data not collected" for nil housing_assessment_at_exit' do
+        result = display_value(enrollment, 'housing_assessment_at_exit', nil)
+        expect(result).to eq('Data not collected')
+      end
+
+      it 'returns nil for fields without data not collected support' do
+        result = display_value(enrollment, 'hiv_positive', nil)
+        expect(result).to be_nil
+      end
+    end
+  end
 end
