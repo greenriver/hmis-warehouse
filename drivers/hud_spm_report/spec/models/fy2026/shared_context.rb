@@ -10,7 +10,7 @@ require 'rails_helper'
 require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 
 # Shared context for SPM testing
-RSpec.shared_context 'SPM test setup', shared_context: :metadata do
+RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
   let(:default_filter) do
     Filters::HudFilterBase.new(
