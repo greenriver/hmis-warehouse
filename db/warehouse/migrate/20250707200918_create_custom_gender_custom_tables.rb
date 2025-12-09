@@ -3,6 +3,7 @@
 class CreateCustomGenderCustomTables < ActiveRecord::Migration[7.1]
   def change
     # CustomGender loader table
+    drop_table :hmis_csv_2026_custom_genders if table_exists?(:hmis_csv_2026_custom_genders)
     create_table :hmis_csv_2026_custom_genders do |t|
       t.string 'PersonalID'
       t.string 'Woman'
@@ -30,6 +31,7 @@ class CreateCustomGenderCustomTables < ActiveRecord::Migration[7.1]
     add_index :hmis_csv_2026_custom_genders, [:PersonalID, :data_source_id], name: 'idx_custom_genders_id_ds'
 
     # CustomGender importer table
+    drop_table :hmis_2026_custom_genders if table_exists?(:hmis_2026_custom_genders)
     create_table :hmis_2026_custom_genders do |t|
       t.string 'PersonalID'
       t.integer 'Woman'
