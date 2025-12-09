@@ -101,6 +101,11 @@ module PerformanceMeasurement
               values: default_details.deep_dup,
             }
 
+            display_value = "#{result.primary_value} #{result.primary_unit}"
+            # For increased income metrics, show the prior year value so we can show the current year goal as an absolute number
+            # For example, if the goal is to increase income of at least 3% of adults, and last year they had 6% of adults had increased income,
+            # we want to show a goal of 9% (increase by 3% anually)
+            display_value = "#{result.primary_value} #{result.primary_unit} (Prior Year: #{result.comparison_primary_value} #{result.primary_unit})" if detail.to_s.include?('increased_')
             table_data[:projects][project_id][:values][detail] = {
               value: result.primary_value.presence,
               unit: result.primary_unit,
@@ -108,7 +113,7 @@ module PerformanceMeasurement
               goal: result.goal,
               decorator: decorator(result, detail),
               decorator_bg_color: decorator_bg_color(result, detail),
-              display_value: "#{result.primary_value} #{result.primary_unit}",
+              display_value: display_value,
             }
           end
         end
