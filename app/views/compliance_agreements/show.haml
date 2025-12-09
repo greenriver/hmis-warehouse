@@ -11,7 +11,7 @@
 
         .card-body
           .policy-content.mb-4{style: 'max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 1rem; background: #fafafa;'}
-            = simple_format(@content_page.content)
+            = @content_page.render_content
 
           = form_tag compliance_agreement_path, method: :post do
             = hidden_field_tag :requirement_id, @current_requirement.id
@@ -21,13 +21,14 @@
               = label_tag :agree, class: 'form-check-label', for: 'agree_checkbox' do
                 I have read and agree to the #{@current_requirement.name}
 
-            .d-flex.justify-content-between
-              = link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'btn btn-outline-secondary'
+            .text-right
               = submit_tag 'Continue', class: 'btn btn-primary', disabled: true, id: 'submit_btn'
 
         - if @current_requirement.expires_after_days
           .card-footer.text-muted.small
             This agreement expires after #{@current_requirement.expires_after_days} days
+            &middot;
+            = link_to 'Sign Out', destroy_user_session_path, method: :delete
 
 = content_for :page_js do
   :javascript

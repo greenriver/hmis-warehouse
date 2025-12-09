@@ -54,9 +54,9 @@ module Admin
       end
     end
 
-    def preview
-      render layout: 'content_only'
-    end
+   #def preview
+   #  render layout: 'content_only'
+   #end
 
     private
 

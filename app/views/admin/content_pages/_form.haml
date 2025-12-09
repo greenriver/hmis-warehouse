@@ -9,7 +9,7 @@
         - else
           = f.input :slug, hint: 'URL-friendly identifier (lowercase letters, numbers, underscores). Auto-generated from title if blank.'
         = f.input :title, required: true
-        = f.input :content, as: :text, input_html: { rows: 20 }, hint: 'Plain text content. HTML support coming soon.'
+        = f.input :content, as: :text, input_html: { rows: 20, id: 'markdown-editor' }
 
       .form-actions.mt-3
         = f.button :submit, 'Save', class: 'btn btn-primary'

@@ -1,3 +1,5 @@
+
+- require 'redcarpet'
 .container.py-4
   .row.justify-content-center
     .col-lg-8
@@ -6,7 +8,7 @@
       %hr
 
       .content-body
-        = simple_format(@page.content)
+        = @page.render_content
 
       .text-muted.small.mt-4
         Last updated: #{@page.updated_at.to_fs(:long)}
