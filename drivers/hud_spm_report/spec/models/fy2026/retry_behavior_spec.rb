@@ -10,7 +10,7 @@ require 'rails_helper'
 require_relative './shared_context'
 
 RSpec.describe 'HUD SPM FY2026 retry behavior', type: :model do
-  include_context 'SPM test setup'
+  include_context '2026 SPM test setup'
 
   let(:generator_class) { HudSpmReport::Generators::Fy2026::Generator }
 
