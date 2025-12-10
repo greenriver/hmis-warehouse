@@ -129,7 +129,7 @@ module HudSpmReport::Fy2026
     end
 
     def project_id
-      enrollment.project.id
+      enrollment&.project&.id
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
