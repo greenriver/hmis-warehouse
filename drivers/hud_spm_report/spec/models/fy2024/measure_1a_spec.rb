@@ -29,7 +29,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'creates SpmEnrollment records correctly' do
+      xit 'creates SpmEnrollment records correctly' do
         expect(@report.spm_enrollments.count).to be > 0
 
         spm_enrollment = @report.spm_enrollments.first
@@ -37,7 +37,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(spm_enrollment.exit_date).to eq('2023-01-15'.to_date)
       end
 
-      it 'correctly calculates the length of time homeless without prior living situation' do
+      xit 'correctly calculates the length of time homeless without prior living situation' do
         # Verify that the universe was created for measure 1a
         expect(@report.universe('m1a1').members.count).to eq(1)
 
@@ -97,7 +97,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'deduplicates nights when client is enrolled in multiple projects' do
+      xit 'deduplicates nights when client is enrolled in multiple projects' do
         expect(@report.universe('m1a1').members.count).to eq(1)
 
         episode = @report.universe('m1a1').members.first.universe_membership
@@ -139,7 +139,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly counts both ES and TH time for metric 2' do
+      xit 'correctly counts both ES and TH time for metric 2' do
         # ES-only (metric 1) should have only ES time
         expect(@report.universe('m1a1').members.count).to eq(1)
         es_episode = @report.universe('m1a1').members.first.universe_membership
@@ -187,7 +187,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'counts only actual bed nights for night-by-night shelters' do
+      xit 'counts only actual bed nights for night-by-night shelters' do
         expect(@report.universe('m1a1').members.count).to eq(1)
 
         episode = @report.universe('m1a1').members.first.universe_membership
@@ -227,7 +227,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly handles exit dates that match entry dates' do
+      xit 'correctly handles exit dates that match entry dates' do
         expect(@report.universe('m1a1').members.count).to eq(1)
 
         episode = @report.universe('m1a1').members.first.universe_membership
@@ -269,7 +269,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'excludes zero-day stays from homeless days count' do
+      xit 'excludes zero-day stays from homeless days count' do
         expect(@report.universe('m1a1').members.count).to eq(1)
 
         episode = @report.universe('m1a1').members.first.universe_membership
@@ -329,7 +329,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'calculates unique homeless days for each household member' do
+      xit 'calculates unique homeless days for each household member' do
         # Verify that all household members are in the universe
         expect(@report.universe('m1a1').members.count).to eq(3)
 
@@ -349,7 +349,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(adult_episode.days_homeless).to eq(56)
       end
 
-      it 'correctly calculates average and median length of time homeless' do
+      xit 'correctly calculates average and median length of time homeless' do
         # Verify that the appropriate metrics were calculated
         answer_b1 = @report.answer(question: '1a', cell: 'B1')
         answer_d1 = @report.answer(question: '1a', cell: 'D1')

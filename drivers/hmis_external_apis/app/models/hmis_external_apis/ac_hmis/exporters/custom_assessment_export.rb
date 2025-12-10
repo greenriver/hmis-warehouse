@@ -38,6 +38,8 @@ module HmisExternalApis::AcHmis::Exporters
           custom_assessment.date_updated,
           custom_assessment.created_by_hud_user_id || hud_user_id, # maps to User.csv in HMIS CSV Export
           custom_assessment.updated_by_hud_user_id || hud_user_id, # maps to User.csv in HMIS CSV Export
+          custom_assessment.form_processor.ce_event_id, # maps to Event.csv in HMIS CSV export
+          custom_assessment.form_processor.ce_assessment_id, # maps to Assessment.csv in HMIS CSV export
         ]
         write_row(values)
       end
@@ -55,6 +57,8 @@ module HmisExternalApis::AcHmis::Exporters
         'DateUpdated',        # Timestamp when the assessment was last updated
         'CreatedByUserID',    # Maps to User.csv
         'UpdatedByUserID',    # Maps to User.csv
+        'HudCeEventID',       # ID matching Event.csv in HMIS CSV export (database id), if assessment created associated event
+        'HudCeAssessmentID',  # ID matching Assessment.csv in HMIS CSV export (database id), if assessment created associated assessment
       ]
     end
 
@@ -69,6 +73,7 @@ module HmisExternalApis::AcHmis::Exporters
           :definition, # to get form name
           :enrollment, # to get db id
           :user, # to get user
+          :form_processor, # to get associated HUD CE Event/Assessment record IDs
           client: :warehouse_client_source, # to get destination id
         ).
         distinct

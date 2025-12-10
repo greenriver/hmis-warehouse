@@ -137,7 +137,9 @@ module HudSpmReport::Fy2024
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
-      filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
+      raise 'generation is disabled'
+
+      filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options) # rubocop:disable Lint/UnreachableCode
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|

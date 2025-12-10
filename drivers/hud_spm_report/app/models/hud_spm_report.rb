@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud_spm_report.md
 module HudSpmReport
   def self.current_generator
     active_version = ::HudReports::BaseController.new.default_report_version
