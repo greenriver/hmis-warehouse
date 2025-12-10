@@ -8,14 +8,14 @@
           %h2= @current_requirement.name
 
         .card-body
-          .policy-content.mb-4{style: 'max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 1rem; background: #fafafa;'}
+          .policy-content.mb-4.border.p-3{style: 'max-height: 400px; overflow-y: auto; background: #fafafa;'}
             = @content_page.render_content
 
           = form_tag compliance_agreement_path, method: :post do
             = hidden_field_tag :requirement_id, @current_requirement.id
             = hidden_field_tag :revision, @current_requirement.revision
 
-            .form-check.mb-3
+            .form-check.fs-4.fw-bold.mb-3
               = check_box_tag :agree, '1', false, class: 'form-check-input', id: 'agree_checkbox'
               = label_tag :agree, class: 'form-check-label', for: 'agree_checkbox' do
                 I have read and agree to the terms above
@@ -23,11 +23,11 @@
             .text-right
               = submit_tag 'Continue', class: 'btn btn-primary', disabled: true, id: 'submit_btn'
 
-        - if @current_requirement.expires_after_days
-          .card-footer.text-muted.small
+        .card-footer.text-muted.small
+          - if @current_requirement.expires_after_days
             This agreement expires after #{@current_requirement.expires_after_days} days
             &middot;
-            = link_to 'Sign Out', destroy_user_session_path, method: :delete
+          = link_to 'Sign Out', destroy_user_session_path, method: :delete
 
 = content_for :page_js do
   :javascript
