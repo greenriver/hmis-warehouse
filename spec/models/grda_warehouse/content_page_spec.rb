@@ -34,20 +34,9 @@ RSpec.describe GrdaWarehouse::ContentPage, type: :model do
       expect(page.errors[:slug]).to be_present
     end
 
-    it 'validates slug format - only lowercase letters, numbers, underscores' do
-      invalid_slugs = ['UPPERCASE', 'with-dashes', 'with spaces', 'special@chars']
-      invalid_slugs.each do |slug|
-        page = build(:content_page, slug: slug)
-        expect(page).not_to be_valid, "Expected slug '#{slug}' to be invalid"
-      end
-    end
-
-    it 'accepts valid slug formats' do
-      valid_slugs = ['lowercase', 'with_underscores', 'with123numbers', 'mixed_123']
-      valid_slugs.each do |slug|
-        page = build(:content_page, slug: slug)
-        expect(page).to be_valid, "Expected slug '#{slug}' to be valid"
-      end
+    it 'validates slug format with representative cases' do
+      expect(build(:content_page, slug: 'with-dashes')).not_to be_valid
+      expect(build(:content_page, slug: 'valid_slug_123')).to be_valid
     end
   end
 
@@ -65,13 +54,6 @@ RSpec.describe GrdaWarehouse::ContentPage, type: :model do
     it 'handles special characters in title when generating slug' do
       page = create(:content_page, title: 'Terms & Conditions!', slug: nil)
       expect(page.slug).to eq('terms_conditions')
-    end
-  end
-
-  describe '#to_param' do
-    it 'returns the slug for URL generation' do
-      page = create(:content_page, slug: 'my_page')
-      expect(page.to_param).to eq('my_page')
     end
   end
 

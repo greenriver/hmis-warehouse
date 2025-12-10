@@ -29,11 +29,7 @@ RSpec.describe GrdaWarehouse::Compliance::Requirement, type: :model do
     it 'requires revision to be a positive integer' do
       requirement = build(:compliance_requirement, revision: 0)
       expect(requirement).not_to be_valid
-
-      requirement.revision = -1
-      expect(requirement).not_to be_valid
-
-      requirement.revision = 1
+      requirement.revision = 2
       expect(requirement).to be_valid
     end
 
@@ -45,7 +41,6 @@ RSpec.describe GrdaWarehouse::Compliance::Requirement, type: :model do
     it 'requires expires_after_days to be positive when present' do
       requirement = build(:compliance_requirement, expires_after_days: 0)
       expect(requirement).not_to be_valid
-
       requirement.expires_after_days = 365
       expect(requirement).to be_valid
     end

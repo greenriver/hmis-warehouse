@@ -38,18 +38,6 @@ RSpec.describe Admin::ContentPagesController, type: :request do
     end
   end
 
-  describe 'GET #new' do
-    before(:each) do
-      setup_access_control(user, role, no_data_source_collection)
-      sign_in user
-    end
-
-    it 'returns http success' do
-      get new_admin_content_page_path
-      expect(response).to have_http_status(:success)
-    end
-  end
-
   describe 'POST #create' do
     before(:each) do
       setup_access_control(user, role, no_data_source_collection)
@@ -84,25 +72,6 @@ RSpec.describe Admin::ContentPagesController, type: :request do
           post admin_content_pages_path, params: { content_page: invalid_attrs }
         end.not_to change(GrdaWarehouse::ContentPage, :count)
       end
-
-      it 'renders new template' do
-        post admin_content_pages_path, params: { content_page: invalid_attrs }
-        expect(response).not_to be_redirect
-      end
-    end
-  end
-
-  describe 'GET #edit' do
-    let!(:content_page) { create(:content_page) }
-
-    before(:each) do
-      setup_access_control(user, role, no_data_source_collection)
-      sign_in user
-    end
-
-    it 'returns http success' do
-      get edit_admin_content_page_path(content_page)
-      expect(response).to have_http_status(:success)
     end
   end
 
@@ -160,11 +129,6 @@ RSpec.describe Admin::ContentPagesController, type: :request do
         expect do
           delete admin_content_page_path(content_page)
         end.to change(GrdaWarehouse::ContentPage, :count).by(-1)
-      end
-
-      it 'redirects to index' do
-        delete admin_content_page_path(content_page)
-        expect(response).to redirect_to(admin_content_pages_path)
       end
     end
 

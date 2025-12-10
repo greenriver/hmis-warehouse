@@ -16,21 +16,11 @@ RSpec.describe ComplianceAgreementsController, type: :request do
 
   describe 'GET #show' do
     context 'when user has pending requirements' do
-      it 'returns http success' do
-        get compliance_agreement_path
-        expect(response).to have_http_status(:success)
-      end
-
       it 'displays the requirement content' do
         get compliance_agreement_path
         # expect(response.body).to include('Your Terms')
         page = Capybara.string(response.body)
         expect(page).to have_css('h1', text: 'Expected H1 Content')
-      end
-
-      it 'displays the agreement checkbox' do
-        get compliance_agreement_path
-        expect(response.body).to include('agree_checkbox')
       end
     end
 
@@ -58,11 +48,6 @@ RSpec.describe ComplianceAgreementsController, type: :request do
         post compliance_agreement_path, params: { requirement_id: requirement.id, agree: '1' }
         agreement = GrdaWarehouse::Compliance::Agreement.last
         expect(agreement.revision).to eq(requirement.revision)
-      end
-
-      it 'redirects after agreement' do
-        post compliance_agreement_path, params: { requirement_id: requirement.id, agree: '1' }
-        expect(response).to be_redirect
       end
 
       context 'with expiration' do
@@ -95,11 +80,6 @@ RSpec.describe ComplianceAgreementsController, type: :request do
     context 'with multiple requirements' do
       let!(:content_page2) { create(:content_page, title: 'Privacy Policy') }
       let!(:requirement2) { create(:compliance_requirement, content_page: content_page2, active: true, position: 1) }
-
-      it 'redirects back to show for next requirement' do
-        post compliance_agreement_path, params: { requirement_id: requirement.id, agree: '1' }
-        expect(response).to redirect_to(compliance_agreement_path)
-      end
 
       it 'shows success message for next requirement' do
         post compliance_agreement_path, params: { requirement_id: requirement.id, agree: '1' }

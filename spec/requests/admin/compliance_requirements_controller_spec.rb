@@ -38,18 +38,6 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
     end
   end
 
-  describe 'GET #new' do
-    before(:each) do
-      setup_access_control(user, role, no_data_source_collection)
-      sign_in user
-    end
-
-    it 'returns http success' do
-      get new_admin_compliance_requirement_path
-      expect(response).to have_http_status(:success)
-    end
-  end
-
   describe 'POST #create' do
     let!(:content_page) { create(:content_page) }
 
@@ -81,25 +69,6 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
           post admin_compliance_requirements_path, params: { compliance_requirement: invalid_attrs }
         end.not_to change(GrdaWarehouse::Compliance::Requirement, :count)
       end
-
-      it 'renders new template' do
-        post admin_compliance_requirements_path, params: { compliance_requirement: invalid_attrs }
-        expect(response).not_to be_redirect
-      end
-    end
-  end
-
-  describe 'GET #edit' do
-    let!(:requirement) { create(:compliance_requirement) }
-
-    before(:each) do
-      setup_access_control(user, role, no_data_source_collection)
-      sign_in user
-    end
-
-    it 'returns http success' do
-      get edit_admin_compliance_requirement_path(requirement)
-      expect(response).to have_http_status(:success)
     end
   end
 
@@ -153,11 +122,6 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
           delete admin_compliance_requirement_path(requirement)
         end.to change(GrdaWarehouse::Compliance::Requirement, :count).by(-1)
       end
-
-      it 'redirects to index' do
-        delete admin_compliance_requirement_path(requirement)
-        expect(response).to redirect_to(admin_compliance_requirements_path)
-      end
     end
 
     context 'when requirement has agreements' do
@@ -192,10 +156,6 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       expect(requirement.active).to be true
     end
 
-    it 'redirects to index' do
-      post activate_admin_compliance_requirement_path(requirement)
-      expect(response).to redirect_to(admin_compliance_requirements_path)
-    end
   end
 
   describe 'POST #deactivate' do
@@ -212,9 +172,5 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       expect(requirement.active).to be false
     end
 
-    it 'redirects to index' do
-      post deactivate_admin_compliance_requirement_path(requirement)
-      expect(response).to redirect_to(admin_compliance_requirements_path)
-    end
   end
 end

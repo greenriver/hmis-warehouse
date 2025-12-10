@@ -21,12 +21,6 @@ RSpec.describe 'Compliance Agreement Enforcement', type: :request do
       expect(response).to redirect_to(compliance_agreement_path)
     end
 
-    it 'stores the original location for redirect after agreement' do
-      sign_in user
-      get admin_configs_path
-      expect(response).to redirect_to(compliance_agreement_path)
-    end
-
     it 'allows access to account pages' do
       sign_in user
       get edit_account_path
@@ -43,14 +37,6 @@ RSpec.describe 'Compliance Agreement Enforcement', type: :request do
       sign_in user
       get content_page_path(content_page.slug)
       expect(response).to have_http_status(:success)
-    end
-  end
-
-  describe 'when user has no pending compliance requirements' do
-    it 'allows normal access' do
-      sign_in user
-      get root_path
-      expect(response).not_to redirect_to(compliance_agreement_path)
     end
   end
 

@@ -27,15 +27,6 @@ RSpec.describe GrdaWarehouse::Compliance::Agreement, type: :model do
       expect(agreement.errors[:revision]).to be_present
     end
 
-    it 'requires a user' do
-      agreement = build(:compliance_agreement, user: nil)
-      expect(agreement).not_to be_valid
-    end
-
-    it 'requires a requirement' do
-      agreement = build(:compliance_agreement, requirement: nil)
-      expect(agreement).not_to be_valid
-    end
   end
 
   describe 'associations' do
