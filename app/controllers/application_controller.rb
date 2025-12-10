@@ -270,7 +270,7 @@ class ApplicationController < ActionController::Base
   end
 
   # is the user in a portal (tos agreement)
-  helper_method def user_access_captured? = false
+  helper_method def access_captured_for_setup? = false
 
   def health_emergency?
     health_emergency.present? && current_user&.can_see_health_emergency?

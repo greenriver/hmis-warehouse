@@ -5,7 +5,7 @@
       = f.error_notification
       .form-inputs
         - slug_hint = 'URL-friendly identifier. Page will be available at (https://my.site/pages/<slug>). Cannot be changed after creation.'
-        = f.input :slug, disabled: @page.persisted?, hint: slug_hint
+        = f.input :slug, required: true, disabled: @page.persisted?, hint: slug_hint
         = f.input :title, required: true, label: 'Page Title', hint: 'Title displayed in the browser tab or bookmark'
         = f.input :content, as: :text, input_html: { rows: 20, id: 'markdown-editor' }, label: 'Markdown formatted content'
 

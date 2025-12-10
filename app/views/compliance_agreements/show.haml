@@ -13,6 +13,7 @@
 
           = form_tag compliance_agreement_path, method: :post do
             = hidden_field_tag :requirement_id, @current_requirement.id
+            = hidden_field_tag :revision, @current_requirement.revision
 
             .form-check.mb-3
               = check_box_tag :agree, '1', false, class: 'form-check-input', id: 'agree_checkbox'

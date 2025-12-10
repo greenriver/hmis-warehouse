@@ -40,23 +40,6 @@ RSpec.describe GrdaWarehouse::ContentPage, type: :model do
     end
   end
 
-  describe 'slug generation' do
-    it 'auto-generates slug from title if not provided' do
-      page = create(:content_page, title: 'My Test Page', slug: nil)
-      expect(page.slug).to eq('my_test_page')
-    end
-
-    it 'does not overwrite an explicitly provided slug' do
-      page = create(:content_page, title: 'My Test Page', slug: 'custom_slug')
-      expect(page.slug).to eq('custom_slug')
-    end
-
-    it 'handles special characters in title when generating slug' do
-      page = create(:content_page, title: 'Terms & Conditions!', slug: nil)
-      expect(page.slug).to eq('terms_conditions')
-    end
-  end
-
   describe 'associations' do
     it 'can have compliance requirements' do
       page = create(:content_page)

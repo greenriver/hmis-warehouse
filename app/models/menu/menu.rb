@@ -17,7 +17,7 @@ class Menu::Menu
   end
 
   def site_menu
-    return [limited_menu] if context.user_access_captured?
+    return [limited_menu] if context.access_captured_for_setup?
 
     [].tap do |menu|
       menu << reports_menu

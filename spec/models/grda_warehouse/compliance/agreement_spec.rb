@@ -26,7 +26,6 @@ RSpec.describe GrdaWarehouse::Compliance::Agreement, type: :model do
       expect(agreement).not_to be_valid
       expect(agreement.errors[:revision]).to be_present
     end
-
   end
 
   describe 'associations' do

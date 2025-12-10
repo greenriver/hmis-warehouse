@@ -106,6 +106,8 @@ Multiple requirements are presented one at a time in position order.
 | Time-based | `expires_after_days` sets `expires_at` on agreement |
 | Manual | Admin deactivates/reactivates requirement |
 
+> Note: `expires_at` is stored on the agreement at creation. Changing `expires_after_days` later does not affect existing agreements unless you also bump the requirement `revision` (or otherwise recalculate expirations) to force re-agreement.
+
 ## Example Configuration
 
 ### Terms of Service & Privacy Policy

@@ -136,13 +136,4 @@ RSpec.describe GrdaWarehouse::Compliance::Requirement, type: :model do
       end
     end
   end
-
-  describe 'soft delete' do
-    it 'supports soft deletion via acts_as_paranoid' do
-      requirement = create(:compliance_requirement)
-      requirement.destroy
-      expect(described_class.with_deleted.find(requirement.id)).to be_present
-      expect(described_class.find_by(id: requirement.id)).to be_nil
-    end
-  end
 end

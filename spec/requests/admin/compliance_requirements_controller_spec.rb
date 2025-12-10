@@ -155,7 +155,6 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       requirement.reload
       expect(requirement.active).to be true
     end
-
   end
 
   describe 'POST #deactivate' do
@@ -171,6 +170,5 @@ RSpec.describe Admin::ComplianceRequirementsController, type: :request do
       requirement.reload
       expect(requirement.active).to be false
     end
-
   end
 end

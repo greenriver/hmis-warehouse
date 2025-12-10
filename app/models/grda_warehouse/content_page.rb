@@ -18,8 +18,6 @@ module GrdaWarehouse
     belongs_to :updated_by, class_name: 'User', optional: true
     has_many :compliance_requirements, class_name: 'GrdaWarehouse::Compliance::Requirement', dependent: :restrict_with_error
 
-    before_validation :set_slug, on: :create
-
     validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_]+\z/, message: 'only lowercase letters, numbers, and underscores' }
     validates :title, :content, presence: true
 
@@ -30,16 +28,16 @@ module GrdaWarehouse
     end
 
     def render_content
-      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+      markdown = Redcarpet::Markdown.new(
+        Redcarpet::Render::HTML,
+        autolink: true,
+        tables: true,
+        underline: true,
+        superscript: true,
+        space_after_headers: true,
+        strikethrough: true,
+      )
       markdown.render(content).html_safe
-    end
-
-    private
-
-    def set_slug
-      return if slug.present?
-
-      self.slug = title.to_s.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
     end
   end
 end

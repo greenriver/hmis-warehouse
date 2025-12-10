@@ -23,6 +23,10 @@ class ComplianceAgreementsController < ApplicationController
 
   def create
     requirement = GrdaWarehouse::Compliance::Requirement.active.find(params[:requirement_id])
+    if params[:revision].to_i != requirement.revision
+      redirect_to compliance_agreement_path, alert: 'This requirement was updated. Please review the latest version.'
+      return
+    end
 
     if params[:agree] == '1'
       record_agreement(requirement)
@@ -38,7 +42,7 @@ class ComplianceAgreementsController < ApplicationController
 
   private
 
-  def user_access_captured? = true
+  def access_captured_for_setup? = true
 
   def record_agreement(requirement)
     now = Time.current
