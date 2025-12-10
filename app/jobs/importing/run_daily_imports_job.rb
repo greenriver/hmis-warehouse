@@ -313,7 +313,7 @@ module Importing
     end
 
     def shs_counts_debugging
-      @notifier.ping(GrdaWarehouse::ServiceHistoryService.where(project_type: 0, date: '2025-12-05'.to_date..).group(:date).count.to_json)
+      @notifier.ping(GrdaWarehouse::ServiceHistoryService.where(project_type: 0, date: '2025-12-05'.to_date..).order(:date).group(:date).count.to_json)
     end
   end
 end
