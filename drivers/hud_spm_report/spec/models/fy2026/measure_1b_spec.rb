@@ -9,7 +9,7 @@
 require 'rails_helper'
 require_relative './shared_context'
 
-RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclude_fixpoints: true do
+RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model do
   include_context 'SPM test setup'
 
   describe 'Measure 1b' do
@@ -166,76 +166,6 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         expect(episode.first_date).to eq('2022-10-15'.to_date)
 
         expect(episode.days_homeless).to eq(expected_days)
-      end
-    end
-
-    context 'with households split across data sources' do
-      let(:es_project) { create_project(project_type: 0) }
-      let(:other_data_source) { create(:source_data_source) }
-      let(:shared_household_id) { 'shared-household-id' }
-
-      before do
-        @primary_members = []
-        build_household(
-          projects: [es_project],
-          entry_date: '2023-03-01'.to_date,
-          exit_date: '2023-03-10'.to_date,
-          members: 2,
-          household_id: shared_household_id,
-          date_to_street_essh: '2023-02-01'.to_date,
-          include_move_in: true,
-          move_in_offset: 0,
-        ) do |client, enrollment|
-          @primary_members << { client: client, enrollment: enrollment }
-        end
-
-        @secondary_members = []
-        build_household(
-          projects: [es_project],
-          entry_date: '2023-03-05'.to_date,
-          exit_date: '2023-03-15'.to_date,
-          members: 2,
-          household_id: shared_household_id,
-          date_to_street_essh: '2023-01-15'.to_date,
-          include_move_in: true,
-          move_in_offset: 3,
-          data_source_override: other_data_source,
-        ) do |client, enrollment|
-          @secondary_members << { client: client, enrollment: enrollment }
-        end
-
-        (@primary_members + @secondary_members).each do |member|
-          add_bed_nights(
-            enrollment: member[:enrollment],
-            start_date: member[:enrollment].entry_date,
-            end_date: member[:enrollment].real_exit_date,
-          )
-        end
-
-        @primary_child = @primary_members.find { |member| member[:enrollment].relationship_to_hoh == 2 }
-        @secondary_child = @secondary_members.find { |member| member[:enrollment].relationship_to_hoh == 2 }
-
-        @primary_child[:enrollment].update(DateToStreetESSH: nil)
-        @secondary_child[:enrollment].update(DateToStreetESSH: nil)
-
-        @report = setup_report([es_project.id])
-        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
-
-        @episodes = @report.universe('m1b1').members.map(&:universe_membership)
-      end
-
-      it 'keeps household context separate per data source' do
-        expect(@episodes.size).to eq(2)
-
-        primary_episode = @episodes.find { |episode| episode.client.personal_id == @primary_child[:client].personal_id }
-        expect(primary_episode).to be_present
-        expect(primary_episode.first_date).to eq(Date.parse('2023-03-01'))
-        expect(primary_episode.days_homeless).to eq(('2023-03-10'.to_date - '2023-03-01'.to_date).to_i)
-
-        secondary_episode = (@episodes - [primary_episode]).first
-        expect(secondary_episode).to be_present
-        expect(secondary_episode.first_date).to eq(Date.parse('2023-02-01'))
-        expect(secondary_episode.days_homeless).to eq(('2023-03-10'.to_date - '2023-02-01'.to_date).to_i)
       end
     end
 

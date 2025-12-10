@@ -7,15 +7,14 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../../../../spec/shared_contexts/hud_report_performance_helpers'
+require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 
 # Shared context for SPM testing
 RSpec.shared_context 'SPM test setup', shared_context: :metadata do
-  include_context 'HUD report performance helpers'
-
+  include_context 'HUD enrollment builders'
   let(:default_filter) do
     Filters::HudFilterBase.new(
-      user: user,
+      user_id: user.id,
       start: '2022-10-01'.to_date,
       end: '2023-09-30'.to_date,
       coc_codes: ['MA-500'],
