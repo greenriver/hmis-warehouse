@@ -17,7 +17,7 @@ require_relative './shared_context'
 #
 
 RSpec.shared_context 'SPM performance dataset', shared_context: :metadata do
-  include_context 'SPM test setup'
+  include_context '2026 SPM test setup'
 
   let(:projects) do
     [
