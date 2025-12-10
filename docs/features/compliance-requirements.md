@@ -31,7 +31,7 @@ Content pages can exist without requiring agreement (help pages, about pages). R
 
 ### Public Controllers
 
-- `ContentPagesController` — Public viewing at `/pages/:slug` (no auth required)
+- `ContentPagesController` — Public viewing at `/public/pages/:slug` (no auth required)
 - `ComplianceAgreementsController` — Agreement flow at `/compliance_agreement`
 
 ### Enforcement
@@ -123,7 +123,7 @@ To configure a mandatory Terms of Service agreement and an Privacy Policy link i
     - Link it to the `tos` content page you created. This forces users to agree before proceeding.
 
 3.  **Create Footer Links**: Navigate to `Warehouse Admin > Configuration > Links`.
-    - Create a footer link to the "Privacy Policy" with the relative URL `/pages/privacy_policy`.
+    - Create a footer link to the "Privacy Policy" with the relative URL `/public/pages/privacy_policy`.
     - You can optionally add a link to the Terms of Service in the footer as well.
 
 ## Related Files
