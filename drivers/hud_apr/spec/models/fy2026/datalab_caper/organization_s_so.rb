@@ -6,14 +6,14 @@
 
 # frozen_string_literal: true
 
-RSpec.shared_context 'datalab organization v es caper', shared_context: :metadata do
-  describe 'Datalab 2026 CAPER - Organization V - ES' do
-    let(:results_dir) { 'caper/organization_v_es' }
+RSpec.shared_context 'datalab organization s so caper', shared_context: :metadata do
+  describe 'Datalab 2026 CAPER - Organization S - SO' do
+    let(:results_dir) { 'caper/organization_s_so' }
     before(:all) do
       puts
-      puts 'Running CAPER Organization V - ES'
+      puts 'Running CAPER Organization S - SO'
       generator = HudApr::Generators::Caper::Fy2026::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization V - ES']).pluck(:id)
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization S - SO']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -36,7 +36,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
           caper_validations.each do |question, table_validations|
             table_validations.each do |validation|
               next if validation_skips[question]&.include?(validation[:total])
-              next unless validation[:source][:relevant_project_types]&.include?(0)
+              next unless validation[:source][:relevant_project_types]&.include?(2)
 
               check_sum(validation: validation, question: question)
             end
@@ -56,10 +56,6 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
-        skip: [
-          'B13', # expected '14.0000' (14), got '13.0000' (13)
-          'C13', # expected '14.0000' (14), got '13.0000' (13)
-        ],
       )
     end
 
@@ -74,11 +70,6 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6b',
-        skip: [
-          'C5', # expected '1.0000' (1), got '0.0000' (0)
-          'E5', # expected '1.0000' (1), got '0.0000' (0)
-          'F5', # expected '0.0100' (0.0068), got '0.0000' (0.0000)
-        ],
       )
     end
 
@@ -135,11 +126,6 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
-        skip: [
-          'B4', # expected '15.0000' (15), got '13.0000' (13)
-          'C4', # expected '12.0000' (12), got '11.0000' (11)
-          'D4', # expected '3.0000' (3), got '2.0000' (2)
-        ],
       )
     end
 
@@ -157,6 +143,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
+    # Removed in 2026
     # it 'Q10a' do
     #   compare_results(
     #     file_path: result_file_prefix + results_dir,
@@ -246,18 +233,6 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
-        skip: [
-          'B5', # expected '16.0000' (16), got '17.0000' (17)
-          'D5', # expected '19.0000' (19), got '20.0000' (20)
-          'E5', # expected '0.8400' (0.8421), got '0.8500' (0.8500)
-          'B17', # expected '29.0000' (29), got '28.0000' (28)
-          'C17', # expected '38.0000' (38), got '36.0000' (36)
-          'D17', # expected '67.0000' (67), got '66.0000' (66)
-          'E17', # expected '0.4300' (0.4328), got '0.4200' (0.4242)
-          'F17', # expected '3.0000' (3), got '1.0000' (1)
-          'H17', # expected '5.0000' (5), got '3.0000' (3)
-          'I17', # expected '0.6000' (0.6000), got '0.3300' (0.3333)
-        ],
       )
     end
 
@@ -310,15 +285,10 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=5A606727-DCC6-477E-BCAB6FCC078237F2
     it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
-        skip: [
-          'D3', # expected '29.0000' (29), got '31.0000' (31)
-          'H3', # expected '71.0000' (71), got '72.0000' (72)
-        ],
       )
     end
 
@@ -375,5 +345,5 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab organization v es caper', include_shared: true
+  rspec.include_context 'datalab organization s so caper', include_shared: true
 end
