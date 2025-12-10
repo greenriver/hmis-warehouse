@@ -15,6 +15,7 @@ class CreateSitePolicyAgreements < ActiveRecord::Migration[7.1]
       t.integer :revision, null: false
       t.datetime :agreed_at, null: false
       t.datetime :expires_at
+      t.datetime :deleted_at
       t.timestamps
     end
 

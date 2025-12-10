@@ -14,6 +14,8 @@ module GrdaWarehouse::Compliance
   class Agreement < GrdaWarehouseBase
     self.table_name = 'compliance_agreements'
 
+    acts_as_paranoid
+
     belongs_to :user
     belongs_to :requirement, class_name: 'GrdaWarehouse::Compliance::Requirement', foreign_key: :compliance_requirement_id
 
