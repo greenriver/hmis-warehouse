@@ -153,7 +153,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before(:each) { ce_project_config.update!(supports_waitlist_referrals: false) }
 
         it 'excludes clients belonging to inactive pool due to project not being configured for waitlists' do
-          expect(pool_1.active?).to be false # confirm setup
+          expect(pool_1.active_for_maintenance?).to be false # confirm setup
 
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect

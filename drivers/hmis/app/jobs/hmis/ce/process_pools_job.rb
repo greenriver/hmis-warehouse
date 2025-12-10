@@ -108,7 +108,8 @@ module Hmis::Ce
       markers.each do |marker|
         max_processed_trackable_id = [marker.trackable_id, max_processed_trackable_id].compact.max
         pool = ::Hmis::Ce::Match::CandidatePool.find_by(id: marker.trackable_id)
-        unless pool&.active?
+        unless pool&.active_for_maintenance?
+          # skip processing inactive pools and remove dangling markers
           pool ? marker.mark_processed : marker.destroy!
           next
         end
