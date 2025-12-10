@@ -6,14 +6,14 @@
 
 # frozen_string_literal: true
 
-RSpec.shared_context 'datalab organization f so caper', shared_context: :metadata do
-  describe 'Datalab 2026 CAPER - Organization F SO' do
-    let(:results_dir) { 'caper/organization_f_so' }
+RSpec.shared_context 'datalab organization j es caper', shared_context: :metadata do
+  describe 'Datalab 2026 CAPER - Organization J ES' do
+    let(:results_dir) { 'caper/organization_j_es' }
     before(:all) do
       puts
-      puts 'Running CAPER Organization F SO'
+      puts 'Running CAPER Organization J ES'
       generator = HudApr::Generators::Caper::Fy2026::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization F - SO']).pluck(:id)
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization J - ES']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -357,5 +357,5 @@ RSpec.shared_context 'datalab organization f so caper', shared_context: :metadat
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab organization f so caper', include_shared: true
+  rspec.include_context 'datalab organization j es caper', include_shared: true
 end
