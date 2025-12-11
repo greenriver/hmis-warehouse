@@ -75,6 +75,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ProjectValidator
 
+  # Destroy related CE referrals before destroying the project
+  before_destroy :destroy_related_ce_referrals
+
   # hide previous declaration of :viewable_by, we'll use this one
   # Includes any HMIS projects where the user has the can_view_projects permission
   replace_scope :viewable_by, ->(user) do
@@ -397,6 +400,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
 
     unit_type_scope
+  end
+
+  private
+
+  # Destroy CE referrals that are associated with this project's opportunities.
+  # This is needed as a workaround to the fact that opportunities are not destroyed when their unit is destroyed.
+  def destroy_related_ce_referrals
+    ce_referrals.each(&:destroy!)
   end
 
   include RailsDrivers::Extensions
