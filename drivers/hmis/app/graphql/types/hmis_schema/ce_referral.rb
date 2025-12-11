@@ -190,22 +190,19 @@ module Types
     end
 
     def target_project_id
-      opportunity = load_ar_association(object, :opportunity)
-      project = load_ar_association(opportunity, :project)
-      project.id
+      target_project.id
     end
 
     def target_project_name
-      load_ar_association(object, :target_project).project_name
+      target_project.project_name
     end
 
     def target_project_type
-      load_ar_association(object, :target_project).project_type
+      target_project.project_type
     end
 
     def target_organization_name
-      project = load_ar_association(object, :target_project)
-      load_ar_association(project, :organization).name
+      load_ar_association(target_project, :organization).name
     end
 
     def target_enrollment
@@ -263,7 +260,7 @@ module Types
     end
 
     def access
-      project_id = load_ar_association(object, :target_project).id
+      project_id = target_project.id
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
       source_enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
       referral_policy = policy_for(object, policy_type: :ce_referral)
@@ -292,6 +289,10 @@ module Types
     end
 
     private
+
+    def target_project
+      load_ar_association(object, :target_project)
+    end
 
     def participants_by_swimlane_id
       @participants_by_swimlane_id ||= object.participants.group_by(&:swimlane_id)

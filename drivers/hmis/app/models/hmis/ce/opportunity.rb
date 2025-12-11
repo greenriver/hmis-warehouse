@@ -7,7 +7,6 @@
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
     self.ignored_columns += [
-      'workflow_template_identifier', # TODO - remove after migration 20251002192540 is run
       'project_id', # Stop using direct association to project, go through unit instead
     ]
 
