@@ -36,7 +36,7 @@ module HmisExternalApis::AcHmis
     SYSTEM_ID = 'ac_hmis_aha'
     AHA_GENERATOR = 'AHA'
     VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
-    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
+    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 15 : 10
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
     # Custom error class for MciUniqueId so the mutation can catch it

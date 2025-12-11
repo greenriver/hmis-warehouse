@@ -28,8 +28,7 @@
           -else
             %td
           %td
-            = link_to_if @report.can_see_client_details?(current_user), appropriate_client_path(client.destination_client_id) do
-              = client.personal_id
+            = link_to_if @report.can_see_client_details?(current_user), client.personal_id, appropriate_client_path(client.destination_client_id)
             - ds = client.client&.data_source
             - if ds&.hmis_link_available?
               = hmis_external_link(client.client, user: current_user, wrapper_class: 'mb-2 text-teeny')
