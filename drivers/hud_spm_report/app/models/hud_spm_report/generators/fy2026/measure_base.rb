@@ -17,10 +17,14 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def enrollment_set
-      enrollments = @report.spm_enrollments
-      return enrollments if enrollments.exists?
+      return @report.spm_enrollments if @report.snapshot_completed?
+
+      @report.spm_enrollments.delete_all
+      @report.mark_snapshot_started!
 
       HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(@report)
+      @report.mark_snapshot_completed!
+
       @report.spm_enrollments
     end
 
@@ -51,7 +55,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
+      @filter ||= ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
     end
 
     private def generator_klass

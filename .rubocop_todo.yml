@@ -1418,7 +1418,6 @@ Style/RedundantParentheses:
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/qualifying_activity.rb'
-    - 'app/models/health/scheduled_documents/base.rb'
     - 'app/models/health/tasks/import_epic.rb'
     - 'app/models/report_generators/data_quality/fy2017/q2.rb'
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/fake_housing_total_placements_data.rb'

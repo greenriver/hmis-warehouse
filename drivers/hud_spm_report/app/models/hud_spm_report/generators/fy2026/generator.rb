@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud_spm_report.md
 module HudSpmReport::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path
@@ -20,6 +21,10 @@ module HudSpmReport::Generators::Fy2026
 
     def self.short_name
       'SPM'
+    end
+
+    def self.supports_idempotent_retry?
+      true
     end
 
     def self.default_project_type_codes

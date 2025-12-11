@@ -423,7 +423,7 @@ module HudSpmReport::Fy2026
     end
 
     private def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
+      @filter ||= ::Filters::HudFilterBase.new(user: report.user).update(report.options)
     end
   end
 end

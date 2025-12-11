@@ -32,6 +32,10 @@ module HudSpmReport::Generators::Fy2026
       }.freeze
     end
 
+    def self.reset_derived_data(report_instance)
+      HudSpmReport::Fy2026::Return.where(report_instance_id: report_instance.id).delete_all
+    end
+
     def run_question!
       tables = [
         ['2a and 2b', :run_2a_and_b],
@@ -151,9 +155,9 @@ module HudSpmReport::Generators::Fy2026
       returns = HudSpmReport::Fy2026::Return.compute_returns(@report, enrollment_set)
 
       members = returns.map do |enrollment|
-        [enrollment.client, enrollment]
+        [enrollment.client_id, enrollment]
       end.to_h
-      @universe.add_universe_members(members)
+      @universe.add_universe_members_from_client_ids(members)
 
       @universe.members
     end
