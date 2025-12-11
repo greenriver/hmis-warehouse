@@ -30,8 +30,11 @@ module HudReports
       columns = search_columns
       return scope if columns.empty?
 
-      conditions = columns.map do |col|
-        col.matches("%#{sanitize_sql_like(search_term)}%")
+      sanitized_term = sanitize_sql_like(search_term).downcase
+      lowered_columns = columns.map { |col| Arel::Nodes::NamedFunction.new('LOWER', [col]) }
+
+      conditions = lowered_columns.map do |col|
+        col.matches("%#{sanitized_term}%")
       end
 
       scope.where(conditions.inject(:or)).distinct

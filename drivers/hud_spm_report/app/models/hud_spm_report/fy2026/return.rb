@@ -39,6 +39,15 @@ module HudSpmReport::Fy2026
       [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id
     end
 
+    def self.pluck_project_ids
+      project_table = GrdaWarehouse::Hud::Project.arel_table
+
+      exit_project_ids = joins(exit_enrollment: { enrollment: :project }).distinct.pluck(project_table[:id])
+      return_project_ids = joins(return_enrollment: { enrollment: :project }).distinct.pluck(project_table[:id])
+
+      (exit_project_ids + return_project_ids).compact.uniq
+    end
+
     def data_source_id
       [
         exit_enrollment&.enrollment&.data_source_id,

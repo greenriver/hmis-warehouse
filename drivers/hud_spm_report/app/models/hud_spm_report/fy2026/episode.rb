@@ -37,6 +37,11 @@ module HudSpmReport::Fy2026
       ]
     end
 
+    def self.pluck_project_ids
+      project_table = GrdaWarehouse::Hud::Project.arel_table
+      joins(enrollments: { enrollment: :project }).distinct.pluck(project_table[:id])
+    end
+
     def project_id
       enrollment.project_id
     end

@@ -96,8 +96,9 @@ module HudSpmReport
     end
 
     def preload_policies(clients)
-      project_ids = clients.map(&:project_id).uniq
-      user.policy_context.preload_project_dependencies(project_ids)
+      return unless clients.respond_to?(:pluck_project_ids)
+
+      user.policy_context.preload_project_dependencies(clients.pluck_project_ids)
     end
   end
 end
