@@ -156,7 +156,7 @@ module HudApr::Generators::Shared::Fy2026
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program, assessment_relation_preloaded: true)
+          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -528,7 +528,6 @@ module HudApr::Generators::Shared::Fy2026
 
     private def clients_with_enrollments(batch, scope: enrollment_scope, **)
       scope.
-        preload(:project).
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
@@ -595,24 +594,17 @@ module HudApr::Generators::Shared::Fy2026
           :youth_education_statuses,
           project: [
             :funders,
-            :ce_participations,
-            :project_cocs,
           ],
           client: [
             assessments: [
-              enrollment: { project: :ce_participations },
+              enrollment: :project,
             ],
             events: [
-              enrollment: { project: :ce_participations },
+              enrollment: :project,
             ],
           ],
         ],
-        client: [
-          { source_events: { enrollment: { project: :ce_participations } } },
-          { source_assessments: { enrollment: { project: :ce_participations } } },
-          { events: { enrollment: { project: :ce_participations } } },
-          { assessments: { enrollment: { project: :ce_participations } } },
-        ],
+        client: [:source_events, :source_assessments],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end
