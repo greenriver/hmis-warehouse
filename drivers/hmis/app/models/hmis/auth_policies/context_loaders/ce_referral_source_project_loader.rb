@@ -14,7 +14,7 @@ module Hmis::AuthPolicies::ContextLoaders
 
     def get(referral_id)
       preload([referral_id]) unless @cache.key?(referral_id)
-      @cache[referral_id] || raise("No source project found for referral #{referral_id}")
+      @cache[referral_id]
     end
 
     def cached_project_ids
@@ -30,7 +30,9 @@ module Hmis::AuthPolicies::ContextLoaders
       e_t = Hmis::Hud::Enrollment.arel_table
       results = Hmis::Ce::Referral.
         where(id: new_referral_ids).
-        joins(:source_enrollment).
+        # Left join because referral isn't required to have a source enrollment.
+        # Still store nil in the cache in that case, to avoid extra queries.
+        left_outer_joins(:source_enrollment).
         pluck(:id, e_t[:project_pk]).
         to_h
       @cache.merge!(results)
