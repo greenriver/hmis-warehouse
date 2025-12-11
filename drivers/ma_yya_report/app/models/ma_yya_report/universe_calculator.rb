@@ -72,10 +72,12 @@ module MaYyaReport
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
 
           all_cls_in_range = ongoing_enrollments.flat_map do |en|
+            next unless en.enrollment.present?
+
             en.enrollment.current_living_situations.select do |cls|
               cls.InformationDate.between?(filter.start_date, filter.end_date)
             end
-          end.sort_by(&:InformationDate)
+          end.compact.sort_by(&:InformationDate)
 
           homeless_cls_in_range = all_cls_in_range.select { |cls| homeless_cls?(cls) }
           non_homeless_cls_in_range = all_cls_in_range.reject { |cls| homeless_cls?(cls) }

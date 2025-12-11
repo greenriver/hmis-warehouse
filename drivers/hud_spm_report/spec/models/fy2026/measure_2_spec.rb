@@ -10,7 +10,7 @@ require 'rails_helper'
 require_relative './shared_context'
 
 RSpec.describe HudSpmReport::Generators::Fy2026::MeasureTwo, type: :model, exclude_fixpoints: true do
-  include_context 'SPM test setup'
+  include_context '2026 SPM test setup'
 
   describe 'returns within two years' do
     before do
