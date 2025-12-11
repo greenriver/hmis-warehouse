@@ -192,9 +192,9 @@ module HudSpmReport::Generators::Fy2026
         next unless episodes.present?
 
         members = episodes.map do |episode|
-          [episode.client, episode]
+          [episode.client_id, episode]
         end.to_h
-        @universe.add_universe_members(members)
+        @universe.add_universe_members_from_client_ids(members)
       end
       @universe.members
     end
@@ -216,6 +216,8 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def median(values)
+      return nil if values.empty?
+
       sorted = values.sort
       len = sorted.length
 

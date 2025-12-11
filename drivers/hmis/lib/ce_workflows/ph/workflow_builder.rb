@@ -10,9 +10,9 @@
 module CeWorkflows::Ph
   class WorkflowBuilder
     FORMS = {
-      benefits_referral: 'benefits_referral',
-      shelter_referral: 'shelter_referral',
-      outreach_referral: 'outreach_referral',
+      benefits_referral: 'ce_benefits_referral',
+      shelter_referral: 'ce_shelter_referral',
+      outreach_referral: 'ce_outreach_referral',
       provider_decision: 'direct_referral_workflow_provider_decision',
     }.freeze
 

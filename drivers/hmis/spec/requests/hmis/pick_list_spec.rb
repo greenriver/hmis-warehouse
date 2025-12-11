@@ -735,6 +735,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it_behaves_like 'returns empty pick list'
     end
   end
+
+  describe 'CE_REFERRAL_STATUSES' do
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+    end
+    let!(:custom_status) { create(:hmis_ce_custom_referral_status, data_source: ds1, name: 'Assigned Pending Review', key: 'assigned_pending_review') }
+
+    it 'returns all custom referral statuses' do
+      response, result = post_graphql(pick_list_type: 'CE_REFERRAL_STATUSES') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.count).to eq(4)
+      expect(options).to contain_exactly(
+        a_hash_including('code' => 'accepted', 'label' => 'Accepted'),
+        a_hash_including('code' => 'rejected', 'label' => 'Declined'),
+        a_hash_including('code' => 'in_progress', 'label' => 'In Progress'),
+        a_hash_including('code' => 'assigned_pending_review', 'label' => 'Assigned Pending Review'),
+      )
+    end
+  end
 end
 
 RSpec.configure do |c|

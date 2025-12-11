@@ -30,6 +30,8 @@ module Filters
 
     # NOTE: This differs from the base filter class because it doesn't include any projects based on CoCCode
     def effective_project_ids
+      return @effective_project_ids if defined?(@effective_project_ids)
+
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups
       @effective_project_ids += effective_project_ids_from_organizations

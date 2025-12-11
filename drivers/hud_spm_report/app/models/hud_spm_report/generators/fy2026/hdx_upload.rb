@@ -243,22 +243,34 @@ module HudSpmReport::Generators::Fy2026
         external_row_label: true,
       )
 
-      # Set the column headers in row 1
+      # Build all cell records for bulk insert
+      cells = []
+
+      # Row 1: Column headers
       COLUMNS.each do |column|
-        answer = @report.answer(question: table_name, cell: "#{column.column_letter}1")
-        answer.update(summary: column.variable_name)
+        cells << @report.report_cells.build(
+          question: table_name,
+          cell_name: "#{column.column_letter}1",
+          universe: false,
+          summary: column.variable_name,
+        )
       end
 
-      # Set the values in row 2
+      # Row 2: Values
       COLUMNS.each do |column|
-        # Get the formatted the value
         raw_value = column.get_raw_value(self)
         formatted_value = column.format_value(raw_value)
 
-        # Update the report cell
-        answer = @report.answer(question: table_name, cell: "#{column.column_letter}2")
-        answer.update(summary: formatted_value)
+        cells << @report.report_cells.build(
+          question: table_name,
+          cell_name: "#{column.column_letter}2",
+          universe: false,
+          summary: formatted_value,
+        )
       end
+
+      # Bulk insert all cells in a single operation
+      HudReports::ReportCell.import(cells)
     end
 
     def metadata(column)
@@ -333,7 +345,7 @@ module HudSpmReport::Generators::Fy2026
       dq_filter.data_source_ids = []
       dq_filter.project_ids = project_ids
 
-      generator = HudApr::Generators::Dq::Fy2024::Generator
+      generator = HudApr::Generators::Dq::Fy2026::Generator
       report = ::HudReports::ReportInstance.from_filter(dq_filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
       generator.new(report).run!(email: false, manual: false)
 
@@ -341,7 +353,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
+      @filter ||= ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
     end
   end
 end

@@ -6,14 +6,14 @@
 
 # frozen_string_literal: true
 
-RSpec.shared_context 'datalab organization s th caper', shared_context: :metadata do
-  describe 'Datalab 2026 CAPER - Organization S - TH' do
-    let(:results_dir) { 'caper/organization_s_th' }
+RSpec.shared_context 'datalab organization e th apr', shared_context: :metadata do
+  describe 'Datalab 2026 APR - Organization E - TH - 3' do
+    let(:results_dir) { 'apr/organization_e_th' }
     before(:all) do
       puts
-      puts 'Running CAPER Organization S - TH'
-      generator = HudApr::Generators::Caper::Fy2026::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization S - TH']).pluck(:id)
+      puts 'Running APR Organization I - TH - 3'
+      generator = HudApr::Generators::Apr::Fy2026::Generator
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization E - TH - 3']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -29,14 +29,14 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
           'Q5a' => ['C2'],
         }
       end
-      let(:caper_validations) { ValidationLoader.load_validations['CAPER FY2026'] }
+      let(:apr_validations) { ValidationLoader.load_validations['APR FY2026'] }
 
       it 'runs all validation checks' do
         aggregate_failures do
-          caper_validations.each do |question, table_validations|
+          apr_validations.each do |question, table_validations|
             table_validations.each do |validation|
               next if validation_skips[question]&.include?(validation[:total])
-              next unless validation[:source][:relevant_project_types]&.include?(2)
+              next unless validation[:source][:relevant_project_types]&.include?(3)
 
               check_sum(validation: validation, question: question)
             end
@@ -151,14 +151,6 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
     #   )
     # end
 
-    # Removed in 2026
-    # it 'Q10d' do
-    #   compare_results(
-    #     file_path: result_file_prefix + results_dir,
-    #     question: 'Q10d',
-    #   )
-    # end
-
     it 'Q11' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -191,6 +183,27 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q13c1',
+      )
+    end
+
+    it 'Q13a2' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q13a2',
+      )
+    end
+
+    it 'Q13b2' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q13b2',
+      )
+    end
+
+    it 'Q13c2' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q13c2',
       )
     end
 
@@ -229,6 +242,27 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       )
     end
 
+    it 'Q18' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q18',
+      )
+    end
+
+    it 'Q19a1' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q19a1',
+      )
+    end
+
+    it 'Q19a2' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q19a2',
+      )
+    end
+
     it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -243,6 +277,13 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       )
     end
 
+    it 'Q20b' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q20b',
+      )
+    end
+
     it 'Q21' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -250,10 +291,17 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       )
     end
 
-    it 'Q22a2' do
+    it 'Q22a1' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q22a2',
+        question: 'Q22a1',
+      )
+    end
+
+    it 'Q22b' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q22b',
       )
     end
 
@@ -261,13 +309,6 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22c',
-      )
-    end
-
-    it 'Q22d' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q22d',
       )
     end
 
@@ -285,10 +326,20 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       )
     end
 
+    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=5A606727-DCC6-477E-BCAB6FCC078237F2
     it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
+        skip: [
+          'D2', # expected '3.0000' (3), got '1.0000' (1)
+          'H2', # expected '13.0000' (13), got '6.0000' (6)
+          'D3', # expected '0.0000' (0), got '2.0000' (2)
+          'H3', # expected '0.0000' (0), got '7.0000' (7)
+          'D4', # expected '140.0000' (140.0000), got '125.0000' (125.0)
+          'H4', # expected '232.2300' (232.2308), got '402.3300' (402.3333)
+          'H5', # expected '23.0000' (23.0000), got '130.5000' (130.5)
+        ],
       )
     end
 
@@ -313,12 +364,20 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       )
     end
 
-    it 'Q24a' do
+    it 'Q24b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q24a',
+        question: 'Q24b',
       )
     end
+
+    # Removed in 2026
+    # it 'Q24c' do
+    #   compare_results(
+    #     file_path: result_file_prefix + results_dir,
+    #     question: 'Q24c',
+    #   )
+    # end
 
     # Removed in 2026
     # it 'Q24d' do
@@ -335,15 +394,179 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       )
     end
 
+    it 'Q25b' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q25b',
+      )
+    end
+
+    # Removed in 2026
+    # it 'Q25c' do
+    #   compare_results(
+    #     file_path: result_file_prefix + results_dir,
+    #     question: 'Q25c',
+    #   )
+    # end
+
+    it 'Q25d' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q25d',
+      )
+    end
+
+    it 'Q25i' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q25i',
+      )
+    end
+
+    it 'Q25j' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q25j',
+      )
+    end
+
+    it 'Q26a' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q26a',
+      )
+    end
+
     it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
       )
     end
+
+    # Removed in 2026
+    # it 'Q26c' do
+    #   compare_results(
+    #     file_path: result_file_prefix + results_dir,
+    #     question: 'Q26c',
+    #   )
+    # end
+
+    it 'Q26d' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q26d',
+      )
+    end
+
+    it 'Q26e' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q26e',
+      )
+    end
+
+    it 'Q27a' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27a',
+      )
+    end
+
+    it 'Q27b' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27b',
+      )
+    end
+
+    # Removed in 2026
+    # it 'Q27c' do
+    #   compare_results(
+    #     file_path: result_file_prefix + results_dir,
+    #     question: 'Q27c',
+    #   )
+    # end
+
+    it 'Q27d' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27d',
+      )
+    end
+
+    it 'Q27e' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27e',
+      )
+    end
+
+    it 'Q27f1' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27f1',
+      )
+    end
+
+    it 'Q27f2' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27f2',
+      )
+    end
+
+    it 'Q27g' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27g',
+      )
+    end
+
+    it 'Q27h' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27h',
+      )
+    end
+
+    it 'Q27i' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27i',
+      )
+    end
+
+    it 'Q27j' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27j',
+      )
+    end
+
+    it 'Q27k' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27k',
+      )
+    end
+
+    it 'Q27l' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27l',
+      )
+    end
+
+    it 'Q27m' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q27m',
+      )
+    end
   end
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab organization s th caper', include_shared: true
+  rspec.include_context 'datalab organization e th apr', include_shared: true
 end
