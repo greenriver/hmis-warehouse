@@ -161,7 +161,7 @@ module Hmis::Ce
       log_info('Starting reconciliation of untracked pools')
 
       # Find and mark untracked active pools
-      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active.
+      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active_for_maintenance.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
 
