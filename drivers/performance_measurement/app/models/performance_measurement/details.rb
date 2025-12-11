@@ -173,16 +173,15 @@ module PerformanceMeasurement::Details
     memoize :other_projects
 
     def project_details(user, key)
-      details = results.project.left_outer_joins(:hud_project).
+      # Return all project Results for this metric
+      # The calculation methods only create Results for relevant project types,
+      # so if a Result exists, the metric is relevant (show 0 if denominator is 0)
+      # If no Result exists, the metric is not relevant (will show N/A in the view)
+      results.project.left_outer_joins(:hud_project).
         order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
         for_field(key).
         sort_by { |project| project&.hud_project&.name(user) || 'unknown' }.
         index_by(&:project_id)
-      # throw out any where there are no associated client_projects
-      # NOTE: we also need to throw these out in `inventory_sum`
-      cp_key = detail_for(key)[:calculation_column]
-      project_ids = client_projects.for_question(cp_key).distinct.pluck(:project_id)
-      details.select { |k, _| k.in?(project_ids) }.to_h
     end
     memoize :project_details
 

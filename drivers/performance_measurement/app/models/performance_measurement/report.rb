@@ -124,11 +124,7 @@ module PerformanceMeasurement
     def filter
       @filter ||= begin
         f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
-        if PerformanceMeasurement::Goal.include_project_options?
-          f.default_project_type_codes = []
-        else
-          f.default_project_type_codes = self.class.default_project_type_codes
-        end
+        f.default_project_type_codes = self.class.default_project_type_codes
         f.update((options || {}).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
@@ -1258,8 +1254,6 @@ module PerformanceMeasurement
         {
           cells: [['7b.2', 'C2']],
           title: 'RRH, PH with Move-in or Permanent Exit',
-          # NOTE: SPM does not include RRH in 7b.2
-          # Can we get the number of RRH from Measure 1b B2 limited to RRH with move-in, then filter for stayer or positive exit
           measure: :m7,
           history_source: :m7b_history,
           questions: [
