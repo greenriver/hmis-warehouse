@@ -135,10 +135,10 @@ module HudSpmReport::Generators::Fy2026
           group_on: :client_id,
           scope: spm_enrollments,
         )
-        members = uniq_members.map do |enrollment|
-          [enrollment.client_id, enrollment]
+        members = uniq_members.preload(:client).map do |enrollment|
+          [enrollment.client, enrollment]
         end
-        universe.add_universe_members_from_client_ids(members.to_h)
+        universe.add_universe_members(members.to_h)
       end
 
       # add universe to cell
@@ -148,7 +148,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def filter
-      ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
+      ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
     end
   end
 end
