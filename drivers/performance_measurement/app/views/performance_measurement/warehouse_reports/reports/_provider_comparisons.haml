@@ -63,7 +63,6 @@
                   %td= data[:project_name]
                   - data[:values].each do |detail, result|
                     %td{class: result[:decorator]}
-                      = debug result[:display_value]
                       - if result[:display_value].present?
                         = result[:display_value]
                       - else
