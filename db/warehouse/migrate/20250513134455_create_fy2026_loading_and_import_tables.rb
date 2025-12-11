@@ -9,7 +9,7 @@ class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]
     # Loader tables
     HmisCsvTwentyTwentySix.loadable_files.each_value do |klass|
       klass.hmis_table_create!(version: spec_version, constraints: false, types: false)
-      klass.hmis_table_create_indices!(version: spec_version, ignored_indexes: ignored_loader_indexes)
+      klass.hmis_table_create_indices!(version: spec_version, ignored_indexes: ignored_loader_indexes) if klass.respond_to?(:hmis_indices)
     end
 
     HmisCsvTwentyTwentySix.loadable_files.each_value do |klass|
@@ -35,7 +35,7 @@ class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]
     # Importer tables
     HmisCsvTwentyTwentySix.importable_files.each_value do |klass|
       klass.hmis_table_create!(version: spec_version, constraints: false)
-      klass.hmis_table_create_indices!(version: spec_version)
+      klass.hmis_table_create_indices!(version: spec_version) if klass.respond_to?(:hmis_indices)
     end
 
     HmisCsvTwentyTwentySix.importable_files.each_value do |klass|

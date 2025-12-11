@@ -75,8 +75,7 @@ module Mutations
       eligible_pools = []
       clients = GrdaWarehouse::Hud::Client.where(id: client.id)
 
-      # Evaluate client against active candidate pools
-      Hmis::Ce::Match::CandidatePool.active.find_each do |pool|
+      Hmis::Ce::Match::CandidatePool.active_for_current_eligibility.find_each do |pool|
         evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, pool, field_map)
         result = evaluator.call(client, field_value_overrides: field_value_overrides)
 

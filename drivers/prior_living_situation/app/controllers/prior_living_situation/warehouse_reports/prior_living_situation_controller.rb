@@ -30,6 +30,11 @@ module PriorLivingSituation::WarehouseReports
     def details
       @key = params[:key]
       @sub_key = params[:sub_key]
+      # Sometimes the details page is called with no arguments, probably because the user was logged out
+      if @key.blank?
+        redirect_to prior_living_situation_warehouse_reports_prior_living_situation_index_path
+        return
+      end
       respond_to do |format|
         format.html {}
         format.xlsx do

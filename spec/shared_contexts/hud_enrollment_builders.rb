@@ -124,8 +124,9 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       :hud_service,
       enrollment: enrollment,
       date_provided: date,
-      data_source: data_source,
+      data_source: enrollment.data_source,
       record_type: 200, # bed night
+      personal_id: enrollment.personal_id,
     )
   end
 
