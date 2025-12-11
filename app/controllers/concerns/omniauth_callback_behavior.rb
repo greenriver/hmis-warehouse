@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # mixin for okta callbacks,
 # note failure is configured in omniauth initializer
 module OmniauthCallbackBehavior

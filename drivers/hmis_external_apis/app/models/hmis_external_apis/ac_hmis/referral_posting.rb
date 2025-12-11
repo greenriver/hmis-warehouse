@@ -39,7 +39,7 @@ module HmisExternalApis::AcHmis
     alias_attribute :household_id, :HouseholdID
     # https://docs.google.com/spreadsheets/d/12wRLTjNdcs7A_1lHwkLUoKz1YWYkfaQs/edit#gid=26094550
     enum(
-      status: {
+      :status, {
         assigned_status: 12,
         closed_status: 13,
         accepted_pending_status: 18,
@@ -54,7 +54,7 @@ module HmisExternalApis::AcHmis
         # assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudHelper.util.hud_list_map_as_enumerable(:referral_results),
+      referral_result: ::HudHelper.util.hud_list_map_as_enumerable(:referral_results)
     )
 
     # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)
@@ -188,6 +188,9 @@ module HmisExternalApis::AcHmis
     def exit_origin_household(user:)
       # don't auto-exit if referral is from link
       return if from_link?
+
+      # don't auto-exit if the environment specifies not to
+      return if AppConfigProperty.where(key: 'hmis_external_apis/legacy_referrals/keep_source_enrollment_open', value: '1').exists?
 
       # for find the origin household through the enrollment
       referral_household = referral&.enrollment&.household

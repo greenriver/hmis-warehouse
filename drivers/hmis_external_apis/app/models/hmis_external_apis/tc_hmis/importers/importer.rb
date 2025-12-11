@@ -4,11 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
+# frozen_string_literal: true
 
 # HmisExternalApis::TcHmis::Importers::Importer.perform(dir: '/host/tc', clobber: true, log_file: '/app/log/tc.log')
 module HmisExternalApis::TcHmis::Importers
@@ -61,18 +57,20 @@ module HmisExternalApis::TcHmis::Importers
       ]
 
       # disable paper trail to improve importer performance
-      PaperTrail.enabled = false
-      loaders.each do |loader_class|
-        loader = loader_class.new(
-          clobber: clobber,
-          reader: Loaders::FileReader.new(dir),
-          log_file: log_file,
-        )
-        run_loader(loader)
-        GC.start
+      PaperTrailHelper.without_paper_trail do
+        loaders.each do |loader_class|
+          loader = loader_class.new(
+            clobber: clobber,
+            reader: Loaders::FileReader.new(dir),
+            log_file: log_file,
+          )
+          run_loader(loader)
+          GC.start
+        end
+
+        analyze_tables
       end
 
-      analyze_tables
       true
     rescue StandardError => e
       # this might be swallowing the exception

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AccessControlSetup
   def setup_access_control(user, role, collection)
     user_group = UserGroup.where(name: "#{role.name} x #{collection.name}").first_or_create

@@ -1,0 +1,319 @@
+{
+    "item": [
+      {
+        "item": [
+          {
+            "size": "SMALL",
+            "text": "Phone Number",
+            "type": "STRING",
+            "initial": [
+              {
+                "initial_behavior": "IF_EMPTY",
+                "value_local_constant": "$clientPhone"
+              }
+            ],
+            "link_id": "benefits_referral_phone",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_phone"
+            },
+            "required": true
+          },
+          {
+            "text": "Phone Type",
+            "type": "CHOICE",
+            "link_id": "benefits_referral_phone_type",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_phone_type"
+            },
+            "required": true,
+            "pick_list_options": [
+              {
+                "code": "Client Phone Number"
+              },
+              {
+                "code": "Case Manager Phone Number"
+              }
+            ]
+          },
+          {
+            "size": "MEDIUM",
+            "text": "Client Email",
+            "type": "STRING",
+            "initial": [
+              {
+                "initial_behavior": "IF_EMPTY",
+                "value_local_constant": "$clientEmail"
+              }
+            ],
+            "link_id": "benefits_referral_client_email",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_client_email"
+            },
+            "required": true
+          },
+          {
+            "text": "Preferred Method of Contact",
+            "type": "CHOICE",
+            "link_id": "benefits_referral_preferred_method",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_preferred_method"
+            },
+            "required": false,
+            "component": "RADIO_BUTTONS",
+            "pick_list_options": [
+              {
+                "code": "Email"
+              },
+              {
+                "code": "Phone"
+              },
+              {
+                "code": "Text"
+              },
+              {
+                "code": "No Preference"
+              }
+            ]
+          },
+          {
+            "text": "Current Housing Status",
+            "type": "CHOICE",
+            "link_id": "benefits_referral_current_housing_status",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_current_housing_status"
+            },
+            "required": true,
+            "pick_list_options": [
+              {
+                "code": "Housed"
+              },
+              {
+                "code": "Sheltered"
+              },
+              {
+                "code": "Unsheltered"
+              }
+            ]
+          },
+          {
+            "item": [
+              {
+                "text": "Address Line 1",
+                "type": "STRING",
+                "link_id": "benefits_referral_address_line_1",
+                "mapping": {
+                  "custom_field_key": "ce_benefits_referral_address_line_1"
+                }
+              },
+              {
+                "text": "Address Line 2",
+                "type": "STRING",
+                "link_id": "benefits_referral_address_line_2",
+                "mapping": {
+                  "custom_field_key": "ce_benefits_referral_address_line_2"
+                }
+              },
+              {
+                "size": "SMALL",
+                "text": "City",
+                "type": "STRING",
+                "link_id": "benefits_referral_address_city",
+                "mapping": {
+                  "custom_field_key": "ce_benefits_referral_address_city"
+                }
+              },
+              {
+                "item": [
+                  {
+                    "size": "XSMALL",
+                    "text": "State",
+                    "type": "STRING",
+                    "link_id": "benefits_referral_address_state",
+                    "mapping": {
+                      "custom_field_key": "ce_benefits_referral_address_state"
+                    }
+                  },
+                  {
+                    "size": "SMALL",
+                    "text": "Zip Code",
+                    "type": "STRING",
+                    "link_id": "benefits_referral_zip_code",
+                    "mapping": {
+                      "custom_field_key": "ce_benefits_referral_zip_code"
+                    }
+                  }
+                ],
+                "type": "GROUP",
+                "link_id": "benefits_referral_address_state_group",
+                "component": "HORIZONTAL_GROUP"
+              }
+            ],
+            "type": "GROUP",
+            "link_id": "benefits_referral_address_group",
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "benefits_referral_current_housing_status",
+                "answer_code": "Housed"
+              }
+            ],
+            "enable_behavior": "ANY"
+          },
+          {
+            "text": "What is your monthly rent amount?",
+            "type": "CURRENCY",
+            "link_id": "benefits_referral_rent_amount",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_rent_amount"
+            },
+            "required": true,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "benefits_referral_current_housing_status",
+                "answer_code": "Housed"
+              }
+            ],
+            "enable_behavior": "ANY"
+          },
+          {
+            "text": "Who is currently paying the rent?",
+            "type": "CHOICE",
+            "link_id": "benefits_referral_who_is_paying_rent",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_who_is_paying_rent"
+            },
+            "required": true,
+            "component": "RADIO_BUTTONS",
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "benefits_referral_current_housing_status",
+                "answer_code": "Housed"
+              }
+            ],
+            "enable_behavior": "ANY",
+            "pick_list_options": [
+              {
+                "code": "Client"
+              },
+              {
+                "code": "Housing Program"
+              },
+              {
+                "code": "Other"
+              }
+            ]
+          },
+          {
+            "text": "Which housing program is paying rent?",
+            "type": "STRING",
+            "link_id": "benefits_referral_housing_program_paying_rent",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_housing_program_paying_rent"
+            },
+            "required": true,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "benefits_referral_who_is_paying_rent",
+                "answer_code": "Housing Program"
+              }
+            ],
+            "enable_behavior": "ANY"
+          },
+          {
+            "text": "If sheltered, what is the current shelter",
+            "type": "STRING",
+            "link_id": "benefits_referral_current_shelter",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_current_shelter"
+            },
+            "required": true,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "benefits_referral_current_housing_status",
+                "answer_code": "Sheltered"
+              }
+            ],
+            "enable_behavior": "ANY"
+          },
+          {
+            "text": "If unsheltered, what is the client's current location (descriptions of environment or street intersection, etc.)",
+            "type": "TEXT",
+            "link_id": "benefits_referral_unsheltered_location",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_unsheltered_location"
+            },
+            "required": true,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "benefits_referral_current_housing_status",
+                "answer_code": "Unsheltered"
+              }
+            ],
+            "enable_behavior": "ANY"
+          },
+          {
+            "text": "Current Housing Hazards",
+            "type": "CHOICE",
+            "link_id": "benefits_referral_housing_hazards",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_housing_hazards"
+            },
+            "repeats": true,
+            "required": false,
+            "component": "RADIO_BUTTONS",
+            "pick_list_options": [
+              {
+                "code": "Bed Bugs"
+              },
+              {
+                "code": "Owns Dog(s)"
+              },
+              {
+                "code": "Sex Offender"
+              }
+            ]
+          },
+          {
+            "text": "Disabilities",
+            "type": "CHOICE",
+            "link_id": "benefits_referral_disabilities",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_disabilities"
+            },
+            "repeats": true,
+            "required": false,
+            "component": "RADIO_BUTTONS",
+            "pick_list_options": [
+              {
+                "code": "Mental"
+              },
+              {
+                "code": "Physical"
+              },
+              {
+                "code": "Substance Use"
+              }
+            ]
+          },
+          {
+            "text": "Reason for the referral (Description of the service requested)",
+            "type": "TEXT",
+            "link_id": "benefits_referral_reason",
+            "mapping": {
+              "custom_field_key": "ce_benefits_referral_reason"
+            },
+            "repeats": false,
+            "required": false
+          }
+        ],
+        "type": "GROUP",
+        "link_id": "benefits_referral_group"
+      }
+    ]
+  }
+  

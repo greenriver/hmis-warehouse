@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-elasticloadbalancingv2'
 
 # This class helps coordinate with the HMIS frontend (if one exists) to make

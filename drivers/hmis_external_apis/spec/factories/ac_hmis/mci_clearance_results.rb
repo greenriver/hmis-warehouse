@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :mci_clearance_result, class: 'HmisExternalApis::AcHmis::MciClearanceResult' do
     sequence(:mci_id) do |n|

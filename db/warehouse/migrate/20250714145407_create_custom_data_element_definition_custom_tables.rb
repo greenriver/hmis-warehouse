@@ -3,6 +3,7 @@
 class CreateCustomDataElementDefinitionCustomTables < ActiveRecord::Migration[7.1]
   def change
     # CustomDataElementDefinition loader table
+    drop_table :hmis_csv_2026_custom_data_element_definitions if table_exists?(:hmis_csv_2026_custom_data_element_definitions)
     create_table :hmis_csv_2026_custom_data_element_definitions do |t|
       t.string 'CustomDataElementDefinitionID'
       t.string 'Key'
@@ -26,6 +27,7 @@ class CreateCustomDataElementDefinitionCustomTables < ActiveRecord::Migration[7.
     add_index :hmis_csv_2026_custom_data_element_definitions, [:CustomDataElementDefinitionID, :data_source_id], name: 'idx_custom_data_element_definitions_id_ds'
 
     # CustomDataElementDefinition importer table
+    drop_table :hmis_2026_custom_data_element_definitions if table_exists?(:hmis_2026_custom_data_element_definitions)
     create_table :hmis_2026_custom_data_element_definitions do |t|
       t.string 'CustomDataElementDefinitionID'
       t.string 'Key'

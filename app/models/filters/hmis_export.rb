@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 require 'memery'
+
+# @see docs/features/hmis-csv-export.md
 module Filters
   class HmisExport < FilterBase
     include ArelHelper

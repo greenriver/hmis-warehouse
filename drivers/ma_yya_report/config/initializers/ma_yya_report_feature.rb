@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The core app (or other drivers) can check the presence of the
 # MaYyaReport driver with the following code snippet
 #

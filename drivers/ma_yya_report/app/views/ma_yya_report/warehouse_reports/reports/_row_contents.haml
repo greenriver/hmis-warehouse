@@ -1,7 +1,10 @@
 %td
-  = @report.label(label)
+  - cell_label = @report.label(label)
   - text = @report.cell_label(label)
   - if text.present?
-    = ": #{text}"
+    - cell_label += ": #{text}"
+  = cell_label
   - count = @report.answer(label)
+  - if description.present?
+    %i.icon-info{data: { 'bs-toggle': :tooltip, 'bs-title': description}}
   %td= link_to_if(count&.positive?, number_with_delimiter(count), details_ma_yya_report_warehouse_reports_report_path(@report, cell: label))

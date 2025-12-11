@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Logic from https://www.hudexchange.info/resource/5689/client-level-system-use-and-length-of-time-homeless-report/
 
 module GrdaWarehouse::WarehouseReports

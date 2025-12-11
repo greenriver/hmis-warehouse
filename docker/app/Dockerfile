@@ -31,11 +31,12 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG USER_ID=10000
 ARG GROUP_ID=10000
-ARG BUNDLER_VERSION=2.6.3
+
+ARG BUNDLER_VERSION=2.7.2
 ARG PG_MAJOR=17
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.3.8
+LABEL "ruby-version"=3.4.5
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -100,6 +101,7 @@ RUN apt-get update && apt-get upgrade -y \
   gnupg-agent \
   gpg \
   imagemagick \
+  less \
   libcurl4 \
   libcurl4-openssl-dev \
   libffi-dev \
@@ -113,6 +115,8 @@ RUN apt-get update && apt-get upgrade -y \
   libmagic-dev \
   libmagic1 \
   libpq-dev \
+  libsodium23 \
+  libsodium-dev \
   libreadline-dev \
   libx11-6 \
   libxext6 \
@@ -120,6 +124,10 @@ RUN apt-get update && apt-get upgrade -y \
   libxrender1 \
   libxslt1-dev \
   libyaml-dev \
+  libproj-dev \
+  openssh-client \
+  sshpass \
+  proj-bin \
   libzstd-dev \
   liblz4-dev \
   locales-all \
@@ -131,11 +139,14 @@ RUN apt-get update && apt-get upgrade -y \
   poppler-utils \
   postgresql-client \
   postgresql-server-dev-all \
+  ripgrep \
   pinentry-tty \
   shared-mime-info \
+  ssh \
   software-properties-common \
   tar \
   tini \
+  tmux \
   tzdata \
   unzip \
   vim \
@@ -157,7 +168,13 @@ RUN chmod +x /usr/local/bin/install_pg_repack.sh \
 
 WORKDIR /app
 
+# Shim legacy gemspecs that still call the removed Gem::Specification#has_rdoc=
+COPY docker/app/has_rdoc_patch.rb /usr/local/lib/ruby/has_rdoc_patch.rb
+ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
+
+# CVE-2025-58767, note rexml is bundled with ruby, and must be explicitly pinned
 RUN gem update --system \
+  && gem update rexml \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
@@ -176,6 +193,13 @@ FROM base AS dev-build
 
 USER root
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && chmod a+r /etc/apt/keyrings/docker.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
 COPY docker/app/entrypoint.dev.sh /usr/bin/
 COPY docker/app/entrypoint.spec.sh /usr/bin/
 COPY docker/app/entrypoint.dj-eks-test.sh /usr/bin/
@@ -184,7 +208,11 @@ ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 RUN git config --global --add safe.directory /app \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
-  neovim less docker.io python3 zsh openssh-client \
+  docker-ce-cli \
+  less \
+  python3 \
+  zsh \
+  openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
 USER ${USER_ID}

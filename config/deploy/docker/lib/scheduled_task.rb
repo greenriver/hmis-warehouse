@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This encapsulates the concept of a single recurring task
 
 require 'aws-sdk-cloudwatchevents'

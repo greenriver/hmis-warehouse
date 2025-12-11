@@ -3,6 +3,7 @@
 class CreateCustomSexualOrientationCustomTables < ActiveRecord::Migration[7.1]
   def change
     # CustomSexualOrientation loader table
+    drop_table :hmis_csv_2026_custom_sexual_orientations if table_exists?(:hmis_csv_2026_custom_sexual_orientations)
     create_table :hmis_csv_2026_custom_sexual_orientations do |t|
       t.string 'EnrollmentID'
       t.string 'PersonalID'
@@ -24,6 +25,7 @@ class CreateCustomSexualOrientationCustomTables < ActiveRecord::Migration[7.1]
     add_index :hmis_csv_2026_custom_sexual_orientations, [:EnrollmentID, :data_source_id], name: 'idx_custom_sexual_orientations_id_ds'
 
     # CustomSexualOrientation importer table
+    drop_table :hmis_2026_custom_sexual_orientations if table_exists?(:hmis_2026_custom_sexual_orientations)
     create_table :hmis_2026_custom_sexual_orientations do |t|
       t.string 'EnrollmentID'
       t.string 'PersonalID'

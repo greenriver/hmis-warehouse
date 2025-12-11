@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Thin graphql dataloader wrapper around access loaders (Hmis::BaseAccessLoader)
 class Sources::UserEntityAccessSource < GraphQL::Dataloader::Source
   attr_accessor :loader

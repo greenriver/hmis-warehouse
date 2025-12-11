@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility inquiry and contains PHI
 # Control: PHI attributes documented
@@ -111,53 +113,66 @@ module Health
       sender_id = "#{sender.pid}#{sender.sl}"
       application_id = id&.to_s
 
-      b.ISA '00', b.blank, '00', b.blank, 'ZZ', sender_id, 'ZZ', sender.receiver_id, created_at, created_at, '^', '00501', isa_control_number, '0', interchange_usage_indicator, '>'
-      b.GS 'HS', sender_id, sender.receiver_id, created_at, created_at.strftime('%H%M'), group_control_number, 'X', '005010X279A1'
-      b.ST '270', transaction_control_number, '005010X279A1'
-      b.BHT '0022', '13', application_id, created_at, created_at.strftime('%H%M')
+      # Ensure all string values are mutable to avoid frozen string literal warnings
+      # Stupidedi builder methods are mutating the string within the gem flagging the frozen string literal warnings.
+      b.ISA(*mutable_args('00', b.blank, '00', b.blank, 'ZZ', sender_id, 'ZZ', sender.receiver_id.to_s, created_at, created_at, '^', '00501', isa_control_number.to_s, '0', interchange_usage_indicator.to_s, '>'))
+      b.GS(*mutable_args('HS', sender_id, sender.receiver_id, created_at, created_at.strftime('%H%M'), group_control_number, 'X', '005010X279A1'))
+      b.ST(*mutable_args('270', transaction_control_number, '005010X279A1'))
+      b.BHT(*mutable_args('0022', '13', application_id, created_at, created_at.strftime('%H%M')))
       # Information source
       hl += 1
-      b.HL hl, b.blank, '20', '1'
-      b.NM1 'PR', '2', sender.receiver_name, b.blank, b.blank, b.blank, b.blank, '46', sender.receiver_id
+      b.HL(*mutable_args(hl, b.blank, '20', '1'))
+      b.NM1(*mutable_args('PR', '2', sender.receiver_name, b.blank, b.blank, b.blank, b.blank, '46', sender.receiver_id))
       # Information receiver
       hl += 1
-      b.HL hl, '1', '21', '1'
-      b.NM1 '1P', '2', sender.mmis_enrollment_name, b.blank, b.blank, b.blank, b.blank, 'XX', sender.npi
+      b.HL(*mutable_args(hl, '1', '21', '1'))
+      b.NM1(*mutable_args('1P', '2', sender.mmis_enrollment_name, b.blank, b.blank, b.blank, b.blank, 'XX', sender.npi))
 
       batch.each do |patient|
         # Subscriber information
         hl += 1
-        b.HL hl, '2', '22', '0'
+        b.HL(*mutable_args(hl, '2', '22', '0'))
         # Use the patient's medicaid id as the trace record number
-        b.TRN '1', patient.medicaid_id, sender.trace_id
-        b.NM1 'IL', '1', patient.last_name, patient.first_name, patient.middle_name, b.blank, b.blank, 'MI', patient.medicaid_id
-        b.DMG 'D8', patient.birthdate&.strftime('%Y%m%d'), edi_gender(patient.gender)
-        b.DTP '291', 'D8', service_date.strftime('%Y%m%d')
-        b.EQ(b.repeated('30'))
+        b.TRN(*mutable_args('1', patient.medicaid_id, sender.trace_id))
+        b.NM1(*mutable_args('IL', '1', patient.last_name, patient.first_name, patient.middle_name, b.blank, b.blank, 'MI', patient.medicaid_id))
+        b.DMG(*mutable_args('D8', patient.birthdate&.strftime('%Y%m%d'), edi_gender(patient.gender)))
+        b.DTP(*mutable_args('291', 'D8', service_date.strftime('%Y%m%d')))
+        b.EQ(b.repeated(*mutable_args('30')))
       end
 
       m = b.machine
       st = m
       st = st.parent.fetch while st.segment.fetch.node.id != :ST
 
-      b.SE 2 + m.distance(st).fetch, transaction_control_number
-      b.GE '1', group_control_number
-      b.IEA '1', isa_control_number
+      b.SE(*mutable_args(2 + m.distance(st).fetch, transaction_control_number))
+      b.GE(*mutable_args('1', group_control_number))
+      b.IEA(*mutable_args('1', isa_control_number))
 
       @edi_builder = b
+    end
+
+    # Helper method to make strings in an argument array mutable
+    # Preserves special objects like b.blank and non-string values like dates
+    private def mutable_args(*args)
+      args.map do |arg|
+        arg.is_a?(String) ? arg.dup : arg
+      end
     end
 
     private def convert_to_text
       file = ''
       @edi_builder.machine.zipper.tap do |z|
+        # Stupidedi to mutate the strings within the gem flagging the frozen string literal warnings. The strings are duped to avoid the warnings.
         separators = Stupidedi::Reader::Separators.build(
-          segment: "~\n",
-          element: '*',
-          component: '>',
-          repetition: '^',
+          segment: "~\n".dup,
+          element: '*'.dup,
+          component: '>'.dup,
+          repetition: '^'.dup,
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
-        file = w.write.upcase
+        # Pass a mutable string buffer to avoid frozen string literal warnings
+        # The gem's write method has a default parameter "" which is frozen in Ruby 3.4
+        file = w.write(String.new).upcase
       end
       file
     end

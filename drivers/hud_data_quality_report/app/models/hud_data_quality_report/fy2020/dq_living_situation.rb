@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudDataQualityReport::Fy2020
   class DqLivingSituation < GrdaWarehouseBase
     self.table_name = 'hud_report_dq_living_situations'

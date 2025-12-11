@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# frozen_string_literal: true
+
 require_relative 'lib/command_args'
 require_relative 'lib/deployer'
 require 'active_support/all'

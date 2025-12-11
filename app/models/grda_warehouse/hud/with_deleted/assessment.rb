@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: This provides an unscoped duplicate of Assessment for use with exports
 # that should ignore acts as paranoid completely
 module GrdaWarehouse::Hud::WithDeleted

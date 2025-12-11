@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class UserBoolean3 < CohortBoolean
     attribute :column, Boolean, lazy: true, default: :user_boolean_3

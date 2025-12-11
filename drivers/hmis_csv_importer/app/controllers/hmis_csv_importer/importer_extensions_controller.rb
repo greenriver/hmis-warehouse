@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisCsvImporter::ImporterExtensionsController < ApplicationController
   before_action :require_can_view_imports!
   before_action :require_can_manage_config!, only: [:update]
@@ -36,7 +38,9 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc,
       HmisCsvImporter::HmisCsvCleanup::MoveInOutsideEnrollment,
       HmisCsvImporter::HmisCsvCleanup::PrependProjectId,
+      HmisCsvImporter::HmisCsvCleanup::AppendProjectId,
       HmisCsvImporter::HmisCsvCleanup::PrependOrganizationId,
+      HmisCsvImporter::HmisCsvCleanup::AppendOrganizationId,
       HmisCsvImporter::Aggregated::CombineEnrollments,
       HmisCsvImporter::HmisCsvCleanup::DeleteEmptyEnrollments,
       HmisCsvImporter::HmisCsvCleanup::EnforceRelationshipToHoh,

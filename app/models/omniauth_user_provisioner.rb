@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Find or create a user from omniauth info.
 # If the user is new they will be assigned to a "Unknown" Agency and considered #confirmed_at Time.current.
 # If the user already exists their name etc may be updated to reflect info from the provider.

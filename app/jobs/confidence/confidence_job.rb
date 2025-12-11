@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Confidence::ConfidenceJob is an abstract class to capture commonalities among various
 # specific confidence jobs.
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :health_ds_1, class: 'Health::DataSource' do
     name { 'BHCHP EPIC' }

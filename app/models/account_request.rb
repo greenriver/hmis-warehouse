@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class AccountRequest < ApplicationRecord
   belongs_to :user, optional: true
   attr_accessor :agency_id, :access_group_ids, :role_ids

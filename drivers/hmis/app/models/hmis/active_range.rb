@@ -1,8 +1,12 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class Hmis::ActiveRange < Hmis::HmisBase
   self.table_name = :hmis_active_ranges
@@ -14,6 +18,8 @@ class Hmis::ActiveRange < Hmis::HmisBase
       project_id: ->(r) { r.entity&.paper_trail_meta_value(:project_id) },
     },
   )
+
+  acts_as_paranoid
 
   belongs_to :entity, polymorphic: true, optional: true
   belongs_to :user, class_name: 'Hmis::User'

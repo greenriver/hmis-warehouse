@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Sources::ActiveRecordScope < ::GraphQL::Dataloader::Source
   def initialize(scope)
     @scope = scope

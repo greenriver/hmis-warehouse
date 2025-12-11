@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ExternalHmis::EnrollmentPath
   ##
   # Generates a url path for linking to an enrollment in an external HMIS.  This should be used
@@ -23,7 +25,7 @@ class ExternalHmis::EnrollmentPath
       "client/#{enrollment.personal_id}/program/#{enrollment.enrollment_id}/enroll"
     else
       # Silently fail, but drop a note in the log
-      Rails.logger.error("Unknown external HMIS replacement pattern: #{configuration.path_enrollent} in data source: #{configuration.data_source_id}")
+      Rails.logger.error("Unknown external HMIS replacement pattern: #{configuration.path_enrollment} in data source: #{configuration.data_source_id}")
       return
     end
   end

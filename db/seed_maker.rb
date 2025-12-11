@@ -59,13 +59,13 @@ class SeedMaker
   # as part of the `production_seed_first_user` setup process
   # To reset roles to the default values, call `seed_roles(reset_permissions: true)`
   def seed_roles(reset_permissions: false)
+    # Don't add any roles if you already have more than 3 roles (we can manually override with reset_permissions)
+    return if Role.count > 3 && !reset_permissions
+
     YAML.load_file(Rails.root.join('db/seeds/roles.yaml')).each do |default_role|
       role = Role.where(name: default_role['name']).first_or_initialize
       # If the role already exists, skip it, we may have adjusted the permissions in the UI
       next if role.persisted? && !reset_permissions
-
-      # Don't add any roles if you already have more than 3 roles (we can manually override with reset_permissions)
-      next if Role.count > 3 && !reset_permissions
 
       # ensure all permissions are false if we are resetting
       if reset_permissions
