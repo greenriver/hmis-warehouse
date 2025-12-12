@@ -139,18 +139,19 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      # Create CustomClientName records for any Clients that don't have them
+      # Create CustomClientName records for any Clients who lack a CustomClientName record matching the name fields on the client record.
+      # (Either they don't have any CustomClientName records, or the records have gotten out-of-sync)
       unpersisted_name_records = clients.map do |client|
-        next unless client.names.empty?
+        next if client.names.any? { |name| names_match?(client, name) }
 
-        name = client.build_primary_custom_client_name
+        name = client.build_custom_client_name_from_client_record
         name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
-        name.primary = client.id == client_to_retain.id
+        name.primary = client.names.primary_names.empty? # Mark this name as primary if the client doesn't already have a primary name
         name
       end.compact
 
-      # Dedup and save the new name records
-      dedup_unpersisted(unpersisted_name_records).map(&:save!)
+      new_names = dedup_unpersisted(unpersisted_name_records).each(&:save!)
+      new_name_ids = new_names.pluck(:id)
 
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
@@ -164,20 +165,38 @@ module Hmis
         attributes: 'PersonalID',
       )
 
-      # Update all names to point to client_to_retain
-      primary_found = false
-      client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
-      name_scope.sort_by(&:id).each do |name|
-        custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
-        # consider this name "primary" it matches the name on the client_to_retain's Client record
-        primary = (client_val == custom_client_name_val) && !primary_found
-
-        name.client = client_to_retain
-        name.primary = primary ? true : false
-        name.save!(validate: false)
-
-        primary_found = true if name.primary
+      # Sort the names in order to choose one primary name. Desired behavior:
+      # - Names marked as primary (either because they were previously marked as primary pre-merge, or because the job marked it primary since the client didn't have a primary name pre-merge) are prioritized above other names
+      # - CustomClientName records that existed pre-merge are prioritized above name records created by this job. (DateUpdated on name records created by this job is set to now, which isn't meaningful)
+      # - Within name records newly created by this merge job, names on the client to retain are prioritized higher
+      # - Names that were updated more recently are prioritized higher (with tiebreak on ID)
+      all_names = name_scope.to_a.sort_by do |name|
+        is_new = new_name_ids.include?(name.id)
+        is_client_to_retain = (name.PersonalID == client_to_retain.PersonalID)
+        [
+          name.primary ? 0 : 1,                     # Primary first
+          is_new ? 1 : 0,                           # Existing before new
+          is_new && is_client_to_retain ? 0 : 1,    # Within new names, client_to_retain first
+          -name.date_updated.to_i,                  # Most recent first
+          -name.id.to_i,
+        ]
       end
+
+      # Update all names to point to client_to_retain
+      all_names.each_with_index do |name, index|
+        name.client = client_to_retain
+        name.primary = (index == 0) # Set the first name in the list to be primary. Guarantees we end up with exactly 1 primary name
+        name.save!(validate: false)
+      end
+
+      # Update the client_to_retain's Client record to match the primary name. (Previous name is saved in pre_merge_state)
+      client_to_retain.reload
+      client_to_retain.assign_primary_name_fields
+      client_to_retain.save!(validate: false)
+    end
+
+    private def names_match?(client, name)
+      [client.first_name, client.middle_name, client.last_name, client.name_suffix] == [name.first, name.middle, name.last, name.suffix]
     end
 
     def merge_custom_data_elements
