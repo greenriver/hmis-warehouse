@@ -428,7 +428,6 @@ Layout/LeadingCommentSpace:
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'bin/containers/list'
-    - 'bin/containers/ssh'
 
 # Offense count: 10
 # This cop supports safe autocorrection (--autocorrect).
