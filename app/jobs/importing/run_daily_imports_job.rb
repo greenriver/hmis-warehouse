@@ -72,8 +72,6 @@ module Importing
         @notifier.ping('Clients cleaned')
       end
 
-      shs_counts_debugging
-
       run_maintenance_task('Generate service history and related records') do
         # Purge service history for deleted data sources before generating new records
         GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call
@@ -83,8 +81,6 @@ module Importing
         # Make sure there are no unprocessed invalidated enrollments
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
         @notifier.ping('Service history generated')
-
-        shs_counts_debugging
 
         # Fix anyone who received a new exit or entry added prior to the last year
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: destination_client_ids).run!
@@ -195,7 +191,7 @@ module Importing
 
         create_statistical_matches
         generate_logging_info
-        shs_counts_debugging
+        shs_debugging_counts
       end
     end
 
@@ -312,8 +308,21 @@ module Importing
       @notifier.ping('Pushed Clients to CAS')
     end
 
-    def shs_counts_debugging
-      @notifier.ping(GrdaWarehouse::ServiceHistoryService.where(project_type: 0, date: '2025-12-05'.to_date..).order(:date).group(:date).count.to_json)
+    def shs_debugging_counts
+      counts = GrdaWarehouse::ServiceHistoryService.
+        where(project_type: 0, date: 10.days.ago.to_date..).
+        order(:date).
+        group(:date).
+        count
+
+      message = [
+        'Service History Service counts for the last 10 days (ES Entry/Exit only):',
+        '```',
+        'Date                 Count',
+        *counts.map { |date, count| format('%-20s %s', date.to_fs(:db), count) },
+        '```',
+      ].join("\n")
+      @notifier.ping(message)
     end
   end
 end
