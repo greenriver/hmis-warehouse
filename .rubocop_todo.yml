@@ -1290,7 +1290,6 @@ Style/RedundantFreeze:
     - 'app/jobs/importing/run_health_import_job.rb'
     - 'app/models/app_resource_monitor/postgres_inspector.rb'
     - 'app/models/concerns/document_export_behavior.rb'
-    - 'app/models/concerns/service_history/builder.rb'
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
     - 'app/models/grda_warehouse/help.rb'
     - 'app/models/grda_warehouse/tasks/sanity_check_service_history.rb'

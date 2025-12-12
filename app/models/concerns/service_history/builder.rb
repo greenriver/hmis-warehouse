@@ -13,7 +13,7 @@ module ServiceHistory::Builder
   DEFAULT_MAX_WAIT_SECONDS = 21_600
 
   # Advisory lock name
-  ADVISORY_LOCK_NAME = 'rebuild_enrollments'.freeze
+  ADVISORY_LOCK_NAME = 'rebuild_enrollments'
 
   # Queue delayed jobs for the enrollments associated with destination clients
   #
@@ -147,8 +147,8 @@ module ServiceHistory::Builder
       en_ids = scope.distinct.joins(:project, :destination_client).order(:data_source_id).pluck(:id, :data_source_id).map(&:first).uniq
       already_queued = Set.new
       builder_batch_job_scope.each do |dj|
-        en_ids = dj.payload_object.instance_variable_get(:@enrollment_ids)
-        already_queued += en_ids
+        queued_ids = dj.payload_object.instance_variable_get(:@enrollment_ids)
+        already_queued += queued_ids
       end
       en_ids -= already_queued.to_a
       Rails.logger.info "Found #{en_ids.count} enrollments needing processing"
