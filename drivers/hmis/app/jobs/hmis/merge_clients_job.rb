@@ -146,12 +146,14 @@ module Hmis
 
         name = client.build_custom_client_name_from_client_record
         name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
-        name.primary = client.names.primary_names.empty? # Mark this name as primary if the client doesn't already have a primary name
+        # Mark this name as primary if the client doesn't already have a primary name. (Use the already-loaded collection to avoid N+1 queries)
+        name.primary = client.names.none?(&:primary)
         name
       end.compact
 
-      new_names = dedup_unpersisted(unpersisted_name_records).each(&:save!)
-      new_name_ids = new_names.pluck(:id)
+      # Bulk insert the new names to avoid N+1 queries
+      deduped_names = dedup_unpersisted(unpersisted_name_records)
+      new_name_ids = deduped_names.any? ? Hmis::Hud::CustomClientName.import!(deduped_names, returning: [:id]).ids : []
 
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
@@ -182,11 +184,17 @@ module Hmis
         ]
       end
 
-      # Update all names to point to client_to_retain
-      all_names.each_with_index do |name, index|
-        name.client = client_to_retain
-        name.primary = (index == 0) # Set the first name in the list to be primary. Guarantees we end up with exactly 1 primary name
-        name.save!(validate: false)
+      # Update all names to point to client_to_retain.
+      # Update the first name in the list to be primary
+      all_names.first.update_columns(PersonalID: client_to_retain.PersonalID, primary: true, DateUpdated: Time.current)
+
+      non_primary_ids = all_names[1..].map(&:id)
+      if non_primary_ids.any?
+        Hmis::Hud::CustomClientName.where(id: non_primary_ids).update_all(
+          PersonalID: client_to_retain.PersonalID,
+          primary: false, # Update all other names to be non-primary, guaranteeing there is exactly 1 primary
+          DateUpdated: Time.current,
+        )
       end
 
       # Update the client_to_retain's Client record to match the primary name. (Previous name is saved in pre_merge_state)
@@ -434,7 +442,8 @@ module Hmis
         preloads = Hmis::Hud::Client.reflect_on_all_associations.
           filter { |a| a.options[:dependent] == :destroy }.
           map(&:name)
-        scope.preload(*preloads).each(&:destroy!)
+        # Also preload active_range on names to avoid N+1 during deletion
+        scope.preload(*preloads, names: :active_range).each(&:destroy!)
       ensure
         # Restore the callback
         Hmis::Hud::Client.set_callback(:destroy, :after, :mark_destination_client_dirty)
