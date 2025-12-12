@@ -219,7 +219,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         end
 
         it 'selects the correct primary name' do
-          expected = client2.full_name # most recently updated primary name is selected
+          expected = client1.full_name # earliest created primary name is chosen
           Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
           client1.reload
 
@@ -241,7 +241,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
             expect(client1.names.size).to eq(4)
             expect(client1.names.map(&:full_name).sort).to eq([record1.full_name, record2.full_name, record3.full_name, record4.full_name].sort)
             expect(client1.names.primary_names.size).to eq(1)
-            expect(client1.names.primary_names.sole.full_name).to eq(record2.full_name) # Primary name is still the most recently updated primary name
+            expect(client1.names.primary_names.sole.full_name).to eq(record1.full_name) # Primary name is still the earliest created
           end
         end
       end
@@ -649,7 +649,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       c1 = c3_with_custom_name
       c2 = c4_with_custom_name
       expected_names = [c1.names.map(&:full_name), c2.names.map(&:full_name)].flatten.uniq.sort
-      expected_primary_name = c2.full_name # Primary name is the most recently updated name, which is the one from c2 in this case (not the client_to_retain)
+      expected_primary_name = c1.full_name # Primary name after the merge should be the name that was created earliest
 
       client_ids = [c1.id, c2.id]
       Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
@@ -668,7 +668,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       c1 = c1_without_custom_name
       c2 = c3_with_custom_name
       expected_names = [c1, c2].map(&:full_name).sort
-      expected_primary_name = c2.full_name
+      expected_primary_name = c1.full_name
 
       client_ids = [c1.id, c2.id]
       Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
@@ -694,7 +694,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         expect(client1.names.size).to eq(4) # 4 total CustomClientName records: 2 from custom names created pre-merge, and 2 that were created by the merge job based on the name columns from the client records
         expect(client1.names.map(&:full_name).sort).to eq([record1.full_name, record2.full_name, client1_full_name, client2_full_name].sort)
         expect(client1.names.primary_names.size).to eq(1)
-        expect(client1.names.primary_names.sole.full_name).to eq(record2.full_name) # Most recently updated name record that was marked as primary before the merge
+        expect(client1.names.primary_names.sole.full_name).to eq(client1_full_name) # Earliest created name record that was marked as primary before the merge
       end
     end
   end
