@@ -189,13 +189,11 @@ module Hmis
       all_names.first.update_columns(PersonalID: client_to_retain.PersonalID, primary: true, DateUpdated: Time.current)
 
       non_primary_ids = all_names[1..].map(&:id)
-      if non_primary_ids.any?
-        Hmis::Hud::CustomClientName.where(id: non_primary_ids).update_all(
-          PersonalID: client_to_retain.PersonalID,
-          primary: false, # Update all other names to be non-primary, guaranteeing there is exactly 1 primary
-          DateUpdated: Time.current,
-        )
-      end
+      Hmis::Hud::CustomClientName.where(id: non_primary_ids).update_all(
+        PersonalID: client_to_retain.PersonalID,
+        primary: false, # Update all other names to be non-primary, guaranteeing there is exactly 1 primary
+        DateUpdated: Time.current,
+      )
 
       # Update the client_to_retain's Client record to match the primary name. (Previous name is saved in pre_merge_state)
       client_to_retain.reload
