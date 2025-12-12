@@ -23,12 +23,7 @@ FactoryBot.define do
     sequence(:name) { |n| "Unit #{n}" }
     user { association :hmis_user }
     project { association :hmis_hud_project }
-
-    trait :in_unit_group do
-      unit_group { association :hmis_unit_group, project: project }
-    end
-
-    factory :hmis_unit_in_group, traits: [:in_unit_group]
+    unit_group { association :hmis_unit_group, project: project }
   end
 
   factory :hmis_unit_occupancy, class: 'Hmis::UnitOccupancy' do

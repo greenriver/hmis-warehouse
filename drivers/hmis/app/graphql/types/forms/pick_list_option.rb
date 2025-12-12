@@ -197,7 +197,7 @@ module Types
       when 'PROJECT_CONFIG_TYPES'
         project_config_types_picklist
       when 'CE_REFERRAL_STATUSES'
-        ce_referral_statuses_picklist
+        ce_referral_statuses_picklist(user: user)
       end
     end
 
@@ -214,7 +214,7 @@ module Types
       end.compact
     end
 
-    def self.ce_referral_statuses_picklist
+    def self.ce_referral_statuses_picklist(user:)
       # To avoid key collisions, we display only custom statuses in the picklist.
       # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
       # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
