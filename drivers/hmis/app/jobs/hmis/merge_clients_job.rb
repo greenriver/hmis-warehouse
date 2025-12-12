@@ -441,7 +441,7 @@ module Hmis
           filter { |a| a.options[:dependent] == :destroy }.
           map(&:name)
         # Also preload active_range on names to avoid N+1 during deletion
-        scope.preload(*preloads, names: :active_range).each(&:destroy!)
+        scope.preload(*preloads).each(&:destroy!)
       ensure
         # Restore the callback
         Hmis::Hud::Client.set_callback(:destroy, :after, :mark_destination_client_dirty)
