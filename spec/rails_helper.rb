@@ -111,8 +111,11 @@ RSpec.configure do |config|
     # This is an overall performance improvement to our test suite, since many tests depend on these forms.
     # However, it does mean that if individual tests modify the seeded forms, they are responsible for cleaning up
     # by restoring all forms to their original seeded state, *not* by using Hmis::Form::Definition.delete_all.
-    if example_file_paths.grep(%r{/drivers/hmis/}).any? # rubocop:disable Style/RegexpLiteral
-      ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
+    if example_file_paths.grep(%r{/drivers/hmis/}).any? && ENV['ENABLE_HMIS_API'] == 'true' # rubocop:disable Style/RegexpLiteral
+      ::HmisUtil::JsonForms.seed_all
+      # For HMIS system tests, create all system instances to ensure application functions correctly
+      # (default rules enabling the Client form, Project form, Move-in Date form, etc.)
+      ::HmisUtil::JsonForms.new.ensure_system_instances_exist! if ENV['RUN_SYSTEM_TESTS'] == 'true'
     end
 
     AccessGroup.maintain_system_groups

@@ -256,6 +256,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
+  scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
+
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed
     return if draft?
