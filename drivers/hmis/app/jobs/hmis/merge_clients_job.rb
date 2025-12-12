@@ -167,7 +167,8 @@ module Hmis
       # Update all names to point to client_to_retain
       primary_found = false
       name_scope.sort_by(&:id).each do |name|
-        # consider this name "primary" if it matches the name on the client_to_retain's Client record
+        # consider this name "primary" if it matches the name on the client_to_retain's Client record,
+        # which was already set to the chosen "best" name by update_oldest_client_with_merged_attributes
         primary = names_match?(client_to_retain, name) && !primary_found
 
         name.client = client_to_retain
