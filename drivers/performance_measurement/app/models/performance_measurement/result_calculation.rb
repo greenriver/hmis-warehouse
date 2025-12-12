@@ -366,10 +366,13 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def first_time_homeless_clients(detail, project: nil)
+      # Don't calculate project-level metrics for this if we are using a static SPM
+      return if existing_static_comparison_spm.present? && project&.project_id.present?
+
       # People count metrics require year-over-year comparison for goal calculation
       # Don't create result if project didn't operate in either period
       return unless project_operated_in_period?(:reporting, project&.project_id)
-      return unless project_operated_in_period?(:comparison, project&.project_id) || existing_static_comparison_spm.present?
+      return unless project_operated_in_period?(:comparison, project&.project_id)
 
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
@@ -766,7 +769,7 @@ module PerformanceMeasurement::ResultCalculation
       if existing_static_comparison_spm.present?
         comparison_denominator += existing_static_comparison_spm.data_for('7a.1', 'C2') || 0
         comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C3') || 0
-        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C4')
+        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C4') || 0
       else
         comparison_destinations = client_ids(:so_destination, :comparison, project_id: project&.project_id)
         comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
