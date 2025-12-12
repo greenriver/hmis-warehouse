@@ -27,14 +27,7 @@ module HudSpmReport::Fy2026
     end
 
     def self.search_columns
-      enrollment_table = HudSpmReport::Fy2026::SpmEnrollment.arel_table
-      [
-        enrollment_table[:first_name],
-        enrollment_table[:last_name],
-        enrollment_table[:personal_id],
-        Arel::Nodes::NamedFunction.new('CAST', [enrollment_table[:id].as('TEXT')]),
-        Arel::Nodes::NamedFunction.new('CAST', [enrollment_table[:client_id].as('TEXT')]),
-      ]
+      HudSpmReport::Fy2026::SpmEnrollment.search_columns
     end
 
     def self.pluck_project_ids

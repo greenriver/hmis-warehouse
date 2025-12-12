@@ -15,6 +15,7 @@ module HudSpmReport::Generators::Fy2026
       'Measure 2'
     end
 
+    # Universe: Returns
     def self.client_class
       HudSpmReport::Fy2026::Return
     end

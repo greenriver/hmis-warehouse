@@ -56,13 +56,11 @@ module HudSpmReport
     end
 
     def scoped_clients(generator, question, cell)
-      scope = generator.client_scope(question).
+      generator.client_scope(question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id)).
         distinct
-
-      scope.preload(client: [:data_source, :source_clients])
     end
 
     def build_package(clients, headers, generator, name)

@@ -239,6 +239,17 @@ module HudSpmReport::Fy2026
       joins(enrollment: :project).distinct.pluck(project_table[:id])
     end
 
+    def self.search_columns
+      table = arel_table
+      [
+        table[:first_name],
+        table[:last_name],
+        table[:personal_id],
+        Arel::Nodes::NamedFunction.new('CAST', [table[:id].as('TEXT')]),
+        Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
+      ]
+    end
+
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
       # If the HMIS also collects this element on children and unknown-age household members, their data should be used in measure 1b
       return [enrollment.date_to_street_essh, enrollment.client&.dob].compact.max if enrollment.date_to_street_essh.present?

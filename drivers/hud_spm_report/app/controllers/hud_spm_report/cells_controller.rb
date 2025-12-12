@@ -75,9 +75,11 @@ module HudSpmReport
       @total_count = base_scope.count
       @filtered_count = scope.count
 
+      current_user.policy_context.preload_project_dependencies(scope.pluck_project_ids)
+
       # Paginate and preload associations to avoid N+1 queries
-      @pagy, paginated_clients = pagy(scope, items: 100)
-      @clients = paginated_clients.preload(client: [:data_source, :source_clients])
+      scope = scope.preload(client: [:data_source, :source_clients])
+      @pagy, @clients = pagy(scope, items: 100)
 
       render :show
     end

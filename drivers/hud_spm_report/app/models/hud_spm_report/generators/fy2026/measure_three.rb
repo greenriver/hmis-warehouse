@@ -13,6 +13,7 @@ module HudSpmReport::Generators::Fy2026
   class MeasureThree < MeasureBase
     include ArelHelper
 
+    # Universe: SpmEnrollments
     def self.question_number
       'Measure 3'
     end

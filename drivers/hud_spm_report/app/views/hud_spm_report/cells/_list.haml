@@ -6,7 +6,6 @@
         - @headers.each_value do |header|
           %th= header
     %tbody
-      - current_user.policy_context.preload_project_dependencies(list.map(&:project_id).uniq)
       - # list contains Episodes or Returns (already preloaded in controller)
       - list.each.with_index do |client, i|
         - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)

@@ -13,6 +13,7 @@ module HudSpmReport::Generators::Fy2026
       'Measure 1'
     end
 
+    # Universe: Episodes
     def self.client_class
       HudSpmReport::Fy2026::Episode
     end
