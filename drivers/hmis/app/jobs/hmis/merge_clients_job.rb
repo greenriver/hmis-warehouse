@@ -139,8 +139,6 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      # update_oldest_client_with_merged_attributes already updated the client_to-retain with the "best" name, so that is the name we should pick as primary
-
       # Create CustomClientNames for any Clients who lack a CustomClientName matching the name fields on the client record.
       # (Either they don't have any CustomClientName records, or the records have gotten out-of-sync)
       unpersisted_name_records = clients.map do |client|
@@ -148,9 +146,6 @@ module Hmis
 
         name = client.build_custom_client_name_from_client_record
         name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
-        # Mark this name as primary if this is the client_to_retain (whose name attributes were already updated to be the "best" name in update_oldest_client_with_merged_attributes)
-        # the client doesn't already have a primary name. (Use the already-loaded collection to avoid N+1 queries)
-        name.primary = client.id == client_to_retain.id # todo @martha - not sure this line is doing anything, we overwrite it below
         name
       end.compact
 
@@ -182,7 +177,7 @@ module Hmis
         primary_found = true if name.primary
       end
 
-      raise unless primary_found # unexpected, we should mark one name as primary
+      raise "Unexpected, we should have found a primary name for #{client_to_retain.id}" unless primary_found
     end
 
     private def names_match?(client, name)
