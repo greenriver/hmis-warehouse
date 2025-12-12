@@ -14,7 +14,7 @@ module HmisUtil
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
     def initialize(env_key: nil, enable_cded_generation_in_test: false)
-      # raise 'HMIS Data Source must exist' unless GrdaWarehouse::DataSource.hmis.exists?
+      raise 'HMIS Data Source must exist' unless GrdaWarehouse::DataSource.hmis.exists?
 
       @env_key = env_key if env_key.presence # allow override for testing
       @enable_cded_generation_in_test = enable_cded_generation_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
@@ -480,7 +480,7 @@ module HmisUtil
     # enabled to meet minimum HUD requirements.
     private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
       raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
-      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.where(identifier: identifier).exists?
+      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
 
       project_types.each do |project_type|
         instance = Hmis::Form::Instance.find_or_initialize_by(

@@ -299,11 +299,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       )
     end
 
-    before(:all) do
-      # seed default FormDefinitions so that the default move_in_date form is present
-      ::HmisUtil::JsonForms.seed_all
-    end
-
     it 'does not return the form when no instance exists' do
       expect(hoh_enrollment.occurrence_point_forms).to be_empty
     end

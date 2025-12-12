@@ -1,7 +1,6 @@
 desc 'Seed form definitions'
 task seed_definitions: [:environment, 'log:info_to_stdout'] do
-  builder = ::HmisUtil::JsonForms.new
-  builder.seed_all
+  ::HmisUtil::JsonForms.seed_all
 end
 
 desc 'Seed service types'

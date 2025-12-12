@@ -361,6 +361,7 @@ class SeedMaker
     Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
   end
 
+  # For local development only: set up initial HMIS data source and administrator access
   def setup_hmis_admin_access
     return unless ENV['HMIS_HOSTNAME'].present?
     return unless Rails.env.development?
@@ -407,8 +408,7 @@ class SeedMaker
     return unless ENV['ENABLE_HMIS_API'] == 'true'
     return unless GrdaWarehouse::DataSource.hmis.exists? # data source must be added in the warehouse UI
 
-    builder = ::HmisUtil::JsonForms.new
-    builder.seed_all
+    ::HmisUtil::JsonForms.seed_all
   end
 
   def populate_internal_system_choices

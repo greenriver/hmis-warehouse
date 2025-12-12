@@ -32,8 +32,16 @@ RSpec.feature 'Assessment definition selection', type: :system do
     allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)
     allow(stub_mci).to receive(:create_mci_id).and_return(nil)
     allow(stub_mci).to receive(:creds).and_return(mci_cred)
+  end
 
-    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions
+  before(:all) do
+    # Seed MCI-specific client forms
+    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT])
+  end
+
+  after(:all) do
+    # Return client forms to normal. (See comment about form cleanup in rails_helper.rb)
+    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT])
   end
 
   def enter_client_details
