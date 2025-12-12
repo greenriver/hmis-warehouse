@@ -1,0 +1,7 @@
+- content_for :title, @page.title
+
+.container.py-4
+  .row.justify-content-center
+    .col-lg-8
+      .content-body
+        = @page.render_content
