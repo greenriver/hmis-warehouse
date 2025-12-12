@@ -139,7 +139,7 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      # Create CustomClientName records for any Clients who lack a CustomClientName record matching the name fields on the client record.
+      # Create CustomClientNames for any Clients who lack a CustomClientName matching the name fields on the client record.
       # (Either they don't have any CustomClientName records, or the records have gotten out-of-sync)
       unpersisted_name_records = clients.map do |client|
         next if client.names.any? { |name| names_match?(client, name) }

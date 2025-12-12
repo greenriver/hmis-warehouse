@@ -197,53 +197,51 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         end
       end
 
-      describe 'custom names' do
-        context 'when each client has a custom primary name record' do
-          let!(:record1) { create(:hmis_hud_custom_client_name, primary: true, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.middle_name, suffix: client1.name_suffix, data_source: data_source) }
-          let!(:record2) { create(:hmis_hud_custom_client_name, primary: true, client: client2, first: client2.first_name, last: client2.last_name, middle: client2.middle_name, suffix: client2.name_suffix, data_source: data_source) }
+      context 'with names' do
+        let!(:record1) { create(:hmis_hud_custom_client_name, primary: true, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.middle_name, suffix: client1.name_suffix, data_source: data_source) }
+        let!(:record2) { create(:hmis_hud_custom_client_name, primary: true, client: client2, first: client2.first_name, last: client2.last_name, middle: client2.middle_name, suffix: client2.name_suffix, data_source: data_source) }
 
-          it_behaves_like 'merge of records related by PersonalID'
-          it_behaves_like 'merge that saves mappings', 'names', 'PersonalID'
+        it_behaves_like 'merge of records related by PersonalID'
+        it_behaves_like 'merge that saves mappings', 'names', 'PersonalID'
 
-          it 'merges both names onto the retained client' do
-            make_set = ->(list) do
-              list.map do |n|
-                [n.first, n.last].join(' ')
-              end.to_set
-            end
-
-            Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
-
-            found_names = make_set.call(client1.reload.names)
-            expected_names = make_set.call([record1, record2])
-            expect(found_names).to eq(expected_names)
+        it 'merges both names onto the retained client' do
+          make_set = ->(list) do
+            list.map do |n|
+              [n.first, n.last].join(' ')
+            end.to_set
           end
 
-          it 'selects the correct primary name' do
-            expected = client2.full_name # most recently updated primary name is selected
+          Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+          found_names = make_set.call(client1.reload.names)
+          expected_names = make_set.call([record1, record2])
+          expect(found_names).to eq(expected_names)
+        end
+
+        it 'selects the correct primary name' do
+          expected = client2.full_name # most recently updated primary name is selected
+          Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+          client1.reload
+
+          result = client1.names.where(primary: true)
+          expect(result.length).to eq(1)
+          actual = result.sole.full_name
+
+          expect(actual).to eq(expected)
+          expect(client1.full_name).to eq(expected) # client record is updated to match the primary name
+        end
+
+        context 'and clients have additional names too' do
+          let!(:record3) { create(:hmis_hud_custom_client_name, client: client1, data_source: data_source) }
+          let!(:record4) { create(:hmis_hud_custom_client_name, client: client2, data_source: data_source) }
+
+          it 'saves all name records on the retained client' do
             Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
             client1.reload
-
-            result = client1.names.where(primary: true)
-            expect(result.length).to eq(1)
-            actual = result.sole.full_name
-
-            expect(actual).to eq(expected)
-            expect(client1.full_name).to eq(expected) # client record is updated to match the primary name
-          end
-
-          context 'and clients have additional names too' do
-            let!(:record3) { create(:hmis_hud_custom_client_name, client: client1, data_source: data_source) }
-            let!(:record4) { create(:hmis_hud_custom_client_name, client: client2, data_source: data_source) }
-
-            it 'saves all name records on the retained client' do
-              Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
-              client1.reload
-              expect(client1.names.size).to eq(4)
-              expect(client1.names.map(&:full_name).sort).to eq([record1.full_name, record2.full_name, record3.full_name, record4.full_name].sort)
-              expect(client1.names.primary_names.size).to eq(1)
-              expect(client1.names.primary_names.sole.full_name).to eq(record2.full_name) # Primary name is still the most recently updated primary name
-            end
+            expect(client1.names.size).to eq(4)
+            expect(client1.names.map(&:full_name).sort).to eq([record1.full_name, record2.full_name, record3.full_name, record4.full_name].sort)
+            expect(client1.names.primary_names.size).to eq(1)
+            expect(client1.names.primary_names.sole.full_name).to eq(record2.full_name) # Primary name is still the most recently updated primary name
           end
         end
       end
