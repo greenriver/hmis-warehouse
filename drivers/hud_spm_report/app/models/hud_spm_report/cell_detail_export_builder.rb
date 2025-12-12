@@ -47,12 +47,7 @@ module HudSpmReport
     end
 
     def possible_generator_classes
-      {
-        fy2020: HudSpmReport::Generators::Fy2020::Generator,
-        fy2023: HudSpmReport::Generators::Fy2023::Generator,
-        fy2024: HudSpmReport::Generators::Fy2024::Generator,
-        fy2026: HudSpmReport::Generators::Fy2026::Generator,
-      }
+      HudSpmReport::BaseController.new.possible_generator_classes
     end
 
     def scoped_clients(generator, question, cell)

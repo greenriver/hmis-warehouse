@@ -31,18 +31,5 @@
           = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
           - if @search_term.present?
             = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
-  .pl-2.ml-auto
-    - if @search_term.present?
-      %div
-        Showing
-        = number_with_delimiter @filtered_count
-        of
-        = number_with_delimiter @total_count
-        = 'client'.pluralize(@total_count)
-    - else
-      = "#{number_with_delimiter @total_count} #{'client'.pluralize(@total_count)} total"
-    - if @pagy.pages > 1
-      %span.text-muted.d-block
-        = "(page #{@pagy.page} of #{@pagy.pages})"
 
-= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @clients, item_name: 'client', list_partial: 'hud_spm_report/cells/list')
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @clients, item_name: 'records', list_partial: 'hud_spm_report/cells/list')
