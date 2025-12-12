@@ -19,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query EnrollmentsWithOccurrencePoints(
+      query EnrollmentWithOccurrencePoints(
         $enrollmentId: ID!
       ) {
         enrollment(id: $enrollmentId) {
@@ -35,43 +35,75 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
-  let!(:access_control) { create_access_control(hmis_user, p1) }
-  let!(:definition) do
-    item_with_rule = {
-      'text': 'Move-in address',
-      'type': 'OBJECT',
-      'link_id': 'address',
-      'mapping': {
-        'field_name': 'moveInAddresses',
-        'record_type': 'ENROLLMENT',
-      },
-      'component': 'ADDRESS',
-      'custom_rule': {
-        'operator': 'ANY',
-        'parts': [
-          {
-            'variable': 'projectId',
-            'operator': 'NOT_EQUAL',
-            'value': p1.project_id,
-          },
-        ],
-      },
-    }
-    create(:occurrence_point_form, append_items: item_with_rule)
-  end
-  let!(:instance) { create(:hmis_form_instance, role: :OCCURRENCE_POINT, entity: p1, active: true, definition: definition) }
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
 
-  it 'returns the correct definition with custom rules applied' do
-    response, result = post_graphql(enrollment_id: e1.id) { query }
-    expect(response.status).to eq(200), result.inspect
-    occurrence_point_form = result.dig('data', 'enrollment', 'occurrencePointForms', 0)
-    expect(occurrence_point_form.dig('id')).to eq("#{definition.id}:#{p1.id}")
+  context 'with form containing a custom_rule' do
+    let!(:p1) { create :hmis_hud_project, data_source: ds1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
+    let!(:p2) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2 }
 
-    # Excludes the question that has a custom rule excluding it for this project
-    definition_items = occurrence_point_form.dig('definition', 'definition', 'item')
-    expect(definition_items.size).to eq(1)
-    expect(definition_items.first['text']).to eq('Move-in Date')
+    # custom form where 'question_2' is only collected for project p1
+    let!(:definition) do
+      create(:hmis_form_definition, identifier: 'occurrence_point_form_with_custom_rule', definition: { 'item' => [
+               {
+                 'text': 'Question 1',
+                 'type': 'STRING',
+                 'link_id': 'question_1',
+                 'mapping': {
+                   'custom_field_key': 'question_1',
+                 },
+               },
+               {
+                 'text': 'Question 2',
+                 'type': 'STRING',
+                 'link_id': 'question_2',
+                 'mapping': {
+                   'custom_field_key': 'question_2',
+                 },
+                 'custom_rule': {
+                   'variable': 'projectId',
+                   'operator': 'EQUAL',
+                   'value': p1.project_id,
+                 },
+               },
+             ] })
+    end
+    let!(:instance1) { create(:hmis_form_instance, role: :OCCURRENCE_POINT, entity: p1, active: true, definition: definition) }
+    let!(:instance2) { create(:hmis_form_instance, role: :OCCURRENCE_POINT, entity: p2, active: true, definition: definition) }
+
+    def query_forms(enrollment_id)
+      response, result = post_graphql(enrollment_id: enrollment_id) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'enrollment', 'occurrencePointForms')
+    end
+
+    context 'for project that matches the custom rule' do
+      it 'custom_rule is applied (question_2 is included)' do
+        forms = query_forms(e1.id)
+        expect(forms).to contain_exactly(a_hash_including('id' => "#{definition.id}:#{p1.id}"))
+
+        # ensure question_2 is included in items
+        items = forms.first.dig('definition', 'definition', 'item')
+        expect(items.size).to eq(2)
+        expect(items).to contain_exactly(
+          a_hash_including('linkId' => 'question_1'),
+          a_hash_including('linkId' => 'question_2'),
+        )
+      end
+    end
+
+    context 'for project that does not match the custom rule' do
+      it 'custom_rule is applied (question_2 is excluded)' do
+        forms = query_forms(e2.id)
+        expect(forms).to contain_exactly(a_hash_including('id' => "#{definition.id}:#{p2.id}"))
+
+        # ensure question_2 is excluded from items
+        items = forms.first.dig('definition', 'definition', 'item')
+        expect(items.size).to eq(1)
+        expect(items).not_to include(a_hash_including('linkId' => 'question_2'))
+      end
+    end
   end
 end
 

@@ -88,8 +88,8 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'returns none if form is draft' do
-      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft)
-      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'bad-referral-form')
+      create(:hmis_form_definition, role: role, identifier: 'draft-form', status: :draft)
+      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'draft-form')
       expect(selected_instances.size).to eq(0)
     end
 
