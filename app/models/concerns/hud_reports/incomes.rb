@@ -24,15 +24,7 @@ module HudReports::Incomes
   extend ActiveSupport::Concern
 
   included do
-    # Finds the latest annual assessment within a 60-day window around the client's anniversary date.
-    #
-    # @param enrollment [Object] The enrollment record for the client.
-    # @param hoh_entry_date [Date] The project entry date for the head of household.
-    # @param assessment_relation [Symbol] The name of the assessment association on the enrollment.
-    # @param assessment_relation_preloaded [Boolean] If true, the method will filter the `assessment_relation`
-    #   in memory, assuming it has been preloaded without restrictive conditions. If false, it will query the database.
-    # @return [Object, nil] The most recent assessment record within the valid window, or nil if none is found.
-    private def annual_assessment(enrollment, hoh_entry_date, assessment_relation: :income_benefits_annual_update, assessment_relation_preloaded: false)
+    private def annual_assessment(enrollment, hoh_entry_date, assessment_relation: :income_benefits_annual_update)
       # Anniversary date needs to be calculated thusly:
       # Calculate the head of household’s number of years in the project. This can be done using the same
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the [report end date] as the two dates of comparison. It is important to use the “age” method of determining client anniversaries due to leap years; using “one year = 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
@@ -42,18 +34,12 @@ module HudReports::Incomes
       #   b. and the lesser of (30 days after the [anniversary date], [report end date])
 
       anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
-      date_range = anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min
 
-      # Check if association is loaded. If so, filter in memory to avoid N+1 queries.
-      if assessment_relation_preloaded
-        enrollment.send(assessment_relation).select do |i|
-          date_range.cover?(i.InformationDate)
-        end.max_by(&:InformationDate)
-      else
-        enrollment.send(assessment_relation).
-          where(InformationDate: date_range).
-          max_by(&:InformationDate)
-      end
+      enrollment.send(assessment_relation).
+        where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
+        select do |i|
+        i.InformationDate <= report_end_date
+      end.max_by(&:InformationDate)
     end
 
     private def income_sources(income)

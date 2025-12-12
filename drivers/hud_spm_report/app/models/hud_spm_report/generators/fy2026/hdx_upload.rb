@@ -243,34 +243,22 @@ module HudSpmReport::Generators::Fy2026
         external_row_label: true,
       )
 
-      # Build all cell records for bulk insert
-      cells = []
-
-      # Row 1: Column headers
+      # Set the column headers in row 1
       COLUMNS.each do |column|
-        cells << @report.report_cells.build(
-          question: table_name,
-          cell_name: "#{column.column_letter}1",
-          universe: false,
-          summary: column.variable_name,
-        )
+        answer = @report.answer(question: table_name, cell: "#{column.column_letter}1")
+        answer.update(summary: column.variable_name)
       end
 
-      # Row 2: Values
+      # Set the values in row 2
       COLUMNS.each do |column|
+        # Get the formatted the value
         raw_value = column.get_raw_value(self)
         formatted_value = column.format_value(raw_value)
 
-        cells << @report.report_cells.build(
-          question: table_name,
-          cell_name: "#{column.column_letter}2",
-          universe: false,
-          summary: formatted_value,
-        )
+        # Update the report cell
+        answer = @report.answer(question: table_name, cell: "#{column.column_letter}2")
+        answer.update(summary: formatted_value)
       end
-
-      # Bulk insert all cells in a single operation
-      HudReports::ReportCell.import(cells)
     end
 
     def metadata(column)
@@ -353,7 +341,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def filter
-      @filter ||= ::Filters::HudFilterBase.new(user: @report.user).update(@report.options)
+      @filter ||= ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
     end
   end
 end

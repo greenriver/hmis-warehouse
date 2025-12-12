@@ -446,9 +446,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         let!(:unit_with_locked_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
         let!(:unit_with_closed_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
 
-        let!(:open_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_open_opportunity, project: project, data_source: ds1, status: :open) }
-        let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, project: project, data_source: ds1, status: :locked) }
-        let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, project: project, data_source: ds1, status: :closed) }
+        let!(:open_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_open_opportunity, status: :open) }
+        let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, status: :locked) }
+        let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, status: :closed) }
 
         it 'does not include unit with open or locked opportunities' do
           available_units = picklist_option_codes(project)
@@ -679,9 +679,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     # Unit group with available units
     let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
-    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, project: ce_project, data_source: ce_project.data_source, status: :open) }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, status: :open) }
     let!(:available_unit2) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
-    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, project: ce_project, data_source: ce_project.data_source, status: :open) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, status: :open) }
 
     # Unit group with occupied units
     let!(:occupied_unit) { create(:hmis_unit, project: ce_project, unit_group: unit_group_occupied) }
@@ -733,6 +733,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ce_project.data_source, template_type: 'ce_referral', status: 'published') }
 
       it_behaves_like 'returns empty pick list'
+    end
+  end
+
+  describe 'CE_REFERRAL_STATUSES' do
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+    end
+    let!(:custom_status) { create(:hmis_ce_custom_referral_status, data_source: ds1, name: 'Assigned Pending Review', key: 'assigned_pending_review') }
+
+    it 'returns all custom referral statuses' do
+      response, result = post_graphql(pick_list_type: 'CE_REFERRAL_STATUSES') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.count).to eq(4)
+      expect(options).to contain_exactly(
+        a_hash_including('code' => 'accepted', 'label' => 'Accepted'),
+        a_hash_including('code' => 'rejected', 'label' => 'Declined'),
+        a_hash_including('code' => 'in_progress', 'label' => 'In Progress'),
+        a_hash_including('code' => 'assigned_pending_review', 'label' => 'Assigned Pending Review'),
+      )
     end
   end
 end

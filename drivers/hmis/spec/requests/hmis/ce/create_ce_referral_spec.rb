@@ -28,7 +28,9 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
 
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
   let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
-  let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: template }
+  let!(:unit_group) { create :hmis_unit_group, project: project, workflow_template: template }
+  let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+  let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
   let!(:client) { create :hmis_hud_client, data_source: ds1 }
   let!(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
 
@@ -157,7 +159,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
       context 'if the opportunity lacks a workflow template' do
         let!(:unit_group) { create :hmis_unit_group, project: project, workflow_template: nil }
         let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
-        let!(:opportunity) { create :hmis_ce_opportunity, project: project, unit_group: unit_group, unit: unit, workflow_template: nil }
+        let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
 
         it 'raises an error' do
           expect do

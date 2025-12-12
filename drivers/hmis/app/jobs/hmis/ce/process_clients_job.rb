@@ -96,7 +96,7 @@ module Hmis::Ce
 
       log_info("Processing #{markers.count} dirty clients against active pools")
       client_scope = ::GrdaWarehouse::Hud::Client.destination.where(id: markers.map(&:trackable_id))
-      candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active
+      candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active_for_maintenance
 
       pools_processed = 0
       pools_skipped = 0
