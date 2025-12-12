@@ -114,7 +114,7 @@ class ContainerList
     results = ec2.describe_instances(
       filters: [
         {
-          name: 'tag:Cluster',
+          name: 'tag:cluster',
           values: ['openpath'],
         },
         {
