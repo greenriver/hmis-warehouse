@@ -440,7 +440,6 @@ module Hmis
         preloads = Hmis::Hud::Client.reflect_on_all_associations.
           filter { |a| a.options[:dependent] == :destroy }.
           map(&:name)
-        # Also preload active_range on names to avoid N+1 during deletion
         scope.preload(*preloads).each(&:destroy!)
       ensure
         # Restore the callback
