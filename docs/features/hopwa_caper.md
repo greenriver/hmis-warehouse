@@ -12,6 +12,9 @@ The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an e
 - **Household eligibility tagging:** `update_hopwa_eligibility` assigns a single HOPWA-eligible member per household (preferring an HIV-positive head of household). This resolves cases where multiple members qualify.
 - **Universe links:** Both staging models inherit from `HudReports::ReportClientBase`, exposing `as_report_members` helpers that register each record as a `HudReports::UniverseMember`. This connects records to HUD report drill-downs and client detail tables.
 
+## Household Counting Methodology
+Household counts follow the HUD HMIS reporting glossary definition: "distinct count of personal IDs of all heads of households." When a household has multiple enrollments during the reporting period (e.g., enrolling at different projects), they are counted only once by deduplicating on the HoH.
+
 ## Question Sheets and Builders
 - **Sheet architecture:** The FY 2026 generator enumerates sheet classes. Each inherits from `HopwaCaper::Generators::Fy2026::Sheets::Base` or `BaseProgramSheet`, which wrap `HudReports::QuestionSheet` and provide helpers for enrollment scoping, cell creation, and household table generation.
 - **Filters:** Enrollment filters (age, gender, income, longevity, prior living situation, housing outcomes) and service filters (record type, STRMU assistance categories) are located under `app/models/hopwa_caper/generators/fy2026/enrollment_filters` and `.../service_filters`. Filters contain the business rules for grouping rows.

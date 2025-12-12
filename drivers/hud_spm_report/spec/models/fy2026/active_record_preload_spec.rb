@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Active Record Preload API', type: :model do
+RSpec.describe 'Active Record Preload API', type: :model, exclude_fixpoints: true do
   before(:all) do
     GrdaWarehouse::Utility.clear!
   end

@@ -46,7 +46,6 @@ module SqlHelper
 
   # SQL condition to check if a field (a PG array) is a non-empty subset of a given set.
   # This is an EXCLUSIVE match: all elements in `field` must be in `set`.
-  # For an INCLUSIVE match (any element in `set`), use `array_overlap_condition`.
   # @param field [String] The name of the database field to check.
   # @param set [Array] The set to compare against.
   # @param type [String] The SQL type of the array (e.g., 'integer', 'text').
@@ -57,17 +56,5 @@ module SqlHelper
     empty_q_set = SqlHelper.quote_sql_array([], type: type)
     q_set = SqlHelper.quote_sql_array(set, type: type)
     "#{field} <@ #{q_set} AND #{field} != #{empty_q_set}"
-  end
-
-  # SQL condition to check if a field (a PG array) has ANY overlap with a given set.
-  # This is an INCLUSIVE match: at least one element in `field` must be in `set`.
-  # For an EXCLUSIVE match (all elements in `set`), use `non_empty_array_subset_condition`.
-  # Uses PostgreSQL's && (overlap) operator.
-  # The `set` cannot be empty, as this would always return false in SQL.
-  module_function def array_overlap_condition(field:, set:, type:)
-    raise ArgumentError, 'Set cannot be empty - array overlap with empty set always returns false' if set.empty?
-
-    q_set = SqlHelper.quote_sql_array(set, type: type)
-    "#{field} && #{q_set}"
   end
 end

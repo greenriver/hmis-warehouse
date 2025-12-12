@@ -157,6 +157,11 @@ module HopwaCaper::Generators::Fy2026
         update_hopwa_eligibility(enrollments)
       end
 
+      report.hopwa_caper_enrollments.distinct.pluck(:report_household_id).in_groups_of(100, false) do |household_ids|
+        enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
+        populate_household_aggregated_fields(enrollments)
+      end
+
       true
     end
 
@@ -201,6 +206,38 @@ module HopwaCaper::Generators::Fy2026
       return hiv.first if hiv.any?
 
       hohs.first
+    end
+
+    # Populate household-level income and insurance fields for all members.
+    def populate_household_aggregated_fields(enrollments)
+      rows_to_import = []
+
+      enrollments.group_by(&:report_household_id).values.each do |household|
+        income_sources = household.flat_map(&:income_benefit_source_types).uniq.sort
+        insurance_types = household.flat_map(&:medical_insurance_types).uniq.sort
+
+        household.each do |enrollment|
+          enrollment.assign_attributes(
+            household_income_benefit_source_types: income_sources,
+            household_medical_insurance_types: insurance_types,
+          )
+          rows_to_import << enrollment
+        end
+      end
+
+      return unless rows_to_import.any?
+
+      HopwaCaper::Enrollment.import(
+        rows_to_import,
+        validate: false,
+        on_duplicate_key_update: {
+          conflict_target: [:report_instance_id, :enrollment_id],
+          columns: [
+            :household_income_benefit_source_types,
+            :household_medical_insurance_types,
+          ],
+        },
+      )
     end
 
     def import_rows(klass, rows)
