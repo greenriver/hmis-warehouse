@@ -83,7 +83,7 @@ module HudSpmReport
     end
 
     def worksheet_name(name)
-      "#{name} Detail".slice(0, 30).gsub(':', ' ')
+      "#{name} Detail".slice(0, 30).gsub(/[:\\ \/ ? * \[ \]]/, ' ')
     end
 
     def normalized_headers(headers, generator)
