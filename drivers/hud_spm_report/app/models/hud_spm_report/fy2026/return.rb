@@ -6,7 +6,6 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/hud_spm_report.md
 module HudSpmReport::Fy2026
   class Return < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_returns'
@@ -49,7 +48,7 @@ module HudSpmReport::Fy2026
     end
 
     def self.client_ids_with_permanent_exits(report, enrollments)
-      filter = ::Filters::HudFilterBase.new(user: report.user).update(report.options)
+      filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
       enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
         where(destination: HudHelper.util('2026').permanent_destinations).
         pluck(:client_id).
@@ -138,7 +137,7 @@ module HudSpmReport::Fy2026
     end
 
     private def filter
-      @filter ||= ::Filters::HudFilterBase.new(user: report_instance.user).update(report_instance.options)
+      @filter ||= ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
     end
   end
 end
