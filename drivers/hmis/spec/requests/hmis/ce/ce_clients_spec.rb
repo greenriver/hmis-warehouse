@@ -95,7 +95,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(:hmis_ce_client_proxy, client: source_client.destination_client)
       end
       let!(:pool_5) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_eligible_for_pool_5_only] }
-      let!(:pool_5_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_5, status: 'locked' }
+      let!(:pool_5_unit) { create :hmis_unit, project: p1 }
+      let!(:pool_5_opportunity) { create :hmis_ce_opportunity, unit: pool_5_unit, candidate_pool: pool_5, status: 'locked' }
 
       it 'raises if the user does not have permission' do
         remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
