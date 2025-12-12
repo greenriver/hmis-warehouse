@@ -1,0 +1,22 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th Page Title
+      %th URL
+      %th Linked Requirements
+      %th Last Updated
+      %th Actions
+  %tbody
+    - list.each do |page|
+      %tr
+        %td= link_to page.title, edit_admin_content_page_path(page)
+        %td
+          %code
+            = link_to(content_page_url(page), content_page_path(page), target: :_blank, rel: "noopener noreferrer")
+        %td
+          - if page.compliance_requirements.any?
+            = page.compliance_requirements.pluck(:name).join(', ')
+          - else
+            %span.text-muted None
+        %td= page.updated_at.to_fs(:short)
+        %td= render 'action_menu', page: page
