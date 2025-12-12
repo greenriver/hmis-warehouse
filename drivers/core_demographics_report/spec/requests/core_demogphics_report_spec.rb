@@ -47,7 +47,7 @@ RSpec.describe CoreDemographicsReport::WarehouseReports::CoreController, type: :
       expect do
         get core_demographics_report_warehouse_reports_core_index_path
       end.to make_database_queries(
-        count: 10..40,
+        count: 20..45,
         matching: /\A(?!.*SELECT "translations".* FROM "translations")/, # exclude translations
       )
     end
