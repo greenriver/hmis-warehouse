@@ -14,6 +14,8 @@ module HmisUtil
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
     def initialize(env_key: nil, enable_cded_generation_in_test: false)
+      # raise 'HMIS Data Source must exist' unless GrdaWarehouse::DataSource.hmis.exists?
+
       @env_key = env_key if env_key.presence # allow override for testing
       @enable_cded_generation_in_test = enable_cded_generation_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
     end
@@ -24,13 +26,14 @@ module HmisUtil
 
     def seed_all
       Hmis::Hud::Base.transaction do
-        # Load ALL the latest record definitions from JSON files.
+        # Load the latest record definitions from JSON files. (Client, Project, Enrollment, etc.)
         # This also ensures that any system-level instances exist.
         seed_record_form_definitions
-        # Load ALL the latest assessment definition from JSON files.
+        # Load the latest assessment definitions from JSON files. (Intake, Exit, Update, Annual, Post-exit)
         seed_assessment_form_definitions
+        # Load custom assessment definitions from JSON files. (Only for testing, typically custom assessments are not managed in version control)
         seed_custom_assessment_form_definitions
-        # Load admin forms (not configurable)
+        # Load static admin forms (not configurable)
         seed_static_forms
       end
     end

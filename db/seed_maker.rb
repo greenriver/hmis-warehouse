@@ -405,6 +405,7 @@ class SeedMaker
 
   def load_hmis_data
     return unless ENV['ENABLE_HMIS_API'] == 'true'
+    return unless GrdaWarehouse::DataSource.hmis.exists? # data source must be added in the warehouse UI
 
     builder = ::HmisUtil::JsonForms.new
     builder.seed_all
