@@ -45,7 +45,7 @@ RSpec.describe Admin::ContentPagesController, type: :request do
     end
 
     context 'with valid attributes' do
-      let(:valid_attrs) { { title: 'New Page', content: 'Page content here' } }
+      let(:valid_attrs) { { title: 'New Page', content: 'Page content here', slug: 'new_page' } }
 
       it 'creates content page' do
         expect do
