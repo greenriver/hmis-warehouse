@@ -10,58 +10,66 @@ require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Hud::Project, type: :model do
-  before(:all) do
-    Hmis::Form::Instance.not_system.destroy_all
-    cleanup_test_environment
-    ::HmisUtil::JsonForms.seed_all
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
+  let!(:data_source) { create :hmis_primary_data_source }
+  let!(:project) { create :hmis_hud_project, data_source: data_source }
+  let!(:client) { create :hmis_hud_client, data_source: data_source }
+  let!(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
 
-  let!(:enrollment) { create(:hmis_hud_enrollment, project: project, data_source: project.data_source) }
+  describe '#destroy' do
+    # Create dependent records to ensure they are destroyed when the project is destroyed
+    let!(:project_coc) { create(:hmis_hud_project_coc, project: project, data_source: data_source) }
+    let!(:funder) { create(:hmis_hud_funder, project: project, data_source: data_source) }
+    let!(:inventory) { create(:hmis_hud_inventory, project: project, data_source: data_source) }
+    let!(:unit) { create(:hmis_unit, project: project) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
+    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: project.data_source) }
+    let!(:outgoing_referral) { create(:hmis_ce_referral, source_enrollment: enrollment) }
+    let!(:ce_match_rule) { create(:hmis_ce_eligibility_requirement, owner: project) }
 
-  let!(:project) { create :hmis_hud_project }
-  before(:each) do
-    create(:hmis_hud_project_coc, project: project, data_source: project.data_source)
-    create(:hmis_hud_funder, project: project, data_source: project.data_source)
-    create(:hmis_hud_inventory, project: project, data_source: project.data_source)
-  end
+    it 'preserves shared data after destroy' do
+      project.destroy!
+      project.reload
 
-  it 'preserves shared data after destroy' do
-    project.destroy
-    project.reload
+      [
+        :data_source,
+        :organization,
+        :user,
+      ].each do |assoc|
+        expect(project.send(assoc)).to be_present, "expected #{assoc} to be present"
+      end
 
-    [
-      :data_source,
-      :organization,
-      :user,
-    ].each do |assoc|
-      expect(project.send(assoc)).to be_present, "expected #{assoc} to be present"
-    end
-  end
-
-  it 'destroys dependent data' do
-    project.reload
-    [
-      :enrollments,
-      :project_cocs,
-      :inventories,
-      :funders,
-    ].each do |assoc|
-      expect(project.send(assoc)).to be_present, "expected #{assoc} to be present"
+      # client should still be present
+      expect(client.reload).not_to be_deleted
     end
 
-    project.destroy
-    project.reload
+    it 'destroys dependent data' do
+      dependent_associations = [
+        :enrollments,
+        :project_cocs,
+        :inventories,
+        :funders,
+        :units,
+        :ce_opportunities,
+        :ce_referrals,
+        :ce_match_rules,
+        :outgoing_ce_referrals,
+      ]
+      dependent_associations.each do |assoc|
+        expect(project.send(assoc)).to be_present, "expected #{assoc} to be present"
+      end
 
-    [
-      :enrollments,
-      :project_cocs,
-      :inventories,
-      :funders,
-    ].each do |assoc|
-      expect(project.send(assoc)).not_to be_present, "expected #{assoc} not to be present"
+      project.destroy!
+      project.reload
+
+      dependent_associations.each do |assoc|
+        expect(project.send(assoc)).not_to be_present, "expected #{assoc} not to be present"
+      end
+
+      [enrollment, project_coc, funder, inventory, unit, referral, outgoing_referral, ce_match_rule].each do |record|
+        expect(record.reload).to be_deleted, "expected #{record.class.name} to be deleted"
+      end
+      # special case for opportunity, it is closed rather than deleted due to the before_destroy callback on the unit
+      expect(opportunity.reload.status).to eq('closed')
     end
   end
 

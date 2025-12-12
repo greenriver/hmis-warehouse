@@ -76,16 +76,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:pool_1) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1, client_proxy_in_pool_1_and_2] }
       let!(:pool_1_unit_group) { create :hmis_unit_group, project: p1, candidate_pool: pool_1 }
 
-      # Pool 2 is active because it's tied to an open opportunity
+      # Pool 2 is active because it's tied to an open opportunity, even though the unit has been deleted and isn't tied to an active unit group
       let!(:pool_2) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1_and_2] }
-      let!(:pool_2_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_2, status: 'open' }
+      let!(:pool_2_unit) { create :hmis_unit, project: p1, unit_group: nil, deleted_at: Time.current - 3.days }
+      let!(:pool_2_opportunity) { create :hmis_ce_opportunity, unit: pool_2_unit, candidate_pool: pool_2, status: 'open' }
 
       # cruft: Pool 3 is not active, candidate membership should be disregarded
       let!(:pool_3) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
 
       # cruft: Pool 4 is not active, candidate membership should be disregarded
       let!(:pool_4) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
-      let!(:pool_4_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_4, status: 'closed' }
+      let!(:pool_4_unit) { create :hmis_unit, project: p1, unit_group: nil, deleted_at: Time.current - 3.days }
+      let!(:pool_4_opportunity) { create :hmis_ce_opportunity, unit: pool_4_unit, candidate_pool: pool_4, status: 'closed' }
 
       # cruft: Pool 5 has only locked opportunities (no open opportunities), so it should not be receiving referrals
       let!(:client_proxy_eligible_for_pool_5_only) do

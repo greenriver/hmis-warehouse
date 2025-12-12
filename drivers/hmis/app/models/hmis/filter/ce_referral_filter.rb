@@ -33,13 +33,13 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   def with_projects(scope)
     with_filter(scope, :project) do
-      scope.joins(:opportunity).where(opp_t[:project_id].in(input.project))
+      scope.joins(:target_project).where(p_t[:id].in(input.project))
     end
   end
 
   def with_project_types(scope)
     with_filter(scope, :project_type) do
-      scope.joins(opportunity: :project).where(p_t[:project_type].in(input.project_type))
+      scope.joins(:target_project).where(p_t[:project_type].in(input.project_type))
     end
   end
 

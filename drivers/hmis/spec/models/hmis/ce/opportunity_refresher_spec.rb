@@ -29,9 +29,9 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
   let!(:unit3) { create(:hmis_unit, project: p1, unit_group: ug1) }
 
   # first 2 opportunities are stale and associated with the wrong candidate pool
-  let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, project: p1, data_source: ds1, status: :open, stale: true, candidate_pool: ug2.candidate_pool) }
-  let!(:opportunity2) { create(:hmis_ce_opportunity, unit: unit2, project: p1, data_source: ds1, status: :open, stale: true, candidate_pool: ug1.candidate_pool) }
-  let!(:opportunity3) { create(:hmis_ce_opportunity, unit: unit3, project: p1, data_source: ds1, status: :open, stale: false, candidate_pool: ug1.candidate_pool) }
+  let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, status: :open, stale: true, candidate_pool: ug2.candidate_pool) }
+  let!(:opportunity2) { create(:hmis_ce_opportunity, unit: unit2, status: :open, stale: true, candidate_pool: ug1.candidate_pool) }
+  let!(:opportunity3) { create(:hmis_ce_opportunity, unit: unit3, status: :open, stale: false, candidate_pool: ug1.candidate_pool) }
 
   describe '#refresh_stale_opportunities' do
     it 'closes stale opportunities and creates fresh ones' do
@@ -68,7 +68,7 @@ RSpec.describe Hmis::Ce::OpportunityRefresher do
     end
 
     context 'when a stale opportunity has an active referral' do
-      let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, project: p1, data_source: ds1, status: :locked, stale: true) }
+      let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, status: :locked, stale: true) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity1, data_source: ds1, status: :in_progress) }
 
       it 'does not close the stale opportunity that is locked' do

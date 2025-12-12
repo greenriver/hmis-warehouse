@@ -17,13 +17,13 @@ class Hmis::AuthPolicies::CeOpportunityPolicy < Hmis::AuthPolicies::BasePolicy
     return false unless client.data_source_id == user.hmis_data_source_id
 
     # Does the user have permission?
-    return false unless context.project_permissions(opportunity.project_id).include?(:can_start_referrals)
+    return false unless context.project_permissions(opportunity.unit.project_id).include?(:can_start_referrals)
 
     true
   end
 
   def can_view_candidates?
-    context.project_permissions(opportunity.project_id).include?(:can_view_prioritized_client_lists)
+    context.project_permissions(opportunity.unit.project_id).include?(:can_view_prioritized_client_lists)
   end
 
   protected
