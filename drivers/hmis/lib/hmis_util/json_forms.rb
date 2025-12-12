@@ -389,7 +389,9 @@ module HmisUtil
           )
         end
       end
-      ensure_system_instances_exist!
+      # Ensure system instances exist for records, so the application functions correctly and HUD compliance is met.
+      # Skip in test environment, loading the db with Form Instances interfere with unit testing.
+      ensure_system_instances_exist! unless Rails.env.test?
       # puts "Saved definitions with identifiers: #{added_identifiers.join(', ')}"
     end
 
