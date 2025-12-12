@@ -17,7 +17,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
   let!(:unit_group) { create(:hmis_unit_group, project: project) }
   let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
-  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: 'open') }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: 'open') }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -94,7 +94,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
     end
 
     context 'when unit had an opportunity in the past that is now closed' do
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: 'closed') }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, created_at: 2.years.ago, status: 'closed') }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       it 'closes the active opportunity' do
@@ -125,7 +125,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       let!(:units) do
         10.times.map do
           unit = create(:hmis_unit, project: project, unit_group: unit_group)
-          create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: 'open')
+          create(:hmis_ce_opportunity, unit: unit, status: 'open')
           unit
         end
       end

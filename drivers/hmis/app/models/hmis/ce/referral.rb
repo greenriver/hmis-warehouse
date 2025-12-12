@@ -21,6 +21,7 @@ module Hmis::Ce
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
+    has_one :unit, class_name: 'Hmis::Unit', through: :opportunity
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :destroy
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote', dependent: :destroy
@@ -30,7 +31,7 @@ module Hmis::Ce
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     belongs_to :source_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :source_project, class_name: 'Hmis::Hud::Project', through: :source_enrollment, source: :project
-    has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
+    has_one :target_project, class_name: 'Hmis::Hud::Project', through: :unit, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
