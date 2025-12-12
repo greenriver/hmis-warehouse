@@ -629,7 +629,7 @@ module Types
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
-        merge(Hmis::Ce::Match::CandidatePool.active).
+        merge(Hmis::Ce::Match::CandidatePool.active_for_current_eligibility).
         distinct.order(:id)
 
       scope = scope.apply_filters(filters) if filters

@@ -316,7 +316,8 @@ module HmisDataQualityTool
       report_item.enrollment_coc = enrollment.EnrollmentCoC
       report_item.project_coc_codes = enrollment.project&.project_cocs&.map(&:effective_coc_code) || []
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
-      report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
+      # Work around missing DateCreated.  Use today to indicate that the data quality is very bad
+      report_item.days_between_entry_and_create = ([enrollment.DateCreated, Date.current].compact.min.to_date - enrollment.EntryDate).to_i
 
       report_item.domestic_violence_victim_at_entry = enrollment.health_and_dvs_at_entry&.first&.DomesticViolenceSurvivor
 

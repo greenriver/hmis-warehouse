@@ -148,6 +148,8 @@ module HopwaCaper
       'project_type',
       'income_benefit_source_types',
       'medical_insurance_types',
+      'household_income_benefit_source_types',
+      'household_medical_insurance_types',
       'hiv_positive',
       'hopwa_eligible',
       'chronically_homeless',

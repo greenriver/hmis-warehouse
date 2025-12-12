@@ -160,7 +160,7 @@ class ClientsController < ApplicationController
   # invalidate service history for this
   # Queue update to service history
   def merge
-    to_merge = client_params['merge'].reject(&:empty?)
+    to_merge = client_params['merge']&.reject(&:empty?) || []
     merged = []
     to_merge.each do |id|
       c = client_source.find(id)
