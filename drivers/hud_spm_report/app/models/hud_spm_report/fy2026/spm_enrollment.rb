@@ -216,7 +216,6 @@ module HudSpmReport::Fy2026
         table[:first_name],
         table[:last_name],
         table[:personal_id],
-        Arel::Nodes::NamedFunction.new('CAST', [table[:id].as('TEXT')]),
         Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
       ]
     end

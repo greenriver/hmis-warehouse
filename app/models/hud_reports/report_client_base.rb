@@ -49,16 +49,7 @@ module HudReports
     end
 
     def self.search_columns
-      table = arel_table
-      columns = [
-        Arel::Nodes::NamedFunction.new('CAST', [table[:id].as('TEXT')]),
-        Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
-      ]
-
-      ['first_name', 'last_name', 'personal_id'].each do |col|
-        columns << table[col] if column_names.include?(col)
-      end
-      columns
+      []
     end
 
     private

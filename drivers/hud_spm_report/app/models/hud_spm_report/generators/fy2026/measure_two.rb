@@ -11,11 +11,11 @@
 # and 24 months.
 module HudSpmReport::Generators::Fy2026
   class MeasureTwo < MeasureBase
+    # Universe: Returns
     def self.question_number
       'Measure 2'
     end
 
-    # Universe: Returns
     def self.client_class
       HudSpmReport::Fy2026::Return
     end

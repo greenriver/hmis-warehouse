@@ -6,7 +6,7 @@
         - @headers.each_value do |header|
           %th= header
     %tbody
-      - # list contains Episodes or Returns (already preloaded in controller)
+      - # list contains SpmEnrollment, Episodes, or Returns
       - list.each.with_index do |client, i|
         - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
         %tr
