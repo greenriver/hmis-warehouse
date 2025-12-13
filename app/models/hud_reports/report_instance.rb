@@ -92,7 +92,7 @@ module HudReports
         end
       when 'Completed'
         if started_at.present? && completed_at.present?
-          "#{state} in #{distance_of_time_in_words(started_at, completed_at)} <br/> #{completed_at} ".html_safe
+          "#{state} in #{total_duration_in_words} <br/> #{completed_at} ".html_safe
         else
           state
         end
@@ -121,6 +121,16 @@ module HudReports
       cells.delete_all
     end
 
+    def total_duration_in_words
+      return unless started_at
+
+      end_time = completed_at || Time.current
+      current_run_duration = end_time - started_at
+      total_seconds = previous_duration.to_i + [current_run_duration, 0].max
+
+      distance_of_time_in_words(Time.current - total_seconds, Time.current)
+    end
+
     private def job_failed?
       related_job.present? && related_job.failed?
     end
@@ -143,6 +153,11 @@ module HudReports
     end
 
     def start_report
+      if started_at.present?
+        last_run_duration = (updated_at || Time.current) - started_at
+        self.previous_duration = previous_duration.to_i + [last_run_duration, 0].max.to_i
+      end
+
       update!(state: 'Started', started_at: Time.current)
     end
 
