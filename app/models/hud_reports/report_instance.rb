@@ -124,9 +124,38 @@ module HudReports
     def total_duration_in_words
       return unless started_at
 
-      end_time = completed_at || Time.current
-      current_run_duration = end_time - started_at
-      total_seconds = previous_duration.to_i + [current_run_duration, 0].max
+      # Collect all valid intervals
+      intervals = []
+      checkpoints.each do |cp|
+        next unless cp['started_at']
+
+        start_t = Time.zone.parse(cp['started_at'])
+        end_t = if cp['completed_at']
+          Time.zone.parse(cp['completed_at'])
+        elsif running?
+          # If running and this checkpoint is open, assume it's the active one
+          Time.current
+        else
+          # Zombie/Crashed: treat as 0 duration (start_t)
+          start_t
+        end
+
+        intervals << [start_t, end_t] if end_t >= start_t
+      end
+
+      # Merge overlapping intervals to avoid double counting nested checkpoints
+      intervals.sort_by!(&:first)
+      merged = []
+      intervals.each do |curr|
+        if merged.empty? || curr.first > merged.last.last
+          merged << curr
+        else
+          # Overlap: extend the previous interval if needed.
+          merged.last[1] = [merged.last.last, curr.last].max
+        end
+      end
+
+      total_seconds = merged.sum { |s, e| e - s }
 
       distance_of_time_in_words(Time.current - total_seconds, Time.current)
     end
@@ -153,12 +182,36 @@ module HudReports
     end
 
     def start_report
-      if started_at.present?
-        last_run_duration = (updated_at || Time.current) - started_at
-        self.previous_duration = previous_duration.to_i + [last_run_duration, 0].max.to_i
-      end
+      # Only set started_at on the very first run
+      self.started_at ||= Time.current
 
-      update!(state: 'Started', started_at: Time.current)
+      update!(state: 'Started', started_at: started_at)
+    end
+
+    def track_progress(checkpoint_name)
+      # Initialize checkpoints array if needed
+      self.checkpoints ||= []
+
+      # Start a new checkpoint segment
+      checkpoint = { 'name' => checkpoint_name, 'started_at' => Time.current.iso8601 }
+      self.checkpoints << checkpoint
+
+      # Ensure Rails knows the attribute has changed (for array mutation)
+      checkpoints_will_change!
+      save!
+
+      yield
+    ensure
+      # Close the checkpoint even if an error occurs
+      # Need to reload to get fresh checkpoints array, then modify the last one
+      reload
+      if checkpoints.present?
+        checkpoints.last['completed_at'] = Time.current.iso8601
+
+        # Ensure Rails knows the attribute has changed (for hash mutation inside array)
+        checkpoints_will_change!
+        save!
+      end
     end
 
     # Mark a question as completed
