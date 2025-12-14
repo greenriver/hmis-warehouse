@@ -124,6 +124,11 @@ module HudReports
     def total_duration_in_words
       return unless started_at
 
+      total_seconds = calculate_duration_seconds
+      distance_of_time_in_words(Time.current - total_seconds, Time.current)
+    end
+
+    private def calculate_duration_seconds
       # Collect all valid intervals
       intervals = []
       checkpoints.each do |cp|
@@ -155,9 +160,7 @@ module HudReports
         end
       end
 
-      total_seconds = merged.sum { |s, e| e - s }
-
-      distance_of_time_in_words(Time.current - total_seconds, Time.current)
+      merged.sum { |s, e| e - s }
     end
 
     private def job_failed?
@@ -189,28 +192,22 @@ module HudReports
     end
 
     def track_progress(checkpoint_name)
-      # Initialize checkpoints array if needed
       self.checkpoints ||= []
-
       # Start a new checkpoint segment
       checkpoint = { 'name' => checkpoint_name, 'started_at' => Time.current.iso8601 }
-      self.checkpoints << checkpoint
+      begin
+        yield
+      ensure
+        # Close the checkpoint even if an error occurs
+        # Update the specific checkpoint we created
+        checkpoint['completed_at'] = Time.current.iso8601
 
-      # Ensure Rails knows the attribute has changed (for array mutation)
-      checkpoints_will_change!
-      save!
-
-      yield
-    ensure
-      # Close the checkpoint even if an error occurs
-      # Need to reload to get fresh checkpoints array, then modify the last one
-      reload
-      if checkpoints.present?
-        checkpoints.last['completed_at'] = Time.current.iso8601
-
-        # Ensure Rails knows the attribute has changed (for hash mutation inside array)
-        checkpoints_will_change!
-        save!
+        self.class.where(id: id).update_all([
+          "checkpoints = COALESCE(checkpoints, '[]'::jsonb) || ?::jsonb",
+          checkpoint.to_json
+        ])
+        # return the checkpoint
+        checkpoint
       end
     end
 

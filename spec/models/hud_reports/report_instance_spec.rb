@@ -8,61 +8,109 @@ RSpec.describe HudReports::ReportInstance, type: :model do
   describe '#start_report' do
     after { travel_back }
 
-    it 'accumulates elapsed time from previous runs in checkpoints' do
+    it 'sets state to Started and initializes started_at' do
+      travel_to Time.zone.parse('2025-01-01 12:00:00') do
+        report = described_class.create!(
+          report_name: 'Test Report',
+          state: 'Queued',
+          question_names: ['test']
+        )
+
+        report.start_report
+
+        expect(report.state).to eq('Started')
+        expect(report.started_at).to eq(Time.current)
+      end
+    end
+
+    it 'does not overwrite existing started_at' do
+      travel_to Time.zone.parse('2025-01-01 12:00:00') do
+        original_start = 1.hour.ago
+        report = described_class.create!(
+          report_name: 'Test Report',
+          state: 'Started',
+          started_at: original_start,
+          question_names: ['test']
+        )
+
+        report.start_report
+
+        expect(report.started_at).to eq(original_start)
+      end
+    end
+  end
+
+  describe '#track_progress' do
+    after { travel_back }
+
+    it 'creates and completes a checkpoint' do
       travel_to Time.zone.parse('2025-01-01 12:00:00') do
         report = described_class.create!(
           report_name: 'Test Report',
           state: 'Started',
-          # Started 1 hour ago
           started_at: 1.hour.ago,
-          # One finished checkpoint of 30 mins
-          checkpoints: [
-            { 'name' => 'Init', 'started_at' => 1.hour.ago.iso8601, 'completed_at' => 30.minutes.ago.iso8601 },
-          ],
-          question_names: ['test'],
+          question_names: ['test']
         )
 
-        # Resume execution (start_report)
-        report.start_report
-
-        # Checkpoints should not change just by starting (no default checkpoint now)
-        expect(report.checkpoints.size).to eq(1)
-
-        # Original started_at should remain unchanged
-        expect(report.started_at).to eq(1.hour.ago)
-
-        # Advance 10 minutes
-        travel 10.minutes
-
-        # Checkpoint progress
         report.track_progress('Q1') do
-          # Inside block
-          expect(report.checkpoints.size).to eq(2)
-          expect(report.checkpoints.last['name']).to eq('Q1')
-          expect(report.checkpoints.last['started_at']).to eq(Time.current.iso8601)
-
-          # Advance 5 minutes
           travel 5.minutes
         end
 
-        # Reload to see persisted checkpoint
         report.reload
-        expect(report.checkpoints.last['completed_at']).to eq(Time.current.iso8601)
-
-        # Total duration:
-        # Segment 1: 30 mins
-        # Segment 2: 5 mins
-        # Total: 35 mins
-
-        expect(report.total_duration_in_words).to eq('35 minutes')
+        checkpoint = report.checkpoints.last
+        expect(checkpoint['name']).to eq('Q1')
+        expect(checkpoint['started_at']).to eq(Time.zone.parse('2025-01-01 12:00:00').iso8601)
+        expect(checkpoint['completed_at']).to eq(Time.zone.parse('2025-01-01 12:05:00').iso8601)
       end
+    end
+
+    it 'handles nested checkpoints' do
+      travel_to Time.zone.parse('2025-01-01 12:00:00') do
+        report = described_class.create!(
+          report_name: 'Test Report',
+          state: 'Started',
+          started_at: 1.hour.ago,
+          question_names: ['test']
+        )
+
+        # Outer checkpoint
+        report.track_progress('Outer') do
+          travel 1.minutes
+          # Inner checkpoint
+          report.track_progress('Inner') do
+            travel 30.minutes
+          end
+          travel 2.minutes
+        end
+
+        report.reload
+        expect(report.checkpoints.size).to eq(2)
+        expect(report.checkpoints.map { |cp| cp['name'] }).to contain_exactly('Outer', 'Inner')
+        expect(report.checkpoints.all? { |cp| cp['completed_at'].present? }).to be true
+      end
+    end
+
+    it 'completes checkpoint even if block raises error' do
+      report = described_class.create!(
+        report_name: 'Test Report',
+        state: 'Started',
+        question_names: ['test']
+      )
+
+      expect {
+        report.track_progress('Faulty') { raise 'Boom' }
+      }.to raise_error('Boom')
+
+      report.reload
+      expect(report.checkpoints.last['name']).to eq('Faulty')
+      expect(report.checkpoints.last['completed_at']).to be_present
     end
   end
 
   describe '#total_duration_in_words' do
     after { travel_back }
 
-    it 'handles multiple sequential checkpoints' do
+    it 'calculates duration from multiple checkpoints' do
       travel_to Time.zone.parse('2025-01-01 12:00:00') do
         base_time = Time.current
         report = described_class.create!(
@@ -74,11 +122,33 @@ RSpec.describe HudReports::ReportInstance, type: :model do
             { 'name' => 'Q1', 'started_at' => (base_time + 10.minutes).iso8601, 'completed_at' => (base_time + 25.minutes).iso8601 },
             { 'name' => 'Q2', 'started_at' => (base_time + 25.minutes).iso8601, 'completed_at' => (base_time + 45.minutes).iso8601 },
           ],
-          question_names: ['test'],
+          question_names: ['test']
         )
 
         # Total: 10 + 15 + 20 = 45 minutes
         expect(report.total_duration_in_words).to eq('about 1 hour')
+      end
+    end
+
+    it 'calculates duration with nested/overlapping checkpoints' do
+      travel_to Time.zone.parse('2025-01-01 12:00:00') do
+        # Setup checkpoints that simulate the nested structure directly
+        start_t = Time.current
+        report = described_class.create!(
+          report_name: 'Test Report',
+          state: 'Started',
+          started_at: start_t,
+          checkpoints: [
+            # Outer: 0 to 33 mins
+            { 'name' => 'Outer', 'started_at' => start_t.iso8601, 'completed_at' => (start_t + 33.minutes).iso8601 },
+            # Inner: 1 to 31 mins (contained within Outer)
+            { 'name' => 'Inner', 'started_at' => (start_t + 1.minute).iso8601, 'completed_at' => (start_t + 31.minutes).iso8601 }
+          ],
+          question_names: ['test']
+        )
+
+        # Total duration should be just the outer duration (33 minutes), not 33 + 30
+        expect(report.total_duration_in_words).to eq('33 minutes')
       end
     end
 
@@ -93,7 +163,7 @@ RSpec.describe HudReports::ReportInstance, type: :model do
             { 'name' => 'Prep', 'started_at' => base_time.iso8601, 'completed_at' => (base_time + 10.minutes).iso8601 },
             { 'name' => 'Q1', 'started_at' => (base_time + 10.minutes).iso8601 }, # Crashed - no completed_at
           ],
-          question_names: ['test'],
+          question_names: ['test']
         )
 
         # Only counts completed checkpoint: 10 minutes
@@ -112,7 +182,7 @@ RSpec.describe HudReports::ReportInstance, type: :model do
             { 'name' => 'Prep', 'started_at' => base_time.iso8601, 'completed_at' => (base_time + 10.minutes).iso8601 },
             { 'name' => 'Q1', 'started_at' => (base_time + 10.minutes).iso8601 }, # Active checkpoint
           ],
-          question_names: ['test'],
+          question_names: ['test']
         )
 
         # Stub related_job so running? returns true
@@ -136,7 +206,7 @@ RSpec.describe HudReports::ReportInstance, type: :model do
         report_name: 'Test Report',
         state: 'Queued',
         checkpoints: [],
-        question_names: ['test'],
+        question_names: ['test']
       )
 
       expect(report.total_duration_in_words).to be_nil
@@ -149,7 +219,7 @@ RSpec.describe HudReports::ReportInstance, type: :model do
           state: 'Started',
           started_at: 1.hour.ago,
           checkpoints: [],
-          question_names: ['test'],
+          question_names: ['test']
         )
 
         expect(report.total_duration_in_words).to eq('less than a minute')
