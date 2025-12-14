@@ -78,17 +78,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'form definition with no added rules' do
-      it_behaves_like 'includes conditional item'
+      it_behaves_like 'context matches rule'
     end
 
     describe 'form definition with projectType rule' do
       let(:project_type) { 5 }
       let(:rule) { { variable: 'projectType', operator: 'EQUAL', value: project_type } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with matches' do
         before(:each) { p1.update!(project_type: project_type) }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
     end
 
@@ -96,10 +96,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:project_type) { 5 }
       let(:custom_rule) { { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }] } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with match' do
         before(:each) { p1.update!(project_type: project_type) }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
     end
 
@@ -109,14 +109,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:rule) { { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }] } }
       let(:custom_rule) { { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type_2 }] } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with match on HUD Rule (and no match on Custom rule)' do
         before(:each) { p1.update!(project_type: project_type) }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
       describe 'with match on custom rule (and no match on HUD rule)' do
         before(:each) { p1.update!(project_type: project_type_2) }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
     end
 
@@ -124,22 +124,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:funder) { 1234 }
       let(:rule) { { variable: 'projectFunders', operator: 'INCLUDE', value: funder } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with matches' do
         before(:each) { create :hmis_hud_funder, data_source: ds1, project: p1, funder: funder }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
       describe 'with active date specified' do
         before(:each) { create :hmis_hud_funder, start_date: 2.years.ago, end_date: 1.year.ago, data_source: ds1, project: p1, funder: funder }
-        it_behaves_like 'excludes conditional item' # funder is not currently active
+        it_behaves_like 'context does not match rule' # funder is not currently active
 
         context 'when funder was NOT active at specified date' do
           let(:assessment_date) { 6.months.ago }
-          it_behaves_like 'excludes conditional item'
+          it_behaves_like 'context does not match rule'
         end
         context 'when funder WAS active at specified date' do
           let(:assessment_date) { 18.months.ago }
-          it_behaves_like 'includes conditional item'
+          it_behaves_like 'context matches rule'
         end
       end
     end
@@ -148,10 +148,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:other_funder) { '123XYZ' }
       let(:rule) { { variable: 'projectOtherFunders', operator: 'INCLUDE', value: other_funder } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with matches' do
         before(:each) { create :hmis_hud_funder, data_source: ds1, project: p1, other_funder: other_funder }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
     end
 
@@ -160,17 +160,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:funder) { 1234 }
       let(:rule) { { operator: 'ALL', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }, { variable: 'projectFunders', operator: 'INCLUDE', value: funder }] } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with partial match' do
         before(:each) { p1.update!(project_type: project_type) }
-        it_behaves_like 'excludes conditional item'
+        it_behaves_like 'context does not match rule'
       end
       describe 'with complete match' do
         before(:each) do
           p1.update!(project_type: project_type)
           create :hmis_hud_funder, data_source: ds1, project: p1, funder: funder
         end
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
     end
 
@@ -179,10 +179,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:funder) { 1234 }
       let(:rule) { { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }, { variable: 'projectFunders', operator: 'INCLUDE', value: funder }] } }
 
-      it_behaves_like 'excludes conditional item'
+      it_behaves_like 'context does not match rule'
       describe 'with partial match' do
         before(:each) { p1.update!(project_type: project_type) }
-        it_behaves_like 'includes conditional item'
+        it_behaves_like 'context matches rule'
       end
     end
   end
