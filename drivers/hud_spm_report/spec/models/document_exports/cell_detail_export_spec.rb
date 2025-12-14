@@ -55,8 +55,11 @@ RSpec.describe HudSpmReport::DocumentExports::CellDetailExport, type: :model do
     end
 
     it 'allows only the report owner' do
-      expect(export.authorized?).to be(true)
       other_user = create(:user)
+      owner.legacy_roles << create(:role, can_view_all_reports: true)
+      other_user.legacy_roles << create(:role, can_view_all_reports: true)
+
+      expect(export.authorized?).to be(true)
       export.user = other_user
       expect(export.authorized?).to be(false)
     end
