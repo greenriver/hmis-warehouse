@@ -161,6 +161,9 @@ module HopwaCaper
       'ever_prescribed_anti_retroviral_therapy',
       'viral_load_suppression',
       'percent_ami',
+      'atc_maintained_contact',
+      'atc_housing_plan',
+      'atc_primary_health_contact',
     ].freeze
 
     def self.detail_headers

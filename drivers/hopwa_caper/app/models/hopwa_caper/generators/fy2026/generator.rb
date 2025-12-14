@@ -53,14 +53,20 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def self.questions
-      [
+      sheets = [
         HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet,
         HopwaCaper::Generators::Fy2026::Sheets::TbraSheet,
         HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet,
         HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
         HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
         HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
-      ].map do |q|
+      ]
+
+      if HopwaCaper::Configuration.new.atc_tab_enabled?
+        sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet
+      end
+
+      sheets.map do |q|
         [q.question_number, q]
       end.to_h.freeze
     end
@@ -161,6 +167,8 @@ module HopwaCaper::Generators::Fy2026
         enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
         populate_household_aggregated_fields(enrollments)
       end
+
+      populate_atc_data if HopwaCaper::Configuration.new.atc_tab_enabled?
 
       true
     end
@@ -287,6 +295,87 @@ module HopwaCaper::Generators::Fy2026
 
     def service_date_range
       @service_date_range ||= (report.start_date - SERVICE_LOOKBACK)..report.end_date
+    end
+
+    def populate_atc_data
+      config = HopwaCaper::Configuration.new
+      return unless config.atc_tab_enabled?
+
+      maintained_contact_key = config.atc_maintained_contact_field_name
+      housing_plan_key = config.atc_housing_plan_field_name
+      primary_health_contact_key = config.atc_primary_health_contact_field_name
+
+      return unless maintained_contact_key || housing_plan_key || primary_health_contact_key
+
+      enrollment_ids = report.hopwa_caper_enrollments.pluck(:enrollment_id).uniq
+      return if enrollment_ids.empty?
+
+      hud_enrollments = GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids).index_by(&:id)
+
+      cde_definitions = {}
+      [maintained_contact_key, housing_plan_key, primary_health_contact_key].compact.each do |key|
+        definition = Hmis::Hud::CustomDataElementDefinition.find_by(key: key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+        cde_definitions[key] = definition if definition
+      end
+
+      return if cde_definitions.empty?
+
+      cde_by_enrollment = Hmis::Hud::CustomDataElement.
+        where(owner_type: 'GrdaWarehouse::Hud::Enrollment', owner_id: enrollment_ids).
+        where(data_element_definition_id: cde_definitions.values.map(&:id)).
+        group_by(&:owner_id)
+
+      rows_to_update = []
+
+      report.hopwa_caper_enrollments.find_each do |caper_enrollment|
+        hud_enrollment = hud_enrollments[caper_enrollment.enrollment_id]
+        next unless hud_enrollment
+
+        custom_data_elements = cde_by_enrollment[caper_enrollment.enrollment_id] || []
+        updates = {}
+
+        if maintained_contact_key && cde_definitions[maintained_contact_key]
+          cde = custom_data_elements.find { |e| e.data_element_definition_id == cde_definitions[maintained_contact_key].id }
+          updates[:atc_maintained_contact] = value_to_boolean(cde&.value) if cde
+        end
+
+        if housing_plan_key && cde_definitions[housing_plan_key]
+          cde = custom_data_elements.find { |e| e.data_element_definition_id == cde_definitions[housing_plan_key].id }
+          updates[:atc_housing_plan] = value_to_boolean(cde&.value) if cde
+        end
+
+        if primary_health_contact_key && cde_definitions[primary_health_contact_key]
+          cde = custom_data_elements.find { |e| e.data_element_definition_id == cde_definitions[primary_health_contact_key].id }
+          updates[:atc_primary_health_contact] = value_to_boolean(cde&.value) if cde
+        end
+
+        if updates.any?
+          caper_enrollment.assign_attributes(updates)
+          rows_to_update << caper_enrollment
+        end
+      end
+
+      return unless rows_to_update.any?
+
+      HopwaCaper::Enrollment.import(
+        rows_to_update,
+        validate: false,
+        on_duplicate_key_update: {
+          conflict_target: [:report_instance_id, :enrollment_id],
+          columns: [:atc_maintained_contact, :atc_housing_plan, :atc_primary_health_contact],
+        },
+      )
+    end
+
+    def value_to_boolean(value)
+      return false if value.nil?
+
+      case value
+      when true, 'true', 'True', 'yes', 'Yes', 'YES', 1, '1'
+        true
+      else
+        false
+      end
     end
   end
 end
