@@ -374,7 +374,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Raise an error if no definition was found for a system role (like CLIENT, PROJECT, etc).
     # System role forms are required for the HMIS to function. There should be system Instances that prevent this from happening.
-    raise `No Definition found for System form #{role}` if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
+    raise "No Definition found for System form #{role}" if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
 
     selected_definition
   end
