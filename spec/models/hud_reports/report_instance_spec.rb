@@ -97,8 +97,6 @@ RSpec.describe HudReports::ReportInstance, type: :model do
 
     it 'calculates duration from multiple checkpoints' do
       travel_to Time.zone.parse('2025-01-01 12:00:00') do
-        base_time = Time.current
-
         # Create checkpoints
         report.checkpoints.create!(name: 'Prep', started_at: base_time, completed_at: base_time + 10.minutes, status: 'success')
         report.checkpoints.create!(name: 'Q1', started_at: base_time + 10.minutes, completed_at: base_time + 25.minutes, status: 'success')
