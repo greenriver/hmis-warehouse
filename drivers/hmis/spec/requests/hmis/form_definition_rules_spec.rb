@@ -56,7 +56,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       result.dig('data', 'assessmentFormDefinition')
     end
 
-    shared_examples 'includes conditional item' do
+    shared_examples 'context matches rule' do
       it 'includes conditional item' do
         form = perform_assessment_query
         expect(form['id']).to eq(intake_definition.id.to_s)
@@ -66,7 +66,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    shared_examples 'excludes conditional item' do
+    shared_examples 'context does not match rule' do
       it 'excludes conditional item' do
         form = perform_assessment_query
         expect(form['id']).to eq(intake_definition.id.to_s)
