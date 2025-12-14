@@ -226,21 +226,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'excludes filtered items' do
         expect(query_form_definition).to be_present
         expect(query_form_definition['id']).to eq(enrollment_definition.id.to_s)
-        items = query_form_definition['definition']['item']
-        expect(items).to contain_exactly(
-          a_hash_including('link_id' => 'unconditional-question'),
-        )
-        expect(items).not_to include(a_hash_including('link_id' => 'conditional-question'))
+        items = query_form_definition['definition']['item'].map { |item| item['linkId'] }
+        expect(items).to contain_exactly('unconditional-question')
+        expect(items).not_to include('conditional-question')
       end
       describe 'with matches' do
         before(:each) { p1.update!(project_type: 12) }
         it 'includes all items' do
           expect(query_form_definition).to be_present
-          items = query_form_definition['definition']['item']
-          expect(items).to contain_exactly(
-            a_hash_including('link_id' => 'conditional-question'),
-            a_hash_including('link_id' => 'unconditional-question'),
-          )
+          items = query_form_definition['definition']['item'].map { |item| item['linkId'] }
+          expect(items).to contain_exactly('conditional-question', 'unconditional-question')
         end
       end
     end
