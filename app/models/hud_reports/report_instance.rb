@@ -28,6 +28,7 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    has_many :checkpoints, class_name: 'HudReports::ReportCheckpoint', foreign_key: 'hud_report_instance_id', dependent: :destroy
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
@@ -122,45 +123,14 @@ module HudReports
     end
 
     def total_duration_in_words
-      return unless started_at
+      # only report out if the job is completed
+      return unless started_at && completed_at
 
-      total_seconds = calculate_duration_seconds
-      distance_of_time_in_words(Time.current - total_seconds, Time.current)
-    end
+      # if this report was created before we used checkpoints, calculate from completed_at
+      checkpoint_seconds = checkpoints.calculate_duration_seconds
+      return distance_of_time_in_words(started_at, completed_at) if checkpoint_seconds.nil?
 
-    private def calculate_duration_seconds
-      # Collect all valid intervals
-      intervals = []
-      checkpoints.each do |cp|
-        next unless cp['started_at']
-
-        start_t = Time.zone.parse(cp['started_at'])
-        end_t = if cp['completed_at']
-          Time.zone.parse(cp['completed_at'])
-        elsif running?
-          # If running and this checkpoint is open, assume it's the active one
-          Time.current
-        else
-          # Zombie/Crashed: treat as 0 duration (start_t)
-          start_t
-        end
-
-        intervals << [start_t, end_t] if end_t >= start_t
-      end
-
-      # Merge overlapping intervals to avoid double counting nested checkpoints
-      intervals.sort_by!(&:first)
-      merged = []
-      intervals.each do |curr|
-        if merged.empty? || curr.first > merged.last.last
-          merged << curr
-        else
-          # Overlap: extend the previous interval if needed.
-          merged.last[1] = [merged.last.last, curr.last].max
-        end
-      end
-
-      merged.sum { |s, e| e - s }
+      distance_of_time_in_words(0, checkpoint_seconds)
     end
 
     private def job_failed?
@@ -192,23 +162,28 @@ module HudReports
     end
 
     def track_progress(checkpoint_name)
-      self.checkpoints ||= []
-      # Start a new checkpoint segment
-      checkpoint = { 'name' => checkpoint_name, 'started_at' => Time.current.iso8601 }
+      raise unless checkpoint_name.present?
+      raise "already tracking progress (#{@tracking_progress}). Nested behavior not supported" if @tracking_progress
+
+      @tracking_progress = checkpoint_name
+
+      # error out any stale checkpoints
+      checkpoints.where(status: 'running').update_all(status: 'error')
+
+      checkpoint = checkpoints.create!(name: checkpoint_name, started_at: Time.current, status: 'running')
+      status = 'success'
+
       begin
         yield
+      rescue StandardError
+        status = 'error'
+        raise
       ensure
-        # Close the checkpoint even if an error occurs
-        # Update the specific checkpoint we created
-        checkpoint['completed_at'] = Time.current.iso8601
-
-        self.class.where(id: id).update_all([
-          "checkpoints = COALESCE(checkpoints, '[]'::jsonb) || ?::jsonb",
-          checkpoint.to_json
-        ])
-        # return the checkpoint
-        checkpoint
+        @tracking_progress = nil
+        checkpoint.update!(completed_at: Time.current, status: status)
       end
+
+      checkpoint
     end
 
     # Mark a question as completed
