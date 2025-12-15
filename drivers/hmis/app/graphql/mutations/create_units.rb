@@ -29,6 +29,7 @@ module Mutations
       errors.add :unit_group_id, :required unless unit_group.present?
       return { errors: errors.errors } if errors.any?
 
+      # TODO(#8157) - require unit_type on unit_group and remove this check
       unit_type = unit_group.unit_type
       raise "Cannot add units to unit group #{unit_group.id}. Missing unit type" unless unit_type.present?
 
