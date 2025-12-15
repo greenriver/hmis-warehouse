@@ -144,14 +144,17 @@ module Hmis
       unpersisted_name_records = clients.map do |client|
         next if client.names.any? { |name| names_match?(client, name) }
 
-        name = client.build_custom_client_name_from_client_record
+        name = client.build_primary_custom_client_name
         name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
         name
       end.compact
 
       # Dedup and save the new name records
       deduped_names = dedup_unpersisted(unpersisted_name_records)
-      Hmis::Hud::CustomClientName.import!(deduped_names, validate: false, timestamps: true) if deduped_names.any?
+
+      # The import may result in some clients temporarily having more than one primary name.
+      # That's fine because when looping over names below, we ensure that the retained client post-merge has exactly one primary.
+      Hmis::Hud::CustomClientName.import!(deduped_names, validate: false, timestamps: false) if deduped_names.any?
 
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
