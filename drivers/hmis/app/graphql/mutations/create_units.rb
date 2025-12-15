@@ -33,8 +33,7 @@ module Mutations
       return { errors: errors.errors } if errors.any?
 
       # TODO(#8157) - require unit group to have a unit type, and stop accepting unit type as argument to this mutation
-      # If no unit type specified, use the first unit type from the group (if specified)
-      unit_type ||= unit_group&.unit_types&.order(:id)&.first
+      unit_type ||= unit_group.unit_type
       errors.add(:unit_type_id, :required) if unit_type.nil?
       return { errors: errors.errors } if errors.any?
 
