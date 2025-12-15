@@ -65,11 +65,17 @@ Questions (or Measures in SPM) extend `HudReports::QuestionBase`. Each class cor
 
 1.  **Initialization**: Create a `ReportInstance` with parameters (date range, project selection)
 2.  **Queuing**: Generator queues `Reporting::Hud::RunReportJob`
-3.  **Execution**: Job instantiates the Generator and iterates through questions
+3.  **Execution**: Job instantiates the Generator and iterates through questions, tracking progress via checkpoints
 4.  **Data Gathering**: Questions fetch HMIS data (Enrollments, Clients, Services), filter by report parameters (CoC, Date Range), and calculate derived attributes (Age, Chronic Status)
 5.  **Snapshotting**: Some reports create intermediate snapshot records (e.g., `AprClient`, `SpmEnrollment`) that cache calculated values
 6.  **Aggregation**: Questions aggregate data into report format
 7.  **Completion**: Results are saved to `ReportInstance`
+
+## Progress Tracking
+
+The framework tracks report execution progress using checkpoints stored in `HudReports::ReportCheckpoint`.  Checkpoints are created automatically via `ReportInstance#track_progress`
+
+Report duration is calculated from completed checkpoints rather than wall-clock time.
 
 ## Data Management
 
@@ -110,7 +116,8 @@ Default: `supports_idempotent_retry?` returns `false` (retries disabled).
 
 1. Completed questions are skipped (won't run again)
 2. Incomplete/failed questions are reset (cells and universe members deleted before re-running)
-3. Shared snapshot data (e.g., `SpmEnrollment`) is reused if already created
+3. Shared snapshot data (e.g., `SpmEnrollment`) is reused if already created (via `snapshot_status` check)
+4. Checkpoints track individual question execution, making retry progress visible
 
 **With `supports_idempotent_retry? == false` (default, e.g., PIT)**:
 
@@ -147,3 +154,8 @@ The framework supports the following HUD reports:
 - **PATH** (`/app/drivers/hud_path_report`)
 - **PIT** (`/app/drivers/hud_pit`)
 - **SPM** (`/app/drivers/hud_spm_report`)
+
+
+## Related Code
+
+- **Auth Policy:** `app/models/grda_warehouse/auth_policies/hud_report_policy.rb`
