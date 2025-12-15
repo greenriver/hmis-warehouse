@@ -12916,6 +12916,7 @@ input UnitGroupInput {
   directReferralWorkflowTemplateIdentifier: String
   name: String
   projectId: ID
+  unitTypeId: ID
   workflowTemplateIdentifier: String
 }
 
