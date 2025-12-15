@@ -150,7 +150,8 @@ module Hmis
       end.compact
 
       # Dedup and save the new name records
-      dedup_unpersisted(unpersisted_name_records).map(&:save!)
+      deduped_names = dedup_unpersisted(unpersisted_name_records)
+      Hmis::Hud::CustomClientName.import!(deduped_names, validate: false, timestamps: true) if deduped_names.any?
 
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
