@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# add spec tests for this class
+# add feature documentation for form seeding and forms "managed in version control"
 module HmisUtil
   class JsonForms
     JsonFormException = Class.new(StandardError)
