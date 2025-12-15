@@ -24,11 +24,7 @@ class GrdaWarehouse::AuthPolicies::HudReportPolicy < GrdaWarehouse::AuthPolicies
     ensure_arg_type!(arg, HudReports::ReportInstance)
   end
 
-  memoize def resource_permissions
-    results = Set.new
-    resource.project_ids.each do |project_id|
-      results.merge(context.project_role_permissions(project_id))
-    end
-    results
+  def resource_permissions
+    context.system_permissions
   end
 end

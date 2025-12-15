@@ -32,6 +32,10 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     permissions_for_collection_ids(collection_ids)
   end
 
+  def system_permissions
+    permissions_for_collection_ids(system_collection_ids(:data_sources))
+  end
+
   memoize def direct_client_role_permissions(client_id)
     collection_ids = direct_client_collection_ids(client_id)
     permissions_for_collection_ids(collection_ids)

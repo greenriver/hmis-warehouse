@@ -13,45 +13,69 @@ RSpec.describe GrdaWarehouse::AuthPolicies::HudReportPolicy, type: :model do
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source }
   let(:report_instance) { create :hud_reports_report_instance, project_ids: [project.id] }
   let(:access_group) { create(:access_group) }
-  let(:user) do
-    user = create(:user)
-    role.add(user)
-    access_group.add(user)
-    access_group.add_viewable(project)
-    user
-  end
-  let(:policy) { user.policy_for(report_instance) }
+  shared_examples 'checks permissions' do
+    let(:policy) { user.policy_for(report_instance) }
 
-  context 'with both required permissions' do
-    let(:role) { create(:role, can_view_all_hud_reports: true, can_manage_config: true) }
+    context 'with both required permissions' do
+      let(:role) { create(:role, can_view_all_hud_reports: true, can_manage_config: true) }
 
-    it 'allows viewing checkpoints' do
-      expect(policy.can_view_checkpoints?).to be true
+      it 'allows viewing checkpoints' do
+        expect(policy.can_view_checkpoints?).to be true
+      end
+    end
+
+    context 'with only can_view_all_hud_reports' do
+      let(:role) { create(:role, can_view_all_hud_reports: true) }
+
+      it 'denies viewing checkpoints' do
+        expect(policy.can_view_checkpoints?).to be false
+      end
+    end
+
+    context 'with only can_manage_config' do
+      let(:role) { create(:role, can_manage_config: true) }
+
+      it 'denies viewing checkpoints' do
+        expect(policy.can_view_checkpoints?).to be false
+      end
+    end
+
+    context 'with no permissions' do
+      let(:role) { create(:role) }
+
+      it 'denies viewing checkpoints' do
+        expect(policy.can_view_checkpoints?).to be false
+      end
     end
   end
 
-  context 'with only can_view_all_hud_reports' do
-    let(:role) { create(:role, can_view_all_hud_reports: true) }
+  context 'with legacy user' do
+    let(:user) do
+      user = create(:user)
+      role.add(user)
 
-    it 'denies viewing checkpoints' do
-      expect(policy.can_view_checkpoints?).to be false
+      ds_group = AccessGroup.system_groups[:data_sources] || create(:access_group, name: 'All Data Sources', system: ['Entities'])
+      ds_group.add(user)
+
+      access_group.add(user)
+      access_group.add_viewable(project)
+      user
     end
+
+    include_examples 'checks permissions'
   end
 
-  context 'with only can_manage_config' do
-    let(:role) { create(:role, can_manage_config: true) }
+  context 'with acl user' do
+    let(:user) { create(:acl_user) }
+    let(:user_group) { create(:user_group) }
+    let(:ds_collection) { Collection.system_collection(:data_sources) }
 
-    it 'denies viewing checkpoints' do
-      expect(policy.can_view_checkpoints?).to be false
+    before do
+      user_group.add(user)
+      create(:access_control, role: role, collection: ds_collection, user_group: user_group)
     end
-  end
 
-  context 'with no permissions' do
-    let(:role) { create(:role) }
-
-    it 'denies viewing checkpoints' do
-      expect(policy.can_view_checkpoints?).to be false
-    end
+    include_examples 'checks permissions'
   end
 
   context 'with invalid resource type' do
