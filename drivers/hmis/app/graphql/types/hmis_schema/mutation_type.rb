@@ -53,7 +53,6 @@ module Types
     field :submit_form, mutation: Mutations::SubmitForm
 
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
-    field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest, deprecation_reason: 'External ReferralRequests integration is deprecated and will be removed in a future release'
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
     field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
