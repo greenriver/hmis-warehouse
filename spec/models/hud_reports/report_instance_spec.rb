@@ -80,6 +80,58 @@ RSpec.describe HudReports::ReportInstance, type: :model do
       expect(checkpoint.completed_at).to be_present
       expect(checkpoint.status).to eq('error')
     end
+
+    it 'resumes (skips block) if a successful checkpoint already exists' do
+      report = described_class.create!(
+        report_name: 'Test Report',
+        state: 'Started',
+        question_names: ['test'],
+      )
+
+      # Create an existing successful checkpoint
+      existing_checkpoint = report.checkpoints.create!(
+        name: 'Resumable Step',
+        started_at: 1.hour.ago,
+        completed_at: 50.minutes.ago,
+        status: 'success',
+      )
+
+      executed = false
+      returned_checkpoint = report.track_progress('Resumable Step') do
+        executed = true
+      end
+
+      expect(executed).to be false
+      expect(returned_checkpoint).to eq(existing_checkpoint)
+      # Ensure no new checkpoint was created
+      expect(report.checkpoints.count).to eq(1)
+    end
+
+    it 'does NOT resume if previous checkpoint failed' do
+      report = described_class.create!(
+        report_name: 'Test Report',
+        state: 'Started',
+        question_names: ['test'],
+      )
+
+      # Create an existing failed checkpoint
+      report.checkpoints.create!(
+        name: 'Failed Step',
+        started_at: 1.hour.ago,
+        completed_at: 50.minutes.ago,
+        status: 'error',
+      )
+
+      executed = false
+      report.track_progress('Failed Step') do
+        executed = true
+      end
+
+      expect(executed).to be true
+      # Should have the failed one and the new success one
+      expect(report.checkpoints.count).to eq(2)
+      expect(report.checkpoints.last.status).to eq('success')
+    end
   end
 
   describe '#total_duration_in_words' do

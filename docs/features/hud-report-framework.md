@@ -117,7 +117,7 @@ Default: `supports_idempotent_retry?` returns `false` (retries disabled).
 1. Completed questions are skipped (won't run again)
 2. Incomplete/failed questions are reset (cells and universe members deleted before re-running)
 3. Shared snapshot data (e.g., `SpmEnrollment`) is reused if already created (via `snapshot_status` check)
-4. Checkpoints track individual question execution, making retry progress visible
+4. Checkpoints track individual question execution, making retry progress visible. `ReportInstance#track_progress` automatically skips execution if a successful checkpoint already exists (e.g., 'Preparation' step).
 
 **With `supports_idempotent_retry? == false` (default, e.g., PIT)**:
 

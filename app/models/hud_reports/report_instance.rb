@@ -168,6 +168,10 @@ module HudReports
     def track_progress(checkpoint_name)
       raise unless checkpoint_name.present?
 
+      # If this step has already been successfully completed, skip it (resume)
+      existing = checkpoints.find_by(name: checkpoint_name, status: 'success')
+      return existing if existing
+
       checkpoint = checkpoints.create!(name: checkpoint_name, started_at: Time.current, status: 'running')
       status = 'success'
 
