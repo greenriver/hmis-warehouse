@@ -15,6 +15,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:mci_cred) { create(:ac_hmis_mci_credential) }
+  let!(:mci_warehouse_cred) { create(:ac_hmis_warehouse_credential) }
 
   # PH project (requires MCI clearance)
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9, with_coc: true }
@@ -271,6 +272,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
           click_button 'Create & Enroll Client'
           assert_no_text 'Enroll a New Client'
         end.to change(Hmis::Hud::Client, :count).by(1).
+          and change(HmisExternalApis::ExternalId, :count).by(2). # 1 mci_id and 1 mci_unique_id
           and change(HmisExternalApis::ExternalId.mci_ids.where(value: mci_id_value), :count).by(1).
           and change(HmisExternalApis::ExternalId.mci_unique_ids.where(value: mci_unique_id_value), :count).by(1)
 
@@ -286,7 +288,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
           click_button 'Create & Enroll Client'
           assert_no_text 'Enroll a New Client'
         end.to change(Hmis::Hud::Client, :count).by(1).
-          and change(HmisExternalApis::ExternalId.mci_ids.where(value: mci_id_value), :count).by(1).
+          and change(HmisExternalApis::ExternalId, :count).by(1).
+          and change(HmisExternalApis::ExternalId.mci_ids.where(value: mci_id_value2), :count).by(1).
           and change(HmisExternalApis::ExternalId.mci_unique_ids, :count).by(0)
 
         expect(stub_mci).not_to have_received(:create_mci_id)
