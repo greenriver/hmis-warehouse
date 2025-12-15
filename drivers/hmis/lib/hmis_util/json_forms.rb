@@ -310,7 +310,7 @@ module HmisUtil
       record.set_hud_requirements
 
       # Generate and validate CDEDs if this isn't a test env, OR if it is a test env but enable_cded_generation_in_test flag is true.
-      should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
+      should_generate_cdeds = data_source.present? && (!Rails.env.test? || enable_cded_generation_in_test?)
 
       if should_generate_cdeds
         # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
@@ -360,7 +360,18 @@ module HmisUtil
         funders: HudHelper.util.path_funders,
       )
 
-      validate_current_living_situation! unless Rails.env.test? || Rails.env.development?
+      if Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION).empty?
+        # If installation has no rules enabling the CLS form, set up default rules for applicable project types
+        create_system_instances!(
+          identifier: 'current_living_situation',
+          data_collected_about: :HOH_AND_ADULTS,
+          project_types: HudHelper.util.cls_project_types,
+          system: false, # These aren't system records, they can be deleted. This is special for CLS to enable multiple CLS forms for different project types.
+        )
+      else
+        # Raises an error if the minimum HUD requirements aren't met for CLS collection
+        validate_current_living_situation! unless Rails.env.test? || Rails.env.development?
+      end
     end
 
     FORM_TITLES = {
@@ -480,7 +491,7 @@ module HmisUtil
 
     # Find or create system instances as specified. This method is used to ensure HUD required forms are properly
     # enabled to meet minimum HUD requirements.
-    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
+    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [], system: true)
       raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
       raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
 
@@ -492,7 +503,7 @@ module HmisUtil
           funder: nil,
           entity: nil,
         )
-        instance.assign_attributes(active: true, system: true)
+        instance.assign_attributes(active: true, system: system)
         instance.save! if instance.changed?
       end
       funders.each do |funder|
@@ -503,7 +514,7 @@ module HmisUtil
           project_type: nil,
           entity: nil,
         )
-        instance.assign_attributes(active: true, system: true)
+        instance.assign_attributes(active: true, system: system)
         instance.save! if instance.changed?
       end
     end
