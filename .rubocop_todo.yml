@@ -55,7 +55,6 @@ Layout/DotPosition:
   Exclude:
     - 'app/controllers/admin/inbound_api_configurations_controller.rb'
     - 'app/models/omniauth_user_provisioner.rb'
-    - 'drivers/hmis/app/graphql/mutations/ac_hmis/void_referral_request.rb'
     - 'drivers/hmis/app/models/hmis/base_access_loader.rb'
     - 'drivers/hmis_external_apis/app/models/concerns/hmis_external_apis/externally_identified_mixin.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/client_involvement.rb'

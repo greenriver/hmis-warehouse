@@ -109,9 +109,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on ReferralPosting {
               id
             }
-            ... on ReferralRequest {
-              id
-            }
           }
           #{error_fields}
         }
