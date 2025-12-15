@@ -53,67 +53,74 @@ RSpec.describe HmisUtil::JsonForms do
       expect(Hmis::Form::Instance.defaults.with_role(role)).to include(instance), "Instance for #{identifier} is not a default instance"
     end
   end
+
   describe '#seed_all' do
     describe 'in production environment' do
       before(:each) do
         allow(Rails.env).to receive(:production?).and_return(true)
         allow(Rails.env).to receive(:test?).and_return(false)
         allow(Rails.env).to receive(:development?).and_return(false)
-
-        described_class.seed_all
       end
 
-      # Each system role (PROJECT, ORGANIZATION, CLIENT, etc.) should have exactly 1 form and 1 default system instance
-      Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
-        it_behaves_like 'a seeded form', role: role
-        it_behaves_like 'a default system form', role: role
-      end
+      describe 'read-only validations' do
+        # could be optimized further, couldn't use before:all because of needing Rails.env mock
+        before(:each) { described_class.seed_all }
 
-      # Each assessment role (INTAKE, EXIT, UPDATE, ANNUAL) should have exactly 1 form and 1 default system instance
-      Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :POST_EXIT).each do |role|
-        it_behaves_like 'a seeded form', role: role, identifier: "base-#{role.to_s.downcase}"
-        it_behaves_like 'a default system form', role: role, identifier: "base-#{role.to_s.downcase}"
-      end
-
-      # Each static role (FORM_RULE, PROJECT_CONFIG, etc.) should have exactly 1 form. Static forms do not have instances.
-      Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
-        it_behaves_like 'a seeded form', role: role
-      end
-
-      # The HUD Service form (SERVICE) should have exactly 1 form. No instances, as those are loaded separately (HmisUtil::ServiceTypes.seed_hud_service_form_instances)
-      it_behaves_like 'a seeded form', role: :SERVICE
-
-      # The Current Living Situation form (CURRENT_LIVING_SITUATION) should have exactly 1 form and at least 1 system instance
-      it_behaves_like 'a seeded form', role: :CURRENT_LIVING_SITUATION
-      it 'loads default instance rules for CURRENT_LIVING_SITUATION' do
-        rules = Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION)
-        expect(rules.count).to be >= 1
-        expect(rules.any?(&:system)).to be(false) # CLS forms are not system records, they can be deleted
-        expect(rules.map(&:project_type).sort).to eq(HudHelper.util.cls_project_types.sort)
-      end
-
-      # Each HUD occurrence point form (Move-in Date, Date of Engagement, PATH Status) should have exactly 1 form and at least 1 system instance
-      ['move_in_date', 'date_of_engagement', 'path_status'].each do |identifier|
-        it "creates occurrence point form for #{identifier}" do
-          scope = Hmis::Form::Definition.where(role: :OCCURRENCE_POINT, identifier: identifier)
-          expect(scope.count).to eq(1)
-          definition = scope.sole
-          expect(definition.published?).to be(true)
-          expect(definition.managed_in_version_control).to be(true)
-          expect(definition.identifier).to eq(identifier)
+        # Each system role (PROJECT, ORGANIZATION, CLIENT, etc.) should have exactly 1 form and 1 default system instance
+        Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
+          it_behaves_like 'a seeded form', role: role
+          it_behaves_like 'a default system form', role: role
         end
 
-        it "creates system instance rules for #{identifier}" do
-          rules = Hmis::Form::Instance.system.active.where(definition_identifier: identifier)
+        # Each assessment role (INTAKE, EXIT, UPDATE, ANNUAL) should have exactly 1 form and 1 default system instance
+        Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :POST_EXIT).each do |role|
+          it_behaves_like 'a seeded form', role: role, identifier: "base-#{role.to_s.downcase}"
+          it_behaves_like 'a default system form', role: role, identifier: "base-#{role.to_s.downcase}"
+        end
+
+        # Each static role (FORM_RULE, PROJECT_CONFIG, etc.) should have exactly 1 form. Static forms do not have instances.
+        Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
+          it_behaves_like 'a seeded form', role: role
+        end
+
+        # The HUD Service form (SERVICE) should have exactly 1 form. No instances, as those are loaded separately (HmisUtil::ServiceTypes.seed_hud_service_form_instances)
+        it_behaves_like 'a seeded form', role: :SERVICE
+
+        # The Current Living Situation form (CURRENT_LIVING_SITUATION) should have exactly 1 form and at least 1 system instance
+        it_behaves_like 'a seeded form', role: :CURRENT_LIVING_SITUATION
+        it 'loads default instance rules for CURRENT_LIVING_SITUATION' do
+          rules = Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION)
           expect(rules.count).to be >= 1
+          expect(rules.any?(&:system)).to be(false) # CLS forms are not system records, they can be deleted
+          expect(rules.map(&:project_type).sort).to eq(HudHelper.util.cls_project_types.sort)
+        end
+
+        # Each HUD occurrence point form (Move-in Date, Date of Engagement, PATH Status) should have exactly 1 form and at least 1 system instance
+        ['move_in_date', 'date_of_engagement', 'path_status'].each do |identifier|
+          it "creates occurrence point form for #{identifier}" do
+            scope = Hmis::Form::Definition.where(role: :OCCURRENCE_POINT, identifier: identifier)
+            expect(scope.count).to eq(1)
+            definition = scope.sole
+            expect(definition.published?).to be(true)
+            expect(definition.managed_in_version_control).to be(true)
+            expect(definition.identifier).to eq(identifier)
+          end
+
+          it "creates system instance rules for #{identifier}" do
+            rules = Hmis::Form::Instance.system.active.where(definition_identifier: identifier)
+            expect(rules.count).to be >= 1
+          end
         end
       end
 
       it 'does not create duplicates when run multiple times' do
+        expect { described_class.seed_all }.to change(Hmis::Form::Definition, :count).and change(Hmis::Form::Instance, :count)
         expect { described_class.seed_all }.to not_change(Hmis::Form::Definition, :count).and not_change(Hmis::Form::Instance, :count)
       end
 
       it 'updates existing forms when definitions change' do
+        described_class.seed_all
+
         # Get a form and modify its definition in memory
         client_form = Hmis::Form::Definition.find_by(identifier: 'client', role: :CLIENT)
         original_definition = client_form.definition.deep_dup
