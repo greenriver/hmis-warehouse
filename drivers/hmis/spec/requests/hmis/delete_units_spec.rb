@@ -46,7 +46,7 @@ RSpec.describe 'Delete units mutation', type: :request do
   end
 
   context 'when unit has past opportunities and referrals' do
-    let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :closed) }
+    let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :closed) }
     let!(:accepted_referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, status: :accepted) }
     let!(:rejected_referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, status: :rejected) }
 
@@ -62,7 +62,7 @@ RSpec.describe 'Delete units mutation', type: :request do
     end
 
     context 'when the unit has a current active opportunity' do
-      let!(:active_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
+      let!(:active_opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
 
       it 'closes the active opportunity' do
         expect do
@@ -76,7 +76,7 @@ RSpec.describe 'Delete units mutation', type: :request do
     end
 
     context 'when the unit has an active referral' do
-      let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked) }
+      let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked) }
       let!(:active_referral) { create(:hmis_ce_referral, opportunity: locked_opportunity, data_source: ds1, status: :in_progress) }
 
       it 'raises' do
