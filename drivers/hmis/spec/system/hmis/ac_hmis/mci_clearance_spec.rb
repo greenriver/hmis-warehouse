@@ -125,7 +125,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
         expect(c2.reload.ac_hmis_mci_ids.first.value).to eq(c1_mci_id.value)
       end
     end
-    # TODO add test for mci unique id caching
   end
 
   context 'Creating a new client for enrollment in PH project' do
