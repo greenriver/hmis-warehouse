@@ -25,8 +25,19 @@ module HudReports
         sort_by { |cp| [cp.started_at, cp.completed_at, cp.id] }.
         filter_map { |cp| [cp.started_at, cp.completed_at] }
 
-      # Don't bother checking overlapping intervals as this should be impossible
-      intervals.sum { |s, e| e - s }
+      return 0 if intervals.empty?
+
+      # Merge overlapping intervals. Then can occur when checkpoints are nested.
+      merged = []
+      intervals.each do |start, finish|
+        if merged.empty? || merged.last[1] < start
+          merged << [start, finish]
+        else
+          merged.last[1] = [merged.last[1], finish].max
+        end
+      end
+
+      merged.sum { |s, e| e - s }
     end
   end
 end

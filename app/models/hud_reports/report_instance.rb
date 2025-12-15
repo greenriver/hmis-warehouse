@@ -50,6 +50,10 @@ module HudReports
       update!(snapshot_status: HudReports::GeneratorBase::COMPLETED)
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::HudReportPolicy
+    end
+
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
         report_name: report_name,
@@ -163,12 +167,6 @@ module HudReports
 
     def track_progress(checkpoint_name)
       raise unless checkpoint_name.present?
-      raise "already tracking progress (#{@tracking_progress}). Nested behavior not supported" if @tracking_progress
-
-      @tracking_progress = checkpoint_name
-
-      # error out any stale checkpoints
-      checkpoints.where(status: 'running').update_all(status: 'error')
 
       checkpoint = checkpoints.create!(name: checkpoint_name, started_at: Time.current, status: 'running')
       status = 'success'
@@ -179,7 +177,6 @@ module HudReports
         status = 'error'
         raise
       ensure
-        @tracking_progress = nil
         checkpoint.update!(completed_at: Time.current, status: status)
       end
 
