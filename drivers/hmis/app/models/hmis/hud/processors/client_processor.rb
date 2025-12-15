@@ -246,6 +246,17 @@ module Hmis::Hud::Processors
         remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,
         namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
       )
+
+      # Check cache to see if the selected MCI ID had an associated MCI Unique ID.
+      # If there is a cached value, and the client doesn't already have an MCI Unique ID, add it as an additional ExternalID.
+      mci_unique_id = HmisExternalApis::AcHmis::Mci.new.cached_mci_unique_id_for(mci_id: value.to_s)
+      if mci_unique_id.present? && !client.ac_hmis_mci_unique_id.present? # rubocop:disable Style/GuardClause
+        client.external_ids << HmisExternalApis::ExternalId.new(
+          value: mci_unique_id,
+          remote_credential: HmisExternalApis::AcHmis::DataWarehouseApi.new.send(:creds),
+          namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE,
+        )
+      end
     end
   end
 end
