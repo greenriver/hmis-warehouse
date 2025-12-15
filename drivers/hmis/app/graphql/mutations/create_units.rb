@@ -18,9 +18,6 @@ module Mutations
       raise 'Not found' unless project.present?
       raise 'Access denied' if project.present? && !current_user.permissions_for?(project, :can_manage_units)
 
-      unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
-      raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
-
       errors = HmisErrors::Errors.new
       errors.add :count, :required unless input.count.present?
       errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
@@ -32,10 +29,8 @@ module Mutations
       errors.add :unit_group_id, :required unless unit_group.present?
       return { errors: errors.errors } if errors.any?
 
-      # TODO(#8157) - require unit group to have a unit type, and stop accepting unit type as argument to this mutation
-      unit_type ||= unit_group.unit_type
-      errors.add(:unit_type_id, :required) if unit_type.nil?
-      return { errors: errors.errors } if errors.any?
+      unit_type = unit_group.unit_type
+      raise "Cannot add units to unit group #{unit_group.id}. Missing unit type" unless unit_type.present?
 
       # Create Units
       common = { user_id: current_user.id, created_at: Time.now, updated_at: Time.now }
@@ -54,15 +49,7 @@ module Mutations
       errors.deduplicate!
       return { errors: errors.errors } if errors.any?
 
-      Hmis::Unit.transaction do
-        # If unit group doesn't have a unit type directly associated, add it
-        if unit_group.unit_type.nil?
-          unit_group.unit_type = unit_type
-          unit_group.save!
-        end
-
-        units.each(&:save!)
-      end
+      units.each(&:save!)
 
       {
         units: units,
