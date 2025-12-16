@@ -80,7 +80,7 @@ module HmisExternalApis::AcHmis
                                  client: MciPayload.build_client(clearance_result),
                                  existing_client_id: find_client_by_mci(mci_id)&.id,
                                })
-      end
+      end.compact
     end
 
     # Retrieve a cached MCI Unique ID for a given MCI ID. This was added as an optimization to try to associate
