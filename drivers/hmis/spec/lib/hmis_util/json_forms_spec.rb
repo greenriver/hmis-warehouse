@@ -150,26 +150,25 @@ RSpec.describe HmisUtil::JsonForms do
     end
 
     it 'loads test environment forms in test environment' do
+      allow(Rails.env).to receive(:test?).and_return(true)
+
       expect do
         described_class.seed_all
-      end.to change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count).by(1)
+      end.to change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count).from(0).to(1)
     end
 
     it 'does not load test environment forms in non-test environment' do
-      # Mock Rails.env.test? to return false to simulate non-test environment
       allow(Rails.env).to receive(:test?).and_return(false)
 
       expect do
         described_class.seed_all
-      end.to not_change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count)
+      end.to not_change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count).from(0)
     end
   end
 
   describe 'ENV CLIENT variable' do
     before(:each) do
-      # Mock ENV['CLIENT'] to return 'allegheny'
       allow(ENV).to receive(:[]).with('CLIENT').and_return('allegheny')
-      # allow(Rails.env).to receive(:development?).and_return(true)
       allow(Rails.env).to receive(:test?).and_return(false)
     end
     it 'uses ENV CLIENT when set' do
