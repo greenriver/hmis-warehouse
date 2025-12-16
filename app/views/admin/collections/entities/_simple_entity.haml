@@ -1,0 +1,41 @@
+- config = Admin::Collections::CONFIG[entity_type.to_sym]
+- extra_columns = config.extra_columns_config
+- name_column = config.name_column_header
+- name_method = config.name_method
+- grouped = config.grouped || false
+- array_format = config.array_format || false
+- get_entity_name = ->(entity) { name_method.is_a?(Proc) ? name_method.call(entity) : entity.public_send(name_method) }
+
+- # Normalize collection into a flat array of [entity_id, entity_name, entity_data, group_name] tuples
+- rows = if grouped
+  - @entities[:collection].flat_map do |group_name, entities|
+    - entities.map { |entity| [entity.id, get_entity_name.call(entity), entity, group_name] }
+- elsif array_format
+  - @entities[:collection].map { |entity_name, entity_id| [entity_id, entity_name, entity_id, nil] }
+- else
+  - @entities[:collection].map { |entity| [entity.id, get_entity_name.call(entity), entity, nil] }
+
+%table.table.datatable.border.collections
+  %thead
+    %tr
+      %th
+      %th= name_column
+      - extra_columns.each do |column|
+        %th= column[:header]
+  %tbody
+    - rows.each do |entity_id, entity_name, entity_data, group_name|
+      - id = ['collection', entity_type, entity_id].join('_')
+      - name = "collection[#{entity_type}][#{entity_id}]"
+      - checked = @entities[:selected].include?(entity_id)
+      %tr.jClickRow
+        %td
+          .form-check
+            %input{name: name, type: 'hidden', value: 0}
+              .c-checkbox.d-flex
+                %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
+                %label{for: id}
+        %td= entity_name
+        - extra_columns.each do |column|
+          - # Pass appropriate arguments based on whether we have a group_name
+          %td= group_name ? column[:content].call(entity_data, group_name) : column[:content].call(entity_data)
+
