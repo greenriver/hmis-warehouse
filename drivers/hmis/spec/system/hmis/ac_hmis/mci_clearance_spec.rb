@@ -15,6 +15,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:mci_cred) { create(:ac_hmis_mci_credential) }
+  let!(:mci_warehouse_cred) { create(:ac_hmis_warehouse_credential) }
 
   # PH project (requires MCI clearance)
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9, with_coc: true }
@@ -32,6 +33,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)
     allow(stub_mci).to receive(:create_mci_id).and_return(nil)
     allow(stub_mci).to receive(:creds).and_return(mci_cred)
+    allow(stub_mci).to receive(:cached_mci_unique_id_for).with(any_args).and_return(nil)
 
     ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions
   end
@@ -239,6 +241,55 @@ RSpec.feature 'Assessment definition selection', type: :system do
           assert_no_text 'Enroll a New Client'
         end.to change(Hmis::Hud::Client, :count).by(1).
           and change(HmisExternalApis::ExternalId.mci_ids.where(value: '9999'), :count).by(1)
+
+        expect(stub_mci).not_to have_received(:create_mci_id)
+      end
+    end
+
+    context 'with cached MCI Unique ID mapping' do
+      let(:mci_id_value) { '1234567890' }
+      let(:mci_unique_id_value) { '00001234' }
+
+      let(:mci_id_value2) { '00000' } # value with no associated MCI Unique ID
+
+      before(:each) do
+        result = [
+          build(:mci_clearance_result, mci_id: mci_id_value, score: 90),
+          build(:mci_clearance_result, mci_id: mci_id_value2, score: 80),
+        ]
+        allow(stub_mci).to receive(:clearance).and_return(result)
+        allow(stub_mci).to receive(:cached_mci_unique_id_for).with(mci_id: mci_id_value).and_return(mci_unique_id_value)
+        allow(stub_mci).to receive(:cached_mci_unique_id_for).with(mci_id: mci_id_value2).and_return(nil)
+      end
+
+      it 'persists cached MCI Unique ID to client' do
+        click_button 'Search for MCI ID'
+
+        find_by_id("select_mci_#{mci_id_value}", visible: :all).set(true)
+
+        expect do
+          click_button 'Create & Enroll Client'
+          assert_no_text 'Enroll a New Client'
+        end.to change(Hmis::Hud::Client, :count).by(1).
+          and change(HmisExternalApis::ExternalId, :count).by(2). # 1 mci_id and 1 mci_unique_id
+          and change(HmisExternalApis::ExternalId.mci_ids.where(value: mci_id_value), :count).by(1).
+          and change(HmisExternalApis::ExternalId.mci_unique_ids.where(value: mci_unique_id_value), :count).by(1)
+
+        expect(stub_mci).not_to have_received(:create_mci_id)
+      end
+
+      it 'works if selected result with no MCI Unique ID' do
+        click_button 'Search for MCI ID'
+
+        find_by_id("select_mci_#{mci_id_value2}", visible: :all).set(true)
+
+        expect do
+          click_button 'Create & Enroll Client'
+          assert_no_text 'Enroll a New Client'
+        end.to change(Hmis::Hud::Client, :count).by(1).
+          and change(HmisExternalApis::ExternalId, :count).by(1).
+          and change(HmisExternalApis::ExternalId.mci_ids.where(value: mci_id_value2), :count).by(1).
+          and change(HmisExternalApis::ExternalId.mci_unique_ids, :count).by(0)
 
         expect(stub_mci).not_to have_received(:create_mci_id)
       end
