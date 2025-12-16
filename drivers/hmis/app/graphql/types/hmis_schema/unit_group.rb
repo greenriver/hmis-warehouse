@@ -62,25 +62,44 @@ module Types
 
     # Similar to `Project.unit_types`, this supports displaying availability by unit types. Don't resolve in batch.
     def unit_types
-      capacity = object.units.group(:unit_type_id).count
-      unoccupied = object.units.unoccupied_on.group(:unit_type_id).count
+      # Use preloaded units and active_unit_occupancies to avoid N+1 queries
+      units = object.units.to_a
+      occupied_unit_ids = units.flat_map { |unit| unit.active_unit_occupancies.map(&:unit_id) }.to_set
 
-      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
+      capacity_by_type = Hash.new(0)
+      availability_by_type = Hash.new(0)
+      unit_types_map = {}
+
+      units.each do |unit|
+        next unless unit.unit_type
+
+        unit_types_map[unit.unit_type.id] = unit.unit_type
+        capacity_by_type[unit.unit_type.id] += 1
+        availability_by_type[unit.unit_type.id] += 1 unless occupied_unit_ids.include?(unit.id)
+      end
+
+      unit_types_map.values.map do |unit_type|
         OpenStruct.new(
           id: "#{object.id}:#{unit_type.id}",
           unit_type: unit_type.description,
-          capacity: capacity[unit_type.id] || 0,
-          availability: unoccupied[unit_type.id] || 0,
+          capacity: capacity_by_type[unit_type.id],
+          availability: availability_by_type[unit_type.id],
         )
       end
     end
 
     def capacity
-      object.units.count
+      # Use preloaded units to avoid N+1 query
+      object.units.size
     end
 
     def availability
-      object.units.unoccupied_on.count
+      # Use preloaded units and active_unit_occupancies to avoid N+1 query
+      units = object.units.to_a
+      return 0 if units.empty?
+
+      occupied_unit_ids = units.flat_map { |unit| unit.active_unit_occupancies.map(&:unit_id) }.to_set
+      units.count { |unit| !occupied_unit_ids.include?(unit.id) }
     end
   end
 end

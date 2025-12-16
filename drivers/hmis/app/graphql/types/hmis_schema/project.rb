@@ -232,7 +232,9 @@ module Types
     def unit_groups
       return Hmis::UnitGroup.none unless current_permission?(entity: object, permission: :can_view_units)
 
-      object.unit_groups.order(:name, :id)
+      object.unit_groups.
+        preload(units: [:unit_type, :active_unit_occupancies]).
+        order(:name, :id)
     end
 
     def has_units # rubocop:disable Naming/PredicatePrefix
