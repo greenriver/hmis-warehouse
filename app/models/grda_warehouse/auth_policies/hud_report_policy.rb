@@ -9,22 +9,18 @@
 class GrdaWarehouse::AuthPolicies::HudReportPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # For future use
   # def can_view?
-  #   return true if resource_permissions.include?(:can_view_all_hud_reports)
-
-  #   resource.user_id == user.id && resource_permissions.include?(:can_view_own_hud_reports)
+  #   ?
   # end
 
+  # No appropriate collection or access group relationship exists; wrap the permission methods on
+  # user for backwards compatibility
   def can_view_checkpoints?
-    resource_permissions.include?(:can_view_all_hud_reports) && resource_permissions.include?(:can_manage_config)
+    user.can_view_all_hud_reports? && user.can_manage_config?
   end
 
   protected
 
   def validate_resource!(arg)
     ensure_arg_type!(arg, HudReports::ReportInstance)
-  end
-
-  def resource_permissions
-    context.system_permissions
   end
 end

@@ -33,10 +33,6 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     permissions_for_access_group_ids(access_group_ids)
   end
 
-  def system_permissions
-    permissions_for_access_group_ids(system_access_group_ids(:data_sources))
-  end
-
   memoize def direct_client_role_permissions(client_id)
     access_group_ids = direct_client_access_group_ids(client_id)
     permissions_for_access_group_ids(access_group_ids)
