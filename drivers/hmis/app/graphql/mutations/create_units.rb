@@ -50,7 +50,9 @@ module Mutations
       errors.deduplicate!
       return { errors: errors.errors } if errors.any?
 
-      units.each(&:save!)
+      Hmis::Unit.transaction do
+        units.each(&:save!)
+      end
 
       {
         units: units,
