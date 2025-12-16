@@ -65,7 +65,7 @@ module GrdaWarehouse::Hud
     has_one :current_data_quality_report, -> do
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
-    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id
+    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id, dependent: :destroy
     has_many :organization_contacts, through: :organization, source: :contacts
 
     # can't use a direct join table to collections due to db boundary
