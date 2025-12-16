@@ -125,7 +125,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
 
     let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
     let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit, name: unit.name) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, name: unit.name) }
 
     # Create household member for testing household referrals
     let!(:household_member) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Jane', last_name: 'D') }
@@ -233,8 +233,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       let!(:unit_without_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
       let!(:unit_with_closed_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
       let!(:unit_with_locked_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
-      let!(:closed_opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit_with_closed_opportunity, status: 'closed') }
-      let!(:locked_opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit_with_locked_opportunity, status: 'locked') }
+      let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, status: 'closed') }
+      let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, status: 'locked') }
 
       it 'cannot be referred to' do
         # Navigate to source project and try to create a referral
@@ -284,7 +284,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
     let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
     let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
 
     before do

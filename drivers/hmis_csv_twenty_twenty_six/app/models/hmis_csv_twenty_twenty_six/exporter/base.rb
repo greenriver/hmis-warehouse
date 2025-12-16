@@ -13,6 +13,7 @@ require 'kiba-common/sources/enumerable'
 # Testing notes
 # reload!; rh = GrdaWarehouse::RecurringHmisExport.last; rh.run
 
+# @see docs/features/hmis-csv-export.md
 module HmisCsvTwentyTwentySix::Exporter
   class Base
     include ArelHelper

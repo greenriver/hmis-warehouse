@@ -1,0 +1,12 @@
+= render partial: 'breadcrumbs'
+
+%h1 New Compliance Requirement
+
+- if GrdaWarehouse::ContentPage.none?
+  .alert.alert-warning
+    %strong No content pages available.
+    You need to
+    = link_to 'create a content page', new_admin_content_page_path
+    first before creating a compliance requirement.
+- else
+  = render 'form'
