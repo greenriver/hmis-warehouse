@@ -11,5 +11,6 @@ FactoryBot.define do
     sequence(:name) { |n| "Unit Group #{n}" }
     project { association :hmis_hud_project }
     workflow_template { association :hmis_workflow_definition_template, data_source: project.data_source }
+    unit_type { association :hmis_unit_type }
   end
 end
