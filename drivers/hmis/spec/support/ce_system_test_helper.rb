@@ -65,7 +65,7 @@ RSpec.shared_context 'ce system test helper' do
 
   let!(:sro_type) { create(:hmis_unit_type, description: 'SRO') }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
-  let!(:unit_group) { create(:hmis_unit_group, project: target_project, name: 'SROs', workflow_template: workflow_template, candidate_pool: score_pool) }
+  let!(:unit_group) { create(:hmis_unit_group, project: target_project, name: 'SROs', workflow_template: workflow_template, candidate_pool: score_pool, unit_type: sro_type) }
 
   before do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)

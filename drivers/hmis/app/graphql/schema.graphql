@@ -12911,6 +12911,7 @@ input UnitGroupInput {
   directReferralWorkflowTemplateIdentifier: String
   name: String
   projectId: ID
+  unitTypeId: ID
   workflowTemplateIdentifier: String
 }
 
@@ -12936,7 +12937,7 @@ input UnitInput {
   prefix: String
   projectId: ID!
   unitGroupId: ID
-  unitTypeId: ID
+  unitTypeId: ID @deprecated(reason: "Set unit type when creating unit group. This argument will be removed in a future release.")
 }
 
 enum UnitOccupancyStatus {
