@@ -125,24 +125,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
         row.append_cell_members(members: household_members(housing_plan_households))
       end
 
-      enrollment_ids = housing_subsidy_households.pluck(:enrollment_id).uniq
-      income_benefit_table = GrdaWarehouse::Hud::IncomeBenefit.arel_table
-
-      # FIXME - this should be another field on spm_enrollment
-      insurance_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
-        where(EnrollmentID: enrollment_ids).
-        where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
-        where(
-          income_benefit_table[:InsuranceFromAnySource].eq(1).
-          or(income_benefit_table[:ADAP].eq(1)).
-          or(income_benefit_table[:RyanWhiteMedDent].eq(1)),
-        ).
-        select(:EnrollmentID).
-        distinct.
-        pluck(:EnrollmentID)
-      insurance_households = housing_subsidy_households.where(enrollment_id: insurance_enrollment_ids)
       # Row 12
       sheet.append_row(label: 'How many households accessed and maintained medical insurance and/or assistance?') do |row|
+        insurance_households = housing_subsidy_households.where.overlaps(
+          household_medical_insurance_types: %w[InsuranceFromAnySource ADAP RyanWhiteMedDent],
+        )
         row.append_cell_members(members: household_members(insurance_households))
       end
 
@@ -152,29 +139,19 @@ module HopwaCaper::Generators::Fy2026::Sheets
         row.append_cell_members(members: household_members(primary_health_contact_households))
       end
 
-      income_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
-        where(EnrollmentID: enrollment_ids).
-        where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
-        where(income_benefit_table[:IncomeFromAnySource].eq(1)).
-        select(:EnrollmentID).
-        distinct.
-        pluck(:EnrollmentID)
-      income_households = housing_subsidy_households.where(enrollment_id: income_enrollment_ids)
       # Row 14
       sheet.append_row(label: 'How many households accessed or maintained qualification for sources of income?') do |row|
+        income_households = housing_subsidy_households.where.overlaps(
+          household_income_benefit_source_types: %w[IncomeFromAnySource],
+        )
         row.append_cell_members(members: household_members(income_households))
       end
 
-      earned_income_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
-        where(EnrollmentID: enrollment_ids).
-        where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
-        where(income_benefit_table[:Earned].eq(1)).
-        select(:EnrollmentID).
-        distinct.
-        pluck(:EnrollmentID)
-      earned_income_households = housing_subsidy_households.where(enrollment_id: earned_income_enrollment_ids)
       # Row 15
       sheet.append_row(label: 'How many households obtained/maintained an income-producing job during the program year (with or without any HOPWA-related assistance)?') do |row|
+        earned_income_households = housing_subsidy_households.where.overlaps(
+          household_income_benefit_source_types: %w[Earned],
+        )
         row.append_cell_members(members: household_members(earned_income_households))
       end
     end

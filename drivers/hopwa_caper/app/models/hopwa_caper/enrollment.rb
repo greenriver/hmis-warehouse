@@ -52,14 +52,17 @@ module HopwaCaper
     scope :active_after, ->(date) { where('exit_date IS NULL OR exit_date > ?', date) }
 
     INSURANCE_FIELDS = [
+      :InsuranceFromAnySource,
       :Medicaid,
       :Medicare,
       :VAMedicalServices,
       :HIVAIDSAssistance,
       :SCHIP,
       :RyanWhiteMedDent,
+      :ADAP,
     ].freeze
     INCOME_SOURCE_FIELDS = [
+      :IncomeFromAnySource,
       :Earned,
       :SocSecRetirement,
       :SSI,
@@ -70,7 +73,7 @@ module HopwaCaper
       :ChildSupport, :Alimony,
       :WorkersComp,
       :Unemployment,
-      :OtherIncomeSource
+      :OtherIncomeSource,
     ].freeze
 
     def self.from_hud_record(enrollment:, report:, client:)
