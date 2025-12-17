@@ -96,14 +96,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1, created_by_hud_user: hud_user) }
     let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1, created_by_hud_user: hud_user) }
 
+    let(:input) do
+      {
+        submissions: submission_input(a1, a2, a3),
+        confirmed: false,
+      }
+    end
+
     it 'should work' do
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
 
-      input = {
-        submissions: submission_input(a1, a2, a3),
-        confirmed: false,
-      }
       response, result = post_graphql(input: input) { mutation }
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
@@ -133,10 +136,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'should update user and updated_by_user' do
-        input = {
-          submissions: submission_input(a1, a2, a3),
-          confirmed: false,
-        }
         response, result = post_graphql(input: input) { mutation }
         expect(response.status).to eq(200), result.inspect
 
@@ -151,10 +150,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
       a1.form_processor.update(values: incomplete_values)
 
-      input = {
-        submissions: submission_input(a1, a2, a3),
-        confirmed: false,
-      }
       response, result = post_graphql(input: input) { mutation }
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
@@ -172,11 +167,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
       Hmis::Hud::CustomAssessment.last.form_processor.update(values: incomplete_values)
 
-      input = {
-        submissions: submission_input(a1, a2, a3),
-        confirmed: true,
-      }
-      response, result = post_graphql(input: input) { mutation }
+      response, result = post_graphql(input: input.merge(confirmed: true)) { mutation }
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
@@ -188,6 +179,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::CustomAssessment.count).to eq(3)
         expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
       end
+    end
+
+    it 'should fail if the user does not have permission to edit the enrollment' do
+      remove_permissions(access_control, :can_edit_enrollments)
+      expect_gql_error post_graphql(input: input) { mutation }
     end
   end
 
