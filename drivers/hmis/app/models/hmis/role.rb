@@ -437,6 +437,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_assessments: {
         description: 'Ability to delete assessments that have been submitted. (Note: users with Edit-access can delete "in-progress" assessments even if this box is not checked).',
+        requirements: [:can_view_enrollment_details, :can_view_project],
         administrative: true,
         access: [:editable],
         category: 'Enrollment Access',
