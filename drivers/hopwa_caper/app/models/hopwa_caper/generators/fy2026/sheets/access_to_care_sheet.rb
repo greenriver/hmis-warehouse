@@ -10,25 +10,61 @@ module HopwaCaper::Generators::Fy2026::Sheets
   class AccessToCareSheet < Base
     QUESTION_NUMBER = 'Q7: Access To Care'
     QUESTION_NUMBERS = ['Q7'].freeze
+    SHEET_TITLE = 'Access to Care (ATC)'
+
+    CONTENTS = [
+      { method: :activity_review_section, label: 'Total Households Served in ALL Activities from this report for each Activity.' },
+      { method: :housing_subsidy_deduplication_section, label: nil },
+      { method: :access_to_care_section, label: nil },
+      { method: :subsidy_with_supportive_service_section, label: nil },
+    ].freeze
 
     def run_question!
-      @report.start(QUESTION_NUMBER, 'Q7')
+      question_number = self.class::QUESTION_NUMBER
+      tables = self.class::QUESTION_NUMBERS
+      contents = self.class::CONTENTS
+      @report.start(question_number, tables)
 
-      question_sheet(question: 'Q7') do |sheet|
-        activity_review_section(sheet)
-        housing_subsidy_deduplication_section(sheet)
-        access_to_care_section(sheet)
-        subsidy_with_supportive_service_section(sheet)
+      question_sheet(question: tables.first) do |sheet|
+        add_sheet_header(sheet, title: self.class::SHEET_TITLE)
+        contents.each do |opts|
+          opts => { method:, label: }
+          if label
+            sheet.append_row(label: label) do |row|
+              if method == :activity_review_section
+                row.append_cell_value(value: nil)
+                row.append_cell_value(value: nil)
+                row.append_cell_value(value: 'TBRA')
+                row.append_cell_value(value: 'P-FBH')
+                row.append_cell_value(value: 'ST-TFBH')
+                row.append_cell_value(value: 'STRMU')
+                row.append_cell_value(value: 'PHP')
+                row.append_cell_value(value: 'Housing Info')
+                row.append_cell_value(value: 'SUPP SVC')
+                row.append_cell_value(value: 'Other Competitive Activity')
+              end
+            end
+          end
+          send(method, sheet)
+        end
       end
 
-      @report.complete(QUESTION_NUMBER)
+      @report.complete(question_number)
+    end
+
+    def add_sheet_header(sheet, title:)
+      sheet.add_header(col: 'A', label: title)
+      sheet.add_header(col: 'B', label: '')
+      sheet.add_header(col: 'C', label: '')
+
+      sheet.append_row(label: 'Questions') do |row|
+        row.append_cell_value(value: 'This Report')
+      end
     end
 
     protected
 
     def activity_review_section(sheet)
-      sheet.append_row(label: 'Total Households Served in ALL Activities from this report for each Activity.')
-
       tbra_households = housing_subsidy_households_for_activity(:tbra)
       pfbh_households = housing_subsidy_households_for_activity(:pfbh)
       st_tfbh_households = housing_subsidy_households_for_activity(:st_tfbh)
@@ -38,19 +74,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
       supportive_services_households = supportive_services_households
       other_competitive_households = other_competitive_households
 
-      sheet.append_row(label: nil) do |row|
-        row.append_cell_value(value: nil)
-        row.append_cell_value(value: 'TBRA')
-        row.append_cell_value(value: 'P-FBH')
-        row.append_cell_value(value: 'ST-TFBH')
-        row.append_cell_value(value: 'STRMU')
-        row.append_cell_value(value: 'PHP')
-        row.append_cell_value(value: 'Housing Info')
-        row.append_cell_value(value: 'SUPP SVC')
-        row.append_cell_value(value: 'Other Competitive Activity')
-      end
-
       sheet.append_row(label: 'Total Households') do |row|
+        row.append_cell_value(value: nil)
         row.append_cell_value(value: nil)
         row.append_cell_members(members: household_members(tbra_households))
         row.append_cell_members(members: household_members(pfbh_households))
@@ -64,7 +89,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def housing_subsidy_deduplication_section(sheet)
-      sheet.append_row(label: nil)
+      sheet.append_row(label: '')
 
       housing_subsidy_households = all_housing_subsidy_households
       total_housing_subsidy = household_members(housing_subsidy_households)
@@ -89,12 +114,20 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def access_to_care_section(sheet)
-      sheet.append_row(label: nil)
+      sheet.append_row(label: '')
       sheet.append_row(label: 'Complete HOPWA Outcomes for Access to Care and Support for all households served with HOPWA housing assistance and "other competitive activities" in the reporting year.')
 
       housing_subsidy_households = all_housing_subsidy_households
 
-      maintained_contact_households = housing_subsidy_households.where(atc_maintained_contact: true)
+      # Row 10: Case Manager Contact (Service OR Custom Field)
+      case_management_services = @report.hopwa_caper_services.hud_services.
+        where(date_provided: @report.start_date..@report.end_date).
+        where(record_type: 143, type_provided: 3)
+      cm_household_ids = case_management_services.select(:report_household_id)
+
+      maintained_contact_households = housing_subsidy_households.where(atc_maintained_contact: true).
+        or(housing_subsidy_households.where(report_household_id: cm_household_ids))
+
       sheet.append_row(label: 'How many households had contact with a case manager?') do |row|
         row.append_cell_members(members: household_members(maintained_contact_households))
       end
@@ -105,10 +138,16 @@ module HopwaCaper::Generators::Fy2026::Sheets
       end
 
       enrollment_ids = housing_subsidy_households.pluck(:enrollment_id).uniq
+      income_benefit_table = GrdaWarehouse::Hud::IncomeBenefit.arel_table
+
       insurance_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
         where(EnrollmentID: enrollment_ids).
-        where("InformationDate <= ?", @report.end_date).
-        where("InsuranceFromAnySource = 1 OR ADAP = 1 OR RyanWhiteMedDent = 1").
+        where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
+        where(
+          income_benefit_table[:InsuranceFromAnySource].eq(1).
+          or(income_benefit_table[:ADAP].eq(1)).
+          or(income_benefit_table[:RyanWhiteMedDent].eq(1)),
+        ).
         select(:EnrollmentID).
         distinct.
         pluck(:EnrollmentID)
@@ -124,8 +163,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       income_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
         where(EnrollmentID: enrollment_ids).
-        where("InformationDate <= ?", @report.end_date).
-        where("IncomeFromAnySource = 1").
+        where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
+        where(income_benefit_table[:IncomeFromAnySource].eq(1)).
         select(:EnrollmentID).
         distinct.
         pluck(:EnrollmentID)
@@ -136,8 +175,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       earned_income_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
         where(EnrollmentID: enrollment_ids).
-        where("InformationDate <= ?", @report.end_date).
-        where("Earned = 1").
+        where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
+        where(income_benefit_table[:Earned].eq(1)).
         select(:EnrollmentID).
         distinct.
         pluck(:EnrollmentID)
@@ -148,7 +187,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def subsidy_with_supportive_service_section(sheet)
-      sheet.append_row(label: nil)
+      sheet.append_row(label: '')
       sheet.append_row(label: 'Subsidy Assistance with Supportive Service, Funded Case Management Questions.')
 
       housing_subsidy_households = all_housing_subsidy_households
@@ -252,7 +291,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def household_members(enrollments_or_household_ids)
-      return [] if enrollments_or_household_ids.none?
+      return [] if enrollments_or_household_ids.blank?
 
       if enrollments_or_household_ids.is_a?(ActiveRecord::Relation) && enrollments_or_household_ids.model == HopwaCaper::Enrollment
         household_ids = enrollments_or_household_ids.select(:report_household_id)

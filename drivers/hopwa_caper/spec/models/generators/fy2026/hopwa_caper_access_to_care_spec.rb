@@ -1,0 +1,212 @@
+# frozen_string_literal: true
+
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+require 'rails_helper'
+
+require_relative 'hopwa_caper_shared_context'
+
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: :model do
+  include_context('HOPWA CAPER shared context')
+
+  let(:tbra_funder) do
+    HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+  end
+
+  let(:strmu_funder) do
+    HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance')
+  end
+
+  let(:php_funder) do
+    HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing Placement')
+  end
+
+  let(:tbra_project) { create_hopwa_project(funder: tbra_funder) }
+  let(:strmu_project) { create_hopwa_project(funder: strmu_funder) }
+  let(:php_project) { create_hopwa_project(funder: php_funder) }
+
+  let(:case_management_code) { supportive_service_types.invert.fetch('Case management') }
+
+  let(:household_id) { Hmis::Hud::Base.generate_uuid }
+  let(:hoh_client) { create(:hud_client, data_source: data_source) }
+
+  let(:maintained_key) { 'atc_contact' }
+  let(:housing_plan_key) { 'atc_plan' }
+  let(:primary_health_key) { 'atc_health' }
+
+  let!(:maintained_definition) do
+    create(:hud_custom_data_element_definition, key: maintained_key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+  end
+
+  let!(:housing_plan_definition) do
+    create(:hud_custom_data_element_definition, key: housing_plan_key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+  end
+
+  let!(:primary_health_definition) do
+    create(:hud_custom_data_element_definition, key: primary_health_key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+  end
+
+  let(:config_double) do
+    instance_double(
+      HopwaCaper::Configuration,
+      atc_tab_enabled?: true,
+      atc_maintained_contact_field_name: maintained_key,
+      atc_housing_plan_field_name: housing_plan_key,
+      atc_primary_health_contact_field_name: primary_health_key,
+    )
+  end
+
+  before do
+    allow(HopwaCaper::Configuration).to receive(:new).and_return(config_double)
+  end
+
+  def row_for(rows, label)
+    rows.detect { |row| row[0] == label } || raise("Row not found for #{label}")
+  end
+
+  context 'with housing subsidy activity overlap and ATC outcomes' do
+    let!(:tbra_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    let!(:strmu_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: strmu_project,
+        entry_date: report_start_date + 2.days,
+        household_id: household_id,
+      )
+    end
+
+    let!(:php_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: php_project,
+        entry_date: report_start_date + 3.days,
+        household_id: household_id,
+      )
+    end
+
+    before do
+      # Housing subsidy services across activity types
+      [tbra_enrollment, strmu_enrollment, php_enrollment].each do |enrollment|
+        create(
+          :hud_service,
+          enrollment: enrollment,
+          record_type: hopwa_financial_assistance,
+          type_provided: rental_assistance,
+          fa_amount: 150,
+          date_provided: enrollment.entry_date,
+          data_source: data_source,
+        )
+      end
+
+      # Access to Care custom data elements mapped via configured keys
+      create(
+        :hud_custom_data_element,
+        custom_data_element_definition: maintained_definition,
+        owner_type: tbra_enrollment.class.sti_name,
+        owner_id: tbra_enrollment.id,
+        value_string: 'Yes',
+      )
+      create(
+        :hud_custom_data_element,
+        custom_data_element_definition: housing_plan_definition,
+        owner_type: tbra_enrollment.class.sti_name,
+        owner_id: tbra_enrollment.id,
+        value_string: 'Yes',
+      )
+      create(
+        :hud_custom_data_element,
+        custom_data_element_definition: primary_health_definition,
+        owner_type: tbra_enrollment.class.sti_name,
+        owner_id: tbra_enrollment.id,
+        value_string: 'Yes',
+      )
+
+      # Income and insurance for Access to Care income/insurance rows
+      create(
+        :hud_income_benefit,
+        enrollment: tbra_enrollment,
+        InsuranceFromAnySource: 1,
+        IncomeFromAnySource: 1,
+        Earned: 1,
+        information_date: report_end_date - 1.day,
+        data_source: data_source,
+        personal_id: hoh_client.PersonalID,
+      )
+
+      # Supportive service intersections (case management counts for both intersection rows)
+      create(
+        :hud_service,
+        record_type: hopwa_supportive_service,
+        enrollment: tbra_enrollment,
+        type_provided: case_management_code,
+        fa_amount: 100,
+        date_provided: report_start_date + 5.days,
+        data_source: data_source,
+      )
+    end
+
+    it 'reports activity counts, ATC outcomes, income/insurance, and supportive intersections' do
+      report = create_report([tbra_project, strmu_project, php_project])
+      run_report(report)
+      expect(report.hopwa_caper_enrollments.count).to eq(3)
+      expect(report.hopwa_caper_services.count).to eq(4)
+      rows = question_as_rows(question_number: 'Q7', report: report)
+
+      total_households = row_for(rows, 'Total Households')
+      # Column order: TBRA, P-FBH, ST-TFBH, STRMU, PHP, Housing Info, SUPP SVC, Other Competitive Activity
+      expect(total_households[1]).to eq(1) # TBRA
+      expect(total_households[4]).to eq(1) # STRMU (index 4 because 0 is label, 1 TBRA, 2 P-FBH, 3 ST-TFBH, 4 STRMU)
+      expect(total_households[5]).to eq(1) # PHP
+
+      housing_subsidy_total = row_for(
+        rows,
+        'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)',
+      )
+      expect(housing_subsidy_total[1]).to eq(1)
+
+      duplicated_households = row_for(
+        rows,
+        'Of the households in row 2, count distinct households that appear in more than one column',
+      )
+      expect(duplicated_households[1]).to eq(1)
+
+      unduplicated_households = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household')
+      expect(unduplicated_households[1]).to eq(0)
+
+      expect(row_for(rows, 'How many households had contact with a case manager?')[1]).to eq(1)
+      expect(
+        row_for(rows, 'How many households developed a housing plan for maintaining or establishing stable housing?')[1],
+      ).to eq(1)
+      expect(row_for(rows, 'How many households had contact with a primary health care provider?')[1]).to eq(1)
+
+      expect(
+        row_for(rows, 'How many households accessed and maintained medical insurance and/or assistance?')[1],
+      ).to eq(1)
+      expect(
+        row_for(rows, 'How many households accessed or maintained qualification for sources of income?')[1],
+      ).to eq(1)
+      expect(
+        row_for(rows, 'How many households obtained/maintained an income-producing job during the program year (with or without any HOPWA-related assistance)?')[1],
+      ).to eq(1)
+
+      expect(
+        row_for(rows, 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Funded Case Management?')[1],
+      ).to eq(1)
+      expect(
+        row_for(rows, 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Supportive Services?')[1],
+      ).to eq(1)
+    end
+  end
+end
