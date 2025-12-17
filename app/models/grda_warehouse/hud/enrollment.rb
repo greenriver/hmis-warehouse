@@ -16,6 +16,11 @@ module GrdaWarehouse::Hud
     include ::HmisStructure::Enrollment
     include ::HmisStructure::Shared
 
+    # All submittable forms support Custom Data Elements
+    has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'GrdaWarehouse::Hud::CustomDataElement'
+    # All the CDEDs that have values for this record. Note it will return non-distinct scope for any types that have multiple values.
+    has_many :custom_data_element_definitions, through: :custom_data_elements, source: :custom_data_element_definition, class_name: 'GrdaWarehouse::Hud::CustomDataElementDefinition'
+
     attr_accessor :source_id
 
     self.table_name = 'Enrollment'

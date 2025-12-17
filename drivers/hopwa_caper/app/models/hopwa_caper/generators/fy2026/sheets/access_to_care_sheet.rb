@@ -14,55 +14,38 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     CONTENTS = [
       { method: :activity_review_section, label: 'Total Households Served in ALL Activities from this report for each Activity.' },
-      { method: :housing_subsidy_deduplication_section, label: nil },
-      { method: :access_to_care_section, label: nil },
-      { method: :subsidy_with_supportive_service_section, label: nil },
     ].freeze
 
     def run_question!
       question_number = self.class::QUESTION_NUMBER
       tables = self.class::QUESTION_NUMBERS
-      contents = self.class::CONTENTS
       @report.start(question_number, tables)
 
       question_sheet(question: tables.first) do |sheet|
-        add_sheet_header(sheet, title: self.class::SHEET_TITLE)
-        contents.each do |opts|
-          opts => { method:, label: }
-          if label
-            sheet.append_row(label: label) do |row|
-              if method == :activity_review_section
-                row.append_cell_value(value: nil)
-                row.append_cell_value(value: nil)
-                row.append_cell_value(value: 'TBRA')
-                row.append_cell_value(value: 'P-FBH')
-                row.append_cell_value(value: 'ST-TFBH')
-                row.append_cell_value(value: 'STRMU')
-                row.append_cell_value(value: 'PHP')
-                row.append_cell_value(value: 'Housing Info')
-                row.append_cell_value(value: 'SUPP SVC')
-                row.append_cell_value(value: 'Other Competitive Activity')
-              end
-            end
-          end
-          send(method, sheet)
-        end
+        add_sheet_header(sheet)
+        activity_review_section(sheet)
+        housing_subsidy_deduplication_section(sheet)
+        access_to_care_section(sheet)
+        subsidy_with_supportive_service_section(sheet)
       end
 
       @report.complete(question_number)
     end
 
-    def add_sheet_header(sheet, title:)
-      sheet.add_header(col: 'A', label: title)
-      sheet.add_header(col: 'B', label: '')
-      sheet.add_header(col: 'C', label: '')
-
-      sheet.append_row(label: 'Questions') do |row|
-        row.append_cell_value(value: 'This Report')
-      end
-    end
-
     protected
+
+    def add_sheet_header(sheet)
+      # row 1
+      sheet.add_header(col: 'A', label: 'Activity Review')
+      sheet.add_header(col: 'B', label: 'TBRA')
+      sheet.add_header(col: 'C', label: 'P-FBH')
+      sheet.add_header(col: 'D', label: 'ST-TFBH')
+      sheet.add_header(col: 'E', label: 'STRMU')
+      sheet.add_header(col: 'F', label: 'PHP')
+      sheet.add_header(col: 'G', label: 'Housing Info')
+      sheet.add_header(col: 'H', label: 'SUPP SVC')
+      sheet.add_header(col: 'I', label: 'Other Competitive Activity')
+    end
 
     def activity_review_section(sheet)
       tbra_households = housing_subsidy_households_for_activity(:tbra)
@@ -74,9 +57,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
       supportive_services_households = supportive_services_households
       other_competitive_households = other_competitive_households
 
-      sheet.append_row(label: 'Total Households') do |row|
-        row.append_cell_value(value: nil)
-        row.append_cell_value(value: nil)
+      # row 2
+      sheet.append_row(label: 'Total Households Served in ALL Activities from this report for each Activity.') do |row|
         row.append_cell_members(members: household_members(tbra_households))
         row.append_cell_members(members: household_members(pfbh_households))
         row.append_cell_members(members: household_members(st_tfbh_households))
@@ -89,57 +71,64 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def housing_subsidy_deduplication_section(sheet)
-      sheet.append_row(label: '')
-
+      # row 3
+      sheet.append_row(label: 'Housing Subsidy Assistance Household Count Deduplication')
       housing_subsidy_households = all_housing_subsidy_households
-      total_housing_subsidy = household_members(housing_subsidy_households)
 
+      # row 4
       sheet.append_row(label: 'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)') do |row|
-        row.append_cell_members(members: total_housing_subsidy)
+        count_with_duplicates = [:tbra, :strmu, :php].map { |type| housing_subsidy_households_for_activity(type).count }.sum
+        row.append_cell_members(members: household_members(housing_subsidy_households), value: count_with_duplicates)
       end
 
       duplicated_households = find_duplicated_households_across_activities
-      duplicated_count = household_members(duplicated_households)
 
-      sheet.append_row(label: 'Of the households in row 2, count distinct households that appear in more than one column') do |row|
-        row.append_cell_members(members: duplicated_count)
+      # row 5
+      sheet.append_row(label: 'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?') do |row|
+        row.append_cell_members(members: household_members(duplicated_households))
       end
 
-      unduplicated_households = housing_subsidy_households.where.not(report_household_id: duplicated_households.select(:report_household_id))
-      unduplicated_count = household_members(unduplicated_households)
-
-      sheet.append_row(label: 'Total Unduplicated Housing Subsidy Assistance Household') do |row|
-        row.append_cell_members(members: unduplicated_count)
+      # row 6
+      sheet.append_row(label: 'Total Unduplicated Housing Subsidy Assistance Household Count') do |row|
+        row.append_cell_members(members: household_members(housing_subsidy_households))
       end
     end
 
     def access_to_care_section(sheet)
-      sheet.append_row(label: '')
+      # row 7
+      sheet.append_row(label: 'Access to Care (ATC)')
+      # row 8
       sheet.append_row(label: 'Complete HOPWA Outcomes for Access to Care and Support for all households served with HOPWA housing assistance and "other competitive activities" in the reporting year.')
+      # row 9
+      sheet.append_row(label: 'Questions') do |row|
+        row.append_cell_value(value: 'This Report')
+      end
 
       housing_subsidy_households = all_housing_subsidy_households
 
-      # Row 10: Case Manager Contact (Service OR Custom Field)
-      case_management_services = @report.hopwa_caper_services.hud_services.
-        where(date_provided: @report.start_date..@report.end_date).
-        where(record_type: 143, type_provided: 3)
-      cm_household_ids = case_management_services.select(:report_household_id)
-
-      maintained_contact_households = housing_subsidy_households.where(atc_maintained_contact: true).
-        or(housing_subsidy_households.where(report_household_id: cm_household_ids))
-
+      # Row 10
       sheet.append_row(label: 'How many households had contact with a case manager?') do |row|
+        case_management_services = @report.hopwa_caper_services.hud_services.
+          where(date_provided: @report.start_date..@report.end_date).
+          where(record_type: 143, type_provided: 3)
+        cm_household_ids = case_management_services.select(:report_household_id)
+
+        maintained_contact_households = housing_subsidy_households.where(atc_maintained_contact: true).
+          or(housing_subsidy_households.where(report_household_id: cm_household_ids))
+
         row.append_cell_members(members: household_members(maintained_contact_households))
       end
 
-      housing_plan_households = housing_subsidy_households.where(atc_housing_plan: true)
+      # Row 11
       sheet.append_row(label: 'How many households developed a housing plan for maintaining or establishing stable housing?') do |row|
+        housing_plan_households = housing_subsidy_households.where(atc_housing_plan: true)
         row.append_cell_members(members: household_members(housing_plan_households))
       end
 
       enrollment_ids = housing_subsidy_households.pluck(:enrollment_id).uniq
       income_benefit_table = GrdaWarehouse::Hud::IncomeBenefit.arel_table
 
+      # FIXME - this should be another field on spm_enrollment
       insurance_enrollment_ids = GrdaWarehouse::Hud::IncomeBenefit.
         where(EnrollmentID: enrollment_ids).
         where(income_benefit_table[:InformationDate].lteq(@report.end_date)).
@@ -152,12 +141,14 @@ module HopwaCaper::Generators::Fy2026::Sheets
         distinct.
         pluck(:EnrollmentID)
       insurance_households = housing_subsidy_households.where(enrollment_id: insurance_enrollment_ids)
+      # Row 12
       sheet.append_row(label: 'How many households accessed and maintained medical insurance and/or assistance?') do |row|
         row.append_cell_members(members: household_members(insurance_households))
       end
 
+      # Row 13
       primary_health_contact_households = housing_subsidy_households.where(atc_primary_health_contact: true)
-      sheet.append_row(label: 'How many households had contact with a primary health care provider?') do |row|
+      sheet.append_row(label: 'How many households had contact with a primary health care provider? ') do |row|
         row.append_cell_members(members: household_members(primary_health_contact_households))
       end
 
@@ -169,6 +160,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
         distinct.
         pluck(:EnrollmentID)
       income_households = housing_subsidy_households.where(enrollment_id: income_enrollment_ids)
+      # Row 14
       sheet.append_row(label: 'How many households accessed or maintained qualification for sources of income?') do |row|
         row.append_cell_members(members: household_members(income_households))
       end
@@ -181,14 +173,20 @@ module HopwaCaper::Generators::Fy2026::Sheets
         distinct.
         pluck(:EnrollmentID)
       earned_income_households = housing_subsidy_households.where(enrollment_id: earned_income_enrollment_ids)
+      # Row 15
       sheet.append_row(label: 'How many households obtained/maintained an income-producing job during the program year (with or without any HOPWA-related assistance)?') do |row|
         row.append_cell_members(members: household_members(earned_income_households))
       end
     end
 
     def subsidy_with_supportive_service_section(sheet)
-      sheet.append_row(label: '')
-      sheet.append_row(label: 'Subsidy Assistance with Supportive Service, Funded Case Management Questions.')
+      # Row 16
+      sheet.append_row(label: 'Subsidy Assistance with Supportive Service, Funded Case Management')
+
+      # row 17
+      sheet.append_row(label: 'Questions') do |row|
+        row.append_cell_value(value: 'This Report')
+      end
 
       housing_subsidy_households = all_housing_subsidy_households
 
@@ -198,6 +196,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       case_management_households = housing_subsidy_households.
         where(report_household_id: case_management_services.select(:report_household_id).distinct)
+      # row 18
       sheet.append_row(label: 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Funded Case Management?') do |row|
         row.append_cell_members(members: household_members(case_management_households))
       end
@@ -208,12 +207,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       supportive_service_households = housing_subsidy_households.
         where(report_household_id: supportive_services.select(:report_household_id).distinct)
+      # row 19
       sheet.append_row(label: 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Supportive Services?') do |row|
         row.append_cell_members(members: household_members(supportive_service_households))
       end
     end
-
-    private
 
     def housing_subsidy_households_for_activity(activity_type)
       case activity_type
@@ -230,7 +228,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
         # P-FBH and ST-TFBH may be part of TBRA or PHP - for now return empty scope
         @report.hopwa_caper_enrollments.none
       else
-        @report.hopwa_caper_enrollments.none
+        raise ArgumentError, "invalid activity_type #{activity_type}"
       end
     end
 

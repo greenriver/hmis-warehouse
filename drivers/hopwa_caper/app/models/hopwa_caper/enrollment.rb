@@ -18,6 +18,7 @@ module HopwaCaper
              class_name: 'HudReports::UniverseMember',
              foreign_key: :universe_membership_id
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
+    # source enrollment
     belongs_to :enrollment, -> { with_deleted }, class_name: 'GrdaWarehouse::Hud::Enrollment'
 
     def project_id

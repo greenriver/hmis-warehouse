@@ -136,6 +136,14 @@ Reports use several different patterns and are not uniform.
 - Not retry-safe: questions are interdependent
 - Retries are blocked when questions have completed
 
+## Helpful commands
+A report instance can be run as follows
+```ruby
+instance = HudReports::ReportInstance.find(instance_id)
+generator = HopwaCaper::Generators::Fy2026::Generator
+Reporting::Hud::RunReportJob.new.perform(generator.name, instance, email: false)
+```
+
 ## Supported Reports
 
 The framework supports the following HUD reports:

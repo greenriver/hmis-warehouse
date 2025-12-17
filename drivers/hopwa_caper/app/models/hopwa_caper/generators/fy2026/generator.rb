@@ -29,6 +29,10 @@ module HopwaCaper::Generators::Fy2026
       "v1.0 #{short_name} #{fiscal_year}"
     end
 
+    def self.supports_idempotent_retry?
+      true
+    end
+
     def self.default_project_type_codes
       # include ALL project types, we aren't sure which ones might be hopwa funded
       HudHelper.util('2026').project_type_group_titles.keys
@@ -168,7 +172,7 @@ module HopwaCaper::Generators::Fy2026
         populate_household_aggregated_fields(enrollments)
       end
 
-      populate_atc_data if HopwaCaper::Configuration.new.atc_tab_enabled?
+      populate_atc_data
 
       true
     end
@@ -298,83 +302,72 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def populate_atc_data
-      config = HopwaCaper::Configuration.new
-      return unless config.atc_tab_enabled?
+      sheet_config = HopwaCaper::Configuration.new
+      return unless sheet_config.atc_tab_enabled?
 
-      maintained_contact_key = config.atc_maintained_contact_field_name
-      housing_plan_key = config.atc_housing_plan_field_name
-      primary_health_contact_key = config.atc_primary_health_contact_field_name
+      # build row config
+      row_configs = [
+        [sheet_config.atc_maintained_contact_field_name, :atc_maintained_contact],
+        [sheet_config.atc_housing_plan_field_name, :atc_housing_plan],
+        [sheet_config.atc_primary_health_contact_field_name, :atc_primary_health_contact],
+      ].filter_map do |key, column|
+        next unless key
 
-      return unless maintained_contact_key || housing_plan_key || primary_health_contact_key
+        definition = Hmis::Hud::CustomDataElementDefinition.find_by(key: key)
+        next unless definition
 
-      enrollment_ids = report.hopwa_caper_enrollments.pluck(:enrollment_id).uniq
-      return if enrollment_ids.empty?
-
-      hud_enrollments = GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids).index_by(&:id)
-
-      cde_definitions = {}
-      [maintained_contact_key, housing_plan_key, primary_health_contact_key].compact.each do |key|
-        definition = Hmis::Hud::CustomDataElementDefinition.find_by(key: key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
-        cde_definitions[key] = definition if definition
+        { key: key, column: column, definition: definition }
       end
 
-      return if cde_definitions.empty?
+      updates = {}
+      row_configs.each do |config|
+        key, column, definition = config.values_at(:key, :column, :definition)
 
-      cde_by_enrollment = Hmis::Hud::CustomDataElement.
-        where(owner_type: 'GrdaWarehouse::Hud::Enrollment', owner_id: enrollment_ids).
-        where(data_element_definition_id: cde_definitions.values.map(&:id)).
-        group_by(&:owner_id)
+        # find enrollments that have values for the relevant custom data element definitions (cdeds)
+        cded_scope = Hmis::Hud::CustomDataElementDefinition.where(id: definition.id)
 
-      rows_to_update = []
+        relevant_enrollment_ids = report.hopwa_caper_enrollments.
+          joins(enrollment: :custom_data_element_definitions).
+          merge(cded_scope).
+          distinct.pluck(:id)
 
-      report.hopwa_caper_enrollments.find_each do |caper_enrollment|
-        hud_enrollment = hud_enrollments[caper_enrollment.enrollment_id]
-        next unless hud_enrollment
-
-        custom_data_elements = cde_by_enrollment[caper_enrollment.enrollment_id] || []
-        updates = {}
-
-        if maintained_contact_key && cde_definitions[maintained_contact_key]
-          cde = custom_data_elements.find { |e| e.data_element_definition_id == cde_definitions[maintained_contact_key].id }
-          updates[:atc_maintained_contact] = value_to_boolean(cde&.value) if cde
-        end
-
-        if housing_plan_key && cde_definitions[housing_plan_key]
-          cde = custom_data_elements.find { |e| e.data_element_definition_id == cde_definitions[housing_plan_key].id }
-          updates[:atc_housing_plan] = value_to_boolean(cde&.value) if cde
-        end
-
-        if primary_health_contact_key && cde_definitions[primary_health_contact_key]
-          cde = custom_data_elements.find { |e| e.data_element_definition_id == cde_definitions[primary_health_contact_key].id }
-          updates[:atc_primary_health_contact] = value_to_boolean(cde&.value) if cde
-        end
-
-        if updates.any?
-          caper_enrollment.assign_attributes(updates)
-          rows_to_update << caper_enrollment
+        report.hopwa_caper_enrollments.where(id: relevant_enrollment_ids).find_each do |spm_enrollment|
+          # n+1 queries are acceptable here assuming small client set in the HOPWA CAPER
+          # FIXME probably should try and sort by assessment date
+          cde = enrollment.custom_data_elements.
+            where(custom_data_element_definition: definition).
+            where(InformationDate: ..@report.end_date). # this may not be the right field
+            order(:id).
+            last
+          updates[spm_enrollment.id] ||= {id: spm_enrollment.id, }
+          updates[spm_enrollment.id][:atc_maintained_contact] = cde_value_to_boolean(definition, cde)
         end
       end
 
-      return unless rows_to_update.any?
+      return unless updates.any?
 
-      HopwaCaper::Enrollment.import(
-        rows_to_update,
+      result = HopwaCaper::Enrollment.import(
+        updates.values,
         validate: false,
         on_duplicate_key_update: {
-          conflict_target: [:report_instance_id, :enrollment_id],
+          conflict_target: [:id],
           columns: [:atc_maintained_contact, :atc_housing_plan, :atc_primary_health_contact],
         },
       )
+      raise "Failed to import: #{result.inspect}" if result.failed_instances.present?
     end
 
-    def value_to_boolean(value)
-      return false if value.nil?
-
-      case value
-      when true, 'true', 'True', 'yes', 'Yes', 'YES', 1, '1'
-        true
+    # cast to boolean; support mixed types
+    def cde_value_to_boolean(definition, cde)
+      case definition.field_type
+      when :integer
+        cde.value_integer == 1
+      when :boolean
+        cde.value_boolean == true
+      when :string
+        cde.value_string && custom_data_element.value_string =~ /(true|yes|1)/i
       else
-        false
+        raise ArgumentError, "Invalid field type: #{definition.field_type} for definition #{definition.id}"
       end
     end
   end
