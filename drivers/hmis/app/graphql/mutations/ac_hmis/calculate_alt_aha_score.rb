@@ -22,7 +22,7 @@ module Mutations
       raise 'AHA connection is not configured' unless HmisExternalApis::AcHmis::Aha.enabled?
 
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
-      access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
+      access_denied! unless policy_for(enrollment, policy_type: :hmis_enrollment).can_edit?
 
       aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
         values_by_link_id: values_by_link_id,
