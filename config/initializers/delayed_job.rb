@@ -60,6 +60,10 @@ module Delayed
 
           raise ApplicationJob::JobCancelled, 'Job cancelled'
         end
+
+        def cancellable?
+          failed_at.nil? && cancellation_requested_at.nil?
+        end
       end
     end
   end

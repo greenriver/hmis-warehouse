@@ -3,4 +3,4 @@
 %h1= content_for(:title)
 = render partial: 'menus/admin_tabs'
 
-= render_paginated_list(scope: @jobs, item_name: 'job', list_partial: 'list', list_locals: { users: @users })
+= render_paginated_list(scope: @jobs, item_name: 'job', list_partial: 'list')

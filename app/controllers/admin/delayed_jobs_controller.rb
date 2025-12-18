@@ -14,7 +14,6 @@ module Admin
 
     def index
       @jobs = job_scope.order(priority: :asc, run_at: :asc, queue: :asc)
-      @users = User.active.map { |u| [u.id, u.name_with_email] }.to_h
     end
 
     def update
@@ -24,8 +23,10 @@ module Admin
     end
 
     def cancel
-      @job.update(cancellation_requested_at: Time.current)
-      flash[:notice] = 'Job cancellation requested'
+      if @job.cancellable?
+        @job.update(cancellation_requested_at: Time.current)
+        flash[:notice] = 'Job cancellation requested'
+      end
       redirect_to admin_delayed_jobs_path
     end
 
