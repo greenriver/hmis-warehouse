@@ -193,8 +193,14 @@ module HopwaCaper::Generators::Fy2026::Sheets
         filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
         overlapping_enrollments(filter.apply(@report.hopwa_caper_enrollments))
       when :strmu
-        filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
-        overlapping_enrollments(filter.apply(@report.hopwa_caper_enrollments))
+        enrollments = overlapping_enrollments(
+          HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa.apply(@report.hopwa_caper_enrollments),
+        )
+        service_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
+        relevant_services = service_filter.apply(@report.hopwa_caper_services).
+          where(date_provided: @report.start_date..@report.end_date).
+          joins(:enrollment).merge(enrollments)
+        enrollments.where(report_household_id: relevant_services.select(:report_household_id))
       when :php
         filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.php_hopwa
         overlapping_enrollments(filter.apply(@report.hopwa_caper_enrollments))
@@ -215,9 +221,12 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def supportive_services_households
+      service_type_filters = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter
       record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
+
       record_filter.apply(@report.hopwa_caper_services).
         where(date_provided: @report.start_date..@report.end_date).
+        where(type_provided: service_type_filters.supportive_service_codes).
         select(:report_household_id).
         distinct
     end
