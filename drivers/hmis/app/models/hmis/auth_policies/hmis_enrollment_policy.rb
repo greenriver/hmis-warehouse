@@ -21,17 +21,6 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_delete_enrollments)
   end
 
-  def can_delete_assessment?(assessment)
-    # WIP assessments, including WIP Intakes, can be deleted by users that can edit the enrollment
-    return can_edit? if assessment.in_progress?
-
-    # Deleting a completed intake deletes the enrollment, so only users that can delete the enrollment can do this
-    return project_permissions.include?(:can_delete_enrollments) if assessment.intake?
-
-    # Otherwise, require can_delete_assessments
-    project_permissions.include?(:can_delete_assessments)
-  end
-
   protected
 
   # convenience

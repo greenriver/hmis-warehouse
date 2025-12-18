@@ -35,8 +35,14 @@ module Mutations
           record: record,
           field_name: :assessment,
           authorize: ->(assessment, user) do
-            policy = user.policy_for(assessment.enrollment, policy_type: :hmis_enrollment)
-            policy.can_delete_assessment?(record)
+            # WIP assessments, including WIP Intakes, can be deleted by users that have "can_edit_enrollments"
+            return policy.can_edit? if is_wip
+
+            if record.intake?
+              user.can_delete_enrollments_for?(assessment.enrollment)
+            else
+              user.can_delete_assessments_for?(assessment.enrollment)
+            end
           end,
           after_delete: -> do
             record.form_processor.destroy_related_records!
