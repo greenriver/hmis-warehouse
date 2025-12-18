@@ -7,28 +7,38 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
+  def can_create?(role:)
+    user.can_manage_forms_for_role?(role)
+  end
+
+  # Catch-all field that is resolved to frontend.
+  # "Manage" form includes ability to create and edit drafts, duplicate, and publish forms.
   def can_manage_form?
-    return false if resource.managed_in_version_control?
+    return false if form_definition.managed_in_version_control?
 
-    # Only super-admins can manage forms that are admin-editable-only
-    return false if resource.admin_editable_only? && !context.user.can_administrate_config?
+    # Only super-admins can manage forms that are marked as 'admin_editable_only' in the database
+    return false if form_definition.admin_editable_only? && !user.can_administrate_config?
 
-    context.user.can_manage_forms_for_role?(resource.role)
+    user.can_manage_forms_for_role?(form_definition.role)
   end
 
-  def can_duplicate_form?
+  def can_create_draft? = can_manage_form?
+  def can_edit_draft? = can_manage_form?
+  def can_publish? = can_manage_form?
+
+  def can_duplicate?
     # Users can duplicate forms even if they are managed in version control or admin-editable-only
-    context.user.can_manage_forms_for_role?(resource.role)
+    user.can_manage_forms_for_role?(form_definition.role)
   end
 
-  def can_publish_form?
-    # Currently same as can_manage_form?, but may diverge in the future
-    can_manage_form?
+  def can_delete?
+    form_definition.draft? && can_manage_form?
   end
 
   # TODO: incorporate other policies and permissions. For example, can_index? policy should be based on permission can_configure_data_collection?
 
   protected
 
-  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Form::Definition)
+  def form_definition = resource
+  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Form::Definition, allow_nil: true)
 end
