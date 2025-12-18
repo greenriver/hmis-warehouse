@@ -11,6 +11,7 @@ task cleanup_client_primary_names_20251218: [:environment] do
 
     puts "Found #{clients.count} clients with missing primary names: #{clients.pluck(:id).join(', ')}"
 
+    updated_count = 0
     clients.find_each do |client|
       # find the first name record that matches this client's name fields (if any)
       primary_name = client.names.find do |name|
