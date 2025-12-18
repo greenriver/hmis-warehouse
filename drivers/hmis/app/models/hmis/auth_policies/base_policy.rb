@@ -28,8 +28,7 @@ class Hmis::AuthPolicies::BasePolicy
   def validate_resource!(_arg) = raise 'override this in child class'
 
   # validation helper
-  def ensure_arg_type!(arg, klass, allow_nil: false)
-    return if allow_nil && arg.nil?
+  def ensure_arg_type!(arg, klass)
     return if arg.is_a?(klass)
 
     # For ActiveRecord models, also accept the class itself
