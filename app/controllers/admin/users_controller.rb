@@ -43,8 +43,10 @@ module Admin
       @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
 
       # Preload all contacts with their entities and alert definitions for contact relationships display
+      # Exclude contacts whose entities (projects/organizations) have been deleted
       @user_contacts = @user.contacts.not_system_contacts.
         active_subscriptions.
+        with_active_entities.
         includes(:entity, :alert_definitions).
         order(type: :asc).
         to_a

@@ -607,4 +607,28 @@ namespace :grda_warehouse do
     installer = GrdaWarehouse::Shape::Installer.new
     installer.remove_all_water!
   end
+
+  desc 'Clean up orphaned contacts (contacts whose entities have been deleted)'
+  task :clean_orphaned_contacts, [] => [:environment, 'log:info_to_stdout'] do
+    project_contact_ids = GrdaWarehouse::Contact::Project.
+      where.not(entity_id: GrdaWarehouse::Hud::Project.select(:id)).
+      pluck(:id)
+
+    organization_contact_ids = GrdaWarehouse::Contact::Organization.
+      where.not(entity_id: GrdaWarehouse::Hud::Organization.select(:id)).
+      pluck(:id)
+
+    total = project_contact_ids.count + organization_contact_ids.count
+
+    if total.zero?
+      puts 'No orphaned contacts found.'
+    else
+      puts "Found #{total} orphaned contacts (#{project_contact_ids.count} project, #{organization_contact_ids.count} organization)"
+      puts 'Destroying orphaned project contacts...'
+      GrdaWarehouse::Contact::Project.where(id: project_contact_ids).destroy_all
+      puts 'Destroying orphaned organization contacts...'
+      GrdaWarehouse::Contact::Organization.where(id: organization_contact_ids).destroy_all
+      puts 'Done.'
+    end
+  end
 end
