@@ -965,6 +965,7 @@ type CeOpportunity {
   Active or accepted referral
   """
   referral: CeReferral
+  stale: Boolean!
   status: CeOpportunityStatus!
   unit: Unit
 }
@@ -1082,7 +1083,8 @@ type CeReferral {
   Limited details about the source enrollment. Available even without full access to the source record.
   """
   sourceEnrollment: CeReferralSourceEnrollment
-  sourceEnrollmentId: ID!
+  sourceEnrollmentId: ID
+  sourceProjectName: String
   status: CeReferralStatus!
   steps: [CeReferralStep!]
   swimlanes: [CeReferralSwimlane!]
@@ -4123,7 +4125,12 @@ type Enrollment {
   singleParent: NoYesMissing
 
   """
-  Present if this household was enrolled as the result of a referral from another project.
+  Present if this household was enrolled as the result of a CE referral.
+  """
+  sourceCeReferral: CeReferral
+
+  """
+  Present if this household was enrolled as the result of a legacy (pre-CE) referral from another project.
   """
   sourceReferralPosting: ReferralPosting
   staffAssignments: [StaffAssignment!]

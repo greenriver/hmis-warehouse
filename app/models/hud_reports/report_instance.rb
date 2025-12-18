@@ -7,6 +7,7 @@
 ###
 
 # A HUD Report instance
+# @see docs/features/hud-report-framework.md
 #
 # While the model supports STI, this is not commonly used to identify report type. Instead, the report_name is used to
 # indicate the type of report. For example:
@@ -35,6 +36,18 @@ module HudReports
     scope :created_recently, -> { where(created_at: 24.hours.ago .. Time.current) }
     scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
     scope :for_report, ->(report_name) { where(report_name: report_name) }
+
+    def snapshot_completed?
+      snapshot_status == HudReports::GeneratorBase::COMPLETED
+    end
+
+    def mark_snapshot_started!
+      update!(snapshot_status: HudReports::GeneratorBase::STARTED)
+    end
+
+    def mark_snapshot_completed!
+      update!(snapshot_status: HudReports::GeneratorBase::COMPLETED)
+    end
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
@@ -96,6 +109,16 @@ module HudReports
 
     def failures
       report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
+    end
+
+    def reset_question(question)
+      cells = report_cells.where(question: question)
+      # NOTE: This method handles the generic cleanup of report cells and universe members.
+      # For question-specific cleanup of derived records (e.g., SPM's Return records),
+      # implement the QuestionBase::reset_derived_data hook, which is called automatically
+      # before this method during a retry.
+      HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
+      cells.delete_all
     end
 
     private def job_failed?

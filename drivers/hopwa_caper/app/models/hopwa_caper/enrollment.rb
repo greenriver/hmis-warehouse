@@ -46,9 +46,9 @@ module HopwaCaper
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
 
-    def self.head_of_household
-      where(relationship_to_hoh: 1)
-    end
+    scope :head_of_household, -> { where(relationship_to_hoh: 1) }
+
+    scope :active_after, ->(date) { where('exit_date IS NULL OR exit_date > ?', date) }
 
     INSURANCE_FIELDS = [
       :Medicaid,
@@ -71,22 +71,21 @@ module HopwaCaper
       :Unemployment,
       :OtherIncomeSource
     ].freeze
+
     def self.from_hud_record(enrollment:, report:, client:)
       project = enrollment.project
       # get deterministic order
-      hiv_disabilities = enrollment.disabilities.filter(&:hiv?).sort_by(&:id)
+      hiv_disabilities = enrollment.disabilities.
+        filter { |r| r.hiv? && r.disability_response == 1 }.
+        sort_by(&:id)
 
-      report_date_range = report.start_date..report.end_date
-      income_benefit_source_types = enrollment.income_benefits.flat_map do |record|
-        next unless record.InformationDate.in?(report_date_range)
+      # Determines current income/insurance status using most recent assessment as of report end date
+      latest_income_benefit = enrollment.income_benefits.
+        select { |r| r.InformationDate && r.InformationDate <= report.end_date }.
+        max_by { |r| [r.InformationDate, r.id] }
 
-        INCOME_SOURCE_FIELDS.filter { |field| record[field] == 1 }
-      end
-      medical_insurance_types = enrollment.income_benefits.flat_map do |record|
-        next unless record.InformationDate.in?(report_date_range)
-
-        INSURANCE_FIELDS.filter { |field| record[field] == 1 }
-      end
+      income_benefit_source_types = INCOME_SOURCE_FIELDS.filter { |field| latest_income_benefit&.[](field) == 1 }
+      medical_insurance_types = INSURANCE_FIELDS.filter { |field| latest_income_benefit&.[](field) == 1 }
 
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
       new(
@@ -102,7 +101,7 @@ module HopwaCaper
         age: client.age_on([report.start_date, enrollment.entry_date].max),
         dob: client.dob,
         dob_quality: client.dob_data_quality,
-        genders: client.gender_multi.sort,
+        sex: client.sex,
         races: client.race_multi.sort,
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
@@ -130,11 +129,40 @@ module HopwaCaper
       enrollment.enrollment_id
     end
 
+    DETAIL_HEADER_ORDER = [
+      'personal_id',
+      'hmis_enrollment_id',
+      'first_name',
+      'last_name',
+      'destination_client_id',
+      'age',
+      'dob',
+      'dob_quality',
+      'races',
+      'sex',
+      'veteran',
+      'entry_date',
+      'exit_date',
+      'relationship_to_hoh',
+      'project_funders',
+      'project_type',
+      'income_benefit_source_types',
+      'medical_insurance_types',
+      'hiv_positive',
+      'hopwa_eligible',
+      'chronically_homeless',
+      'prior_living_situation',
+      'rental_subsidy_type',
+      'exit_destination',
+      'housing_assessment_at_exit',
+      'subsidy_information',
+      'ever_prescribed_anti_retroviral_therapy',
+      'viral_load_suppression',
+      'percent_ami',
+    ].freeze
+
     def self.detail_headers
-      special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
-      cols = special + (column_names - special - remove)
-      cols.map do |header|
+      DETAIL_HEADER_ORDER.map do |header|
         label = case header
         when 'destination_client_id'
           'Warehouse Client ID'
@@ -142,11 +170,45 @@ module HopwaCaper
           'HMIS Personal ID'
         when 'hmis_enrollment_id'
           'HMIS Enrollment ID'
+        when 'hiv_positive'
+          'HIV positive'
+        when 'percent_ami'
+          'Percent AMI'
         else
           header.humanize
         end
         [header, label]
       end.to_h
+    end
+
+    private
+
+    def fields_supporting_data_not_collected
+      @fields_supporting_data_not_collected ||= [
+        'sex',
+        'dob_quality',
+        'percent_ami',
+        'exit_destination',
+        'housing_assessment_at_exit',
+      ].to_set.freeze
+    end
+
+    def transform_value(column, value, pii_policy)
+      # Treat nil as 99 (Data not collected) for HUD fields that support it
+      value = 99 if value.nil? && fields_supporting_data_not_collected.include?(column)
+
+      case column
+      when 'sex'
+        HudHelper.util('2026').sex(value)
+      when 'percent_ami'
+        HudHelper.util('2026').percent_ami(value)
+      when 'housing_assessment_at_exit'
+        HudHelper.util('2026').housing_assessment_at_exit(value)
+      when 'dob_quality'
+        HudHelper.util('2026').dob_data_quality(value)
+      else
+        super
+      end
     end
   end
 end
