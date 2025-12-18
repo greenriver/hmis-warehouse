@@ -130,7 +130,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: 'Hmis::Hud::HmisService',
-      policy_permission: :can_edit?,
+      permission: :can_edit_enrollments,
     },
     PROJECT: {
       owner_class: 'Hmis::Hud::Project',
@@ -166,15 +166,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     CE_ASSESSMENT: {
       owner_class: 'Hmis::Hud::Assessment',
-      policy_permission: :can_edit?,
+      permission: :can_edit_enrollments,
     },
     CE_EVENT: {
       owner_class: 'Hmis::Hud::Event',
-      policy_permission: :can_edit?,
+      permission: :can_edit_enrollments,
     },
     CASE_NOTE: {
       owner_class: 'Hmis::Hud::CustomCaseNote',
-      policy_permission: :can_edit?,
+      permission: :can_edit_enrollments,
     },
     FILE: {
       owner_class: 'Hmis::File',
@@ -195,7 +195,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     CURRENT_LIVING_SITUATION: {
       owner_class: 'Hmis::Hud::CurrentLivingSituation',
-      policy_permission: :can_edit?,
+      permission: :can_edit_enrollments,
     },
     OCCURRENCE_POINT: ENROLLMENT_CONFIG,
     ENROLLMENT: ENROLLMENT_CONFIG,
@@ -448,12 +448,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
-  end
-
-  def record_editing_policy_permissions
-    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
-
-    Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:policy_permission])
   end
 
   def allowed_proc
