@@ -137,7 +137,7 @@ Reports use several different patterns and are not uniform.
 - Retries are blocked when questions have completed
 
 ## Helpful commands
-A report instance can be run as follows
+A report instance can be run as follows. Note, can only re-run idempotent reports like this
 ```ruby
 instance = HudReports::ReportInstance.find(instance_id)
 generator = HopwaCaper::Generators::Fy2026::Generator

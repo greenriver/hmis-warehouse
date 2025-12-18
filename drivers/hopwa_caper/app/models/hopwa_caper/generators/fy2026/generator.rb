@@ -29,10 +29,6 @@ module HopwaCaper::Generators::Fy2026
       "v1.0 #{short_name} #{fiscal_year}"
     end
 
-    def self.supports_idempotent_retry?
-      true
-    end
-
     def self.default_project_type_codes
       # include ALL project types, we aren't sure which ones might be hopwa funded
       HudHelper.util('2026').project_type_group_titles.keys
