@@ -62,7 +62,26 @@ module Delayed
         end
 
         def cancellable?
-          failed_at.nil? && cancellation_requested_at.nil?
+          return false if cancellation_requested_at.present? || failed_at.present?
+
+          # If it hasn't started, it can always be cancelled via before_perform
+          return true if locked_at.nil?
+
+          # If it is running, it can only be cancelled if we've instrumented it
+          interruptible?
+        end
+
+        def interruptible?
+          # We check the handler to see if it's a HUD report job.
+          # We avoid using JobDetail here to keep the initializer lightweight,
+          # but we look for the signature of instrumented jobs.
+          handler.include?('Reporting::Hud::RunReportJob')
+        end
+
+        # Allow re-queueing if the job has failed or if a cancellation is currently requested.
+        # (lets us "revive" a job that was previously cancelled).
+        def requeueable?
+          failed_at.present? || cancellation_requested_at.present?
         end
       end
     end

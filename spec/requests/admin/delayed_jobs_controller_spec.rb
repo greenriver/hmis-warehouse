@@ -43,7 +43,7 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
 
   describe 'PATCH #update' do
     before do
-      job.update!(locked_at: Time.current, locked_by: 'worker')
+      job.update!(locked_at: Time.current, locked_by: 'worker', failed_at: Time.current)
     end
 
     it 're-queues the job' do

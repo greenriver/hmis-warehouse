@@ -36,6 +36,8 @@
       = job.locked_by
       at
       = job.locked_at
+      - unless job.interruptible?
+        %span.text-muted (non-interruptible)
     - if job.failed_at
       %br
       %span.icon-cancel-circled.text-danger
@@ -56,9 +58,9 @@
         N/A
   %td
     - items = []
-    - unless job.cancellation_requested_at.present?
+    - if job.requeueable?
       - items << { link_to: { path: admin_delayed_job_path(job), method: :patch, data: { confirm: 'Are you sure you want to re-queue this job?' } }, class: ['btn', 'btn-sm', 'btn-info'], icon: :settings_backup_restore, label: 'Re-queue' }
-      - if job.cancellable?
-        - items << { link_to: { path: cancel_admin_delayed_job_path(job), method: :patch, data: { confirm: 'Are you sure you want to cancel this job?' } }, class: ['btn', 'btn-sm', 'btn-warning'], icon: 'cancel-circled', label: 'Cancel' }
+    - if job.cancellable?
+      - items << { link_to: { path: cancel_admin_delayed_job_path(job), method: :patch, data: { confirm: 'Are you sure you want to cancel this job?' } }, class: ['btn', 'btn-sm', 'btn-warning'], icon: 'cancel-circled', label: 'Cancel' }
     - items << { link_to: { path: admin_delayed_job_path(job), method: :delete, data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.' } }, class: ['btn', 'btn-sm', 'btn-danger'], icon: :cross, label: 'Delete' }
     = action_menu_or_button(items: items)

@@ -17,15 +17,21 @@ module Admin
     end
 
     def update
-      @job.update(locked_by: nil, locked_at: nil, failed_at: nil, last_error: nil)
-      flash[:notice] = 'Delayed Job re-queued'
+      @job.with_lock do
+        if @job.requeueable?
+          @job.update(locked_by: nil, locked_at: nil, failed_at: nil, last_error: nil, cancellation_requested_at: nil)
+          flash[:notice] = 'Delayed Job re-queued'
+        end
+      end
       redirect_to admin_delayed_jobs_path
     end
 
     def cancel
-      if @job.cancellable?
-        @job.update(cancellation_requested_at: Time.current)
-        flash[:notice] = 'Job cancellation requested'
+      @job.with_lock do
+        if @job.cancellable?
+          @job.update(cancellation_requested_at: Time.current)
+          flash[:notice] = 'Job cancellation requested'
+        end
       end
       redirect_to admin_delayed_jobs_path
     end
