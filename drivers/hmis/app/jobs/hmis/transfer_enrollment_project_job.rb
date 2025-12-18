@@ -9,6 +9,8 @@
 module Hmis
   class TransferEnrollmentProjectJob < BaseJob
     # Transfers a set of enrollments from their current project to a target project.
+    # This is intended to be used to fulfill support requests to move enrollments between projects.
+    # In the future, it may be used to back a user-facing admin tool to transfer enrollments (#5767).
     #
     # Behavior
     # - Takes an array of enrollment IDs, source project ID, target project ID, and optional dry_run flag
