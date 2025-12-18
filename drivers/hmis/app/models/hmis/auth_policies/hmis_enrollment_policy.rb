@@ -27,7 +27,7 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::BasePolicy
   def enrollment = resource
 
   def project_permissions
-    raise 'Tried to call enrollment policy on non-hmis enrollment' unless enrollment.project_pk.present?
+    raise "Enrollment #{enrollment.id} is missing project_pk" unless enrollment.project_pk.present?
 
     context.project_permissions(enrollment.project_pk)
   end
