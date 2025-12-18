@@ -72,10 +72,13 @@ module Delayed
         end
 
         def interruptible?
-          # We check the handler to see if it's a HUD report job.
-          # We avoid using JobDetail here to keep the initializer lightweight,
-          # but we look for the signature of instrumented jobs.
-          handler.include?('Reporting::Hud::RunReportJob')
+          # We use JobDetail to encapsulate the logic for inspecting the job payload.
+          # This is more robust than simple string matching on the handler.
+          return false unless defined?(JobDetail)
+
+          JobDetail.new(self).interruptible?
+        rescue StandardError
+          false
         end
 
         # Allow re-queueing if the job has failed or if a cancellation is currently requested.

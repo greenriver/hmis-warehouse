@@ -14,6 +14,12 @@ class ApplicationJob < ActiveJob::Base
   # When JobCancelled is raised, Active Job catches it and prevents any retries.
   discard_on JobCancelled
 
+  # By default, jobs are not interruptible once they have started.
+  # Subclasses can override this if they have implemented manual cancellation checkpoints.
+  def self.interruptible?
+    false
+  end
+
   # Check for cancellation before the job starts performing.
   before_perform :handle_cancellation!
 

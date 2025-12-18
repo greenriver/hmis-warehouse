@@ -12,6 +12,10 @@ module Reporting::Hud
     WAIT_MINUTES = 4
     ORIGINAL_FAILURE_SEPARATOR = "\nOriginal failure:\n"
 
+    def self.interruptible?
+      true
+    end
+
     class NonIdempotentRetryError < StandardError; end
 
     def perform(class_name, report_id, email: true)

@@ -6,7 +6,7 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
   let!(:user) { create(:acl_user) }
   let!(:admin_role) { create(:admin_role) }
   let!(:collection) { create(:collection) }
-  let!(:job) { Delayed::Job.create!(handler: 'some_handler', run_at: 1.hour.from_now) }
+  let!(:job) { Delayed::Job.create!(handler: { 'job_class' => 'ApplicationJob', 'arguments' => [] }.to_yaml, run_at: 1.hour.from_now) }
 
   before do
     setup_access_control(user, admin_role, collection)
@@ -27,6 +27,15 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
       get admin_delayed_jobs_path
       expect(response.body).to include(job.run_at.to_s)
     end
+
+    it 'shows non-interruptible for running non-instrumented jobs' do
+      job.update!(locked_at: Time.current, locked_by: 'worker')
+      # Mock interruptible? to return false to simulate a non-instrumented job
+      allow_any_instance_of(Delayed::Backend::ActiveRecord::Job).to receive(:interruptible?).and_return(false)
+
+      get admin_delayed_jobs_path
+      expect(response.body).to include('(non-interruptible)')
+    end
   end
 
   describe 'PATCH #cancel' do
@@ -39,14 +48,21 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
       job.reload
       expect(job.cancellation_requested_at).to be_present
     end
+
+    it 'does not cancel if not cancellable' do
+      job.update!(failed_at: Time.current)
+
+      patch cancel_admin_delayed_job_path(job)
+      expect(flash[:notice]).to be_nil
+
+      job.reload
+      expect(job.cancellation_requested_at).to be_nil
+    end
   end
 
   describe 'PATCH #update' do
-    before do
+    it 're-queues the job if failed' do
       job.update!(locked_at: Time.current, locked_by: 'worker', failed_at: Time.current)
-    end
-
-    it 're-queues the job' do
       patch admin_delayed_job_path(job)
 
       expect(response).to redirect_to(admin_delayed_jobs_path)
@@ -55,6 +71,25 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
       job.reload
       expect(job.locked_at).to be_nil
       expect(job.locked_by).to be_nil
+      expect(job.failed_at).to be_nil
+    end
+
+    it 're-queues the job if cancellation was requested' do
+      job.update!(cancellation_requested_at: Time.current)
+      patch admin_delayed_job_path(job)
+
+      expect(flash[:notice]).to eq('Delayed Job re-queued')
+      job.reload
+      expect(job.cancellation_requested_at).to be_nil
+    end
+
+    it 'does not re-queue if not requeueable (e.g. just running)' do
+      job.update!(locked_at: Time.current, locked_by: 'worker')
+      patch admin_delayed_job_path(job)
+
+      expect(flash[:notice]).to be_nil
+      job.reload
+      expect(job.locked_at).to be_present
     end
   end
 

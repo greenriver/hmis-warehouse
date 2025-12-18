@@ -17,8 +17,9 @@ class JobDetail
     Delayed::Job.where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.humanize }
   end
 
+  # The name of the Ruby class that executes the job (e.g. "Reporting::Hud::RunReportJob").
   def job_name
-    @job_name ||= job.name.split(' ').first
+    @job_name ||= executor_class&.name || job.name.split(' ').first
   end
 
   def user_id
@@ -66,6 +67,24 @@ class JobDetail
     @payload ||= job.payload_object
   end
 
+  # The technical Class that executes the background work.
+  # Extracts the class from ActiveJob wrappers if present.
+  def executor_class
+    @executor_class ||= begin
+      if payload.respond_to?(:job_data)
+        payload.job_data['job_class'].constantize rescue nil
+      else
+        payload.class
+      end
+    end
+  end
+
+  def interruptible?
+    executor_class.respond_to?(:interruptible?) && executor_class.interruptible?
+  end
+
+  # The domain-specific class being processed (e.g. "HudSpmReport::Fy2026::Generator").
+  # This is displayed as "Job Item" in the admin dashboard.
   def job_class
     return nil unless arguments
 
