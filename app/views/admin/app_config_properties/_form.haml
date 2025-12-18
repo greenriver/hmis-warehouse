@@ -1,0 +1,12 @@
+.row
+  .col-sm-8
+    - url = @property.persisted? ? admin_app_config_property_path(@property) : admin_app_config_properties_path
+    = simple_form_for @property, url: url, as: :app_config_property do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :key, required: true, disabled: @property.persisted?, hint: 'Unique identifier for the configuration property.'
+        = f.input :value, as: :text, input_html: { rows: 5 }, label: 'Value', hint: 'The configuration value.'
+
+      .form-actions.mt-3
+        = f.button :submit, 'Save', class: 'btn btn-primary'
+        = link_to 'Cancel', admin_app_config_properties_path, class: 'btn btn-secondary ml-2'

@@ -1,0 +1,15 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th Key
+      %th Value
+      %th Last Updated
+      %th Actions
+  %tbody
+    - list.each do |property|
+      %tr
+        %td= link_to property.key, edit_admin_app_config_property_path(property)
+        %td
+          %code= property.value
+        %td= property.updated_at&.to_fs(:short)
+        %td= render 'action_menu', property: property

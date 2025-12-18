@@ -1,0 +1,7 @@
+:ruby
+  items = [
+    { link_to: { path: edit_admin_app_config_property_path(property) }, icon: :pencil, label: 'Edit' },
+  ]
+  items << { link_to: { path: admin_app_config_property_path(property), method: :delete, data: { confirm: "Delete '#{property.key}'?" } }, icon: :cross, label: 'Delete'}
+
+= action_menu_or_button(items: items)
