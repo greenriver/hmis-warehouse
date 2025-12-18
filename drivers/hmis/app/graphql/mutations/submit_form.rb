@@ -47,8 +47,15 @@ module Mutations
 
       # Check permission
       perms_to_check = definition.record_editing_permissions
+      policy_perms_to_check = definition.record_editing_policy_permissions
       if definition.allowed_proc.present?
         allowed = definition.allowed_proc.call(entity_for_permissions, current_user)
+      elsif policy_perms_to_check.any?
+        raise 'policy_permissions should have an owner entity' unless entity_for_permissions.present?
+
+        # problem: the entity_for_permissions will be the record itself if it already exists
+        policy = policy_for(entity_for_permissions, policy_type: policy_for_record(entity_for_permissions))
+        allowed = policy_perms_to_check.map { |perm| policy.send(perm) }.any?
       elsif perms_to_check.any? && entity_for_permissions.present?
         allowed = current_user.permissions_for?(entity_for_permissions, *perms_to_check)
       elsif perms_to_check.any?
@@ -140,6 +147,13 @@ module Mutations
         # If a project was closed, close related Funders and Inventory
         project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?
         record.close_related_funders_and_inventory! if project_closed
+      end
+    end
+
+    private def policy_for_record(entity)
+      case entity.class.name
+      when 'Hmis::Hud::Enrollment'
+        :hmis_enrollment
       end
     end
 

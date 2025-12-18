@@ -721,6 +721,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       _, errors = submit_form(input)
       expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'out_of_range' }))
     end
+
+    context 'when the user does not have permission to create clients' do
+      before(:each) { remove_permissions(access_control, :can_edit_clients) }
+      it 'should fail' do
+        expect_gql_error post_graphql(input: { input: test_input }) { mutation }
+      end
+    end
+
+    context 'when the user does not have permission to create enrollments' do
+      before(:each) { remove_permissions(access_control, :can_edit_enrollments) }
+      it 'should fail' do
+        expect_gql_error post_graphql(input: { input: test_input }) { mutation }
+      end
+    end
   end
 
   describe 'SubmitForm for creating a ReferralPosting' do
