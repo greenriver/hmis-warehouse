@@ -124,9 +124,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # Row 12
       sheet.append_row(label: 'How many households accessed and maintained medical insurance and/or assistance?') do |row|
-        insurance_households = housing_subsidy_households.where.overlaps(
-          household_medical_insurance_types: ['InsuranceFromAnySource', 'ADAP', 'RyanWhiteMedDent'],
-        )
+        # Any recorded insurance type counts as having medical insurance/assistance
+        insurance_households = housing_subsidy_households.where('cardinality(household_medical_insurance_types) > 0')
         row.append_cell_members(members: household_members(insurance_households))
       end
 
@@ -138,9 +137,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # Row 14
       sheet.append_row(label: 'How many households accessed or maintained qualification for sources of income?') do |row|
-        income_households = housing_subsidy_households.where.overlaps(
-          household_income_benefit_source_types: ['IncomeFromAnySource'],
-        )
+        # Any recorded income source counts as having sources of income
+        income_households = housing_subsidy_households.where('cardinality(household_income_benefit_source_types) > 0')
         row.append_cell_members(members: household_members(income_households))
       end
 
