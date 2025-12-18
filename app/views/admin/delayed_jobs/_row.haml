@@ -1,0 +1,63 @@
+- describe = JobDetail.new(job)
+%tr
+  %td
+    %strong Job ID:
+    = job.id
+    %br
+    %strong Job Name:
+    = describe.job_name
+
+    - if describe.user_id
+      %br
+      %strong Run by User:
+      = users[describe.user_id] || describe.user_id
+
+    - if describe.job_class
+      %br
+      %strong Job Item:
+      = describe.job_class
+      -# only useful if we have a job class
+      - if describe.report_id
+        %br
+        %strong Report ID:
+        = describe.report_id
+
+      - if describe.created_at
+        %br
+        %strong Item Originally Requested:
+        = describe.created_at
+    %br
+    %strong Run After:
+    = job.run_at
+    - if job.locked_by
+      %br
+      %span.icon-cog.text-success
+      %strong Locked by
+      = job.locked_by
+      at
+      = job.locked_at
+    - if job.failed_at
+      %br
+      %span.icon-cancel-circled.text-danger
+      %strong Failed:
+      = job.failed_at
+    - if job.cancellation_requested_at
+      %br
+      %span.icon-cancel-circled.text-warning
+      %strong Cancellation Requested:
+      = job.cancellation_requested_at
+  %td= job.queue
+  %td= job.priority
+  - if can_manage_config?
+    %td
+      - if job.last_error.present?
+        %pre.p-1(style='max-height: 300px; overflow: auto; font-size: 11px; background: #fafafa')= job.last_error
+      - else
+        N/A
+  %td
+    - items = []
+    - unless job.cancellation_requested_at.present?
+      - items << { link_to: { path: admin_delayed_job_path(job), method: :patch, data: { confirm: 'Are you sure you want to re-queue this job?' } }, class: ['btn', 'btn-sm', 'btn-info'], icon: :settings_backup_restore, label: 'Re-queue' }
+      - items << { link_to: { path: cancel_admin_delayed_job_path(job), method: :patch, data: { confirm: 'Are you sure you want to cancel this job?' } }, class: ['btn', 'btn-sm', 'btn-warning'], icon: 'cancel-circled', label: 'Cancel' }
+    - items << { link_to: { path: admin_delayed_job_path(job), method: :delete, data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.' } }, class: ['btn', 'btn-sm', 'btn-danger'], icon: :cross, label: 'Delete' }
+    = action_menu_or_button(items: items)

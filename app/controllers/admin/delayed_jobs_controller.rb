@@ -10,15 +10,22 @@ module Admin
   class DelayedJobsController < ApplicationController
     # Stand in permission
     before_action :require_can_add_administrative_event!
-    before_action :set_job, only: [:update, :destroy]
+    before_action :set_job, only: [:update, :destroy, :cancel]
 
     def index
-      @pagy, @jobs = pagy(job_scope.order(priority: :asc, run_at: :asc, queue: :asc))
+      @jobs = job_scope.order(priority: :asc, run_at: :asc, queue: :asc)
+      @users = User.active.map { |u| [u.id, u.name_with_email] }.to_h
     end
 
     def update
       @job.update(locked_by: nil, locked_at: nil, failed_at: nil, last_error: nil)
       flash[:notice] = 'Delayed Job re-queued'
+      redirect_to admin_delayed_jobs_path
+    end
+
+    def cancel
+      @job.update(cancellation_requested_at: Time.current)
+      flash[:notice] = 'Job cancellation requested'
       redirect_to admin_delayed_jobs_path
     end
 

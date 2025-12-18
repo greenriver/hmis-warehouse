@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5
 Delayed::Worker.max_attempts = 3
@@ -51,6 +53,12 @@ module Delayed
 
         def self.running
           where(failed_at: nil).where.not(locked_at: nil)
+        end
+
+        def handle_cancellation!
+          return unless cancellation_requested_at.present?
+
+          raise ApplicationJob::JobCancelled, 'Job cancelled'
         end
       end
     end

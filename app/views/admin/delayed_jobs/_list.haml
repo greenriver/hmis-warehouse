@@ -1,0 +1,18 @@
+.card.table-responsive
+  %table.table(style='table-layout: fixed')
+    %colgroup
+      %col(style='width: 200px')
+      %col(style='width: 130px')
+      %col(style='width: 70px')
+      %col
+      %col(style='width: 100px')
+    %thead
+      %th Job
+      %th Queue
+      %th Priority
+      - if can_manage_config?
+        %th Last error
+      %th Actions
+    %tbody
+      - list.each do |job|
+        = render 'row', job: job, users: users
