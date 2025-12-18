@@ -100,7 +100,9 @@ class JobDetail
           nil
         end
     elsif payload.respond_to?(:object)
-      payload.object.is_a?(Class) ? payload.object : payload.object.class
+      # For .delay calls, payload.object might be a Class, a Module, or an instance.
+      # If it's a Module/Class, we return it directly so we can check for singleton methods.
+      payload.object.is_a?(Module) ? payload.object : payload.object.class
     else
       payload.class
     end

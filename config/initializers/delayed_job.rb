@@ -56,7 +56,10 @@ module Delayed
         end
 
         def handle_cancellation!
-          return unless cancellation_requested_at.present?
+          # Always check the database for fresh cancellation status
+          # The job instance may have been loaded before cancellation was requested
+          fresh_cancellation_requested_at = self.class.where(id: id).pluck(:cancellation_requested_at).first
+          return unless fresh_cancellation_requested_at.present?
 
           raise ApplicationJob::JobCancelled, 'Job cancelled'
         end
@@ -84,6 +87,8 @@ module Delayed
         # Allow re-queueing if the job has failed or if a cancellation is currently requested.
         # (lets us "revive" a job that was previously cancelled).
         def requeueable?
+          return false if locked_at
+
           failed_at.present? || cancellation_requested_at.present?
         end
       end

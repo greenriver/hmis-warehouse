@@ -31,6 +31,18 @@ RSpec.describe JobDetail, type: :model do
       end
     end
 
+    context 'with a .delay PerformableMethod on a Module' do
+      let(:payload) { double('PerformableMethod', object: HudReports) }
+
+      before do
+        allow(job).to receive(:payload_object).and_return(payload)
+      end
+
+      it 'returns the Module itself' do
+        expect(describe.executor_class).to eq(HudReports)
+      end
+    end
+
     context 'with a plain Delayed::Job' do
       let(:payload) { double('PlainJob') }
 
