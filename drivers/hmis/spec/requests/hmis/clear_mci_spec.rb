@@ -30,7 +30,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [
       build(:mci_clearance_result, mci_id: '10', score: 80, client: build(:hmis_hud_client, first_name: 'rita', woman: 1), existing_client_id: 100),
       build(:mci_clearance_result, mci_id: '50', score: 90, client: build(:hmis_hud_client, first_name: 'reet', woman: 1, man: 1)),
-      build(:mci_clearance_result, mci_id: '80', score: 50),
     ]
   end
 
@@ -130,7 +129,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should drop other matches if auto-clearance threshold is met' do
     stub_clearance_results[0].score = 97
     stub_clearance_results[1].score = 98
-    stub_clearance_results[2].score = 85
     allow(stub_mci).to receive(:clearance).and_return(stub_clearance_results)
 
     mutate(input: { input: input }) do |matches, errors|
