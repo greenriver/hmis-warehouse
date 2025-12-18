@@ -29,25 +29,23 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
   let(:strmu_project) { create_hopwa_project(funder: strmu_funder) }
   let(:php_project) { create_hopwa_project(funder: php_funder) }
 
-  let(:case_management_code) { supportive_service_types.invert.fetch('Case management') }
-
   let(:household_id) { Hmis::Hud::Base.generate_uuid }
   let(:hoh_client) { create(:hud_client, data_source: data_source) }
 
-  let(:maintained_key) { 'atc_contact' }
-  let(:housing_plan_key) { 'atc_plan' }
-  let(:primary_health_key) { 'atc_health' }
+  let(:maintained_key) { 'maintained_contact_with_case_manager' }
+  let(:housing_plan_key) { 'housing_plan' }
+  let(:primary_health_key) { 'primary_health_contact' }
 
   let!(:maintained_definition) do
-    create(:hud_custom_data_element_definition, key: maintained_key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+    create(:hmis_custom_data_element_definition, key: maintained_key, owner_type: 'Hmis::Hud::CustomAssessment')
   end
 
   let!(:housing_plan_definition) do
-    create(:hud_custom_data_element_definition, key: housing_plan_key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+    create(:hmis_custom_data_element_definition, key: housing_plan_key, owner_type: 'Hmis::Hud::CustomAssessment')
   end
 
   let!(:primary_health_definition) do
-    create(:hud_custom_data_element_definition, key: primary_health_key, owner_type: 'GrdaWarehouse::Hud::Enrollment')
+    create(:hmis_custom_data_element_definition, key: primary_health_key, owner_type: 'Hmis::Hud::CustomAssessment')
   end
 
   let(:config_double) do
@@ -110,26 +108,32 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
         )
       end
 
+      # setup assessment data in HMIS mirror world
+      tbra_hmis_enrollment = Hmis::Hud::Enrollment.find(tbra_enrollment.id)
+      tbra_assessment = create(
+        :hmis_custom_assessment,
+        data_source: tbra_hmis_enrollment.data_source,
+        enrollment: tbra_hmis_enrollment,
+        client: tbra_hmis_enrollment.client,
+      )
+
       # Access to Care custom data elements mapped via configured keys
       create(
-        :hud_custom_data_element,
-        custom_data_element_definition: maintained_definition,
-        owner_type: tbra_enrollment.class.sti_name,
-        owner_id: tbra_enrollment.id,
+        :hmis_custom_data_element,
+        data_element_definition: maintained_definition,
+        owner: tbra_assessment,
         value_string: 'Yes',
       )
       create(
-        :hud_custom_data_element,
-        custom_data_element_definition: housing_plan_definition,
-        owner_type: tbra_enrollment.class.sti_name,
-        owner_id: tbra_enrollment.id,
+        :hmis_custom_data_element,
+        data_element_definition: housing_plan_definition,
+        owner: tbra_assessment,
         value_string: 'Yes',
       )
       create(
-        :hud_custom_data_element,
-        custom_data_element_definition: primary_health_definition,
-        owner_type: tbra_enrollment.class.sti_name,
-        owner_id: tbra_enrollment.id,
+        :hmis_custom_data_element,
+        data_element_definition: primary_health_definition,
+        owner: tbra_assessment,
         value_string: 'Yes',
       )
 
@@ -148,9 +152,9 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       # Supportive service intersections (case management counts for both intersection rows)
       create(
         :hud_service,
-        record_type: hopwa_supportive_service,
+        record_type: 143,
         enrollment: tbra_enrollment,
-        type_provided: case_management_code,
+        type_provided: 3,
         fa_amount: 100,
         date_provided: report_start_date + 5.days,
         data_source: data_source,
@@ -164,7 +168,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       expect(report.hopwa_caper_services.count).to eq(4)
       rows = question_as_rows(question_number: 'Q7', report: report)
 
-      total_households = row_for(rows, 'Total Households')
+      total_households = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
       # Column order: TBRA, P-FBH, ST-TFBH, STRMU, PHP, Housing Info, SUPP SVC, Other Competitive Activity
       expect(total_households[1]).to eq(1) # TBRA
       expect(total_households[4]).to eq(1) # STRMU (index 4 because 0 is label, 1 TBRA, 2 P-FBH, 3 ST-TFBH, 4 STRMU)
@@ -174,16 +178,16 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
         rows,
         'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)',
       )
-      expect(housing_subsidy_total[1]).to eq(1)
+      expect(housing_subsidy_total[1]).to eq(3)
 
       duplicated_households = row_for(
         rows,
-        'Of the households in row 2, count distinct households that appear in more than one column',
+        'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?',
       )
       expect(duplicated_households[1]).to eq(1)
 
-      unduplicated_households = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household')
-      expect(unduplicated_households[1]).to eq(0)
+      unduplicated_households = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household Count')
+      expect(unduplicated_households[1]).to eq(1)
 
       expect(row_for(rows, 'How many households had contact with a case manager?')[1]).to eq(1)
       expect(

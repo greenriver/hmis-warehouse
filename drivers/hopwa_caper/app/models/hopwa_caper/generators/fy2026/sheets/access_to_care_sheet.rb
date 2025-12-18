@@ -53,9 +53,6 @@ module HopwaCaper::Generators::Fy2026::Sheets
       st_tfbh_households = housing_subsidy_households_for_activity(:st_tfbh)
       strmu_households = housing_subsidy_households_for_activity(:strmu)
       php_households = housing_subsidy_households_for_activity(:php)
-      housing_info_households = housing_info_households
-      supportive_services_households = supportive_services_households
-      other_competitive_households = other_competitive_households
 
       # row 2
       sheet.append_row(label: 'Total Households Served in ALL Activities from this report for each Activity.') do |row|
@@ -128,21 +125,21 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # Row 12
       sheet.append_row(label: 'How many households accessed and maintained medical insurance and/or assistance?') do |row|
         insurance_households = housing_subsidy_households.where.overlaps(
-          household_medical_insurance_types: %w[InsuranceFromAnySource ADAP RyanWhiteMedDent],
+          household_medical_insurance_types: ['InsuranceFromAnySource', 'ADAP', 'RyanWhiteMedDent'],
         )
         row.append_cell_members(members: household_members(insurance_households))
       end
 
       # Row 13
       primary_health_contact_households = housing_subsidy_households.where(atc_primary_health_contact: true)
-      sheet.append_row(label: 'How many households had contact with a primary health care provider? ') do |row|
+      sheet.append_row(label: 'How many households had contact with a primary health care provider?') do |row|
         row.append_cell_members(members: household_members(primary_health_contact_households))
       end
 
       # Row 14
       sheet.append_row(label: 'How many households accessed or maintained qualification for sources of income?') do |row|
         income_households = housing_subsidy_households.where.overlaps(
-          household_income_benefit_source_types: %w[IncomeFromAnySource],
+          household_income_benefit_source_types: ['IncomeFromAnySource'],
         )
         row.append_cell_members(members: household_members(income_households))
       end
@@ -150,7 +147,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # Row 15
       sheet.append_row(label: 'How many households obtained/maintained an income-producing job during the program year (with or without any HOPWA-related assistance)?') do |row|
         earned_income_households = housing_subsidy_households.where.overlaps(
-          household_income_benefit_source_types: %w[Earned],
+          household_income_benefit_source_types: ['Earned'],
         )
         row.append_cell_members(members: household_members(earned_income_households))
       end

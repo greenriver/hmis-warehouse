@@ -73,7 +73,7 @@ module HopwaCaper
       :ChildSupport, :Alimony,
       :WorkersComp,
       :Unemployment,
-      :OtherIncomeSource,
+      :OtherIncomeSource
     ].freeze
 
     def self.from_hud_record(enrollment:, report:, client:)

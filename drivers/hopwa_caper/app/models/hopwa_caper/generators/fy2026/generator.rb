@@ -66,9 +66,7 @@ module HopwaCaper::Generators::Fy2026
         HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
       ]
 
-      if HopwaCaper::Configuration.new.atc_tab_enabled?
-        sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet
-      end
+      sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
 
       sheets.map do |q|
         [q.question_number, q]
@@ -301,6 +299,20 @@ module HopwaCaper::Generators::Fy2026
       @service_date_range ||= (report.start_date - SERVICE_LOOKBACK)..report.end_date
     end
 
+    # return the most recently submitted custom assessment with a value for cded
+    def find_cde(cded, spm_enrollment)
+      hmis_enrollment = Hmis::Hud::Enrollment.find(spm_enrollment.enrollment_id)
+
+      custom_assessments = hmis_enrollment.custom_assessments.
+        where(AssessmentDate: ..@report.end_date).
+        order(AssessmentDate: :desc, id: :desc)
+
+      custom_assessments.to_a.detect do |asm|
+        cde = asm.custom_data_elements.where(data_element_definition: cded).first
+        return cde if cde
+      end
+    end
+
     def populate_atc_data
       sheet_config = HopwaCaper::Configuration.new
       return unless sheet_config.atc_tab_enabled?
@@ -313,34 +325,30 @@ module HopwaCaper::Generators::Fy2026
       ].filter_map do |key, column|
         next unless key
 
-        definition = Hmis::Hud::CustomDataElementDefinition.find_by(key: key)
-        next unless definition
+        cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: key)
+        next unless cded
 
-        { key: key, column: column, definition: definition }
+        { key: key, column: column, cded: cded }
       end
 
       updates = {}
       row_configs.each do |config|
-        key, column, definition = config.values_at(:key, :column, :definition)
+        _, column, cded = config.values_at(:key, :column, :cded)
 
-        # find enrollments that have values for the relevant custom data element definitions (cdeds)
-        cded_scope = Hmis::Hud::CustomDataElementDefinition.where(id: definition.id)
-
-        relevant_enrollment_ids = report.hopwa_caper_enrollments.
-          joins(enrollment: :custom_data_element_definitions).
-          merge(cded_scope).
-          distinct.pluck(:id)
-
-        report.hopwa_caper_enrollments.where(id: relevant_enrollment_ids).find_each do |spm_enrollment|
+        report.hopwa_caper_enrollments.find_each do |spm_enrollment|
           # n+1 queries are acceptable here assuming small client set in the HOPWA CAPER
-          # FIXME probably should try and sort by assessment date
-          cde = enrollment.custom_data_elements.
-            where(custom_data_element_definition: definition).
-            where(InformationDate: ..@report.end_date). # this may not be the right field
-            order(:id).
-            last
-          updates[spm_enrollment.id] ||= {id: spm_enrollment.id, }
-          updates[spm_enrollment.id][:atc_maintained_contact] = cde_value_to_boolean(definition, cde)
+          cde = find_cde(cded, spm_enrollment)
+          updates[spm_enrollment.id] ||= {
+            id: spm_enrollment.id,
+            # must include for non-nullable cols for upsert
+            report_instance_id: spm_enrollment.report_instance_id,
+            destination_client_id: spm_enrollment.destination_client_id,
+            enrollment_id: spm_enrollment.enrollment_id,
+            report_household_id: spm_enrollment.report_household_id,
+            personal_id: spm_enrollment.personal_id,
+            relationship_to_hoh: spm_enrollment.relationship_to_hoh,
+          }
+          updates[spm_enrollment.id][column] = cde_value_to_boolean(cded, cde)
         end
       end
 
@@ -358,16 +366,18 @@ module HopwaCaper::Generators::Fy2026
     end
 
     # cast to boolean; support mixed types
-    def cde_value_to_boolean(definition, cde)
-      case definition.field_type
-      when :integer
+    def cde_value_to_boolean(cded, cde)
+      return false if cde.nil?
+
+      case cded.field_type
+      when 'integer'
         cde.value_integer == 1
-      when :boolean
+      when 'boolean'
         cde.value_boolean == true
-      when :string
-        cde.value_string && custom_data_element.value_string =~ /(true|yes|1)/i
+      when 'string'
+        cde.value_string&.match?(/\A(true|yes|1)\z/i)
       else
-        raise ArgumentError, "Invalid field type: #{definition.field_type} for definition #{definition.id}"
+        raise ArgumentError, "Invalid field type: #{cded.field_type} for definition #{cded.key}"
       end
     end
   end

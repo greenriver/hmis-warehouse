@@ -14,7 +14,6 @@ module HopwaCaper
     end
 
     # Custom field names/identifiers for ATC questions
-    # These should map to a way to identify the custom data element or assessment question
     def atc_maintained_contact_field_name
       value_for(:atc_maintained_contact_field_name)
     end
