@@ -7,8 +7,9 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
-  def can_create?(role:)
-    user.can_manage_forms_for_role?(role)
+  # Whether the user can create a new form definition (resource is expected to be an unpersisted form definition)
+  def can_create?
+    can_manage_form_by_role?
   end
 
   # Catch-all field that is resolved to frontend.
@@ -17,9 +18,9 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
     return false if form_definition.managed_in_version_control?
 
     # Only super-admins can manage forms that are marked as 'admin_editable_only' in the database
-    return false if form_definition.admin_editable_only? && !user.can_administrate_config?
+    return false if form_definition.admin_editable_only? && !global_permissions.include?(:can_administrate_config)
 
-    user.can_manage_forms_for_role?(form_definition.role)
+    can_manage_form_by_role?
   end
 
   def can_create_draft? = can_manage_form?
@@ -28,17 +29,42 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
 
   def can_duplicate?
     # Users can duplicate forms even if they are managed in version control or admin-editable-only
-    user.can_manage_forms_for_role?(form_definition.role)
+    can_manage_form_by_role?
   end
 
   def can_delete?
     form_definition.draft? && can_manage_form?
   end
 
-  # TODO: incorporate other policies and permissions. For example, can_index? policy should be based on permission can_configure_data_collection?
+  # Whether the user can add a new Hmis::Form::Instance to the form definition
+  def can_add_form_rule?
+    global_permissions.include?(:can_configure_data_collection) && manageable_form_role?
+  end
+
+  # Whether the user can delete a Hmis::Form::Instance rule from the form definition
+  def can_delete_form_rule? = can_add_form_rule?
 
   protected
 
+  # Determines if the current user can manage forms for a given role.
+  # can_manage_forms permission grants access to edit certain form roles (SERVICE, CUSTOM_ASSESSMENT),
+  # while "super-admin" permission can_administrate_config grants access to edit all form roles.
+  def can_manage_form_by_role?
+    global_permissions.include?(:can_manage_forms) && manageable_form_role?
+  end
+
+  # Determines if the form definition is a non-super-admin form or a super-admin form.
+  def manageable_form_role?
+    form_definition.role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
+  end
+
+  # Form management permissions are currently global. In the future they should be tied to data source (#6612, #6691),
+  # to support multi-CoC HMIS installations where each CoC manages their own set of forms.
+  def global_permissions
+    context.potential_permissions
+  end
+
   def form_definition = resource
-  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Form::Definition, allow_nil: true)
+
+  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Form::Definition)
 end

@@ -23,7 +23,7 @@ module Mutations
 
       # Check permission after validation; otherwise the error message may be confusing to a user who does have
       # permission, but filled out the form wrong and didn't provide input.role
-      access_denied! unless policy_for(nil, policy_type: :form_definition).can_create?(role: input.role)
+      # access_denied! unless policy_for(nil, policy_type: :form_definition).can_create?(role: input.role)
 
       attrs = input.to_attributes
       attrs[:definition] = attrs[:definition] || { item: initial_form_definition_items(attrs[:role]) }
@@ -33,6 +33,8 @@ module Mutations
         status: Hmis::Form::Definition::DRAFT,
         **attrs,
       )
+
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_create?
 
       unless definition.valid?
         errors.add_ar_errors(definition.errors&.errors)
