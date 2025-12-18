@@ -6,9 +6,23 @@
 
 # frozen_string_literal: true
 
-# TODO: Maybe move other items from DelayedJob initializer code into here?
+# JobDetail is a presenter-like model that extracts and normalizes metadata from
+# Delayed::Job records, regardless of whether they were queued via ActiveJob
+# or the classic .delay (Delayed Job) syntax.
+#
+# It manages three distinct concepts to distinguish between the "container" and the "content":
+# 1. job: The "Container" - The underlying Delayed::Job database record. It manages queueing
+#    state like locked_at and last_error, but knows nothing about business logic.
+# 2. executor_class: The "Worker" - The technical Ruby class (e.g., Reporting::Hud::RunReportJob)
+#    responsible for the background work. We extract this as a real Ruby Class object so we
+#    can query it for capabilities like .interruptible?.
+# 3. job_class: The "Specific Item" - The domain-specific class being processed
+#    (e.g., HudSpmReport::Fy2026::Generator). While the executor_class might be a generic
+#    report runner, the job_class tells the administrator exactly what kind of item is being handled.
 class JobDetail
   attr_reader :job
+
+  # @param job [Delayed::Backend::ActiveRecord::Job] The underlying database record representing the queued job.
   def initialize(job)
     @job = job
   end
@@ -18,10 +32,12 @@ class JobDetail
   end
 
   # The name of the Ruby class that executes the job (e.g. "Reporting::Hud::RunReportJob").
+  # For ActiveJob, this is the Job class. For .delay, this is the Class.method or Instance#method string.
   def job_name
-    @job_name ||= executor_class&.name || job.name.split(' ').first
+    @job_name ||= (job.name || '').split(' ').first
   end
 
+  # Attempts to find the ID of the user who initiated the job by inspecting common argument patterns.
   def user_id
     @user_id ||= begin
       user_id = if job_name.starts_with?('BackgroundRender::')
@@ -38,10 +54,14 @@ class JobDetail
     end
   end
 
+  # Normalizes the extraction of arguments from both ActiveJob (job_data)
+  # and plain Delayed Job (PerformableMethod) payloads.
   def arguments
-    return payload.job_data.try(:[], 'arguments') if payload.respond_to?(:job_data)
-
-    nil
+    if payload.respond_to?(:job_data)
+      payload.job_data.try(:[], 'arguments')
+    elsif payload.respond_to?(:args)
+      payload.args
+    end
   end
 
   def hud_report_instance
@@ -55,36 +75,45 @@ class JobDetail
     hud_report_instance&.created_at
   end
 
+  # Attempts to extract a logical "Record ID" from the arguments to display in the dashboard.
   def report_id
     @report_id ||= arguments.try(:[], 'report_id') if arguments.is_a?(Hash)
-    @report_id ||= arguments.first if arguments.first.is_a?(String) || arguments.first.is_a?(Numeric)
-    @report_id ||= arguments.first.try(:[], 'report_id')
-    @report_id ||= arguments&.last if arguments&.last.is_a?(Integer)
+    @report_id ||= arguments.first if arguments.is_a?(Array) && (arguments.first.is_a?(String) || arguments.first.is_a?(Numeric))
+    @report_id ||= arguments.first.try(:[], 'report_id') if arguments.is_a?(Array)
+    @report_id ||= arguments&.last if arguments.is_a?(Array) && arguments&.last.is_a?(Integer)
     @report_id
   end
 
+  # Returns the deserialized payload object stored in the job's handler.
   def payload
     @payload ||= job.payload_object
   end
 
-  # The technical Class that executes the background work.
-  # Extracts the class from ActiveJob wrappers if present.
+  # The technical Ruby Class responsible for executing the background work.
+  # This unwraps ActiveJob wrappers or PerformableMethod objects to find the actual
+  # class where the business logic resides.
   def executor_class
-    @executor_class ||= begin
-      if payload.respond_to?(:job_data)
-        payload.job_data['job_class'].constantize rescue nil
-      else
-        payload.class
-      end
+    @executor_class ||= if payload.respond_to?(:job_data)
+      begin
+          payload.job_data['job_class'].constantize
+        rescue StandardError
+          nil
+        end
+    elsif payload.respond_to?(:object)
+      payload.object.is_a?(Class) ? payload.object : payload.object.class
+    else
+      payload.class
     end
   end
 
+  # Checks if the executor_class has supports interruption by periodically checking if it has been cancelled
   def interruptible?
     executor_class.respond_to?(:interruptible?) && executor_class.interruptible?
   end
 
   # The domain-specific class being processed (e.g. "HudSpmReport::Fy2026::Generator").
-  # This is displayed as "Job Item" in the admin dashboard.
+  # This provides high-level context for what the job is actually doing, which may
+  # be more specific than the executor_class itself.
   def job_class
     return nil unless arguments
 

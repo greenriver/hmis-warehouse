@@ -91,8 +91,8 @@ RSpec.describe 'HUD SPM FY2026 retry behavior', type: :model do
       job = Delayed::Job.create!(
         handler: {
           'job_class' => 'Reporting::Hud::RunReportJob',
-          'arguments' => [generator_class.name, report.id]
-        }.to_yaml
+          'arguments' => [generator_class.name, report.id],
+        }.to_yaml,
       )
       expect(report.related_job).to eq(job)
 
