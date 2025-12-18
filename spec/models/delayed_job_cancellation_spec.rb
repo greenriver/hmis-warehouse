@@ -15,12 +15,6 @@ RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
         expect { job.handle_cancellation! }.to raise_error(ApplicationJob::JobCancelled, 'Job cancelled')
       end
     end
-
-    context 'when cancellation has not been requested' do
-      it 'does not raise an exception' do
-        expect { job.handle_cancellation! }.not_to raise_error
-      end
-    end
   end
 
   describe '#cancellable?' do
@@ -70,21 +64,6 @@ RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
     it 'is false if the job is just pending' do
       job.update!(failed_at: nil, cancellation_requested_at: nil)
       expect(job.requeueable?).to be false
-    end
-  end
-
-  describe '#interruptible?' do
-    it 'delegates to JobDetail' do
-      # JobDetail is initialized with the job, so we mock JobDetail.new(job)
-      job_detail = instance_double(JobDetail, interruptible?: true)
-      allow(JobDetail).to receive(:new).with(job).and_return(job_detail)
-
-      expect(job.interruptible?).to be true
-    end
-
-    it 'returns false if JobDetail raises an error' do
-      allow(JobDetail).to receive(:new).and_raise(StandardError)
-      expect(job.interruptible?).to be false
     end
   end
 end

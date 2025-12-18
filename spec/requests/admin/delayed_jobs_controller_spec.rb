@@ -18,13 +18,9 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
   end
 
   describe 'GET #index' do
-    it 'returns http success' do
+    it 'renders the list of jobs successfully' do
       get admin_delayed_jobs_path
       expect(response).to have_http_status(:success)
-    end
-
-    it 'renders the list of jobs' do
-      get admin_delayed_jobs_path
       expect(response.body).to include(job.run_at.to_s)
     end
 
