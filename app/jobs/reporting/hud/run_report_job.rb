@@ -74,13 +74,19 @@ module Reporting::Hud
           raise NonIdempotentRetryError, message
         end
 
-        generator.prepare_report
+        report.track_progress('Preparation') do
+          generator.prepare_report
+        end
         completed_questions = report.completed_questions
 
         generator.class.questions.each do |q, klass|
           next if completed_questions.include?(q)
 
-          klass.new(generator, report).run! if report.build_for_questions.include?(q)
+          next unless report.build_for_questions.include?(q)
+
+          report.track_progress(q) do
+            klass.new(generator, report).run!
+          end
         end
       end
 
