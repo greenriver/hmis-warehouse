@@ -52,6 +52,7 @@ module HmisExternalApis::AcHmis::Exporters
           referral.created_at,                   # CreatedAt
           referral.updated_at,                   # UpdatedAt
           referral.referral_origin,              # Origin (direct or waitlist)
+          referral.opportunity.created_at,       # UnitMarkedAvailableAt
         ]
         write_row(values)
       end
@@ -79,6 +80,7 @@ module HmisExternalApis::AcHmis::Exporters
         'CreatedAt',                  # Timestamp when the referral was created
         'UpdatedAt',                  # Timestamp when the referral was last updated
         'Origin',                     # Origin of the referral (direct or waitlist)
+        'UnitMarkedAvailableAt',      # Timestamp when the Opportunity was created (a.k.a. when unit was marked available)
       ]
     end
 
