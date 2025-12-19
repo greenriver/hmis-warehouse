@@ -52,7 +52,7 @@ class Hmis::AuthPolicies::UserContext
 
     if project_ids.empty?
       # Client has no enrollments - use global permissions
-      potential_permissions
+      global_permissions
     else
       # Client has enrollments - union permissions from all enrolled projects
       project_access_group_loader.preload(project_ids)

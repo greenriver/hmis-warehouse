@@ -532,6 +532,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_manage_client_alerts: {
         description: 'Ability to create, edit, and delete Client Alerts',
+        requirements: [:can_view_client_alerts],
         administrative: false,
         access: [:editable],
         category: 'Client Access',
