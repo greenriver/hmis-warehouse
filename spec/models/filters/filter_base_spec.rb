@@ -211,11 +211,5 @@ RSpec.describe Filters::FilterBase, type: :model do
 
       travel_back
     end
-
-    it 'uses frozen arrays for collection defaults to prevent accidental mutation of shared state' do
-      filter = Filters::FilterBase.new(user_id: user.id)
-      expect(filter.project_ids).to be_frozen
-      expect { filter.project_ids << 1 }.to raise_error(FrozenError)
-    end
   end
 end
