@@ -30,6 +30,11 @@ class Hmis::AuthPolicies::UserContext
     user.roles.flat_map(&:granted_permissions).to_set.freeze
   end
 
+  memoize def global_permissions
+    permissions = user.roles.flat_map(&:granted_permissions).to_set
+    permission_loader.apply_permission_requirements(permissions).freeze
+  end
+
   # Project-specific permissions
   def project_permissions(project_id)
     access_group_ids = project_access_group_loader.get(project_id)

@@ -475,6 +475,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_merge_clients: {
         description: 'Ability to merge and split client records',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:editable],
         category: 'Administration',

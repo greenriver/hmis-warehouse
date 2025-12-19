@@ -48,7 +48,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::BasePolicy
   memoize def client_permissions
     if resource.is_a?(Class)
       # Class-level policy (e.g., for merge operations)
-      context.potential_permissions
+      context.global_permissions
     else
       # Instance-level policy (for a specific client)
       context.client_permissions(resource.id)
