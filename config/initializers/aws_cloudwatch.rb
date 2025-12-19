@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
 if ENV['EKS'] != 'true' && (Rails.env.staging? || Rails.env.production?)
