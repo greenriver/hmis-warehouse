@@ -7,11 +7,6 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
-  # Whether the user can create a new form definition (resource is expected to be an unpersisted form definition)
-  def can_create?
-    can_manage_form_by_role?
-  end
-
   # Catch-all field that is resolved to frontend.
   # "Manage" form includes ability to create and edit drafts, duplicate, and publish forms.
   def can_manage_form?
@@ -23,15 +18,25 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
     can_manage_form_by_role?
   end
 
+  # Whether the user can create an entirely new form definition
+  def can_create? = can_manage_form?
+
+  # Whether the user can create a draft version of the form definition
   def can_create_draft? = can_manage_form?
+
+  # Whether the user can edit a draft version of the form definition
   def can_edit_draft? = can_manage_form?
+
+  # Whether the user can publish the form definition
   def can_publish? = can_manage_form?
 
+  # Whether the user can duplicate the form definition
   def can_duplicate?
     # Users can duplicate forms even if they are managed in version control or admin-editable-only
     can_manage_form_by_role?
   end
 
+  # Whether the user can delete the form definition (only draft forms can be deleted)
   def can_delete?
     form_definition.draft? && can_manage_form?
   end
