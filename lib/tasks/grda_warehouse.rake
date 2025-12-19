@@ -524,7 +524,7 @@ namespace :grda_warehouse do
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
     # Queue the cohort analytics generation job if it's not already queued
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: BaseJob::CACHE_UPDATE_PRIORITY).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'
