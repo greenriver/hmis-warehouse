@@ -17,7 +17,7 @@ module Mutations
       client = Hmis::Hud::Client.visible_to(current_user).find_by(id: client_id)
 
       raise HmisErrors::ApiError, 'Record not found' unless client.present?
-      raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(client, :can_edit_clients)
+      raise HmisErrors::ApiError, 'Access denied' unless policy_for(client, policy_type: :hmis_client).can_edit?
 
       errors = HmisErrors::Errors.new
 
