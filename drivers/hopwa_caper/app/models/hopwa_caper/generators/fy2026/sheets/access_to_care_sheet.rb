@@ -246,24 +246,23 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def find_duplicated_households_across_activities
-      tbra_ids = housing_subsidy_households_for_activity(:tbra).select(:report_household_id).distinct
-      strmu_ids = housing_subsidy_households_for_activity(:strmu).select(:report_household_id).distinct
-      php_ids = housing_subsidy_households_for_activity(:php).select(:report_household_id).distinct
-      other_ids = other_competitive_households.select(:report_household_id).distinct
+      # Collect household IDs from each activity type
+      activity_household_ids = [
+        housing_subsidy_households_for_activity(:tbra),
+        housing_subsidy_households_for_activity(:strmu),
+        housing_subsidy_households_for_activity(:php),
+        other_competitive_households,
+      ].compact.map { |scope| scope.pluck(:report_household_id) }
 
-      # Find households that appear in multiple activity types
-      all_ids = [tbra_ids, strmu_ids, php_ids, other_ids].compact
-      return @report.hopwa_caper_enrollments.none if all_ids.empty?
+      return @report.hopwa_caper_enrollments.none if activity_household_ids.empty?
 
-      # Count occurrences of each household_id across all activity types
-      household_counts = {}
-      all_ids.each do |ids|
-        ids.pluck(:report_household_id).each do |household_id|
-          household_counts[household_id] = (household_counts[household_id] || 0) + 1
-        end
-      end
+      # Find households appearing in multiple activity types
+      duplicated_ids = activity_household_ids.
+        flatten.
+        group_by(&:itself).
+        select { |_id, occurrences| occurrences.size > 1 }.
+        keys
 
-      duplicated_ids = household_counts.select { |_id, count| count > 1 }.keys
       return @report.hopwa_caper_enrollments.none if duplicated_ids.empty?
 
       @report.hopwa_caper_enrollments.where(report_household_id: duplicated_ids)

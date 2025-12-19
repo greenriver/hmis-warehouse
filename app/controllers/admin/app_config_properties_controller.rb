@@ -12,16 +12,15 @@ module Admin
     before_action :set_property, only: [:edit, :update, :destroy]
 
     def index
-      @properties = AppConfigProperty.all.order(:key)
-      @pagy, @properties = pagy(@properties)
+      @pagy, @properties = pagy(property_scope.order(:key))
     end
 
     def new
-      @property = AppConfigProperty.new
+      @property = property_scope.new
     end
 
     def create
-      @property = AppConfigProperty.new(property_params)
+      @property = property_scope.new(property_params)
 
       if @property.save
         redirect_to admin_app_config_properties_path, notice: 'App config property created.'
@@ -49,7 +48,11 @@ module Admin
     private
 
     def set_property
-      @property = AppConfigProperty.find(params[:id])
+      @property = property_scope.find(params[:id])
+    end
+
+    def property_scope
+      AppConfigProperty.all
     end
 
     def property_params

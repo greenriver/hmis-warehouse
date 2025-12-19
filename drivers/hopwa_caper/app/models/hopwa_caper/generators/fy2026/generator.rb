@@ -295,20 +295,6 @@ module HopwaCaper::Generators::Fy2026
       @service_date_range ||= (report.start_date - SERVICE_LOOKBACK)..report.end_date
     end
 
-    # return the most recently submitted custom assessment with a value for cded
-    def find_cde(cded, spm_enrollment)
-      hmis_enrollment = Hmis::Hud::Enrollment.find(spm_enrollment.enrollment_id)
-
-      custom_assessments = hmis_enrollment.custom_assessments.
-        where(AssessmentDate: ..@report.end_date).
-        order(AssessmentDate: :desc, id: :desc)
-
-      custom_assessments.to_a.detect do |asm|
-        cde = asm.custom_data_elements.where(data_element_definition: cded).first
-        return cde if cde
-      end
-    end
-
     def populate_atc_data
       sheet_config = HopwaCaper::Configuration.new
       return unless sheet_config.atc_tab_enabled?
@@ -324,27 +310,45 @@ module HopwaCaper::Generators::Fy2026
         cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: key)
         next unless cded
 
-        { key: key, column: column, cded: cded }
+        { column: column, cded: cded }
       end
 
       updates = {}
-      row_configs.each do |config|
-        _, column, cded = config.values_at(:key, :column, :cded)
+      report.hopwa_caper_enrollments.in_batches(of: 100) do |batch|
+        # lookup map for the most recently submitted custom assessment
+        hud_enrollment_scope = Hmis::Hud::Enrollment.where(id: batch.map(&:enrollment_id))
+        assessments_by_enrollment = Hmis::Hud::CustomAssessment.
+          joins(:enrollment).merge(hud_enrollment_scope).
+          where(AssessmentDate: ..@report.end_date).
+          order(AssessmentDate: :desc, id: :desc).
+          preload(:enrollment).group_by { |r| r.enrollment.id }
 
-        report.hopwa_caper_enrollments.find_each do |spm_enrollment|
-          # n+1 queries are acceptable here assuming small client set in the HOPWA CAPER
-          cde = find_cde(cded, spm_enrollment)
-          updates[spm_enrollment.id] ||= {
-            id: spm_enrollment.id,
-            # must include for non-nullable cols for upsert
-            report_instance_id: spm_enrollment.report_instance_id,
-            destination_client_id: spm_enrollment.destination_client_id,
-            enrollment_id: spm_enrollment.enrollment_id,
-            report_household_id: spm_enrollment.report_household_id,
-            personal_id: spm_enrollment.personal_id,
-            relationship_to_hoh: spm_enrollment.relationship_to_hoh,
-          }
-          updates[spm_enrollment.id][column] = cde_value_to_boolean(cded, cde)
+        batch.each do |spm_enrollment|
+          assessments = assessments_by_enrollment[spm_enrollment.enrollment_id]
+          next unless assessments
+
+          row_configs.each do |config|
+            column, cded = config.values_at(:column, :cded)
+
+            cde = nil
+            assessments.each do |asm|
+              cde = asm.custom_data_elements.where(data_element_definition: cded).first
+              break if cde
+            end
+            next unless cde
+
+            updates[spm_enrollment.id] ||= {
+              id: spm_enrollment.id,
+              # must include for non-nullable cols for upsert
+              report_instance_id: spm_enrollment.report_instance_id,
+              destination_client_id: spm_enrollment.destination_client_id,
+              enrollment_id: spm_enrollment.enrollment_id,
+              report_household_id: spm_enrollment.report_household_id,
+              personal_id: spm_enrollment.personal_id,
+              relationship_to_hoh: spm_enrollment.relationship_to_hoh,
+            }
+            updates[spm_enrollment.id][column] = cde_value_to_boolean(cded, cde)
+          end
         end
       end
 
