@@ -13,7 +13,7 @@ module GrdaWarehouse::Tasks
     include ::ServiceHistory::Builder
 
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
-    CACHE_KEY = 'sanity_check_service_history'.freeze
+    CACHE_KEY = 'sanity_check_service_history'
 
     def initialize(sample_size: 10, client_ids: [])
       @sample_size = sample_size
@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
 
       Rails.logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
-      UpdateWarehouseClientsCachesJob.set(priority: 12).perform_later(client_ids: processed_ids.to_a)
+      UpdateWarehouseClientsCachesJob.set(priority: BaseJob::CACHE_UPDATE_PRIORITY).perform_later(client_ids: processed_ids.to_a)
     end
 
     def attempts

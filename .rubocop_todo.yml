@@ -1289,7 +1289,6 @@ Style/RedundantFreeze:
     - 'app/models/concerns/document_export_behavior.rb'
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
     - 'app/models/grda_warehouse/help.rb'
-    - 'app/models/grda_warehouse/tasks/sanity_check_service_history.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/qualifying_activity.rb'
     - 'app/models/health/qualifying_activity_v1.rb'

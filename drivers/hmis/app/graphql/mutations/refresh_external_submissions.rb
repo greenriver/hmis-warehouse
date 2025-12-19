@@ -15,7 +15,7 @@ module Mutations
       return { success: true } if Delayed::Job.queued?(handlers) || Delayed::Job.running?(handlers)
 
       queue = ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.set(priority: -5, queue: queue).perform_later
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.set(priority: BaseJob::ACTIVELY_WAITING_PRIORITY, queue: queue).perform_later
 
       { success: true }
     end

@@ -10,6 +10,15 @@ class BaseJob < ApplicationJob
   include NotifierConfig
   include MaintenanceTaskInstrumentation
 
+  # Priority constants for job scheduling
+  # Lower numbers = higher priority (processed first)
+  ACTIVELY_WAITING_PRIORITY = -5    # User is waiting for this job to complete
+  NEEDED_SOON_PRIORITY = 0          # Important but user can wait briefly
+  BACKGROUND_JOB_PRIORITY = 5       # Standard background processing
+  NO_RUSH_PRIORITY = 10             # Bulk processing, can wait
+  CACHE_UPDATE_PRIORITY = 12        # Cache updates, data consistency work
+  EVENTUAL_CONSISTENCY_PRIORITY = 15 # Maintenance, cleanup, eventual consistency
+
   attr_accessor :start_time
 
   if ENV['EKS'] == 'true'

@@ -31,7 +31,7 @@ module GrdaWarehouse
     }
 
     def self.generate_for_date!(date: Date.current)
-      priority = 12
+      priority = BaseJob::CACHE_UPDATE_PRIORITY
       range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
       GrdaWarehouse::Hud::Client.destination.distinct.
         joins(:source_enrollments).
