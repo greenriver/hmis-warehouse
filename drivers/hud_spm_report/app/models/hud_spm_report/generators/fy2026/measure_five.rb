@@ -11,6 +11,7 @@
 # and 24 months.
 module HudSpmReport::Generators::Fy2026
   class MeasureFive < MeasureBase
+    # Universe: SpmEnrollments
     def self.question_number
       'Measure 5'
     end

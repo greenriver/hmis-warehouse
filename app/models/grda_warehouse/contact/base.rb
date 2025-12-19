@@ -31,6 +31,15 @@ module GrdaWarehouse::Contact
       joins(:contact_alert_subscriptions).merge(GrdaWarehouse::ContactAlertSubscription.active)
     end
 
+    # Excludes contacts whose entities (projects or organizations) have been soft-deleted
+    # System contacts (User type) are always included as they don't have entities
+    # Note: Projects and Organizations use acts_as_paranoid, so .select(:id) automatically excludes deleted records
+    scope :with_active_entities, -> do
+      where(type: 'GrdaWarehouse::Contact::User').
+        or(where(type: 'GrdaWarehouse::Contact::Project', entity_id: GrdaWarehouse::Hud::Project.select(:id))).
+        or(where(type: 'GrdaWarehouse::Contact::Organization', entity_id: GrdaWarehouse::Hud::Organization.select(:id)))
+    end
+
     def self.available_users(entity, include_current: false)
       scope = ::User.active.not_system.order(last_name: :asc, first_name: :asc)
       scope = scope.where.not(id: entity.contacts.pluck(:user_id)) unless include_current
