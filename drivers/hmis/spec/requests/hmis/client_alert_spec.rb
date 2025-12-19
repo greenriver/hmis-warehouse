@@ -188,6 +188,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_access_denied post_graphql(input: mutation_input) { create_alert }
       expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
     end
+
+    it 'should not be allowed to delete alerts' do
+      expect_access_denied post_graphql(id: a1.id) { delete_alert }
+      c1.reload
+      expect(c1.alerts.size).to eq(2), 'no alert should have been deleted'
+    end
   end
 
   describe 'when the user can manage, but not view (missing prerequisite permission)' do
@@ -197,6 +203,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation_input = { clientId: c1.id.to_s, note: 'err' }
       expect_access_denied post_graphql(input: mutation_input) { create_alert }
       expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
+    end
+
+    it 'should not be allowed to delete alerts' do
+      expect_access_denied post_graphql(id: a1.id) { delete_alert }
+      c1.reload
+      expect(c1.alerts.size).to eq(2), 'no alert should have been deleted'
     end
   end
 end
