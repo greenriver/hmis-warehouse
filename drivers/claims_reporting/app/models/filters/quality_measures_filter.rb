@@ -8,14 +8,14 @@
 
 module Filters
   class QualityMeasuresFilter < ::Filters::FilterBase
-    attribute :acos, Array, default: []
+    attribute :acos, Array, default: [].freeze
 
     # Ugh... default filters we aren't supporting,
     # need nil defaults so they dont show up in describe
     # or as_json
     attribute :sub_population, Symbol, default: nil
     attribute :limit_to_vispdat, Symbol, default: nil
-    attribute :project_type_codes, Array, default: []
+    attribute :project_type_codes, Array, default: [].freeze
     attribute :household_type, Symbol, default: nil
     attribute :on, String, default: nil
     attribute :start, String, default: nil

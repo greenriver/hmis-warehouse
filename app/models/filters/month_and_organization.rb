@@ -9,8 +9,8 @@
 module Filters
   class MonthAndOrganization < ::Filters::DateRange::MonthDefault
     attribute :org, Integer, default: ->(s, _) { s.default_org }
-    attribute :month, Integer, default: Date.current.month
-    attribute :year, Integer, default: Date.current.year
+    attribute :month, Integer, default: ->(_, _) { Date.current.month }
+    attribute :year, Integer, default: ->(_, _) { Date.current.year }
     attribute :user, User, default: nil
 
     validates :org, presence: true
