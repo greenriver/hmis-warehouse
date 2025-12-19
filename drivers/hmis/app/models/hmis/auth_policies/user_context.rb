@@ -40,6 +40,21 @@ class Hmis::AuthPolicies::UserContext
     project_access_group_loader.preload(project_ids)
   end
 
+  # Client permissions are based on the user's permissions at projects they are enrolled in.
+  # If they have no enrollments, it's based on the user's global permissions.
+  def client_permissions(client_id)
+    project_ids = client_project_loader.get(client_id)
+
+    if project_ids.empty?
+      # Client has no enrollments - use global permissions
+      potential_permissions
+    else
+      # Client has enrollments - union permissions from all enrolled projects
+      project_access_group_loader.preload(project_ids)
+      project_ids.flat_map { |id| project_permissions(id).to_a }.to_set.freeze
+    end
+  end
+
   def preload_referral_dependencies(referral_ids)
     ce_referral_project_loader.preload(referral_ids)
     ce_referral_source_project_loader.preload(referral_ids)
@@ -89,5 +104,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def ce_referral_source_project_loader
     Hmis::AuthPolicies::ContextLoaders::CeReferralSourceProjectLoader.new
+  end
+
+  memoize def client_project_loader
+    Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
   end
 end
