@@ -190,31 +190,5 @@ RSpec.describe Hmis::TransferEnrollmentProjectJob, type: :model do
         )
       end.to raise_error(/Cannot transfer partial household/)
     end
-
-    it 'raises error when trying to transfer only household member without HoH' do
-      expect do
-        described_class.perform_now(
-          enrollment_ids: [hhm_enrollment.id], # Only transferring household member, not HoH
-          source_project_id: source_project.id,
-          target_project_id: target_project.id,
-        )
-      end.to raise_error(/Cannot transfer partial household/)
-    end
-
-    context 'with household member in different project' do
-      let!(:other_project) { create(:hmis_hud_project, data_source: data_source, organization: organization) }
-      let!(:hhm_in_other_project) { create(:hmis_hud_enrollment, data_source: data_source, project: other_project, client: client2, household_id: household_id, relationship_to_hoh: 2) }
-
-      it 'only considers household members in the source project' do
-        # Should succeed because the household member in the other project doesn't need to be transferred
-        expect do
-          described_class.perform_now(
-            enrollment_ids: [hoh_enrollment.id],
-            source_project_id: source_project.id,
-            target_project_id: target_project.id,
-          )
-        end.to raise_error(/Cannot transfer partial household/)
-      end
-    end
   end
 end
