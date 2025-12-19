@@ -58,7 +58,7 @@ RSpec.describe Admin::DelayedJobsController, type: :request do
 
   describe 'PATCH #update' do
     it 're-queues the job if failed' do
-      job.update!(locked_at: Time.current, locked_by: 'worker', failed_at: Time.current)
+      job.update!(locked_at: nil, locked_by: nil, failed_at: Time.current)
       patch admin_delayed_job_path(job)
 
       expect(response).to redirect_to(admin_delayed_jobs_path)
