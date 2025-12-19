@@ -518,6 +518,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:editable],
         category: 'Administration',
