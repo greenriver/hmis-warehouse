@@ -57,7 +57,7 @@ module Delayed
 
         def handle_cancellation!
           # check to see if we've been terminated
-          raise ApplicationJob::JobRetried, 'SIGTERM caught, retrying' if sigterm_received?
+          raise ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM' if sigterm_received?
 
           # Always check the database for fresh cancellation status
           # The job instance may have been loaded before cancellation was requested
@@ -97,7 +97,9 @@ module Delayed
 
         # what to do when the worker receives sigterm
         def sigterm_received?
-          id && SignalHandlerPlugin.interrupted_job_id == id
+          return false unless defined?(SignalHandlerPlugin)
+
+          SignalHandlerPlugin.current_worker_stopping?
         end
       end
     end

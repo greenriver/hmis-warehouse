@@ -21,28 +21,20 @@ RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
         allow(job).to receive(:sigterm_received?).and_return(true)
       end
 
-      it 'raises a JobRetried exception' do
-        expect { job.handle_cancellation! }.to raise_error(ApplicationJob::JobRetried, 'SIGTERM caught, retrying')
+      it 'raises a JobInterrupted exception' do
+        expect { job.handle_cancellation! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
       end
     end
   end
 
   describe '#sigterm_received?' do
-    let(:job_id) { 123 }
-    before { allow(job).to receive(:id).and_return(job_id) }
-
-    it 'is true if SignalHandlerPlugin.interrupted_job_id matches job id' do
-      allow(SignalHandlerPlugin).to receive(:interrupted_job_id).and_return(job_id)
+    it 'is true if SignalHandlerPlugin.current_worker_stopping? is true' do
+      allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(true)
       expect(job.sigterm_received?).to be true
     end
 
-    it 'is false if SignalHandlerPlugin.interrupted_job_id does not match job id' do
-      allow(SignalHandlerPlugin).to receive(:interrupted_job_id).and_return(456)
-      expect(job.sigterm_received?).to be false
-    end
-
-    it 'is false if SignalHandlerPlugin.interrupted_job_id is nil' do
-      allow(SignalHandlerPlugin).to receive(:interrupted_job_id).and_return(nil)
+    it 'is false if SignalHandlerPlugin.current_worker_stopping? is false' do
+      allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(false)
       expect(job.sigterm_received?).to be false
     end
   end

@@ -9,12 +9,11 @@
 class ApplicationJob < ActiveJob::Base
   # Custom error to signal that a job should be stopped or terminated
   class JobCancelled < StandardError; end
-  class JobRetried < StandardError; end
+  class JobInterrupted < StandardError; end
 
   # retry_on and discard_on are standard Active Job features
   # When JobCancelled is raised, Active Job catches it and prevents any retries.
   discard_on JobCancelled
-  retry_on JobRetried
 
   # By default, jobs are not interruptible once they have started.
   # Subclasses can override this if they have implemented manual cancellation checkpoints.

@@ -1,36 +1,55 @@
+# frozen_string_literal: true
+
 class SignalHandlerPlugin < Delayed::Plugin
-  # We use a class variable or a thread-safe flag to communicate
-  # between the trap context and the Ruby execution context.
-  @interrupted_job_id = nil
-  @previous_trap = nil
+  # We use a thread-safe registry to track which worker is running in which thread.
+  # This allows us to check if the specific worker has been signaled to stop (SIGTERM)
+  # without interfering with Delayed Job's internal signal handling.
+  @registry_mutex = Mutex.new
+  @active_workers = {} # { thread_object_id => worker_instance }
 
   class << self
-    attr_accessor :interrupted_job_id, :previous_trap
-  end
+    attr_reader :registry_mutex
 
-  callbacks do |lifecycle|
-    lifecycle.before(:perform) do |worker, job|
-      # Set up the trap and store the previous one
-      SignalHandlerPlugin.previous_trap = Signal.trap('TERM') do
-        SignalHandlerPlugin.interrupted_job_id = job.id
-        # Tell the worker to stop after this job is done
-        worker.stop
-
-        # Call the previous handler if it was a proc
-        if SignalHandlerPlugin.previous_trap.respond_to?(:call)
-          SignalHandlerPlugin.previous_trap.call
-        end
+    def register_worker(worker)
+      @registry_mutex.synchronize do
+        # rubocop:disable Lint/HashCompareByIdentity
+        @active_workers[Thread.current.object_id] = worker
+        # rubocop:enable Lint/HashCompareByIdentity
       end
     end
 
-    lifecycle.after(:perform) do |_worker, _job|
-      # Restore the previous trap
-      if SignalHandlerPlugin.previous_trap
-        Signal.trap('TERM', SignalHandlerPlugin.previous_trap)
+    def unregister_worker
+      @registry_mutex.synchronize do
+        @active_workers.delete(Thread.current.object_id)
       end
+    end
 
-      SignalHandlerPlugin.interrupted_job_id = nil
-      SignalHandlerPlugin.previous_trap = nil
+    def current_worker_stopping?
+      worker = nil
+      @registry_mutex.synchronize do
+        # rubocop:disable Lint/HashCompareByIdentity
+        worker = @active_workers[Thread.current.object_id]
+        # rubocop:enable Lint/HashCompareByIdentity
+      end
+      # Delayed::Worker uses @exit to signal shutdown when it receives SIGTERM
+      worker&.instance_variable_get(:@exit) || false
+    end
+
+    # For testing purposes
+    def reset!
+      @registry_mutex.synchronize do
+        @active_workers = {}
+      end
+    end
+  end
+
+  callbacks do |lifecycle|
+    lifecycle.before(:perform) do |worker, _job|
+      SignalHandlerPlugin.register_worker(worker)
+    end
+
+    lifecycle.after(:perform) do |_worker, _job|
+      SignalHandlerPlugin.unregister_worker
     end
   end
 end
