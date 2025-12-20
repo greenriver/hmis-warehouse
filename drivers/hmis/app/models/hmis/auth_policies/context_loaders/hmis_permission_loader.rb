@@ -38,7 +38,7 @@ module Hmis::AuthPolicies::ContextLoaders
 
     protected
 
-    # Recursively checks that a permission and all its transitive requirements are satisfied
+    # Recursively checks that a permission and its transitive requirements are satisfied
     def requirements_met?(permission, permissions, visited)
       raise 'cycle detected' if visited.include?(permission) # This shouldn't occur
 
@@ -46,9 +46,13 @@ module Hmis::AuthPolicies::ContextLoaders
 
       return true if required.blank? # No requirements, keep it
 
-      # check that all requirements are satisfied
+      mode = role_config[permission][:requirements_mode] || :all?
+      raise "unknown mode #{mode}" unless mode.in?([:all?, :any?])
+
+      # check that all / any requirements are satisfied, depending on the mode
       visited.add(permission)
-      result = required.all? do |req|
+
+      result = required.send(mode) do |req|
         permissions.include?(req) && requirements_met?(req, permissions, visited)
       end
       visited.delete(permission)

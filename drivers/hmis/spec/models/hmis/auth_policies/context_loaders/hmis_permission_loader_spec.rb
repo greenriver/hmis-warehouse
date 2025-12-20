@@ -30,5 +30,23 @@ RSpec.describe Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader, type: :
         expect(result.to_a).to eq([:can_view_project]) # can_start_referrals filtered out due to unmet requirements
       end
     end
+
+    context 'with permission requirements mode any' do
+      it 'includes permissions when any requirement is met' do
+        access_control = create_access_control(user, project, with_permission: [:can_manage_any_client_files, :can_view_any_nonconfidential_client_files])
+
+        result = loader.for_access_group_ids([access_control.access_group.id])
+
+        expect(result).to include(:can_manage_any_client_files, :can_view_any_nonconfidential_client_files)
+      end
+
+      it 'excludes permissions when no requirements are met' do
+        access_control = create_access_control(user, project, with_permission: [:can_manage_any_client_files])
+
+        result = loader.for_access_group_ids([access_control.access_group.id])
+
+        expect(result.to_a).not_to include(:can_manage_any_client_files)
+      end
+    end
   end
 end
