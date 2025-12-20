@@ -100,6 +100,19 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
         expect(errors.first['fullMessage']).to eq('Name must be unique in the project')
       end
     end
+
+    context 'when unit type is missing' do
+      let(:input_without_unit_type) { base_input.deep_merge(input: { unitTypeId: nil }) }
+
+      it 'returns validation error' do
+        response, result = post_graphql(input_without_unit_type) { mutation }
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'createUnitGroup', 'errors')
+        expect(errors).not_to be_empty
+        expect(errors.first['fullMessage']).to eq('Unit type must exist')
+      end
+    end
   end
 
   context 'permissions' do

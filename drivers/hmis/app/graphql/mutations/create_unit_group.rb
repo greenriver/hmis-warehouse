@@ -20,9 +20,13 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
-      # TODO(#8157) - require Unit Type
+      # TODO(#8157) when unit_type is required on unit_group, delegate this check to model validations
+      errors.add(:unit_type, :required) unless input.unit_type_id
+      return { errors: errors.errors } if errors.any?
+
       unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
-      raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
+      errors.add(:unit_type, :invalid) unless unit_type
+      return { errors: errors.errors } if errors.any?
 
       # errors.add :count, :required unless input.count.present?
       # errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
