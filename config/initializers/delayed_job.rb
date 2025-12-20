@@ -56,6 +56,9 @@ module Delayed
         end
 
         def handle_cancellation!
+          # check to see if we've been terminated
+          raise ApplicationJob::JobRetried, 'SIGTERM caught, retrying' if sigterm_received?
+
           # Always check the database for fresh cancellation status
           # The job instance may have been loaded before cancellation was requested
           fresh_cancellation_requested_at = self.class.where(id: id).pluck(:cancellation_requested_at).first
@@ -90,6 +93,11 @@ module Delayed
           return false if locked_at
 
           failed_at.present? || cancellation_requested_at.present?
+        end
+
+        # what to do when the worker receives sigterm
+        def sigterm_received?
+          id && SignalHandlerPlugin.interrupted_job_id == id
         end
       end
     end
