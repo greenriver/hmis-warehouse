@@ -450,6 +450,8 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_manage_own_client_files: {
         description: 'Access to upload, edit, and delete client files that I uploaded',
+        requirements: [:can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files],
+        requirements_mode: :any?, # User can manage any files they can view. Must be able to view some files, through either of the required permissions.
         administrative: false,
         access: [:editable],
         category: 'Client Files',
@@ -457,6 +459,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_any_nonconfidential_client_files: {
         description: 'Access to view non-confidential client files uploaded by anyone',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Files',
@@ -464,6 +467,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_any_confidential_client_files: {
         description: 'Access to view confidential client files uploaded by anyone',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Files',
