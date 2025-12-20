@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
-if ENV['EKS'] != 'true' && (Rails.env.staging? || Rails.env.production?)
+if ENV['EKS'] != 'true'
   Rails.configuration.to_prepare do
     def find_log_stream_name
       log_group = ENV.fetch('TARGET_GROUP_NAME', nil)
