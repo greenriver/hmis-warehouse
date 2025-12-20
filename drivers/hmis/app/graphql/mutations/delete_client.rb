@@ -24,24 +24,27 @@ module Mutations
 
       # While this is redundant with the viewable_by() scope above, this check caches the authorization result so that
       # the client object-level authorization check will succeed even after the client has been deleted
+      # TODO - remove when the authorization check in HmisSchema::Client is updated to use the policy
       access_denied! unless current_permission?(permission: :can_view_clients, entity: client)
 
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)
 
       return { client: nil, errors: warnings } if warnings.any?
 
+      access_denied! unless policy_for(client, policy_type: :hmis_client).can_destroy?
+
       client.transaction do
-        default_delete_record(
-          record: client,
-          field_name: :client,
-          permissions: :can_delete_clients,
-          after_delete: -> do
-            resolvable_enrollments.each do |enrollment|
-              enrollment.update!(relationship_to_ho_h: 1)
-            end
-          end,
-        )
+        client.destroy!
+
+        resolvable_enrollments.each do |enrollment|
+          enrollment.update!(relationship_to_ho_h: 1)
+        end
       end
+
+      {
+        client: client,
+        errors: [],
+      }
     end
 
     def check_enrollments(client, ignore_warnings: false)

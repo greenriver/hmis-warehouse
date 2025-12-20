@@ -330,6 +330,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_clients: {
         administrative: true,
+        requirements: [:can_view_clients],
         access: [:editable],
         category: 'Client Access',
         sub_category: 'Access',
