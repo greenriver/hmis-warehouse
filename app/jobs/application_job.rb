@@ -35,13 +35,24 @@ class ApplicationJob < ActiveJob::Base
     return unless self.class.queue_adapter_name == 'delayed_job'
 
     # Check for SIGTERM first
-    raise JobInterrupted, 'Job interrupted by SIGTERM' if SignalHandlerPlugin.current_worker_stopping?
+    if SignalHandlerPlugin.current_worker_stopping?
+      msg = 'Job interrupted by SIGTERM'
+      Rails.logger.warn(msg)
+      raise JobInterrupted, msg
+    end
 
     return unless provider_job_id.present?
 
     # Check for manual cancellation
-    requested_at = Delayed::Job.where(id: provider_job_id).pluck(:cancellation_requested_at).first
-    raise JobCancelled, 'Job cancelled' if requested_at.present?
+    requested_at = nil
+    Delayed::Job.uncached do
+      requested_at = Delayed::Job.where(id: provider_job_id).pluck(:cancellation_requested_at).first
+    end
+    if requested_at
+      msg = "Job #{provider_job_id} cancelled"
+      Rails.logger.warn(msg)
+      raise JobCancelled, msg
+    end
   end
 
   protected
