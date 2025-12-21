@@ -1,50 +1,27 @@
 # frozen_string_literal: true
 
+require_relative '../../lib/util/thread_safe_registry'
+
 class SignalHandlerPlugin < Delayed::Plugin
   # While standard Delayed Job workers run in a single-threaded process,
   # thread-safety will support future threaded worker configurations
   # and parallelized test environments.
-  @registry_mutex = Mutex.new
-  @active_workers = {}.compare_by_identity # { thread_object => worker_instance }
+  @registry = ::ThreadSafeRegistry.new
 
   class << self
-    attr_reader :registry_mutex
-
-    def register_worker(worker)
-      @registry_mutex.synchronize do
-        @active_workers[Thread.current] = worker
-      end
-    end
-
-    def unregister_worker
-      @registry_mutex.synchronize do
-        @active_workers.delete(Thread.current)
-      end
-    end
+    attr_reader :registry
 
     def current_worker_stopping?
-      worker = nil
-      @registry_mutex.synchronize do
-        worker = @active_workers[Thread.current]
-      end
-
-      worker&.stop? || false
-    end
-
-    # For testing purposes
-    def reset!
-      @registry_mutex.synchronize do
-        @active_workers = {}.compare_by_identity
-      end
+      @registry.current&.stop? || false
     end
   end
 
   callbacks do |lifecycle|
     lifecycle.around(:perform) do |worker, _job, &block|
-      SignalHandlerPlugin.register_worker(worker)
+      SignalHandlerPlugin.registry.register(worker)
       block&.call
     ensure
-      SignalHandlerPlugin.unregister_worker
+      SignalHandlerPlugin.registry.unregister
     end
   end
 end
