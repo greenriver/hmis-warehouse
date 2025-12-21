@@ -29,11 +29,11 @@ class ApplicationJob < ActiveJob::Base
   end
 
   # Check for cancellation before the job starts performing.
-  before_perform :handle_cancellation!
+  before_perform :check_halt_status!
 
   protected
 
-  def handle_cancellation!
+  def check_halt_status!
     return unless self.class.queue_adapter_name == 'delayed_job'
     return unless provider_job_id.present?
 
@@ -41,9 +41,9 @@ class ApplicationJob < ActiveJob::Base
     # We look up the record to check its specific cancellation state.
     job = Delayed::Job.find_by(id: provider_job_id)
 
-    # This calls the handle_cancellation! method defined in the Delayed::Job monkey patch
+    # This calls the check_halt_status! method defined in the Delayed::Job monkey patch
     # (see config/initializers/delayed_job.rb), which raises JobCancelled if
     # cancellation_requested_at is set.
-    job&.handle_cancellation!
+    job&.check_halt_status!
   end
 end

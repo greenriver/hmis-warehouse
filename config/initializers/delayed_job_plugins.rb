@@ -42,7 +42,7 @@ class SignalHandlerPlugin < Delayed::Plugin
   callbacks do |lifecycle|
     lifecycle.around(:perform) do |worker, _job, &block|
       SignalHandlerPlugin.register_worker(worker)
-      block.call if block
+      block&.call
     ensure
       SignalHandlerPlugin.unregister_worker
     end

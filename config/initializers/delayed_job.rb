@@ -55,11 +55,9 @@ module Delayed
           where(failed_at: nil).where.not(locked_at: nil)
         end
 
-        def handle_cancellation!
+        def check_halt_status!
           # check to see if we've been terminated
-          if defined?(SignalHandlerPlugin) && SignalHandlerPlugin.current_worker_stopping?
-            raise ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM'
-          end
+          raise ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM' if defined?(SignalHandlerPlugin) && SignalHandlerPlugin.current_worker_stopping?
 
           # Always check the database for fresh cancellation status
           # The job instance may have been loaded before cancellation was requested

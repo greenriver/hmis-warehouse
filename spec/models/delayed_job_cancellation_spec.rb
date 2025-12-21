@@ -5,14 +5,14 @@ require 'rails_helper'
 RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
   let(:job) { described_class.create!(handler: 'some_handler') }
 
-  describe '#handle_cancellation!' do
+  describe '#check_halt_status!' do
     context 'when cancellation has been requested' do
       before do
         job.update!(cancellation_requested_at: Time.current)
       end
 
       it 'raises a JobCancelled exception' do
-        expect { job.handle_cancellation! }.to raise_error(ApplicationJob::JobCancelled, 'Job cancelled')
+        expect { job.check_halt_status! }.to raise_error(ApplicationJob::JobCancelled, 'Job cancelled')
       end
     end
 
@@ -22,7 +22,7 @@ RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
       end
 
       it 'raises a JobInterrupted exception' do
-        expect { job.handle_cancellation! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
+        expect { job.check_halt_status! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
       end
     end
   end

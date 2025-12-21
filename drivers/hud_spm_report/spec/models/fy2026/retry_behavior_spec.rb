@@ -97,7 +97,7 @@ RSpec.describe 'HUD SPM FY2026 retry behavior', type: :model do
       expect(report.related_job).to eq(job)
 
       # We need to trick ApplicationJob into thinking it's running under delayed_job
-      # so it doesn't skip handle_cancellation!.
+      # so it doesn't skip check_halt_status!.
       allow(Reporting::Hud::RunReportJob).to receive(:queue_adapter_name).and_return('delayed_job')
 
       # Mock a point in the process to request cancellation.
