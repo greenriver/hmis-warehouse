@@ -66,10 +66,6 @@ module Delayed
         end
 
         def interruptible?
-          # We use JobDetail to encapsulate the logic for inspecting the job payload.
-          # This is more robust than simple string matching on the handler.
-          return false unless defined?(JobDetail)
-
           JobDetail.new(self).interruptible?
         rescue StandardError
           false
