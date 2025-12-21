@@ -55,15 +55,6 @@ module Delayed
           where(failed_at: nil).where.not(locked_at: nil)
         end
 
-        def handle_cancellation!
-          # Always check the database for fresh cancellation status
-          # The job instance may have been loaded before cancellation was requested
-          fresh_cancellation_requested_at = self.class.where(id: id).pluck(:cancellation_requested_at).first
-          return unless fresh_cancellation_requested_at.present?
-
-          raise ApplicationJob::JobCancelled, 'Job cancelled'
-        end
-
         def cancellable?
           return false if cancellation_requested_at.present? || failed_at.present?
 
@@ -75,10 +66,6 @@ module Delayed
         end
 
         def interruptible?
-          # We use JobDetail to encapsulate the logic for inspecting the job payload.
-          # This is more robust than simple string matching on the handler.
-          return false unless defined?(JobDetail)
-
           JobDetail.new(self).interruptible?
         rescue StandardError
           false

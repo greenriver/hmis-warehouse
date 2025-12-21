@@ -7,12 +7,20 @@
 # frozen_string_literal: true
 
 class ApplicationJob < ActiveJob::Base
-  # Custom error to signal that a job should be stopped because cancellation was requested.
+  # Custom error to signal that a job should be stopped and discarded or retried
   class JobCancelled < StandardError; end
+  class JobInterrupted < StandardError; end
 
   # discard_on is a standard Active Job feature
   # When JobCancelled is raised, Active Job catches it and prevents any retries.
   discard_on JobCancelled
+
+  rescue_from JobInterrupted do |_error|
+    # Re-enqueue on SIGTERM so work resumes after the worker shuts down.
+    # Delay to avoid immediately re-running in the same worker loop.
+    wait_time = ENV.fetch('RETRY_DELAY_ON_INTERRUPTION', 60)
+    retry_job wait: wait_time.to_i.seconds
+  end
 
   # By default, jobs are not interruptible once they have started.
   # Subclasses can override this if they have implemented manual cancellation checkpoints.
@@ -21,21 +29,29 @@ class ApplicationJob < ActiveJob::Base
   end
 
   # Check for cancellation before the job starts performing.
-  before_perform :handle_cancellation!
+  before_perform :check_halt_status!
 
-  protected
-
-  def handle_cancellation!
+  def check_halt_status!
     return unless self.class.queue_adapter_name == 'delayed_job'
+
+    # Check for SIGTERM first
+    if SignalHandlerPlugin.current_worker_stopping?
+      msg = 'Job interrupted by SIGTERM'
+      Rails.logger.warn(msg)
+      raise JobInterrupted, msg
+    end
+
     return unless provider_job_id.present?
 
-    # provider_job_id is the ID of the Delayed::Job record in the database.
-    # We look up the record to check its specific cancellation state.
-    job = Delayed::Job.find_by(id: provider_job_id)
+    # Check for manual cancellation
+    requested_at = nil
+    Delayed::Job.uncached do
+      requested_at = Delayed::Job.where(id: provider_job_id).pluck(:cancellation_requested_at).first
+    end
+    return unless requested_at
 
-    # This calls the handle_cancellation! method defined in the Delayed::Job monkey patch
-    # (see config/initializers/delayed_job.rb), which raises JobCancelled if
-    # cancellation_requested_at is set.
-    job&.handle_cancellation!
+    msg = "Job #{provider_job_id} cancelled"
+    Rails.logger.warn(msg)
+    raise JobCancelled, msg
   end
 end

@@ -141,7 +141,7 @@ module HudSpmReport::Fy2026
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
-        report_instance.related_job&.handle_cancellation!
+        report_instance.check_halt_status!
         members = []
         batch.each do |enrollment|
           client = enrollment.client
