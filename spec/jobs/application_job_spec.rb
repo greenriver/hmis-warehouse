@@ -37,4 +37,40 @@ RSpec.describe ApplicationJob do
     expect(new_job).to be_present
     expect(new_job.run_at).to be > 10.seconds.from_now
   end
+
+  describe '#check_halt_status!' do
+    let(:job_class) do
+      stub_const('HaltTestJob', Class.new(described_class) do
+        def perform
+        end
+      end)
+    end
+    let(:job_instance) { job_class.new }
+    let(:dj_record) { Delayed::Job.create!(handler: job_instance.to_yaml) }
+
+    before do
+      allow(job_instance).to receive(:provider_job_id).and_return(dj_record.id)
+      allow(job_class).to receive(:queue_adapter_name).and_return('delayed_job')
+    end
+
+    context 'when cancellation has been requested' do
+      before do
+        dj_record.update!(cancellation_requested_at: Time.current)
+      end
+
+      it 'raises a JobCancelled exception' do
+        expect { job_instance.check_halt_status! }.to raise_error(ApplicationJob::JobCancelled, /Job .* cancelled/)
+      end
+    end
+
+    context 'when sigterm has been received' do
+      before do
+        allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(true)
+      end
+
+      it 'raises a JobInterrupted exception' do
+        expect { job_instance.check_halt_status! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
+      end
+    end
+  end
 end
