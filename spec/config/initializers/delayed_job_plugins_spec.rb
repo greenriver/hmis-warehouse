@@ -23,31 +23,40 @@ RSpec.describe SignalHandlerPlugin do
         # Within the perform block, the worker should be registered
         SignalHandlerPlugin.registry_mutex.synchronize do
           active_workers = SignalHandlerPlugin.instance_variable_get(:@active_workers)
-          # rubocop:disable Lint/HashCompareByIdentity
-          expect(active_workers[Thread.current.object_id]).to eq(worker)
-          # rubocop:enable Lint/HashCompareByIdentity
+          expect(active_workers[Thread.current]).to eq(worker)
         end
       end
 
       # After performance, it should be unregistered
       SignalHandlerPlugin.registry_mutex.synchronize do
         active_workers = SignalHandlerPlugin.instance_variable_get(:@active_workers)
-        expect(active_workers).not_to have_key(Thread.current.object_id)
+        expect(active_workers).not_to have_key(Thread.current)
+      end
+    end
+
+    it 'unregisters the worker even if perform raises' do
+      expect do
+        lifecycle.run_callbacks(:perform, worker, job) { raise 'boom' }
+      end.to raise_error('boom')
+
+      SignalHandlerPlugin.registry_mutex.synchronize do
+        active_workers = SignalHandlerPlugin.instance_variable_get(:@active_workers)
+        expect(active_workers).not_to have_key(Thread.current)
       end
     end
   end
 
   describe '.current_worker_stopping?' do
-    it 'returns true if the registered worker has @exit set to true' do
+    it 'returns true if the registered worker is stopping' do
       lifecycle.run_callbacks(:perform, worker, job) do
-        worker.instance_variable_set(:@exit, true)
+        allow(worker).to receive(:stop?).and_return(true)
         expect(SignalHandlerPlugin.current_worker_stopping?).to be true
       end
     end
 
-    it 'returns false if the registered worker has @exit set to false' do
+    it 'returns false if the registered worker is not stopping' do
       lifecycle.run_callbacks(:perform, worker, job) do
-        worker.instance_variable_set(:@exit, false)
+        allow(worker).to receive(:stop?).and_return(false)
         expect(SignalHandlerPlugin.current_worker_stopping?).to be false
       end
     end

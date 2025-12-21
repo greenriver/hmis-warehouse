@@ -18,24 +18,12 @@ RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
 
     context 'when sigterm has been received' do
       before do
-        allow(job).to receive(:sigterm_received?).and_return(true)
+        allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(true)
       end
 
       it 'raises a JobInterrupted exception' do
         expect { job.handle_cancellation! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
       end
-    end
-  end
-
-  describe '#sigterm_received?' do
-    it 'is true if SignalHandlerPlugin.current_worker_stopping? is true' do
-      allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(true)
-      expect(job.sigterm_received?).to be true
-    end
-
-    it 'is false if SignalHandlerPlugin.current_worker_stopping? is false' do
-      allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(false)
-      expect(job.sigterm_received?).to be false
     end
   end
 

@@ -7,13 +7,20 @@
 # frozen_string_literal: true
 
 class ApplicationJob < ActiveJob::Base
-  # Custom error to signal that a job should be stopped or terminated
+  # Custom error to signal that a job should be stopped and discarded or retried
   class JobCancelled < StandardError; end
   class JobInterrupted < StandardError; end
 
-  # retry_on and discard_on are standard Active Job features
+  # discard_on is a standard Active Job feature
   # When JobCancelled is raised, Active Job catches it and prevents any retries.
   discard_on JobCancelled
+
+  rescue_from JobInterrupted do |_error|
+    # Re-enqueue on SIGTERM so work resumes after the worker shuts down.
+    # Delay to avoid immediately re-running in the same worker loop.
+    wait_time = ENV.fetch('RETRY_DELAY_ON_INTERRUPTION', 60)
+    retry_job wait: wait_time.to_i.seconds
+  end
 
   # By default, jobs are not interruptible once they have started.
   # Subclasses can override this if they have implemented manual cancellation checkpoints.
