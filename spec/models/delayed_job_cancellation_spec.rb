@@ -5,7 +5,8 @@ require 'rails_helper'
 RSpec.describe 'Job halting logic' do
   let(:job_class) do
     stub_const('HaltTestJob', Class.new(ApplicationJob) do
-      def perform; end
+      def perform
+      end
     end)
   end
   let(:job_instance) { job_class.new }

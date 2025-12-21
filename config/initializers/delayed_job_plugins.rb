@@ -53,9 +53,7 @@ class DelayedJobJobIdProvider < Delayed::Plugin
   callbacks do |lifecycle|
     lifecycle.before(:invoke_job) do |job|
       # job.id is the ID of the Delayed::Job record in the database
-      if job.payload_object.respond_to?(:job_data)
-        job.payload_object.job_data["provider_job_id"] = job.id
-      end
+      job.payload_object.job_data['provider_job_id'] = job.id if job.payload_object.respond_to?(:job_data)
     end
   end
 end

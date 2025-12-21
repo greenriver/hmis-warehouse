@@ -48,12 +48,10 @@ class ApplicationJob < ActiveJob::Base
     Delayed::Job.uncached do
       requested_at = Delayed::Job.where(id: provider_job_id).pluck(:cancellation_requested_at).first
     end
-    if requested_at
-      msg = "Job #{provider_job_id} cancelled"
-      Rails.logger.warn(msg)
-      raise JobCancelled, msg
-    end
-  end
+    return unless requested_at
 
-  protected
+    msg = "Job #{provider_job_id} cancelled"
+    Rails.logger.warn(msg)
+    raise JobCancelled, msg
+  end
 end
