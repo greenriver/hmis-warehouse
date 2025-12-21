@@ -2,17 +2,28 @@
 
 require 'rails_helper'
 
-RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
-  let(:job) { described_class.create!(handler: 'some_handler') }
+RSpec.describe 'Job halting logic' do
+  let(:job_class) do
+    stub_const('HaltTestJob', Class.new(ApplicationJob) do
+      def perform; end
+    end)
+  end
+  let(:job_instance) { job_class.new }
+  let(:dj_record) { Delayed::Job.create!(handler: job_instance.to_yaml) }
+
+  before do
+    allow(job_instance).to receive(:provider_job_id).and_return(dj_record.id)
+    allow(job_class).to receive(:queue_adapter_name).and_return('delayed_job')
+  end
 
   describe '#check_halt_status!' do
     context 'when cancellation has been requested' do
       before do
-        job.update!(cancellation_requested_at: Time.current)
+        dj_record.update!(cancellation_requested_at: Time.current)
       end
 
       it 'raises a JobCancelled exception' do
-        expect { job.check_halt_status! }.to raise_error(ApplicationJob::JobCancelled, 'Job cancelled')
+        expect { job_instance.check_halt_status! }.to raise_error(ApplicationJob::JobCancelled, 'Job cancelled')
       end
     end
 
@@ -22,10 +33,14 @@ RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
       end
 
       it 'raises a JobInterrupted exception' do
-        expect { job.check_halt_status! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
+        expect { job_instance.check_halt_status! }.to raise_error(ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM')
       end
     end
   end
+end
+
+RSpec.describe Delayed::Backend::ActiveRecord::Job, type: :model do
+  let(:job) { described_class.create!(handler: 'some_handler') }
 
   describe '#cancellable?' do
     it 'is true if the job has not started' do

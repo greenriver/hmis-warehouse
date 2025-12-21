@@ -26,6 +26,8 @@ module Reporting::Hud
       # Occasionally people delete the report before it actually runs
       return unless report.present?
 
+      report.active_job = self
+
       # advisory lock to check the number of jobs running for this generator so we don't
       # all check at exactly the same time and get the same result
       @generator = class_name.constantize.new(report)
