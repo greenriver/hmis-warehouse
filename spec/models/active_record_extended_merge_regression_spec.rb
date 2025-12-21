@@ -14,11 +14,11 @@ RSpec.describe 'ActiveRecord merge with SqlLiteral canary' do
   include_context 'report context'
 
   before(:all) do
-    setup(default_setup_path)
+    setup(default_setup_path) if ENV['SKIP_AREL_SQL_LITERAL_INITIALIZER'] == '1'
   end
 
   after(:all) do
-    cleanup
+    cleanup if ENV['SKIP_AREL_SQL_LITERAL_INITIALIZER'] == '1'
   end
 
   it 'reproduces merge failure from HSR smoketest (coc_filter path)' do
