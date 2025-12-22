@@ -112,9 +112,7 @@ module HudApr::Generators::Shared::Fy2026
                 end.last
 
               # Re-fetch context if enrollment changed
-              if last_service_history_enrollment
-                ctx = contexts_by_she_id[last_service_history_enrollment.id] || ctx
-              end
+              ctx = contexts_by_she_id[last_service_history_enrollment.id] || ctx if last_service_history_enrollment
             end
           end
           next if last_service_history_enrollment.nil?

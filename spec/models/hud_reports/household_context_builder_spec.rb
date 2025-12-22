@@ -8,7 +8,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
     instance_double(
       HudReports::GeneratorBase,
       client_scope: GrdaWarehouse::Hud::Client.where(id: [client_hoh.destination_client.id, client_child.destination_client.id]),
-      report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry
+      report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
     )
   end
 
@@ -105,7 +105,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           DisablingCondition: 1,
           ContinuouslyHomelessOneYear: 1,
           TimesHomelessPastThreeYears: 4,
-          MonthsHomelessPastThreeYears: 112 # 112 = 12 months
+          MonthsHomelessPastThreeYears: 112, # 112 = 12 months
         )
         # Re-rebuild to pick up changes
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
@@ -123,7 +123,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         instance_double(
           HudReports::GeneratorBase,
           client_scope: GrdaWarehouse::Hud::Client.where(id: [client_hoh.destination_client.id]),
-          report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry
+          report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
         )
       end
 
@@ -173,7 +173,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         instance_double(
           HudReports::GeneratorBase,
           client_scope: GrdaWarehouse::Hud::Client.where(id: [youth_hoh.destination_client.id, child.destination_client.id]),
-          report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry
+          report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
         )
       end
 
