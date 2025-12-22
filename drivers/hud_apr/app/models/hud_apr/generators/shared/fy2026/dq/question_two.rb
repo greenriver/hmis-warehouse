@@ -33,7 +33,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionTwo
         last_row: 6,
       }
       @report.answer(question: table_name).update(metadata: metadata)
-      universe_members = universe.members.where(engaged_clause)
+      universe_members = members.where(engaged_clause)
 
       clients = name_quality(table_name: table_name, universe_members: universe_members)
       # NOTE: These "x_quality" methods are writing report data

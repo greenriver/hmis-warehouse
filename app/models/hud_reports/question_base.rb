@@ -86,5 +86,41 @@ module HudReports
       self.class.reset_derived_data(@report)
       @report.reset_question(self.class.question_number)
     end
+
+    def household_query_service
+      @household_query_service ||= HudReports::HouseholdQueryService.new(@report, a_t)
+    end
+
+    def members
+      @members ||= household_query_service.with_household_context(universe.members)
+    end
+
+    def sub_populations
+      @sub_populations ||= household_query_service.sub_populations
+    end
+
+    def hh_ctx
+      household_query_service.hh_ctx
+    end
+
+    def hoh_clause
+      household_query_service.hoh_clause
+    end
+
+    def hoh_or_spouse_clause
+      household_query_service.hoh_or_spouse_clause
+    end
+
+    def adult_or_hoh_clause
+      household_query_service.adult_or_hoh_clause
+    end
+
+    def chronic_household_clause
+      household_query_service.chronic_household_clause
+    end
+
+    def parenting_youth_clause
+      household_query_service.parenting_youth_clause
+    end
   end
 end

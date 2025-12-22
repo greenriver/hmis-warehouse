@@ -44,13 +44,12 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
     report
   end
 
-  def run_dq_question(report, question_class)
-    report.started_at ||= Time.current
-    report.save! if report.changed?
-
-    generator = HudApr::Generators::Dq::Fy2026::Generator.new(report)
-    question = question_class.new(generator, report)
-    question.run_question!
+  def run_dq_question(report, _question_class = nil)
+    Reporting::Hud::RunReportJob.new.perform(
+      'HudApr::Generators::Dq::Fy2026::Generator',
+      report.id,
+      email: false,
+    )
     report.reload
   end
 end

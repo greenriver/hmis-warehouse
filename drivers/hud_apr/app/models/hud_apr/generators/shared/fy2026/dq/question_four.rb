@@ -32,7 +32,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
         last_row: 5,
       }
       @report.answer(question: table_name).update(metadata: metadata)
-      universe_members = universe.members.where(engaged_clause)
+      universe_members = members.where(engaged_clause)
 
       # destinations
       leavers = universe_members.where(leavers_clause)

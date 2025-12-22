@@ -160,18 +160,18 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
 
         answer = @report.answer(question: table_name, cell: cell)
 
-        members = universe.members.where(inclusion_clause)
-        answer.add_members(members)
-        answer.update(summary: members.count)
+        members_query = members.where(inclusion_clause)
+        answer.add_members(members_query)
+        answer.update(summary: members_query.count)
 
         active_questions.each do |data|
           cell = "#{col}#{data[:row]}"
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.where(inclusion_clause).where(data[:clause])
-          answer.add_members(members)
-          answer.update(summary: members.count)
+          members_query = members.where(inclusion_clause).where(data[:clause])
+          answer.add_members(members_query)
+          answer.update(summary: members_query.count)
         end
       end
     end
