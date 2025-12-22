@@ -59,13 +59,13 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
   subject(:builder) { described_class.new(generator, report) }
 
-  describe '#build!' do
+  describe '#call' do
     it 'creates a context for each enrollment in the household' do
-      expect { builder.build! }.to change(HudReports::HouseholdContext, :count).by(2)
+      expect { builder.call }.to change(HudReports::HouseholdContext, :count).by(2)
     end
 
     it 'assigns correct household attributes' do
-      builder.build!
+      builder.call
       contexts = HudReports::HouseholdContext.where(household_id: 'HH123')
 
       expect(contexts.count).to eq(2)
@@ -74,7 +74,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
     end
 
     it 'identifies the Head of Household' do
-      builder.build!
+      builder.call
       hoh_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_hoh.id)
       child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
 
@@ -84,7 +84,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
     end
 
     it 'updates the report instance count' do
-      builder.build!
+      builder.call
       expect(report.reload.household_context_count).to eq(2)
     end
 
@@ -94,7 +94,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
 
       it 'clears previous contexts' do
-        expect { builder.build! }.to change(HudReports::HouseholdContext, :count).from(1).to(2)
+        expect { builder.call }.to change(HudReports::HouseholdContext, :count).from(1).to(2)
       end
     end
 
@@ -112,7 +112,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
 
       it 'passes chronic status from HoH to the child' do
-        builder.build!
+        builder.call
         child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
         expect(child_context.inherited_chronic_status).to be true
       end
@@ -134,7 +134,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
 
       it 'generates a synthetic ID using enrollment_group_id' do
-        described_class.new(generator_synthetic, report).build!
+        described_class.new(generator_synthetic, report).call
         expect(HudReports::HouseholdContext.last.household_id).to eq("#{hud_enrollment_hoh.EnrollmentID}*HH")
       end
     end
@@ -178,7 +178,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
 
       it 'identifies the HoH as a parenting youth' do
-        described_class.new(generator_youth, report).build!
+        described_class.new(generator_youth, report).call
         youth_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_youth.id)
         expect(youth_context.is_parenting_youth).to be true
       end

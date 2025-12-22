@@ -2,12 +2,16 @@
 
 module HudReports
   class HouseholdContextBuilder
+    def self.call(...)
+      new(...).call
+    end
+
     def initialize(generator, report)
       @generator = generator
       @report = report
     end
 
-    def build!
+    def call
       # Idempotency: clear existing context for this report run
       @report.household_contexts.delete_all
 
