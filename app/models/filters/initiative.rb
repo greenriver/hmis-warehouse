@@ -14,8 +14,8 @@ module Filters
     attribute :comparison_start, Date, lazy: true, default: ->(r, _) { r.default_comparison_start }
     attribute :comparison_end, Date, lazy: true, default: ->(r, _) { r.default_comparison_end }
     attribute :initiative_name, String, default: nil
-    attribute :project_ids, Array, default: []
-    attribute :project_group_ids, Array, default: []
+    attribute :project_ids, Array, default: [].freeze
+    attribute :project_group_ids, Array, default: [].freeze
     attribute :user
 
     validates_presence_of :initiative_name, :start, :end, :comparison_start, :comparison_end
