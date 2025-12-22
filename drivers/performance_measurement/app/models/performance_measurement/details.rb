@@ -812,7 +812,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People in RRH or PH with Move-in or Permanent Exit',
+          title: 'Percentage of People in PH except RRH with Move-in or Permanent Exit',
           goal_description: '**At least %{goal}%%** of persons remain housed in PH projects or exit to a permanent housing destination',
           goal_calculation: :destination_permanent,
           goal_description_brief: 'positive destinations',

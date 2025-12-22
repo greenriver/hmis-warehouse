@@ -261,7 +261,7 @@ module PerformanceMeasurement
           :rrh_average_bed_utilization, # Avg Bed Utilization
           :time_to_move_in_average, # Length of Time to Move-In
           :retention_or_positive_destinations, # % of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-In
-          :moved_in_positive_destinations, # Percentage of People in RRH or PH with Move-in or Permanent Exit
+          :moved_in_positive_destinations, # Percentage of People in PH except RRH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
           :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
           :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
@@ -282,7 +282,7 @@ module PerformanceMeasurement
         details: [
           :psh_average_bed_utilization, # Avg Bed Utilization
           :time_to_move_in_average, # Length of Time to Move-In
-          :retention_or_positive_destinations, # Percentage of People in RRH or PH with Move-in or Permanent Exit
+          :retention_or_positive_destinations, # Percentage of People in PH except RRH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
           :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
           :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
