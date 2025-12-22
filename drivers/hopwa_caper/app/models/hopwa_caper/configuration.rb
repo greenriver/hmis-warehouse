@@ -10,7 +10,10 @@ module HopwaCaper
   class Configuration
     # Feature flag for the ATC tab
     def atc_tab_enabled?
-      !!value_for(:atc_tab_enabled)
+      value = value_for(:atc_tab_enabled)
+      return false if value.nil?
+
+      ActiveModel::Type::Boolean.new.cast(value)
     end
 
     # Custom field names/identifiers for ATC questions

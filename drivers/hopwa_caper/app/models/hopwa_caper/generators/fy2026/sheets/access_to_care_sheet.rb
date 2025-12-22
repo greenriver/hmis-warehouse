@@ -12,6 +12,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
     QUESTION_NUMBERS = ['Q7'].freeze
     SHEET_TITLE = 'Access to Care (ATC)'
 
+    # Activities that count towards Housing Subsidy Assistance
+    HOUSING_SUBSIDY_ACTIVITIES = [:tbra, :pfbh, :st_tfbh, :strmu, :php, :other_competitive].freeze
+
     CONTENTS = [
       { method: :activity_review_section, label: 'Total Households Served in ALL Activities from this report for each Activity.' },
     ].freeze
@@ -74,7 +77,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # row 4
       sheet.append_row(label: 'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)') do |row|
-        count_with_duplicates = [:tbra, :strmu, :php].map { |type| housing_subsidy_households_for_activity(type).count }.sum
+        count_with_duplicates = HOUSING_SUBSIDY_ACTIVITIES.sum { |type| housing_subsidy_households_for_activity(type).count }
         row.append_cell_members(members: household_members(housing_subsidy_households), value: count_with_duplicates)
       end
 
@@ -205,6 +208,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
       when :pfbh, :st_tfbh
         # P-FBH and ST-TFBH may be part of TBRA or PHP - for now return empty scope
         @report.hopwa_caper_enrollments.none
+      when :other_competitive
+        other_competitive_households
       else
         raise ArgumentError, "invalid activity_type #{activity_type}"
       end
@@ -235,26 +240,23 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def all_housing_subsidy_households
-      tbra_ids = housing_subsidy_households_for_activity(:tbra).select(:report_household_id).distinct.pluck(:report_household_id)
-      strmu_ids = housing_subsidy_households_for_activity(:strmu).select(:report_household_id).distinct.pluck(:report_household_id)
-      php_ids = housing_subsidy_households_for_activity(:php).select(:report_household_id).distinct.pluck(:report_household_id)
-      other_ids = other_competitive_households.select(:report_household_id).distinct.pluck(:report_household_id)
+      household_ids = HOUSING_SUBSIDY_ACTIVITIES.flat_map do |activity_type|
+        housing_subsidy_households_for_activity(activity_type).
+          select(:report_household_id).
+          distinct.
+          pluck(:report_household_id)
+      end.uniq
 
-      all_household_ids = (tbra_ids + strmu_ids + php_ids + other_ids).uniq
-
-      @report.hopwa_caper_enrollments.where(report_household_id: all_household_ids)
+      @report.hopwa_caper_enrollments.where(report_household_id: household_ids)
     end
 
     def find_duplicated_households_across_activities
       # Collect household IDs from each activity type
-      activity_household_ids = [
-        housing_subsidy_households_for_activity(:tbra),
-        housing_subsidy_households_for_activity(:strmu),
-        housing_subsidy_households_for_activity(:php),
-        other_competitive_households,
-      ].compact.map { |scope| scope.pluck(:report_household_id) }
+      activity_household_ids = HOUSING_SUBSIDY_ACTIVITIES.map do |activity_type|
+        housing_subsidy_households_for_activity(activity_type).pluck(:report_household_id)
+      end
 
-      return @report.hopwa_caper_enrollments.none if activity_household_ids.empty?
+      return @report.hopwa_caper_enrollments.none if activity_household_ids.all?(&:empty?)
 
       # Find households appearing in multiple activity types
       duplicated_ids = activity_household_ids.
