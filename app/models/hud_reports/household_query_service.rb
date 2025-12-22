@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 module HudReports
+  # Provides a standardized interface for accessing pre-computed household attributes within HUD reports.
+  #
+  # This service joins the `hud_report_household_contexts` table into report queries, allowing
+  # complex population filtering (e.g., household types, chronic status inheritance) to be
+  # performed via SQL rather than expensive runtime Ruby calculations or memory-intensive global caches.
   class HouseholdQueryService
     attr_reader :hh_ctx
 
