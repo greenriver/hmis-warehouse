@@ -39,7 +39,7 @@ flowchart LR
 ## Creating a New Export
 1. **Subclass** `GrdaWarehouse::DocumentExport` (e.g., `GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport`).
 2. **Implement**:
-   - `authorized?` to gate downloads.
+   - `authorized?` to gate downloads. Note: Exports are NOT shareable between users
    - `perform` to build the file (Axlsx, PDF, etc.) and assign `filename`, `file_data`, and `mime_type`.
    - `download_title` (optional) for notification copy.
 3. **Register** the class in `DocumentExportsControllerBase#valid_document_export_classes`.

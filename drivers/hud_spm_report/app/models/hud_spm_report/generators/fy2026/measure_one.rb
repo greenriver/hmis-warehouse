@@ -9,6 +9,7 @@
 # HUD SPM Report Generator: Length of Time Persons Remain Homeless
 module HudSpmReport::Generators::Fy2026
   class MeasureOne < MeasureBase
+    # Universe: Episodes
     def self.question_number
       'Measure 1'
     end

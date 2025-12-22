@@ -1,0 +1,15 @@
+.row
+  .col-sm-8
+    - url = @requirement.persisted? ? admin_compliance_requirement_path(@requirement) : admin_compliance_requirements_path
+    = simple_form_for @requirement, url: url, as: :compliance_requirement do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :name, required: true, hint: 'Display name shown to users (e.g., "Terms of Service")'
+        = f.input :content_page_id, required: true, collection: GrdaWarehouse::ContentPage.ordered.pluck(:title, :id), label: 'Content Page', prompt: 'Select a content page...'
+        = f.input :expires_after_days, hint: 'Optional. If set, users must re-agree after this many days.', input_html: { min: 1, type: 'number' }
+        = f.input :revision, input_html: { min: 1, type: 'number' }, hint: 'Bump this number to force all users to re-agree to this requirement.'
+        = f.input :position, input_html: { type: 'number' }, hint: 'Order of display if multiple requirements (lower = first)'
+
+      .form-actions.mt-3
+        = f.button :submit, 'Save', class: 'btn btn-primary'
+        = link_to 'Cancel', admin_compliance_requirements_path, class: 'btn btn-secondary ml-2'
