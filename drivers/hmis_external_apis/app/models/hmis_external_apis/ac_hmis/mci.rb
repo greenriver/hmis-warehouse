@@ -40,8 +40,9 @@ module HmisExternalApis::AcHmis
     # Perform "clearance" to find potential matches for a client in MCI
     #
     # @param client [Hmis::Hud::Client] client, which may or may not be persisted
+    # @param minimum_score [Integer 1-100] minimum score to include a match in results. If excluded, all matches are returned.
     # @return [Array{HmisExternalApis::AcHmis::MciClearanceResult}]
-    def clearance(client)
+    def clearance(client, minimum_score: nil)
       payload = {
         **MciPayload.from_client(client).slice(
           'firstName',
@@ -61,19 +62,34 @@ module HmisExternalApis::AcHmis
       route = build_route('clearance')
       result = conn.post(route, payload).
         then { |r| handle_error(r) }
-      Rails.logger.info "Did clearance for client #{client.id}"
+
       return [] if result.http_status == 204
 
       result.parsed_body.map do |clearance_result|
         mci_id = clearance_result['mciId'].to_s
         score = clearance_result['score'].to_i
+        next if minimum_score.present? && score < minimum_score
+
+        # If response contains a MCI Unique ID, store in cache for 5 minutes
+        mci_unique_id = clearance_result['mciUniqueId']&.to_s
+        Rails.cache.write(mci_unique_id_cache_key(mci_id), mci_unique_id, expires_in: 5.minutes) if mci_unique_id.present?
+
         MciClearanceResult.new({
                                  mci_id: mci_id,
                                  score: score,
                                  client: MciPayload.build_client(clearance_result),
                                  existing_client_id: find_client_by_mci(mci_id)&.id,
                                })
-      end
+      end.compact
+    end
+
+    # Retrieve a cached MCI Unique ID for a given MCI ID. This was added as an optimization to try to associate
+    # newly cleared clients to existing MCI Unique IDs immediately when possible. (Rather than waiting for the next WarehouseChangesJob to run.)
+    #
+    # @param mci_id [String]
+    # @return [String, nil] associated MCI Unique ID from recent clearance response, if any.
+    def cached_mci_unique_id_for(mci_id:)
+      Rails.cache.read(mci_unique_id_cache_key(mci_id.to_s))
     end
 
     # Create a new MCI ID for a client
@@ -215,6 +231,10 @@ module HmisExternalApis::AcHmis
 
     def data_source
       @data_source ||= HmisExternalApis::AcHmis.data_source
+    end
+
+    def mci_unique_id_cache_key(mci_id)
+      "mci_id_to_mci_unique_id:#{mci_id}"
     end
   end
 end

@@ -240,12 +240,24 @@ module Hmis::Hud::Processors
       raise 'Invalid MCI ID' unless Float(value)
 
       # Initialize an ExternalID with this MCI ID
+      mci_cred = HmisExternalApis::AcHmis::Mci.new.creds
       client.update_mci_attributes = true
       client.external_ids << HmisExternalApis::ExternalId.new(
         value: value,
-        remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,
+        remote_credential: mci_cred,
         namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
       )
+
+      # Check cache to see if the selected MCI ID had an associated MCI Unique ID.
+      # If there is a cached value, and the client doesn't already have an MCI Unique ID, add it as an additional ExternalID.
+      mci_unique_id = HmisExternalApis::AcHmis::Mci.new.cached_mci_unique_id_for(mci_id: value.to_s)
+      if mci_unique_id.present? && !client.ac_hmis_mci_unique_id.present? # rubocop:disable Style/GuardClause
+        client.external_ids << HmisExternalApis::ExternalId.new(
+          value: mci_unique_id,
+          remote_credential: mci_cred, # MCI cred was used in this case, even though typically MCI Unique ID is associated with the DataWarehouseApi credential
+          namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE,
+        )
+      end
     end
   end
 end

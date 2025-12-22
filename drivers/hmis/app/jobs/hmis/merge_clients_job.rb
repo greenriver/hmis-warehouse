@@ -139,18 +139,22 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      # Create CustomClientName records for any Clients that don't have them
+      # Create CustomClientNames for any Clients who lack a CustomClientName matching the name fields on the client record.
+      # (Either they don't have any CustomClientName records, or the records have gotten out-of-sync)
       unpersisted_name_records = clients.map do |client|
-        next unless client.names.empty?
+        next if client.names.any? { |name| names_match?(client, name) }
 
         name = client.build_primary_custom_client_name
         name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
-        name.primary = client.id == client_to_retain.id
         name
       end.compact
 
       # Dedup and save the new name records
-      dedup_unpersisted(unpersisted_name_records).map(&:save!)
+      deduped_names = dedup_unpersisted(unpersisted_name_records)
+
+      # The import may result in some clients temporarily having more than one primary name.
+      # That's fine because when looping over names below, we ensure that the retained client post-merge has exactly one primary.
+      Hmis::Hud::CustomClientName.import!(deduped_names, validate: false, timestamps: false) if deduped_names.any?
 
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
@@ -166,11 +170,10 @@ module Hmis
 
       # Update all names to point to client_to_retain
       primary_found = false
-      client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
       name_scope.sort_by(&:id).each do |name|
-        custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
-        # consider this name "primary" it matches the name on the client_to_retain's Client record
-        primary = (client_val == custom_client_name_val) && !primary_found
+        # consider this name "primary" if it matches the name on the client_to_retain's Client record,
+        # which was already set to the chosen "best" name by update_oldest_client_with_merged_attributes
+        primary = names_match?(client_to_retain, name) && !primary_found
 
         name.client = client_to_retain
         name.primary = primary ? true : false
@@ -178,6 +181,12 @@ module Hmis
 
         primary_found = true if name.primary
       end
+
+      raise "Unexpected, we should have found a primary name for #{client_to_retain.id}" unless primary_found
+    end
+
+    private def names_match?(client, name)
+      [client.first_name, client.middle_name, client.last_name, client.name_suffix] == [name.first, name.middle, name.last, name.suffix]
     end
 
     def merge_custom_data_elements
