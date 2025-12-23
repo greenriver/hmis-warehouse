@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
@@ -90,8 +90,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CE_EVENT,
     :CE_ASSESSMENT,
     :CASE_NOTE,
-    :REFERRAL,
-    :REFERRAL_REQUEST,
+    :REFERRAL, # Deprecated: used to update status of external ReferralPostings (still in use while legacy referrals are worked through)
+    :REFERRAL_REQUEST, # Deprecated: was used to send Referral Requests to external Link system.
     :EXTERNAL_FORM,
   ].freeze
 
@@ -181,10 +181,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
+    # Deprecated: was used to send Referral Requests to external Link system.
     REFERRAL_REQUEST: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
       permission: :can_manage_incoming_referrals,
     },
+    # Deprecated: used to update status of external ReferralPostings (still in use while legacy referrals are worked through)
     REFERRAL: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralPosting',
       # Note: this permission should be checked against the project that is _sending_ the referral,
@@ -313,9 +315,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
-  RETIRED = 'retired'.freeze
-  PUBLISHED = 'published'.freeze
-  DRAFT = 'draft'.freeze
+  RETIRED = 'retired'
+  PUBLISHED = 'published'
+  DRAFT = 'draft'
   STATUSES = [RETIRED, PUBLISHED, DRAFT].freeze
   validates :status, inclusion: {
     in: STATUSES,

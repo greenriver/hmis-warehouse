@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module BostonProjectScorecard
   module TotalScore
     extend ActiveSupport::Concern
@@ -11,6 +13,7 @@ module BostonProjectScorecard
       def project_performance_score
         [
           rrh_exits_to_ph_score, # max 12 (incompatible with psh_stayers_or_to_ph_score)
+          returns_to_homelessness_score, # max 12
           psh_stayers_or_to_ph_score, # max 12 (incompatible with rrh_exits_to_ph_score)
           increased_employment_income_score, # max 12
           increased_other_income_score, # max 12
@@ -21,14 +24,14 @@ module BostonProjectScorecard
       end
 
       def project_performance_available
-        max = 57
+        max = 69
         max -= 24 unless rrh? || psh?
 
         max
       end
 
       def project_performance_weight
-        38
+        50
       end
 
       def project_performance_weighted_score
@@ -48,7 +51,7 @@ module BostonProjectScorecard
       end
 
       def data_quality_weight
-        12
+        5
       end
 
       def data_quality_weighted_score
@@ -70,7 +73,7 @@ module BostonProjectScorecard
       end
 
       def financial_performance_weight
-        29
+        20
       end
 
       def financial_performance_weighted_score
@@ -81,42 +84,21 @@ module BostonProjectScorecard
         [
           project_type_score,
           subpopulations_served_score,
-          practices_housing_first_score,
-          vulnerable_subpopulations_served_score,
-        ].compact.sum + racial_equity_score
+          substance_use_treatment_service_score,
+          supportive_services_score,
+        ].compact.sum
       end
 
       def policy_alignment_available
-        24 + racial_equity_available
+        28
       end
 
       def policy_alignment_weight
-        21
+        25
       end
 
       def policy_alignment_weighted_score
         ((policy_alignment_score / policy_alignment_available.to_f) * policy_alignment_weight).round(2)
-      end
-
-      def racial_equity_score
-        [
-          barrier_id_process_score,
-          plan_to_address_barriers_score,
-        ].compact.sum
-      end
-
-      def racial_equity_available
-        8
-      end
-
-      def racial_equity_weight
-        # Not used, as currently rolled into Policy Alignment
-        0
-      end
-
-      def racial_equity_weighted_score
-        # Not used, as currently rolled into Policy Alignment
-        ((racial_equity_score / racial_equity_available.to_f) * racial_equity_weight).round(2)
       end
 
       def total_score_score
@@ -125,7 +107,6 @@ module BostonProjectScorecard
           data_quality_score,
           financial_performance_score,
           policy_alignment_score,
-          # racial_equity_score, # Rolled into Policy Alignment
         ].compact.sum
       end
 
@@ -135,7 +116,6 @@ module BostonProjectScorecard
           data_quality_available,
           financial_performance_available,
           policy_alignment_available,
-          # racial_equity_available, # Rolled into Policy Alignment
         ].compact.sum
       end
 
@@ -145,7 +125,6 @@ module BostonProjectScorecard
           data_quality_weight,
           financial_performance_weight,
           policy_alignment_weight,
-          # racial_equity_weight, # Rolled into Policy Alignment
         ].compact.sum
       end
 
@@ -155,7 +134,6 @@ module BostonProjectScorecard
           data_quality_weighted_score,
           financial_performance_weighted_score,
           policy_alignment_weighted_score,
-          # racial_equity_weighted_score, # Rolled into Policy Alignment
         ].compact.sum.round(2)
       end
     end

@@ -127,7 +127,7 @@ module HudSpmReport::Fy2026
     end
 
     def project_id
-      enrollment.project.id
+      enrollment&.project&.id
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
@@ -203,6 +203,21 @@ module HudSpmReport::Fy2026
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
+    end
+
+    def self.pluck_project_ids
+      project_table = GrdaWarehouse::Hud::Project.arel_table
+      joins(enrollment: :project).distinct.pluck(project_table[:id])
+    end
+
+    def self.search_columns
+      table = arel_table
+      [
+        table[:first_name],
+        table[:last_name],
+        table[:personal_id],
+        Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
+      ]
     end
 
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)

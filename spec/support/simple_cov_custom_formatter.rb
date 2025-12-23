@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # emits csv coverage report and rollups for areas of concern
 require 'csv'
 

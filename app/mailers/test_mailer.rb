@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # bundle exec rails runner 'TestMailer.ping("somebody@greenriver.com").deliver_now'
 # bundle exec rails runner 'TestMailer.ping("bounce@simulator.amazonses.com").deliver_now'
 # bundle exec rails runner 'TestMailer.ping("complaint@simulator.amazonses.com").deliver_now'

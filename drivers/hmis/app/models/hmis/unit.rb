@@ -14,6 +14,8 @@
 # It may represent a unit of housing, a shelter bed, a shelter room, a voucher, a unit of service capacity, etc.
 # Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
 # Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
+#
+# @see docs/features/hmis_units.md For detailed documentation on units, unit occupancy workflows, and CE referrals
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   acts_as_paranoid
@@ -160,6 +162,31 @@ class Hmis::Unit < Hmis::HmisBase
 
   def to_pick_list_option
     { code: id, label: display_name }
+  end
+
+  # Build an unsaved CE Opportunity for this unit
+  def build_ce_opportunity(rule_resolver: Hmis::Ce::Match::UnitGroupRuleResolver.new)
+    raise 'Unit already has an active opportunity' if latest_opportunity&.active?
+    raise 'Unit must be in a Unit Group to build CE opportunity' unless unit_group
+    raise 'Unit Group has no Workflow Template' unless unit_group.any_workflow_template?
+
+    unit_desc = unit_type&.description
+    opportunity_name = "Unit #{id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
+
+    rules = rule_resolver.rules_for_unit_group(unit_group)
+
+    opportunities.build(
+      project: project,
+      name: opportunity_name,
+      # The unit group may or may not have a candidate_pool_id.
+      # - Unit groups in projects supporting waitlist-based referrals will have an associated candidate pool, once processing has run.
+      #   This includes unit groups that *don't* support waitlist-based referrals because they only have a Direct Referral Workflow Template.
+      # - Unit groups in projects only supporting direct referrals typically do not have an associated candidate pool,
+      #   but they may have one left over if they used to support waitlists.
+      # TODO(#8555) - update comment if this behavior changes
+      candidate_pool_id: unit_group.candidate_pool_id,
+      assignment_rules: rules.map(&:attributes),
+    )
   end
 
   private

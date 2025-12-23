@@ -5,7 +5,6 @@ require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::Ce::CustomReferralStatus, type: :model do
   include_context 'hmis base setup'
-  include_context 'with paper trail'
 
   let(:build_record) do
     -> { create(:hmis_ce_custom_referral_status, data_source: ds1) }

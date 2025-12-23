@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 # You'll need `docker-compose up -d sftp` before this will work
 RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do

@@ -9,8 +9,8 @@
 require 'rails_helper'
 require_relative './shared_context'
 
-RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model do
-  include_context 'SPM test setup'
+RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclude_fixpoints: true do
+  include_context '2026 SPM test setup'
 
   let(:hdx_columns) do
     # HudSpmReport::Generators::Fy2026::HdxUpload::COLUMNS changed structure. This is the old definition which is left
@@ -242,6 +242,13 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model do
         # The HDX value should match what's in the source cell
         expect(hdx_value).to eq(source_value&.to_f || 0)
       end
+    end
+
+    it 'exports measure 1 metrics with expected values' do
+      expect(@report.answer(question: '1a', cell: :B2).summary.to_i).to eq(2)
+      expect(@report.answer(question: 'csv', cell: 'L2').summary).to eq(2.0)
+      expect(@report.answer(question: 'csv', cell: 'M2').summary).to eq(75.5)
+      expect(@report.answer(question: 'csv', cell: 'N2').summary).to eq(75.5)
     end
 
     # Test Data Quality Report fields are populated

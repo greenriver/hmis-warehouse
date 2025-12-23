@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateMhxExternalIds < ActiveRecord::Migration[6.1]
   def change
     create_table :mhx_external_ids do |t|

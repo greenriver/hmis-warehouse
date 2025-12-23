@@ -89,8 +89,6 @@ module Mutations
         # Perform any side effects
         perform_side_effects(record)
         case record
-        when HmisExternalApis::AcHmis::ReferralRequest
-          HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
           enrollment = record
           # Enrollment form may create or update client, so we need to save that
@@ -181,7 +179,8 @@ module Mutations
         end
         [enrollment, service]
       when 'HmisExternalApis::AcHmis::ReferralRequest'
-        [project, klass.new({ project_id: project&.id })]
+        # DEPRECATED: ReferralRequest creation is no longer supported via form submission.
+        raise 'ReferralRequest form submission is no longer supported'
       when 'HmisExternalApis::AcHmis::ReferralPosting'
         # Look up the receiving project without `viewable_by` scope, since referrer may not have access to receiving project
         receiving_project = Hmis::Hud::Project.find_by(id: input.project_id)

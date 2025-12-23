@@ -73,6 +73,9 @@ module Importing
       end
 
       run_maintenance_task('Generate service history and related records') do
+        # Purge service history for deleted data sources before generating new records
+        GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call
+
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments
@@ -188,6 +191,7 @@ module Importing
 
         create_statistical_matches
         generate_logging_info
+        shs_debugging_counts
       end
     end
 
@@ -302,6 +306,23 @@ module Importing
 
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
       @notifier.ping('Pushed Clients to CAS')
+    end
+
+    def shs_debugging_counts
+      counts = GrdaWarehouse::ServiceHistoryService.
+        where(project_type: 0, date: 10.days.ago.to_date..).
+        order(:date).
+        group(:date).
+        count
+
+      message = [
+        'Service History Service counts for the last 10 days (ES Entry/Exit only):',
+        '```',
+        'Date                 Count',
+        *counts.map { |date, count| format('%-20s %s', date.to_fs(:db), count) },
+        '```',
+      ].join("\n")
+      @notifier.ping(message)
     end
   end
 end

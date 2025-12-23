@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MaReports::CsgEngage
   class ProgramMapping < GrdaWarehouseBase
     self.table_name = :csg_engage_program_mappings

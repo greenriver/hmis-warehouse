@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Filters
   class Chronic < ::ModelForm
     attribute :on, Date, default: ->(_r, _) { GrdaWarehouse::Chronic.most_recent_day }

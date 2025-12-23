@@ -56,26 +56,11 @@ module Admin
 
     def entities
       @modal_size = :lg
-      @entities = case params[:entities]&.to_sym
-      when :data_sources
-        @data_sources
-      when :organizations
-        @organizations
-      when :projects
-        @projects
-      when :project_access_groups
-        @project_access_groups
-      when :coc_codes
-        @coc_codes
-      when :reports
-        @reports
-      when :cohorts
-        @cohorts
-      when :supplemental_data_sets
-        @supplemental_data_sets
-      when :project_groups
-        @project_groups
-      end
+      entity_key = params[:entities]&.to_sym
+      config = Admin::Collections::CONFIG[entity_key]
+      raise ArgumentError, "Unknown entity type: #{entity_key.inspect}" unless config
+
+      @entities = build_entity_config(config)
     end
 
     def bulk_entities
@@ -144,143 +129,36 @@ module Admin
     end
 
     private def set_entities
-      @data_sources = {
-        selected: @collection&.data_sources&.map(&:id) || [],
-        label: 'Data Sources',
-        collection: GrdaWarehouse::DataSource.source.order(:name),
-        placeholder: 'Data Source',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jDataSources',
-          name: 'collection[data_sources][]',
-        },
-      }
+      # Build entity configs using the configuration structure
+      Admin::Collections::CONFIG.each do |key, config|
+        instance_variable_set("@#{key}", build_entity_config(config))
+      end
 
-      @organizations = {
-        as: :grouped_select,
-        group_method: :last,
-        selected: @collection&.organizations&.map(&:id) || [],
-        collection: GrdaWarehouse::Hud::Organization.
-          order(:name).
-          preload(:data_source).
-          group_by { |o| o.data_source&.name },
-        label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
-        placeholder: 'Organization',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jOrganizations',
-          name: 'collection[organizations][]',
-        },
-      }
+      # Legacy support for entity types not yet migrated
+      @cocs = @coc_codes
+    end
 
-      @projects = {
-        as: :grouped_select,
-        group_method: :last,
-        selected: @collection&.projects&.map(&:id) || [],
-        collection: GrdaWarehouse::Hud::Project.
-          order(:name).
-          preload(:organization, :data_source).
-          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
-        label_method: ->(project) { project.name(ignore_confidential_status: true) },
-        placeholder: 'Project',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jProjects',
-          name: 'collection[projects][]',
-        },
-      }
+    private def build_entity_config(config)
+      input_html_data = if config.input_html_data.is_a?(Proc)
+        config.input_html_data.call
+      else
+        config.input_html_data || {}
+      end
 
-      @project_access_groups = {
-        selected: @collection&.project_access_groups&.map(&:id) || [],
-        collection: GrdaWarehouse::ProjectAccessGroup.order(:name),
-        id: :project_access_groups,
-        placeholder: 'Project Group',
+      {
+        selected: config.selected_ids(@collection),
+        collection: config.collection_for(@collection),
+        placeholder: config.placeholder,
         multiple: true,
         input_html: {
-          class: 'jUserViewable jProjectAccessGroups',
-          name: 'collection[project_access_groups][]',
-        },
-      }
-
-      @cocs = {
-        label: 'CoC Codes',
-        selected: @collection&.coc_codes&.map(&:id) || [],
-        collection: GrdaWarehouse::Lookups::CocCode.joins(:project_cocs).distinct.order(:coc_code),
-        placeholder: 'CoC',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jCocCodes',
-          name: 'collection[coc_codes][]',
-        },
-      }
-
-      @coc_codes = {
-        label: 'CoC Codes',
-        selected: @collection&.coc_codes&.map(&:id) || [],
-        collection: GrdaWarehouse::Lookups::CocCode.joins(:project_cocs).distinct.order(:coc_code),
-        placeholder: 'CoC',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jCocCodes',
-          name: 'collection[coc_codes][]',
-        },
-      }
-
-      reports_scope = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
-      @reports = {
-        selected: @collection&.reports&.map(&:id) | [],
-        collection: reports_scope.
-          order(:report_group, :name).map do |rd|
-            ["#{rd.report_group}: #{rd.name}", rd.id]
-          end,
-        placeholder: 'Report',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jReports',
-          name: 'collection[reports][]',
-          data: {
-            unlimitable: reports_scope.
-              where(limitable: false).
-              pluck(:id).
-              to_json,
-          },
-        },
-      }
-
-      @project_groups = {
-        selected: @collection&.project_groups&.map(&:id) || [],
-        collection: GrdaWarehouse::ProjectGroup.order(:name),
-        placeholder: 'Project Group',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jProjectCollections',
-          name: 'collection[project_groups][]',
-        },
-      }
-
-      @cohorts = {
-        selected: @collection&.cohorts&.map(&:id) || [],
-        collection: GrdaWarehouse::Cohort.
-          active.
-          order(:name),
-        placeholder: 'Cohort',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jCohorts',
-          name: 'collection[cohorts][]',
-        },
-      }
-
-      @supplemental_data_sets = {
-        selected: @collection&.supplemental_data_sets&.map(&:id) || [],
-        collection: HmisSupplemental::DataSet.order(:name, :id),
-        placeholder: 'Supplemental Data Set',
-        multiple: true,
-        input_html: {
-          class: 'jUserViewable jSupplementalDataSets',
-          name: 'collection[supplemental_data_sets][]',
-        },
-      }
+          class: config.css_class,
+          name: "collection[#{config.key}][]",
+        }.merge(input_html_data),
+      }.tap do |entity_config|
+        entity_config[:as] = config.form_as if config.form_as
+        entity_config[:group_method] = config.form_group_method if config.form_group_method
+        entity_config[:label_method] = config.name_method if config.name_method.is_a?(Proc) && config.form_as == :grouped_select
+      end
     end
   end
 end

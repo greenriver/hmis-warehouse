@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :inbound_api_configuration, class: 'HmisExternalApis::InboundApiConfiguration' do
     internal_system

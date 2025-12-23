@@ -16,9 +16,9 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1) }
   let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: client) }
 
-  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
-  let!(:unit) { create(:hmis_unit, unit_group: unit_group, project: project) }
-  let!(:target_opportunity) { create(:hmis_ce_opportunity, project: project, unit: unit) }
+  # Override the referral from ce_spec_helper.rb to prevent it from being created in the database
+  # This test creates its own referral via the mutation instead
+  let!(:referral) { nil }
 
   let!(:target_project_ce_config) { create(:hmis_project_ce_config, project: project, receives_direct_referrals: true) }
 
@@ -141,6 +141,29 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
           referral_data = result.dig('data', 'createDirectCeReferral', 'referral')
           expect(referral_data).to be_nil
         end.not_to change(Hmis::Ce::Referral, :count)
+      end
+    end
+
+    context 'when form validation fails' do
+      before do
+        fake_errors = HmisErrors::Errors.new
+        fake_errors.add(:base, :invalid, full_message: 'fake error')
+        allow_any_instance_of(Hmis::WorkflowExecution::Engine).to receive(:validate_step).and_return(fake_errors.errors)
+      end
+
+      it 'does not create a referral and returns errors' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+
+          errors = result.dig('data', 'createDirectCeReferral', 'errors')
+          expect(errors).to be_present
+          expect(errors.first['fullMessage']).to include('fake error')
+
+          referral_data = result.dig('data', 'createDirectCeReferral', 'referral')
+          expect(referral_data).to be_nil
+        end.to not_change(Hmis::Ce::Referral, :count).
+          and not_change(Hmis::WorkflowExecution::Instance, :count)
       end
     end
 

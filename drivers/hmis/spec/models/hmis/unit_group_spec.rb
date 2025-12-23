@@ -4,6 +4,7 @@ require 'rails_helper'
 require_relative '../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::UnitGroup, type: :model do
+  include_context 'hmis base setup'
   let!(:project) { create(:hmis_hud_project) }
   let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: nil, direct_referral_workflow_template: nil) }
 

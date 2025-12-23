@@ -105,7 +105,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           expect_gql_error(
             post_graphql(**variables) { mutation },
-            message: 'Unit must be in a Unit Group to be marked available',
+            message: /Unit must be in a Unit Group/,
           )
         end.to not_change(Hmis::Ce::Opportunity, :count)
       end
@@ -132,7 +132,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit has an in-progress referral' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
       it 'does not create a new opportunity' do
@@ -149,7 +149,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
     context 'when unit was marked available in the past, and opportunity was filled' do
       let!(:pool) { create(:hmis_ce_match_candidate_pool) }
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, created_at: 2.years.ago, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       before do
@@ -248,7 +248,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         end
 
         context 'and other unit already has opportunity' do
-          let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
+          let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
           # 3 vacant units - 1 already marked available (has open opportunity) - 2 assigned postings = 0 units can be marked available
 
           it 'raises an error when trying to mark too many units' do

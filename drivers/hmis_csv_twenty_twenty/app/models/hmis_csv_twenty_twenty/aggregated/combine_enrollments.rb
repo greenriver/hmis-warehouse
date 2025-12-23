@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwenty::Aggregated
   class CombineEnrollments < Base
     INSERT_BATCH_SIZE = 2_000

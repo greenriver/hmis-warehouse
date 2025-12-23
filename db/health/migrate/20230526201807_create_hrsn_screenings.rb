@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateHrsnScreenings < ActiveRecord::Migration[6.1]
   def change
     create_table :hrsn_screenings do |t|

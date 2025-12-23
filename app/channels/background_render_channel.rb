@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class BackgroundRenderChannel < ApplicationCable::Channel
   def subscribed
     stream_from self.class.stream_name(params[:id])

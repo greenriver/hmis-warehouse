@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class AdHocDataSourcesController < ApplicationController
   before_action :require_can_manage_some_ad_hoc_ds!
   before_action :set_data_source, only: [:show, :update, :edit, :destroy]

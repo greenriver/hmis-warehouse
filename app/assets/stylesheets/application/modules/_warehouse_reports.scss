@@ -331,6 +331,10 @@
     background-color: var(--brand-success-lll);
   }
 
+  &.warning {
+    background-color: var(--brand-warning-lll);
+  }
+
   &.danger {
     background-color: var(--brand-danger-lll);
   }

@@ -27,6 +27,7 @@ RSpec.describe PerformanceMeasurement::WarehouseReports::GoalConfigsController, 
           always_run_for_coc: true,
           equity_analysis_visible: true,
           provider_comparisons_visible: true,
+          approaching_threshold_percent: 7,
         },
       }
 
@@ -34,6 +35,7 @@ RSpec.describe PerformanceMeasurement::WarehouseReports::GoalConfigsController, 
       expect(default_goal.always_run_for_coc).to be(true)
       expect(default_goal.equity_analysis_visible).to be(true)
       expect(default_goal.provider_comparisons_visible).to be(true)
+      expect(default_goal.approaching_threshold_percent).to eq(7)
       expect(response).to redirect_to(performance_measurement_warehouse_reports_goal_configs_path)
     end
   end

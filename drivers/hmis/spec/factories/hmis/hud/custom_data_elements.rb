@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_custom_data_element_definition, class: 'Hmis::Hud::CustomDataElementDefinition' do
     owner_type { 'Hmis::Hud::Project' }

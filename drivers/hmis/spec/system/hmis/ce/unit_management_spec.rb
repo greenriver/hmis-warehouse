@@ -73,7 +73,6 @@ RSpec.feature 'CE Unit Management', type: :system do
 
     click_button 'Add Units'
     fill_in 'Number of Units to Add', with: '2'
-    mui_select 'SRO', from: 'Unit Type'
     all('button', text: 'Add Units').last.click
 
     table = find('table')

@@ -34,6 +34,7 @@ module Types
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
+    field :stale, Boolean, null: false
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -71,6 +72,10 @@ module Types
       # Permission logic lives on the viewable_by scope, so just reuse that here
       # (even though this field doesn't need to be resolved in batch)
       load_ar_scope(scope: Hmis::Ce::Referral.viewable_by(current_user), id: referral.id)
+    end
+
+    def project_id
+      load_ar_association(object, :project).id
     end
 
     def project_name

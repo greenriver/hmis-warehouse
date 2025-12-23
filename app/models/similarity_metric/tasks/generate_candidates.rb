@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SimilarityMetric::Tasks
   class GenerateCandidates
    def initialize batch_size:10000, threshold:-1.45, run_length:240

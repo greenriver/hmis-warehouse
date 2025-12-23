@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Api::Health::Claims
   class AmountPaidController < BaseController
     include ArelHelper
@@ -21,7 +23,7 @@ module Api::Health::Claims
           nf('SUM', [a_t[:rx]]).to_sql,
           nf('SUM', [a_t[:other]]).to_sql,
           nf('SUM', [a_t[:total]]).to_sql,
-        ).map do |year, month, ip, emerg, respite, op, rx, other, total| # rubocop:disable Metrics/ParameterLists
+        ).map do |year, month, ip, emerg, respite, op, rx, other, total|
           {
             date: "#{year}-#{month}-01",
             ip: ip,

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
@@ -895,7 +897,7 @@ module Health
     has_one :health_file, class_name: 'Health::ComprehensiveHealthAssessmentFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
-    enum status: { not_started: 0, in_progress: 1, complete: 2 }
+    enum :status, { not_started: 0, in_progress: 1, complete: 2 }
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
@@ -970,7 +972,7 @@ module Health
     def complete?
       completed_at.present?
     end
-    alias completed? complete?
+    alias_method :completed?, :complete?
 
     def reviewed?
       reviewed_at.present?
@@ -995,7 +997,7 @@ module Health
     end
 
     private def set_answers
-      hash = answers.dup
+      hash = answers.dup.with_indifferent_access
       QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
         section_code  = section_question.to_s.upcase.split('_').first
         section       = Translation.translate("CHA #{section_code}_TITLE")
@@ -1010,25 +1012,28 @@ module Health
             question_header = Translation.translate("CHA #{code}_HEADER")
           end
         end
-        hash[section_code] ||= {}
+        hash[section_code] ||= {}.with_indifferent_access
         hash[section_code][:title] = section
         hash[section_code][:subtitle] = section_subtitle
-        hash[section_code][:answers] ||= {}
-        hash[section_code][:answers][section_question] ||= {}
+        hash[section_code][:answers] ||= {}.with_indifferent_access
+        hash[section_code][:answers][section_question] ||= {}.with_indifferent_access
         hash[section_code][:answers][section_question][:question] ||= question
         value = send(section_question)
         hash[section_code][:answers][section_question][:answer] = value if value
         hash[section_code][:answers][section_question][:header] = question_header
         hash[section_code][:answers][section_question][:sub_header] = question_sub_header
       end
+      hash['A'][:answers][:a_q1] ||= {}.with_indifferent_access
       hash['A'][:answers][:a_q1][:answer] = patient.client&.name
+      hash['A'][:answers][:a_q3] ||= {}.with_indifferent_access
       hash['A'][:answers][:a_q3][:answer] ||= patient.client&.DOB
+      hash['A'][:answers][:a_q5c] ||= {}.with_indifferent_access
       hash['A'][:answers][:a_q5c][:answer] = patient.medicaid_id
       self.answers = hash
     end
 
     def answers
-      super || {}
+      (super || {}).with_indifferent_access
     end
 
     def answer question_code

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class CollectionRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtonsInput
   def input(wrapper_options = nil)
     if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true

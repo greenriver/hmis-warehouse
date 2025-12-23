@@ -255,4 +255,28 @@ class NotifyUser < DatabaseMailer
 
     mail(to: @user.email, subject: 'You have received a Secure File')
   end
+
+  def metric_threshold_crossed(user_id:, alert_code:, crossings:, calculation_date:)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    @crossings = crossings
+    @calculation_date = calculation_date
+    @alert_code = alert_code
+
+    # Build mapping of metric display names to metric definition IDs
+    @metric_definition_ids = {}
+    crossings.each_key do |metric_name|
+      metric_def = GrdaWarehouse::Monitoring::MetricDefinition.active.find_by(
+        display_name: metric_name,
+      )
+      # Verify the alert_code matches (safety check)
+      @metric_definition_ids[metric_name] = metric_def.id if metric_def && metric_def.alert_code == alert_code
+    end
+
+    alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
+    subject = alert_definition&.email_subject || 'Threshold Monitoring: Threshold Crossed'
+
+    mail(to: @user.email, subject: subject)
+  end
 end

@@ -10,7 +10,7 @@
 
 require 'memery'
 
-# See ./README_FOR_IDENTIFY_DUPLICATES.md for documentation
+# @see docs/features/identify_duplicates.md
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper
@@ -267,9 +267,87 @@ module GrdaWarehouse::Tasks
     # where the SSN is valid and matches.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_ssn_matches
-      # Use a CTE to find potential matches based on multiple criteria
-      # This keeps the heavy lifting in the database
+    def exact_ssn_matches(legacy: true)
+      return exact_ssn_matches_legacy if legacy
+
+      IdentifyDuplicatesQueryMatcher.for_ssn_matches(match_type: :existing).execute
+    end
+
+    # Finds pairs of destination client IDs with exact normalized name matches among source clients.
+    # Uses a CTE to compare all source clients and returns pairs of destination IDs
+    # where the normalized (lowercased, stripped, unaccented) first and last names match.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
+    def exact_name_matches(legacy: true)
+      return exact_name_matches_legacy if legacy
+
+      IdentifyDuplicatesQueryMatcher.for_name_matches(match_type: :existing).execute
+    end
+
+    # Finds pairs of destination client IDs with exact date of birth matches among source clients.
+    # Uses a CTE to compare all source clients and returns pairs of destination IDs
+    # where the DOB is present, after 1920, and matches.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
+    def exact_dob_matches(legacy: true)
+      return exact_dob_matches_legacy if legacy
+
+      IdentifyDuplicatesQueryMatcher.for_dob_matches(match_type: :existing).execute
+    end
+
+    # Finds pairs of destination and unprocessed source client IDs with exact SSN matches.
+    # Expands the search to any client, even those without a warehouse_client record.
+    # Only returns pairs where the SSN is valid and matches.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
+    def exact_ssn_matches_for_unprocessed(legacy: true)
+      return [] if unprocessed_ids.blank?
+
+      return exact_ssn_matches_for_unprocessed_legacy if legacy
+
+      IdentifyDuplicatesQueryMatcher.for_ssn_matches(
+        match_type: :unprocessed,
+        destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
+        unprocessed_ids: unprocessed_ids,
+      ).execute
+    end
+
+    # Finds pairs of destination and unprocessed source client IDs with exact normalized name matches.
+    # Expands the search to any client, even those without a warehouse_client record.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
+    def exact_name_matches_for_unprocessed(legacy: true)
+      return [] if unprocessed_ids.blank?
+
+      return exact_name_matches_for_unprocessed_legacy if legacy
+
+      IdentifyDuplicatesQueryMatcher.for_name_matches(
+        match_type: :unprocessed,
+        destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
+        unprocessed_ids: unprocessed_ids,
+      ).execute
+    end
+
+    # Finds pairs of destination and unprocessed source client IDs with exact date of birth matches.
+    # Expands the search to any client, even those without a warehouse_client record.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
+    def exact_dob_matches_for_unprocessed(legacy: true)
+      return [] if unprocessed_ids.blank?
+
+      return exact_dob_matches_for_unprocessed_legacy if legacy
+
+      IdentifyDuplicatesQueryMatcher.for_dob_matches(
+        match_type: :unprocessed,
+        destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
+        unprocessed_ids: unprocessed_ids,
+      ).execute
+    end
+
+    private
+
+    # TODO: remove after QA of #8391
+    def exact_ssn_matches_legacy
       limits = <<-SQL
         "Client" as clients
         inner join warehouse_clients on clients.id = warehouse_clients.source_id
@@ -318,12 +396,8 @@ module GrdaWarehouse::Tasks
         uniq
     end
 
-    # Finds pairs of destination client IDs with exact normalized name matches among source clients.
-    # Uses a CTE to compare all source clients and returns pairs of destination IDs
-    # where the normalized (lowercased, stripped, unaccented) first and last names match.
-    #
-    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_name_matches
+    # TODO: remove after QA of #8391
+    def exact_name_matches_legacy
       limits = <<-SQL
         "Client" as clients
         inner join warehouse_clients on clients.id = warehouse_clients.source_id
@@ -360,12 +434,8 @@ module GrdaWarehouse::Tasks
       results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
     end
 
-    # Finds pairs of destination client IDs with exact date of birth matches among source clients.
-    # Uses a CTE to compare all source clients and returns pairs of destination IDs
-    # where the DOB is present, after 1920, and matches.
-    #
-    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_dob_matches
+    # TODO: remove after QA of #8391
+    def exact_dob_matches_legacy
       limits = <<-SQL
         "Client" as clients
           inner join warehouse_clients on clients.id = warehouse_clients.source_id
@@ -399,14 +469,8 @@ module GrdaWarehouse::Tasks
       results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
     end
 
-    # Finds pairs of destination and unprocessed source client IDs with exact SSN matches.
-    # Expands the search to any client, even those without a warehouse_client record.
-    # Only returns pairs where the SSN is valid and matches.
-    #
-    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
-    def exact_ssn_matches_for_unprocessed
-      # Use a CTE to find potential matches based on multiple criteria
-      # This keeps the heavy lifting in the database
+    # TODO: remove after QA of #8391
+    def exact_ssn_matches_for_unprocessed_legacy
       limits = <<-SQL
         where clients."DateDeleted" is NULL
         -- ignore blanks and some obvious known ssns
@@ -456,11 +520,8 @@ module GrdaWarehouse::Tasks
         uniq
     end
 
-    # Finds pairs of destination and unprocessed source client IDs with exact normalized name matches.
-    # Expands the search to any client, even those without a warehouse_client record.
-    #
-    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
-    def exact_name_matches_for_unprocessed
+    # TODO: remove after QA of #8391
+    def exact_name_matches_for_unprocessed_legacy
       limits = <<-SQL
         where clients."DateDeleted" is NULL
         and (clients."FirstName" is not null and trim(clients."FirstName") != ''
@@ -498,11 +559,8 @@ module GrdaWarehouse::Tasks
       results.map { |r| [r['destination_client_id'], r['source_client_id']] }
     end
 
-    # Finds pairs of destination and unprocessed source client IDs with exact date of birth matches.
-    # Expands the search to any client, even those without a warehouse_client record.
-    #
-    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
-    def exact_dob_matches_for_unprocessed
+    # TODO: remove after QA of #8391
+    def exact_dob_matches_for_unprocessed_legacy
       limits = <<-SQL
         where clients."DateDeleted" is NULL
         and clients."DOB" is not null
@@ -544,7 +602,8 @@ module GrdaWarehouse::Tasks
     # @note Only returns matches if auto deduplication is enabled in config
     # @note Filters out any previously split client pairs
     # @note Checks source client counts to avoid exceeding limits
-    private def find_merge_candidates_for_match_existing
+    # Public for testing purposes; this method is part of the internal implementation.
+    def find_merge_candidates_for_match_existing
       # Never return obvious matches if auto deduplication is disabled
       unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
         Rails.logger.info 'Auto deduplication disabled, returning empty set'

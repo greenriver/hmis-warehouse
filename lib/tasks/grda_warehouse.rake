@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 namespace :grda_warehouse do
   def self.safely_execute(&block)
@@ -432,6 +432,13 @@ namespace :grda_warehouse do
       end
     end
 
+    # Collect threshold monitoring data daily
+    if DateTime.current.hour == GrdaWarehouse::Monitoring::MetricDefinition::COLLECTION_HOUR
+      safely_execute do
+        CollectClientMetricsJob.perform_later
+      end
+    end
+
     # This should be very fast, no need to background
     if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
       safely_execute do
@@ -599,5 +606,29 @@ namespace :grda_warehouse do
   task :remove_water_from_shapes, [] => [:environment] do
     installer = GrdaWarehouse::Shape::Installer.new
     installer.remove_all_water!
+  end
+
+  desc 'Clean up orphaned contacts (contacts whose entities have been deleted)'
+  task :clean_orphaned_contacts, [] => [:environment, 'log:info_to_stdout'] do
+    project_contact_ids = GrdaWarehouse::Contact::Project.
+      where.not(entity_id: GrdaWarehouse::Hud::Project.select(:id)).
+      pluck(:id)
+
+    organization_contact_ids = GrdaWarehouse::Contact::Organization.
+      where.not(entity_id: GrdaWarehouse::Hud::Organization.select(:id)).
+      pluck(:id)
+
+    total = project_contact_ids.count + organization_contact_ids.count
+
+    if total.zero?
+      puts 'No orphaned contacts found.'
+    else
+      puts "Found #{total} orphaned contacts (#{project_contact_ids.count} project, #{organization_contact_ids.count} organization)"
+      puts 'Destroying orphaned project contacts...'
+      GrdaWarehouse::Contact::Project.where(id: project_contact_ids).destroy_all
+      puts 'Destroying orphaned organization contacts...'
+      GrdaWarehouse::Contact::Organization.where(id: organization_contact_ids).destroy_all
+      puts 'Done.'
+    end
   end
 end

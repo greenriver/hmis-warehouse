@@ -102,9 +102,9 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
     )
   end
 
-  let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: nil) }
+  let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: nil, workflow_template: workflow_template) }
   let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
-  let!(:opportunity) { create(:hmis_ce_opportunity, project: project, unit: unit, workflow_template: workflow_template) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
 
   let!(:source_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
 

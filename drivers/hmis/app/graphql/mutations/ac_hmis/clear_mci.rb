@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class AcHmis::ClearMci < BaseMutation
     description 'Perform MCI clearance and return matches'
@@ -22,13 +24,10 @@ module Mutations
       return { errors: errors } if errors.any?
 
       mci = HmisExternalApis::AcHmis::Mci.new
-      response = mci.clearance(input.to_client)
+      response = mci.clearance(input.to_client, minimum_score: MATCH_THRESHOLD)
 
-      # Sort by match score, and drop any matches below 80
-      mci_matches = response.
-        filter { |m| m.score >= MATCH_THRESHOLD }.
-        # If score is the same, secondary sort prefers clients that already exist in HMIS
-        sort_by { |m| [-m.score, m.existing_client_id&.to_i || Float::INFINITY, m.mci_id] }
+      # Sort by match score. Secondary sort prefers clients that already exist in HMIS
+      mci_matches = response.sort_by { |m| [-m.score, m.existing_client_id&.to_i || Float::INFINITY, m.mci_id] }
 
       # Auto-clearance: if any match is above >97, drop all other matches
       mci_matches = [mci_matches.first] if !mci_matches.empty? && mci_matches.first.score >= AUTO_CLEAR_THRESHOLD

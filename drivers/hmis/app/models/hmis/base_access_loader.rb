@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Access Loaders allow the efficient loading and caching of a user's permissions for
 # a collection of entities. This is most useful for graphql data loaders
 

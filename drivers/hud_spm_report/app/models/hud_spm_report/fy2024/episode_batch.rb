@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Fy2024
   class EpisodeBatch
     def initialize(enrollments, included_project_types, excluded_project_types, include_self_reported_and_ph, report)

@@ -198,4 +198,18 @@ RSpec.describe Filters::FilterBase, type: :model do
       end
     end
   end
+
+  describe 'defaults regression' do
+    it 'evaluates date defaults at instantiation time (dynamic), not class load time (static)' do
+      travel_to Date.new(2025, 1, 1)
+      filter1 = Filters::FilterBase.new(user_id: user.id)
+      expect(filter1.default_on).to eq(Date.new(2025, 1, 1))
+
+      travel_to Date.new(2025, 1, 15)
+      filter2 = Filters::FilterBase.new(user_id: user.id)
+      expect(filter2.default_on).to eq(Date.new(2025, 1, 15))
+
+      travel_back
+    end
+  end
 end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab apr context', shared_context: :metadata do
   def project_type_filter(project_type)
     project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)

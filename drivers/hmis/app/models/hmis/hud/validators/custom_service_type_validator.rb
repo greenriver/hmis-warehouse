@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Validators::CustomServiceTypeValidator < Hmis::Hud::Validators::BaseValidator
   def validate(record)
     super(record) do

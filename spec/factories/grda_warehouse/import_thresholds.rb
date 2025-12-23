@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :import_threshold, class: 'GrdaWarehouse::ImportThreshold' do
     association :data_source, factory: :source_data_source

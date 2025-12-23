@@ -26,8 +26,8 @@ module GrdaWarehouse::Hud
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :organizations
 
-    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', query_constraints: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
-    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Organization', foreign_key: :entity_id
+    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
+    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Organization', foreign_key: :entity_id, dependent: :destroy
 
     accepts_nested_attributes_for :projects
 
@@ -123,7 +123,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.has_access_to_organization_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
+    def self.has_access_to_organization_through_viewable_entities(user, q, qc) # rubocop:disable Naming/MethodParameterName, Naming/PredicatePrefix
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -153,7 +153,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    def self.has_access_to_organization_through_data_source(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
+    def self.has_access_to_organization_through_data_source(user, q, qc) # rubocop:disable Naming/MethodParameterName, Naming/PredicatePrefix
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
@@ -189,7 +189,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    def self.has_access_to_organization_through_projects(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
+    def self.has_access_to_organization_through_projects(user, q, qc) # rubocop:disable Naming/MethodParameterName, Naming/PredicatePrefix
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name

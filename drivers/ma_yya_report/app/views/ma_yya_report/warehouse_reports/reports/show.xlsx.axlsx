@@ -1,0 +1,77 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+filter = @report.filter
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+header_style = wb_styles.add_style(sz: 14, b: true)
+
+# Sheet 1: Report Details
+wb.add_worksheet(name: 'Report Details') do |sheet|
+  sheet.add_row([@report.title], style: header_style)
+  sheet.add_row([])
+  sheet.add_row(['Run by:', @report.user&.name])
+  sheet.add_row(['Created at:', @report.created_at])
+  sheet.add_row([])
+
+  # Add filter details
+  filter_descriptions = filter.describe_filter(@report.class.report_options)
+  filter_descriptions.each do |key, value|
+    display_value = if value.is_a?(Array)
+      value.join(', ')
+    else
+      value
+    end
+    sheet.add_row([key.to_s.humanize + ':', display_value])
+  end
+end
+
+# Sheet 2: Report Data
+wb.add_worksheet(name: 'Report Data') do |sheet|
+  title_style = sheet.styles.add_style(sz: 12, b: true)
+  header_row_style = sheet.styles.add_style(
+    bg_color: '81adb9',
+    b: true,
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  )
+
+  sheet.add_row(['Subsection', 'Label', 'Count'], style: header_row_style)
+
+  last_section = nil
+  last_subsection = nil
+  @report.labels.each do |label|
+    section = label.to_s[0]
+    subsection = label.to_s[0..1]
+
+    if section != last_section
+      last_section = section
+      section_label = @report.section_label(section)
+      sheet.add_row([section_label, '', ''], style: title_style)
+    end
+
+    subsection_label = @report.subsection_label(subsection)
+    subsection_text = subsection_label[:text]
+
+    label_text = @report.label(label)
+    cell_label_text = @report.cell_label(label)
+    full_label = if cell_label_text.present?
+      "#{label_text}: #{cell_label_text}"
+    else
+      label_text
+    end
+
+    count = @report.answer(label)
+
+    if subsection != last_subsection
+      last_subsection = subsection
+      sheet.add_row([subsection_text, full_label, count || 0])
+    else
+      sheet.add_row(['', full_label, count || 0])
+    end
+  end
+end

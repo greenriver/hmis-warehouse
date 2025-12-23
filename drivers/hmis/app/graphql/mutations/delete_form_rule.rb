@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class DeleteFormRule < CleanBaseMutation
     argument :id, ID, required: true
@@ -17,7 +19,8 @@ module Mutations
 
       access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
 
-      instance.destroy!
+      instance.active = false
+      instance.save!(validate: false) # skip validation to support removing an invalid instance
 
       { form_rule: instance }
     end

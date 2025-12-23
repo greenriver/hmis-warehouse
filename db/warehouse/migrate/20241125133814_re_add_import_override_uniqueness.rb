@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ReAddImportOverrideUniqueness < ActiveRecord::Migration[7.0]
   def up
     # Fix incorrect deleted_at limit to allow for duplicates when deleted

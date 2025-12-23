@@ -180,7 +180,9 @@ test:
     database: <%= ENV['REPORTING_DATABASE_DB_TEST'] %>
     migrations_paths: db/reporting/migrate
 
+  <% if ENV['CAS_DATABASE_DB_TEST'].present? %>
   cas:
     <<: *default_cas_db
     database: <%= ENV['CAS_DATABASE_DB_TEST'] %>
     migrations_paths: db/cas/migrate
+  <% end %>

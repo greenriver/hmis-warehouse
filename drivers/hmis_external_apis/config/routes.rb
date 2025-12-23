@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 BostonHmis::Application.routes.draw do
   scope(module: :hmis_external_apis) do
     scope(module: :ac_hmis) do

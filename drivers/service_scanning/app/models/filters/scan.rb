@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Filters
   class Scan < ::Filters::FilterBase
     attribute :service_type, String, default: 'ServiceScanning::BedNight'

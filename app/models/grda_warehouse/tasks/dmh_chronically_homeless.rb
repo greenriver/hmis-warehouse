@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Figure out who is chronically homeless under the adjusted DMH rules
 # Our working definition of DMH chronic homelessness is:
 # 1. Currently Homeless in one of the DMH projects

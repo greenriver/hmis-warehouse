@@ -36,7 +36,10 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
     veteran_status: nil,
     ssn: nil,
     first_name: nil,
-    last_name: nil
+    last_name: nil,
+    name_data_quality: nil,
+    ssn_data_quality: nil,
+    dob_data_quality: nil
   )
     personal_id = uid || SecureRandom.uuid.gsub(/-/, '')
     source_client_attrs = {
@@ -48,6 +51,24 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       first_name: first_name,
       last_name: last_name,
     }
+    # Set name_data_quality to 1 (Full name reported) if both names are present and not explicitly set
+    if first_name.present? && last_name.present? && name_data_quality.nil?
+      source_client_attrs[:name_data_quality] = 1
+    elsif name_data_quality.present?
+      source_client_attrs[:name_data_quality] = name_data_quality
+    end
+    # Set ssn_data_quality to 1 (Full SSN reported) if SSN is present and not explicitly set
+    if ssn.present? && ssn_data_quality.nil?
+      source_client_attrs[:ssn_data_quality] = 1
+    elsif ssn_data_quality.present?
+      source_client_attrs[:ssn_data_quality] = ssn_data_quality
+    end
+    # Set dob_data_quality to 1 (Full DOB reported) if DOB is present and not explicitly set
+    if dob.present? && dob_data_quality.nil?
+      source_client_attrs[:dob_data_quality] = 1
+    elsif dob_data_quality.present?
+      source_client_attrs[:dob_data_quality] = dob_data_quality
+    end
     # Using .compact to allow factory defaults for nil values
     source_client = create(:hud_client, source_client_attrs.compact)
 
@@ -103,12 +124,13 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       :hud_service,
       enrollment: enrollment,
       date_provided: date,
-      data_source: data_source,
+      data_source: enrollment.data_source,
       record_type: 200, # bed night
+      personal_id: enrollment.personal_id,
     )
   end
 
-  def create_disability(enrollment:, information_date:, disability_type:, disability_response:, indefinite_and_impairs: nil)
+  def create_disability(enrollment:, information_date:, disability_type:, disability_response:, indefinite_and_impairs: nil, data_collection_stage: 1)
     create(
       :hud_disability,
       enrollment: enrollment,
@@ -117,10 +139,11 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       disability_type: disability_type,
       disability_response: disability_response,
       indefinite_and_impairs: indefinite_and_impairs,
+      DataCollectionStage: data_collection_stage,
     )
   end
 
-  def create_health_and_dv(enrollment:, information_date:, domestic_violence_survivor: nil, domestic_violence_victim: nil, when_occurred: nil, currently_fleeing: nil)
+  def create_health_and_dv(enrollment:, information_date:, domestic_violence_survivor: nil, domestic_violence_victim: nil, when_occurred: nil, currently_fleeing: nil, data_collection_stage: 1)
     create(
       :hud_health_and_dv,
       enrollment: enrollment,
@@ -130,6 +153,7 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       domestic_violence_survivor: domestic_violence_survivor,
       when_occurred: when_occurred,
       currently_fleeing: currently_fleeing,
+      DataCollectionStage: data_collection_stage,
     )
   end
 end

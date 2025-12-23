@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :signature_request, class: 'Health::SignatureRequest' do
     patient_id { 1 }

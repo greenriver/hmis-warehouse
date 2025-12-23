@@ -8,7 +8,11 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Active Record Preload API', type: :model do
+RSpec.describe 'Active Record Preload API', type: :model, exclude_fixpoints: true do
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
+
   let!(:warehouse) { create :destination_data_source }
   let!(:source_ds) { create :source_data_source }
   let!(:warehouse_client) { create :fixed_warehouse_client }

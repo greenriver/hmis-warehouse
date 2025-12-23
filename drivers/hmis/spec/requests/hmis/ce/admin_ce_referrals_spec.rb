@@ -190,7 +190,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceReferrals', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 30..40)
+        end.to make_database_queries(count: 35..45)
 
         # regression test to check that factories aren't creating extra data sources
         expect(GrdaWarehouse::DataSource.hmis.count).to eq(1)

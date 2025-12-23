@@ -376,7 +376,9 @@ module Types
     def merge_audit_history(filters: nil)
       raise 'Access denied' unless current_user.can_merge_clients?
 
-      scope = Hmis::ClientMergeAudit.all
+      # can_merge_clients is a global permission (not limited to specific clients), but MergeAuditEvent resolves
+      # the client record which requires object-level authorization. Filter by viewable_by to prevent authorization failures.
+      scope = Hmis::ClientMergeAudit.viewable_by(current_user)
       scope = scope.apply_filters(filters) if filters
       scope.order(merged_at: :desc)
     end
@@ -627,7 +629,7 @@ module Types
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
-        merge(Hmis::Ce::Match::CandidatePool.active).
+        merge(Hmis::Ce::Match::CandidatePool.active_for_current_eligibility).
         distinct.order(:id)
 
       scope = scope.apply_filters(filters) if filters

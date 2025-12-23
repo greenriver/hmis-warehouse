@@ -12,6 +12,9 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   attr_encrypted :zip_file_password, key: ENV['ENCRYPTION_KEY'][0..31]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  validates :s3_region, presence: true
+
+  after_initialize :set_default_region, if: :new_record?
 
   scope :active, -> do
     where(active: true)
@@ -56,6 +59,10 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
     return files if files.empty?
 
     files.last(file_count).map { |f| File.basename(f) }
+  end
+
+  private def set_default_region
+    self.s3_region ||= 'us-east-1'
   end
 
   private def valid_file_name?(name)
