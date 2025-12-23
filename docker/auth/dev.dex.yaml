@@ -60,6 +60,13 @@ staticClients:
     secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg=" # Same secret for now, can be changed later
     trustedPeers: []
     public: true
+  - id: superset
+    name: "Superset Analytics"
+    redirectURIs:
+      - "https://superset.dev.test/oauth2/callback"
+    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    trustedPeers: []
+    public: true
 enablePasswordDB: true
 staticPasswords:
   - email: "admin@example.com"

@@ -11,21 +11,6 @@
 # Provides a `sign_in` method compatible with request specs that sets up
 # JWT authentication by stubbing JWT validation and setting request headers.
 module JwtAuthenticationHelper
-  # Override request methods to automatically include JWT headers
-  # When prepended, these methods are called before ActionDispatch::IntegrationTest's methods
-  [:get, :post, :put, :patch, :delete, :head].each do |method|
-    define_method(method) do |path, *args, **kwargs|
-      # Merge JWT headers if available
-      if instance_variable_defined?(:@jwt_headers) && @jwt_headers.present?
-        kwargs[:headers] ||= {}
-        # Merge JWT headers
-        kwargs[:headers] = kwargs[:headers].merge(@jwt_headers)
-      end
-      # Call super to use the original method from ActionDispatch::IntegrationTest
-      super(path, *args, **kwargs)
-    end
-  end
-
   # Sign in a user for request specs using JWT authentication.
   #
   # Sets up stubs so that JWT validation returns the given user.
@@ -84,7 +69,58 @@ module JwtAuthenticationHelper
 
     # Store token for use in headers
     @jwt_token = mock_token
-    @jwt_headers = { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => mock_token }
+
+    # For request specs: Override get/post/etc to inject headers
+    # The integration_session is what actually makes requests, so we need to
+    # wrap the HTTP methods to inject our JWT header
+    jwt_header = { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => mock_token }
+
+    # Store for any manual header access
+    @jwt_headers = jwt_header
+
+    # Patch the integration session to include JWT headers
+    # This is called lazily when the first request is made
+    test_instance = self
+    original_process = nil
+
+    # Use a before hook approach - define methods that add headers
+    define_singleton_method(:get) do |*args, **kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(*args, **kwargs)
+    end
+
+    define_singleton_method(:post) do |*args, **kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(*args, **kwargs)
+    end
+
+    define_singleton_method(:put) do |*args, **kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(*args, **kwargs)
+    end
+
+    define_singleton_method(:patch) do |*args, **kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(*args, **kwargs)
+    end
+
+    define_singleton_method(:delete) do |*args, **kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(*args, **kwargs)
+    end
+
+    define_singleton_method(:head) do |*args, **kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(*args, **kwargs)
+    end
+
+    # Override follow_redirect! to include JWT headers
+    # This is needed because follow_redirect! is delegated to integration_session
+    # and its internal get() call doesn't go through our overridden get method
+    define_singleton_method(:follow_redirect!) do |**kwargs|
+      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+      super(**kwargs)
+    end
 
     # For controller specs: stub current_user
     if defined?(controller) && controller.present?
@@ -104,14 +140,9 @@ module JwtAuthenticationHelper
 end
 
 RSpec.configure do |config|
-  # Include the module for sign_in and other helper methods
+  # Include for request specs - sign_in will dynamically override HTTP methods
   config.include JwtAuthenticationHelper, type: :request
-  config.include JwtAuthenticationHelper, type: :controller
 
-  # Prepend to the example's singleton class AFTER example group before blocks run
-  # This ensures sign_in has been called and @jwt_headers is set
-  config.append_before(:each, type: :request) do |example|
-    # Prepend to ensure our method overrides take precedence
-    example.singleton_class.prepend(JwtAuthenticationHelper) unless example.singleton_class.ancestors.include?(JwtAuthenticationHelper)
-  end
+  # Include for controller specs
+  config.include JwtAuthenticationHelper, type: :controller
 end

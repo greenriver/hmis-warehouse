@@ -220,7 +220,7 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
     before { sign_in_user(admin_user) }
 
     it 'works correctly when switching between tabs multiple times' do
-      visit new_users_invitation_path
+      visit new_admin_user_path
 
       # Switch between tabs multiple times to test stability
       3.times do
