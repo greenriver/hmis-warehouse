@@ -157,19 +157,23 @@ services:
         condition: service_started
       minio:
         condition: service_started
-  oauth2-proxy:
+  oauth2-proxy-warehouse:
     labels:
       - traefik.enable=true
       - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`)
+      - traefik.http.routers.hmis-warehouse-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-warehouse-oauth2.service=hmis-warehouse-oauth2
       - traefik.http.routers.hmis-warehouse-oauth2.tls=true
       - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
-    container_name: oauth2-proxy
+    container_name: oauth2-proxy-warehouse
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
-    command: --alpha-config /oauth2-proxy.yaml --config /oauth2-proxy.cfg
+    command: --alpha-config /oauth2-proxy-warehouse.yaml --config /oauth2-proxy-warehouse.cfg
     hostname: hmis-warehouse.dev.test
+    extra_hosts:
+      - "dex.dev.test:host-gateway"
     volumes:
-      - "./docker/auth/dev.oauth2-proxy.cfg:/oauth2-proxy.cfg"
-      - "./docker/auth/dev.oauth2-proxy.yaml:/oauth2-proxy.yaml"
+      - "./docker/auth/dev.oauth2-proxy-warehouse.cfg:/oauth2-proxy-warehouse.cfg"
+      - "./docker/auth/dev.oauth2-proxy-warehouse.yaml:/oauth2-proxy-warehouse.yaml"
     environment:
       <<: *env
       FQDN: hmis-warehouse.dev.test
@@ -177,6 +181,64 @@ services:
       VIRTUAL_PORT: 4180
     ports:
       - 4180:4180/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  oauth2-proxy-hmis:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-frontend-oauth2.rule=Host(`hmis.dev.test`)
+      - traefik.http.routers.hmis-frontend-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-frontend-oauth2.service=hmis-frontend-oauth2
+      - traefik.http.routers.hmis-frontend-oauth2.tls=true
+      - traefik.http.services.hmis-frontend-oauth2.loadbalancer.server.port=4181
+    container_name: oauth2-proxy-hmis
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    command: --alpha-config /oauth2-proxy-hmis.yaml --config /oauth2-proxy-hmis.cfg
+    hostname: hmis.dev.test
+    extra_hosts:
+      - "internal-warehouse.dev.test:host-gateway"
+      - "host.docker.internal:host-gateway"
+      - "dex.dev.test:host-gateway"
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy-hmis.cfg:/oauth2-proxy-hmis.cfg"
+      - "./docker/auth/dev.oauth2-proxy-hmis.yaml:/oauth2-proxy-hmis.yaml"
+    environment:
+      <<: *env
+      FQDN: hmis.dev.test
+      VIRTUAL_HOST: hmis.dev.test
+      VIRTUAL_PORT: 4181
+    ports:
+      - 4181:4181/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  oauth2-proxy-hmis-backend:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-backend-oauth2.rule=Host(`hmis-backend.dev.test`)
+      - traefik.http.routers.hmis-backend-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-backend-oauth2.service=hmis-backend-oauth2
+      - traefik.http.routers.hmis-backend-oauth2.tls=true
+      - traefik.http.services.hmis-backend-oauth2.loadbalancer.server.port=4182
+    container_name: oauth2-proxy-hmis-backend
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    command: --alpha-config /oauth2-proxy-hmis-backend.yaml --config /oauth2-proxy-hmis-backend.cfg
+    hostname: hmis-backend.dev.test
+    extra_hosts:
+      - "internal-warehouse.dev.test:host-gateway"
+      - "host.docker.internal:host-gateway"
+      - "dex.dev.test:host-gateway"
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy-hmis-backend.cfg:/oauth2-proxy-hmis-backend.cfg"
+      - "./docker/auth/dev.oauth2-proxy-hmis-backend.yaml:/oauth2-proxy-hmis-backend.yaml"
+    environment:
+      <<: *env
+      FQDN: hmis-backend.dev.test
+      VIRTUAL_HOST: hmis-backend.dev.test
+      VIRTUAL_PORT: 4182
+    ports:
+      - 4182:4182/tcp
     depends_on:
       dex:
         condition: service_healthy
@@ -193,6 +255,13 @@ services:
     restart: "no"
 
   dex:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dex.rule=Host(`dex.dev.test`)
+      - traefik.http.routers.dex.entrypoints=web-secure
+      - traefik.http.routers.dex.tls=true
+      - traefik.http.services.dex.loadbalancer.server.port=4443
+      - traefik.http.services.dex.loadbalancer.server.scheme=http
     container_name: dex
     # image: dexidp/dex:latest-alpine
     image: ghcr.io/dexidp/dex:v2.44.0
@@ -260,7 +329,11 @@ services:
         condition: service_started
       yarn:
         condition: service_started
-      oauth2-proxy:
+      oauth2-proxy-warehouse:
+        condition: service_started
+      oauth2-proxy-hmis:
+        condition: service_started
+      oauth2-proxy-hmis-backend:
         condition: service_started
       dex:
         condition: service_healthy
