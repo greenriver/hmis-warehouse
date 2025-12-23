@@ -755,6 +755,9 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+
+    # Superset JWT-based role sync endpoint
+    get 'superset/user_roles', to: 'superset#user_roles'
   end
 
   namespace :admin do

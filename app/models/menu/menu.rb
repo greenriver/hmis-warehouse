@@ -806,7 +806,7 @@ class Menu::Menu
       Menu::Item.new(
         user: user,
         visible: ->(_user) { true },
-        path: destroy_user_session_path,
+        path: '/oauth2/sign_out',
         title: Translation.translate('Sign Out'),
         icon: 'icon-exit',
         data: { method: :delete },
@@ -820,7 +820,7 @@ class Menu::Menu
     Menu::Item.new(
       user: user,
       visible: ->(_user) { true },
-      path: destroy_user_session_path,
+      path: '/oauth2/sign_out',
       title: Translation.translate('Sign Out'),
       icon: 'icon-exit',
       data: { method: :delete },
