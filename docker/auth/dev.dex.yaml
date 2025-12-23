@@ -28,37 +28,42 @@ connectors:
       clientID: ${GITHUB_IDP_CLIENT_ID}
       clientSecret: ${GITHUB_IDP_CLIENT_SECRET}
       redirectURI: https://dex.dev.test/dex/callback
+  # Zitadel connector - requires running ./docker/zitadel/setup.sh first
+  # and adding the generated credentials to .env.local
+  # Until configured, this connector will appear but won't work
   - type: oidc
     id: zitadel
     name: Zitadel Account
     config:
-      issuer: ${ZITADEL_API_URL}
-      clientID: ${ZITADEL_IDP_WAREHOUSE_CLIENT_ID}
-      clientSecret: ${ZITADEL_IDP_WAREHOUSE_CLIENT_SECRET}
-      redirectURI: ${DEX_ISSUER}/callback
+      issuer: http://op-zitadel.dev.test:8080
+      clientID: ${ZITADEL_IDP_CLIENT_ID}
+      clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
+      redirectURI: https://dex.dev.test/dex/callback
       useLoginAsID: true
       scopes:
         - openid
         - email
         - profile
       getUserInfo: true
+      # insecureSkipEmailVerified allows login even if issuer is unreachable during config load
+      insecureSkipEmailVerified: true
 staticClients:
   - id: hmis-warehouse
     name: "HMIS Warehouse"
     redirectURIs:
-      # These redirect URIs point to the `--redirect-url` for OAuth2 proxy.
-      - "https://hmis-warehouse.dev.test/oauth2/callback" # For warehouse application
-    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg=" # Generate a secret, and add it to oauth2-proxy.cfg
-    trustedPeers: []
+      - "https://hmis-warehouse.dev.test/oauth2/callback"
+    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    trustedPeers:
+      - hmis-frontend
     public: true
   - id: hmis-frontend
     name: "HMIS Frontend"
     redirectURIs:
-      # These redirect URIs point to the `--redirect-url` for OAuth2 proxy.
-      - "https://hmis.dev.test/oauth2/callback" # For HMIS frontend
-      - "https://hmis-backend.dev.test/oauth2/callback" # For HMIS backend API
-    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg=" # Same secret for now, can be changed later
-    trustedPeers: []
+      - "https://hmis.dev.test/oauth2/callback"
+      - "https://hmis-backend.dev.test/oauth2/callback"
+    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    trustedPeers:
+      - hmis-warehouse
     public: true
   - id: superset
     name: "Superset Analytics"

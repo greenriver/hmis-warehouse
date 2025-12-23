@@ -6,11 +6,11 @@
 # Usage:
 #   rails zitadel:export_users                    # Export users to JSON file
 #   rails zitadel:export_users[100]               # Export only 100 users for testing
-#   rails zitadel:import_users[users_export.json] # Import users from JSON file
+#   rails zitadel:import_users[tmp/zitadel_users_export.json] # Import users from JSON file
 #
 # Prerequisites:
 #   1. Set environment variables:
-#      - ZITADEL_API_URL (e.g., http://zitadel.dev.test:8080)
+#      - ZITADEL_API_URL (e.g., http://op-zitadel.dev.test:8080)
 #      - ZITADEL_SERVICE_USER_TOKEN (Personal Access Token with admin permissions)
 #      - ZITADEL_ORG_ID (Your organization ID in Zitadel)
 #      - ZITADEL_PROJECT_ID (Your project ID for the Warehouse application)
@@ -125,7 +125,7 @@ namespace :zitadel do
       exit 1
     end
 
-    api_url = ENV.fetch('ZITADEL_API_URL', 'http://zitadel.dev.test:8080')
+    api_url = ENV.fetch('ZITADEL_API_URL', 'http://op-zitadel.dev.test:8080')
     token = ENV.fetch('ZITADEL_SERVICE_USER_TOKEN')
 
     puts "Importing users from #{file}..."
@@ -196,7 +196,7 @@ namespace :zitadel do
       exit 1
     end
 
-    api_url = ENV.fetch('ZITADEL_API_URL', 'http://zitadel.dev.test:8080')
+    api_url = ENV.fetch('ZITADEL_API_URL', 'http://op-zitadel.dev.test:8080')
     token = ENV.fetch('ZITADEL_SERVICE_USER_TOKEN')
     org_id = ENV.fetch('ZITADEL_ORG_ID')
 
@@ -285,7 +285,7 @@ namespace :zitadel do
     require 'net/http'
     require 'json'
 
-    api_url = ENV.fetch('ZITADEL_API_URL', 'http://zitadel.dev.test:8080')
+    api_url = ENV.fetch('ZITADEL_API_URL', 'http://op-zitadel.dev.test:8080')
     token = ENV.fetch('ZITADEL_SERVICE_USER_TOKEN')
 
     puts 'Testing Zitadel connection...'

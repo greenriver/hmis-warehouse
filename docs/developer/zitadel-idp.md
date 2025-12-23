@@ -10,6 +10,60 @@ This document covers:
 
 This document does not cover installation of Zitadel itself.
 
+## Local Development Setup
+
+Zitadel runs automatically as part of the docker-compose stack. No special profile or manual configuration is needed.
+
+### Prerequisites
+
+Add `op-zitadel.dev.test` to your `/etc/hosts` file:
+
+```
+127.0.0.1 op-zitadel.dev.test
+```
+
+### Starting the Stack
+
+```bash
+docker compose up
+```
+
+This automatically:
+1. Creates a `zitadel` database in PostgreSQL
+2. Starts Zitadel at http://op-zitadel.dev.test:8080
+3. Starts the Zitadel Login UI (accessible via port 3001)
+4. Runs the setup script to configure the Dex OIDC application
+5. Generates credentials in `docker/auth/zitadel-credentials.env`
+6. Starts Dex with the Zitadel connector configured
+
+On first run, the `zitadel-setup` container will create the necessary project and application in Zitadel. On subsequent runs, it detects the existing configuration and exits immediately.
+
+### Zitadel Console Access
+
+- URL: http://op-zitadel.dev.test:8080/ui/console
+- Admin Login: `admin@openpath.op-zitadel.dev.test`
+- Password: `AdminPassword1!`
+
+### Manual Setup (if needed)
+
+If you need to reconfigure Zitadel:
+
+```bash
+# Delete existing credentials
+rm docker/auth/zitadel-credentials.env
+
+# Restart to trigger setup
+docker compose restart zitadel-setup dex
+```
+
+Or run the setup script manually:
+
+```bash
+./docker/zitadel/setup.sh
+```
+
+---
+
 # Authentication Architecture
 
 ## JWT Token Flow
@@ -185,7 +239,7 @@ IDP_AUD=hmis-warehouse,hmis-frontend
 
 ```bash
 # Zitadel API base URL
-ZITADEL_API_URL=http://zitadel.dev.test:8080
+ZITADEL_API_URL=http://op-zitadel.dev.test:8080
 
 # Service user token for user management API
 ZITADEL_SERVICE_USER_TOKEN=<service-user-token>
@@ -228,7 +282,11 @@ ZITADEL_WAREHOUSE_PROJECT_ID=<warehouse-project-id>
 ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>
 ```
 
-# Initial Configuration
+---
+
+# Manual Configuration (Production or Custom Setup)
+
+The following instructions are for manually configuring Zitadel, which may be needed for production deployments or custom setups.
 
 ## 1. Configure Zitadel Organization and SMTP
 
@@ -297,7 +355,7 @@ The service user is needed for the rake tasks that import/export users.
 4. Click **Personal Access Tokens**, Click **New**, leave the expiration date empty
 5. **Copy the token** and add to `.env.local`:
    ```bash
-   ZITADEL_API_URL=http://zitadel.dev.test:8080
+   ZITADEL_API_URL=http://op-zitadel.dev.test:8080
    ZITADEL_SERVICE_USER_TOKEN=<your-service-user-token>
    ```
 6. Click **Organization**, then click the `+` next to the Actions menu
@@ -312,7 +370,7 @@ Your `.env.local` should now have the necessary Zitadel configuration from the s
 
 ```bash
 # Zitadel API Configuration
-ZITADEL_API_URL=http://zitadel.dev.test:8080
+ZITADEL_API_URL=http://op-zitadel.dev.test:8080
 ZITADEL_SERVICE_USER_TOKEN=<service-user-token>
 ZITADEL_ORG_ID=<org-id>
 
