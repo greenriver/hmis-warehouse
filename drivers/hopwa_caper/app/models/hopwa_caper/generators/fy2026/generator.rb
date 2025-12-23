@@ -323,8 +323,8 @@ module HopwaCaper::Generators::Fy2026
           order(AssessmentDate: :desc, id: :desc).
           preload(:enrollment).group_by { |r| r.enrollment.id }
 
-        batch.each do |spm_enrollment|
-          assessments = assessments_by_enrollment[spm_enrollment.enrollment_id]
+        batch.each do |report_enrollment|
+          assessments = assessments_by_enrollment[report_enrollment.enrollment_id]
           next unless assessments
 
           row_configs.each do |config|
@@ -337,17 +337,17 @@ module HopwaCaper::Generators::Fy2026
             end
             next unless cde
 
-            updates[spm_enrollment.id] ||= {
-              id: spm_enrollment.id,
+            updates[report_enrollment.id] ||= {
+              id: report_enrollment.id,
               # must include for non-nullable cols for upsert
-              report_instance_id: spm_enrollment.report_instance_id,
-              destination_client_id: spm_enrollment.destination_client_id,
-              enrollment_id: spm_enrollment.enrollment_id,
-              report_household_id: spm_enrollment.report_household_id,
-              personal_id: spm_enrollment.personal_id,
-              relationship_to_hoh: spm_enrollment.relationship_to_hoh,
+              report_instance_id: report_enrollment.report_instance_id,
+              destination_client_id: report_enrollment.destination_client_id,
+              enrollment_id: report_enrollment.enrollment_id,
+              report_household_id: report_enrollment.report_household_id,
+              personal_id: report_enrollment.personal_id,
+              relationship_to_hoh: report_enrollment.relationship_to_hoh,
             }
-            updates[spm_enrollment.id][column] = cde_value_to_boolean(cded, cde)
+            updates[report_enrollment.id][column] = cde_value_to_boolean(cded, cde)
           end
         end
       end
