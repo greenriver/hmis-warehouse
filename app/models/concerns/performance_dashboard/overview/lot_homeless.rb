@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::LotHomeless
   extend ActiveSupport::Concern
   LOT_HOMELESS_BUCKET_TITLES = {

@@ -36,7 +36,15 @@ RSpec.describe 'Paper Trail Duplicate Prevention', type: :model do
   end
 
   describe 'single version creation' do
-    include_context 'with paper trail'
+    around(:example) do |ex|
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        ex.run
+      ensure
+        PaperTrail.request.enabled = false
+      end
+    end
+
     it 'creates only 1 version on create' do
       expect do
         TestPaperTrailModel.create!(name: 'Test', description: 'Test Description')

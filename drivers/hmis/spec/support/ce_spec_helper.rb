@@ -44,7 +44,9 @@ RSpec.shared_context 'ce spec helper' do
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
   let!(:state_machine_statuses) { CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1) }
-  let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
+  let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+  let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
   let!(:workflow_instance) { workflow_template.instances.create! }
 
   let!(:start_event) do

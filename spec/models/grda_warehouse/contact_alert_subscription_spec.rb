@@ -14,9 +14,14 @@ RSpec.describe GrdaWarehouse::ContactAlertSubscription, type: :model do
   let(:contact) { create(:grda_warehouse_contact_user, entity: user, user: user) }
 
   describe 'PaperTrail tracking' do
-    # Enable PaperTrail for these tests
-    before { PaperTrail.enabled = true }
-    after { PaperTrail.enabled = false }
+    around(:example) do |ex|
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        ex.run
+      ensure
+        PaperTrail.request.enabled = false
+      end
+    end
 
     it 'tracks creation with referenced_user_id' do
       subscription = nil
@@ -70,9 +75,14 @@ RSpec.describe GrdaWarehouse::ContactAlertSubscription, type: :model do
   end
 
   describe '.describe_changes' do
-    # Enable PaperTrail for these tests
-    before { PaperTrail.enabled = true }
-    after { PaperTrail.enabled = false }
+    around(:example) do |ex|
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        ex.run
+      ensure
+        PaperTrail.request.enabled = false
+      end
+    end
 
     let(:subscription) do
       create(

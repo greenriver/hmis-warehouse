@@ -123,13 +123,15 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     let!(:source_project_ce_config) { create(:hmis_project_sends_direct_ce_referrals_config, project: source_project) }
     let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 1, with_coc: true) } # Emergency Shelter
 
-    let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
-    let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit, name: unit.name) }
+    let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template, unit_type: sro_type) }
+    let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group, unit_type: sro_type) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, name: unit.name) }
 
     # Create household member for testing household referrals
     let!(:household_member) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Jane', last_name: 'D') }
     let!(:household_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: household_member, entry_date: 30.days.ago, household_id: source_enrollment.household_id, relationship_to_ho_h: 2) }
+
+    let(:referral_warning_message) { 'At least one client in the household already has an open enrollment or in-progress referral in this project.' }
 
     it 'completes the direct referral happy path' do
       # Navigate to source project and create the direct referral
@@ -139,6 +141,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       mui_select(target_project.project_name, from: 'Project')
       mui_select(unit_group.name, from: 'Unit Group')
       fill_in 'Resource Coordinator Notes', with: 'Direct referral for Alice A to Family Shelter'
+      expect(page).not_to have_content(referral_warning_message)
       click_button 'Refer Household'
       expect(page).to have_content('Displaying 1 of 1 outgoing referral')
 
@@ -226,12 +229,12 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     end
 
     context 'when target project has a UnitGroup with no availability' do
-      let!(:unavailable_unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
-      let!(:unit_without_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
-      let!(:unit_with_closed_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
-      let!(:unit_with_locked_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group) }
-      let!(:closed_opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit_with_closed_opportunity, status: 'closed') }
-      let!(:locked_opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit_with_locked_opportunity, status: 'locked') }
+      let!(:unavailable_unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template, unit_type: sro_type) }
+      let!(:unit_without_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group, unit_type: sro_type) }
+      let!(:unit_with_closed_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group, unit_type: sro_type) }
+      let!(:unit_with_locked_opportunity) { create(:hmis_unit, project: target_project, unit_group: unavailable_unit_group, unit_type: sro_type) }
+      let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, status: 'closed') }
+      let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, status: 'locked') }
 
       it 'cannot be referred to' do
         # Navigate to source project and try to create a referral
@@ -247,13 +250,41 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
         expect(option['aria-disabled']).to eq('true')
       end
     end
+
+    shared_examples 'allows referral with warning' do
+      it 'displays a warning message, but allows the referral to be sent' do
+        visit "/projects/#{source_project.id}/referrals"
+        click_link 'Send Referral'
+        mui_select('Alice A and 1 other', from: 'HoH Enrollment')
+        mui_select(target_project.project_name, from: 'Project')
+        mui_select(unit_group.name, from: 'Unit Group')
+        fill_in 'Resource Coordinator Notes', with: 'note'
+
+        # Ensure warning is displayed because the client is already enrolled in the target project (based on project_can_accept_referral)
+        expect(page).to have_content(referral_warning_message)
+
+        expect do
+          click_button 'Refer Household'
+        end.to change(Hmis::Ce::Referral, :count).by(1)
+      end
+    end
+
+    context 'when the client is already enrolled in the target project' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, data_source: ds1, project: target_project, client: client1, entry_date: 30.days.ago) }
+      it_behaves_like 'allows referral with warning'
+    end
+
+    context 'when the client has an active referral to the target project' do
+      let!(:referral) { create(:hmis_ce_referral, client: client1, project: target_project, data_source: target_project.data_source, status: 'in_progress') }
+      it_behaves_like 'allows referral with warning'
+    end
   end
 
   describe 'waitlist referrals with housing workflow' do
     let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
-    let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
+    let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group, unit_type: sro_type) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
     let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
 
     before do

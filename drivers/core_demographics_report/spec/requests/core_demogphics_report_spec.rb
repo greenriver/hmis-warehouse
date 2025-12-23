@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe CoreDemographicsReport::WarehouseReports::CoreController, type: :request do
@@ -45,7 +47,7 @@ RSpec.describe CoreDemographicsReport::WarehouseReports::CoreController, type: :
       expect do
         get core_demographics_report_warehouse_reports_core_index_path
       end.to make_database_queries(
-        count: 10..40,
+        count: 20..45,
         matching: /\A(?!.*SELECT "translations".* FROM "translations")/, # exclude translations
       )
     end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Generates the HUD SPM Report Data according to:
 # System Performance Measures Programming Specifications Version 3.1
 # October 2019 Office of Community Planning and Development, HUD

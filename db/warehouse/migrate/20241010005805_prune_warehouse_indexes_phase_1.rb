@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # remove unused indexes from the csv loader and import tables
 class PruneWarehouseIndexesPhase1 < ActiveRecord::Migration[7.0]
   def up

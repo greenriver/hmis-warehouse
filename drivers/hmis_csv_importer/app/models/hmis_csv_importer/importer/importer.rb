@@ -30,6 +30,7 @@ require 'zlib'
 require 'base64'
 
 module HmisCsvImporter::Importer
+  # @see docs/features/hmis-csv-importer.md for architecture and design details.
   class Importer
     include TsqlImport
     include NotifierConfig
@@ -603,7 +604,10 @@ module HmisCsvImporter::Importer
     end
 
     def mark_tree_as_dead
+      file_count = 0
       importable_files.each_value do |klass|
+        file_count += 1
+        Rails.logger.info "[#{file_count}/#{total_files}] Marking tree as dead for #{klass.name}..."
         with_sql_log(__method__, klass, name: 'involved_warehouse_scope') do
           klass.mark_tree_as_dead(
             data_source_id: data_source.id,
@@ -641,7 +645,10 @@ module HmisCsvImporter::Importer
     end
 
     def add_new_data
+      file_count = 0
       importable_files.each do |file_name, klass|
+        file_count += 1
+        Rails.logger.info "[#{file_count}/#{total_files}] Adding new data for #{file_name}..."
         # Augmentation classes will always be updating existing records
         next if custom_augmentation?(klass)
 
@@ -718,12 +725,20 @@ module HmisCsvImporter::Importer
 
     def process_existing
       # TODO: This could be parallelized
+      total_files = importable_files.count
+      file_count = 0
       importable_files.each do |file_name, klass|
+        file_count += 1
+        Rails.logger.info "[#{file_count}/#{total_files}] Processing existing records for #{file_name}..."
         preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
+          Rails.logger.info "  Marking unchanged records for #{file_name}..."
           mark_unchanged(klass, file_name)
+          Rails.logger.info "  Marking incoming older records for #{file_name}..."
           mark_incoming_older(klass, file_name)
+          Rails.logger.info "  Applying updates for #{file_name}..."
           apply_updates(klass, file_name)
+          Rails.logger.info "  Completed processing #{file_name}"
         end
       end
     end
@@ -798,72 +813,63 @@ module HmisCsvImporter::Importer
       # Exports are always inserts, never updates
       return if klass.hud_key == :ExportID
 
+      # Custom augmentation files have their own optimized path
+      return apply_augmentation_updates(klass, file_name) if custom_augmentation?(klass)
+
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
-        upsert_columns = klass.upsert_column_names(version: importer_log.version) if custom_augmentation?(klass)
+
+        Rails.logger.info "Processing existing records for #{file_name} in batches"
+
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
             importer_log_id: @importer_log.id,
             klass.hud_key => hud_keys,
           ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-            destination = source.as_destination_record
-            destination.pending_date_deleted = nil
-            case klass.hud_key
-            when :PersonalID
-              destination.demographic_dirty = true
-            when :EnrollmentID
-              destination.processed_as = nil
-            when :ExitID
-              # These are tracked separately so we can bulk update them at the end
-              track_dirty_enrollment(destination.EnrollmentID)
-            end
-            # ensure we always have the right data_source_id
-            destination.data_source_id = data_source.id
-            batch << destination
-            if batch.count == INSERT_BATCH_SIZE && !custom_augmentation?(klass)
+            batch << prepare_destination_for_update(klass, source.as_destination_record)
+            if batch.count == INSERT_BATCH_SIZE
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
               # so these must be processed more slowly
               if klass.hud_key == :PersonalID
+                Rails.logger.info "Processing #{batch.count} records individually for #{file_name}"
                 batch.each do |incoming|
                   destination_class.where(
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
                   ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
-                  @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
+                Rails.logger.info "Processing #{batch.count} records in bulk for #{file_name}"
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
               end
               batch = []
             end
           end
         end
         if batch.present? # ensure we get the last batch
-          if klass.hud_key == :PersonalID && !custom_augmentation?(klass)
+          if klass.hud_key == :PersonalID
+            Rails.logger.info "Processing final batch of #{batch.count} records individually for #{file_name}"
             batch.each do |incoming|
               destination_class.where(
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
               ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
-              @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
           else
-            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
+            Rails.logger.info "Processing final batch of #{batch.count} records in bulk for #{file_name}"
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
           end
         end
 
-        # If we tracked any dirty enrollments, we can mark them all dirty now
-        if klass.hud_key == :ExitID
-          GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
-            update_all(processed_as: nil)
-        end
+        flush_dirty_enrollments_for_exit(klass)
+        Rails.logger.info "Completed applying updates for #{file_name}"
       end
       records = summary_for(file_name, 'updated') || 0
       stats = {
@@ -875,6 +881,119 @@ module HmisCsvImporter::Importer
       Rails.logger.debug do
         "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
       end
+    end
+
+    # Process updates for custom augmentation files
+    # These files only update existing records and never add new ones
+    private def apply_augmentation_updates(klass, file_name)
+      destination_class = klass.reflect_on_association(:destination_record).klass
+      bm = Benchmark.measure do
+        batch = []
+        upsert_columns = augmentation_upsert_columns(klass)
+
+        # Drive from the source data (the augmentation file) rather than the warehouse
+        # This prevents scanning the entire warehouse table when only a few records are being updated
+        # and is generally more memory efficient for sparse updates
+        klass.should_import.where(importer_log_id: @importer_log.id).find_in_batches(batch_size: SELECT_BATCH_SIZE) do |source_batch|
+          hud_keys = source_batch.map { |r| r[klass.hud_key] }
+
+          # Identify which of these source records match valid existing destination records
+          # We must respect the existing_destination_data_scope (date range, project constraints)
+          valid_keys = existing_destination_data_scope(klass).
+            where(klass.hud_key => hud_keys).
+            pluck(klass.hud_key).
+            to_set
+
+          source_batch.each do |source|
+            next unless valid_keys.include?(source[klass.hud_key])
+
+            batch << prepare_destination_for_update(klass, source.as_destination_record)
+
+            next unless batch.count == INSERT_BATCH_SIZE
+
+            Rails.logger.info "Processing #{batch.count} augmentation records in bulk for #{file_name}"
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
+            batch = []
+          end
+        end
+
+        if batch.present?
+          Rails.logger.info "Processing final batch of #{batch.count} augmentation records in bulk for #{file_name}"
+          process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: true)
+        end
+
+        flush_dirty_enrollments_for_exit(klass)
+
+        Rails.logger.info "Completed applying augmentation updates for #{file_name}"
+      end
+
+      records = summary_for(file_name, 'updated') || 0
+      stats = {
+        up_secs: bm.real.round(3),
+        up_rps: ((records / bm.real).round(3) unless records.zero?),
+        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+      }
+      importer_log.summary[file_name].merge!(stats)
+      Rails.logger.debug do
+        "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
+      end
+    end
+
+    ##
+    # Prepares a destination record for updating during the import process.
+    #
+    # This method modifies the destination record by:
+    # - Removing the pending deletion flag
+    # - Ensuring the correct data source ID is set
+    # - Marking the record dirty based on its type (Client, Enrollment, or Exit)
+    #
+    # Side effects:
+    # - For Client records: sets demographic_dirty flag and tracks client ID for post-processing
+    # - For Enrollment records: clears processed_as to trigger service history regeneration
+    # - For Exit records: tracks enrollment ID for batch update of associated enrollments
+    #
+    # @param klass [Class] The source class being processed
+    # @param destination [ActiveRecord::Base] The destination record to prepare
+    # @return [ActiveRecord::Base] The prepared destination record
+    #
+    private def prepare_destination_for_update(klass, destination)
+      destination.pending_date_deleted = nil
+      destination.data_source_id = data_source.id
+      mark_record_dirty(klass, destination)
+      destination
+    end
+
+    private def mark_record_dirty(klass, destination)
+      case klass.hud_key
+      when :PersonalID
+        destination.demographic_dirty = true
+        track_updated_client(destination.PersonalID)
+      when :EnrollmentID
+        destination.processed_as = nil
+      when :ExitID
+        # These are tracked separately so we can bulk update them at the end
+        track_dirty_enrollment(destination.EnrollmentID)
+      end
+    end
+
+    private def track_updated_client(personal_id)
+      return if personal_id.blank?
+
+      @updated_source_client_ids << personal_id
+    end
+
+    private def augmentation_upsert_columns(klass)
+      columns = klass.upsert_column_names(version: importer_log.version)
+      columns << :pending_date_deleted
+      case klass.hud_key
+      when :PersonalID
+        columns << :demographic_dirty
+      when :EnrollmentID
+        columns << :processed_as
+        # Exit records don't have processed_as; their dirty tracking
+        # is handled via enrollment bulk update after processing
+      end
+      columns.uniq
     end
 
     # Compare source_hash new and old, if they are identical, we don't need to do anything
@@ -889,6 +1008,7 @@ module HmisCsvImporter::Importer
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :source_hash)
       unchanged = (existing & incoming).map(&:first)
+      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming.count} incoming, #{unchanged.count} unchanged"
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         query = klass.warehouse_class.where(
           data_source_id: data_source.id,
@@ -925,6 +1045,7 @@ module HmisCsvImporter::Importer
       # if the incoming DateUpdated is strictly less than the existing one
       # trust the warehouse is correct
       unchanged = existing.select { |k, v| incoming[k].to_date < v.to_date }.keys
+      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming.count} incoming, #{unchanged.count} unchanged"
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         query = klass.warehouse_class.where(
           data_source_id: data_source.id,
@@ -943,6 +1064,22 @@ module HmisCsvImporter::Importer
 
     private def dirty_enrollment_ids
       @track_dirty_enrollment
+    end
+
+    private def clear_dirty_enrollment_ids
+      @track_dirty_enrollment = nil
+    end
+
+    # Flush tracked dirty enrollments to the database and clear the tracking set
+    # Used after processing Exit records to mark associated enrollments for reprocessing
+    private def flush_dirty_enrollments_for_exit(klass)
+      return unless klass.hud_key == :ExitID
+      return unless dirty_enrollment_ids.present?
+
+      GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
+        update_all(processed_as: nil)
+      # Clear the set to prevent duplicate processing if multiple Exit files are imported
+      clear_dirty_enrollment_ids
     end
 
     private def import_options(klass, columns)
@@ -1249,6 +1386,10 @@ module HmisCsvImporter::Importer
     # These classes need to preload mapping data before processing
     private def custom_file?(klass)
       klass.respond_to?(:custom_file?) && klass.custom_file?
+    end
+
+    private def total_files
+      @total_files ||= importable_files.count
     end
   end
 end

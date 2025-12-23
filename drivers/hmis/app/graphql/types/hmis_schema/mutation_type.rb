@@ -32,8 +32,7 @@ module Types
     field :delete_units, mutation: Mutations::DeleteUnits
     field :create_unit_group, mutation: Mutations::CreateUnitGroup
     field :update_unit_group, mutation: Mutations::UpdateUnitGroup
-    # TODO(#7781) support deleting unit group
-    # field :delete_unit_group, mutation: Mutations::DeleteUnitGroup
+    field :delete_unit_group, mutation: Mutations::DeleteUnitGroup
 
     field :delete_service, mutation: Mutations::DeleteService
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
@@ -54,7 +53,6 @@ module Types
     field :submit_form, mutation: Mutations::SubmitForm
 
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
-    field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
     field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
@@ -76,7 +74,6 @@ module Types
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :delete_form_rule, mutation: Mutations::DeleteFormRule
-    field :update_form_rule, mutation: Mutations::UpdateFormRule, deprecation_reason: 'Replaced with DeleteFormRule'
 
     field :create_project_config, mutation: Mutations::CreateProjectConfig
     field :update_project_config, mutation: Mutations::UpdateProjectConfig

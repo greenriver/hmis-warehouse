@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+#
+# @see docs/features/document-export.md
+
 class DocumentExportsControllerBase < ApplicationController
   def create
     @export = find_or_create
@@ -118,6 +121,7 @@ class DocumentExportsControllerBase < ApplicationController
       'TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport',
       'HopwaCaper::DocumentExports::HopwaCaperExport',
       'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
+      'HudSpmReport::DocumentExports::CellDetailExport',
     ]
   end
 end

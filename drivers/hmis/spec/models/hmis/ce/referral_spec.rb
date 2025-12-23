@@ -10,7 +10,9 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Referral, type: :model do
   let(:data_source) { create(:hmis_data_source) }
-  let(:opportunity) { create(:hmis_ce_opportunity, data_source: data_source) }
+  let!(:project) { create :hmis_hud_project, data_source: data_source }
+  let!(:unit) { create(:hmis_unit, project: project) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
 
   describe 'Referral model validations' do
     it 'saves an active referral' do
@@ -24,7 +26,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     it 'does not save a referral with a non-CE template' do
       template = create(:hmis_workflow_definition_template, template_type: 'not_ce')
       instance = create(:hmis_workflow_execution_instance, template: template)
-      referral = build(:hmis_ce_referral, workflow_instance: instance)
+      referral = build(:hmis_ce_referral, workflow_instance: instance, opportunity: opportunity)
       expect(referral.valid?).to be_falsy
       expect do
         referral.save!
@@ -37,6 +39,17 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       expect do
         referral.save!
       end.to raise_error(ActiveRecord::RecordInvalid, /Status must be one of/)
+    end
+
+    it 'does not save a referral with an invalid target enrollment in the wrong project' do
+      referral = create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source)
+      other_enrollment = create(:hmis_hud_enrollment, data_source: data_source, client: referral.client)
+      referral.target_enrollment = other_enrollment
+
+      expect(referral.valid?).to be_falsy
+      expect do
+        referral.save!
+      end.to raise_error(ActiveRecord::RecordInvalid, /must be in same project/)
     end
 
     ['initialized', 'in_progress', 'accepted'].each do |status|
@@ -60,7 +73,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       let!(:existing) { create(:hmis_ce_referral, workflow_instance: workflow_instance, data_source: data_source) }
 
       it 'does not allow creating a new referral with the same instance' do
-        referral = build(:hmis_ce_referral, workflow_instance: workflow_instance)
+        referral = build(:hmis_ce_referral, workflow_instance: workflow_instance, opportunity: opportunity)
         expect(referral.valid?).to be_falsy
         expect do
           referral.save!

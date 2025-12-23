@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module HmisDataQualityTool
   class Report < HudReports::ReportInstance
@@ -371,6 +371,12 @@ module HmisDataQualityTool
         enrollments.where(destination: ::HudHelper.util.other_destinations)
       end
       scope.preload(:enrollment, :client, :data_source)
+      # Client objects don't have an :enrollment association, only Enrollment objects do
+      if scope.klass == Client
+        scope.preload(:client, :data_source)
+      else
+        scope.preload(:enrollment, :client, :data_source)
+      end
     end
 
     def destination_percent(category)
@@ -549,7 +555,6 @@ module HmisDataQualityTool
           ssn_issues: Client,
           dob_issues: Client,
           race_issues: Client,
-          gender_issues: Client,
           veteran_issues: Client,
           afghanistan_oef: Enrollment,
           iraq_oif: Enrollment,

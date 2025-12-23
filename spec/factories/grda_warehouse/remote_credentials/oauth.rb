@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :grda_remote_oauth_credential, class: 'GrdaWarehouse::RemoteCredentials::Oauth' do
     # these are required by db schema

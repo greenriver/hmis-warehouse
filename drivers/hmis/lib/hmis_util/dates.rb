@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisUtil
   class Dates
     def self.safe_parse_date(date_string:, date_format: '%Y-%m-%d')

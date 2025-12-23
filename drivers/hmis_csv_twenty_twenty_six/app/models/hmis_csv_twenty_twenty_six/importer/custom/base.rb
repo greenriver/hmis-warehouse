@@ -15,5 +15,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     # Base class for all FY2026 custom importer classes
     # This provides common functionality for custom importer classes only
     # Standard importer classes inherit directly from GrdaWarehouse::Hud::Base
+
+    # This is an abstract base class - it should not have its own table
+    self.abstract_class = true
   end
 end

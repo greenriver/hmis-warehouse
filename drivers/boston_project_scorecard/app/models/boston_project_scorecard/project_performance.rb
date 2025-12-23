@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module BostonProjectScorecard
   module ProjectPerformance
     extend ActiveSupport::Concern
@@ -144,6 +146,20 @@ module BostonProjectScorecard
         return nil if materials_concern&.negative? || no_concern_score.present? && no_concern > -1
 
         materials_concern
+      end
+
+      def returns_to_homelessness_value
+        percentage_string(returns_to_homelessness)
+      end
+
+      def returns_to_homelessness_score
+        return 0 unless returns_to_homelessness.present?
+
+        return 12 if returns_to_homelessness.round <= 5
+        return 6 if returns_to_homelessness.round <= 25
+        return 4 if returns_to_homelessness.round <= 50
+
+        0
       end
     end
   end

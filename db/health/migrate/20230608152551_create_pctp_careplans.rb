@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreatePctpCareplans < ActiveRecord::Migration[6.1]
   def change
     create_table :pctp_careplans do |t|

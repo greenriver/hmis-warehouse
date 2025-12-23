@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class FixEnrollmentDates20240416
   # For Enrollments in any project EXCEPT special treatment project, where the Entry Date and Exit Date are the same:
   # - Add one day to the exit date

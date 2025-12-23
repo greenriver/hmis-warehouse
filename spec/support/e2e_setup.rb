@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 if ENV['RUN_SYSTEM_TESTS']
   require_relative './e2e_tests'
@@ -87,6 +87,13 @@ RSpec.shared_context 'SystemSpecHelper' do
     find('body').send_keys(:escape)
 
     choices
+  end
+
+  def mui_clear_select(from:)
+    label = find('label', text: from)
+    scroll_to(label, align: :center)
+    input_id = label['for']
+    find("[id='#{input_id}'] + div > button[aria-label='Clear']", visible: :all).trigger(:click)
   end
 
   def mui_select_value_for(select_label)

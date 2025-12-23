@@ -9,8 +9,8 @@
 RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   def shared_filter_spec
     {
-      start: Date.parse('2021-10-01'),
-      end: Date.parse('2022-09-30'),
+      start: Date.parse('2023-10-01'),
+      end: Date.parse('2024-09-30'),
       user_id: User.setup_system_user.id,
       coc_codes: ['XX-501'],
     }.freeze
@@ -19,7 +19,7 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   def spm_filter_spec
     shared_filter_spec.merge(
       {
-        project_type_codes: HudHelper.util('2024').spm_project_type_codes,
+        project_type_codes: HudHelper.util('2026').spm_project_type_codes,
       },
     )
   end
@@ -29,7 +29,7 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   end
 
   def run(filter, question_numbers)
-    klass = HudSpmReport::Generators::Fy2024::Generator
+    klass = HudSpmReport::Generators::Fy2026::Generator
     report = ::HudReports::ReportInstance.from_filter(
       filter,
       klass.title,

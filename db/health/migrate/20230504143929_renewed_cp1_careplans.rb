@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RenewedCp1Careplans < ActiveRecord::Migration[6.1]
   def up
     # cp2_date = Health::PatientReferral::CP_2_REFERRAL_DATE

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveCurrentLivingSituationVerifiedByLimit1 < ActiveRecord::Migration[7.0]
   # The view 'bi_CurrentLivingSituation' depends on column 'VerifiedBy' we are modifying. We need to remove it before making this change and recreate it afterwards.
   # Running into locking issues when running the steps in the same migration so splitting them out into individual migrations

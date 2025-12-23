@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# frozen_string_literal: true
+
 require 'json'
 require 'aws-sdk-ec2'
 require 'byebug'
@@ -35,7 +37,7 @@ class ContainerList
         # puts format(template, ip, container_id, task)
 
         # Tell user the command to use to connect
-        connection_cmd = "ssh -o StrictHostKeyChecking=no -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+        connection_cmd = "ssh -o StrictHostKeyChecking=no -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/bash' # #{task}"
         # Disabling for now in favor of trailing container name
         # puts format(template, '', '', connection_cmd)
         puts connection_cmd
@@ -72,7 +74,7 @@ class ContainerList
         next if task.match?(/ecs-agent/)
 
         if task.include?(service_string) || task.include?(alt_service_string)
-          to_run = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+          to_run = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/bash' # #{task}"
           break
         end
       end
@@ -112,7 +114,7 @@ class ContainerList
     results = ec2.describe_instances(
       filters: [
         {
-          name: 'tag:Cluster',
+          name: 'tag:cluster',
           values: ['openpath'],
         },
         {

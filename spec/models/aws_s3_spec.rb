@@ -2,6 +2,7 @@
 
 require 'rails_helper'
 require 'aws-sdk-s3'
+require 'securerandom'
 
 # quick smoke tests for aws s3 client wrapper
 RSpec.describe AwsS3 do
@@ -32,14 +33,25 @@ RSpec.describe AwsS3 do
   end
 
   describe '#put' do
-    let(:file_name) { 'test_file.txt' }
     let(:prefix) { 'folder' }
-    let(:file_path) { "#{prefix}/#{file_name}" }
 
-    it 'uploads a file to s3 with correct path' do
-      allow(object).to receive(:upload_file).with(file_name)
-      aws_s3.put(file_name: file_name, prefix: prefix)
-      expect(bucket).to have_received(:object).with(file_path)
+    it 'uploads a file to s3 with correct bucket/key via TransferManager' do
+      tm = instance_double(Aws::S3::TransferManager)
+      resp = instance_double('UploadResponse', wait: true)
+      allow(Aws::S3::TransferManager).to receive(:new).and_return(tm)
+
+      Tempfile.open(['spec-upload', '.txt']) do |tf|
+        tf.write('data')
+        tf.flush
+
+        expect(tm).to receive(:upload_file) do |path, opts|
+          expect(path).to eq(tf.path)
+          expect(opts).to include(bucket: 'test-bucket')
+          expect(opts[:key]).to eq("#{prefix}/#{File.basename(tf.path)}")
+        end.and_return(resp)
+
+        aws_s3.put(file_name: tf.path, prefix: prefix)
+      end
     end
   end
 
@@ -101,9 +113,110 @@ RSpec.describe AwsS3 do
     end
 
     it 'uploads all files from the directory to the specified s3 bucket' do
-      expect(object).to receive(:upload_file).with(file_path)
+      tm = instance_double(Aws::S3::TransferManager)
+      resp = instance_double('UploadResponse', wait: true)
+      allow(Aws::S3::TransferManager).to receive(:new).and_return(tm)
+
+      expect(tm).to receive(:upload_file).with(file_path, hash_including(bucket: 'test-bucket', key: s3_key)).and_return(resp)
+
       aws_s3.upload_directory(directory_name: directory_name, prefix: prefix)
-      expect(bucket).to have_received(:object).with(s3_key)
+    end
+  end
+end
+
+RSpec.describe AwsS3, 'deprecation warnings' do
+  describe '#put' do
+    let(:temp_file) { Tempfile.new(['test', '.txt']) }
+    let(:prefix) { 'folder' }
+
+    before do
+      temp_file.write('test content')
+      temp_file.rewind
+    end
+
+    after do
+      temp_file.close
+      temp_file.unlink
+    end
+
+    it 'triggers deprecation warning when calling upload_file' do
+      # Build a real client but force the uploader to no-op so it doesn't sign
+      allow_any_instance_of(Aws::S3::FileUploader).to receive(:upload).and_return(true)
+
+      real_aws_s3 = AwsS3.new(
+        bucket_name: 'test-bucket',
+        access_key_id: 'test_key',
+        secret_access_key: 'test_secret',
+      )
+
+      expect do
+        real_aws_s3.put(file_name: temp_file.path, prefix: prefix)
+      end.to_not output(/DEPRECATION WARNING/).to_stderr
+    end
+  end
+end
+
+RSpec.describe AwsS3, 'minio roundtrip' do
+  it 'uploads then downloads the file and matches contents' do
+    # Allow real HTTP to MinIO inside the docker network for this example
+    begin
+      WebMock.allow_net_connect!
+    rescue NameError
+      # webmock not loaded
+    end
+
+    previous_use_minio = ENV['USE_MINIO_ENDPOINT']
+    previous_minio_endpoint = ENV['MINIO_ENDPOINT']
+    previous_ssl_verify = Aws.config[:ssl_verify_peer]
+    prev_env_access = ENV['AWS_ACCESS_KEY_ID']
+    prev_env_secret = ENV['AWS_SECRET_ACCESS_KEY']
+    prev_env_region = ENV['AWS_REGION']
+
+    ENV['USE_MINIO_ENDPOINT'] = 'true'
+    endpoint = ENV['MINIO_ENDPOINT'].presence || 'https://s3.dev.test:9000'
+    ENV['MINIO_ENDPOINT'] = endpoint
+    Aws.config[:ssl_verify_peer] = false
+    access_key_id = ENV['AWS_ACCESS_KEY_ID'].presence || 'local_access_key'
+    secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'].presence || 'local_secret_key'
+
+    bucket_name = ENV['S3_TMP_BUCKET'].presence || 'test'
+    region = ENV['S3_TMP_REGION'].presence || 'us-east-1'
+
+    begin
+      s3 = AwsS3.new(
+        bucket_name: bucket_name,
+        access_key_id: access_key_id,
+        secret_access_key: secret_access_key,
+        region: region,
+      )
+
+      tf = Tempfile.new(['roundtrip', '.txt'])
+      content = "hello-#{SecureRandom.hex(8)}"
+      tf.write(content)
+      tf.flush
+
+      prefix = "rt-#{SecureRandom.hex(4)}"
+      s3.put(file_name: tf.path, prefix: prefix)
+
+      download = Tempfile.new(['roundtrip-download', '.txt'])
+      download_path = download.path
+      download.close!
+
+      s3.fetch(file_name: File.basename(tf.path), prefix: prefix, target_path: download_path)
+
+      expect(File.read(download_path)).to eq(content)
+    ensure
+      ENV['USE_MINIO_ENDPOINT'] = previous_use_minio
+      ENV['MINIO_ENDPOINT'] = previous_minio_endpoint
+      Aws.config[:ssl_verify_peer] = previous_ssl_verify
+      ENV['AWS_ACCESS_KEY_ID'] = prev_env_access
+      ENV['AWS_SECRET_ACCESS_KEY'] = prev_env_secret
+      ENV['AWS_REGION'] = prev_env_region
+      begin
+        WebMock.disable_net_connect!
+      rescue NameError
+        # webmock not loaded
+      end
     end
   end
 end

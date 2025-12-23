@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # TODO: This validator is no longer used as an ActiveRecord validator, but just holds the date validator function
 # that's called when the assessment form is submitted. It could be refactored to reduce confusion
 class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::BaseValidator

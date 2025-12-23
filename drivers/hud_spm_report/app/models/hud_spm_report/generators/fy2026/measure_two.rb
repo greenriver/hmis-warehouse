@@ -11,6 +11,7 @@
 # and 24 months.
 module HudSpmReport::Generators::Fy2026
   class MeasureTwo < MeasureBase
+    # Universe: Returns
     def self.question_number
       'Measure 2'
     end
@@ -30,6 +31,10 @@ module HudSpmReport::Generators::Fy2026
         'Measure 2' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months',
         # '2a and 2b' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months.',
       }.freeze
+    end
+
+    def self.reset_derived_data(report_instance)
+      HudSpmReport::Fy2026::Return.where(report_instance_id: report_instance.id).delete_all
     end
 
     def run_question!

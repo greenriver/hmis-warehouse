@@ -8,9 +8,6 @@
 
 ## MPER (to be removed)
 #
-# If the MPER credential is active, the ImportProjectsJob imports batch files from MPER nightly.
-# The files update the Project table and some related tables, including initial unit capacity.
-#
 # Note: this class may still be used for external ID lookups even if the MPER credential is no longer active.
 # See issues #8143 and #8142 for plan to sunset MPER and LINK integrations.
 module HmisExternalApis::AcHmis

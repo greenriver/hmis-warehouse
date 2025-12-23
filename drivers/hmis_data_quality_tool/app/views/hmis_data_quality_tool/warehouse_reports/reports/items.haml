@@ -29,9 +29,10 @@
             - headers.each_value do |header|
               %th= header[:title]
         %tbody
-          - current_user.policy_context.preload_project_dependencies(@items.pluck(:project_id).uniq)
+          - viewable_project_ids_for_user = current_user.viewable_project_ids(:can_view_clients)
           - @items.each.with_index do |item, i|
-            - pii_policy = current_user.reporting_policy_for_project(project_id: item.project_id)
+            - project_id_for_policy = item.project_id_for_policy(viewable_project_ids: viewable_project_ids_for_user)
+            - pii_policy = current_user.reporting_policy_for_project(project_id: project_id_for_policy)
             %tr
               %th.table-dark= i + 1
               - data_source_link_available = item.data_source.present? && item.data_source.hmis_link_available?
@@ -41,15 +42,13 @@
                 - formatted_value = formatted_cell(value)
                 %td
                   - if k.to_s == 'destination_client_id'
-                    = link_to_if @report.can_see_client_details?(current_user), appropriate_client_path(item[k]) do
-                      = value
+                    = link_to_if @report.can_see_client_details?(current_user), value, appropriate_client_path(item[k])
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s == 'hmis_enrollment_id'
                     = hmis_external_link(item.enrollment, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value
                   - elsif k.to_s == 'personal_id'
                     = hmis_external_link(item.client, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value
-                  - elsif k.to_s == 'project_name'
                   - else
                     = formatted_cell(value)
     = content_for :page_js do

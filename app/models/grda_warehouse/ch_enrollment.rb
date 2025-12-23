@@ -184,7 +184,7 @@ module GrdaWarehouse
       return :missing if [nil, 99].include?(value)
     end
 
-    def self.is_no?(value) # rubocop:disable Naming/PredicateName
+    def self.is_no?(value) # rubocop:disable Naming/PredicatePrefix
       return :no if value&.zero?
     end
 

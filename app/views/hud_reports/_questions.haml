@@ -28,3 +28,6 @@
       .btn.btn-sm.btn-secondary.btn-disabled.mb-2.ml-2
         = checkmark_or_x(false)
         = item
+  - policy = current_user.policy_for(@report)
+  - if policy.can_view_checkpoints? && @report.checkpoints.any?
+    = render 'hud_reports/checkpoints'

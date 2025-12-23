@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../sql_server_base'
 module LsaSqlServer
   module_function def models_by_filename

@@ -12,9 +12,9 @@ module Filters
     validates_presence_of :coc_codes
 
     # Force people to choose project types because they are additive with projects
-    attribute :default_project_type_codes, Array, default: []
+    attribute :default_project_type_codes, Array, default: [].freeze
     # Provide a mechanism to limit relevant project types
-    attribute :relevant_project_types, Array, default: []
+    attribute :relevant_project_types, Array, default: [].freeze
 
     def params_for_display
       params = known_params.flat_map do |k|

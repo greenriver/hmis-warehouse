@@ -4,11 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Filters
   class EngagementFilter < ::Filters::FilterBase
     attribute :food_insecurity, Integer
     attribute :cohort_type, Symbol, default: :engaged_history # or :selected_period
-    attribute :acos, Array, default: []
+    attribute :acos, Array, default: [].freeze
 
     def available_age_ranges
       super

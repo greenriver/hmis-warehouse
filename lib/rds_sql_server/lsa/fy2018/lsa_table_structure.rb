@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 SqlServerBase.connection.execute <<~SQL
   #{File.read('lib/rds_sql_server/lsa/fy2018/LSADictionaryTables.sql')}
 SQL

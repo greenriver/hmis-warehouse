@@ -7,6 +7,7 @@
 ###
 
 # A HUD Report instance
+# @see docs/features/hud-report-framework.md
 #
 # While the model supports STI, this is not commonly used to identify report type. Instead, the report_name is used to
 # indicate the type of report. For example:
@@ -27,6 +28,7 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    has_many :checkpoints, class_name: 'HudReports::ReportCheckpoint', foreign_key: 'hud_report_instance_id', dependent: :destroy
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
@@ -35,6 +37,22 @@ module HudReports
     scope :created_recently, -> { where(created_at: 24.hours.ago .. Time.current) }
     scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
     scope :for_report, ->(report_name) { where(report_name: report_name) }
+
+    def snapshot_completed?
+      snapshot_status == HudReports::GeneratorBase::COMPLETED
+    end
+
+    def mark_snapshot_started!
+      update!(snapshot_status: HudReports::GeneratorBase::STARTED)
+    end
+
+    def mark_snapshot_completed!
+      update!(snapshot_status: HudReports::GeneratorBase::COMPLETED)
+    end
+
+    def policy_class
+      GrdaWarehouse::AuthPolicies::HudReportPolicy
+    end
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
@@ -79,7 +97,7 @@ module HudReports
         end
       when 'Completed'
         if started_at.present? && completed_at.present?
-          "#{state} in #{distance_of_time_in_words(started_at, completed_at)} <br/> #{completed_at} ".html_safe
+          "#{state} in #{total_duration_in_words} <br/> #{completed_at} ".html_safe
         else
           state
         end
@@ -96,6 +114,27 @@ module HudReports
 
     def failures
       report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
+    end
+
+    def reset_question(question)
+      cells = report_cells.where(question: question)
+      # NOTE: This method handles the generic cleanup of report cells and universe members.
+      # For question-specific cleanup of derived records (e.g., SPM's Return records),
+      # implement the QuestionBase::reset_derived_data hook, which is called automatically
+      # before this method during a retry.
+      HudReports::UniverseMember.where(report_cell_id: cells.select(:id)).delete_all
+      cells.delete_all
+    end
+
+    def total_duration_in_words
+      # only report out if the job is completed
+      return unless started_at && completed_at
+
+      # if this report was created before we used checkpoints, calculate from completed_at
+      checkpoint_seconds = checkpoints.calculate_duration_seconds
+      return distance_of_time_in_words(started_at, completed_at) if checkpoint_seconds.nil?
+
+      distance_of_time_in_words(0, checkpoint_seconds)
     end
 
     private def job_failed?
@@ -120,7 +159,32 @@ module HudReports
     end
 
     def start_report
-      update!(state: 'Started', started_at: Time.current)
+      # Only set started_at on the very first run
+      self.started_at ||= Time.current
+
+      update!(state: 'Started', started_at: started_at)
+    end
+
+    def track_progress(checkpoint_name)
+      raise unless checkpoint_name.present?
+
+      # If this step has already been successfully completed, skip it (resume)
+      existing = checkpoints.find_by(name: checkpoint_name, status: 'success')
+      return existing if existing
+
+      checkpoint = checkpoints.create!(name: checkpoint_name, started_at: Time.current, status: 'running')
+      status = 'success'
+
+      begin
+        yield
+      rescue StandardError
+        status = 'error'
+        raise
+      ensure
+        checkpoint.update!(completed_at: Time.current, status: status)
+      end
+
+      checkpoint
     end
 
     # Mark a question as completed

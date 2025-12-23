@@ -42,13 +42,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     # call the factory outside of expect block to isolate version side effects
     let!(:client) { create :grda_warehouse_hud_client }
 
-    before(:all) do
-      PaperTrail.enabled = true
-      PaperTrail.request.enabled = true
-    end
-    after(:all) do
-      PaperTrail.enabled = false
-      PaperTrail.request.enabled = false
+    around(:example) do |ex|
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        ex.run
+      ensure
+        PaperTrail.request.enabled = false
+      end
     end
 
     it 'tracks versions for committed changes to the correct table' do
@@ -473,6 +473,66 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           expect(enrollments.map(&:new_episode?).count(true)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
+        end
+      end
+    end
+
+    describe '#invalidate_consent!' do
+      context 'when using explicit consent' do
+        before do
+          GrdaWarehouse::Config.delete_all
+          create(:config_b)
+          GrdaWarehouse::Config.invalidate_cache
+        end
+
+        it 'sets housing_release_status to nil when no consent file is present' do
+          client = create(:grda_warehouse_hud_client)
+          consent_file = create(:client_file_expanded_consent, client: client)
+          expect(client.reload.housing_release_status).to be_present
+          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.full_release_string)
+          consent_file.destroy
+          client.invalidate_consent!
+          expect(client.reload.housing_release_status).to be_nil
+        end
+
+        it 'sets housing_release_status to nil when no consent file is revoked' do
+          client = create(:grda_warehouse_hud_client)
+          consent_file = create(:client_file_expanded_consent, client: client)
+          expect(client.reload.housing_release_status).to be_present
+          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.full_release_string)
+          consent_file.update(consent_revoked_at: Time.current)
+          client.invalidate_consent!
+          expect(client.reload.housing_release_status).to be_nil
+        end
+      end
+
+      context 'when using implied consent' do
+        before do
+          GrdaWarehouse::Config.delete_all
+          create(:config_va)
+          GrdaWarehouse::Config.invalidate_cache
+        end
+
+        it 'sets housing_release_status for implied consent when no consent file is present' do
+          client = create(:grda_warehouse_hud_client)
+          consent_file = create(:client_file_expanded_consent, client: client)
+          expect(client.reload.housing_release_status).to be_present
+          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.full_release_string)
+          consent_file.destroy
+          client.invalidate_consent!
+          expect(client.reload.housing_release_status).to be_present
+          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.no_release_string)
+        end
+
+        it 'sets housing_release_status for implied consent when consent file is revoked' do
+          client = create(:grda_warehouse_hud_client)
+          consent_file = create(:client_file_expanded_consent, client: client)
+          expect(client.reload.housing_release_status).to be_present
+          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.full_release_string)
+          consent_file.update(consent_revoked_at: Time.current)
+          client.invalidate_consent!
+          expect(client.reload.housing_release_status).to be_present
+          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.revoked_consent_string)
         end
       end
     end

@@ -6,6 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# See @docs/features/coc-performance-measurement-dashboard.md
 module PerformanceMeasurement::Details
   extend ActiveSupport::Concern
 
@@ -26,6 +27,14 @@ module PerformanceMeasurement::Details
 
     def detail_title_for(key)
       detail_for(key)[:title]
+    end
+
+    def detail_specific_target_for(key)
+      detail = detail_for(key)
+      template = detail[:specific_target]
+      return '' unless template
+
+      format(template, { goal: goal_config[detail[:goal_calculation]] })
     end
 
     def detail_category_for(key)
@@ -165,16 +174,15 @@ module PerformanceMeasurement::Details
     memoize :other_projects
 
     def project_details(user, key)
-      details = results.project.left_outer_joins(:hud_project).
+      # Return all project Results for this metric
+      # The calculation methods only create Results for relevant project types,
+      # so if a Result exists, the metric is relevant (show 0 if denominator is 0)
+      # If no Result exists, the metric is not relevant (will show N/A in the view)
+      results.project.left_outer_joins(:hud_project).
         order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
         for_field(key).
         sort_by { |project| project&.hud_project&.name(user) || 'unknown' }.
         index_by(&:project_id)
-      # throw out any where there are no associated client_projects
-      # NOTE: we also need to throw these out in `inventory_sum`
-      cp_key = detail_for(key)[:calculation_column]
-      project_ids = client_projects.for_question(cp_key).distinct.pluck(:project_id)
-      details.select { |k, _| k.in?(project_ids) }.to_h
     end
     memoize :project_details
 
@@ -804,7 +812,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People in RRH or PH with Move-in or Permanent Exit',
+          title: 'Percentage of People in PH except RRH with Move-in or Permanent Exit',
           goal_description: '**At least %{goal}%%** of persons remain housed in PH projects or exit to a permanent housing destination',
           goal_calculation: :destination_permanent,
           goal_description_brief: 'positive destinations',
@@ -814,7 +822,7 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons with a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project divided by the number of persons housed by PH projects.',
           calculation_column: :moved_in_destination_positive,
           measure: 'Measure 7',
-          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # NOTE: these are hard-coded in result_calculation.rb since it's somewhat complex
           # tables: [ '7b.2'],
           # cells: ['C2', 'C3'],
           detail_columns: [
@@ -1057,6 +1065,14 @@ module PerformanceMeasurement::Details
           ],
         },
       }
+      # Populate specific_target from the bolded phrase inside goal_description (e.g., **no more than %{goal} days**)
+      @detail_hash.each do |_key, data|
+        gd = data[:goal_description]
+        next unless gd
+
+        target = gd[/\*\*(.+?)\*\*/, 1]
+        data[:specific_target] = target if target
+      end
     end
 
     private def detail_columns_for(key:, period: 'reporting')

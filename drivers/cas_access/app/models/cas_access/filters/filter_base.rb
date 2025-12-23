@@ -19,25 +19,25 @@ module CasAccess::Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :match_route, String, lazy: false, default: ->(o, _) { o.match_route_options_for_select.first }
-    attribute :match_routes, Array, default: []
-    attribute :program_types, Array, default: []
+    attribute :match_routes, Array, default: [].freeze
+    attribute :program_types, Array, default: [].freeze
     attribute :agency, Integer
-    attribute :agencies, Array, default: []
-    attribute :household_types, Array, default: []
-    attribute :veteran_statuses, Array, default: []
-    attribute :age_ranges, Array, default: []
-    attribute :genders, Array, default: []
-    attribute :races, Array, default: []
-    attribute :ethnicities, Array, default: []
-    attribute :disabilities, Array, default: []
+    attribute :agencies, Array, default: [].freeze
+    attribute :household_types, Array, default: [].freeze
+    attribute :veteran_statuses, Array, default: [].freeze
+    attribute :age_ranges, Array, default: [].freeze
+    attribute :genders, Array, default: [].freeze
+    attribute :races, Array, default: [].freeze
+    attribute :ethnicities, Array, default: [].freeze
+    attribute :disabilities, Array, default: [].freeze
     attribute :first_step, String, lazy: false, default: ->(o, _) { o.ordered_steps&.first&.first }
     attribute :second_step, String, lazy: false, default: ->(o, _) { o.ordered_steps[o.ordered_steps&.first&.first]&.first }
     attribute :unit, String, default: 'day'
     attribute :interesting_date, String, default: 'created'
 
     # Defaults
-    attribute :default_start, Date, default: (Date.current - 1.year).beginning_of_year
-    attribute :default_end, Date, default: (Date.current - 1.year).end_of_year
+    attribute :default_start, Date, default: ->(_, _) { (Date.current - 1.year).beginning_of_year }
+    attribute :default_end, Date, default: ->(_, _) { (Date.current - 1.year).end_of_year }
 
     def cache_key
       to_h

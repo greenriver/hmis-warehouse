@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :accountable_care_organization, class: 'Health::AccountableCareOrganization' do
     name { 'Example ACO' }

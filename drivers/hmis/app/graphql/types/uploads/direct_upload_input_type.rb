@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Types
   class Uploads::DirectUploadInputType < BaseInputObject
     description 'File information required to prepare a direct upload'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ConfigurableClientRecordPage < ActiveRecord::Migration[7.0]
   def change
     create_table(:hmis_supplemental_data_sets) do |t|

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement::EquityAnalysis
   class EthnicityData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups

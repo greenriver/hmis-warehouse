@@ -37,7 +37,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CaseNoteExport, type: :model
     expect(result.first['NoteContent']).to eq(case_note_1.content)
   end
 
-  it 'quotes newlines' do
+  it 'replaces newlines with spaces' do
     case_note_1.update!(content: "first\nsecond")
 
     subject.run!
@@ -45,6 +45,17 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CaseNoteExport, type: :model
     result = CSV.parse(output, headers: true)
 
     expect(result.length).to eq(1)
-    expect(result.first['NoteContent']).to eq(case_note_1.content)
+    expect(result.first['NoteContent']).to eq('first second')
+  end
+
+  it 'replaces Windows-style newlines with spaces' do
+    case_note_1.update!(content: "first\r\nsecond")
+
+    subject.run!
+
+    result = CSV.parse(output, headers: true)
+
+    expect(result.length).to eq(1)
+    expect(result.first['NoteContent']).to eq('first second')
   end
 end

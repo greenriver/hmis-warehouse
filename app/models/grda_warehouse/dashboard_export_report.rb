@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
   belongs_to :file, class_name: 'GrdaWarehouse::DashboardExportFile', optional: true

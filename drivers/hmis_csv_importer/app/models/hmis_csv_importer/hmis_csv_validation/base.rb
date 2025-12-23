@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisCsvImporter::HmisCsvValidation::Base < GrdaWarehouseBase
   self.table_name = 'hmis_csv_import_validations'
   belongs_to :source, -> { with_deleted }, polymorphic: true, optional: true

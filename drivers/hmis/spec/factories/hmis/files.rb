@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :file, class: 'Hmis::File' do
     transient do
@@ -21,6 +23,11 @@ FactoryBot.define do
     before(:create) do |file, evaluator|
       file.client_file.attach(evaluator.blob) if evaluator.blob
       file.tag_list = evaluator.tags.map(&:id)
+    end
+
+    trait :skip_validate do
+      # allow test factories to bypass validations (specifically file_exists_and_not_too_large)
+      to_create { |instance| instance.save(validate: false) }
     end
   end
 end

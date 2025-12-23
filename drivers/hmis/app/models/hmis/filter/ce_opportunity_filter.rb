@@ -29,7 +29,7 @@ class Hmis::Filter::CeOpportunityFilter < Hmis::Filter::BaseFilter
 
   def with_projects(scope)
     with_filter(scope, :project) do
-      scope.where(project_id: input.project)
+      scope.joins(:project).where(p_t[:id].in(input.project))
     end
   end
 

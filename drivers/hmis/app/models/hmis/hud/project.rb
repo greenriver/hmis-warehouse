@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class Hmis::Hud::Project < Hmis::Hud::Base
   self.table_name = :Project
@@ -17,7 +17,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_paper_trail(meta: { project_id: :id })
 
-  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
+  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
@@ -27,7 +27,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :affiliations, **hmis_relation(:ProjectID, 'Affiliation'), inverse_of: :project
   # Affiliations to SSO/RRH SSO projects. This should only be present if this project is residential.
   # NOTE: you can't use hmis_relation for residential project, the keys don't match
-  has_many :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], query_constraints: ['ResProjectID', :data_source_id]
+  has_many :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
 
   # Affiliated SSO/RRH SSO projects
   has_many :affiliated_projects, through: :residential_affiliations, source: :project
@@ -57,8 +57,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments
   has_many :current_living_situations, through: :enrollments
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
-  has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
+  has_many :ce_opportunities, through: :units, class_name: 'Hmis::Ce::Opportunity', source: :opportunities
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
+  has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
 
   # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
@@ -73,6 +74,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
                           association_foreign_key: 'hmis_project_group_id'
 
   validates_with Hmis::Hud::Validators::ProjectValidator
+
+  # Destroy related CE referrals before destroying the project
+  before_destroy :destroy_related_ce_referrals
 
   # hide previous declaration of :viewable_by, we'll use this one
   # Includes any HMIS projects where the user has the can_view_projects permission
@@ -132,7 +136,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   scope :matching_search_term, ->(search_term) do
     return none unless search_term.present?
 
-    search_term.strip!
+    search_term = search_term.strip
     query = "%#{search_term.split(/\W+/).join('%')}%"
 
     where(
@@ -396,6 +400,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
 
     unit_type_scope
+  end
+
+  private
+
+  # Destroy CE referrals that are associated with this project's opportunities.
+  # This is needed as a workaround to the fact that opportunities are not destroyed when their unit is destroyed.
+  def destroy_related_ce_referrals
+    ce_referrals.each(&:destroy!)
   end
 
   include RailsDrivers::Extensions

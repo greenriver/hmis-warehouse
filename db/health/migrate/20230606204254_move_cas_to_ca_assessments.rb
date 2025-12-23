@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MoveCasToCaAssessments < ActiveRecord::Migration[6.1]
   def change
     # chas = []

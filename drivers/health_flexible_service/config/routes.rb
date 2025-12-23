@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 BostonHmis::Application.routes.draw do
   # NOTE: using only: [:none] because leaving it blank inserts the default routes, which we have moved to a driver
   resources :clients, only: [:none] do

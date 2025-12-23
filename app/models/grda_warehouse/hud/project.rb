@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # these are also sometimes called programs
 module GrdaWarehouse::Hud
@@ -31,7 +31,7 @@ module GrdaWarehouse::Hud
 
     has_and_belongs_to_many :project_groups, class_name: 'GrdaWarehouse::ProjectGroup', join_table: :project_project_groups
 
-    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], query_constraints: [:data_source_id, :project_id, :organization_id]
+    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
     has_many :service_history_services, through: :service_history_enrollments
 
     has_many :project_cocs, **hud_assoc(:ProjectID, 'ProjectCoc'), inverse_of: :project
@@ -50,7 +50,7 @@ module GrdaWarehouse::Hud
 
     has_many :affiliations, **hud_assoc(:ProjectID, 'Affiliation'), inverse_of: :project
     # NOTE: you can't use hud_assoc for residential project, the keys don't match
-    has_many :residential_affiliations, class_name: 'GrdaWarehouse::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], query_constraints: ['ResProjectID', :data_source_id]
+    has_many :residential_affiliations, class_name: 'GrdaWarehouse::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
 
     has_many :affiliated_projects, through: :residential_affiliations, source: :project
     has_many :residential_projects, through: :affiliations
@@ -65,7 +65,7 @@ module GrdaWarehouse::Hud
     has_one :current_data_quality_report, -> do
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
-    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id
+    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id, dependent: :destroy
     has_many :organization_contacts, through: :organization, source: :contacts
 
     # can't use a direct join table to collections due to db boundary
@@ -76,7 +76,7 @@ module GrdaWarehouse::Hud
 
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted
-    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], query_constraints: [:ProjectID, :data_source_id], optional: true
+    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
     include RailsDrivers::Extensions

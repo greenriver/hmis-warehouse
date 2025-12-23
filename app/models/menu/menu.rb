@@ -17,6 +17,8 @@ class Menu::Menu
   end
 
   def site_menu
+    return [limited_menu] if context.access_captured_for_setup?
+
     [].tap do |menu|
       menu << reports_menu
       menu << clients_menu
@@ -402,6 +404,22 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_content_pages_path,
+        title: 'Content Pages',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_compliance_requirements_path,
+        title: 'Compliance Requirements',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
         visible: ->(user) { user.can_edit_theme? }, # rubocop:disable Style/SymbolProc
         path: edit_admin_theme_path,
         title: 'Theme',
@@ -453,6 +471,14 @@ class Menu::Menu
         visible: ->(user) { user.can_edit_warehouse_alerts? }, # rubocop:disable Style/SymbolProc
         path: admin_warehouse_alerts_path,
         title: 'Warehouse Alerts',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_warehouse_alerts? }, # rubocop:disable Style/SymbolProc
+        path: admin_metric_definitions_path,
+        title: 'Threshold Monitoring',
       ),
     )
     menu.add_child(
@@ -788,5 +814,16 @@ class Menu::Menu
     )
     menu.add_child(sub_menu)
     menu
+  end
+
+  def limited_menu
+    Menu::Item.new(
+      user: user,
+      visible: ->(_user) { true },
+      path: destroy_user_session_path,
+      title: Translation.translate('Sign Out'),
+      icon: 'icon-exit',
+      data: { method: :delete },
+    )
   end
 end
