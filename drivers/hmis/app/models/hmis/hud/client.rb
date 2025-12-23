@@ -188,8 +188,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def build_primary_custom_client_name
-    return unless names.empty?
-
     names.new(
       primary: true,
       first: first_name,

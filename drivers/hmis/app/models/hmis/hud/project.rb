@@ -57,8 +57,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments
   has_many :current_living_situations, through: :enrollments
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
-  has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
+  has_many :ce_opportunities, through: :units, class_name: 'Hmis::Ce::Opportunity', source: :opportunities
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
+  has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
 
   # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
@@ -73,6 +74,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
                           association_foreign_key: 'hmis_project_group_id'
 
   validates_with Hmis::Hud::Validators::ProjectValidator
+
+  # Destroy related CE referrals before destroying the project
+  before_destroy :destroy_related_ce_referrals
 
   # hide previous declaration of :viewable_by, we'll use this one
   # Includes any HMIS projects where the user has the can_view_projects permission
@@ -396,6 +400,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
 
     unit_type_scope
+  end
+
+  private
+
+  # Destroy CE referrals that are associated with this project's opportunities.
+  # This is needed as a workaround to the fact that opportunities are not destroyed when their unit is destroyed.
+  def destroy_related_ce_referrals
+    ce_referrals.each(&:destroy!)
   end
 
   include RailsDrivers::Extensions

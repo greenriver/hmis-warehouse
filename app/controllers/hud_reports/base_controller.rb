@@ -136,7 +136,7 @@ module HudReports
 
       title = generator.title
       @reports = report_scope.where(report_name: title).
-        preload(:user, :universe_cells)
+        preload(:user, :universe_cells, :checkpoints)
       if @question.present?
         @reports = @reports.joins(:report_cells).
           merge(report_cell_source.universe.where(question: @question))

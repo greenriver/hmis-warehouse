@@ -1,0 +1,19 @@
+- title = 'Compliance Requirements'
+- content_for :title, title
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+
+  .row.mb-4
+    .col-8
+      %p
+        Compliance requirements block users from accessing the site until they agree.
+        Bump the requirement revision (or let it expire) to force re-agreement after content updates.
+    .col-4.text-right
+      = link_to new_admin_compliance_requirement_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        New Compliance Requirement
+
+= render_paginated_list(scope: @requirements, item_name: 'requirement', list_partial: 'list')

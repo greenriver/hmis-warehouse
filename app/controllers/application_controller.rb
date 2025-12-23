@@ -40,6 +40,7 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
+  before_action :require_compliance_agreement!
   before_action :require_training!
   before_action :health_emergency?
 
@@ -212,6 +213,8 @@ class ApplicationController < ActionController::Base
         'accounts',
         'account_emails',
         'user_training',
+        'compliance_agreements',
+        'content_pages',
       ],
     ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
   end
@@ -228,6 +231,17 @@ class ApplicationController < ActionController::Base
 
     redirect_to user_training_path
   end
+
+  def require_compliance_agreement!
+    return unless current_user
+    return if current_user.pending_compliance_requirements.empty?
+    return if allowed_setup_controllers
+
+    redirect_to compliance_agreement_path
+  end
+
+  # is the user in a portal (tos agreement)
+  helper_method def access_captured_for_setup? = false
 
   def health_emergency?
     health_emergency.present? && current_user&.can_see_health_emergency?

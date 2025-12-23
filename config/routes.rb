@@ -49,6 +49,8 @@ Rails.application.routes.draw do
   end
 
   get '/user_training', to: 'user_training#index'
+  resources :content_pages, only: [:show], param: :slug, path: 'public/pages'
+  resource :compliance_agreement, only: [:show, :create], controller: 'compliance_agreements'
 
   def healthcare_routes
     namespace :health do
@@ -839,6 +841,11 @@ Rails.application.routes.draw do
       end
     end
     resources :links
+    resources :content_pages
+    resources :compliance_requirements, except: [:show] do
+      post :activate, on: :member
+      post :deactivate, on: :member
+    end
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]

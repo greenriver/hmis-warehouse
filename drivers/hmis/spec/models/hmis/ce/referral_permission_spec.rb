@@ -17,8 +17,10 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   # Create referral in another project in the same data source
   let!(:other_project) { create :hmis_hud_project, data_source: ds1 }
+  let!(:other_project_unit_group) { create(:hmis_unit_group, project: other_project, workflow_template: workflow_template) }
+  let!(:other_project_unit) { create(:hmis_unit, project: other_project, unit_group: other_project_unit_group) }
   let!(:other_referral) do
-    opportunity = create(:hmis_ce_opportunity, data_source: ds1, project: other_project, workflow_template: workflow_template)
+    opportunity = create(:hmis_ce_opportunity, unit: other_project_unit)
     create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1)
   end
 
@@ -149,7 +151,8 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
         context 'and user is not a participant, but participates on this swimlane on a different referral' do
           # Set up referral to another opportunity, and assign `hmis_user` as a participant to the same swimlane that is shared for the template
-          let(:opportunity2) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+          let!(:unit2) { create(:hmis_unit, project: project, unit_group: unit_group) }
+          let(:opportunity2) { create :hmis_ce_opportunity, unit: unit2 }
           let(:workflow_instance2) { workflow_template.instances.create! }
           let!(:referral2) do
             create(
@@ -175,6 +178,24 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
             expect(Hmis::Ce::Referral.referral_ids_for_user_with_completed_swimlane_steps(hmis_user)).to contain_exactly(referral2.id)
           end
         end
+      end
+    end
+
+    context 'user can_view_outgoing_referral_details in source project' do
+      let!(:source_project) { create(:hmis_hud_project, data_source: ds1) }
+      let!(:source_enrollment) { create(:hmis_hud_enrollment, project: source_project, data_source: ds1) }
+      let!(:referral) do
+        create(
+          :hmis_ce_referral,
+          opportunity: opportunity,
+          source_enrollment: source_enrollment,
+          data_source: ds1,
+        )
+      end
+      let!(:acl) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details]) }
+
+      it 'includes referral with source enrollment from that project' do
+        expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
       end
     end
   end

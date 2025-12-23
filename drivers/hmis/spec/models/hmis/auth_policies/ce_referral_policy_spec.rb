@@ -13,7 +13,9 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   let(:project) { create :hmis_hud_project, data_source: data_source }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }
   let(:swimlane) { create :hmis_workflow_definition_swimlane, template: workflow_template }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+  let(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
+  let(:unit) { create(:hmis_unit, unit_group: unit_group, project: project) }
+  let(:opportunity) { create :hmis_ce_opportunity, unit: unit }
   let(:workflow_instance) { workflow_template.instances.create! }
   let(:referral) do
     create(
@@ -102,7 +104,8 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
 
         context 'and user is not a participant, but participates on this swimlane on a different referral' do
           # Set up referral to another opportunity, and assign `user` as a participant to the same swimlane that is shared for the template
-          let(:opportunity2) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+          let(:unit2) { create(:hmis_unit, unit_group: unit_group, project: project) }
+          let(:opportunity2) { create :hmis_ce_opportunity, unit: unit2 }
           let(:workflow_instance2) { workflow_template.instances.create! }
           let!(:referral2) do
             create(
@@ -131,6 +134,30 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
             expect(policy2.can_view?).to be true
           end
         end
+      end
+    end
+
+    context 'with permissions on source project' do
+      let!(:source_project) { create(:hmis_hud_project, data_source: data_source) }
+      let!(:source_enrollment) { create(:hmis_hud_enrollment, project: source_project, client: client, data_source: data_source) }
+      let!(:referral) do
+        create(
+          :hmis_ce_referral,
+          client: client,
+          opportunity: opportunity,
+          workflow_instance: workflow_instance,
+          source_enrollment: source_enrollment,
+        )
+      end
+
+      it 'returns true when user has can_view_outgoing_referral_details on source project' do
+        create_access_control(user, source_project, with_permission: [:can_view_project, :can_view_outgoing_referral_details])
+        expect(policy.can_view?).to be true
+      end
+
+      it 'returns false when user only has can_manage_outgoing_referrals (summary access only)' do
+        create_access_control(user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals])
+        expect(policy.can_view?).to be false
       end
     end
 

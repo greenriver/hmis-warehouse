@@ -1,0 +1,17 @@
+- title = 'Content Pages'
+- content_for :title, title
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+
+  .row.mb-4
+    .col-8
+      %p Manage content pages that can be displayed to users or linked to compliance requirements. Note, these are public pages, available to anonymous users.
+    .col-4.text-right
+      = link_to new_admin_content_page_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        New Content Page
+
+  = render_paginated_list(scope: @pages, item_name: 'page', list_partial: 'admin/content_pages/list')

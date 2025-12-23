@@ -40,6 +40,8 @@ class User < ApplicationRecord
   has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
   has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
 
+  has_many :compliance_agreements, class_name: 'GrdaWarehouse::Compliance::Agreement', dependent: :destroy
+
   has_many :user_authentication_sources, dependent: :destroy
   has_many :enabled_authentication_sources, -> { where(enabled: true) }, class_name: 'UserAuthenticationSource'
 
@@ -341,5 +343,9 @@ class User < ApplicationRecord
   # Subscribe to a system alert (creates system contact if needed)
   def subscribe_to_system_alert!(alert_code)
     system_contact!.subscribe_to!(alert_code)
+  end
+
+  def pending_compliance_requirements
+    GrdaWarehouse::Compliance::Requirement.pending_for_user(self)
   end
 end

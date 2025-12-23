@@ -12,9 +12,9 @@ module Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :sort
-    attribute :age_ranges, Array, default: []
+    attribute :age_ranges, Array, default: [].freeze
     attribute :heads_of_household, Boolean, default: false
-    attribute :activity_type, Array, default: []
+    attribute :activity_type, Array, default: [].freeze
     attribute :agency_id, Integer
     attribute :user_id, Integer
 

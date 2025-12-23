@@ -182,9 +182,9 @@ GEM
     attribute_normalizer (1.2.0)
     autoprefixer-rails (10.3.3.0)
       execjs (~> 2)
-    aws-eventstream (1.3.1)
-    aws-partitions (1.1055.0)
-    aws-record (2.13.3)
+    aws-eventstream (1.4.0)
+    aws-partitions (1.1198.0)
+    aws-record (2.14.0)
       aws-sdk-dynamodb (~> 1, >= 1.85.0)
     aws-sdk-autoscaling (1.131.0)
       aws-sdk-core (~> 3, >= 3.216.0)
@@ -198,12 +198,14 @@ GEM
     aws-sdk-cloudwatchlogs (1.109.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-core (3.219.0)
+    aws-sdk-core (3.240.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
       base64
+      bigdecimal
       jmespath (~> 1, >= 1.6.1)
+      logger
     aws-sdk-dynamodb (1.137.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sigv4 (~> 1.5)
@@ -225,8 +227,8 @@ GEM
     aws-sdk-iam (1.118.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-kms (1.99.0)
-      aws-sdk-core (~> 3, >= 3.216.0)
+    aws-sdk-kms (1.118.0)
+      aws-sdk-core (~> 3, >= 3.239.1)
       aws-sigv4 (~> 1.5)
     aws-sdk-rails (3.13.0)
       aws-record (~> 2)
@@ -239,8 +241,8 @@ GEM
     aws-sdk-rds (1.271.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.182.0)
-      aws-sdk-core (~> 3, >= 3.216.0)
+    aws-sdk-s3 (1.208.0)
+      aws-sdk-core (~> 3, >= 3.234.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
     aws-sdk-secretsmanager (1.113.0)
@@ -284,7 +286,7 @@ GEM
     benchmark-malloc (0.2.0)
     benchmark-perf (0.6.0)
     benchmark-trend (0.4.0)
-    bigdecimal (3.1.9)
+    bigdecimal (3.3.1)
     bindex (0.8.1)
     bootsnap (1.18.4)
       msgpack (~> 1.2)
@@ -1074,7 +1076,7 @@ GEM
       yabeda (~> 0.8)
     yajl-ruby (1.4.3)
     yaml-safe_load_stream3 (0.1.2)
-    zeitwerk (2.7.2)
+    zeitwerk (2.7.3)
     zitadel-client (1.10.0)
       oauth2 (~> 2.0)
       typhoeus (~> 1.0, >= 1.0.1)
@@ -1083,6 +1085,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  arm64-darwin-24
   ruby
 
 DEPENDENCIES
@@ -1348,14 +1351,14 @@ CHECKSUMS
   attr_encrypted (4.2.0) sha256=7e5c80159e6e38ed40dc4e2e65c4f57234fe1f376bddc40c8b773bfb9b81ad51
   attribute_normalizer (1.2.0) sha256=580df3f316d7f0a2cc068fd655377f4769848643328d0c6c6c685ea98ac181c4
   autoprefixer-rails (10.3.3.0) sha256=aaed247e87e773e6332786ea92d88ec04a925d57d34f7f7ec7fe7983a95448ae
-  aws-eventstream (1.3.1) sha256=4465b2add71d69a36fb1268a738d9b3d1a593c789e0286f28fad38e132d4403b
-  aws-partitions (1.1055.0) sha256=750a6fe952f0bee53b4f8e30237ca7477cdf1b886e125103cece8d8aacdb379e
-  aws-record (2.13.3) sha256=9666b949c4f7d90ef297f845c93f361caaba3a2112f12204fb1b93e7c259ab01
+  aws-eventstream (1.4.0) sha256=116bf85c436200d1060811e6f5d2d40c88f65448f2125bc77ffce5121e6e183b
+  aws-partitions (1.1198.0) sha256=dcc90dfa67c02f6b85dd7606c4fe62ce26577a7c380a8045250d05926446a2d2
+  aws-record (2.14.0) sha256=3d221d8d92c98b430c2798cfcc0994ffdda7e97311c1909142e4e79871c15896
   aws-sdk-autoscaling (1.131.0) sha256=85666d686480c2bdb61726cc3105f943fb305517d91de9bdcef14f3c1977d30e
   aws-sdk-cloudwatch (1.111.0) sha256=50a05937c2230812e99e3169d552ca2ead2b9a78d58fc64189327e9a285bc8c5
   aws-sdk-cloudwatchevents (1.88.0) sha256=bf108733440cb66b9384122774757e9c9e2d3f84ac4fb92f882b8e686c51a85c
   aws-sdk-cloudwatchlogs (1.109.0) sha256=1c763c45fb95cc77f946ecac1c041bc2f0982df284a3d0198895a388a802edc7
-  aws-sdk-core (3.219.0) sha256=d10c3832ece1f1de8edb7cbbcd737dd49b2789fae8744537943e86fdd822c649
+  aws-sdk-core (3.240.0) sha256=86b63890525caaf56702972e2669b30ec89230c2b45f12c88290ee678d8d189e
   aws-sdk-dynamodb (1.137.0) sha256=3da333db7bbebc729aa0ba2b1781f5b06301260441ace7adf61f35ed1922003d
   aws-sdk-ec2 (1.507.0) sha256=f326aefffc4bbddbe16346fb92bacc04534a03060656a004472ae3b2ee4ee88f
   aws-sdk-ecr (1.97.0) sha256=6e952a44d3adb9e8fa8cee3ebe19daf9d9595b29bc0f1867c9099f1a4a979992
@@ -1363,10 +1366,10 @@ CHECKSUMS
   aws-sdk-elasticloadbalancingv2 (1.128.0) sha256=7550e53601d32b54a049d14d7ff47ef14b7338a795255a0ba470286017052006
   aws-sdk-glacier (1.76.0) sha256=d793c9594d5c94238166816f15b3ae9153125e73d9fbb261acf64e9a541c5505
   aws-sdk-iam (1.118.0) sha256=960d83b19be10f4d846304b193b68ac34bab3f23a86a51ca183546c2e4c03e07
-  aws-sdk-kms (1.99.0) sha256=ba292fc3ffd672532aae2601fe55ff424eee78da8e23c23ba6ce4037138275a8
+  aws-sdk-kms (1.118.0) sha256=c9c751596d4f1502adac857c90010f00a9a52370b78e170acb198af7fa716fbd
   aws-sdk-rails (3.13.0) sha256=7c55589ddad3b9f7d53a01d4d29418079306e9c329c8fc85556b728252003587
   aws-sdk-rds (1.271.0) sha256=4bf379504260a0fb67e539bcaed480da3b1af3a45832e48af2545f06a33f5e4f
-  aws-sdk-s3 (1.182.0) sha256=d0fc3579395cb6cb69bf6e975240ce031fc673190e74c8dddbdd6c18572b450d
+  aws-sdk-s3 (1.208.0) sha256=3fce13500171bae425ffb0fd30f4caef081c5e9780714ac3484b48e0a1797d6d
   aws-sdk-secretsmanager (1.113.0) sha256=973ec8471bd9b44ca3730a018fb53005f9320c47a4ccb1339b874a42b73acf63
   aws-sdk-ses (1.81.0) sha256=cf43fff3416a2dee190d39764a06eb2e3ef336f3e03a5163f9247a9af136e48b
   aws-sdk-sesv2 (1.72.0) sha256=4aaed34202634cd77e200a973b8ce2ec0a0e0e9616853a5ba75825b4cf81fcf6
@@ -1387,7 +1390,7 @@ CHECKSUMS
   benchmark-malloc (0.2.0) sha256=37c68f0435261634026f584d79956a35325a3027e3e6b4cc8d7575aa10537e6b
   benchmark-perf (0.6.0) sha256=fe2b01959f3de0f9dd34820d54ef881eb4f3589fccb7d17b63068ac92d7f9621
   benchmark-trend (0.4.0) sha256=de5a02a9f443babefbbd97784759820decee8554a0c273d859c02a0990845d81
-  bigdecimal (3.1.9) sha256=2ffc742031521ad69c2dfc815a98e426a230a3d22aeac1995826a75dabfad8cc
+  bigdecimal (3.3.1) sha256=eaa01e228be54c4f9f53bf3cc34fe3d5e845c31963e7fcc5bedb05a4e7d52218
   bindex (0.8.1) sha256=7b1ecc9dc539ed8bccfc8cb4d2732046227b09d6f37582ff12e50a5047ceb17e
   bootsnap (1.18.4) sha256=ac4c42af397f7ee15521820198daeff545e4c360d2772c601fbdc2c07d92af55
   bootstrap (5.3.5) sha256=d57c9b7a21eaf2182c32fe93d1c0eaa0e1ebe82c46676c5a1fd66dd3a6ac41f8
@@ -1734,7 +1737,7 @@ CHECKSUMS
   yabeda-rails (0.9.0) sha256=6011bfa1e282456dbb4f0d6571267ad57108b54fab0de37ae3b70653fa9582da
   yajl-ruby (1.4.3) sha256=8c974d9c11ae07b0a3b6d26efea8407269b02e4138118fbe3ef0d2ec9724d1d2
   yaml-safe_load_stream3 (0.1.2) sha256=fd4f63ffe57e65ec8fd5a314064151f843e83239ff87bfc6b2fdbdba81e7e481
-  zeitwerk (2.7.2) sha256=842e067cb11eb923d747249badfb5fcdc9652d6f20a1f06453317920fdcd4673
+  zeitwerk (2.7.3) sha256=b2e86b4a9b57d26ba68a15230dcc7fe6f040f06831ce64417b0621ad96ba3e85
   zitadel-client (1.10.0) sha256=387b4701bf25356778dbaaf494c644ed074eb5ea04d79b33954ff1ea7ca4ea41
 
 BUNDLED WITH

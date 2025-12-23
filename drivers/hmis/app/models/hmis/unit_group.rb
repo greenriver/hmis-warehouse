@@ -26,6 +26,7 @@ module Hmis
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
     has_many :unit_types, through: :units # TODO(#8157) - Unit should have at most 1 unit type. Remove when no longer used
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
+    has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
     belongs_to :workflow_template,

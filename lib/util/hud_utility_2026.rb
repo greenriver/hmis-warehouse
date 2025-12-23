@@ -755,7 +755,7 @@ module HudUtility2026
 
   # SPM definition of CoC funded projects
   def spm_coc_funders
-    [2, 3, 4, 5, 43, 44, 54, 55, 56]
+    [2, 3, 4, 5, 6, 43, 44, 54, 55, 56]
   end
 
   def ce_event_joint_th_rrh_funders

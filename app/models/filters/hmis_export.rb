@@ -7,14 +7,16 @@
 # frozen_string_literal: true
 
 require 'memery'
+
+# @see docs/features/hmis-csv-export.md
 module Filters
   class HmisExport < FilterBase
     include ArelHelper
     include Memery
 
-    attribute :start_date, Date, default: 1.years.ago.to_date
-    attribute :end_date, Date, default: Date.current
-    attribute :version, String, default: HudHelper.current_version
+    attribute :start_date, Date, default: ->(_, _) { 1.years.ago.to_date }
+    attribute :end_date, Date, default: ->(_, _) { Date.current }
+    attribute :version, String, default: ->(_, _) { HudHelper.current_version }
     attribute :source_type, Integer, default: 3 # data warehouse
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
@@ -38,7 +40,7 @@ module Filters
     attribute :zip_password, String
     attribute :encryption_type, String
     attribute :_aj_symbol_keys, String
-    attribute :custom_file_types, Array, default: []
+    attribute :custom_file_types, Array, default: [].freeze
 
     validates_presence_of :start_date, :end_date
 

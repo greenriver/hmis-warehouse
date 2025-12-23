@@ -1,0 +1,82 @@
+injectRequestHeaders:
+  - name: X-Forwarded-Groups
+    values:
+      - claim: groups
+  - name: X-Forwarded-User
+    values:
+      - claim: email
+  - name: X-Forwarded-Preferred-Username
+    values:
+      - claim: preferred_username
+  - name: X-Forwarded-Access-Token
+    values:
+      - claim: access_token
+  - name: Authorization
+    values:
+      - claim: id_token
+        prefix: "Bearer "
+injectResponseHeaders:
+  - name: X-Auth-Request-User
+    values:
+      - claim: user
+  - name: X-Auth-Request-Email
+    values:
+      - claim: email
+  - name: X-Auth-Request-Preferred-Username
+    values:
+      - claim: preferred_username
+  - name: X-Auth-Request-Groups
+    values:
+      - claim: groups
+  - name: X-Auth-Request-Access-Token
+    values:
+      - claim: access_token
+metricsServer:
+  BindAddress: ""
+  SecureBindAddress: ""
+  TLS: null
+providers:
+  - ADFSConfig: {}
+    azureConfig:
+      tenant: common
+    backendLogoutURL: ""
+    bitbucketConfig: {}
+    clientID: hmis-warehouse
+    clientSecret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    githubConfig: {}
+    gitlabConfig: {}
+    googleConfig: {}
+    id: Dex
+    keycloakConfig: {}
+    loginGovConfig: {}
+    loginURLParameters:
+      - name: connector_id
+        allow:
+          - value: local
+          - value: github_idp
+
+    microsoftEntraIDConfig: {}
+    name: Dex
+    oidcConfig:
+      audienceClaims:
+        - aud
+      emailClaim: email
+      groupsClaim: groups
+      insecureSkipNonce: true
+      issuerURL: http://dex.dev.test:4443/dex
+      userIDClaim: email
+    provider: oidc
+    scope: openid email profile federated:id
+server:
+  BindAddress: 0.0.0.0:4180
+  SecureBindAddress: ""
+  TLS: null
+upstreamConfig:
+  upstreams:
+    - flushInterval: 1s
+      id: /
+      passHostHeader: true
+      path: /
+      proxyWebSockets: true
+      timeout: 30s
+      uri: http://internal-warehouse.dev.test:3000
