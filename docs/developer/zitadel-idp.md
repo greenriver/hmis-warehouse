@@ -2,7 +2,63 @@
 
 The warehouse has run since 2017 using the [devise](https://github.com/heartcombo/devise) gem for authentication.  We are now switching to an Oauth2 authentication system that includes [Oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of [Dex](https://dexidp.io) which proxies pretty much any IDP. For installations where the community does not have an existing IDP, we use a stand-alone installation of [Zitadel](https://zitadel.com) to provide user management.
 
-This document does not cover installation of Zitadel but attempts to explain enough about the configuration so that the migration of user data can take place.
+## Local Development Setup
+
+Zitadel runs automatically as part of the docker-compose stack. No special profile or manual configuration is needed.
+
+### Prerequisites
+
+Add `op-zitadel.dev.test` to your `/etc/hosts` file:
+
+```
+127.0.0.1 op-zitadel.dev.test
+```
+
+### Starting the Stack
+
+```bash
+docker compose up
+```
+
+This automatically:
+1. Creates a `zitadel` database in PostgreSQL
+2. Starts Zitadel at http://op-zitadel.dev.test:8080
+3. Starts the Zitadel Login UI (accessible via port 3001)
+4. Runs the setup script to configure the Dex OIDC application
+5. Generates credentials in `docker/auth/zitadel-credentials.env`
+6. Starts Dex with the Zitadel connector configured
+
+On first run, the `zitadel-setup` container will create the necessary project and application in Zitadel. On subsequent runs, it detects the existing configuration and exits immediately.
+
+### Zitadel Console Access
+
+- URL: http://op-zitadel.dev.test:8080/ui/console
+- Admin Login: `admin@openpath.op-zitadel.dev.test`
+- Password: `AdminPassword1!`
+
+### Manual Setup (if needed)
+
+If you need to reconfigure Zitadel:
+
+```bash
+# Delete existing credentials
+rm docker/auth/zitadel-credentials.env
+
+# Restart to trigger setup
+docker compose restart zitadel-setup dex
+```
+
+Or run the setup script manually:
+
+```bash
+./docker/zitadel/setup.sh
+```
+
+---
+
+## Manual Configuration (Production or Custom Setup)
+
+The following instructions are for manually configuring Zitadel, which may be needed for production deployments or custom setups.
 
 # Initial Configuration
 

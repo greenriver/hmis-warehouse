@@ -29,11 +29,14 @@ connectors:
       clientID: ${GITHUB_IDP_CLIENT_ID}
       clientSecret: ${GITHUB_IDP_CLIENT_SECRET}
       redirectURI: http://dex.dev.test:4443/dex/callback
+  # Zitadel connector - requires running ./docker/zitadel/setup.sh first
+  # and adding the generated credentials to .env.local
+  # Until configured, this connector will appear but won't work
   - type: oidc
     id: zitadel
     name: Open Path Account
     config:
-      issuer: http://zitadel.dev.test:8080
+      issuer: http://op-zitadel.dev.test:8080
       clientID: ${ZITADEL_IDP_CLIENT_ID}
       clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
       redirectURI: http://dex.dev.test:4443/dex/callback
@@ -43,6 +46,8 @@ connectors:
         - email
         - profile
       getUserInfo: true
+      # insecureSkipEmailVerified allows login even if issuer is unreachable during config load
+      insecureSkipEmailVerified: true
 staticClients:
   - id: hmis-warehouse
     name: "HMIS Warehouse"
