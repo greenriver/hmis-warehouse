@@ -232,7 +232,7 @@ JWKS_URL=http://dex:4443/dex/keys
 JWT_ALGORITHM=RS256
 
 # Valid JWT audiences (comma-separated)
-IDP_AUD=hmis-warehouse,hmis-frontend
+IDP_AUD=hmis-warehouse,hmis-frontend,superset
 ```
 
 ## Zitadel API Configuration

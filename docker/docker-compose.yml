@@ -37,7 +37,7 @@ x-app: &app
     # - hmis-warehouse (for warehouse oauth2-proxy)
     # - hmis-frontend (for HMIS oauth2-proxy)
     # Defaults to both if not set
-    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend}
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend,superset}
     # Needs to match /app/docker/auth/dev.oauth2-proxy-warehouse.yaml providers -> clientSecret and
     # Needs to match /app/docker/auth/dev.oauth2-proxy-warehouse.cfg cookie_secret
     JWT_SECRET: ${JWT_SECRET:-"dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="}

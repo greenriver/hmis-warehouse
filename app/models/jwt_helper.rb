@@ -85,7 +85,7 @@ class JwtHelper
   #
   # @return [Array<String>] List of valid audience values
   private def idp_audiences
-    aud = ENV.fetch('IDP_AUD', 'hmis-warehouse,hmis-frontend')
+    aud = ENV.fetch('IDP_AUD', 'hmis-warehouse,hmis-frontend,superset')
     aud.split(',').map(&:strip)
   end
 

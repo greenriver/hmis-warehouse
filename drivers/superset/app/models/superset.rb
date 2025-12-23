@@ -19,7 +19,7 @@ module Superset
   end
 
   def self.warehouse_login_url
-    "#{superset_base_url}/login/The%20Warehouse"
+    superset_base_url
   end
 
   def self.available?
