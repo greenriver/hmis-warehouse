@@ -313,6 +313,9 @@ module HopwaCaper::Generators::Fy2026
         { column: column, cded: cded }
       end
 
+      # columns we intend to update via import
+      atc_columns = row_configs.map { |c| c[:column] }
+
       updates = {}
       report.hopwa_caper_enrollments.in_batches(of: 100) do |batch|
         # lookup map for the most recently submitted custom assessment
@@ -337,16 +340,22 @@ module HopwaCaper::Generators::Fy2026
             end
             next unless cde
 
-            updates[report_enrollment.id] ||= {
-              id: report_enrollment.id,
-              # must include for non-nullable cols for upsert
-              report_instance_id: report_enrollment.report_instance_id,
-              destination_client_id: report_enrollment.destination_client_id,
-              enrollment_id: report_enrollment.enrollment_id,
-              report_household_id: report_enrollment.report_household_id,
-              personal_id: report_enrollment.personal_id,
-              relationship_to_hoh: report_enrollment.relationship_to_hoh,
-            }
+            # Initialize with all potential keys to avoid Hash key mismatch in import
+            unless updates.key?(report_enrollment.id)
+              updates[report_enrollment.id] = {
+                id: report_enrollment.id,
+                # must include for non-nullable cols for upsert
+                report_instance_id: report_enrollment.report_instance_id,
+                destination_client_id: report_enrollment.destination_client_id,
+                enrollment_id: report_enrollment.enrollment_id,
+                report_household_id: report_enrollment.report_household_id,
+                personal_id: report_enrollment.personal_id,
+                relationship_to_hoh: report_enrollment.relationship_to_hoh,
+              }
+              # Initialize ATC columns to nil to ensure uniform keys across all hashes
+              atc_columns.each { |col| updates[report_enrollment.id][col] = nil }
+            end
+
             updates[report_enrollment.id][column] = cde_value_to_boolean(cded, cde)
           end
         end
