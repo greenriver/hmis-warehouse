@@ -169,8 +169,16 @@ module Admin
           end
           # END_ACL
         end
-      rescue Exception
-        flash[:error] = 'Please review the form problems below'
+      rescue Exception => e
+        ensure_system_contact
+        set_system_alerts
+        Rails.logger.error "User update failed: #{e.class} - #{e.message}"
+        Rails.logger.error e.backtrace.first(10).join("\n")
+        flash[:error] = if e.is_a?(ActiveRecord::RecordInvalid)
+          'Please review the form problems below'
+        else
+          "Update failed: #{e.message}"
+        end
         render :edit
         return
       end

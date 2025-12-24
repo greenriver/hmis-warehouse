@@ -2316,7 +2316,7 @@ CREATE TABLE public.user_authentication_sources (
     enabled boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    discarded_at timestamp without time zone
+    deleted_at timestamp without time zone
 );
 
 
@@ -2565,7 +2565,8 @@ CREATE TABLE public.versions (
     request_id character varying,
     object_changes text,
     referenced_user_id integer,
-    referenced_entity_name character varying
+    referenced_entity_name character varying,
+    true_user_id bigint
 );
 
 
@@ -4063,10 +4064,10 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
--- Name: index_user_authentication_sources_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_user_authentication_sources_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_authentication_sources_on_discarded_at ON public.user_authentication_sources USING btree (discarded_at);
+CREATE INDEX index_user_authentication_sources_on_deleted_at ON public.user_authentication_sources USING btree (deleted_at);
 
 
 --
@@ -4305,8 +4306,10 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251224185104'),
 ('20251120143000'),
 ('20251106020333'),
+('20251102194520'),
 ('20251102033229'),
 ('20251016194806'),
 ('20251001174258'),
