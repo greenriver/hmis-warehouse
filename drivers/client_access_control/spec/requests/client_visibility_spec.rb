@@ -15,6 +15,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
   include_context 'client search helpers'
 
+  let(:oauth2_sign_in_path) { '/oauth2/sign_in' }
+
   context 'when config b is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
@@ -29,7 +31,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -146,7 +148,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -272,7 +274,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -359,7 +361,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -448,7 +450,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -673,7 +675,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(URI.parse(response.location).path).to eq(oauth2_sign_in_path)
       end
     end
     describe 'and the user has a role granting can view clients' do

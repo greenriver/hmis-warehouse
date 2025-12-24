@@ -78,54 +78,57 @@ module JwtAuthenticationHelper
     # Store for any manual header access
     @jwt_headers = jwt_header
 
-    # Patch the integration session to include JWT headers
-    # This is called lazily when the first request is made
-    test_instance = self
-    original_process = nil
-
-    # Use a before hook approach - define methods that add headers
-    define_singleton_method(:get) do |*args, **kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(*args, **kwargs)
-    end
-
-    define_singleton_method(:post) do |*args, **kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(*args, **kwargs)
-    end
-
-    define_singleton_method(:put) do |*args, **kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(*args, **kwargs)
-    end
-
-    define_singleton_method(:patch) do |*args, **kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(*args, **kwargs)
-    end
-
-    define_singleton_method(:delete) do |*args, **kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(*args, **kwargs)
-    end
-
-    define_singleton_method(:head) do |*args, **kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(*args, **kwargs)
-    end
-
-    # Override follow_redirect! to include JWT headers
-    # This is needed because follow_redirect! is delegated to integration_session
-    # and its internal get() call doesn't go through our overridden get method
-    define_singleton_method(:follow_redirect!) do |**kwargs|
-      kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-      super(**kwargs)
-    end
-
-    # For controller specs: stub current_user
+    # For controller specs: Set headers on request object and stub current_user
     if defined?(controller) && controller.present?
+      # Controller specs need headers set on the request object
+      if defined?(request) && request.present?
+        request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
+      end
       allow(controller).to receive(:current_user).and_return(user)
       allow(controller).to receive(:user_signed_in?).and_return(true)
+    else
+      # For request specs: Patch HTTP methods to include JWT headers
+      # This is called lazily when the first request is made
+      test_instance = self
+
+      # Use a before hook approach - define methods that add headers
+      define_singleton_method(:get) do |*args, **kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(*args, **kwargs)
+      end
+
+      define_singleton_method(:post) do |*args, **kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(*args, **kwargs)
+      end
+
+      define_singleton_method(:put) do |*args, **kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(*args, **kwargs)
+      end
+
+      define_singleton_method(:patch) do |*args, **kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(*args, **kwargs)
+      end
+
+      define_singleton_method(:delete) do |*args, **kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(*args, **kwargs)
+      end
+
+      define_singleton_method(:head) do |*args, **kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(*args, **kwargs)
+      end
+
+      # Override follow_redirect! to include JWT headers
+      # This is needed because follow_redirect! is delegated to integration_session
+      # and its internal get() call doesn't go through our overridden get method
+      define_singleton_method(:follow_redirect!) do |**kwargs|
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        super(**kwargs)
+      end
     end
 
     mock_token
