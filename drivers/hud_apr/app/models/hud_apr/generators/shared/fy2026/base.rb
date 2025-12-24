@@ -121,13 +121,17 @@ module HudApr::Generators::Shared::Fy2026
           source_client = enrollment.client
           next unless source_client
 
-          # ensure enrollment is in the correct CoC
+          # ensure enrollment is in the correct CoC (step 6 of report universe for the CE APR)
+          # If the enrolment is in a project that only operates in one CoC, use the project's CoC
+          # Use the HoH's CoC (as CoC is only collected for the HoH)
           enrollment.enrollment_coc = if enrollment.project.project_cocs.one?
             enrollment.project.project_cocs.first.coc_code
           else
             hoh_enrollment&.enrollment&.enrollment_coc
           end
 
+          # Ignore any enrollment where the CoC is not in the chosen set
+          # Step 7. of the CE APR, but really all APR related should work this way.  Filter the assessments/events, keeping only those where the CoC code assigned in step 6 matches the CoC on which the report is being run.
           next unless enrollment.enrollment_coc.in?(@report.coc_codes)
 
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
@@ -147,6 +151,8 @@ module HudApr::Generators::Shared::Fy2026
             map(&:InformationDate).max
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
+          # Need to sort by information date, then DateUpdated to catch the most-recent
+          # added for the Datalab test kit
           health_and_dv = enrollment.health_and_dvs.
             select do |h|
               h.InformationDate && h.InformationDate <= @report.end_date && !h.DomesticViolenceSurvivor.nil?
@@ -188,6 +194,8 @@ module HudApr::Generators::Shared::Fy2026
 
           destination = last_service_history_enrollment.destination
           destination_subsidy_type = exit_record&.exit&.DestinationSubsidyType
+          # Filter out invalid destinations
+          # requires valid rental subsidy type, this is a fix for bad data that the TUP checks
           destination = 99 if destination == 435 && ! destination_subsidy_type.in?(HudHelper.util('2026').rental_subsidy_types.keys)
           destination = 99 unless HudHelper.util('2026').valid_destinations.key?(destination)
 
@@ -206,6 +214,7 @@ module HudApr::Generators::Shared::Fy2026
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
+            # anniversary dates are always based on HoH enrollment
             annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_time_to_move_in(last_service_history_enrollment, age, hoh_enrollment),
             came_from_street_last_night: enrollment.PreviousStreetESSH,
@@ -265,10 +274,16 @@ module HudApr::Generators::Shared::Fy2026
             income_date_at_exit: income_at_exit&.InformationDate,
             income_date_at_start: income_at_start&.InformationDate,
 
+            # Income from any source needs to be present in both a "cleaned" form and a "raw" form
+            # The cleaned form ensures alignment between IncomeFromAnySource and the calculated TotalMonthlyIncome
+            # as noted in the HMIS Glossary under the Determining Total and Earned Income section
+
+            # raw
             income_from_any_source_at_annual_assessment_raw: income_at_annual_assessment&.IncomeFromAnySource,
             income_from_any_source_at_exit_raw: income_at_exit&.IncomeFromAnySource,
             income_from_any_source_at_start_raw: income_at_start&.IncomeFromAnySource,
 
+            # cleaned
             income_from_any_source_at_annual_assessment: income_at_annual_assessment&.hud_income_from_any_source,
             income_from_any_source_at_exit: income_at_exit&.hud_income_from_any_source,
             income_from_any_source_at_start: income_at_start&.hud_income_from_any_source,
@@ -278,6 +293,7 @@ module HudApr::Generators::Shared::Fy2026
             income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
+            # NOTE: this is used for data quality, and should only look at the most recent disability
             indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?),
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
@@ -311,6 +327,8 @@ module HudApr::Generators::Shared::Fy2026
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
             project_type: last_service_history_enrollment.project_type,
             race_multi: source_client.race_multi.sort.join(','),
+            # For data quality checks, we want all data instead of filtering out RaceNone responses when additional race data is included.
+            # HMIS Reporting Glossary Reference: Data Quality - Q2: include records with an 8 or 9 indicated even if there is also a value of 1, 2, 3, 4, 5, 6, or 7 in the same field
             race_multi_include_race_none: source_client.race_multi_include_race_none.sort,
             relationship_to_hoh: enrollment.RelationshipToHoH,
             sexual_orientation: enrollment.sexual_orientation,
