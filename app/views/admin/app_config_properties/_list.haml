@@ -11,5 +11,5 @@
         %td= link_to property.key, edit_admin_app_config_property_path(property)
         %td
           %code= property.value
-        %td= property.updated_at&.to_fs(:short)
+        %td= l property.updated_at, format: :table_compact
         %td= render 'action_menu', property: property
