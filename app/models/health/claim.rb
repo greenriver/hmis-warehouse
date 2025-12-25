@@ -190,7 +190,7 @@ module Health
           repetition: repetition_separator,
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
-        file = w.write.upcase
+        file = w.write(String.new).upcase
       end
       return file
     end
