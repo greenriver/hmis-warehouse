@@ -26,8 +26,10 @@ module PerformanceMeasurement::WarehouseReports
       PerformanceMeasurement::Goal.ensure_default
       @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
-      previous_report = report_scope.where(user_id: current_user.id).last
-      @filter.update(previous_report.options) if previous_report
+      unless params[:filters].present?
+        previous_report = report_scope.where(user_id: current_user.id).last
+        @filter.update(previous_report.options) if previous_report
+      end
 
       # Make sure the form will work
       filters
@@ -45,7 +47,10 @@ module PerformanceMeasurement::WarehouseReports
       @report = report_class.new(
         user_id: current_user.id,
       )
+      # If project_type_codes was explicitly passed as empty, respect that
+      @filter.project_type_codes = [] if filter_params[:filters]&.key?(:project_type_codes) && filter_params[:filters][:project_type_codes].reject(&:blank?).blank?
       @report.filter = @filter
+
       @report.save
       @report.update_goal_configuration!
       ::WarehouseReports::GenericReportJob.perform_later(

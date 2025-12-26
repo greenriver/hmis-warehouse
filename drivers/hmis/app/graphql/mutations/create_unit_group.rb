@@ -20,9 +20,9 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
-      # TODO(#8157) - accept Unit Type. Constrain to project.possible_unit_types
-      # unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
-      # raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
+      # TODO(#8157) - require Unit Type
+      unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
+      raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
 
       # errors.add :count, :required unless input.count.present?
       # errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
@@ -35,6 +35,7 @@ module Mutations
         direct_referral_workflow_template_identifier: input.direct_referral_workflow_template_identifier,
         name: input.name,
         ce_event_type: input.ce_event_type,
+        unit_type: unit_type,
       )
 
       if unit_group.valid?

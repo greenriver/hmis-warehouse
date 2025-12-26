@@ -10,7 +10,7 @@ module CohortColumns
   class Meta < Base
     include ArelHelper
     attribute :column, String, lazy: true, default: :meta
-    attribute :title, String, lazy: true, default: Translation.translate('Alerts')
+    attribute :title, String, lazy: true, default: ->(_, _) { Translation.translate('Alerts') }
 
     def available_for_rules?
       false

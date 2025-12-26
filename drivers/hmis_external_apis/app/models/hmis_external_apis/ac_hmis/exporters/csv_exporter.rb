@@ -53,6 +53,8 @@ module HmisExternalApis::AcHmis::Exporters::CsvExporter
             value.strftime('%Y-%m-%d')
           elsif value.respond_to?(:strftime)
             value.strftime('%Y-%m-%d %H:%M:%S')
+          elsif value.is_a?(String)
+            value.gsub(/\r?\n/, ' ') # replace newlines with spaces (matches \n or \r\n)
           else
             value
           end

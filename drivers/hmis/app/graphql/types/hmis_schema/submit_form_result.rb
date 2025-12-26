@@ -18,7 +18,6 @@ module Types
       Types::HmisSchema::Inventory,
       Types::HmisSchema::Service,
       Types::HmisSchema::File,
-      Types::HmisSchema::ReferralRequest,
       Types::HmisSchema::ReferralPosting,
       Types::HmisSchema::Enrollment,
       Types::HmisSchema::CurrentLivingSituation,
@@ -47,8 +46,6 @@ module Types
         Types::HmisSchema::Service
       when Hmis::File
         Types::HmisSchema::File
-      when HmisExternalApis::AcHmis::ReferralRequest
-        Types::HmisSchema::ReferralRequest
       when HmisExternalApis::AcHmis::ReferralPosting
         Types::HmisSchema::ReferralPosting
       when Hmis::Hud::Enrollment
