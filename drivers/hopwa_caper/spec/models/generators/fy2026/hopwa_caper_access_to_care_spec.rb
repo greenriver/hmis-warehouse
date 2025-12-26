@@ -142,6 +142,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
         :hud_income_benefit,
         enrollment: tbra_enrollment,
         InsuranceFromAnySource: 1,
+        Medicaid: 1,
         IncomeFromAnySource: 1,
         Earned: 1,
         information_date: report_end_date - 1.day,
@@ -211,6 +212,73 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       expect(
         row_for(rows, 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Supportive Services?')[1],
       ).to eq(1)
+    end
+  end
+
+  context 'with a household having multiple enrollments in the same activity type' do
+    let!(:tbra_enrollment_1) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        exit_date: report_start_date + 1.month,
+        household_id: household_id,
+      )
+    end
+
+    let!(:tbra_enrollment_2) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: tbra_project,
+        entry_date: report_start_date + 2.months,
+        household_id: household_id,
+      )
+    end
+
+    before do
+      # Housing subsidy services for both enrollments
+      [tbra_enrollment_1, tbra_enrollment_2].each do |enrollment|
+        create(
+          :hud_service,
+          enrollment: enrollment,
+          record_type: hopwa_financial_assistance,
+          type_provided: rental_assistance,
+          fa_amount: 150,
+          date_provided: enrollment.entry_date,
+          data_source: data_source,
+        )
+      end
+    end
+
+    it 'deduplicates the household within the same activity type for rows 4 and 5' do
+      report = create_report([tbra_project])
+      run_report(report)
+
+      rows = question_as_rows(question_number: 'Q7', report: report)
+
+      # Row 2: TBRA count should be 1
+      activity_review = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
+      expect(activity_review[1]).to eq(1) # TBRA column
+
+      # Row 4: Total Housing Subsidy Assistance (Sum of unique households per activity)
+      # 1 unique household in TBRA = 1
+      total_assistance = row_for(
+        rows,
+        'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)',
+      )
+      expect(total_assistance[1]).to eq(1)
+
+      # Row 5: Duplicated households across different activity types
+      # Household is only in TBRA, so duplication should be 0
+      duplicated = row_for(
+        rows,
+        'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?',
+      )
+      expect(duplicated[1]).to eq(0)
+
+      # Row 6: Unduplicated count
+      unduplicated = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household Count')
+      expect(unduplicated[1]).to eq(1)
     end
   end
 end

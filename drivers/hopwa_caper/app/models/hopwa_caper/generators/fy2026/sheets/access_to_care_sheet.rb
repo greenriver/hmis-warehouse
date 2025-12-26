@@ -77,7 +77,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # row 4
       sheet.append_row(label: 'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)') do |row|
-        count_with_duplicates = HOUSING_SUBSIDY_ACTIVITIES.sum { |type| housing_subsidy_households_for_activity(type).count }
+        count_with_duplicates = HOUSING_SUBSIDY_ACTIVITIES.sum do |type|
+          household_members(housing_subsidy_households_for_activity(type)).size
+        end
         row.append_cell_members(members: household_members(housing_subsidy_households), value: count_with_duplicates)
       end
 
@@ -128,7 +130,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # Row 12
       sheet.append_row(label: 'How many households accessed and maintained medical insurance and/or assistance?') do |row|
         # Any recorded insurance type counts as having medical insurance/assistance
-        insurance_households = housing_subsidy_households.where('cardinality(household_medical_insurance_types) > 0')
+        insurance_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::MedicalInsuranceFilter.any_insurance
+        insurance_households = insurance_filter.apply(housing_subsidy_households)
         row.append_cell_members(members: household_members(insurance_households))
       end
 
@@ -141,15 +144,15 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # Row 14
       sheet.append_row(label: 'How many households accessed or maintained qualification for sources of income?') do |row|
         # Any recorded income source counts as having sources of income
-        income_households = housing_subsidy_households.where('cardinality(household_income_benefit_source_types) > 0')
+        income_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::IncomeBenefitSourceFilter.no_income
+        income_households = housing_subsidy_households.where.not(id: income_filter.apply(housing_subsidy_households))
         row.append_cell_members(members: household_members(income_households))
       end
 
       # Row 15
       sheet.append_row(label: 'How many households obtained/maintained an income-producing job during the program year (with or without any HOPWA-related assistance)?') do |row|
-        earned_income_households = housing_subsidy_households.where.overlaps(
-          household_income_benefit_source_types: ['Earned'],
-        )
+        earned_income_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::IncomeBenefitSourceFilter.earned_income
+        earned_income_households = earned_income_filter.apply(housing_subsidy_households)
         row.append_cell_members(members: household_members(earned_income_households))
       end
     end
@@ -253,7 +256,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def find_duplicated_households_across_activities
       # Collect household IDs from each activity type
       activity_household_ids = HOUSING_SUBSIDY_ACTIVITIES.map do |activity_type|
-        housing_subsidy_households_for_activity(activity_type).pluck(:report_household_id)
+        housing_subsidy_households_for_activity(activity_type).distinct.pluck(:report_household_id)
       end
 
       return @report.hopwa_caper_enrollments.none if activity_household_ids.all?(&:empty?)

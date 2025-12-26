@@ -324,7 +324,7 @@ module HopwaCaper::Generators::Fy2026
           joins(:enrollment).merge(hud_enrollment_scope).
           where(AssessmentDate: ..@report.end_date).
           order(AssessmentDate: :desc, id: :desc).
-          preload(:enrollment).group_by { |r| r.enrollment.id }
+          preload(:enrollment, :custom_data_elements).group_by { |r| r.enrollment.id }
 
         batch.each do |report_enrollment|
           assessments = assessments_by_enrollment[report_enrollment.enrollment_id]
@@ -333,12 +333,16 @@ module HopwaCaper::Generators::Fy2026
           row_configs.each do |config|
             column, cded = config.values_at(:column, :cded)
 
-            cde = nil
+            boolean_value = nil
             assessments.each do |asm|
-              cde = asm.custom_data_elements.where(data_element_definition: cded).first
-              break if cde
+              cde = asm.custom_data_elements.detect { |e| e.data_element_definition_id == cded.id }
+              next unless cde
+
+              boolean_value = cde_value_to_boolean(cded, cde)
+              break unless boolean_value.nil?
             end
-            next unless cde
+
+            next if boolean_value.nil?
 
             # Initialize with all potential keys to avoid Hash key mismatch in import
             unless updates.key?(report_enrollment.id)
@@ -356,7 +360,7 @@ module HopwaCaper::Generators::Fy2026
               atc_columns.each { |col| updates[report_enrollment.id][col] = nil }
             end
 
-            updates[report_enrollment.id][column] = cde_value_to_boolean(cded, cde)
+            updates[report_enrollment.id][column] = boolean_value
           end
         end
       end
@@ -376,15 +380,26 @@ module HopwaCaper::Generators::Fy2026
 
     # cast to boolean; support mixed types
     def cde_value_to_boolean(cded, cde)
-      return false if cde.nil?
+      return nil if cde.nil?
 
       case cded.field_type
       when 'integer'
-        cde.value_integer == 1
+        val = cde.value_integer
+        case val
+        when 1 then true
+        when 0 then false
+        else nil
+        end
       when 'boolean'
-        cde.value_boolean == true
+        val = cde.value_boolean
+        return nil if val.nil?
+
+        val == true
       when 'string'
-        cde.value_string&.match?(/\A(true|yes|1)\z/i)
+        val = cde.value_string
+        return nil if val.blank?
+
+        val.strip.match?(/\A(true|yes|1)\z/i)
       else
         raise ArgumentError, "Invalid field type: #{cded.field_type} for definition #{cded.key}"
       end

@@ -54,6 +54,13 @@ RSpec.describe Admin::AppConfigPropertiesController, type: :request do
         end.to change(AppConfigProperty, :count).by(1)
       end
 
+      it 'strips whitespace from key and value' do
+        post admin_app_config_properties_path, params: { app_config_property: { key: '  spaced_key  ', value: '  spaced_value  ' } }
+        property = AppConfigProperty.last
+        expect(property.key).to eq('spaced_key')
+        expect(property.value).to eq('spaced_value')
+      end
+
       it 'redirects to index' do
         post admin_app_config_properties_path, params: { app_config_property: valid_attrs }
         expect(response).to redirect_to(admin_app_config_properties_path)

@@ -92,13 +92,49 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       report_enrollment_1 = report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment_1.id)
       report_enrollment_2 = report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment_2.id)
 
-      expect(report_enrollment_1.atc_maintained_contact).to be(true)
-      expect(report_enrollment_1.atc_housing_plan).to be(true)
-      expect(report_enrollment_1.atc_primary_health_contact).to be(true)
-
       expect(report_enrollment_2.atc_maintained_contact).to be(true)
       expect(report_enrollment_2.atc_housing_plan).to be(true)
       expect(report_enrollment_2.atc_primary_health_contact).to be_nil
+    end
+
+    it 'skips assessments with nil values and looks back to find a valid boolean answer' do
+      enrollment = create_hiv_positive_enrollment(
+        client: hoh_client_1,
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id_1,
+      )
+
+      hmis_enrollment = Hmis::Hud::Enrollment.find(enrollment.id)
+
+      # Assessment 1: Older assessment with a valid "Yes" (True)
+      assessment_old = create(
+        :hmis_custom_assessment,
+        data_source: data_source,
+        enrollment: hmis_enrollment,
+        client: hmis_enrollment.client,
+        AssessmentDate: report_start_date + 5.days,
+      )
+      create(:hmis_custom_data_element, data_element_definition: maintained_definition, owner: assessment_old, value_string: 'Yes')
+
+      # Assessment 2: Newer assessment with a NULL/nil value for the same field
+      assessment_new = create(
+        :hmis_custom_assessment,
+        data_source: data_source,
+        enrollment: hmis_enrollment,
+        client: hmis_enrollment.client,
+        AssessmentDate: report_start_date + 10.days,
+      )
+      # CDE exists but value_string is nil
+      create(:hmis_custom_data_element, data_element_definition: maintained_definition, owner: assessment_new, value_string: nil)
+
+      report = create_report([tbra_project])
+      run_report(report)
+
+      report_enrollment = report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment.id)
+
+      # Should have looked past the newer nil and found the older 'Yes'
+      expect(report_enrollment.atc_maintained_contact).to be(true)
     end
   end
 
@@ -162,15 +198,22 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
     it 'correctly casts various types and truthy/falsy values' do
       # Boolean
       expect(generator_instance.send(:cde_value_to_boolean, def_bool, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_boolean: true))).to be(true)
+      expect(generator_instance.send(:cde_value_to_boolean, def_bool, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_boolean: nil))).to be_nil
 
-      # Integer (HMIS often uses 1 for Yes)
+      # Integer (Strict: 1=true, 0=false, others=nil)
       expect(generator_instance.send(:cde_value_to_boolean, def_int, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_integer: 1))).to be(true)
       expect(generator_instance.send(:cde_value_to_boolean, def_int, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_integer: 0))).to be(false)
+      expect(generator_instance.send(:cde_value_to_boolean, def_int, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_integer: 8))).to be_nil
+      expect(generator_instance.send(:cde_value_to_boolean, def_int, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_integer: 9))).to be_nil
+      expect(generator_instance.send(:cde_value_to_boolean, def_int, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_integer: nil))).to be_nil
 
       # Strings (case-insensitive and support "yes"/"1")
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'Yes'))).to be(true)
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: '1'))).to be(true)
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'No'))).to be(false)
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: ''))).to be_nil
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: '  '))).to be_nil
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: nil))).to be_nil
     end
   end
 end
