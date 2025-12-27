@@ -3,6 +3,13 @@
 require 'rails_helper'
 
 RSpec.describe ApplicationHelper, type: :helper do
+  # Make current_user available for stubbing in helper specs
+  # (ApplicationHelper#body_classes calls current_user)
+  before do
+    unless helper.respond_to?(:current_user)
+      helper.define_singleton_method(:current_user) { nil }
+    end
+  end
   describe '#render_generic_search_form' do
     let(:url) { '/search' }
     let(:prompt) { 'Search...' }
