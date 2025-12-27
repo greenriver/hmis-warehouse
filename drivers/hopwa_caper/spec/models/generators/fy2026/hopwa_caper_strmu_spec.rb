@@ -248,5 +248,159 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       # The household without services should NOT be in "more than one type"
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(0)
     end
+
+    it 'distinguishes between explicit "No Income" and "No Data"' do
+      # Add income to the base household with services
+      create_standard_income_benefits(enrollment_with_services)
+
+      # Create a third household with services but NO income assessment at all (No Data)
+      no_data_hoh = create(:hud_client, data_source: data_source)
+      no_data_enrollment = create_hiv_positive_enrollment(
+        client: no_data_hoh,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_service,
+        enrollment: no_data_enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 500,
+        date_provided: report_start_date + 10.days,
+        data_source: data_source,
+      )
+
+      # Create a fourth household with services and an explicit "No Income" assessment
+      no_income_hoh = create(:hud_client, data_source: data_source)
+      no_income_enrollment = create_hiv_positive_enrollment(
+        client: no_income_hoh,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_service,
+        enrollment: no_income_enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 500,
+        date_provided: report_start_date + 10.days,
+        data_source: data_source,
+      )
+      create(
+        :hud_income_benefit,
+        enrollment: no_income_enrollment,
+        IncomeFromAnySource: 0,
+        information_date: report_start_date + 5.days,
+        data_source: data_source,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      # Total served should now be 3 (enrollment_with_services, no_data_enrollment, no_income_enrollment)
+      expect(rows.fetch('STRMU Households Total')).to eq(3)
+
+      # "No Income" should only be 1 (the one with explicit No)
+      # Before the fix, this would have been 2 (including the one with No Data)
+      expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
+
+      # "Any Income" (the total row for sources) should only be 1 (enrollment_with_services)
+      # Before the fix, this would have been 3 (including everyone with [])
+      expect(rows.fetch('How many households accessed or maintained access to the following sources of income in the past year?')).to eq(1)
+    end
+  end
+
+  context 'data consistency validations' do
+    let(:household1_id) { Hmis::Hud::Base.generate_uuid }
+    let(:household2_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh1) { create(:hud_client, data_source: data_source) }
+    let(:hoh2) { create(:hud_client, data_source: data_source) }
+
+    let!(:enrollment1) do
+      create_hiv_positive_enrollment(
+        client: hoh1,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household1_id,
+        percent_ami: 1, # 0-30%
+      )
+    end
+
+    let!(:enrollment2) do
+      create_hiv_positive_enrollment(
+        client: hoh2,
+        project: project,
+        entry_date: report_start_date + 10.days,
+        household_id: household2_id,
+        percent_ami: 2, # 31-50%
+      )
+    end
+
+    before do
+      # Financial services for both to make them "served"
+      [enrollment1, enrollment2].each do |enrollment|
+        create(
+          :hud_service,
+          enrollment: enrollment,
+          record_type: hopwa_financial_assistance,
+          type_provided: rental_assistance,
+          fa_amount: 500,
+          date_provided: enrollment.entry_date,
+          data_source: data_source,
+        )
+      end
+
+      # Set up Income Levels (Denominator match)
+      # Household 1: 0-30%
+      create(:hud_income_benefit, enrollment: enrollment1, IncomeFromAnySource: 1, TotalMonthlyIncome: 100, data_source: data_source)
+      # Household 2: 31-50%
+      create(:hud_income_benefit, enrollment: enrollment2, IncomeFromAnySource: 1, TotalMonthlyIncome: 1000, data_source: data_source)
+
+      # Set up Outcomes
+      # Household 1: Continuing
+      # Household 2: Exit to stable housing
+      create(
+        :hud_exit,
+        enrollment: enrollment2,
+        exit_date: report_start_date + 20.days,
+        destination: 410, # Rental by client, no ongoing housing subsidy (Stable)
+        data_source: data_source,
+      )
+    end
+
+    it 'ensures Income Levels, Longevity, and Outcomes sum to the total households served' do
+      _, rows = run_and_extract_rows([project], 'Q3')
+      total_served = rows.fetch('STRMU Households Total')
+      expect(total_served).to eq(2)
+
+      # 1. Income Levels (AMI percentages) - should sum to total
+      income_level_labels = [
+        'What is the number of households with income below 30% of Area Median Income?',
+        'What is the number of households with income between 31% and 50% of Area Median Income?',
+        'What is the number of households with income between 51% and 80% of Area Median Income?',
+      ]
+      income_sum = income_level_labels.sum { |label| rows.fetch(label).to_i }
+      expect(income_sum).to eq(total_served)
+
+      # 2. Longevity - should sum to total
+      longevity_labels = [
+        'How many households have been served by STRMU for the first time this year?',
+        'How many households also received STRMU assistance during the previous year?',
+        'How many households received STRMU assistance more than twice during the previous five years?',
+        'How many households received STRMU assistance during the last five consecutive years?',
+      ]
+      longevity_sum = longevity_labels.sum { |label| rows.fetch(label).to_i }
+      expect(longevity_sum).to eq(total_served)
+
+      # 3. Housing Outcomes - should sum to total (continuing + all exit categories)
+      # Note: We sum all destination categories from ExitDestinationFilter.all_destinations
+      outcome_labels = [
+        'How many households continued receiving this type of HOPWA assistance into the next year?',
+      ] + HopwaCaper::Generators::Fy2026::EnrollmentFilters::ExitDestinationFilter.all_destinations.map(&:label)
+
+      outcome_sum = outcome_labels.sum { |label| rows.fetch(label).to_i }
+      expect(outcome_sum).to eq(total_served)
+    end
   end
 end

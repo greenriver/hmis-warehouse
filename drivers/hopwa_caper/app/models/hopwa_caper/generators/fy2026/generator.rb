@@ -388,7 +388,6 @@ module HopwaCaper::Generators::Fy2026
         case val
         when 1 then true
         when 0 then false
-        else nil
         end
       when 'boolean'
         val = cde.value_boolean
@@ -399,7 +398,10 @@ module HopwaCaper::Generators::Fy2026
         val = cde.value_string
         return nil if val.blank?
 
-        val.strip.match?(/\A(true|yes|1)\z/i)
+        case val.strip
+        when /\A(true|yes|1)\z/i then true
+        when /\A(false|no|0)\z/i then false
+        end
       else
         raise ArgumentError, "Invalid field type: #{cded.field_type} for definition #{cded.key}"
       end

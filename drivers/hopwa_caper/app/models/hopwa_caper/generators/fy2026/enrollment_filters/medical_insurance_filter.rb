@@ -14,7 +14,7 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
     end
 
     def self.all
-      filters = [
+      specific_filters = [
         new(
           id: :medicaid,
           label: 'MEDICAID Health Program or local program equivalent',
@@ -47,12 +47,14 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
         ),
       ]
 
-      total_filter = IncludeFilter.new(
+      all_types = specific_filters.flat_map(&:types) + [:InsuranceFromAnySource]
+
+      total_filter = new(
         id: :any_insurance,
         label: 'How many households accessed or maintained access to the following sources of medical insurance in the past year?',
-        filters: filters,
+        types: all_types,
       )
-      [total_filter] + filters
+      [total_filter] + specific_filters
     end
 
     def self.any_insurance

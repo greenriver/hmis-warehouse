@@ -59,14 +59,14 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # row 2
       sheet.append_row(label: 'Total Households Served in ALL Activities from this report for each Activity.') do |row|
-        row.append_cell_members(members: household_members(tbra_households))
-        row.append_cell_members(members: household_members(pfbh_households))
-        row.append_cell_members(members: household_members(st_tfbh_households))
-        row.append_cell_members(members: household_members(strmu_households))
-        row.append_cell_members(members: household_members(php_households))
-        row.append_cell_members(members: household_members(housing_info_households))
-        row.append_cell_members(members: household_members(supportive_services_households))
-        row.append_cell_members(members: household_members(other_competitive_households))
+        row.append_cell_members(members: heads_of_household_for(tbra_households))
+        row.append_cell_members(members: heads_of_household_for(pfbh_households))
+        row.append_cell_members(members: heads_of_household_for(st_tfbh_households))
+        row.append_cell_members(members: heads_of_household_for(strmu_households))
+        row.append_cell_members(members: heads_of_household_for(php_households))
+        row.append_cell_members(members: heads_of_household_for(housing_info_households))
+        row.append_cell_members(members: heads_of_household_for(supportive_services_households))
+        row.append_cell_members(members: heads_of_household_for(other_competitive_households))
       end
     end
 
@@ -78,21 +78,21 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # row 4
       sheet.append_row(label: 'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)') do |row|
         count_with_duplicates = HOUSING_SUBSIDY_ACTIVITIES.sum do |type|
-          household_members(housing_subsidy_households_for_activity(type)).size
+          housing_subsidy_households_for_activity(type).distinct.count(:report_household_id)
         end
-        row.append_cell_members(members: household_members(housing_subsidy_households), value: count_with_duplicates)
+        row.append_cell_members(members: heads_of_household_for(housing_subsidy_households), value: count_with_duplicates)
       end
 
       duplicated_households = find_duplicated_households_across_activities
 
       # row 5
       sheet.append_row(label: 'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?') do |row|
-        row.append_cell_members(members: household_members(duplicated_households))
+        row.append_cell_members(members: heads_of_household_for(duplicated_households))
       end
 
       # row 6
       sheet.append_row(label: 'Total Unduplicated Housing Subsidy Assistance Household Count') do |row|
-        row.append_cell_members(members: household_members(housing_subsidy_households))
+        row.append_cell_members(members: heads_of_household_for(housing_subsidy_households))
       end
     end
 
@@ -110,21 +110,24 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # Row 10
       sheet.append_row(label: 'How many households had contact with a case manager?') do |row|
-        case_management_services = @report.hopwa_caper_services.hud_services.
+        case_management_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter.case_management
+        record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
+
+        case_management_services = record_filter.apply(@report.hopwa_caper_services).
           where(date_provided: @report.start_date..@report.end_date).
-          where(record_type: 143, type_provided: 3)
+          where(type_provided: case_management_filter.codes)
         cm_household_ids = case_management_services.select(:report_household_id)
 
         maintained_contact_households = housing_subsidy_households.where(atc_maintained_contact: true).
           or(housing_subsidy_households.where(report_household_id: cm_household_ids))
 
-        row.append_cell_members(members: household_members(maintained_contact_households))
+        row.append_cell_members(members: heads_of_household_for(maintained_contact_households))
       end
 
       # Row 11
       sheet.append_row(label: 'How many households developed a housing plan for maintaining or establishing stable housing?') do |row|
         housing_plan_households = housing_subsidy_households.where(atc_housing_plan: true)
-        row.append_cell_members(members: household_members(housing_plan_households))
+        row.append_cell_members(members: heads_of_household_for(housing_plan_households))
       end
 
       # Row 12
@@ -132,28 +135,28 @@ module HopwaCaper::Generators::Fy2026::Sheets
         # Any recorded insurance type counts as having medical insurance/assistance
         insurance_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::MedicalInsuranceFilter.any_insurance
         insurance_households = insurance_filter.apply(housing_subsidy_households)
-        row.append_cell_members(members: household_members(insurance_households))
+        row.append_cell_members(members: heads_of_household_for(insurance_households))
       end
 
       # Row 13
       primary_health_contact_households = housing_subsidy_households.where(atc_primary_health_contact: true)
       sheet.append_row(label: 'How many households had contact with a primary health care provider?') do |row|
-        row.append_cell_members(members: household_members(primary_health_contact_households))
+        row.append_cell_members(members: heads_of_household_for(primary_health_contact_households))
       end
 
       # Row 14
       sheet.append_row(label: 'How many households accessed or maintained qualification for sources of income?') do |row|
         # Any recorded income source counts as having sources of income
-        income_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::IncomeBenefitSourceFilter.no_income
-        income_households = housing_subsidy_households.where.not(id: income_filter.apply(housing_subsidy_households))
-        row.append_cell_members(members: household_members(income_households))
+        income_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::IncomeBenefitSourceFilter.any_income
+        income_households = income_filter.apply(housing_subsidy_households)
+        row.append_cell_members(members: heads_of_household_for(income_households))
       end
 
       # Row 15
       sheet.append_row(label: 'How many households obtained/maintained an income-producing job during the program year (with or without any HOPWA-related assistance)?') do |row|
         earned_income_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::IncomeBenefitSourceFilter.earned_income
         earned_income_households = earned_income_filter.apply(housing_subsidy_households)
-        row.append_cell_members(members: household_members(earned_income_households))
+        row.append_cell_members(members: heads_of_household_for(earned_income_households))
       end
     end
 
@@ -168,26 +171,29 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       housing_subsidy_households = all_housing_subsidy_households
 
-      case_management_services = @report.hopwa_caper_services.hud_services.
+      case_management_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter.case_management
+      record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
+
+      case_management_services = record_filter.apply(@report.hopwa_caper_services).
         where(date_provided: @report.start_date..@report.end_date).
-        where(record_type: 143, type_provided: 3)
+        where(type_provided: case_management_filter.codes)
 
       case_management_households = housing_subsidy_households.
         where(report_household_id: case_management_services.select(:report_household_id).distinct)
       # row 18
       sheet.append_row(label: 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Funded Case Management?') do |row|
-        row.append_cell_members(members: household_members(case_management_households))
+        row.append_cell_members(members: heads_of_household_for(case_management_households))
       end
 
-      supportive_services = @report.hopwa_caper_services.hud_services.
-        where(date_provided: @report.start_date..@report.end_date).
-        where(record_type: 143)
+      record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
+      supportive_services = record_filter.apply(@report.hopwa_caper_services).
+        where(date_provided: @report.start_date..@report.end_date)
 
       supportive_service_households = housing_subsidy_households.
         where(report_household_id: supportive_services.select(:report_household_id).distinct)
       # row 19
       sheet.append_row(label: 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Supportive Services?') do |row|
-        row.append_cell_members(members: household_members(supportive_service_households))
+        row.append_cell_members(members: heads_of_household_for(supportive_service_households))
       end
     end
 
@@ -273,7 +279,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       @report.hopwa_caper_enrollments.where(report_household_id: duplicated_ids)
     end
 
-    def household_members(enrollments_or_household_ids)
+    def heads_of_household_for(enrollments_or_household_ids)
       return [] if enrollments_or_household_ids.blank?
 
       if enrollments_or_household_ids.is_a?(ActiveRecord::Relation) && enrollments_or_household_ids.model == HopwaCaper::Enrollment

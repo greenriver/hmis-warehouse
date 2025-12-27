@@ -10,15 +10,15 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   IncomeBenefitSourceFilter = Struct.new(:id, :label, :types, keyword_init: true) do
     # Filter households based on income sources aggregated at the household level.
     # - For specific income types: households where aggregated values overlap
-    # - For no income (types: []): households where aggregated values are empty
+    # - For no income: households where the only recorded state is explicit "No Income"
     def apply(scope)
-      return scope.where.overlaps(household_income_benefit_source_types: types.map(&:to_s)) if types.present?
+      return scope.where.overlaps(household_income_benefit_source_types: ['NoIncomeSource']) if id == :no_income
 
-      scope.where(household_income_benefit_source_types: [])
+      scope.where.overlaps(household_income_benefit_source_types: types.map(&:to_s))
     end
 
     def self.all
-      filters = [
+      specific_filters = [
         new(
           id: :earned,
           label: 'Earned Income from Employment',
@@ -79,18 +79,23 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
           label: 'Other Sources of Income',
           types: [:OtherIncomeSource],
         ),
-        new(
-          id: :no_income,
-          label: 'How many households maintained no sources of income?',
-          types: [],
-        ),
       ]
-      total_filter = IncludeFilter.new(
+
+      no_income_filter = new(
+        id: :no_income,
+        label: 'How many households maintained no sources of income?',
+        types: [:NoIncomeSource],
+      )
+
+      all_income_types = specific_filters.flat_map(&:types) + [:IncomeFromAnySource]
+
+      total_filter = new(
         id: :any_income,
         label: 'How many households accessed or maintained access to the following sources of income in the past year?',
-        filters: filters,
+        types: all_income_types,
       )
-      [total_filter] + filters
+
+      [total_filter] + specific_filters + [no_income_filter]
     end
 
     def self.any_income

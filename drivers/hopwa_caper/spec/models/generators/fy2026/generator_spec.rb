@@ -89,7 +89,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       expect { run_report(report) }.not_to raise_error
 
       # Verify the data was actually imported
-      report_enrollment_1 = report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment_1.id)
+      report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment_1.id)
       report_enrollment_2 = report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment_2.id)
 
       expect(report_enrollment_2.atc_maintained_contact).to be(true)
@@ -210,7 +210,11 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       # Strings (case-insensitive and support "yes"/"1")
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'Yes'))).to be(true)
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: '1'))).to be(true)
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'true'))).to be(true)
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'No'))).to be(false)
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: '0'))).to be(false)
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'false'))).to be(false)
+      expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: 'random'))).to be_nil
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: ''))).to be_nil
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: '  '))).to be_nil
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: nil))).to be_nil

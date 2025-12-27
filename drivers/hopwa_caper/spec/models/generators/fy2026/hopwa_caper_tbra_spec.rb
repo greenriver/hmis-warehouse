@@ -114,6 +114,8 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
           create(
             :hud_income_benefit,
             enrollment: enrollment,
+            IncomeFromAnySource: 0,
+            InsuranceFromAnySource: 0,
             information_date: report_start_date + 5.days,
             data_source: data_source,
             personal_id: enrollment.personal_id,
@@ -136,6 +138,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
           :hud_income_benefit,
           enrollment: beneficiary_enrollment,
           Medicaid: 1,
+          InsuranceFromAnySource: 1,
           information_date: report_start_date + 2.days,
           data_source: data_source,
           personal_id: beneficiary_client.PersonalID,
@@ -144,14 +147,16 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
         report, rows = run_and_extract_rows([project], 'Q2')
 
         expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
-        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([['Medicaid']])
+        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).flatten.uniq).to include('Medicaid', 'InsuranceFromAnySource')
       end
 
-      it 'sets household income and medical insurance arrays to empty when none are present' do
+      it 'sets household income and medical insurance arrays to markers when explicit No is present' do
         [hoh_enrollment, beneficiary_enrollment].each do |enrollment|
           create(
             :hud_income_benefit,
             enrollment: enrollment,
+            IncomeFromAnySource: 0,
+            InsuranceFromAnySource: 0,
             information_date: report_start_date + 3.days,
             data_source: data_source,
             personal_id: enrollment.personal_id,
@@ -161,8 +166,8 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
         report, rows = run_and_extract_rows([project], 'Q2')
 
         expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
-        expect(report.hopwa_caper_enrollments.pluck(:household_income_benefit_source_types).uniq).to eq([[]])
-        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([[]])
+        expect(report.hopwa_caper_enrollments.pluck(:household_income_benefit_source_types).uniq).to eq([['NoIncomeSource']])
+        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([['NoInsuranceSource']])
       end
     end
 

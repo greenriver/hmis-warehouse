@@ -88,8 +88,18 @@ module HopwaCaper
         select { |r| r.InformationDate && r.InformationDate <= report.end_date }.
         max_by { |r| [r.InformationDate, r.id] }
 
-      income_benefit_source_types = INCOME_SOURCE_FIELDS.filter { |field| latest_income_benefit&.[](field) == 1 }
-      medical_insurance_types = INSURANCE_FIELDS.filter { |field| latest_income_benefit&.[](field) == 1 }
+      income_benefit_source_types = []
+      medical_insurance_types = []
+
+      if latest_income_benefit
+        income_benefit_source_types = INCOME_SOURCE_FIELDS.filter { |field| latest_income_benefit[field] == 1 }.map(&:to_s).sort
+        medical_insurance_types = INSURANCE_FIELDS.filter { |field| latest_income_benefit[field] == 1 }.map(&:to_s).sort
+
+        # Add explicit markers for "No" responses to distinguish from "No Data"
+        # Only add if no other specific sources are present to maintain logical consistency
+        income_benefit_source_types << 'NoIncomeSource' if latest_income_benefit.IncomeFromAnySource == 0 && income_benefit_source_types.empty?
+        medical_insurance_types << 'NoInsuranceSource' if latest_income_benefit.InsuranceFromAnySource == 0 && medical_insurance_types.empty?
+      end
 
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
       new(

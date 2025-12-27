@@ -43,6 +43,8 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             Medicare: 1,
             Earned: 1,
             SSDI: 1,
+            IncomeFromAnySource: 1,
+            InsuranceFromAnySource: 1,
             data_source: data_source,
             personal_id: client.PersonalID,
           )
@@ -68,8 +70,8 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
           )
 
           # Should use latest_income_benefit values only
-          expect(enrollment.medical_insurance_types).to contain_exactly('Medicare')
-          expect(enrollment.income_benefit_source_types).to contain_exactly('Earned', 'SSDI')
+          expect(enrollment.medical_insurance_types).to contain_exactly('Medicare', 'InsuranceFromAnySource')
+          expect(enrollment.income_benefit_source_types).to contain_exactly('Earned', 'SSDI', 'IncomeFromAnySource')
           expect(enrollment.medical_insurance_types).not_to include('Medicaid')
         end
       end
@@ -82,6 +84,8 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             information_date: report_end_date - 1.day,
             Medicaid: 1,
             Earned: 1,
+            IncomeFromAnySource: 1,
+            InsuranceFromAnySource: 1,
             data_source: data_source,
             personal_id: client.PersonalID,
           )
@@ -94,6 +98,8 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             information_date: report_end_date + 10.days,
             Medicare: 1,
             SSDI: 1,
+            IncomeFromAnySource: 1,
+            InsuranceFromAnySource: 1,
             data_source: data_source,
             personal_id: client.PersonalID,
           )
@@ -107,15 +113,40 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
           )
 
           # Should only use within_range_benefit
-          expect(enrollment.medical_insurance_types).to contain_exactly('Medicaid')
-          expect(enrollment.income_benefit_source_types).to contain_exactly('Earned')
+          expect(enrollment.medical_insurance_types).to contain_exactly('Medicaid', 'InsuranceFromAnySource')
+          expect(enrollment.income_benefit_source_types).to contain_exactly('Earned', 'IncomeFromAnySource')
           expect(enrollment.medical_insurance_types).not_to include('Medicare')
           expect(enrollment.income_benefit_source_types).not_to include('SSDI')
         end
       end
 
-      context 'with no income_benefit records' do
-        it 'handles missing income_benefits gracefully' do
+      context 'with explicit "No" for income and insurance' do
+        let!(:no_income_benefit) do
+          create(
+            :hud_income_benefit,
+            enrollment: hud_enrollment,
+            IncomeFromAnySource: 0,
+            InsuranceFromAnySource: 0,
+            information_date: report_start_date + 5.days,
+            data_source: data_source,
+            personal_id: client.PersonalID,
+          )
+        end
+
+        it 'adds "No" markers to the arrays' do
+          enrollment = described_class.from_hud_record(
+            enrollment: hud_enrollment,
+            report: report,
+            client: client,
+          )
+
+          expect(enrollment.medical_insurance_types).to contain_exactly('NoInsuranceSource')
+          expect(enrollment.income_benefit_source_types).to contain_exactly('NoIncomeSource')
+        end
+      end
+
+      context 'with no income_benefit records at all' do
+        it 'handles missing income_benefits gracefully with empty arrays' do
           enrollment = described_class.from_hud_record(
             enrollment: hud_enrollment,
             report: report,
