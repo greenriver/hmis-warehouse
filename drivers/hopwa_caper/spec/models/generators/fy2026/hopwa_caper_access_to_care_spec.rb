@@ -281,4 +281,37 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       expect(unduplicated[1]).to eq(1)
     end
   end
+
+  context 'with an STRMU enrollment having no financial assistance services' do
+    let!(:strmu_enrollment_no_service) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: strmu_project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+    end
+
+    it 'excludes the household from STRMU counts and subsidy counts' do
+      report = create_report([strmu_project])
+      run_report(report)
+
+      rows = question_as_rows(question_number: 'Q7', report: report)
+
+      # Row 2: STRMU count should be 0 because no financial services were provided
+      activity_review = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
+      expect(activity_review[4]).to eq(0) # STRMU column
+
+      # Row 4: Total Housing Subsidy Assistance should be 0
+      total_assistance = row_for(
+        rows,
+        'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)',
+      )
+      expect(total_assistance[1]).to eq(0)
+
+      # Row 6: Unduplicated count should be 0
+      unduplicated = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household Count')
+      expect(unduplicated[1]).to eq(0)
+    end
+  end
 end

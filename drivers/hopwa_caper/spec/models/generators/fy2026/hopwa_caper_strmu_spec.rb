@@ -230,12 +230,20 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       )
     end
 
-    it 'only counts households with services in the reporting period' do
+    it 'only counts households with services in the reporting period for all sections' do
+      # Add income to the household without services
+      create_standard_income_benefits(enrollment_no_services)
+      # Add income to the household with services
+      create_standard_income_benefits(enrollment_with_services)
+
       _, rows = run_and_extract_rows([project], 'Q3')
 
       # Only the household with services in the period should be counted
       expect(rows.fetch('STRMU Households Total')).to eq(1)
       expect(rows.fetch('How many households were served with STRMU rental assistance only?')).to eq(1)
+
+      # Income section should also only count the household with services
+      expect(rows.fetch('Earned Income from Employment')).to eq(1)
 
       # The household without services should NOT be in "more than one type"
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(0)

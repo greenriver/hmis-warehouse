@@ -27,15 +27,19 @@ module HopwaCaper::Generators::Fy2026::Sheets
       HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
     end
 
-    def relevant_enrollments
+    def base_enrollments
       overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+    end
+
+    def relevant_enrollments
+      base_enrollments.where(report_household_id: relevant_services.select(:report_household_id))
     end
 
     def relevant_services
       service_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
       service_filter.apply(@report.hopwa_caper_services).
         where(date_provided: @report.start_date..@report.end_date).
-        joins(:enrollment).merge(relevant_enrollments)
+        joins(:enrollment).merge(base_enrollments)
     end
 
     def service_type_filters
@@ -57,7 +61,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
         )
       end
 
-      # Only include households that have services in the reporting period
+      # households_with_services is what relevant_enrollments represents
       households_with_services = relevant_services.distinct.pluck(:report_household_id).sort
       multi_type_household_ids = (households_with_services - seen_household_ids.uniq).sort
 
@@ -69,7 +73,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       add_household_enrollments_row(
         sheet,
         label: 'STRMU Households Total',
-        enrollments: relevant_enrollments.where(report_household_id: households_with_services),
+        enrollments: relevant_enrollments,
       )
     end
 
