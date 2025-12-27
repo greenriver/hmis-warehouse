@@ -17,6 +17,8 @@ module Delayed
   module Backend
     module ActiveRecord
       class Job < ::ActiveRecord::Base
+        scope :queued, -> { where(failed_at: nil, locked_at: nil) }
+
         def self.jobs_for_class(handlers)
           handlers = Array.wrap(handlers)
           sql = arel_table[:id].eq(0) # This will never happen
@@ -33,7 +35,7 @@ module Delayed
           return false if handlers.blank?
 
           handlers = Array.wrap(handlers)
-          scope = where(failed_at: nil, locked_at: nil)
+          scope = queued
           handlers.each do |handler|
             scope = scope.jobs_for_class(handler)
           end
