@@ -9,12 +9,12 @@
 require 'rails_helper'
 
 RSpec.describe ImpersonationManager do
+  include_context 'with cache store'
+
   let(:session_id) { 'test-session-123' }
   let(:manager) { described_class.new(session_id) }
-  let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
 
   before do
-    allow(Rails).to receive(:cache).and_return(memory_store)
     Rails.cache.clear
   end
 

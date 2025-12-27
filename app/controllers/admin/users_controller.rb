@@ -111,6 +111,9 @@ module Admin
     end
 
     def impersonate
+      # Force session to be created by writing to it (needed for tests where sessions are lazy-loaded)
+      session[:_session_initialized] = true if Rails.env.test?
+
       become = User.find(params[:become_id].to_i)
       return redirect_to root_path, alert: 'Cannot impersonate yourself' if become.id == current_user.id
 

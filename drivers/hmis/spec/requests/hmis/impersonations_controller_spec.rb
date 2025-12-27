@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::ImpersonationsController, type: :request do
   include_context 'hmis base setup'
+  include_context 'with cache store'
 
   let(:ds) { create :hmis_data_source }
   let(:headers) do

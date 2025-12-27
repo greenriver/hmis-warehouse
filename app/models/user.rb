@@ -42,9 +42,6 @@ class User < ApplicationRecord
 
   has_many :compliance_agreements, class_name: 'GrdaWarehouse::Compliance::Agreement', dependent: :destroy
 
-  has_many :user_authentication_sources, dependent: :destroy
-  has_many :enabled_authentication_sources, -> { where(enabled: true) }, class_name: 'UserAuthenticationSource'
-
   accepts_nested_attributes_for :system_contact
 
   # Ensure system_contact has proper entity attributes before validation

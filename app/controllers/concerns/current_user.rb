@@ -79,7 +79,8 @@ module CurrentUser
       impersonation_data = impersonation_manager.get
       return current_user unless impersonation_data && impersonation_data[:true_user_id].present?
 
-      true_user_record = User.find_by(id: impersonation_data[:true_user_id])
+      # Use same class as current_user to ensure permissions load correctly
+      true_user_record = current_user.class.find_by(id: impersonation_data[:true_user_id])
       true_user_record || current_user
     end
     helper_method :true_user
@@ -203,10 +204,14 @@ module CurrentUser
       impersonation_data = impersonation_manager.get
       if impersonation_data && impersonation_data[:impersonated_user_id].present?
         # Validate permissions on every request
-        true_user = User.find_by(id: impersonation_data[:true_user_id])
+        # IMPORTANT: Use user_class for both users to ensure permissions are loaded correctly
+        # (e.g., both are Hmis::User in HMIS controllers, both are User in warehouse controllers)
+        true_user = user_class.find_by(id: impersonation_data[:true_user_id])
         impersonated_user = user_class.find_by(id: impersonation_data[:impersonated_user_id])
 
-        return impersonated_user if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
+        if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
+          return impersonated_user
+        end
 
         # Clear invalid impersonation
         impersonation_manager.clear

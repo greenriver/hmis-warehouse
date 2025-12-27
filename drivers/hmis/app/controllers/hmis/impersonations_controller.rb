@@ -11,6 +11,9 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   before_action :authorize_action
 
   def create
+    # Force session to be created by writing to it (needed for tests where sessions are lazy-loaded)
+    session[:_session_initialized] = true if Rails.env.test?
+
     return render_error("Already impersonating #{true_hmis_user.id} => #{current_hmis_user.id}") if impersonating?
 
     user = Hmis::User.with_hmis_access.find(params[:user_id])
@@ -23,14 +26,24 @@ class Hmis::ImpersonationsController < Hmis::BaseController
     return render_error('This user cannot be impersonated') unless user.impersonateable_by?(true_hmis_user)
 
     # Store impersonation state in cache
-    ImpersonationManager.new(session.id).store(true_hmis_user.id, user.id)
+    manager = ImpersonationManager.new(session.id)
+    manager.store(true_hmis_user.id, user.id)
+
+    # Clear memoized current_hmis_user so it re-checks impersonation
+    @current_hmis_user = nil
+
     render_success
   end
 
   def destroy
     return render_error('Not impersonating') unless impersonating?
 
-    ImpersonationManager.new(session.id).clear
+    manager = ImpersonationManager.new(session.id)
+    manager.clear
+
+    # Clear memoized current_hmis_user so it re-checks impersonation
+    @current_hmis_user = nil
+
     render_success
   end
 

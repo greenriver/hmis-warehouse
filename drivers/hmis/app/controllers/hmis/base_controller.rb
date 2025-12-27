@@ -125,11 +125,8 @@ class Hmis::BaseController < ActionController::Base
     impersonation_data = impersonation_manager.get
     return current_hmis_user unless impersonation_data && impersonation_data[:true_user_id].present?
 
-    true_user_record = User.find_by(id: impersonation_data[:true_user_id])
-    return current_hmis_user unless true_user_record
-
-    # Cast to Hmis::User
-    Hmis::User.find_by(id: true_user_record.id) || current_hmis_user
+    # Load directly as Hmis::User to ensure HMIS permissions are loaded
+    Hmis::User.find_by(id: impersonation_data[:true_user_id]) || current_hmis_user
   end
   helper_method :true_hmis_user
 

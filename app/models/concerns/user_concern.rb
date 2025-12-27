@@ -73,6 +73,9 @@ module UserConcern
     has_many :two_factors_memorized_devices
     has_many :oauth_identities, dependent: :destroy
 
+    has_many :user_authentication_sources, dependent: :destroy
+    has_many :enabled_authentication_sources, -> { where(enabled: true) }, class_name: 'UserAuthenticationSource'
+
     has_many :favorites
     has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
 

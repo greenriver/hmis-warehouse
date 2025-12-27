@@ -67,6 +67,13 @@ module JwtAuthenticationHelper
     end
     user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
 
+    # For request specs: session will be initialized on first request
+    # For controller specs: set up session
+    if defined?(controller) && defined?(request) && request.present?
+      # Ensure session is initialized for controller specs
+      request.session # This access initializes the session
+    end
+
     # Store token for use in headers
     @jwt_token = mock_token
 
@@ -87,47 +94,47 @@ module JwtAuthenticationHelper
       allow(controller).to receive(:current_user).and_return(user)
       allow(controller).to receive(:user_signed_in?).and_return(true)
     else
-      # For request specs: Patch HTTP methods to include JWT headers
+      # For request specs: Patch HTTP methods to include JWT headers and preserve session
       # This is called lazily when the first request is made
       test_instance = self
 
-      # Use a before hook approach - define methods that add headers
-      define_singleton_method(:get) do |*args, **kwargs|
+      # Helper method to inject JWT and session headers, and preserve session cookies
+      define_singleton_method(:inject_auth_headers_and_preserve_session) do |kwargs, test_instance|
+        # Merge JWT headers
         kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(*args, **kwargs)
+        # Preserve session cookie if it exists
+        session_headers = test_instance.instance_variable_get(:@session_headers)
+        kwargs[:headers].merge!(session_headers) if session_headers
       end
 
-      define_singleton_method(:post) do |*args, **kwargs|
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(*args, **kwargs)
+      define_singleton_method(:store_session_cookie) do |test_instance|
+        # Store session cookie for next request
+        # Handle both string and array values (multiple Set-Cookie headers)
+        set_cookie = response.headers['Set-Cookie']
+        return unless set_cookie
+
+        cookie_value = set_cookie.is_a?(Array) ? set_cookie.join('; ') : set_cookie
+        test_instance.instance_variable_set(:@session_headers, { 'Cookie' => cookie_value })
       end
 
-      define_singleton_method(:put) do |*args, **kwargs|
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(*args, **kwargs)
+      # Override HTTP methods to include JWT headers and preserve session
+      [:get, :post, :put, :patch, :delete, :head].each do |method|
+        define_singleton_method(method) do |*args, **kwargs|
+          inject_auth_headers_and_preserve_session(kwargs, test_instance)
+          result = super(*args, **kwargs)
+          store_session_cookie(test_instance)
+          result
+        end
       end
 
-      define_singleton_method(:patch) do |*args, **kwargs|
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(*args, **kwargs)
-      end
-
-      define_singleton_method(:delete) do |*args, **kwargs|
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(*args, **kwargs)
-      end
-
-      define_singleton_method(:head) do |*args, **kwargs|
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(*args, **kwargs)
-      end
-
-      # Override follow_redirect! to include JWT headers
+      # Override follow_redirect! to include JWT headers and preserve session
       # This is needed because follow_redirect! is delegated to integration_session
       # and its internal get() call doesn't go through our overridden get method
       define_singleton_method(:follow_redirect!) do |**kwargs|
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
-        super(**kwargs)
+        inject_auth_headers_and_preserve_session(kwargs, test_instance)
+        result = super(**kwargs)
+        store_session_cookie(test_instance)
+        result
       end
     end
 
