@@ -99,8 +99,22 @@ RSpec.shared_context 'RailsSystemHelper' do
     visit('/')
 
     # Set the test JWT token in a cookie that CurrentUser will read
-    # Cuprite/Ferrum uses page.driver.set_cookie instead of Selenium's add_cookie
-    page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false)
+    # Different drivers have different cookie APIs
+    case page.driver
+    when Capybara::RackTest::Driver
+      # RackTest uses Rack::Test's cookie jar
+      page.driver.browser.set_cookie("test_jwt_token=#{mock_token}; path=/")
+    when Capybara::Cuprite::Driver
+      # Cuprite/Ferrum uses set_cookie method
+      page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false)
+    else
+      # Selenium and other drivers use add_cookie
+      page.driver.browser.manage.add_cookie(
+        name: 'test_jwt_token',
+        value: mock_token,
+        path: '/',
+      )
+    end
 
     # Navigate to home page (now authenticated)
     visit('/')
@@ -113,11 +127,11 @@ RSpec.shared_context 'RailsSystemHelper' do
   end
 
   def sign_out_user
-    if page.has_link?('Sign Out')
-      page.click_link('Sign Out')
-    elsif page.has_link?('Account')
+    if page.has_link?('Account')
       page.click_link('Account')
-      page.click_link('Sign Out')
+      page.click_link('Sign Out', match: :first)
+    elsif page.has_link?('Sign Out')
+      page.click_link('Sign Out', match: :first)
     end
   end
 

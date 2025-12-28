@@ -61,12 +61,8 @@ RSpec.shared_context 'SystemSpecHelper' do
 
     # Set the test JWT token in a cookie that CurrentUser will read
     # This bypasses oauth2-proxy which isn't running in tests
-    page.driver.browser.manage.add_cookie(
-      name: 'test_jwt_token',
-      value: mock_token,
-      path: '/',
-      secure: false,
-    )
+    # E2E tests use Cuprite driver which has a different cookie API than Selenium
+    page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false)
 
     # Navigate to home page (now authenticated)
     visit('/')
