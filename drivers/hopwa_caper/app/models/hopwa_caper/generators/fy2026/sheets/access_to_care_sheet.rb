@@ -51,22 +51,16 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def activity_review_section(sheet)
-      tbra_households = housing_subsidy_households_for_activity(:tbra)
-      pfbh_households = housing_subsidy_households_for_activity(:pfbh)
-      st_tfbh_households = housing_subsidy_households_for_activity(:st_tfbh)
-      strmu_households = housing_subsidy_households_for_activity(:strmu)
-      php_households = housing_subsidy_households_for_activity(:php)
-
       # row 2
       sheet.append_row(label: 'Total Households Served in ALL Activities from this report for each Activity.') do |row|
-        row.append_cell_members(members: heads_of_household_for(tbra_households))
-        row.append_cell_members(members: heads_of_household_for(pfbh_households))
-        row.append_cell_members(members: heads_of_household_for(st_tfbh_households))
-        row.append_cell_members(members: heads_of_household_for(strmu_households))
-        row.append_cell_members(members: heads_of_household_for(php_households))
+        row.append_cell_members(members: activity_household_members(:tbra))
+        row.append_cell_members(members: activity_household_members(:pfbh))
+        row.append_cell_members(members: activity_household_members(:st_tfbh))
+        row.append_cell_members(members: activity_household_members(:strmu))
+        row.append_cell_members(members: activity_household_members(:php))
         row.append_cell_members(members: heads_of_household_for(housing_info_households))
         row.append_cell_members(members: heads_of_household_for(supportive_services_households))
-        row.append_cell_members(members: heads_of_household_for(other_competitive_households))
+        row.append_cell_members(members: activity_household_members(:other_competitive))
       end
     end
 
@@ -78,15 +72,15 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # row 4
       sheet.append_row(label: 'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)') do |row|
         count_with_duplicates = HOUSING_SUBSIDY_ACTIVITIES.sum do |type|
-          housing_subsidy_households_for_activity(type).distinct.count(:report_household_id)
+          activity_household_members(type).size
         end
-        row.append_cell_members(members: heads_of_household_for(housing_subsidy_households), value: count_with_duplicates)
+        # just include the value as members would contain duplicates
+        row.append_cell_value(value: count_with_duplicates)
       end
-
-      duplicated_households = find_duplicated_households_across_activities
 
       # row 5
       sheet.append_row(label: 'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?') do |row|
+        duplicated_households = find_duplicated_households_across_activities
         row.append_cell_members(members: heads_of_household_for(duplicated_households))
       end
 
@@ -250,10 +244,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def all_housing_subsidy_households
       household_ids = HOUSING_SUBSIDY_ACTIVITIES.flat_map do |activity_type|
-        housing_subsidy_households_for_activity(activity_type).
-          select(:report_household_id).
-          distinct.
-          pluck(:report_household_id)
+        activity_household_scope(activity_type).pluck(:report_household_id)
       end.uniq
 
       @report.hopwa_caper_enrollments.where(report_household_id: household_ids)
@@ -262,7 +253,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def find_duplicated_households_across_activities
       # Collect household IDs from each activity type
       activity_household_ids = HOUSING_SUBSIDY_ACTIVITIES.map do |activity_type|
-        housing_subsidy_households_for_activity(activity_type).distinct.pluck(:report_household_id)
+        activity_household_scope(activity_type).pluck(:report_household_id)
       end
 
       return @report.hopwa_caper_enrollments.none if activity_household_ids.all?(&:empty?)
@@ -279,19 +270,12 @@ module HopwaCaper::Generators::Fy2026::Sheets
       @report.hopwa_caper_enrollments.where(report_household_id: duplicated_ids)
     end
 
-    def heads_of_household_for(enrollments_or_household_ids)
-      return [] if enrollments_or_household_ids.blank?
+    def activity_household_members(activity_type)
+      heads_of_household_for(housing_subsidy_households_for_activity(activity_type))
+    end
 
-      if enrollments_or_household_ids.is_a?(ActiveRecord::Relation) && enrollments_or_household_ids.model == HopwaCaper::Enrollment
-        household_ids = enrollments_or_household_ids.select(:report_household_id)
-      else
-        household_ids = enrollments_or_household_ids
-      end
-
-      @report.hopwa_caper_enrollments.head_of_household.
-        where(report_household_id: household_ids).
-        latest_by_distinct_client_id.
-        as_report_members
+    def activity_household_scope(activity_type)
+      heads_of_household_scope_for(housing_subsidy_households_for_activity(activity_type))
     end
   end
 end

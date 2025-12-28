@@ -13,7 +13,7 @@ module HudReports
 
     def initialize(report:, question:)
       @report = report
-      raise "invalid question id #{question.inspect}" unless question =~ /\AQ\d+/
+      raise ArgumentError, "invalid question id #{question.inspect}" unless question =~ /\AQ\d+/
 
       @question = question
     end
@@ -101,7 +101,7 @@ module HudReports
     # end
 
     def add_header(col: next_column, label:)
-      raise unless col =~ /[A-Z]+/
+      raise ArgumentError, "Invalid column identifier: #{col}" unless col =~ /\A[A-Z]+\z/
 
       headers[col] = label
     end
@@ -140,8 +140,8 @@ module HudReports
 
     def check_col(col)
       col = col.to_s
-      raise unless col =~ /[A-Z]+/
-      raise if cell_members.key?(col) || cell_values.key?(col)
+      raise ArgumentError, "Invalid column identifier: #{col}" unless col =~ /\A[A-Z]+\z/
+      raise ArgumentError, "Column #{col} already defined in this row" if cell_members.key?(col) || cell_values.key?(col)
 
       col
     end
