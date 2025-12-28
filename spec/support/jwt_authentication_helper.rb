@@ -86,8 +86,9 @@ module JwtAuthenticationHelper
     @jwt_headers = jwt_header
 
     # Detect if we're in a controller spec or request spec
-    # Controller specs have type: :controller metadata
-    is_controller_spec = respond_to?(:metadata) && metadata[:type] == :controller
+    # Controller specs have a 'controller' method that request specs don't have
+    # This is more reliable than checking metadata
+    is_controller_spec = respond_to?(:controller)
 
     test_instance = self
 
