@@ -52,12 +52,9 @@ RSpec.shared_context 'SystemSpecHelper' do
       kwargs[:access_token] == mock_token ? jwt_helper : original_method.call(**kwargs)
     end
 
+    # Stub User.find_from_jwt to return the user for our mock token
+    # Note: HMIS controllers also use this - they call User.find_from_jwt then cast to Hmis::User
     allow(User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
-      helper == jwt_helper ? user : original_method.call(helper)
-    end
-
-    # Also stub Hmis::User.find_from_jwt for HMIS controllers
-    allow(Hmis::User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
       helper == jwt_helper ? user : original_method.call(helper)
     end
 
