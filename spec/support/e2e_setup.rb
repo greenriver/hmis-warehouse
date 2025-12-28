@@ -56,6 +56,21 @@ RSpec.shared_context 'SystemSpecHelper' do
       helper == jwt_helper ? user : original_method.call(helper)
     end
 
+    # Also stub Hmis::User.find_from_jwt for HMIS controllers
+    allow(Hmis::User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
+      helper == jwt_helper ? user : original_method.call(helper)
+    end
+
+    # Create authentication source upfront to avoid extra queries during request
+    # This prevents ensure_authentication_source from running during the request
+    user.user_authentication_sources.find_or_create_by!(
+      connector_id: 'test',
+      connector_user_id: user.id.to_s,
+    ) do |auth_source|
+      auth_source.enabled = true
+    end
+    user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
+
     # Visit the application first (required to set cookies)
     visit('/')
 
