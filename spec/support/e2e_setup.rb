@@ -54,8 +54,9 @@ RSpec.shared_context 'SystemSpecHelper' do
 
     # Stub User.find_from_jwt to return the user for our mock token
     # Note: HMIS controllers also use this - they call User.find_from_jwt then cast to Hmis::User
+    # Always return a User instance (not Hmis::User) since find_from_jwt is on the User class
     allow(User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
-      helper == jwt_helper ? user : original_method.call(helper)
+      helper == jwt_helper ? User.find_by(id: user.id) : original_method.call(helper)
     end
 
     # Create authentication source upfront to avoid extra queries during request
