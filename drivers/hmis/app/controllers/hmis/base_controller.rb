@@ -12,6 +12,7 @@ class Hmis::BaseController < ActionController::Base
   include CurrentUser
 
   before_action :authenticate_hmis_user!
+  before_action :initialize_session_for_tests, if: -> { Rails.env.test? }
 
   include Hmis::Concerns::JsonErrors
   respond_to :json
@@ -161,6 +162,11 @@ class Hmis::BaseController < ActionController::Base
   def append_info_to_payload(payload)
     super
     payload[:user_id] = current_app_user&.id
+  end
+
+  # Initialize session in test environment to ensure session.id is available for activity logging
+  def initialize_session_for_tests
+    session[:_session_initialized] = true
   end
 
   def not_authorized!

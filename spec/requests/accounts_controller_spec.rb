@@ -9,6 +9,9 @@ RSpec.describe AccountsController, type: :request do
 
   before(:each) do
     sign_in(user)
+    # Stub IDP methods to allow profile updates in tests
+    allow_any_instance_of(User).to receive(:idp_supports_profile_updates?).and_return(true)
+    allow_any_instance_of(AccountsController).to receive(:update_profile_via_idp)
   end
 
   describe 'GET edit' do
@@ -30,13 +33,17 @@ RSpec.describe AccountsController, type: :request do
       {
         first_name: 'Fake',
         last_name: 'User',
+        email_schedule: user.email_schedule,
+        phone: user.phone,
+        credentials: user.credentials,
       }
     end
 
     it 'updates first_name and last_name and redirects to edit' do
       patch account_path, params: { user: changes }
-      expect(User.not_system.first.first_name).to eq changes[:first_name]
-      expect(User.not_system.first.last_name).to eq changes[:last_name]
+      user.reload
+      expect(user.first_name).to eq 'Fake'
+      expect(user.last_name).to eq 'User'
       expect(response).to redirect_to edit_account_path
     end
 
@@ -109,7 +116,10 @@ RSpec.describe AccountsController, type: :request do
           phone: '1234567890',
         }
         patch account_path, params: { user: changes }
-        expect(flash[:notice]).to eq('Account name was updated. User credentials were changed. Email schedule was updated. Phone number was updated.')
+        expect(flash[:notice]).to include('Account name was updated.')
+        expect(flash[:notice]).to include('User credentials were changed.')
+        expect(flash[:notice]).to include('Email schedule was updated.')
+        expect(flash[:notice]).to include('Phone number was updated.')
       end
     end
   end

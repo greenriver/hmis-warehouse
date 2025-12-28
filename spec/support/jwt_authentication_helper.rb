@@ -85,36 +85,48 @@ module JwtAuthenticationHelper
     # Store for any manual header access
     @jwt_headers = jwt_header
 
-    # For controller specs: Set headers on request object and stub current_user
-    if defined?(controller) && controller.present?
-      # Controller specs need headers set on the request object
-      if defined?(request) && request.present?
-        request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
+    # Detect if we're in a controller spec or request spec
+    # Controller specs have type: :controller metadata
+    is_controller_spec = respond_to?(:metadata) && metadata[:type] == :controller
+
+    test_instance = self
+
+    if is_controller_spec
+      # For controller specs: Stub controller methods before each HTTP request
+      # Controller specs don't support :headers kwarg, so we stub current_user instead
+      [:get, :post, :put, :patch, :delete, :head].each do |method|
+        define_singleton_method(method) do |*args|
+          # Stub current_user on controller if it exists
+          if defined?(controller) && controller.present?
+            allow(controller).to receive(:current_user).and_return(user)
+            allow(controller).to receive(:user_signed_in?).and_return(true)
+            # Also set headers on request object
+            if defined?(request) && request.present?
+              request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
+            end
+          end
+          super(*args)
+        end
       end
-      allow(controller).to receive(:current_user).and_return(user)
-      allow(controller).to receive(:user_signed_in?).and_return(true)
     else
       # For request specs: Patch HTTP methods to include JWT headers and preserve session
-      # This is called lazily when the first request is made
-      test_instance = self
-
       # Helper method to inject JWT and session headers, and preserve session cookies
-      define_singleton_method(:inject_auth_headers_and_preserve_session) do |kwargs, test_instance|
+      define_singleton_method(:inject_auth_headers_and_preserve_session) do |kwargs, spec_instance|
         # Merge JWT headers
-        kwargs[:headers] = (kwargs[:headers] || {}).merge(test_instance.instance_variable_get(:@jwt_headers) || {})
+        kwargs[:headers] = (kwargs[:headers] || {}).merge(spec_instance.instance_variable_get(:@jwt_headers) || {})
         # Preserve session cookie if it exists
-        session_headers = test_instance.instance_variable_get(:@session_headers)
+        session_headers = spec_instance.instance_variable_get(:@session_headers)
         kwargs[:headers].merge!(session_headers) if session_headers
       end
 
-      define_singleton_method(:store_session_cookie) do |test_instance|
+      define_singleton_method(:store_session_cookie) do |spec_instance|
         # Store session cookie for next request
         # Handle both string and array values (multiple Set-Cookie headers)
         set_cookie = response.headers['Set-Cookie']
         return unless set_cookie
 
         cookie_value = set_cookie.is_a?(Array) ? set_cookie.join('; ') : set_cookie
-        test_instance.instance_variable_set(:@session_headers, { 'Cookie' => cookie_value })
+        spec_instance.instance_variable_set(:@session_headers, { 'Cookie' => cookie_value })
       end
 
       # Override HTTP methods to include JWT headers and preserve session

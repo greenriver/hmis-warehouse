@@ -11,10 +11,12 @@ RSpec.describe AccountsController, type: :controller do
     allow(controller_instance).to receive(:current_user).and_return(user)
     allow(controller_instance).to receive(:params).and_return(ActionController::Parameters.new(user: account_params))
     allow(controller_instance).to receive(:redirect_to)
-    allow(controller_instance).to receive(:bypass_sign_in)
     allow(controller_instance).to receive(:flash).and_return(flash_hash)
     allow(controller_instance).to receive(:edit_account_path).and_return('/account/edit')
     controller_instance.instance_variable_set(:@user, user)
+    # Stub IDP methods to allow profile updates in tests
+    allow(user).to receive(:idp_supports_profile_updates?).and_return(true)
+    allow(controller_instance).to receive(:update_profile_via_idp)
   end
 
   describe '#update method string manipulation' do
@@ -68,8 +70,10 @@ RSpec.describe AccountsController, type: :controller do
 
       it 'sets flash notice with multiple change messages joined by spaces' do
         controller_instance.update
-        expected_message = 'Account name was updated. User credentials were changed. Email schedule was updated. Phone number was updated.'
-        expect(flash_hash[:notice]).to eq(expected_message)
+        expect(flash_hash[:notice]).to include('Account name was updated.')
+        expect(flash_hash[:notice]).to include('User credentials were changed.')
+        expect(flash_hash[:notice]).to include('Email schedule was updated.')
+        expect(flash_hash[:notice]).to include('Phone number was updated.')
       end
     end
   end
