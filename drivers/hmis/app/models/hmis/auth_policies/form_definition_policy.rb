@@ -19,7 +19,9 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
   end
 
   # Whether the user can create an entirely new form definition
-  def can_create? = can_manage_form?
+  def can_create?(role:)
+    can_manage_form_by_role?(role: role)
+  end
 
   # Whether the user can create a draft version of the form definition
   def can_create_draft? = can_manage_form?
@@ -54,13 +56,16 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
   # Determines if the current user can manage forms for a given role.
   # can_manage_forms permission grants access to edit certain form roles (SERVICE, CUSTOM_ASSESSMENT),
   # while "super-admin" permission can_administrate_config grants access to edit all form roles.
-  def can_manage_form_by_role?
-    global_permissions.include?(:can_manage_forms) && manageable_form_role?
+  def can_manage_form_by_role?(role: nil)
+    global_permissions.include?(:can_manage_forms) && manageable_form_role?(role: role)
   end
 
-  # Determines if the form definition is a non-super-admin form or a super-admin form.
-  def manageable_form_role?
-    form_definition.role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
+  # Determines if the form role is considered a non-super-admin form or a super-admin form
+  def manageable_form_role?(role: nil)
+    role_to_check = role || form_definition.role
+    return false if role_to_check.nil?
+
+    role_to_check.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
   end
 
   # Form management permissions are currently global. In the future they should be tied to data source (#6612, #6691),
