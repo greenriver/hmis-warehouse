@@ -3,13 +3,13 @@ desc 'One time data cleanup to ensure merged clients have primary names'
 task cleanup_client_primary_names_20251218: [:environment] do
   GrdaWarehouse::DataSource.hmis.each do |data_source|
     # clients with associated name records, but no primary name
-    clients = Hmis::Hud::Client.
+    clients = Hmis::Hud::Client.where(data_source: data_source).
       joins(:names). # Only clients with at least one custom client name
       left_joins(:primary_name). # Left join to primary names
       where(primary_name: { id: nil }). # Where there is no primary name
       distinct
 
-    puts "Found #{clients.count} clients with missing primary names: #{clients.pluck(:id).join(', ')}"
+    puts "Found #{clients.count} clients with missing primary names for data source #{data_source.name}: #{clients.pluck(:id).join(', ')}"
 
     updated_count = 0
     clients.find_each do |client|
