@@ -86,24 +86,26 @@ module JwtAuthenticationHelper
     @jwt_headers = jwt_header
 
     # Detect if we're in a controller spec or request spec
-    # Check RSpec metadata which is always available
-    # Also check for controller method as a fallback
-    is_controller_spec = false
-    if respond_to?(:example) && example.respond_to?(:metadata)
-      is_controller_spec = example.metadata[:type] == :controller
-    elsif respond_to?(:metadata)
-      is_controller_spec = metadata[:type] == :controller
-    elsif respond_to?(:controller)
-      is_controller_spec = true
+    # Check the class hierarchy - controller specs include RSpec::Rails::ControllerExampleGroup
+    # This is more reliable than metadata which may not be set up yet when sign_in is called
+    is_controller_spec = self.class.ancestors.any? { |ancestor| ancestor.name == 'RSpec::Rails::ControllerExampleGroup' }
+
+    # Fallback to metadata if class check doesn't work
+    unless is_controller_spec
+      if respond_to?(:example) && example.respond_to?(:metadata)
+        is_controller_spec = example.metadata[:type] == :controller
+      elsif respond_to?(:metadata)
+        is_controller_spec = metadata[:type] == :controller
+      end
     end
 
     test_instance = self
 
     if is_controller_spec
       # For controller specs: Stub controller methods before each HTTP request
-      # Controller specs don't support :headers kwarg, so we stub current_user instead
+      # Controller specs don't support custom :headers kwarg, so we stub current_user instead
       [:get, :post, :put, :patch, :delete, :head].each do |method|
-        define_singleton_method(method) do |*args|
+        define_singleton_method(method) do |*args, **kwargs|
           # Stub current_user on controller if it exists
           if defined?(controller) && controller.present?
             allow(controller).to receive(:current_user).and_return(user)
@@ -113,7 +115,9 @@ module JwtAuthenticationHelper
               request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
             end
           end
-          super(*args)
+          # Controller specs support standard Rails kwargs (params:, session:, etc.)
+          # but not custom :headers kwarg
+          super(*args, **kwargs)
         end
       end
     else
