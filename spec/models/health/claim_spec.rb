@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Health::Claim, type: :model do
   let!(:sender) { create(:sender) }
-  let!(:patient) { create(:patient) }
+  let!(:patient) { create :patient, medicaid_id: '123456789' }
   let!(:patient_referral) { create :current_referral, patient_id: patient.id }
   let!(:ssm) { create(:ssm, patient_id: patient.id, housing_score: 1) }
   let!(:qa1) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.current, force_payable: true) }
@@ -34,5 +34,59 @@ RSpec.describe Health::Claim, type: :model do
     # binding.pry # 'puts claim.convert_claims_to_text' to bench check
   end
 
-  # TODO: automate the claims file introspection rather than bench checks
+  describe '#convert_claims_to_text' do
+    before do
+      claim.build_claims_file
+    end
+
+    it 'converts claims to text without errors' do
+      expect { claim.convert_claims_to_text }.not_to raise_error
+    end
+
+    it 'returns a non-empty string' do
+      result = claim.convert_claims_to_text
+      expect(result).to be_a(String)
+      expect(result.length).to be > 0
+    end
+
+    it 'generates uppercase EDI text' do
+      result = claim.convert_claims_to_text
+      expect(result).to eq(result.upcase)
+    end
+
+    it 'generates EDI format with required segments' do
+      edi_text = claim.convert_claims_to_text
+
+      expect(edi_text).to include('ISA')
+      expect(edi_text).to include('GS')
+      expect(edi_text).to include('ST')
+      expect(edi_text).to include('BHT')
+      expect(edi_text).to include('NM1')
+      expect(edi_text).to include('PER')
+      expect(edi_text).to include('HL')
+      expect(edi_text).to include('N3')
+      expect(edi_text).to include('N4')
+      expect(edi_text).to include('REF')
+      expect(edi_text).to include('SBR')
+      expect(edi_text).to include('DMG')
+      expect(edi_text).to include('CLM')
+      expect(edi_text).to include('HI')
+      expect(edi_text).to include('LX')
+      expect(edi_text).to include('SV1')
+      expect(edi_text).to include('DTP')
+      expect(edi_text).to include('SE')
+      expect(edi_text).to include('GE')
+      expect(edi_text).to include('IEA')
+    end
+
+    it 'includes patient medicaid IDs in the EDI file' do
+      edi_text = claim.convert_claims_to_text
+
+      expect(edi_text).to include(patient.medicaid_id)
+    end
+
+    it 'does not raise frozen string literal errors' do
+      expect { claim.convert_claims_to_text }.not_to raise_error
+    end
+  end
 end

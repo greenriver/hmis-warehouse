@@ -183,13 +183,16 @@ module Health
     def convert_claims_to_text
       file = ''
       @edi_builder.machine.zipper.tap do |z|
+        # Stupidedi mutates the strings within the gem flagging the frozen string literal warnings. The strings are duped to avoid the warnings.
         separators = Stupidedi::Reader::Separators.build(
-          segment: "~\n",
-          element: '*',
-          component: component_element_separator,
-          repetition: repetition_separator,
+          segment: "~\n".dup,
+          element: '*'.dup,
+          component: component_element_separator.dup,
+          repetition: repetition_separator.dup,
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
+        # Pass a mutable string buffer to avoid frozen string literal warnings
+        # The gem's write method has a default parameter "" which is frozen in Ruby 3.4
         file = w.write(String.new).upcase
       end
       return file
