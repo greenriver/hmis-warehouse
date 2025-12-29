@@ -139,6 +139,37 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
 
       expect { cleanup.cleanup! }.not_to raise_error
     end
+
+    it 'strips leading and trailing whitespace from EnrollmentCoC' do
+      # Test the strip operation from line 19: enrollment.EnrollmentCoC = enrollment.EnrollmentCoC&.strip
+
+      # Create test enrollment with whitespace around CoC code
+      enrollment = double('enrollment')
+      coc_code = ' CA-501 '
+      allow(enrollment).to receive(:EnrollmentCoC) { coc_code }
+      allow(enrollment).to receive(:EnrollmentCoC=) { |value| coc_code = value }
+      allow(enrollment).to receive(:set_source_hash)
+
+      # Mock valid_coc? to trigger processing
+      allow(::HudHelper.util).to receive(:valid_coc?).with(' CA-501 ').and_return(false)
+      allow(::HudHelper.util).to receive(:valid_coc?).with('CA-501').and_return(true)
+
+      # Mock enrollment scope
+      enrollment_scope = double('enrollment_scope')
+      allow(cleanup).to receive(:enrollment_scope).and_return(enrollment_scope)
+      allow(enrollment_scope).to receive(:find_each).and_yield(enrollment)
+
+      # Mock enrollment source and import
+      enrollment_source = double('enrollment_source')
+      allow(cleanup).to receive(:enrollment_source).and_return(enrollment_source)
+      allow(enrollment_source).to receive(:import)
+      allow(cleanup).to receive(:conflict_target).and_return({})
+
+      # Call the actual method that contains the strip operation
+      expect { cleanup.cleanup! }.not_to raise_error
+
+      expect(coc_code).to eq('CA-501')
+    end
   end
 
   describe 'method calls that exercise string mutations' do
