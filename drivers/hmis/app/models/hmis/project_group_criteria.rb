@@ -17,10 +17,10 @@ module Hmis
     attribute :data_source_id, Integer, default: nil
 
     # Attributes for filtering
-    attribute :project_ids, Array, default: []
-    attribute :organization_ids, Array, default: []
+    attribute :project_ids, Array, default: [].freeze
+    attribute :organization_ids, Array, default: [].freeze
     attribute :all_projects_in_data_source, Boolean, default: false
-    attribute :project_type_numbers, Array, default: []
+    attribute :project_type_numbers, Array, default: [].freeze
     # TODO: add more filtering capabilities:
     # attribute :hmis_participation_status, Integer, default: nil
     # attribute :ce_participation_access_point, Boolean, default: nil

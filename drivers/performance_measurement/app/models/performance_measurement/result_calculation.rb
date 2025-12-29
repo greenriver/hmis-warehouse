@@ -6,6 +6,7 @@
 #
 # frozen_string_literal: true
 
+# See @docs/features/coc-performance-measurement-dashboard.md
 module PerformanceMeasurement::ResultCalculation
   extend ActiveSupport::Concern
 
@@ -19,7 +20,13 @@ module PerformanceMeasurement::ResultCalculation
       # increase year over year
       when
         :income
-        progress = percent_changed(reporting_value, comparison_value)
+        # Special case where comparison value was zero and current value is positive.
+        # Increase is just the current value.
+        if comparison_value.zero? && reporting_value.positive?
+          progress = reporting_value
+        else
+          progress = percent_changed(reporting_value, comparison_value)
+        end
         progress >= goal_value
       # decrease year over year
       when :people
@@ -163,6 +170,19 @@ module PerformanceMeasurement::ResultCalculation
       @client_ids.dig(key, project_id) || []
     end
 
+    # Check if a project was operating in a given period (based on OperatingStartDate/OperatingEndDate)
+    def project_operated_in_period?(period, project_id)
+      return true if project_id.blank? # System-level always operates
+
+      range = period == :reporting ? filter.range : filter.comparison_range
+
+      @project_operated ||= {}
+      @project_operated[period] ||= projects.joins(:hud_project).
+        merge(GrdaWarehouse::Hud::Project.within_range(range)).
+        distinct.pluck(:project_id).to_set
+      @project_operated[period].include?(project_id)
+    end
+
     # Retrieves raw client data for a specific field, properly deduplicating client records
     #
     # @return [Array] An array of values for the specified field from deduplicated clients
@@ -187,6 +207,13 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def count_of_homeless_clients_in_range(detail, project: nil)
+      # People count metrics require year-over-year comparison for goal calculation
+      # Don't create result if project didn't operate in either period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+      return unless project_operated_in_period?(:comparison, project&.project_id)
+      # Don't calculate project-level metrics for this if we are using a static SPM
+      return if existing_static_comparison_spm.present? && project&.project_id.present?
+
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = if existing_static_comparison_spm.present?
@@ -219,6 +246,13 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def count_of_sheltered_homeless_clients(detail, project: nil)
+      # People count metrics require year-over-year comparison for goal calculation
+      # Don't create result if project didn't operate in either period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+      return unless project_operated_in_period?(:comparison, project&.project_id)
+      # Don't calculate project-level metrics for this if we are using a static SPM
+      return if existing_static_comparison_spm.present? && project&.project_id.present?
+
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = if existing_static_comparison_spm.present?
@@ -250,6 +284,12 @@ module PerformanceMeasurement::ResultCalculation
     # NOTE: SPM does not include SO, so this needs to be done based on SHS
     def count_of_homeless_clients(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      # People count metrics require year-over-year comparison for goal calculation
+      # Don't create result if project didn't operate in either period
+      # PIT counts are system-level, so for projects we check client_projects
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+      return unless project_operated_in_period?(:comparison, project&.project_id)
 
       field = detail[:calculation_column]
 
@@ -295,6 +335,11 @@ module PerformanceMeasurement::ResultCalculation
     def count_of_unsheltered_homeless_clients(detail, project: nil)
       return unless project.blank? || project.hud_project&.so?
 
+      # People count metrics require year-over-year comparison for goal calculation
+      # Don't create result if project didn't operate in either period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+      return unless project_operated_in_period?(:comparison, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
@@ -321,6 +366,14 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def first_time_homeless_clients(detail, project: nil)
+      # Don't calculate project-level metrics for this if we are using a static SPM
+      return if existing_static_comparison_spm.present? && project&.project_id.present?
+
+      # People count metrics require year-over-year comparison for goal calculation
+      # Don't create result if project didn't operate in either period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+      return unless project_operated_in_period?(:comparison, project&.project_id)
+
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
       comparison_count = if existing_static_comparison_spm.present?
@@ -351,6 +404,9 @@ module PerformanceMeasurement::ResultCalculation
 
     def length_of_homeless_time_homeless_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
+
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
 
       field = detail[:calculation_column]
 
@@ -389,6 +445,9 @@ module PerformanceMeasurement::ResultCalculation
     def length_of_homeless_time_homeless_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
@@ -424,6 +483,9 @@ module PerformanceMeasurement::ResultCalculation
     def length_of_homeless_stay_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
@@ -456,6 +518,9 @@ module PerformanceMeasurement::ResultCalculation
     def length_of_homeless_stay_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th?
 
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
@@ -486,6 +551,9 @@ module PerformanceMeasurement::ResultCalculation
 
     def length_of_homeless_time_homeless_es_sh_th_ph_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
+
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
 
       field = detail[:calculation_column]
 
@@ -524,6 +592,9 @@ module PerformanceMeasurement::ResultCalculation
     def length_of_homeless_time_homeless_es_sh_th_ph_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
 
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
@@ -559,6 +630,9 @@ module PerformanceMeasurement::ResultCalculation
     def time_to_move_in_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.ph?
 
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
@@ -590,6 +664,9 @@ module PerformanceMeasurement::ResultCalculation
 
     def time_to_move_in_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.ph?
+
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
 
       field = detail[:calculation_column]
 
@@ -676,6 +753,9 @@ module PerformanceMeasurement::ResultCalculation
     def so_positive_destinations(detail, project: nil)
       return unless project.blank? || project.hud_project&.so?
 
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
 
       reporting_destinations = client_ids(:so_destination, :reporting, project_id: project&.project_id)
@@ -689,7 +769,7 @@ module PerformanceMeasurement::ResultCalculation
       if existing_static_comparison_spm.present?
         comparison_denominator += existing_static_comparison_spm.data_for('7a.1', 'C2') || 0
         comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C3') || 0
-        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C4')
+        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C4') || 0
       else
         comparison_destinations = client_ids(:so_destination, :comparison, project_id: project&.project_id)
         comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
@@ -725,6 +805,9 @@ module PerformanceMeasurement::ResultCalculation
 
     def es_sh_th_rrh_positive_destinations(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.rrh?
+
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
 
       field = detail[:calculation_column]
 
@@ -773,7 +856,10 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def moved_in_positive_destinations(detail, project: nil)
-      return unless project.blank? || project.hud_project&.ph?
+      return unless project.blank? || project.hud_project&.ph? # ph? includes RRH
+
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
 
       field = detail[:calculation_column]
 
@@ -837,6 +923,9 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def returned_in_range(detail, meth, project: nil)
+      # Don't create result if project didn't operate in reporting period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+
       field = detail[:calculation_column]
       reporting_returns = client_ids(:exited_to_permanent_destination, :reporting, project_id: project&.project_id)
       reporting_returns_in_range = client_ids(field, :reporting, project_id: project&.project_id)
@@ -1078,6 +1167,13 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def increased_income(detail, status_field, meth, project: nil)
+      # Income metrics require year-over-year comparison for goal calculation
+      # Don't create result if project didn't operate in either period
+      return unless project_operated_in_period?(:reporting, project&.project_id)
+      return unless project_operated_in_period?(:comparison, project&.project_id)
+      # Don't calculate project-level metrics for this if we are using a static SPM
+      return if existing_static_comparison_spm.present? && project&.project_id.present?
+
       income_field = detail[:calculation_column]
       reporting_denominator = client_count(status_field, :reporting, project_id: project&.project_id)
       reporting_numerator = client_count(income_field, :reporting, project_id: project&.project_id)
