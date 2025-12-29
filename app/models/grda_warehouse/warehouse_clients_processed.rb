@@ -40,7 +40,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     default_client_ids.each_slice(5_000).with_index do |batch, i|
       include_cas_and_cohorts = i.zero? # catch cohorts and CAS clients on first batch
       skip_expensive_calculations = i.positive?
-      UpdateWarehouseClientsCachesJob.set(priority: BaseJob::CACHE_UPDATE_PRIORITY).perform_later(
+      UpdateWarehouseClientsCachesJob.set(priority: BaseJob::CACHE_REFRESH_PRIORITY_12).perform_later(
         client_ids: batch,
         include_cas_and_cohorts: include_cas_and_cohorts,
         skip_expensive_calculations: skip_expensive_calculations,

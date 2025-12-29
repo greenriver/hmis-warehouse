@@ -164,7 +164,7 @@ module Importing
       end
 
       run_maintenance_task('Legacy reporting setup') do
-        ReportingSetupJob.set(priority: BaseJob::EVENTUAL_CONSISTENCY_PRIORITY).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
+        ReportingSetupJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
 
         @notifier.ping('Rebuilding reporting tables...')
         GrdaWarehouse::Report::Base.update_fake_materialized_views
@@ -173,7 +173,7 @@ module Importing
         # Pre-calculate the dashboards (unless already queued)
         unless Delayed::Job.queued?('Reporting::PopulationDashboardPopulateJob')
           @notifier.ping('Updating dashboards')
-          Reporting::PopulationDashboardPopulateJob.set(priority: BaseJob::NO_RUSH_PRIORITY).perform_later(sub_population: 'all')
+          Reporting::PopulationDashboardPopulateJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later(sub_population: 'all')
         end
       end
 
@@ -182,8 +182,8 @@ module Importing
         PruneDocumentExportsJob.perform_later
         Health::PruneDocumentExportsJob.perform_later
 
-        YouthFollowUpsJob.set(priority: BaseJob::NO_RUSH_PRIORITY).perform_later
-        SystemCohortsJob.set(priority: BaseJob::NO_RUSH_PRIORITY).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
+        YouthFollowUpsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later
+        SystemCohortsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
         AccessGroup.delayed_system_group_maintenance
         Collection.delayed_system_group_maintenance
         GrdaWarehouse::Cohort.delay.maintain_auto_maintained!

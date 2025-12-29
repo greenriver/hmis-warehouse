@@ -12,12 +12,27 @@ class BaseJob < ApplicationJob
 
   # Priority constants for job scheduling
   # Lower numbers = higher priority (processed first)
-  ACTIVELY_WAITING_PRIORITY = -5    # User is waiting for this job to complete
-  NEEDED_SOON_PRIORITY = 0          # Important but user can wait briefly
-  BACKGROUND_JOB_PRIORITY = 5       # Standard background processing
-  NO_RUSH_PRIORITY = 10             # Bulk processing, can wait
-  CACHE_UPDATE_PRIORITY = 12        # Cache updates, data consistency work
-  EVENTUAL_CONSISTENCY_PRIORITY = 15 # Maintenance, cleanup, eventual consistency
+
+  # 1. User Interaction Tier
+  UI_IMMEDIATE_PRIORITY_NEG5 = -5 # User is actively waiting for results in the UI
+
+  # 2. Critical System Tier
+  HIGH_IMPORTANCE_PRIORITY_0 = 0 # Critical tasks needed to maintain system integrity
+
+  # 3. Standard Operations Tier
+  DEFAULT_BACKGROUND_PRIORITY_5 = 5 # Standard async tasks (default choice for most work)
+  CLEANUP_BACKGROUND_PRIORITY_6 = 6 # Non-urgent cleanup following standard operations
+
+  # 4. Batch & Bulk Tier
+  PRE_BULK_PROCESSING_PRIORITY_9 = 9 # High-priority batch work that should lead the bulk queue
+  BULK_PROCESSING_PRIORITY_10 = 10 # Standard bulk processing and large data exports
+
+  # 5. Consistency & Cache Tier
+  CACHE_REFRESH_PRIORITY_12 = 12 # Standard warming or rebuilding of data caches
+  CLEANUP_CACHE_REFRESH_PRIORITY_13 = 13 # Non-urgent cache updates (e.g. external ID lookups)
+
+  # 6. Maintenance Tier
+  MAINTENANCE_PRIORITY_15 = 15 # Background housekeeping and eventual consistency
 
   attr_accessor :start_time
 

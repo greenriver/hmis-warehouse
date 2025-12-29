@@ -28,10 +28,10 @@ module HmisCsvImporter::Cleanup
 
     # low priority - eventual consistency cleanup
     def self.default_priority
-      BaseJob::EVENTUAL_CONSISTENCY_PRIORITY
+      BaseJob::MAINTENANCE_PRIORITY_15
     end
 
-    def enqueue(job, _queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
+    def enqueue(job)
       job.priority = self.class.default_priority
     end
 

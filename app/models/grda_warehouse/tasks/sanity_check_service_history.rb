@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
 
       Rails.logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
-      UpdateWarehouseClientsCachesJob.set(priority: BaseJob::CACHE_UPDATE_PRIORITY).perform_later(client_ids: processed_ids.to_a)
+      UpdateWarehouseClientsCachesJob.set(priority: BaseJob::CACHE_REFRESH_PRIORITY_12).perform_later(client_ids: processed_ids.to_a)
     end
 
     def attempts

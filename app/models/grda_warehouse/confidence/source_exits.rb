@@ -53,7 +53,7 @@ module GrdaWarehouse::Confidence
         Delayed::Job.enqueue(
           ::Confidence::SourceExitsJob.new(client_ids: batch),
           queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
-          priority: BaseJob::NO_RUSH_PRIORITY,
+          priority: BaseJob::BULK_PROCESSING_PRIORITY_10,
         )
       end
     end
