@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # Test middleware for system tests only.
@@ -14,7 +20,7 @@ if Rails.env.test? && (ENV['RUN_SYSTEM_TESTS'] == 'true' || ENV['RUN_RAILS_SYSTE
     def call(env)
       # Read test JWT from cookie
       cookie_header = env['HTTP_COOKIE']
-      if cookie_header && cookie_header.include?('test_jwt_token=')
+      if cookie_header&.include?('test_jwt_token=')
         # Extract token from cookie string
         cookie_match = cookie_header.match(/test_jwt_token=([^;]+)/)
         if cookie_match
