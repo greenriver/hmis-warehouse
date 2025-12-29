@@ -65,40 +65,26 @@ RSpec.shared_context 'RailsSystemHelper' do
   # @param user [User] The user to sign in
   # @param password [String] Unused, kept for backward compatibility
   def sign_in_user(user, password: RAILS_SYSTEM_DEFAULT_PASSWORD) # rubocop:disable Lint/UnusedMethodArgument
-    # Generate a mock JWT token
+    # Generate a mock JWT token that JwtHelper will recognize in system tests
+    # Format: "mock-jwt-token-{user_id}-{random_hex}"
+    # JwtHelper has special handling for these tokens when RUN_SYSTEM_TESTS=true or RUN_RAILS_SYSTEM_TESTS=true
     mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
 
-    # Stub JWT validation to recognize this token
-    jwt_helper = instance_double(
-      JwtHelper,
-      token?: true,
-      validate!: true,
+    # Create authentication source for the user
+    # This is needed for CurrentUser to find the user via User.find_from_jwt
+    user.user_authentication_sources.find_or_create_by!(
       connector_id: 'test',
       connector_user_id: user.id.to_s,
-      payload_email: user.email,
-      expiration_time: 1.hour.from_now,
-    )
-
-    allow(JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|
-      token == mock_token ? true : original_method.call(token)
+    ) do |auth_source|
+      auth_source.enabled = true
     end
-
-    allow(JwtHelper).to receive(:user_id_from_token).and_wrap_original do |original_method, token|
-      token == mock_token ? user.id : original_method.call(token)
-    end
-
-    allow(JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
-      kwargs[:access_token] == mock_token ? jwt_helper : original_method.call(**kwargs)
-    end
-
-    allow(User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
-      helper == jwt_helper ? user : original_method.call(helper)
-    end
+    user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
 
     # Visit the application first (required to set cookies)
     visit('/')
 
     # Set the test JWT token in a cookie that CurrentUser will read
+    # This bypasses oauth2-proxy which isn't running in tests
     # Different drivers have different cookie APIs
     case page.driver
     when Capybara::RackTest::Driver
@@ -106,7 +92,16 @@ RSpec.shared_context 'RailsSystemHelper' do
       page.driver.browser.set_cookie("test_jwt_token=#{mock_token}; path=/")
     when Capybara::Cuprite::Driver
       # Cuprite/Ferrum uses set_cookie method
-      page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false)
+      # Note: domain must match the current page domain for the cookie to be set
+      current_domain = URI.parse(page.current_url).host
+      page.driver.set_cookie(
+        'test_jwt_token',
+        mock_token,
+        path: '/',
+        httponly: false,
+        secure: false,
+        domain: current_domain,
+      )
     else
       # Selenium and other drivers use add_cookie
       page.driver.browser.manage.add_cookie(

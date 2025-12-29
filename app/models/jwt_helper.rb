@@ -36,8 +36,8 @@ class JwtHelper
 
   # Validates the JWT token by checking its signature and claims.
   #
-  # In test environment with RUN_SYSTEM_TESTS=true, bypasses cryptographic validation
-  # for mock tokens (tokens starting with "mock-jwt-token-").
+  # In test environment with RUN_SYSTEM_TESTS=true or RUN_RAILS_SYSTEM_TESTS=true,
+  # bypasses cryptographic validation for mock tokens (tokens starting with "mock-jwt-token-").
   #
   # @return [Boolean] true if the token is valid, false otherwise.
   # @raise [RuntimeError] if the public key cannot be found for the given "kid".
@@ -45,7 +45,7 @@ class JwtHelper
     return false unless token?
 
     # In system tests, allow mock tokens to bypass validation
-    if Rails.env.test? && ENV['RUN_SYSTEM_TESTS'] == 'true' && access_token.start_with?('mock-jwt-token-')
+    if Rails.env.test? && system_test_mode? && access_token.start_with?('mock-jwt-token-')
       return true
     end
 
@@ -78,7 +78,7 @@ class JwtHelper
   # @raise [JWT::DecodeError] if the token cannot be decoded.
   memoize def payload
     # For mock tokens in system tests, return mock payload
-    if Rails.env.test? && ENV['RUN_SYSTEM_TESTS'] == 'true' && access_token.start_with?('mock-jwt-token-')
+    if Rails.env.test? && system_test_mode? && access_token.start_with?('mock-jwt-token-')
       user_id, email = extract_mock_token_data
       now = Time.current.to_i
       return [
@@ -105,6 +105,13 @@ class JwtHelper
         iss: ENV.fetch('ISS_URL'),
       },
     )
+  end
+
+  # Check if running in system test mode.
+  #
+  # @return [Boolean] true if RUN_SYSTEM_TESTS or RUN_RAILS_SYSTEM_TESTS is set
+  private def system_test_mode?
+    ENV['RUN_SYSTEM_TESTS'] == 'true' || ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true'
   end
 
   # Extracts user ID and email from mock token format: "mock-jwt-token-{user_id}-{random_hex}"
