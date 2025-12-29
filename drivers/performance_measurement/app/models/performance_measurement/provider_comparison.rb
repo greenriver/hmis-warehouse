@@ -61,10 +61,11 @@ module PerformanceMeasurement
           unit: result.primary_unit,
           passed: result.passed,
           goal: result.goal,
-          goal_description: report.detail_specific_target_for(detail),
+          goal_description: formatted_goal_description(detail),
           tooltip: report.detail_goal_description_for(detail),
           decorator: decorator(result, detail),
           decorator_bg_color: decorator_bg_color(result, detail),
+          display_value: display_value(result, detail),
         }
       end
       # Fill in the project-level data
@@ -108,7 +109,7 @@ module PerformanceMeasurement
               goal: result.goal,
               decorator: decorator(result, detail),
               decorator_bg_color: decorator_bg_color(result, detail),
-              display_value: "#{result.primary_value} #{result.primary_unit}",
+              display_value: display_value(result, detail),
             }
           end
         end
@@ -182,9 +183,26 @@ module PerformanceMeasurement
           goal: sub_result.goal,
           decorator: decorator_class,
           decorator_bg_color: decorator_bg_color(sub_result, info[:sub_field]),
-          display_value: "#{sub_result.primary_value} #{sub_result.primary_unit}",
+          display_value: display_value(sub_result, info[:sub_field]),
         }
       end
+    end
+
+    private def formatted_goal_description(detail)
+      description = report.detail_specific_target_for(detail)
+      return description unless detail.to_s.include?('increased_')
+
+      "increase #{description}"
+    end
+
+    private def display_value(result, detail)
+      value = "#{result.primary_value} #{result.primary_unit}"
+      value = "#{result.primary_value}#{result.primary_unit}" if result.primary_unit.include?('%')
+      # For increased income metrics, show the prior year value so we can show the current year goal as an absolute number
+      # For example, if the goal is to increase income of at least 3% of adults, and last year they had 6% of adults had increased income,
+      # we want to show a goal of 9% of clients (Prior Year: 6%)
+      value = "#{value} (Prior Year: #{result.comparison_primary_value}#{result.secondary_unit})" if detail.to_s.include?('increased_')
+      value
     end
 
     private def approaching?(result, detail)
@@ -243,7 +261,7 @@ module PerformanceMeasurement
           :rrh_average_bed_utilization, # Avg Bed Utilization
           :time_to_move_in_average, # Length of Time to Move-In
           :retention_or_positive_destinations, # % of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-In
-          :moved_in_positive_destinations, # Percentage of People in RRH or PH with Move-in or Permanent Exit
+          :moved_in_positive_destinations, # Percentage of People in PH except RRH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
           :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
           :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
@@ -264,7 +282,7 @@ module PerformanceMeasurement
         details: [
           :psh_average_bed_utilization, # Avg Bed Utilization
           :time_to_move_in_average, # Length of Time to Move-In
-          :retention_or_positive_destinations, # Percentage of People in RRH or PH with Move-in or Permanent Exit
+          :retention_or_positive_destinations, # Percentage of People in PH except RRH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
           :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
           :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months

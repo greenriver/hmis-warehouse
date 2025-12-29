@@ -152,6 +152,43 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     end
   end
 
+  describe 'when using a static SPM for the comparison period' do
+    let(:filter) { default_filter }
+
+    # Static SPM records are CoC-wide (system-level), so any metric that uses Static SPM
+    # values in its goal/passed calculation should not be calculated at the project level.
+    it 'does not calculate project-level results for metrics that require Static SPM for success calculations' do
+      report = run_with_static_spm!(filter)
+
+      expect(report.using_static_spm_for_comparison?).to eq(true)
+
+      # Sanity check: we still calculate project-level results for metrics that do not
+      # use Static SPM in the goal/passed logic.
+      expect(report.results.project.count).to be > 0
+
+      fields_without_project_results = [
+        :count_of_sheltered_homeless_clients,
+        :first_time_homeless_clients,
+        :stayers_with_increased_income,
+        :stayers_with_increased_earned_income,
+        :stayers_with_increased_non_cash_income,
+        :leavers_with_increased_income,
+        :leavers_with_increased_earned_income,
+        :leavers_with_increased_non_cash_income,
+        :increased_income_all_clients,
+      ]
+
+      aggregate_failures 'static SPM disables project-level result rows for affected fields' do
+        fields_without_project_results.each do |field|
+          # system-level row still exists
+          expect(report.results.system_level.for_field(field)).to exist
+          # project-level rows should be absent
+          expect(report.results.project.for_field(field)).not_to exist
+        end
+      end
+    end
+  end
+
   describe 'inventory date range scenarios' do
     describe 'when inventory starts and ends 2 months into and before the report period' do
       before(:each) do
@@ -415,6 +452,25 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     report.run_and_save!
 
     # PerformanceMeasurement::Report.create!(user_id: User.system_user.id, filter: filter).run_and_save!
+  end
+
+  def run_with_static_spm!(filter)
+    PerformanceMeasurement::Goal.ensure_default
+    report = report_class.new(
+      user_id: User.system_user.id,
+    )
+    report.filter = filter
+    report.save
+    report.update_goal_configuration!
+
+    # Match the report comparison range exactly; this is what ResultCalculation looks up.
+    report.goal_config.static_spms.create!(
+      report_start: report.filter.comparison_range.first,
+      report_end: report.filter.comparison_range.end,
+    )
+
+    report.run_and_save!
+    report
   end
 
   def setup(file_path)

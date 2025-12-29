@@ -15,7 +15,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:mci_cred) { create(:ac_hmis_mci_credential) }
-  let!(:mci_warehouse_cred) { create(:ac_hmis_warehouse_credential) }
 
   # PH project (requires MCI clearance)
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9, with_coc: true }
