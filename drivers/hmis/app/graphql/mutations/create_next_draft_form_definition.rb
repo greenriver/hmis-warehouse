@@ -21,15 +21,15 @@ module Mutations
         where(identifier: identifier)
 
       raise 'not found' if definitions.empty?
-      raise 'cannot create draft for form that is managed in version control' if definitions.any?(&:managed_in_version_control?)
 
-      access_denied! unless current_user.can_manage_forms_for_role?(definitions.first.role)
+      latest_definition = definitions.first
+      access_denied! unless policy_for(latest_definition, policy_type: :form_definition).can_create_draft?
 
       existing_drafts = definitions.where(status: Hmis::Form::Definition::DRAFT)
       return { form_identifier: existing_drafts.first } unless existing_drafts.empty?
 
       # Re-fetch the most recent version (could be published or retired) to get the full form definition
-      most_recent = Hmis::Form::Definition.find(definitions.first.id)
+      most_recent = Hmis::Form::Definition.find(latest_definition.id)
 
       # Duplicate the most recent version, incrementing the version number and setting the status to draft
       definition = most_recent.dup
