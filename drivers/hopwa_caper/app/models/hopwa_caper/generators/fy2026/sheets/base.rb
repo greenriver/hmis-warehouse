@@ -51,5 +51,10 @@ module HopwaCaper::Generators::Fy2026::Sheets
         where(report_household_id: household_ids).
         latest_by_distinct_client_id
     end
+
+    def services_with_hoh(scope)
+      scope.
+        joins('JOIN hopwa_caper_enrollments hoh ON hopwa_caper_services.report_household_id = hoh.report_household_id AND hoh.relationship_to_hoh = 1')
+    end
   end
 end

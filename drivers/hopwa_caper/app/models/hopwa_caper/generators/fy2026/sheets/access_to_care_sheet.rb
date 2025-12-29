@@ -104,16 +104,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       # Row 10
       sheet.append_row(label: 'How many households had contact with a case manager?') do |row|
-        case_management_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter.case_management
-        record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
-
-        case_management_services = record_filter.apply(@report.hopwa_caper_services).
-          where(date_provided: @report.start_date..@report.end_date).
-          where(type_provided: case_management_filter.codes)
-        cm_household_ids = case_management_services.select(:report_household_id)
+        cm_hoh_client_ids = @report.hopwa_caper_enrollments.
+          head_of_household.
+          where(report_household_id: case_management_services.select(:report_household_id)).
+          select(:destination_client_id)
 
         maintained_contact_households = housing_subsidy_households.where(atc_maintained_contact: true).
-          or(housing_subsidy_households.where(report_household_id: cm_household_ids))
+          or(housing_subsidy_households.where(destination_client_id: cm_hoh_client_ids))
 
         row.append_cell_members(members: heads_of_household_for(maintained_contact_households))
       end
@@ -165,28 +162,27 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       housing_subsidy_households = all_housing_subsidy_households
 
-      case_management_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter.case_management
-      record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
-
-      case_management_services = record_filter.apply(@report.hopwa_caper_services).
-        where(date_provided: @report.start_date..@report.end_date).
-        where(type_provided: case_management_filter.codes)
-
-      case_management_households = housing_subsidy_households.
-        where(report_household_id: case_management_services.select(:report_household_id).distinct)
       # row 18
       sheet.append_row(label: 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Funded Case Management?') do |row|
+        cm_hoh_client_ids = @report.hopwa_caper_enrollments.
+          head_of_household.
+          where(report_household_id: case_management_services.select(:report_household_id)).
+          select(:destination_client_id)
+
+        case_management_households = housing_subsidy_households.
+          where(destination_client_id: cm_hoh_client_ids)
         row.append_cell_members(members: heads_of_household_for(case_management_households))
       end
 
-      record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
-      supportive_services = record_filter.apply(@report.hopwa_caper_services).
-        where(date_provided: @report.start_date..@report.end_date)
-
-      supportive_service_households = housing_subsidy_households.
-        where(report_household_id: supportive_services.select(:report_household_id).distinct)
       # row 19
       sheet.append_row(label: 'How many households received any type of HOPWA Housing Subsidy Assistance and HOPWA Supportive Services?') do |row|
+        ss_hoh_client_ids = @report.hopwa_caper_enrollments.
+          head_of_household.
+          where(report_household_id: supportive_services.select(:report_household_id)).
+          select(:destination_client_id)
+
+        supportive_service_households = housing_subsidy_households.
+          where(destination_client_id: ss_hoh_client_ids)
         row.append_cell_members(members: heads_of_household_for(supportive_service_households))
       end
     end
@@ -227,12 +223,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def supportive_services_households
-      service_type_filters = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter
-      record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
-
-      record_filter.apply(@report.hopwa_caper_services).
-        where(date_provided: @report.start_date..@report.end_date).
-        where(type_provided: service_type_filters.supportive_service_codes).
+      supportive_services.
         select(:report_household_id).
         distinct
     end
@@ -242,32 +233,54 @@ module HopwaCaper::Generators::Fy2026::Sheets
       @report.hopwa_caper_enrollments.none
     end
 
+    private
+
+    def supportive_services
+      service_type_filters = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter
+      record_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_service
+
+      record_filter.apply(@report.hopwa_caper_services).
+        where(date_provided: @report.start_date..@report.end_date).
+        where(type_provided: service_type_filters.supportive_service_codes)
+    end
+
+    def case_management_services
+      case_management_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::SupportiveServiceTypeFilter.case_management
+      supportive_services.where(type_provided: case_management_filter.codes)
+    end
+
     def all_housing_subsidy_households
-      household_ids = HOUSING_SUBSIDY_ACTIVITIES.flat_map do |activity_type|
-        activity_household_scope(activity_type).pluck(:report_household_id)
+      hoh_client_ids = HOUSING_SUBSIDY_ACTIVITIES.flat_map do |activity_type|
+        activity_household_scope(activity_type).pluck(:destination_client_id)
       end.uniq
 
-      @report.hopwa_caper_enrollments.where(report_household_id: household_ids)
+      @report.hopwa_caper_enrollments.
+        head_of_household.
+        where(destination_client_id: hoh_client_ids).
+        latest_by_distinct_client_id
     end
 
     def find_duplicated_households_across_activities
-      # Collect household IDs from each activity type
-      activity_household_ids = HOUSING_SUBSIDY_ACTIVITIES.map do |activity_type|
-        activity_household_scope(activity_type).pluck(:report_household_id)
+      # Collect client IDs of HOHs from each activity type
+      activity_hoh_client_ids = HOUSING_SUBSIDY_ACTIVITIES.map do |activity_type|
+        activity_household_scope(activity_type).pluck(:destination_client_id)
       end
 
-      return @report.hopwa_caper_enrollments.none if activity_household_ids.all?(&:empty?)
+      return @report.hopwa_caper_enrollments.none if activity_hoh_client_ids.all?(&:empty?)
 
-      # Find households appearing in multiple activity types
-      duplicated_ids = activity_household_ids.
+      # Find HOHs appearing in multiple activity types
+      duplicated_hoh_client_ids = activity_hoh_client_ids.
         flatten.
         group_by(&:itself).
         select { |_id, occurrences| occurrences.size > 1 }.
         keys
 
-      return @report.hopwa_caper_enrollments.none if duplicated_ids.empty?
+      return @report.hopwa_caper_enrollments.none if duplicated_hoh_client_ids.empty?
 
-      @report.hopwa_caper_enrollments.where(report_household_id: duplicated_ids)
+      @report.hopwa_caper_enrollments.
+        head_of_household.
+        where(destination_client_id: duplicated_hoh_client_ids).
+        latest_by_distinct_client_id
     end
 
     def activity_household_members(activity_type)

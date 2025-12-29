@@ -104,6 +104,55 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
       expect(case_mgmt_service.service_type_name).to eq('Case management')
     end
 
+    it 'correctly categorizes a client with multiple enrollments and different supportive service types' do
+      # This client has two enrollments: one for "Meals" and one for "Life skills"
+      multi_enrollment_client = create(:hud_client, data_source: data_source)
+      meals_code = supportive_service_types.invert.fetch('Food/meals/nutritional services')
+      life_skills_code = supportive_service_types.invert.fetch('Life skills training')
+
+      enrollment_1 = create_hiv_positive_enrollment(
+        client: multi_enrollment_client,
+        project: project,
+        entry_date: report_start_date + 5.days,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_service,
+        record_type: hopwa_supportive_service,
+        enrollment: enrollment_1,
+        type_provided: meals_code,
+        fa_amount: 50,
+        date_provided: enrollment_1.entry_date,
+        data_source: data_source,
+      )
+
+      enrollment_2 = create_hiv_positive_enrollment(
+        client: multi_enrollment_client,
+        project: project,
+        entry_date: report_start_date + 10.days,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_service,
+        record_type: hopwa_supportive_service,
+        enrollment: enrollment_2,
+        type_provided: life_skills_code,
+        fa_amount: 30,
+        date_provided: enrollment_2.entry_date,
+        data_source: data_source,
+      )
+
+      report = create_report([project])
+      run_report(report)
+      rows = question_as_rows(question_number: 'Q6', report: report)
+      indexed = rows.to_h { |row| [row[0], row[1..]] }
+
+      # Total unduplicated households should be 3 (household_with_multiple_services, secondary_household, and multi_enrollment_client)
+      expect(indexed.fetch('Deduplicated Supportive Services Household Total (based on amounts reported in Rows 5-21 above)').first).to eq(3)
+      # Multi-service households should be 2 (household_with_multiple_services and multi_enrollment_client)
+      expect(indexed.fetch('How many households received more than one type of Supportive Services?').first).to eq(2)
+    end
+
     context 'with legacy supportive services before the reporting period' do
       let(:legacy_service_date) { (report_start_date - 10.years).to_date }
 

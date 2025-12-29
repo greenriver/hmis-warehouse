@@ -179,6 +179,58 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(1)
     end
+
+    it 'correctly categorizes a client with multiple enrollments and different service types' do
+      # Create a third client with TWO current enrollments
+      client = create(:hud_client, data_source: data_source)
+
+      # Enrollment A: Mortgage assistance
+      enrollment_a = create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_start_date + 5.days,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_service,
+        enrollment: enrollment_a,
+        record_type: hopwa_financial_assistance,
+        type_provided: hud_code(:hopwa_financial_assistance_options, 'Mortgage assistance'),
+        fa_amount: 500,
+        date_provided: enrollment_a.entry_date,
+        data_source: data_source,
+      )
+
+      # Enrollment B: Utility payments
+      enrollment_b = create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_start_date + 10.days,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_service,
+        enrollment: enrollment_b,
+        record_type: hopwa_financial_assistance,
+        type_provided: hud_code(:hopwa_financial_assistance_options, 'Utility payments'),
+        fa_amount: 100,
+        date_provided: enrollment_b.entry_date,
+        data_source: data_source,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      # Total served should increase by 1 (total 3: household1, household2, and this new client)
+      expect(rows.fetch('STRMU Households Total')).to eq(3)
+
+      # This client should be in "more than one type" (total 2: household1 and this client)
+      expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(2)
+
+      # They should NOT be in "mortgage assistance only" or "utilities assistance only"
+      expect(rows.fetch('How many households were served with STRMU mortgage assistance only?')).to eq(0)
+      # (household2 is still utilities only)
+      expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
+    end
   end
 
   context 'with household overlapping report but no services in period' do

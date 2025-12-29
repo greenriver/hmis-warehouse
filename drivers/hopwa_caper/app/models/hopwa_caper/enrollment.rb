@@ -43,6 +43,9 @@ module HopwaCaper
       )
     }
 
+    # HUD guidance for CAPER/APR reports specifies that unduplicated household counts
+    # should be determined by a distinct count of Personal IDs for all Heads of Household.
+    # In the warehouse, destination_client_id is used as the stable proxy for Personal ID.
     scope :latest_by_distinct_client_id, -> {
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
