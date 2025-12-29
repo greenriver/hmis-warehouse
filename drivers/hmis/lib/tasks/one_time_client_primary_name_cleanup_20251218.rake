@@ -9,6 +9,8 @@ task cleanup_client_primary_names_20251218: [:environment] do
       where(primary_name: { id: nil }). # Where there is no primary name
       distinct
 
+    raise "Expected <30 clients, found #{clients.count}" if clients.count >= 30
+
     puts "Found #{clients.count} clients with missing primary names for data source #{data_source.name}: #{clients.pluck(:id).join(', ')}"
 
     updated_count = 0
@@ -20,10 +22,10 @@ task cleanup_client_primary_names_20251218: [:environment] do
 
       if primary_name.present?
         # if we found one, set it as the primary name
-        primary_name.update!(primary: true)
+        primary_name.update_columns(primary: true)
       else
         # if we didn't find one, build a new primary name matching the client's name fields
-        client.build_primary_custom_client_name.save!
+        client.build_primary_custom_client_name.save!(touch: false)
       end
 
       updated_count += 1
