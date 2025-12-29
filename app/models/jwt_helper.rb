@@ -36,18 +36,10 @@ class JwtHelper
 
   # Validates the JWT token by checking its signature and claims.
   #
-  # In test environment with RUN_SYSTEM_TESTS=true or RUN_RAILS_SYSTEM_TESTS=true,
-  # bypasses cryptographic validation for mock tokens (tokens starting with "mock-jwt-token-").
-  #
   # @return [Boolean] true if the token is valid, false otherwise.
   # @raise [RuntimeError] if the public key cannot be found for the given "kid".
   def validate!
     return false unless token?
-
-    # In system tests, allow mock tokens to bypass validation
-    if Rails.env.test? && system_test_mode? && access_token.start_with?('mock-jwt-token-')
-      return true
-    end
 
     unless public_key
       Rails.logger.info "Unable to find public key: #{header['kid']}"
@@ -72,29 +64,9 @@ class JwtHelper
 
   # Decodes and returns the JWT payload.
   #
-  # For mock tokens in system tests, returns a mock payload instead of decoding.
-  #
   # @return [Array<Hash, Hash>] The decoded JWT payload and header.
   # @raise [JWT::DecodeError] if the token cannot be decoded.
   memoize def payload
-    # For mock tokens in system tests, return mock payload
-    if Rails.env.test? && system_test_mode? && access_token.start_with?('mock-jwt-token-')
-      user_id, email = extract_mock_token_data
-      now = Time.current.to_i
-      return [
-        {
-          'email' => email || 'test@example.com',
-          'federated_claims' => {
-            'connector_id' => 'test',
-            'user_id' => user_id,
-          },
-          'iat' => now,
-          'exp' => now + 3600, # 1 hour expiration for system tests
-        },
-        {},
-      ]
-    end
-
     JWT.decode(
       access_token,
       public_key,
@@ -105,21 +77,6 @@ class JwtHelper
         iss: ENV.fetch('ISS_URL'),
       },
     )
-  end
-
-  # Check if running in system test mode.
-  #
-  # @return [Boolean] true if RUN_SYSTEM_TESTS or RUN_RAILS_SYSTEM_TESTS is set
-  private def system_test_mode?
-    ENV['RUN_SYSTEM_TESTS'] == 'true' || ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true'
-  end
-
-  # Extracts user ID and email from mock token format: "mock-jwt-token-{user_id}-{random_hex}"
-  private def extract_mock_token_data
-    parts = access_token.split('-')
-    user_id = parts[3] # "mock-jwt-token-{user_id}-..."
-    user = User.find_by(id: user_id)
-    [user_id, user&.email]
   end
 
   # Returns the list of valid audience values for JWT validation.

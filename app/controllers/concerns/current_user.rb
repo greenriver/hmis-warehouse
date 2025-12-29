@@ -105,18 +105,13 @@ module CurrentUser
     # Get JWT helper for the current request.
     #
     # In production/development, reads JWT from X-Forwarded-Access-Token header (set by oauth2-proxy).
-    # In test environment, also checks for a test token in cookies to support system tests without oauth2-proxy.
+    # In test environment, TestJwtMiddleware promotes test_jwt_token cookie to this header.
     #
     # @return [JwtHelper, nil] JwtHelper instance or nil if no token present
     def jwt_helper_for_request
       @jwt_helper_for_request ||= begin
-        # Production/dev: JWT comes from oauth2-proxy via header
+        # JWT comes from oauth2-proxy via header (or TestJwtMiddleware in system tests)
         token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
-
-        # Test environment: Allow JWT in cookie for system tests (bypasses oauth2-proxy)
-        if Rails.env.test? && (ENV['RUN_SYSTEM_TESTS'] == 'true' || ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true')
-          token ||= cookies[:test_jwt_token]
-        end
 
         JwtHelper.new(access_token: token)
       end
