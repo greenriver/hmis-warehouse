@@ -114,7 +114,7 @@ module CurrentUser
         token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
 
         # Test environment: Allow JWT in cookie for system tests (bypasses oauth2-proxy)
-        token ||= cookies[:test_jwt_token] if Rails.env.test?
+        token ||= cookies[:test_jwt_token] if Rails.env.test? && ENV['RUN_SYSTEM_TESTS'] == 'true'
 
         JwtHelper.new(access_token: token)
       end

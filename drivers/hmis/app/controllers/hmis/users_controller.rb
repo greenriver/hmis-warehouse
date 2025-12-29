@@ -25,6 +25,9 @@ class Hmis::UsersController < Hmis::BaseController
 
     # Calculate session duration from JWT token expiration
     access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+    # In system tests, also check cookies since we set JWT there
+    access_token ||= cookies[:test_jwt_token] if Rails.env.test? && ENV['RUN_SYSTEM_TESTS'] == 'true'
+
     if access_token.present?
       jwt_helper = JwtHelper.new(access_token: access_token)
       if jwt_helper.token? && jwt_helper.validate!

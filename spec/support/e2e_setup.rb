@@ -26,41 +26,13 @@ RSpec.shared_context 'SystemSpecHelper' do
   # @param user [User, Hmis::User] The user to sign in
   # @param _password [String] Unused, kept for backward compatibility
   def sign_in(user, _password: DEFAULT_USER_PASSWORD)
-    # Generate a mock JWT token
+    # Generate a mock JWT token that JwtHelper will recognize in system tests
+    # Format: "mock-jwt-token-{user_id}-{random_hex}"
+    # JwtHelper has special handling for these tokens when RUN_SYSTEM_TESTS=true
     mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
 
-    # Stub JWT validation to recognize this token
-    jwt_helper = instance_double(
-      JwtHelper,
-      token?: true,
-      validate!: true,
-      connector_id: 'test',
-      connector_user_id: user.id.to_s,
-      payload_email: user.email,
-      expiration_time: 1.hour.from_now,
-    )
-
-    allow(JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|
-      token == mock_token ? true : original_method.call(token)
-    end
-
-    allow(JwtHelper).to receive(:user_id_from_token).and_wrap_original do |original_method, token|
-      token == mock_token ? user.id : original_method.call(token)
-    end
-
-    allow(JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
-      kwargs[:access_token] == mock_token ? jwt_helper : original_method.call(**kwargs)
-    end
-
-    # Stub User.find_from_jwt to return the user for our mock token
-    # Note: HMIS controllers also use this - they call User.find_from_jwt then cast to Hmis::User
-    # Always return a User instance (not Hmis::User) since find_from_jwt is on the User class
-    allow(User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
-      helper == jwt_helper ? User.find_by(id: user.id) : original_method.call(helper)
-    end
-
-    # Create authentication source upfront to avoid extra queries during request
-    # This prevents ensure_authentication_source from running during the request
+    # Create authentication source for the user
+    # This is needed for CurrentUser to find the user via User.find_from_jwt
     user.user_authentication_sources.find_or_create_by!(
       connector_id: 'test',
       connector_user_id: user.id.to_s,
@@ -75,13 +47,16 @@ RSpec.shared_context 'SystemSpecHelper' do
     # Set the test JWT token in a cookie that CurrentUser will read
     # This bypasses oauth2-proxy which isn't running in tests
     # E2E tests use Cuprite driver which has a different cookie API than Selenium
-    page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false)
+    # Note: domain must match the current page domain for the cookie to be set
+    current_domain = URI.parse(page.current_url).host
+    page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false, domain: current_domain)
 
     # Navigate to home page (now authenticated)
     visit('/')
 
     # Wait for page to load and verify user is signed in
     page.driver.wait_for_network_idle
+
     assert_text user.full_name # user's name should appear in the header
   end
 
