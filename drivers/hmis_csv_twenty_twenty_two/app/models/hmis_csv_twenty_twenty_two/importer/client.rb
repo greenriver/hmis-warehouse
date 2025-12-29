@@ -8,6 +8,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class Client < GrdaWarehouse::Hud::Base
+    @skip_hispanic_alias = true
     include ::HmisStructure::Client
     include ImportConcern
 
