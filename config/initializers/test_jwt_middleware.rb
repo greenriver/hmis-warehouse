@@ -6,11 +6,11 @@
 
 # frozen_string_literal: true
 
-# Test middleware for system tests only.
+# Test middleware for all test types (controller specs, request specs, system tests).
 # Promotes test_jwt_token cookie to HTTP_X_FORWARDED_ACCESS_TOKEN header,
-# allowing system tests to inject JWT tokens via cookies that are read by
+# allowing tests to inject JWT tokens via cookies that are read by
 # CurrentUser as if they came from oauth2-proxy.
-if Rails.env.test? && (ENV['RUN_SYSTEM_TESTS'] == 'true' || ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true')
+if Rails.env.test?
   # Define middleware class
   class TestJwtMiddleware
     def initialize(app)

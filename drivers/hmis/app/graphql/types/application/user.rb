@@ -41,6 +41,10 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     field :manage_account_url, String, null: false
 
+    # Impersonation fields
+    field :impersonating, Boolean, null: false, description: 'True if this user is currently being impersonated by another user'
+    field :true_user, Types::Application::User, null: true, description: 'The actual user who is impersonating (null if not impersonating)'
+
     # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
     # 'audit' just refers to edit history.
@@ -123,6 +127,32 @@ module Types
         successful.
         where.not(created_at: nil).
         order(created_at: :desc)
+    end
+
+    def impersonating
+      # Only return impersonation status for the current user
+      return false unless object == current_user
+      return false unless context[:session]&.id
+
+      impersonation_manager = ImpersonationManager.new(context[:session].id)
+      impersonation_data = impersonation_manager.get
+      return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
+
+      # Verify the impersonated user matches current user
+      impersonation_data[:impersonated_user_id] == object.id
+    end
+
+    def true_user
+      # Only return true user for the current user
+      return nil unless object == current_user
+      return nil unless context[:session]&.id
+
+      impersonation_manager = ImpersonationManager.new(context[:session].id)
+      impersonation_data = impersonation_manager.get
+      return nil unless impersonation_data && impersonation_data[:true_user_id].present?
+
+      # Load the true user
+      Hmis::User.find_by(id: impersonation_data[:true_user_id])
     end
   end
 end

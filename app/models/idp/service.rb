@@ -94,8 +94,9 @@ module Idp
     # their IDP-specific logout URL.
     #
     # @param post_logout_redirect_uri [String] Where to redirect after logout (typically oauth2-proxy sign_out)
+    # @param client_id [String, nil] OIDC client ID for the application (optional, used by some IDPs like Zitadel)
     # @return [String] Logout URL
-    def logout_url(post_logout_redirect_uri:)
+    def logout_url(post_logout_redirect_uri:, client_id: nil) # rubocop:disable Lint/UnusedMethodArgument
       post_logout_redirect_uri
     end
 

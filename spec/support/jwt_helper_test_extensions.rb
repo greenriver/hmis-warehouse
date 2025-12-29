@@ -61,7 +61,7 @@ module JwtHelperTestExtensions
   end
 end
 
-# Prepend test extensions when running system tests
-if Rails.env.test? && (ENV['RUN_SYSTEM_TESTS'] == 'true' || ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true')
+# Prepend test extensions when running any tests (controller specs, request specs, system tests)
+if Rails.env.test?
   JwtHelper.prepend(JwtHelperTestExtensions)
 end

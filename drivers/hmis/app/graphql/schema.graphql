@@ -208,11 +208,21 @@ type ApplicationUser {
   enrollmentAccessSummaries(filters: EnrollmentAccessSummaryFilterOptions, limit: Int, offset: Int): EnrollmentAccessSummariesPaginated!
   firstName: String
   id: ID!
+
+  """
+  True if this user is currently being impersonated by another user
+  """
+  impersonating: Boolean!
   lastName: String
   loginActivities(limit: Int, offset: Int): LoginActivitiesPaginated
   manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
+
+  """
+  The actual user who is impersonating (null if not impersonating)
+  """
+  trueUser: ApplicationUser
 }
 
 type ApplicationUserAuditEvent {

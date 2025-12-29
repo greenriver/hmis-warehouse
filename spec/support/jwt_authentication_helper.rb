@@ -102,11 +102,21 @@ module JwtAuthenticationHelper
     test_instance = self
 
     if is_controller_spec
-      # For controller specs: Stub controller methods before each HTTP request
-      # Controller specs don't support custom :headers kwarg, so we stub current_user instead
+      # For controller specs: Stub controller methods immediately
+      # This ensures direct controller method calls (not via HTTP) also work
+      if defined?(controller) && controller.present?
+        allow(controller).to receive(:current_user).and_return(user)
+        allow(controller).to receive(:user_signed_in?).and_return(true)
+        # Also set headers on request object
+        if defined?(request) && request.present?
+          request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
+        end
+      end
+
+      # Override HTTP methods to also set up stubs (for consistency)
       [:get, :post, :put, :patch, :delete, :head].each do |method|
         define_singleton_method(method) do |*args, **kwargs|
-          # Stub current_user on controller if it exists
+          # Re-stub current_user on controller before HTTP request
           if defined?(controller) && controller.present?
             allow(controller).to receive(:current_user).and_return(user)
             allow(controller).to receive(:user_signed_in?).and_return(true)
