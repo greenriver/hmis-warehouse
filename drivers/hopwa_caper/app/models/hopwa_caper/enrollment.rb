@@ -214,19 +214,32 @@ module HopwaCaper
       ].to_set.freeze
     end
 
+    def hud_helper = HudHelper.util('2026')
+
     def transform_value(column, value, pii_policy)
       # Treat nil as 99 (Data not collected) for HUD fields that support it
       value = 99 if value.nil? && fields_supporting_data_not_collected.include?(column)
 
       case column
       when 'sex'
-        HudHelper.util('2026').sex(value)
+        hud_helper.sex(value)
+      when 'races'
+        field_name = hud_helper.race_id_to_field_name[value]
+        hud_helper.races[field_name.to_s]
       when 'percent_ami'
-        HudHelper.util('2026').percent_ami(value)
+        hud_helper.percent_ami(value)
       when 'housing_assessment_at_exit'
-        HudHelper.util('2026').housing_assessment_at_exit(value)
+        hud_helper.housing_assessment_at_exit(value)
       when 'dob_quality'
-        HudHelper.util('2026').dob_data_quality(value)
+        hud_helper.dob_data_quality(value)
+      when 'project_type'
+        hud_helper.project_types[value&.to_i]
+      when 'project_funders'
+        hud_helper.funding_source(value)
+      when 'subsidy_information'
+        hud_helper.subsidy_information(value)
+      when 'rental_subsidy_type'
+        hud_helper.rental_subsidy_type(value)
       else
         super
       end
