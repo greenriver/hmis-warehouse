@@ -62,7 +62,6 @@ module HopwaCaper
       :HIVAIDSAssistance,
       :SCHIP,
       :RyanWhiteMedDent,
-      :ADAP,
     ].freeze
     INCOME_SOURCE_FIELDS = [
       :IncomeFromAnySource,

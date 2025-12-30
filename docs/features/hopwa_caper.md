@@ -16,7 +16,7 @@ The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an e
 ## Household Counting Methodology
 Household counts follow the HUD HMIS reporting glossary definition: "distinct count of personal IDs of all heads of households." When a household has multiple enrollments during the reporting period (e.g., enrolling at different projects), they are counted only once by deduplicating on the HoH.
 
-While most activities (TBRA, PHP, Facility) define "served" based on project enrollment dates, **STRMU counts are strictly service-based**. A household is only considered served by STRMU if they received a documented financial assistance payment during the reporting period. This ensures consistency between the expenditure totals and the household counts reported on both the STRMU and Access to Care sheets.
+While most activities (TBRA, PHP, Facility) define "served" based on project enrollment dates, **STRMU counts are strictly service-based**. A household is only considered served by STRMU if they received a documented financial assistance payment during the reporting period. This ensures consistency between the expenditure totals and the household counts reported on both the STRMU and Access to Care sheets. Services provided to any member of a household are attributed to the household by joining to the Head of Household's record via the shared `report_household_id`.
 
 ## Question Sheets and Builders
 - **Sheet architecture:** The FY 2026 generator enumerates sheet classes. Each inherits from `HopwaCaper::Generators::Fy2026::Sheets::Base` or `BaseProgramSheet`, which wrap `HudReports::QuestionSheet` and provide helpers for enrollment scoping, cell creation, and household table generation.

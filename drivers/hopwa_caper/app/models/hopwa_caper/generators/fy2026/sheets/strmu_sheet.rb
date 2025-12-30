@@ -56,7 +56,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def households_served_sheet(sheet)
-      # Find HOH client IDs for services of each type
+      # Find HOH client IDs for services of each type.
+      # Note: services_with_hoh joins services to the HOH via report_household_id,
+      # ensuring that services provided to ANY household member are attributed to the household's HOH.
       service_type_filters.all.each do |filter|
         # Households with ONLY this type of STRMU service, aggregated by HOH client ID
         exclusive_hoh_client_ids = filter.

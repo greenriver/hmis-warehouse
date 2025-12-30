@@ -33,17 +33,17 @@ module HopwaCaper::Generators::Fy2026::Sheets
       scope.overlapping_range(start_date: @report.start_date, end_date: @report.end_date)
     end
 
-    def heads_of_household_for(enrollments_or_ids)
-      heads_of_household_scope_for(enrollments_or_ids).as_report_members
+    def heads_of_household_for(scope)
+      heads_of_household_scope_for(scope).as_report_members
     end
 
-    def heads_of_household_scope_for(enrollments_or_ids)
-      return report_enrollment_universe.none if enrollments_or_ids.blank?
+    def heads_of_household_scope_for(scope)
+      return report_enrollment_universe.none if scope.blank?
 
-      household_ids = if enrollments_or_ids.is_a?(ActiveRecord::Relation) && enrollments_or_ids.model == HopwaCaper::Enrollment
-        enrollments_or_ids.select(:report_household_id)
+      household_ids = if scope.try(:model) == HopwaCaper::Enrollment
+        scope.select(:report_household_id)
       else
-        enrollments_or_ids
+        scope
       end
 
       @report.hopwa_caper_enrollments.
