@@ -225,7 +225,6 @@ RSpec.shared_context 'SystemSpecHelper' do
     JS
 
     # Wait for navigation to complete
-    sleep 1
     page.driver.wait_for_network_idle
 
     expect(page).to have_content("Acting as #{user.full_name}")

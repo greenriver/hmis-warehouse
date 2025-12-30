@@ -59,15 +59,15 @@ class ImpersonationManager
   # @return [Hash] Hash with keys: :true_user_id, :impersonated_user_id, :session_id
   def get
     # Use Rails.cache for system tests (backed by Redis), session for production
-    if Rails.env.test? && ENV['RUN_SYSTEM_TESTS']
+    data = if Rails.env.test? && ENV['RUN_SYSTEM_TESTS']
       cache_key = "impersonation:#{@session_id}"
-      data = Rails.cache.read(cache_key)
+      Rails.cache.read(cache_key)
+
     else
       return nil unless session.present?
 
-      data = session[:impersonation]
+      session[:impersonation]
     end
-
     return nil unless data
 
     # Ensure keys are symbols for consistency
