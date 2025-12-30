@@ -20,7 +20,10 @@ module HmisStructure::Client
 
     # HUD removed an e in FY2026, rather than change the column name, we'll alias it
     # The LSA does not need or want this alias, so we provide a way to skip it
-    alias_attribute :HispanicLatinao, :HispanicLatinaeo unless @skip_hispanic_alias
+    unless @skip_hispanic_alias
+      alias_attribute :HispanicLatinao, :HispanicLatinaeo
+      alias_attribute :hispanic_latinao, :HispanicLatinaeo
+    end
 
     pii_attr :SSN
     pii_attr :FirstName
