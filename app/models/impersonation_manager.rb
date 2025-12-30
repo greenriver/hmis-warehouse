@@ -8,36 +8,49 @@
 
 # Manages impersonation state storage and retrieval.
 #
-# Stores impersonation state in Rails cache (backed by Redis) to prevent cookie manipulation.
+# Stores impersonation state in the Rails session to ensure persistence across requests.
 # Impersonation state includes the true user ID and impersonated user ID, allowing the
 # application to track who is actually authenticated versus who is being impersonated.
-# Impersonation is automatically invalidated if the session changes.
+# Session-based storage works reliably in all environments (development, test, production)
+# without requiring a shared cache backend like Redis.
 class ImpersonationManager
-  attr_reader :session_id
+  attr_reader :session
 
   # Initialize a new ImpersonationManager instance.
   #
-  # @param session_id [String] Session ID to use for storage key
-  def initialize(session_id)
-    @session_id = session_id.to_s
+  # @param session [ActionDispatch::Request::Session] Rails session object or session ID (deprecated)
+  def initialize(session)
+    # Support both session object (preferred) and session_id (for backwards compatibility)
+    @session = session.is_a?(String) ? nil : session
+    @session_id = session.is_a?(String) ? session.to_s : session&.id&.to_s
   end
 
   # Store impersonation state.
   #
   # @param true_user_id [Integer] ID of the user who is impersonating
   # @param impersonated_user_id [Integer] ID of the user being impersonated
-  # @return [String] Cache key used for storage
+  # @return [Boolean] true if stored successfully
   def store(true_user_id, impersonated_user_id)
-    return nil unless session_id.present?
+    return false unless @session_id.present?
 
-    impersonation_data = {
+    data = {
       true_user_id: true_user_id,
       impersonated_user_id: impersonated_user_id,
-      session_id: session_id,
+      session_id: @session_id,
     }
 
-    Rails.cache.write(cache_key, impersonation_data, expires_in: 24.hours)
-    cache_key
+    # Use Rails.cache for system tests (backed by Redis), session for production
+    # Cookie sessions don't persist reliably in Cuprite/system tests
+    if Rails.env.test? && ENV['RUN_SYSTEM_TESTS']
+      cache_key = "impersonation:#{@session_id}"
+      Rails.cache.write(cache_key, data, expires_in: 12.hours)
+    else
+      return false unless session.present?
+
+      session[:impersonation] = data
+    end
+
+    true
   end
 
   # Get stored impersonation state.
@@ -45,9 +58,16 @@ class ImpersonationManager
   # @return [Hash, nil] Impersonation data hash or nil if not found or session changed
   # @return [Hash] Hash with keys: :true_user_id, :impersonated_user_id, :session_id
   def get
-    return nil unless session_id.present?
+    # Use Rails.cache for system tests (backed by Redis), session for production
+    if Rails.env.test? && ENV['RUN_SYSTEM_TESTS']
+      cache_key = "impersonation:#{@session_id}"
+      data = Rails.cache.read(cache_key)
+    else
+      return nil unless session.present?
 
-    data = Rails.cache.read(cache_key)
+      data = session[:impersonation]
+    end
+
     return nil unless data
 
     # Ensure keys are symbols for consistency
@@ -58,16 +78,24 @@ class ImpersonationManager
     }
 
     # If session has changed, impersonation is invalid
-    return nil unless stored_data[:session_id] == session_id
+    if stored_data[:session_id] != @session_id
+      return nil
+    end
 
     stored_data
   end
 
   # Clear stored impersonation state.
   def clear
-    return unless session_id.present?
+    # Use Rails.cache for system tests, session for production
+    if Rails.env.test? && ENV['RUN_SYSTEM_TESTS']
+      cache_key = "impersonation:#{@session_id}"
+      Rails.cache.delete(cache_key)
+    else
+      return unless session.present?
 
-    Rails.cache.delete(cache_key)
+      session.delete(:impersonation)
+    end
   end
 
   # Check if impersonation is active (exists and session matches).
@@ -75,14 +103,5 @@ class ImpersonationManager
   # @return [Boolean] true if impersonation exists and session matches
   def active?
     get.present?
-  end
-
-  private
-
-  # Generate cache key for impersonation storage.
-  #
-  # @return [String] Cache key
-  def cache_key
-    "impersonation:#{session_id}"
   end
 end

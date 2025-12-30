@@ -75,7 +75,7 @@ module CurrentUser
     def true_user
       return nil unless current_user
 
-      impersonation_manager = ImpersonationManager.new(session&.id)
+      impersonation_manager = ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       return current_user unless impersonation_data && impersonation_data[:true_user_id].present?
 
@@ -91,7 +91,7 @@ module CurrentUser
     def impersonating?
       return false unless current_user
 
-      impersonation_manager = ImpersonationManager.new(session&.id)
+      impersonation_manager = ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
 
@@ -197,7 +197,7 @@ module CurrentUser
       ensure_authentication_source(authenticated_user, jwt_helper) unless @auth_source_ensured
 
       # Check for impersonation state
-      impersonation_manager = ImpersonationManager.new(session&.id)
+      impersonation_manager = ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       if impersonation_data && impersonation_data[:impersonated_user_id].present?
         # Validate permissions on every request

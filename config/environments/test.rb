@@ -37,7 +37,13 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local = true
   config.action_controller.perform_caching = false
-  config.cache_store = :null_store
+  # Use Redis cache store for system tests (needed for impersonation state)
+  # Regular tests use null_store for speed
+  if ENV['RUN_SYSTEM_TESTS']
+    config.cache_store = :redis_cache_store, { url: "redis://#{ENV.fetch('CACHE_HOST', 'redis')}:#{ENV.fetch('CACHE_PORT', 6379)}/#{ENV.fetch('CACHE_DB', 1)}" }
+  else
+    config.cache_store = :null_store
+  end
 
   # time zone
   config.time_zone = 'America/New_York'

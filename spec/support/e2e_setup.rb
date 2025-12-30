@@ -194,28 +194,47 @@ RSpec.shared_context 'SystemSpecHelper' do
     user = Hmis::User.find(user_id)
 
     # Make a POST request to start impersonation using JavaScript fetch
-    page.execute_script(<<~JS)
+    # Clear cached user so React will fetch fresh data on reload
+    page.evaluate_async_script(<<~JS)
+      const done = arguments[0];
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      return fetch('/hmis/impersonations', {
+      fetch('/hmis/impersonations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
+        credentials: 'include',
         body: JSON.stringify({ user_id: #{user.id} })
       }).then(async (r) => {
         const body = await r.text();
-        return { ok: r.ok, status: r.status, body: body };
-      });
+        // Clear cached user from localStorage so React fetches fresh impersonated user data
+        localStorage.removeItem('_hmis_user_info');
+        let parsedBody;
+        try {
+          parsedBody = JSON.parse(body);
+        } catch(e) {
+          parsedBody = body;
+        }
+
+        done({ ok: r.ok, status: r.status, body: parsedBody });
+
+        // Navigate to home page to pick up the impersonated session (matches frontend behavior)
+        setTimeout(() => window.location.assign('/'), 100);
+      }).catch(e => done({ error: e.message }));
     JS
 
-    visit current_path # reload the page
+    # Wait for navigation to complete
+    sleep 1
+    page.driver.wait_for_network_idle
+
     expect(page).to have_content("Acting as #{user.full_name}")
 
     begin
       yield
     ensure
       # Stop impersonating by making a DELETE request
+      # Clear cached user so React will fetch fresh data on reload
       page.execute_script(<<~JS)
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         return fetch('/hmis/impersonations', {
@@ -223,8 +242,13 @@ RSpec.shared_context 'SystemSpecHelper' do
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
-          }
-        }).then(r => r.ok);
+          },
+          credentials: 'include'
+        }).then((r) => {
+          // Clear cached user from localStorage so React fetches fresh non-impersonated user data
+          localStorage.removeItem('_hmis_user_info');
+          return r.ok;
+        });
       JS
 
       visit current_path # reload the page

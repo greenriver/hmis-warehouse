@@ -219,6 +219,7 @@ module E2eTests
 
     def puts(log_str)
       return if log_str.nil?
+      return unless log_str.is_a?(String)
 
       _log_symbol, _log_time, log_body_str = log_str.strip.split(' ', 3)
 

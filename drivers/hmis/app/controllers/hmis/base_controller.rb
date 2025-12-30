@@ -74,7 +74,9 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def set_app_user_header
-    response.headers['X-app-user-id'] = current_hmis_user&.id
+    # Always use the true user's ID for session tracking, even when impersonating
+    # The impersonation state is communicated through the API response fields
+    response.headers['X-app-user-id'] = true_hmis_user&.id
   end
 
   def set_git_revision_header
@@ -122,7 +124,7 @@ class Hmis::BaseController < ActionController::Base
   def true_hmis_user
     return nil unless current_hmis_user
 
-    impersonation_manager = ImpersonationManager.new(session&.id)
+    impersonation_manager = ImpersonationManager.new(session)
     impersonation_data = impersonation_manager.get
     return current_hmis_user unless impersonation_data && impersonation_data[:true_user_id].present?
 
@@ -137,7 +139,7 @@ class Hmis::BaseController < ActionController::Base
   def impersonating?
     return false unless current_hmis_user
 
-    impersonation_manager = ImpersonationManager.new(session&.id)
+    impersonation_manager = ImpersonationManager.new(session)
     impersonation_data = impersonation_manager.get
     return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
 

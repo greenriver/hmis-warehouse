@@ -122,13 +122,13 @@ module Admin
 
       return redirect_to root_path, alert: 'This user cannot be impersonated' unless become.impersonateable_by?(current_user)
 
-      # Store impersonation state in cache
-      ImpersonationManager.new(session.id).store(current_user.id, become.id)
+      # Store impersonation state in session
+      ImpersonationManager.new(session).store(current_user.id, become.id)
       redirect_to root_path
     end
 
     def stop_impersonating
-      ImpersonationManager.new(session.id).clear
+      ImpersonationManager.new(session).clear
       redirect_to admin_users_path
     end
 

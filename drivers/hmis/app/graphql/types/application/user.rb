@@ -132,9 +132,9 @@ module Types
     def impersonating
       # Only return impersonation status for the current user
       return false unless object == current_user
-      return false unless context[:session]&.id
+      return false unless context[:session]
 
-      impersonation_manager = ImpersonationManager.new(context[:session].id)
+      impersonation_manager = ImpersonationManager.new(context[:session])
       impersonation_data = impersonation_manager.get
       return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
 
@@ -145,9 +145,9 @@ module Types
     def true_user
       # Only return true user for the current user
       return nil unless object == current_user
-      return nil unless context[:session]&.id
+      return nil unless context[:session]
 
-      impersonation_manager = ImpersonationManager.new(context[:session].id)
+      impersonation_manager = ImpersonationManager.new(context[:session])
       impersonation_data = impersonation_manager.get
       return nil unless impersonation_data && impersonation_data[:true_user_id].present?
 

@@ -25,8 +25,8 @@ class Hmis::ImpersonationsController < Hmis::BaseController
 
     return render_error('This user cannot be impersonated') unless user.impersonateable_by?(true_hmis_user)
 
-    # Store impersonation state in cache
-    manager = ImpersonationManager.new(session.id)
+    # Store impersonation state in session
+    manager = ImpersonationManager.new(session)
     manager.store(true_hmis_user.id, user.id)
 
     # Clear memoized current_hmis_user so it re-checks impersonation
@@ -38,7 +38,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   def destroy
     return render_error('Not impersonating') unless impersonating?
 
-    manager = ImpersonationManager.new(session.id)
+    manager = ImpersonationManager.new(session)
     manager.clear
 
     # Clear memoized current_hmis_user so it re-checks impersonation
@@ -56,6 +56,29 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   def render_success
     payload = current_hmis_user&.current_user_api_values || {}
     payload[:impersonating] = impersonating?
+
+    # Add true user info when impersonating
+    if impersonating? && true_hmis_user
+      payload[:trueUser] = {
+        id: true_hmis_user.id.to_s,
+        name: true_hmis_user.name,
+      }
+    end
+
+    # Calculate session duration from JWT token expiration
+    # The JWT token represents the true user's session (even when impersonating)
+    access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+    if access_token.present?
+      jwt_helper = JwtHelper.new(access_token: access_token)
+      if jwt_helper.token? && jwt_helper.validate!
+        expiration_time = jwt_helper.expiration_time
+        if expiration_time
+          # Return remaining seconds until expiration
+          payload[:sessionDuration] = [(expiration_time - Time.current).to_i, 0].max
+        end
+      end
+    end
+
     render json: payload
   end
 

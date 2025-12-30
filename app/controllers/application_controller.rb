@@ -297,6 +297,8 @@ class ApplicationController < ActionController::Base
 
   before_action :set_app_user_header
   def set_app_user_header
-    response.headers['X-app-user-id'] = current_user&.id
+    # Always use the true user's ID for session tracking, even when impersonating
+    # The impersonation state is communicated through the API response fields
+    response.headers['X-app-user-id'] = true_user&.id
   end
 end
