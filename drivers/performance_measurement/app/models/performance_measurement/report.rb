@@ -6,6 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# See @docs/features/coc-performance-measurement-dashboard.md
 require 'memery'
 
 module PerformanceMeasurement
