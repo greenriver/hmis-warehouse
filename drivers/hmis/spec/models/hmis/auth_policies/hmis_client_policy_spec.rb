@@ -79,14 +79,18 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
   context 'class-level policy' do
     let(:policy) { user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client) }
 
-    it 'grants permissions if user has them anywhere' do
-      create_access_control(user, project, with_permission: [:can_merge_clients])
-      expect(policy.can_merge?).to be true
+    it 'grants can_merge_any_clients? if user has can_merge_clients anywhere' do
+      create_access_control(user, project, with_permission: [:can_view_clients, :can_merge_clients])
+      expect(policy.can_merge_any_clients?).to be true
     end
 
-    it 'denies permissions if user lacks them everywhere' do
+    it 'denies can_merge_any_clients? if user lacks can_view_clients everywhere' do
       create_access_control(user, project, with_permission: [:can_view_clients])
-      expect(policy.can_merge?).to be false
+      expect(policy.can_merge_any_clients?).to be false
+    end
+
+    it 'raises an error if instance-specific method is called' do
+      expect { policy.can_view_name? }.to raise_error(ArgumentError, 'Must provide a client instance')
     end
   end
 end
