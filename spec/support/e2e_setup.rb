@@ -219,8 +219,8 @@ RSpec.shared_context 'SystemSpecHelper' do
 
         done({ ok: r.ok, status: r.status, body: parsedBody });
 
-        // Navigate to home page to pick up the impersonated session (matches frontend behavior)
-        setTimeout(() => window.location.assign('/'), 100);
+        // Reload current page to pick up the impersonated session
+        setTimeout(() => window.location.reload(), 100);
       }).catch(e => done({ error: e.message }));
     JS
 
