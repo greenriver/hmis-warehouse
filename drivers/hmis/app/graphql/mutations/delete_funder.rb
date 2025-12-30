@@ -14,7 +14,12 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::Funder.viewable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :funder, permissions: [:can_edit_project_details])
+      access_denied! unless record && policy_for(record.project, policy_type: :hmis_project).can_edit?
+
+      record.destroy!
+      {
+        funder: record,
+      }
     end
   end
 end
