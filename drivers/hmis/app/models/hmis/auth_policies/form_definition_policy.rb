@@ -71,7 +71,7 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
   # Form management permissions are currently global. In the future they should be tied to data source (#6612, #6691),
   # to support multi-CoC HMIS installations where each CoC manages their own set of forms.
   def global_permissions
-    context.potential_permissions
+    context.global_permissions
   end
 
   def form_definition = resource

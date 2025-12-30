@@ -31,24 +31,6 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::BasePolicy
     client_permissions.include?(:can_manage_scan_cards)
   end
 
-  def can_create_client_file?
-    can_manage_any_client_files? || can_manage_own_client_files?
-  end
-
-  def can_edit_client_file?(file:)
-    return true if can_manage_any_client_files?
-
-    can_manage_own_client_files? && file.user_id == user.id
-  end
-
-  def can_manage_any_client_files?
-    client_permissions.include?(:can_manage_any_client_files)
-  end
-
-  def can_manage_own_client_files?
-    client_permissions.include?(:can_manage_own_client_files)
-  end
-
   def can_merge?
     client_permissions.include?(:can_merge_clients)
   end
