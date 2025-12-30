@@ -10,7 +10,7 @@
 module Filters
   class OutflowReport < FilterBase
     attribute :no_service_after_date, Date, lazy: true, default: ->(r, _) { r.default_no_service_after_date }
-    attribute :no_recent_service_project_ids, Array, default: []
+    attribute :no_recent_service_project_ids, Array, default: [].freeze
     attribute :limit_to_vispdats, Boolean, default: false
     attribute :require_homeless_enrollment, Boolean, default: false
     attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }

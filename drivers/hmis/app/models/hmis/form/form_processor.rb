@@ -183,7 +183,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     if Rails.env.test?
       ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: owner_id)
     else
-      ::Hmis::AssessmentQuestionsJob.set(priority: 12).perform_later(custom_assessment_ids: owner_id)
+      ::Hmis::AssessmentQuestionsJob.set(priority: BaseJob::CACHE_REFRESH_PRIORITY_12).perform_later(custom_assessment_ids: owner_id)
     end
   end
 
