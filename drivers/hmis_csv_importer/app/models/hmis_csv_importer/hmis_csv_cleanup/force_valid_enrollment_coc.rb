@@ -15,6 +15,9 @@ module HmisCsvImporter::HmisCsvCleanup
         # ignore any valid CoC-codes
         next if ::HudHelper.util.valid_coc?(enrollment.EnrollmentCoC)
 
+        # remove leading or trailing space
+        enrollment.EnrollmentCoC = enrollment.EnrollmentCoC&.strip
+
         # add a dash if we have two characters and 3 numbers
         enrollment.EnrollmentCoC = "#{enrollment.EnrollmentCoC[0..1]}-#{enrollment.EnrollmentCoC[2..4]}" if enrollment.EnrollmentCoC.match?(/^[a-z]{2}[0-9]{3}$/i)
 

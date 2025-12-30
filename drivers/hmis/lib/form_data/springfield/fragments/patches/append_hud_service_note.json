@@ -1,0 +1,23 @@
+[
+  {
+    "form_identifier": "service",
+    "append_items": [
+      {
+        "text": "Note",
+        "type": "TEXT",
+        "link_id": "hud_service_note",
+        "mapping": {
+          "custom_field_key": "hud_service_note"
+        },
+        "enable_behavior": "ANY",
+        "enable_when": [
+          {
+            "local_constant": "$hudRecordType",
+            "operator": "EQUAL",
+            "answer_code": "RHY_SERVICE_CONNECTIONS"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -15,7 +15,7 @@ module Types
     field :name, String, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
-    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false # TODO(#7814) - Unit Group should have exactly 1 Unit Type
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false # TODO(#8157) - Unit Group should have exactly 1 Unit Type
     units_field
     field :unit_type, HmisSchema::UnitTypeObject, null: true
 
@@ -29,6 +29,10 @@ module Types
     field :direct_referral_workflow_template_name, String, null: true
     field :ce_event_type, HmisSchema::Enums::Hud::EventType, null: true
     # TODO(#7538) resolve default contacts for workflow template
+
+    def unit_type
+      load_ar_association(object, :unit_type)
+    end
 
     def priority_schemes
       Hmis::Ce::Match::Rule.priority_schemes_for_entity(object)

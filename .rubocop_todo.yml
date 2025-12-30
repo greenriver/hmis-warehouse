@@ -55,7 +55,6 @@ Layout/DotPosition:
   Exclude:
     - 'app/controllers/admin/inbound_api_configurations_controller.rb'
     - 'app/models/omniauth_user_provisioner.rb'
-    - 'drivers/hmis/app/graphql/mutations/ac_hmis/void_referral_request.rb'
     - 'drivers/hmis/app/models/hmis/base_access_loader.rb'
     - 'drivers/hmis_external_apis/app/models/concerns/hmis_external_apis/externally_identified_mixin.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/client_involvement.rb'
@@ -428,7 +427,6 @@ Layout/LeadingCommentSpace:
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'bin/containers/list'
-    - 'bin/containers/ssh'
 
 # Offense count: 10
 # This cop supports safe autocorrection (--autocorrect).
@@ -1577,7 +1575,6 @@ Style/SymbolProc:
     - 'app/models/concerns/known_categories/age.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/tasks/hmis_csv_splitter.rb'
-    - 'app/models/grda_warehouse/tasks/hmis_csv_validator.rb'
     - 'app/models/health/document_exports/housing_status_changes_export.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'drivers/boston_reports/app/models/boston_reports/street_to_home.rb'

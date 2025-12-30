@@ -57,7 +57,7 @@
               %tr
                 %td System Level
                 - table[:system].each do |detail, data|
-                  %td{class: data[:decorator]}= "#{data[:value]} #{data[:unit]}"
+                  %td{class: data[:decorator]}= data[:display_value]
               - table[:projects].each do |project_id, data|
                 %tr
                   %td= data[:project_name]
