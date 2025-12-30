@@ -5,7 +5,7 @@
       = f.error_notification
       .form-inputs
         = f.input :key, required: true, disabled: @property.persisted?, hint: 'Unique identifier for the configuration property.'
-        = f.input :value, as: :text, input_html: { rows: 5 }, label: 'Value', hint: 'The configuration value.'
+        = f.input :value_input, as: :text, input_html: { rows: 10 }, label: 'Value', hint: 'The configuration value as JSON.'
 
       .form-actions.mt-3
         = f.button :submit, 'Save', class: 'btn btn-primary'

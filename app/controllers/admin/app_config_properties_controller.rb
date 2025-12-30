@@ -57,7 +57,7 @@ module Admin
     end
 
     def property_params
-      params.require(:app_config_property).permit(:key, :value)
+      params.require(:app_config_property).permit(:key, :value_input)
     end
   end
 end

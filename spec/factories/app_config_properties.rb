@@ -9,6 +9,6 @@
 FactoryBot.define do
   factory :app_config_property do
     sequence(:key) { |n| "config_key_#{n}" }
-    sequence(:value) { |n| "config_value_#{n}" }
+    sequence(:value) { |n| { 'value' => "config_value_#{n}" } }
   end
 end

@@ -20,10 +20,11 @@ RSpec.describe Admin::AppConfigPropertiesController, type: :request do
       end
 
       it 'displays existing app config properties' do
-        create(:app_config_property, key: 'test_key', value: 'test_value')
+        create(:app_config_property, key: 'test_key', value: { 'foo' => 'bar' })
         get admin_app_config_properties_path
         expect(response.body).to include('test_key')
-        expect(response.body).to include('test_value')
+        expect(response.body).to include('foo')
+        expect(response.body).to include('bar')
       end
     end
 
@@ -46,19 +47,19 @@ RSpec.describe Admin::AppConfigPropertiesController, type: :request do
     end
 
     context 'with valid attributes' do
-      let(:valid_attrs) { { key: 'new_key', value: 'new_value' } }
+      let(:valid_attrs) { { key: 'new_key', value_input: '{"foo": "bar"}' } }
 
       it 'creates app config property' do
         expect do
           post admin_app_config_properties_path, params: { app_config_property: valid_attrs }
         end.to change(AppConfigProperty, :count).by(1)
+        expect(AppConfigProperty.last.value).to eq({ 'foo' => 'bar' })
       end
 
-      it 'strips whitespace from key and value' do
-        post admin_app_config_properties_path, params: { app_config_property: { key: '  spaced_key  ', value: '  spaced_value  ' } }
+      it 'strips whitespace from key' do
+        post admin_app_config_properties_path, params: { app_config_property: { key: '  spaced_key  ', value_input: '{"foo": "bar"}' } }
         property = AppConfigProperty.last
         expect(property.key).to eq('spaced_key')
-        expect(property.value).to eq('spaced_value')
       end
 
       it 'redirects to index' do
@@ -87,12 +88,12 @@ RSpec.describe Admin::AppConfigPropertiesController, type: :request do
     end
 
     context 'with valid attributes' do
-      let(:valid_attrs) { { value: 'updated_value' } }
+      let(:valid_attrs) { { value_input: '{"updated": true}' } }
 
       it 'updates the app config property' do
         patch admin_app_config_property_path(property), params: { app_config_property: valid_attrs }
         property.reload
-        expect(property.value).to eq('updated_value')
+        expect(property.value).to eq({ 'updated' => true })
       end
 
       it 'redirects to index' do

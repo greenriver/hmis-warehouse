@@ -10,6 +10,6 @@
       %tr
         %td= link_to property.key, edit_admin_app_config_property_path(property)
         %td
-          %code= property.value
+          %code= property.value.inspect
         %td= l property.updated_at, format: :table_compact
         %td= render 'action_menu', property: property
