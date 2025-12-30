@@ -118,12 +118,12 @@ module HopwaCaper
         dob: client.dob,
         dob_quality: client.dob_data_quality,
         sex: client.sex,
-        races: client.race_multi.sort,
+        races: client.race_multi.compact.uniq.sort,
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
 
         relationship_to_hoh: enrollment.relationship_to_hoh || 99,
-        project_funders: project.funders.map(&:funder).compact.sort,
+        project_funders: project.funders.map(&:funder).compact.uniq.sort,
         project_type: project.project_type,
         entry_date: enrollment.entry_date,
         exit_destination: exit&.destination,
@@ -143,106 +143,6 @@ module HopwaCaper
 
     def hmis_enrollment_id
       enrollment.enrollment_id
-    end
-
-    DETAIL_HEADER_ORDER = [
-      'personal_id',
-      'hmis_enrollment_id',
-      'first_name',
-      'last_name',
-      'destination_client_id',
-      'age',
-      'dob',
-      'dob_quality',
-      'races',
-      'sex',
-      'veteran',
-      'entry_date',
-      'exit_date',
-      'relationship_to_hoh',
-      'project_funders',
-      'project_type',
-      'income_benefit_source_types',
-      'medical_insurance_types',
-      'household_income_benefit_source_types',
-      'household_medical_insurance_types',
-      'hiv_positive',
-      'hopwa_eligible',
-      'chronically_homeless',
-      'prior_living_situation',
-      'rental_subsidy_type',
-      'exit_destination',
-      'housing_assessment_at_exit',
-      'subsidy_information',
-      'ever_prescribed_anti_retroviral_therapy',
-      'viral_load_suppression',
-      'percent_ami',
-      'atc_maintained_contact',
-      'atc_housing_plan',
-      'atc_primary_health_contact',
-    ].freeze
-
-    def self.detail_headers
-      DETAIL_HEADER_ORDER.map do |header|
-        label = case header
-        when 'destination_client_id'
-          'Warehouse Client ID'
-        when 'personal_id'
-          'HMIS Personal ID'
-        when 'hmis_enrollment_id'
-          'HMIS Enrollment ID'
-        when 'hiv_positive'
-          'HIV positive'
-        when 'percent_ami'
-          'Percent AMI'
-        else
-          header.humanize
-        end
-        [header, label]
-      end.to_h
-    end
-
-    private
-
-    def fields_supporting_data_not_collected
-      @fields_supporting_data_not_collected ||= [
-        'sex',
-        'dob_quality',
-        'percent_ami',
-        'exit_destination',
-        'housing_assessment_at_exit',
-      ].to_set.freeze
-    end
-
-    def hud_helper = HudHelper.util('2026')
-
-    def transform_value(column, value, pii_policy)
-      # Treat nil as 99 (Data not collected) for HUD fields that support it
-      value = 99 if value.nil? && fields_supporting_data_not_collected.include?(column)
-
-      case column
-      when 'sex'
-        hud_helper.sex(value)
-      when 'races'
-        field_name = hud_helper.race_id_to_field_name[value]
-        hud_helper.races[field_name.to_s]
-      when 'percent_ami'
-        hud_helper.percent_ami(value)
-      when 'housing_assessment_at_exit'
-        hud_helper.housing_assessment_at_exit(value)
-      when 'dob_quality'
-        hud_helper.dob_data_quality(value)
-      when 'project_type'
-        hud_helper.project_types[value&.to_i]
-      when 'project_funders'
-        hud_helper.funding_source(value)
-      when 'subsidy_information'
-        hud_helper.subsidy_information(value)
-      when 'rental_subsidy_type'
-        hud_helper.rental_subsidy_type(value)
-      else
-        super
-      end
     end
   end
 end
