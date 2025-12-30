@@ -356,8 +356,6 @@ Layout/FirstArgumentIndentation:
 Layout/FirstArrayElementLineBreak:
   Exclude:
     - 'app/models/concerns/health_charts.rb'
-    - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
-    - 'app/models/grda_warehouse/confidence/source_exits.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'db/health/migrate/20230601151608_create_health_comprehensive_assessments.rb'
@@ -435,8 +433,6 @@ Layout/LeadingCommentSpace:
 Layout/MultilineArrayBraceLayout:
   Exclude:
     - 'app/models/concerns/health_charts.rb'
-    - 'app/models/grda_warehouse/confidence/source_enrollments.rb'
-    - 'app/models/grda_warehouse/confidence/source_exits.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'db/health/migrate/20230601151608_create_health_comprehensive_assessments.rb'
@@ -1289,7 +1285,6 @@ Style/RedundantFreeze:
     - 'app/models/concerns/document_export_behavior.rb'
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
     - 'app/models/grda_warehouse/help.rb'
-    - 'app/models/grda_warehouse/tasks/sanity_check_service_history.rb'
     - 'app/models/health/enrollment.rb'
     - 'app/models/health/qualifying_activity.rb'
     - 'app/models/health/qualifying_activity_v1.rb'
