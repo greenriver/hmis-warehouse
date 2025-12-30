@@ -93,6 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   context 'a completed enrollment without an intake assessment' do
     let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, relationship_to_ho_h: 1 }
+
     it 'should be deleted successfully if user is authorized' do
       add_permissions(access_control, :can_edit_enrollments, :can_delete_enrollments)
       enrollment, errors = perform_mutation(e3)
@@ -102,6 +103,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should throw gql error and not delete the enrollment if user is unauthorized' do
+      add_permissions(access_control, :can_edit_enrollments) # Even if they can edit, but not delete (unlike for WIP)
       expect_gql_error post_graphql(input: { id: e3.id }) { mutation }
       expect(e3.reload).not_to be_deleted
     end

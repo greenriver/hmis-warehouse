@@ -46,13 +46,17 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
     GRAPHQL
   end
 
+  let(:input) do
+    {
+      enrollmentId: enrollment.id,
+      formDefinitionId: form_definition.id,
+      valuesByLinkId: { 'veteran_q' => 1, 'unmapped_q' => 'ignored' },
+    }
+  end
+
   describe 'calculateClientCeEligibility' do
     it 'returns project types for eligible pools' do
-      response, result = post_graphql(
-        enrollmentId: enrollment.id,
-        formDefinitionId: form_definition.id,
-        valuesByLinkId: { 'veteran_q' => 1, 'unmapped_q' => 'ignored' },
-      ) { mutation }
+      response, result = post_graphql(input) { mutation }
 
       expect(response.status).to eq(200), result.inspect
       project_types = result.dig('data', 'calculateClientCeEligibility', 'projectTypes')
@@ -61,16 +65,17 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
     end
 
     it 'returns subset when fewer pools match' do
-      response, result = post_graphql(
-        enrollmentId: enrollment.id,
-        formDefinitionId: form_definition.id,
-        valuesByLinkId: { 'veteran_q' => 0 },
-      ) { mutation }
+      response, result = post_graphql(input.merge(valuesByLinkId: { 'veteran_q' => 0 })) { mutation }
 
       expect(response.status).to eq(200), result.inspect
       project_types = result.dig('data', 'calculateClientCeEligibility', 'projectTypes')
       project_type_ids = project_types.map { |pt| Types::HmisSchema::Enums::Hud::ProjectTypeBrief.value_for(pt) }
       expect(project_type_ids).to contain_exactly(2) # Only general pool
+    end
+
+    it 'raises access denied if the user does not have permission' do
+      remove_permissions(access_control, :can_edit_enrollments)
+      expect_access_denied post_graphql(input) { mutation }
     end
   end
 end
