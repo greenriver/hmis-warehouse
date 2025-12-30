@@ -8,9 +8,9 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
   let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new(current_date: current_date) }
   let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression) }
   let(:prefilter) { described_class.new(pool, field_map) }
-  let!(:client1) { create(:hmis_hud_client, dob: 20.years.ago) } # age 20
-  let!(:client2) { create(:hmis_hud_client, dob: 15.years.ago) } # age 15
-  let!(:client3) { create(:hmis_hud_client, dob: 30.years.ago) } # age 30
+  let!(:client1) { create(:hmis_hud_client, dob: current_date - 20.years) } # age 20
+  let!(:client2) { create(:hmis_hud_client, dob: current_date - 15.years) } # age 15
+  let!(:client3) { create(:hmis_hud_client, dob: current_date - 30.years) } # age 30
   let(:destination_client1) { GrdaWarehouse::Hud::Client.find(client1.destination_client.id) }
   let(:destination_client2) { GrdaWarehouse::Hud::Client.find(client2.destination_client.id) }
   let(:destination_client3) { GrdaWarehouse::Hud::Client.find(client3.destination_client.id) }
