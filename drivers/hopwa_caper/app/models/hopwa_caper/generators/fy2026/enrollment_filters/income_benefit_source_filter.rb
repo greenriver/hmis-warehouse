@@ -9,10 +9,17 @@
 module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   IncomeBenefitSourceFilter = Struct.new(:id, :label, :types, keyword_init: true) do
     # Filter households based on income sources aggregated at the household level.
-    # - For specific income types: households where aggregated values overlap
-    # - For no income: households where the only recorded state is explicit "No Income"
+    # Following HUD reporting glossary strategy:
+    # 1. Income is assessed for Adults and Heads of Household.
+    # 2. If ANY member of this universe has income, the household is considered to have that source.
+    # 3. "No Income" is only counted if the household has no income sources AND at least one member
+    #    has an explicit "No Income" assessment.
     def apply(scope)
-      return scope.where.overlaps(household_income_benefit_source_types: ['NoIncomeSource']) if id == :no_income
+      if id == :no_income
+        # Strict equivalence ensures the household has an affirmative "No"
+        # and no other income sources.
+        return scope.where(household_income_benefit_source_types: types.map(&:to_s))
+      end
 
       scope.where.overlaps(household_income_benefit_source_types: types.map(&:to_s))
     end

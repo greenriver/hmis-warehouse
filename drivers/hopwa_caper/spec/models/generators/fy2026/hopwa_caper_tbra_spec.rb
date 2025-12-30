@@ -22,8 +22,8 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
 
   context 'With one multi-member household served with rental assistance' do
     let(:household_id) { Hmis::Hud::Base.generate_uuid }
-    let(:hoh_client) { create(:hud_client, data_source: data_source) }
-    let(:beneficiary_client) { create(:hud_client, data_source: data_source) }
+    let(:hoh_client) { create(:hud_client, data_source: data_source, DOB: '1970-01-01') }
+    let(:beneficiary_client) { create(:hud_client, data_source: data_source, DOB: '1980-01-01') }
 
     let!(:hoh_enrollment) do
       create_enrollment(
@@ -129,6 +129,41 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
         # Household should NOT be counted as having any specific income sources
         expect(rows.fetch('Earned Income from Employment')).to eq(0)
         expect(rows.fetch('Unemployment Insurance')).to eq(0)
+      end
+    end
+
+    context 'with child members (age < 18)' do
+      let(:child_client) { create(:hud_client, data_source: data_source, DOB: today - 10.years) }
+      let!(:child_enrollment) do
+        create_enrollment(
+          client: child_client,
+          project: project,
+          entry_date: report_start_date,
+          household_id: household_id,
+          relationship_to_ho_h: 99,
+        )
+      end
+
+      it 'ignores child income but counts child insurance' do
+        # Child has both income and insurance
+        create(
+          :hud_income_benefit,
+          enrollment: child_enrollment,
+          Earned: 1, # Should be ignored
+          Medicaid: 1, # Should be counted
+          IncomeFromAnySource: 1,
+          InsuranceFromAnySource: 1,
+          information_date: report_start_date + 5.days,
+          data_source: data_source,
+          personal_id: child_client.PersonalID,
+        )
+
+        _, rows = run_and_extract_rows([project], 'Q2')
+
+        # Child income should be ignored for the household
+        expect(rows.fetch('Earned Income from Employment')).to eq(0)
+        # Child insurance should be counted for the household
+        expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
       end
     end
 

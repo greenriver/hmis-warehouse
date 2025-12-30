@@ -215,11 +215,20 @@ module HopwaCaper::Generators::Fy2026
     end
 
     # Populate household-level income and insurance fields for all members.
+    # Following HUD reporting glossary strategy: income data is analyzed for all adults (age >= 18)
+    # and heads of household (regardless of age).
     def populate_household_aggregated_fields(enrollments)
       rows_to_import = []
 
       enrollments.group_by(&:report_household_id).values.each do |household|
-        income_sources = household.flat_map(&:income_benefit_source_types).uniq.sort
+        # Step 1: Identify the "Income Generating" Universe within the Household
+        # Glossary: select all clients with Relationship to HoH = Self (1) OR Age >= 18.
+        income_universe = household.select { |e| e.age.to_i >= 18 || e.relationship_to_hoh == 1 }
+
+        # Step 2: Aggregate to the Household Level
+        # Income follows the Adult/HoH universe.
+        income_sources = income_universe.flat_map(&:income_benefit_source_types).uniq.sort
+        # Insurance follows the full household universe.
         insurance_types = household.flat_map(&:medical_insurance_types).uniq.sort
 
         household.each do |enrollment|
