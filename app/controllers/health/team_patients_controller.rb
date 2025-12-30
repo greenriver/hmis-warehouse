@@ -51,15 +51,16 @@ module Health
       @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          medicaid_ids = @patients.map(&:medicaid_id)
-          @patients = patient_source.where(id: @patients.pluck(:id))
+          patient_ids = @patients.pluck(:id)
+          medicaid_ids = @patients.pluck(:medicaid_id)
+          @patients = patient_source.where(id: patient_ids)
           if @column == 'name'
             @patients = @patients.order(last_name: @direction, first_name: @direction)
           else
             sort_order = determine_sort_order(medicaid_ids, @column, @direction)
             @patients = @patients.order_as_specified(sort_order)
           end
-          @pagy, @patients = pagy(@patients)
+          @pagy, @patients = pagy(@patients.preload(:client, :care_coordinator, :nurse_care_manager))
           @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do
