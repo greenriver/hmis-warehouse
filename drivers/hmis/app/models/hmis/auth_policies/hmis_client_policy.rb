@@ -50,8 +50,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::BasePolicy
     context.client_permissions(resource.id)
   end
 
-  # Get global permissions for the user (across all projects they can access)
-  # These can be accessed when the policy is instantiated with a class
+  # Get global permissions for the user (across all projects)
   def global_permissions
     context.global_permissions
   end
