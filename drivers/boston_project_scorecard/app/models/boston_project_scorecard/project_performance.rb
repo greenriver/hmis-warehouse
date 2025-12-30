@@ -147,6 +147,20 @@ module BostonProjectScorecard
 
         materials_concern
       end
+
+      def returns_to_homelessness_value
+        percentage_string(returns_to_homelessness)
+      end
+
+      def returns_to_homelessness_score
+        return 0 unless returns_to_homelessness.present?
+
+        return 12 if returns_to_homelessness.round <= 5
+        return 6 if returns_to_homelessness.round <= 25
+        return 4 if returns_to_homelessness.round <= 50
+
+        0
+      end
     end
   end
 end

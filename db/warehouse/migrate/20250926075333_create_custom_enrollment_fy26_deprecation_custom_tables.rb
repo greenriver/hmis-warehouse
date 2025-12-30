@@ -4,6 +4,7 @@
 class CreateCustomEnrollmentFy26DeprecationCustomTables < ActiveRecord::Migration[7.1]
   def change
     # CustomEnrollmentFy26Deprecation loader table
+    drop_table :hmis_csv_2026_custom_enrollment_fy26_deprecations if table_exists?(:hmis_csv_2026_custom_enrollment_fy26_deprecations)
     create_table :hmis_csv_2026_custom_enrollment_fy26_deprecations do |t|
       t.string 'EnrollmentID'
       t.string 'PersonalID'
@@ -28,6 +29,7 @@ class CreateCustomEnrollmentFy26DeprecationCustomTables < ActiveRecord::Migratio
     add_index :hmis_csv_2026_custom_enrollment_fy26_deprecations, [:EnrollmentID, :data_source_id], name: 'idx_custom_enrollment_fy26_deprecations_id_ds'
 
     # CustomEnrollmentFy26Deprecation importer table
+    drop_table :hmis_2026_custom_enrollment_fy26_deprecations if table_exists?(:hmis_2026_custom_enrollment_fy26_deprecations)
     create_table :hmis_2026_custom_enrollment_fy26_deprecations do |t|
       t.string 'EnrollmentID'
       t.string 'PersonalID'

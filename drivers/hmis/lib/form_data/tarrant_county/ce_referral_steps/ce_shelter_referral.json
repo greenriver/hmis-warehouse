@@ -1,0 +1,759 @@
+{
+    "item": [
+      {
+        "item": [
+          {
+            "text": "Family or Individual?",
+            "type": "OPEN_CHOICE",
+            "link_id": "family_or_individual",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_family_or_individual"
+            },
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Family"
+              },
+              {
+                "code": "Individual"
+              }
+            ]
+          },
+          {
+            "text": "Are there any household members not included on the client's enrollment, for example children who will return to the client's care once they obtain housing?",
+            "type": "CHOICE",
+            "link_id": "household_members_not_on_enrollment",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_household_members_not_on_enrollment"
+            },
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Family"
+              }
+            ],
+            "enable_behavior": "ANY",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Name, age, and sex of household members not included on the client's enrollment",
+            "type": "TEXT",
+            "link_id": "household_members_not_on_enrollment_details",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_household_members_not_on_enrollment_details"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "household_members_not_on_enrollment",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Pregnant woman in 3rd trimester w/o other children or in 2nd trimester w/ documented high risk pregnancy?",
+            "type": "CHOICE",
+            "link_id": "pregnant_woman",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_pregnant_woman"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Family"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Adult child with a disabling condition?",
+            "type": "CHOICE",
+            "link_id": "adult_child_disabling_condition",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_adult_child_disabling_condition"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Family"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Where is the family sleeping?",
+            "type": "CHOICE",
+            "link_id": "where_is_the_family_sleeping",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_where_is_the_family_sleeping"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Family"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Car"
+              },
+              {
+                "code": "Outside"
+              },
+              {
+                "code": "Other place not meant for human habitation"
+              }
+            ]
+          },
+          {
+            "item": [
+              {
+                "text": "<span style=\"font-size: 16px;\"><b>Adults</b></span>",
+                "type": "DISPLAY",
+                "link_id": "adults",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "enable_behavior": "ALL",
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "ID, DL, or Passport",
+                "type": "BOOLEAN",
+                "link_id": "id_dl_or_passport",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_id_dl_or_passport"
+                },
+                "required": false,
+                "component": "CHECKBOX",
+                "read_only": false,
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "warn_if_empty": false,
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Non-state ID government document (textbox to type what kind of docs)",
+                "type": "BOOLEAN",
+                "link_id": "non_state_id_government_document_textbox",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_non_state_id_government_document_textbox"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Scan card",
+                "type": "BOOLEAN",
+                "link_id": "scan_card",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_scan_card"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "SSC",
+                "type": "BOOLEAN",
+                "link_id": "ssc",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_ssc"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "BC",
+                "type": "BOOLEAN",
+                "link_id": "bc",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_bc"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Marriage certificate",
+                "type": "BOOLEAN",
+                "link_id": "marriage_certificate",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_marriage_certificate"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Additional custody documentation",
+                "type": "BOOLEAN",
+                "link_id": "additional_custody_documentation",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_additional_custody_documentation"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "<span style=\"font-size: 16px;\"><b>Children</b></span>",
+                "type": "DISPLAY",
+                "link_id": "children_aa8677bc",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "BC",
+                "type": "BOOLEAN",
+                "link_id": "children_bc",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_children_bc"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "SSC",
+                "type": "BOOLEAN",
+                "link_id": "children_ssc",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_children_ssc"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Immunization records",
+                "type": "BOOLEAN",
+                "link_id": "immunization_records",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_immunization_records"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "School records",
+                "type": "BOOLEAN",
+                "link_id": "school_records",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_school_records"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Other form of ID proving kinship",
+                "type": "BOOLEAN",
+                "link_id": "kinship",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_kinship"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Family"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Which documents are in the family’s possession or are uploaded to Warehouse?",
+            "type": "GROUP",
+            "link_id": "family_documents",
+            "component": "INPUT_GROUP",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Gender Identity",
+            "type": "STRING",
+            "link_id": "gender_identity",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_gender_identity"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Individual"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "item": [
+              {
+                "text": "ID, DL, or Passport",
+                "type": "BOOLEAN",
+                "link_id": "individual_id_dl_or_passport",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_individual_id_dl_or_passport"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Individual"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              },
+              {
+                "text": "Scan card",
+                "type": "BOOLEAN",
+                "link_id": "individual_scan_card",
+                "mapping": {
+                  "custom_field_key": "ce_shelter_referral_individual_scan_card"
+                },
+                "component": "CHECKBOX",
+                "enable_when": [
+                  {
+                    "operator": "EQUAL",
+                    "question": "family_or_individual",
+                    "answer_code": "Individual"
+                  }
+                ],
+                "disabled_display": "HIDDEN"
+              }
+            ],
+            "text": "Which documents are in the client’s possession or are uploaded to Warehouse? ",
+            "type": "GROUP",
+            "link_id": "individual_documents",
+            "component": "INPUT_GROUP",
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Individual"
+              }
+            ],
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Does the client have a dog or service animal with them?",
+            "type": "CHOICE",
+            "link_id": "dog_or_service_animal",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_dog_or_service_animal"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Individual"
+              }
+            ],
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Does the client have appropriate documentation (current shot records and/or documentation service animal)?",
+            "type": "CHOICE",
+            "link_id": "animal_documentation",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_animal_documentation"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "dog_or_service_animal",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          }
+        ],
+        "text": "Household Information",
+        "type": "GROUP",
+        "link_id": "household_information",
+        "disabled_display": "HIDDEN"
+      },
+      {
+        "item": [
+          {
+            "text": "Does the client or family need any accommodations?",
+            "type": "CHOICE",
+            "link_id": "does_the_client_need_any_accommodations",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_does_the_client_need_any_accommodations"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Family"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "family_or_individual",
+                "answer_code": "Individual"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ANY",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Accommodation Details",
+            "type": "TEXT",
+            "link_id": "accommodation_details",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_accommodation_details"
+            },
+            "required": false,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "does_the_client_need_any_accommodations",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": true,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Is the accommodation needed a bottom bunk?",
+            "type": "CHOICE",
+            "link_id": "bottom_bunk",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_bottom_bunk"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "does_the_client_need_any_accommodations",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Does the client have medical documentation demonstrating this need?",
+            "type": "CHOICE",
+            "link_id": "bottom_bunk_documentation",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_bottom_bunk_documentation"
+            },
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "bottom_bunk",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ALL",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          }
+        ],
+        "text": "Accommodations",
+        "type": "GROUP",
+        "link_id": "accommodations",
+        "disabled_display": "HIDDEN"
+      },
+      {
+        "item": [
+          {
+            "text": "Phone Number(s)",
+            "type": "TEXT",
+            "link_id": "phone_number_s",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_phone_number_s"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Email(s)",
+            "type": "TEXT",
+            "link_id": "email_s",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_email_s"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Best way to contact client?",
+            "type": "TEXT",
+            "link_id": "best_way_to_contact_client",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_best_way_to_contact_client"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          }
+        ],
+        "text": "Contact Information",
+        "type": "GROUP",
+        "link_id": "contact_information",
+        "enable_when": [
+          {
+            "operator": "EQUAL",
+            "question": "family_or_individual",
+            "answer_code": "Family"
+          },
+          {
+            "operator": "EQUAL",
+            "question": "family_or_individual",
+            "answer_code": "Individual"
+          }
+        ],
+        "enable_behavior": "ANY",
+        "disabled_display": "HIDDEN"
+      },
+      {
+        "item": [
+          {
+            "text": "Has the Assessor/Referring provider confirmed with the client that they meet additional eligibility criteria for the shelter(s) they are referring to?",
+            "type": "CHOICE",
+            "link_id": "assessor_referring_provider_confirmation",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_assessor_referring_provider_confirmation"
+            },
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "text": "Referrer Notes",
+            "type": "TEXT",
+            "link_id": "referrer_notes",
+            "mapping": {
+              "custom_field_key": "ce_shelter_referral_referrer_notes"
+            },
+            "required": false,
+            "read_only": false,
+            "warn_if_empty": true,
+            "disabled_display": "HIDDEN"
+          }
+        ],
+        "text": "Referrer Questions",
+        "type": "GROUP",
+        "link_id": "referrer_questions",
+        "enable_when": [
+          {
+            "operator": "EQUAL",
+            "question": "family_or_individual",
+            "answer_code": "Family"
+          },
+          {
+            "operator": "EQUAL",
+            "question": "family_or_individual",
+            "answer_code": "Individual"
+          }
+        ],
+        "enable_behavior": "ANY",
+        "disabled_display": "HIDDEN"
+      }
+    ]
+  }

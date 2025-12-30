@@ -22,6 +22,19 @@ module HudSpmReport::Fy2026
     attr_accessor :report # FIXME?
     attr_writer :filter, :services
 
+    def self.apply_search_scope(scope)
+      scope.joins(:enrollments)
+    end
+
+    def self.search_columns
+      HudSpmReport::Fy2026::SpmEnrollment.search_columns
+    end
+
+    def self.pluck_project_ids
+      project_table = GrdaWarehouse::Hud::Project.arel_table
+      joins(enrollments: { enrollment: :project }).distinct.pluck(project_table[:id])
+    end
+
     def project_id
       enrollment.project_id
     end
