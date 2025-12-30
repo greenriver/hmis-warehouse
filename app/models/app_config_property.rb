@@ -17,6 +17,6 @@ class AppConfigProperty < ApplicationRecord
 
   def strip_whitespace
     self.key = key&.strip
-    self.value = value&.strip
+    self.value = value.strip if value.is_a?(String)
   end
 end
