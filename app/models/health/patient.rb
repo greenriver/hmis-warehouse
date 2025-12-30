@@ -1029,19 +1029,39 @@ module Health
     end
 
     def qualified_activities_since date: 1.months.ago
-      qualifying_activities.in_range(date..Date.tomorrow)
+      range = date..Date.tomorrow
+      if association(:qualifying_activities).loaded?
+        qualifying_activities.select { |qa| range.cover?(qa.date_of_activity) }
+      else
+        qualifying_activities.in_range(range)
+      end
     end
 
     def valid_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).payable
+      activities = qualified_activities_since(date: date)
+      if activities.is_a?(Array)
+        activities.select { |qa| qa.naturally_payable || qa.force_payable }
+      else
+        activities.payable
+      end
     end
 
     def valid_payable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).payable.not_valid_unpayable
+      activities = valid_qualified_activities_since(date: date)
+      if activities.is_a?(Array)
+        activities.reject(&:valid_unpayable)
+      else
+        activities.not_valid_unpayable
+      end
     end
 
     def valid_unpayable_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).payable.valid_unpayable
+      activities = valid_qualified_activities_since(date: date)
+      if activities.is_a?(Array)
+        activities.select(&:valid_unpayable)
+      else
+        activities.valid_unpayable
+      end
     end
 
     def import_epic_team_members

@@ -60,7 +60,19 @@ module Health
             sort_order = determine_sort_order(medicaid_ids, @column, @direction)
             @patients = @patients.order_as_specified(sort_order)
           end
-          @pagy, @patients = pagy(@patients.preload(:client, :care_coordinator, :nurse_care_manager))
+          @pagy, @patients = pagy(
+            @patients.preload(
+              :care_coordinator,
+              :nurse_care_manager,
+              :health_agency,
+              careplans: [],
+              qualifying_activities: [],
+              client: [
+                :service_history_entries,
+                service_history_enrollments: :project,
+              ],
+            ),
+          )
           @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do
