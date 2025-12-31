@@ -215,6 +215,161 @@ The `idp_logout_url` helper generates the appropriate logout URL for the configu
 - **Zitadel**: Generates OIDC RP-Initiated Logout URL (clears Zitadel session)
 - **Other IDPs**: Falls back to OAuth2-proxy sign-out URL (clears OAuth2-proxy session only)
 
+## Session Timeout & Refresh Tokens
+
+### Overview
+
+Sessions are designed to balance security with user experience:
+- **Session Duration**: 30 minutes
+- **Refresh Window**: 10 minutes before expiry (active users auto-extend)
+- **Warning Modal**: Appears 5 minutes before expiry
+- **Absolute Maximum**: 12 hours (hard limit on session lifetime)
+
+### How It Works
+
+The refresh token mechanism ensures that users who are actively using the application never see a session expiry modal. Sessions are automatically extended for active users.
+
+#### Token Flow
+
+1. **User Login**: Zitadel issues a refresh token to Dex
+2. **Dex to oauth2-proxy**: Dex issues a refresh token to oauth2-proxy
+3. **Active Browsing**: When a user makes a request within the 10-minute refresh window, oauth2-proxy automatically refreshes the JWT token
+4. **Session Extended**: New JWT with new expiration time is issued (another 30 minutes)
+5. **Result**: Active users never reach the warning modal
+
+#### Warning Modal Behavior
+
+If a user is inactive or approaching the 10-minute refresh window:
+
+1. **At 5 minutes remaining**: Modal appears asking "Are you still here?" / "Is your session expiring soon?"
+2. **User clicks button**: Application calls `/session_keepalive` (GET request)
+3. **Token is refreshed**: If within refresh window, oauth2-proxy refreshes the token
+4. **New expiration received**: Frontend updates countdown, modal hides
+5. **Session extended**: User gets another 30 minutes
+
+If user dismisses the modal or doesn't click the button:
+- Modal remains visible with countdown timer
+- At 0 seconds: Session expires, user is logged out
+
+### Configuration
+
+The timeout values are configured in multiple locations:
+
+#### Dex Configuration (docker/auth/dev.dex.yaml)
+
+```yaml
+expiry:
+  idTokens: "30m"           # Session duration
+  refreshTokens:
+    validIfNotUsedFor: "12h" # Maximum session lifetime
+```
+
+#### OAuth2-Proxy Configuration (all 4 CFG files)
+
+```
+cookie_refresh="10m"        # Refresh token within this window
+cookie_expire="12h"         # Hard cookie expiration limit
+```
+
+Files:
+- `docker/auth/dev.oauth2-proxy.cfg`
+- `docker/auth/dev.oauth2-proxy-warehouse.cfg`
+- `docker/auth/dev.oauth2-proxy-hmis.cfg`
+- `docker/auth/dev.oauth2-proxy-hmis-backend.cfg`
+
+#### Warehouse JavaScript Controller
+
+File: `app/javascript/controllers/inactive_session_modal_controller.js`
+
+```javascript
+const WARNING_WHEN_REMAINING_SECS = 5 * 60;     // Show modal at 5 minutes
+const REFRESH_WHEN_REMAINING_SECS = 10 * 60;    // Refresh available within 10 minutes
+const POLL_INTERVAL_SECS = 30;                  // Check every 30 seconds
+```
+
+#### HMIS Frontend React
+
+File: `src/routes/AppRoutes.tsx`
+
+```typescript
+const promptToExtendBefore = 60 * 5; // Show modal at 5 minutes remaining
+```
+
+### Implementation Details
+
+#### Warehouse (Stimulus Controller)
+
+- Polls session expiration every 30 seconds
+- Uses Stimulus `values` pattern to receive expiration time from server
+- Modal countdown updates every 1 second when visible
+- Clicking "I'm still here" calls `GET /session_keepalive`
+- Dismissing modal (ESC key or backdrop click) resets state and resumes polling
+- Development logging shows time remaining every 30 seconds (see console logs)
+
+#### HMIS Frontend (React)
+
+- Session duration comes from `HmisUser.sessionDuration`
+- Tracks session via `useSessionTracking` hook (monitors `X-HMIS-Session-UID` header)
+- Shows modal via `ConfirmationDialog` component
+- Clicking "Keep me signed-in" calls `GET /hmis/session_keepalive`
+- Session expires automatically if user is inactive
+- Development logging shows time remaining every 30 seconds (only in dev mode)
+
+### Server Endpoints
+
+Both applications provide session keepalive endpoints:
+
+#### Warehouse: `GET /session_keepalive`
+
+Response:
+```json
+{
+  "success": true,
+  "expiration_time": 1704067200,
+  "remaining_seconds": 1800
+}
+```
+
+#### HMIS: `GET /hmis/session_keepalive`
+
+Same response format. Both endpoints:
+- Read the JWT from `HTTP_X_FORWARDED_ACCESS_TOKEN` header
+- Validate the JWT signature
+- Return the current (or refreshed) expiration time
+- OAuth2-proxy may refresh the token if within the 10-minute window
+
+### Testing the Session Behavior
+
+To test the modal and refresh token behavior:
+
+1. Log in to the application
+2. Wait 25 minutes (token will be within 5-minute warning window)
+3. Modal should appear with countdown
+4. Click "Keep me signed-in" or "I'm still here"
+5. Session should extend by another 30 minutes
+6. Modal should hide
+
+For faster testing, you can temporarily modify:
+- `WARNING_WHEN_REMAINING_SECS` in warehouse controller (e.g., 2 minutes)
+- `promptToExtendBefore` in HMIS AppRoutes (e.g., 2 minutes)
+- `idTokens: "5m"` in Dex config for shorter sessions
+
+Remember to revert these changes before committing.
+
+### Production Configuration
+
+For production deployments, review and adjust:
+- Session duration: typically 30-60 minutes
+- Refresh window: 20% of session duration
+- Warning time: 5 minutes (user perspective matters)
+- Maximum lifetime: 12-24 hours depending on security requirements
+
+Ensure these values are synchronized across:
+1. Dex configuration
+2. All OAuth2-proxy instances
+3. JavaScript/React constants
+4. Any reverse proxy or load balancer configurations
+
 # Environment Configuration Reference
 
 The application requires these environment variables for JWT authentication:
