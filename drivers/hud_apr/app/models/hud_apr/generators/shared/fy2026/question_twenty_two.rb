@@ -380,9 +380,38 @@ module HudApr::Generators::Shared::Fy2026
         group_scope = members.where(group.fetch(:cond))
         letter = col_letters.fetch(idx)
 
-        move_in_clause = a_t[:adjusted_move_in_date].not_eq(nil).and(move_in_col.not_eq(nil))
+        # Q22f: Only PH projects (PSH/RRH) - always uses [housing move-in date]
+        # Q22g: Both PH and non-PH projects - requires different logic:
+        #   - PH projects (3, 9, 13, and type 7 with Pay for Success) use [housing move-in date]
+        #   - All other project types use [project start date] as move-in date
+        ph_projects_condition = a_t[:project_type].in([3, 9, 13]).or(
+          a_t[:project_type].eq(7).and(a_t[:pay_for_success].eq(true)),
+        )
+        non_ph_projects_condition = ph_projects_condition.not
 
-        exit_scope = group_scope.where(a_t[:adjusted_move_in_date].eq(nil))
+        # PH projects: use adjusted_move_in_date (housing move-in date)
+        ph_move_in_condition = ph_projects_condition.
+          and(a_t[:adjusted_move_in_date].not_eq(nil))
+
+        # Non-PH projects: use first_date_in_program (project start date)
+        # Note: Only applies to Q22g since Q22f universe only contains PH projects
+        non_ph_move_in_condition = non_ph_projects_condition.
+          and(a_t[:first_date_in_program].not_eq(nil))
+
+        move_in_clause = move_in_col.not_eq(nil).and(ph_move_in_condition.or(non_ph_move_in_condition))
+
+        # Row 3: Clients who exited without moving into housing
+        # Q22f: All clients are PH projects, so use adjusted_move_in_date
+        # Q22g: Only applies to PH projects (non-PH projects should have zeros in this row)
+        # Includes clients who haven't moved in OR moved in after report end date
+        ph_exit_condition = ph_projects_condition.and(
+          a_t[:adjusted_move_in_date].eq(nil).or(
+            a_t[:adjusted_move_in_date].gt(@report.end_date),
+          ),
+        )
+
+        exit_scope = group_scope.where(ph_exit_condition)
+        # Q22f: Also require last_date_in_program to be present (exited clients)
         exit_scope = exit_scope.where(a_t[:last_date_in_program].not_eq(nil)) if question == 'Q22f'
 
         sheet.update_cell_members(

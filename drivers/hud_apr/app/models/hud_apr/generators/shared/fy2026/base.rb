@@ -533,33 +533,28 @@ module HudApr::Generators::Shared::Fy2026
         group_by(&:client_id).
         transform_values do |enrollments|
           enrollments.select do |enrollment|
-            nbn_with_service_or_so_with_cls?(enrollment)
+            nbn_with_service?(enrollment)
           end
         end.
         reject { |_, enrollments| enrollments.empty? }
     end
 
     # Uses Method 2 Active Clients by Date of Service from the HMIS Glossary
-    private def nbn_with_service_or_so_with_cls?(enrollment)
-      return true unless enrollment.nbn? || enrollment.so?
-      # In addition to the date of service, Method 2 should also include the [project exit date] as an indicator of an active client
-      return true if enrollment.last_date_in_program.present? && (@report.start_date..@report.end_date).cover?(enrollment.last_date_in_program)
+    private def nbn_with_service?(enrollment)
+      # Return early for non-NBN projects. The non-NBN types use Method 1 (always included),
+      # so no service check needed. Only NBN projects use Method 2 (requires service).
+      return true unless enrollment.nbn?
 
-      # anyone with service in the range (bed-night for ES NBN, CLS for SO)
-      @with_service ||= Set.new.tap do |enrollment_ids|
-        # ES NBN
-        enrollment_ids.merge(GrdaWarehouse::ServiceHistoryService.bed_night.
+      @with_service ||= (
+        # anyone with service in the range
+        GrdaWarehouse::ServiceHistoryService.bed_night.
           service_excluding_extrapolated.
           service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
           where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
-          pluck(:service_history_enrollment_id))
-        # SO
-        enrollment_ids.merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          joins(enrollment: [:current_living_situations, :project]).
-          merge(GrdaWarehouse::Hud::Project.so.where(id: @report.project_ids)).
-          merge(GrdaWarehouse::Hud::CurrentLivingSituation.between(start_date: @report.start_date, end_date: @report.end_date)).
-          pluck(:id))
-      end
+          pluck(:service_history_enrollment_id) +
+        # plus anyone with an exit within the range
+        enrollment_scope_without_preloads.exit_within_date_range(start_date: @report.start_date, end_date: @report.end_date).pluck(:id)).to_set
+
       @with_service.include?(enrollment.id)
     end
 

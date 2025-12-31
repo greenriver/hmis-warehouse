@@ -38,7 +38,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     File.join(result_file_prefix, name)
   end
 
-  def setup
+  def setup(cleanup_enrollment_cocs: ENV['CLEANUP_ENROLLMENT_COCS'] == 'true')
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
 
@@ -67,10 +67,39 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       warehouse_fixture.store
       app_fixture.store
     end
+
+    # Cleanup EnrollmentCoC to match production behavior where ProjectCleanup corrects mismatches
+    # This matches what happens in the UI/production when skip_location_cleanup is false
+    # Only run if explicitly requested via cleanup_enrollment_cocs: true
+    cleanup_enrollment_cocs_for_tests if cleanup_enrollment_cocs
   end
 
   def cleanup
     GrdaWarehouse::Utility.clear!
+  end
+
+  # Cleanup EnrollmentCoC to match single-CoC projects
+  # This replicates the logic from GrdaWarehouse::Tasks::ProjectCleanup#fix_client_locations
+  # which runs in production but is skipped in tests via skip_location_cleanup: true
+  def cleanup_enrollment_cocs_for_tests
+    GrdaWarehouse::Hud::Project.find_each do |project|
+      next unless project.enrollments.exists?
+
+      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
+        select { |code| HudHelper.util.valid_coc?(code) }
+
+      next unless coc_codes.present?
+
+      # If project has exactly one CoC, fix all enrollments to match
+      if coc_codes.count == 1
+        project.enrollments.where.not(EnrollmentCoC: coc_codes).
+          update_all(EnrollmentCoC: coc_codes.first, source_hash: nil)
+      end
+
+      # For multi-CoC projects, clear invalid CoCs
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).
+        update_all(EnrollmentCoC: nil, source_hash: nil)
+    end
   end
 
   def report_result
