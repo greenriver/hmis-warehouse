@@ -1,6 +1,6 @@
-# Rails.logger.debug "Running initializer in #{__FILE__}"
+# frozen_string_literal: true
 
-# Be sure to restart your server when you modify this file.
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 Rails.application.config.session_store(
   :redis_store,
