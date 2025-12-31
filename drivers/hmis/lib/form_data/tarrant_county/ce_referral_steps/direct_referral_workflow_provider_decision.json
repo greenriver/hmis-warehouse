@@ -15,6 +15,35 @@
       ]
     },
     {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "mapping": {
+        "custom_field_key": "direct_referral_workflow_provider_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "ineligible", "label": "Does not meet eligibility criteria" },
+        { "code": "enrolled_declined_hmis_data_entry", "label": "Enrolled, but declined HMIS data entry" },
+        { "code": "referral_sent_in_error", "label": "Referral sent in error" },
+        { "code": "hmis_user_error_client_enrolled_without_accepting_referral", "label": "HMIS User Error - Client enrolled without accepting referral" },
+        { "code": "not_experiencing_homelessness", "label": "No longer experiencing homelessness" },
+        { "code": "enrolled_in_equivalent_service", "label": "Enrolled in equivalent service with another provider" },
+        { "code": "unable_to_locate_client", "label": "Unable to contact/locate" },
+        { "code": "client_not_interested", "label": "No longer interested in the program" },
+        { "code": "other", "label": "Other (detail in notes section)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "decision",
+          "answer_code": "0"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
       "text": "Notes",
       "type": "TEXT",
       "link_id": "notes",

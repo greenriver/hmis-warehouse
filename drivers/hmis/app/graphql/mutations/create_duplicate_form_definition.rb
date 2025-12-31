@@ -21,7 +21,7 @@ module Mutations
 
       raise 'not found' unless definition_to_duplicate
 
-      access_denied! unless policy_for(definition_to_duplicate, policy_type: :form_definition).can_duplicate_form?
+      access_denied! unless policy_for(definition_to_duplicate, policy_type: :form_definition).can_duplicate?
 
       # Drop all custom_field_key mappings on definition structure
       cleaned_definition_json = remove_custom_field_mappings(definition_to_duplicate.dup)

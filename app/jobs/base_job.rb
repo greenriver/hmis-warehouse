@@ -10,6 +10,30 @@ class BaseJob < ApplicationJob
   include NotifierConfig
   include MaintenanceTaskInstrumentation
 
+  # Priority constants for job scheduling
+  # Lower numbers = higher priority (processed first)
+
+  # 1. User Interaction Tier
+  UI_IMMEDIATE_PRIORITY_NEG5 = -5 # User is actively waiting for results in the UI
+
+  # 2. Critical System Tier
+  HIGH_IMPORTANCE_PRIORITY_0 = 0 # Critical tasks needed to maintain system integrity
+
+  # 3. Standard Operations Tier
+  DEFAULT_BACKGROUND_PRIORITY_5 = 5 # Standard async tasks (default choice for most work)
+  CLEANUP_BACKGROUND_PRIORITY_6 = 6 # Non-urgent cleanup following standard operations
+
+  # 4. Batch & Bulk Tier
+  PRE_BULK_PROCESSING_PRIORITY_9 = 9 # High-priority batch work that should lead the bulk queue
+  BULK_PROCESSING_PRIORITY_10 = 10 # Standard bulk processing and large data exports
+
+  # 5. Consistency & Cache Tier
+  CACHE_REFRESH_PRIORITY_12 = 12 # Standard warming or rebuilding of data caches
+  CLEANUP_CACHE_REFRESH_PRIORITY_13 = 13 # Non-urgent cache updates (e.g. external ID lookups)
+
+  # 6. Maintenance Tier
+  MAINTENANCE_PRIORITY_15 = 15 # Background housekeeping and eventual consistency
+
   attr_accessor :start_time
 
   if ENV['EKS'] == 'true'
