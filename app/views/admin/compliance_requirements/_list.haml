@@ -6,6 +6,7 @@
       %th Revision
       %th Expires After
       %th Status
+      %th Last Updated
       %th Actions
   %tbody
     - list.each do |req|
@@ -19,5 +20,6 @@
           - else
             %span.text-muted Never
         %td= req.active? ? 'Active' : 'Inactive'
+        %td= l req.updated_at, format: :table_compact
         %td
           = render 'action_menu', req: req

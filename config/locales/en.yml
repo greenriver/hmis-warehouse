@@ -83,6 +83,9 @@ en:
     index:
       title: 'Projects'
       search_prompt: 'Search projects...'
+  time:
+    formats:
+      table_compact: "%m/%d/%y %I:%M%P"
   window:
     clients:
       index:
