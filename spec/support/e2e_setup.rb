@@ -61,9 +61,17 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 
   def sign_out
-    find('#userMenuToggle').click
-    # FIXME: sign out button needs a11y
-    find('span', text: 'Sign Out').click
+    # For system tests, simply remove the JWT token cookie and reload the page
+    # This bypasses the oauth2-proxy sign_out flow which isn't available in tests
+    current_domain = URI.parse(page.current_url).host
+    page.driver.remove_cookie('test_jwt_token', path: '/', domain: current_domain)
+
+    # Clear any localStorage caches
+    page.execute_script('localStorage.removeItem("_hmis_user_info")')
+
+    # Reload to show unauthenticated state
+    visit('/')
+    page.driver.wait_for_network_idle
   end
 
   def set_hidden_field_value(id, value)

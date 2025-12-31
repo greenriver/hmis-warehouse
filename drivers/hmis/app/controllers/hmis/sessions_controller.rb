@@ -44,7 +44,6 @@ class Hmis::SessionsController < Hmis::BaseController
   # Return IDP logout URL for frontend to redirect to
   def destroy
     attach_data_source_id
-    data_source = GrdaWarehouse::DataSource.hmis.find(current_hmis_user.hmis_data_source_id)
 
     # Generate logout URL for HMIS frontend
     # Flow: Frontend → Zitadel end_session → HMIS oauth2-proxy sign_out (with rd param) → HMIS root
@@ -66,7 +65,6 @@ class Hmis::SessionsController < Hmis::BaseController
       client_id: ENV['ZITADEL_IDP_HMIS_CLIENT_ID'],
     )
 
-    Rails.logger.error("DESTROYING SESSION #{logout_url}")
     render json: { success: true, redirect_url: logout_url }, status: 200
   end
 end
