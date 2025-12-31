@@ -11,66 +11,118 @@ require 'rails_helper'
 RSpec.describe ImpersonationManager do
   include_context 'with cache store'
 
-  let(:session_id) { 'test-session-123' }
-  let(:manager) { described_class.new(session_id) }
-
   before do
     Rails.cache.clear
   end
 
   describe '#initialize' do
-    it 'sets session_id as string' do
-      expect(manager.session_id).to eq('test-session-123')
+    it 'stores session object when passed a session object' do
+      session = double(id: 'test-123')
+      manager = described_class.new(session)
+      expect(manager.session).to eq(session)
     end
 
-    it 'converts numeric session_id to string' do
-      manager = described_class.new(12345)
-      expect(manager.session_id).to eq('12345')
+    it 'handles string session_id (backwards compatibility)' do
+      manager = described_class.new('test-session-id')
+      expect(manager.session).to be_nil
     end
 
-    it 'converts nil session_id to empty string' do
+    it 'handles nil session' do
       manager = described_class.new(nil)
-      expect(manager.session_id).to eq('')
+      expect(manager.session).to be_nil
     end
   end
 
   describe '#store' do
     let(:true_user_id) { 1 }
     let(:impersonated_user_id) { 2 }
+    let(:session_id) { 'test-session-123' }
 
-    it 'stores impersonation data in cache' do
-      cache_key = manager.store(true_user_id, impersonated_user_id)
-      expect(cache_key).to eq("impersonation:#{session_id}")
+    context 'when using session storage (non-system test)' do
+      before do
+        allow(Rails.env).to receive(:test?).and_return(false)
+      end
 
-      stored_data = Rails.cache.read(cache_key)
-      expect(stored_data[:true_user_id]).to eq(true_user_id)
-      expect(stored_data[:impersonated_user_id]).to eq(impersonated_user_id)
-      expect(stored_data[:session_id]).to eq(session_id)
+      it 'stores impersonation data in session and returns true' do
+        session_data = {}
+        session = double(id: session_id, present?: true, '[]': nil, '[]=': nil)
+        allow(session).to receive(:[]=) do |key, value|
+          session_data[key] = value
+        end
+        allow(session).to receive(:[]) { |key| session_data[key] }
+
+        manager = described_class.new(session)
+        result = manager.store(true_user_id, impersonated_user_id)
+
+        expect(result).to be true
+        expect(session_data[:impersonation]).to include(
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: session_id,
+        )
+      end
+
+      it 'returns false when session is not present' do
+        manager = described_class.new(nil)
+        result = manager.store(true_user_id, impersonated_user_id)
+        expect(result).to be false
+      end
     end
 
-    it 'returns nil when session_id is blank' do
+    context 'when using cache storage (system test)' do
+      before do
+        allow(Rails.env).to receive(:test?).and_return(true)
+        allow(ENV).to receive(:[]).with('RUN_SYSTEM_TESTS').and_return('true')
+      end
+
+      it 'stores impersonation data in cache and returns true' do
+        session = double(id: session_id)
+        manager = described_class.new(session)
+
+        result = manager.store(true_user_id, impersonated_user_id)
+
+        expect(result).to be true
+        cache_key = "impersonation:#{session_id}"
+        stored_data = Rails.cache.read(cache_key)
+        expect(stored_data[:true_user_id]).to eq(true_user_id)
+        expect(stored_data[:impersonated_user_id]).to eq(impersonated_user_id)
+        expect(stored_data[:session_id]).to eq(session_id)
+      end
+    end
+
+    it 'returns false when session_id is blank' do
       manager = described_class.new('')
       result = manager.store(true_user_id, impersonated_user_id)
-      expect(result).to be_nil
+      expect(result).to be false
     end
 
-    it 'returns nil when session_id is nil' do
+    it 'returns false when session_id is nil' do
       manager = described_class.new(nil)
       result = manager.store(true_user_id, impersonated_user_id)
-      expect(result).to be_nil
+      expect(result).to be false
     end
   end
 
   describe '#get' do
     let(:true_user_id) { 1 }
     let(:impersonated_user_id) { 2 }
+    let(:session_id) { 'test-session-123' }
 
-    context 'when impersonation exists' do
+    context 'when using session storage' do
       before do
-        manager.store(true_user_id, impersonated_user_id)
+        allow(Rails.env).to receive(:test?).and_return(false)
       end
 
-      it 'returns impersonation data hash' do
+      it 'returns impersonation data hash with symbol keys' do
+        impersonation_data = {
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: session_id,
+        }
+        session = double(id: session_id, present?: true, '[]': impersonation_data)
+
+        manager = described_class.new(session)
+
         data = manager.get
         expect(data).to be_a(Hash)
         expect(data[:true_user_id]).to eq(true_user_id)
@@ -78,63 +130,80 @@ RSpec.describe ImpersonationManager do
         expect(data[:session_id]).to eq(session_id)
       end
 
-      it 'handles string keys from cache' do
-        # Simulate cache returning string keys
-        Rails.cache.write(
-          manager.send(:cache_key), {
-            'true_user_id' => true_user_id,
-            'impersonated_user_id' => impersonated_user_id,
-            'session_id' => session_id,
-          }, expires_in: 24.hours
-        )
+      it 'handles string keys from session' do
+        impersonation_data = {
+          'true_user_id' => true_user_id,
+          'impersonated_user_id' => impersonated_user_id,
+          'session_id' => session_id,
+        }
+        session = double(id: session_id, present?: true)
+        allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
+
+        manager = described_class.new(session)
 
         data = manager.get
         expect(data[:true_user_id]).to eq(true_user_id)
         expect(data[:impersonated_user_id]).to eq(impersonated_user_id)
         expect(data[:session_id]).to eq(session_id)
       end
-    end
-
-    context 'when session has changed' do
-      before do
-        manager.store(true_user_id, impersonated_user_id)
-      end
 
       it 'returns nil when session_id does not match stored session_id' do
-        # Simulate scenario where cache key is the same but session_id in data differs
-        # This could happen if session was renewed but cache key somehow persisted
-        old_cache_key = manager.send(:cache_key)
-        Rails.cache.write(
-          old_cache_key, {
-            true_user_id: true_user_id,
-            impersonated_user_id: impersonated_user_id,
-            session_id: 'old-session-id', # Different from current session_id
-          }, expires_in: 24.hours
-        )
+        impersonation_data = {
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: 'old-session-id',
+        }
+        session = double(id: session_id, present?: true)
+        allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
 
-        # Now try to get with current manager (which has different session_id)
+        manager = described_class.new(session)
+
         data = manager.get
         expect(data).to be_nil
       end
 
-      it 'returns nil when accessing with different session_id (different cache key)' do
-        # Normal case: different session_id means different cache key, so no data found
-        different_manager = described_class.new('different-session')
-        data = different_manager.get
-        expect(data).to be_nil
-      end
-    end
+      it 'returns nil when impersonation does not exist' do
+        session = double(id: session_id, present?: true)
+        allow(session).to receive(:[]).with(:impersonation).and_return(nil)
 
-    context 'when impersonation does not exist' do
-      it 'returns nil' do
+        manager = described_class.new(session)
+
+        expect(manager.get).to be_nil
+      end
+
+      it 'returns nil when session is not present' do
+        manager = described_class.new(nil)
         expect(manager.get).to be_nil
       end
     end
 
-    context 'when session_id is blank' do
-      let(:manager) { described_class.new('') }
+    context 'when using cache storage (system test)' do
+      before do
+        allow(Rails.env).to receive(:test?).and_return(true)
+        allow(ENV).to receive(:[]).with('RUN_SYSTEM_TESTS').and_return('true')
+      end
 
-      it 'returns nil' do
+      it 'returns impersonation data from cache' do
+        cache_key = "impersonation:#{session_id}"
+        impersonation_data = {
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: session_id,
+        }
+        Rails.cache.write(cache_key, impersonation_data, expires_in: 12.hours)
+
+        session = double(id: session_id)
+        manager = described_class.new(session)
+
+        data = manager.get
+        expect(data[:true_user_id]).to eq(true_user_id)
+        expect(data[:impersonated_user_id]).to eq(impersonated_user_id)
+        expect(data[:session_id]).to eq(session_id)
+      end
+
+      it 'returns nil when cache is empty' do
+        session = double(id: session_id)
+        manager = described_class.new(session)
         expect(manager.get).to be_nil
       end
     end
@@ -143,64 +212,100 @@ RSpec.describe ImpersonationManager do
   describe '#clear' do
     let(:true_user_id) { 1 }
     let(:impersonated_user_id) { 2 }
+    let(:session_id) { 'test-session-123' }
 
-    it 'removes impersonation data from cache' do
-      manager.store(true_user_id, impersonated_user_id)
-      expect(manager.get).to be_present
+    context 'when using session storage' do
+      before do
+        allow(Rails.env).to receive(:test?).and_return(false)
+      end
 
-      manager.clear
-      expect(manager.get).to be_nil
+      it 'removes impersonation data from session' do
+        session_data = {}
+        session = double(id: session_id, present?: true, delete: nil)
+        allow(session).to receive(:delete) do |key|
+          session_data.delete(key)
+        end
+
+        manager = described_class.new(session)
+        manager.clear
+
+        expect(session).to have_received(:delete).with(:impersonation)
+      end
+
+      it 'does nothing when session is not present' do
+        manager = described_class.new(nil)
+        expect { manager.clear }.not_to raise_error
+      end
     end
 
-    it 'does nothing when session_id is blank' do
-      manager = described_class.new('')
-      expect { manager.clear }.not_to raise_error
+    context 'when using cache storage (system test)' do
+      before do
+        allow(Rails.env).to receive(:test?).and_return(true)
+        allow(ENV).to receive(:[]).with('RUN_SYSTEM_TESTS').and_return('true')
+      end
+
+      it 'removes impersonation data from cache' do
+        cache_key = "impersonation:#{session_id}"
+        impersonation_data = {
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: session_id,
+        }
+        Rails.cache.write(cache_key, impersonation_data, expires_in: 12.hours)
+
+        session = double(id: session_id)
+        manager = described_class.new(session)
+        manager.clear
+
+        expect(Rails.cache.read(cache_key)).to be_nil
+      end
     end
   end
 
   describe '#active?' do
     let(:true_user_id) { 1 }
     let(:impersonated_user_id) { 2 }
+    let(:session_id) { 'test-session-123' }
 
-    context 'when impersonation exists and session matches' do
-      before do
-        manager.store(true_user_id, impersonated_user_id)
-      end
-
-      it 'returns true' do
-        expect(manager.active?).to be true
-      end
+    before do
+      allow(Rails.env).to receive(:test?).and_return(false)
     end
 
-    context 'when impersonation does not exist' do
-      it 'returns false' do
-        expect(manager.active?).to be false
-      end
+    it 'returns true when impersonation exists and session matches' do
+      impersonation_data = {
+        true_user_id: true_user_id,
+        impersonated_user_id: impersonated_user_id,
+        session_id: session_id,
+      }
+      session = double(id: session_id, present?: true)
+      allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
+
+      manager = described_class.new(session)
+
+      expect(manager.active?).to be true
     end
 
-    context 'when session has changed' do
-      before do
-        manager.store(true_user_id, impersonated_user_id)
-      end
+    it 'returns false when impersonation does not exist' do
+      session = double(id: session_id, present?: true)
+      allow(session).to receive(:[]).with(:impersonation).and_return(nil)
 
-      it 'returns false' do
-        # Create a new manager with different session_id
-        different_manager = described_class.new('different-session')
-        expect(different_manager.active?).to be false
-      end
+      manager = described_class.new(session)
+
+      expect(manager.active?).to be false
     end
-  end
 
-  describe 'session isolation' do
-    let(:session_1) { 'session-1' }
-    let(:session_2) { 'session-2' }
-    let(:manager_1) { described_class.new(session_1) }
-    let(:manager_2) { described_class.new(session_2) }
+    it 'returns false when session_id does not match stored session_id' do
+      impersonation_data = {
+        true_user_id: true_user_id,
+        impersonated_user_id: impersonated_user_id,
+        session_id: 'different-session-id',
+      }
+      session = double(id: session_id, present?: true)
+      allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
 
-    it 'prevents cross-session access' do
-      manager_1.store(1, 2)
-      expect(manager_1.get).to be_present
-      expect(manager_2.get).to be_nil
+      manager = described_class.new(session)
+
+      expect(manager.active?).to be false
     end
   end
 end
