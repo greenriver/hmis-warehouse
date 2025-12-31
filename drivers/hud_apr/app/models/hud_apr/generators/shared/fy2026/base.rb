@@ -221,7 +221,12 @@ module HudApr::Generators::Shared::Fy2026
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
-          adjusted_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
+          calculated_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
+          # For non-PH projects, populate adjusted_move_in_date with entry date
+          # For PH projects, keep nil if they haven't moved in
+          is_ph_or_pfs_project = last_service_history_enrollment.ph? ||
+            (last_service_history_enrollment.other? && last_service_history_enrollment.project.pay_for_success?)
+          adjusted_move_in_date = calculated_move_in_date || (is_ph_or_pfs_project ? nil : last_service_history_enrollment.first_date_in_program)
           hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
 
