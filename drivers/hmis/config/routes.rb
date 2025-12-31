@@ -23,7 +23,7 @@ BostonHmis::Application.routes.draw do
       get 'logout', to: 'sessions#destroy' if Rails.env.development?
 
       resource :user, only: [:show]
-      resource :session_keepalive, only: [:create]
+      resource :session_keepalive, only: [:show]
 
       get 'ac/prevention_assessment_report/:referral_id',
           to: 'reports#prevention_assessment_report',

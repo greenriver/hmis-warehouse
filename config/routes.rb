@@ -42,7 +42,7 @@ Rails.application.routes.draw do
   post 'users/sign_in', to: 'users/sessions#create', as: :user_session
   delete 'users/sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   get 'logout_talentlms', to: 'users/sessions#destroy', as: :logout_talentlms
-  post 'session_keepalive', to: 'users/sessions#keepalive', as: :session_keepalive
+  get 'session_keepalive', to: 'users/sessions#keepalive', as: :session_keepalive
 
   namespace :users do
     resources :account_requests, only: [:new, :create]

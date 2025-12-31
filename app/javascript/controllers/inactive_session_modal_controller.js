@@ -161,12 +161,12 @@ export default class extends Controller {
       this.state.xhr = undefined;
       // Update expiration time if server returned new expiration
       if (data && data.expiration_time) {
-        const now = getTimestamp();
-        const remainingSeconds = data.remaining_seconds || 0;
-        const expiresAt = now + remainingSeconds;
-        shared.saveValue(EXPIRES_KEY, expiresAt);
+        // Store absolute timestamp directly (not now + remaining)
+        shared.saveValue(EXPIRES_KEY, data.expiration_time);
         // Update state to reflect new expiration
-        this.state.remaining = remainingSeconds;
+        const now = getTimestamp();
+        const remainingSeconds = data.expiration_time - now;
+        this.state.remaining = remainingSeconds > 0 ? remainingSeconds : 0;
       }
       this.hideWarning();
     };
@@ -175,7 +175,7 @@ export default class extends Controller {
       window.location.reload();
     };
     this.state.xhr = $.ajax(event.currentTarget.href, {
-      method: 'POST',
+      method: 'GET',
       dataType: 'json',
       headers: {
         'Accept': 'application/json',
