@@ -12,10 +12,19 @@ module Health
     include AjaxModalRails::Controller
     include HealthPatientDashboard
     include Search
+    extend BackgroundRenderAction
 
     before_action :require_can_view_patients_for_own_agency!
     before_action :require_has_team_or_admin!
     before_action :set_dates
+
+    background_render_action(:render_section, ::BackgroundRender::HealthTeamPatientsTableJob) do
+      {
+        user_id: current_user.id,
+        start_date: @start_date.to_s,
+        end_date: @end_date.to_s,
+      }
+    end
 
     def require_has_team_or_admin!
       return if current_user.can_administer_health? || current_user.team_mates.exists?
@@ -51,8 +60,9 @@ module Health
       @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          patient_ids = @patients.pluck(:id)
-          medicaid_ids = @patients.pluck(:medicaid_id)
+          ids = @patients.pluck(:id, :medicaid_id)
+          patient_ids = ids.map(&:first)
+          medicaid_ids = ids.map(&:last)
           @patients = patient_source.where(id: patient_ids)
           if @column == 'name'
             @patients = @patients.order(last_name: @direction, first_name: @direction)

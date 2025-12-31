@@ -683,6 +683,7 @@ Rails.application.routes.draw do
     resources :team_patients, only: [:index] do
       collection do
         post :detail
+        post :render_section
 
         # Patient search queries
         resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
