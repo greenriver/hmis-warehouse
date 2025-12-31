@@ -20,6 +20,9 @@ oauth2:
 expiry:
   signingKeys: "4h"
   idTokens: "1h"
+  refreshTokens:
+    validIfNotUsedFor: "8h"
+    absoluteLifetime: "8h"
 connectors:
   - type: github
     id: github_idp
