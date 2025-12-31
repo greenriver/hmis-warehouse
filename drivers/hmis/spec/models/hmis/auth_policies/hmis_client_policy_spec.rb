@@ -90,7 +90,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
 
     it 'raises an error if instance-specific method is called' do
-      expect { policy.can_view_name? }.to raise_error(ArgumentError, 'Must provide a client instance')
+      expect { policy.can_view_name? }.to raise_error(NoMethodError)
     end
   end
 end

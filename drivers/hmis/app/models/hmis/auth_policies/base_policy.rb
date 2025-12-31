@@ -13,6 +13,10 @@ class Hmis::AuthPolicies::BasePolicy
   # used in child policy classes
   include Memery
 
+  def self.for_resource(context:, resource:)
+    new(context: context, resource: resource)
+  end
+
   def initialize(context:, resource:)
     @context = context
     validate_resource!(resource)
@@ -24,16 +28,23 @@ class Hmis::AuthPolicies::BasePolicy
   # convenience
   def user = context.user
 
-  # sanity check, is the resource what we expect
-  def validate_resource!(_arg) = raise 'override this in child class'
+  # Get global permissions for the user (across all projects)
+  def global_permissions = context.global_permissions
 
-  # validation helper
+  # sanity check, is the resource what we expect. must be implemented by child policy
+  def validate_resource!(_arg) = raise NotImplementedError, 'must implement in subclass'
+
+  # validation helper for instances
   def ensure_arg_type!(arg, klass)
     return if arg.is_a?(klass)
 
-    # For ActiveRecord models, also accept the class itself
-    return if arg.is_a?(Class) && arg < ActiveRecord::Base && arg == klass
+    raise ArgumentError, "Expected an instance of #{klass.name}, got #{arg.class.name}"
+  end
 
-    raise ArgumentError, "Expected a #{klass.name} got #{arg.class}"
+  # validation helper for classes
+  def ensure_arg_class!(arg, klass)
+    return if arg == klass
+
+    raise ArgumentError, "Expected the #{klass.name} class, got #{arg.inspect}"
   end
 end

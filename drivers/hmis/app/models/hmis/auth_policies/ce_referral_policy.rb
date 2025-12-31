@@ -13,91 +13,107 @@
 # - A user can also view a referral if they have `:can_view_own_referrals` and are a participant in a swimlane
 #   that has a completed step in the referral.
 # - Indexing (e.g., for a dashboard) requires a combination of view and perform permissions.
-class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
-  def can_index?
-    return false unless Hmis::Ce.configuration.enabled?
-
-    # require that a user could both view referrals and act on them
-    return false unless (context.potential_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
-    return false unless (context.potential_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
-
-    true
+class Hmis::AuthPolicies::CeReferralPolicy
+  def self.for_resource(context:, resource:)
+    if resource.is_a?(Class)
+      Global.new(context: context, resource: resource)
+    else
+      Instance.new(context: context, resource: resource)
+    end
   end
 
-  def can_view?
-    return false unless Hmis::Ce.configuration.enabled?
+  class Global < Hmis::AuthPolicies::BasePolicy
+    def can_index?
+      return false unless Hmis::Ce.configuration.enabled?
 
-    # Referrals that the user can view because they have can_view_referrals in the target project
-    return true if project_permissions.include?(:can_view_referrals) && project_permissions.include?(:can_view_project)
+      # require that a user could both view referrals and act on them
+      return false unless (context.potential_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
+      return false unless (context.potential_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
 
-    # Referrals that the user can view because they have can_view_outgoing_referral_details in the source project.
-    # Note that can_view_outgoing_referral_details grants full referral details,
-    # whereas can_manage_outgoing_referrals only grants summary level permission.
-    return true if source_project_permissions.include?(:can_view_outgoing_referral_details)
+      true
+    end
 
-    # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
-    # Referral only becomes viewable once the assigned step becomes available.
-    # Note that the user does *not* need can_view_project in this case
-    project_permissions.include?(:can_view_own_referrals) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Ce::Referral)
   end
 
-  def can_view_summary?
-    return false unless Hmis::Ce.configuration.enabled?
+  class Instance < Hmis::AuthPolicies::BasePolicy
+    def can_view?
+      return false unless Hmis::Ce.configuration.enabled?
 
-    return true if can_view?
+      # Referrals that the user can view because they have can_view_referrals in the target project
+      return true if project_permissions.include?(:can_view_referrals) && project_permissions.include?(:can_view_project)
 
-    # Users who can manage outgoing referrals from the source project
-    return true if source_project_permissions.include?(:can_manage_outgoing_referrals)
+      # Referrals that the user can view because they have can_view_outgoing_referral_details in the source project.
+      # Note that can_view_outgoing_referral_details grants full referral details,
+      # whereas can_manage_outgoing_referrals only grants summary level permission.
+      return true if source_project_permissions.include?(:can_view_outgoing_referral_details)
 
-    # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project, which is validated on the referral
-    # TODO(8549) - encapsulate this check requiring both can_view_enrollment_details and can_view_project in the Enrollment Policy
-    return true if referral.target_enrollment_id.present? && project_permissions.include?(:can_view_enrollment_details) && project_permissions.include?(:can_view_project)
+      # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
+      # Referral only becomes viewable once the assigned step becomes available.
+      # Note that the user does *not* need can_view_project in this case
+      project_permissions.include?(:can_view_own_referrals) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
+    end
 
-    false
+    def can_view_summary?
+      return false unless Hmis::Ce.configuration.enabled?
+
+      return true if can_view?
+
+      # Users who can manage outgoing referrals from the source project
+      return true if source_project_permissions.include?(:can_manage_outgoing_referrals)
+
+      # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project, which is validated on the referral
+      # TODO(8549) - encapsulate this check requiring both can_view_enrollment_details and can_view_project in the Enrollment Policy
+      return true if referral.target_enrollment_id.present? && project_permissions.include?(:can_view_enrollment_details) && project_permissions.include?(:can_view_project)
+
+      false
+    end
+
+    def can_assign_referral_tasks?
+      return false unless Hmis::Ce.configuration.enabled?
+
+      project_permissions.include?(:can_assign_referral_tasks)
+    end
+
+    def can_perform?(step: nil)
+      return false unless Hmis::Ce.configuration.enabled?
+
+      return true if project_permissions.include?(:can_perform_any_referral_tasks)
+
+      return context.assigned_referral_step_ids.include?(step.id) if step && project_permissions.include?(:can_perform_own_referral_tasks)
+
+      false
+    end
+
+    def can_create_note?(step: nil)
+      return can_perform?(step: step) if step
+
+      # If step is not provided, this check is for creating a top-level referral note. Allowed if user can perform _any_ available steps.
+      return false unless Hmis::Ce.configuration.enabled?
+      return true if project_permissions.include?(:can_perform_any_referral_tasks)
+      return true if project_permissions.include?(:can_perform_own_referral_tasks) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
+
+      false
+    end
+
+    protected
+
+    # convenience
+    def referral = resource
+
+    # *target* project
+    def project_permissions
+      project_id = context.referral_project_id(referral.id)
+      context.project_permissions(project_id)
+    end
+
+    def source_project_permissions
+      project_id = context.referral_source_project_id(referral.id)
+      context.project_permissions(project_id)
+    end
+
+    def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Ce::Referral)
   end
-
-  def can_assign_referral_tasks?
-    return false unless Hmis::Ce.configuration.enabled?
-
-    project_permissions.include?(:can_assign_referral_tasks)
-  end
-
-  def can_perform?(step: nil)
-    return false unless Hmis::Ce.configuration.enabled?
-
-    return true if project_permissions.include?(:can_perform_any_referral_tasks)
-
-    return context.assigned_referral_step_ids.include?(step.id) if step && project_permissions.include?(:can_perform_own_referral_tasks)
-
-    false
-  end
-
-  def can_create_note?(step: nil)
-    return can_perform?(step: step) if step
-
-    # If step is not provided, this check is for creating a top-level referral note. Allowed if user can perform _any_ available steps.
-    return false unless Hmis::Ce.configuration.enabled?
-    return true if project_permissions.include?(:can_perform_any_referral_tasks)
-    return true if project_permissions.include?(:can_perform_own_referral_tasks) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
-
-    false
-  end
-
-  protected
-
-  # convenience
-  def referral = resource
-
-  # *target* project
-  def project_permissions
-    project_id = context.referral_project_id(referral.id)
-    context.project_permissions(project_id)
-  end
-
-  def source_project_permissions
-    project_id = context.referral_source_project_id(referral.id)
-    context.project_permissions(project_id)
-  end
-
-  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Ce::Referral)
 end

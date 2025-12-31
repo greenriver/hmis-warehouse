@@ -28,25 +28,26 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     )
   end
   let(:policy) { user.policy_for(referral, policy_type: :ce_referral) }
+  let(:global_policy) { user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral) }
 
   describe '#can_index?' do
     it 'returns true if user has both view and perform permissions' do
       create_access_control(user, project, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks])
-      expect(policy.can_index?).to be true
+      expect(global_policy.can_index?).to be true
     end
 
     it 'returns false if user only has view permission' do
       create_access_control(user, project, with_permission: [:can_view_referrals])
-      expect(policy.can_index?).to be false
+      expect(global_policy.can_index?).to be false
     end
 
     it 'returns false if user only has perform permission' do
       create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
-      expect(policy.can_index?).to be false
+      expect(global_policy.can_index?).to be false
     end
 
     it 'returns false if user has no permissions' do
-      expect(policy.can_index?).to be false
+      expect(global_policy.can_index?).to be false
     end
   end
 

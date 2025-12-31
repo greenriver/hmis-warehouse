@@ -7,27 +7,43 @@
 # frozen_string_literal: true
 
 # Determines a user's permissions for CE Opportunities
-class Hmis::AuthPolicies::CeOpportunityPolicy < Hmis::AuthPolicies::BasePolicy
-  # Accepts client parameter because referral authorization requires validating
-  # the relationship between three entities: user, opportunity, and client.
-  def can_create_referral?(client:)
-    return false unless Hmis::Ce.configuration.enabled?
-
-    # Does the client record data source match the current user?
-    return false unless client.data_source_id == user.hmis_data_source_id
-
-    # Does the user have permission?
-    return false unless context.project_permissions(opportunity.unit.project_id).include?(:can_start_referrals)
-
-    true
+class Hmis::AuthPolicies::CeOpportunityPolicy
+  def self.for_resource(context:, resource:)
+    if resource.is_a?(Class)
+      Global.new(context: context, resource: resource)
+    else
+      Instance.new(context: context, resource: resource)
+    end
   end
 
-  def can_view_candidates?
-    context.project_permissions(opportunity.unit.project_id).include?(:can_view_prioritized_client_lists)
+  class Global < Hmis::AuthPolicies::BasePolicy
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Ce::Opportunity)
   end
 
-  protected
+  class Instance < Hmis::AuthPolicies::BasePolicy
+    # Accepts client parameter because referral authorization requires validating
+    # the relationship between three entities: user, opportunity, and client.
+    def can_create_referral?(client:)
+      return false unless Hmis::Ce.configuration.enabled?
 
-  def opportunity = resource
-  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Ce::Opportunity)
+      # Does the client record data source match the current user?
+      return false unless client.data_source_id == user.hmis_data_source_id
+
+      # Does the user have permission?
+      return false unless context.project_permissions(opportunity.unit.project_id).include?(:can_start_referrals)
+
+      true
+    end
+
+    def can_view_candidates?
+      context.project_permissions(opportunity.unit.project_id).include?(:can_view_prioritized_client_lists)
+    end
+
+    protected
+
+    def opportunity = resource
+    def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Ce::Opportunity)
+  end
 end
