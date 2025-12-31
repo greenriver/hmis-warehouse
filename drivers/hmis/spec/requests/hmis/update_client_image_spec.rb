@@ -57,14 +57,14 @@ RSpec.describe 'UpdateClientImage', type: :request do
       remove_permissions(access_control, :can_edit_clients)
       input = { client_id: client.id, image_blob_id: blob.signed_id }
 
-      expect_gql_error post_graphql(input: input) { mutation }, message: 'Access denied'
+      expect_access_denied post_graphql(input: input) { mutation }
     end
 
     it 'fails if user lacks can_view_clients permission' do
       remove_permissions(access_control, :can_view_clients)
       input = { client_id: client.id, image_blob_id: blob.signed_id }
 
-      expect_gql_error post_graphql(input: input) { mutation }, message: 'Record not found'
+      expect_access_denied post_graphql(input: input) { mutation }
     end
   end
 
@@ -72,7 +72,7 @@ RSpec.describe 'UpdateClientImage', type: :request do
     it 'fails if client is not found' do
       input = { client_id: '999999', image_blob_id: blob.signed_id }
 
-      expect_gql_error post_graphql(input: input) { mutation }, message: 'Record not found'
+      expect_access_denied post_graphql(input: input) { mutation }
     end
 
     it 'fails if blob is not found' do
