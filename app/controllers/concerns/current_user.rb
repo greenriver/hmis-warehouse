@@ -100,6 +100,20 @@ module CurrentUser
     end
     helper_method :impersonating?
 
+    # Get the expiration time of the current JWT token.
+    #
+    # Returns the absolute expiration timestamp in seconds since epoch.
+    # Used for session expiry modal to track remaining session time.
+    #
+    # @return [Integer, nil] Expiration timestamp, or nil if not available
+    def jwt_expires_at
+      jwt_helper = jwt_helper_for_request
+      return nil unless jwt_helper&.token? && jwt_helper.validate!
+
+      jwt_helper.expiration_time
+    end
+    helper_method :jwt_expires_at
+
     private
 
     # Get JWT helper for the current request.

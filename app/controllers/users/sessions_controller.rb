@@ -26,14 +26,10 @@ class Users::SessionsController < ApplicationController
   def destroy
     request.env['last_user'] = current_user
 
-    # Redirect to IDP-specific logout URL
-    # For Zitadel: Logs out of Zitadel → clears oauth2-proxy session → redirects to root
-    # For others: Clears oauth2-proxy session → redirects to root
-    logout_url = helpers.idp_logout_url(
-      final_redirect_uri: root_url,
-      client_id: ENV['ZITADEL_IDP_WAREHOUSE_CLIENT_ID'],
-    )
-    redirect_to logout_url, allow_other_host: true
+    # Redirect to oauth2-proxy sign_out which clears the session cookie
+    # oauth2-proxy will handle the redirect to root_url via the rd parameter
+    sign_out_url = "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(root_url)}"
+    redirect_to sign_out_url, allow_other_host: true
   end
 
   # GET /session_keepalive

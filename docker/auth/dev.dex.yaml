@@ -19,10 +19,9 @@ oauth2:
   skipApprovalScreen: true
 expiry:
   signingKeys: "4h"
-  idTokens: "1h"
+  idTokens: "30m"
   refreshTokens:
-    validIfNotUsedFor: "8h"
-    absoluteLifetime: "8h"
+    validIfNotUsedFor: "12h"
 connectors:
   - type: github
     id: github_idp
@@ -47,6 +46,7 @@ connectors:
         - openid
         - email
         - profile
+        - offline_access
       getUserInfo: true
       # insecureSkipEmailVerified allows login even if issuer is unreachable during config load
       insecureSkipEmailVerified: true
