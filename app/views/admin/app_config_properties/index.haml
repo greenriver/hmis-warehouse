@@ -1,0 +1,20 @@
+= content_for :crumbs do
+  = link_to admin_configs_path do
+    &laquo; Site Configuration
+- title = 'App Config Properties'
+- content_for :title, title
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+
+  .row.mb-4
+    .col-8
+      %p Manage application configuration properties. These are key-value pairs used for various application settings.
+    .col-4.text-right
+      = link_to new_admin_app_config_property_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        New Property
+
+  = render_paginated_list(scope: @properties, item_name: 'property', list_partial: 'admin/app_config_properties/list')
