@@ -22,7 +22,7 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
       project: project,
       entry_date: report_start_date,
       household_id: Hmis::Hud::Base.generate_uuid,
-      relationship_to_ho_h: 1
+      relationship_to_ho_h: 1,
     )
     run_report(report)
     report.hopwa_caper_enrollments.first
@@ -35,27 +35,6 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
       expect(headers).to include('personal_id' => 'HMIS Personal ID')
       expect(headers).to include('services_summary' => 'Services (Record Type: Type Provided)')
       expect(headers).to include('first_name' => 'First name')
-    end
-
-    it 'returns headers for service records' do
-      # Use a fresh report to avoid idempotency issues
-      service_report = create_report([project])
-      enrollment = create_hiv_positive_enrollment(
-        client: client,
-        project: project,
-        entry_date: report_start_date,
-        household_id: Hmis::Hud::Base.generate_uuid,
-        relationship_to_ho_h: 1
-      )
-      create(:hud_service, enrollment: enrollment,
-             record_type: hopwa_financial_assistance, type_provided: rental_assistance,
-             date_provided: report_start_date, data_source: data_source)
-      run_report(service_report)
-
-      presenter = described_class.new(service_report.hopwa_caper_services.to_a, service_report, user)
-      headers = presenter.headers
-      expect(headers).to include('service_id' => 'HMIS Service ID')
-      expect(headers).to include('service_type_name' => 'Service Type')
     end
   end
 
@@ -84,13 +63,13 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
       it 'masks PII based on policy' do
         # Use existing policy classes
         allow(user).to receive(:reporting_policy_for_project).and_return(
-          GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
+          GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance,
         )
         expect(presenter.display_value(enrollment_record, 'first_name')).to eq('John')
 
         # Mock policy to deny
         allow(user).to receive(:reporting_policy_for_project).and_return(
-          GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+          GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance,
         )
         expect(presenter.display_value(enrollment_record, 'first_name')).to eq('Redacted')
       end
@@ -120,11 +99,11 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
           project: project,
           entry_date: report_start_date,
           household_id: Hmis::Hud::Base.generate_uuid,
-          relationship_to_ho_h: 1
+          relationship_to_ho_h: 1,
         )
         create(:hud_service, enrollment: enrollment,
-               record_type: hopwa_financial_assistance, type_provided: rental_assistance,
-               date_provided: report_start_date, data_source: data_source)
+                             record_type: hopwa_financial_assistance, type_provided: rental_assistance,
+                             date_provided: report_start_date, data_source: data_source)
 
         run_report(summary_report)
         report_enrollment = summary_report.hopwa_caper_enrollments.first

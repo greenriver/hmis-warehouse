@@ -10,8 +10,8 @@ module HopwaCaper
       @user = user
       @format = format
       @services_by_client = {}
-      @field_map = build_field_map
-      preload_services if @records.first.is_a?(HopwaCaper::Enrollment)
+      @field_map = enrollment_fields
+      preload_services
     end
 
     def headers
@@ -22,7 +22,7 @@ module HopwaCaper
       field = @field_map[field_name.to_s]
       return record.send(field_name).humanize if field.nil? # Fallback for unexpected fields
 
-      value = if field.name == 'services_summary' && record.is_a?(HopwaCaper::Enrollment)
+      value = if field.name == 'services_summary'
         services_summary(record)
       elsif record.respond_to?(field.name)
         record.send(field.name)
@@ -41,9 +41,7 @@ module HopwaCaper
         end
       end
 
-      if value.in?([true, false])
-        return Reports::ModelApplicationHelper.new.yes_no(value, include_content_tag: html?)
-      end
+      return Reports::ModelApplicationHelper.new.yes_no(value, include_content_tag: html?) if value.in?([true, false])
 
       transform_value(field, value, record, pii_policy)
     end
@@ -59,18 +57,18 @@ module HopwaCaper
         Field.new(name: 'destination_client_id', label: 'Warehouse Client ID'),
         Field.new(name: 'age'),
         Field.new(name: 'dob', label: 'Date of Birth', transform: ->(v, poly) { GrdaWarehouse::PiiProvider.viewable_dob(v, policy: poly) }),
-        Field.new(name: 'dob_quality', label: 'Date of Birth Quality', transform: ->(v, poly) { hud_helper.dob_data_quality(v) }, not_collected: true),
-        Field.new(name: 'races', transform: ->(v, poly) {
+        Field.new(name: 'dob_quality', label: 'Date of Birth Quality', transform: ->(v, _poly) { hud_helper.dob_data_quality(v) }, not_collected: true),
+        Field.new(name: 'races', transform: ->(v, _poly) {
           field_name = hud_helper.race_id_to_field_name[v]
           hud_helper.races[field_name.to_s]
         }),
-        Field.new(name: 'sex', transform: ->(v, poly) { hud_helper.sex(v) }, not_collected: true),
+        Field.new(name: 'sex', transform: ->(v, _poly) { hud_helper.sex(v) }, not_collected: true),
         Field.new(name: 'veteran'),
         Field.new(name: 'entry_date'),
         Field.new(name: 'exit_date'),
-        Field.new(name: 'relationship_to_hoh', label: 'Relationship to HoH', transform: ->(v, poly) { hud_helper.relationship_to_hoh(v) }),
-        Field.new(name: 'project_funders', label: 'Project Funder(s)', transform: ->(v, poly) { hud_helper.funding_source(v) }),
-        Field.new(name: 'project_type', transform: ->(v, poly) { hud_helper.project_types[v&.to_i] }),
+        Field.new(name: 'relationship_to_hoh', label: 'Relationship to HoH', transform: ->(v, _poly) { hud_helper.relationship_to_hoh(v) }),
+        Field.new(name: 'project_funders', label: 'Project Funder(s)', transform: ->(v, _poly) { hud_helper.funding_source(v) }),
+        Field.new(name: 'project_type', transform: ->(v, _poly) { hud_helper.project_types[v&.to_i] }),
         Field.new(name: 'income_benefit_source_types'),
         Field.new(name: 'medical_insurance_types'),
         Field.new(name: 'household_income_benefit_source_types'),
@@ -78,14 +76,14 @@ module HopwaCaper
         Field.new(name: 'hiv_positive', label: 'HIV positive'),
         Field.new(name: 'hopwa_eligible'),
         Field.new(name: 'chronically_homeless'),
-        Field.new(name: 'prior_living_situation', transform: ->(v, poly) { hud_helper.living_situation(v) }),
-        Field.new(name: 'rental_subsidy_type', transform: ->(v, poly) { hud_helper.rental_subsidy_type(v) }),
-        Field.new(name: 'exit_destination', transform: ->(v, poly) { hud_helper.destination(v) }, not_collected: true),
-        Field.new(name: 'housing_assessment_at_exit', transform: ->(v, poly) { hud_helper.housing_assessment_at_exit(v) }, not_collected: true),
-        Field.new(name: 'subsidy_information', transform: ->(v, poly) { hud_helper.subsidy_information(v) }),
+        Field.new(name: 'prior_living_situation', transform: ->(v, _poly) { hud_helper.living_situation(v) }),
+        Field.new(name: 'rental_subsidy_type', transform: ->(v, _poly) { hud_helper.rental_subsidy_type(v) }),
+        Field.new(name: 'exit_destination', transform: ->(v, _poly) { hud_helper.destination(v) }, not_collected: true),
+        Field.new(name: 'housing_assessment_at_exit', transform: ->(v, _poly) { hud_helper.housing_assessment_at_exit(v) }, not_collected: true),
+        Field.new(name: 'subsidy_information', transform: ->(v, _poly) { hud_helper.subsidy_information(v) }),
         Field.new(name: 'ever_prescribed_anti_retroviral_therapy'),
         Field.new(name: 'viral_load_suppression'),
-        Field.new(name: 'percent_ami', label: 'Percent AMI', transform: ->(v, poly) { hud_helper.percent_ami(v) }, not_collected: true),
+        Field.new(name: 'percent_ami', label: 'Percent AMI', transform: ->(v, _poly) { hud_helper.percent_ami(v) }, not_collected: true),
         Field.new(name: 'atc_maintained_contact', label: 'ATC: Maintained Contact'),
         Field.new(name: 'atc_housing_plan', label: 'ATC: Housing Plan'),
         Field.new(name: 'atc_primary_health_contact', label: 'ATC: Primary Health Contact'),
@@ -93,34 +91,7 @@ module HopwaCaper
       ].index_by(&:name).freeze
     end
 
-    def service_field_overrides
-      @service_field_overrides ||= {
-        'service_source' => Field.new(name: 'service_source', label: 'Service Source'),
-        'destination_client_id' => Field.new(name: 'destination_client_id', label: 'Warehouse Client ID'),
-        'personal_id' => Field.new(name: 'personal_id', label: 'HMIS Personal ID'),
-        'hmis_enrollment_id' => Field.new(name: 'hmis_enrollment_id', label: 'HMIS Enrollment ID'),
-        'service_id' => Field.new(name: 'service_id', label: 'HMIS Service ID'),
-        'service_category_name' => Field.new(name: 'service_category_name', label: 'Service Category'),
-        'service_type_name' => Field.new(name: 'service_type_name', label: 'Service Type'),
-      }.freeze
-    end
-
-    def build_field_map
-      if @records.first.is_a?(HopwaCaper::Enrollment)
-        enrollment_fields
-      else
-        special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
-        remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
-        cols = special + (HopwaCaper::Service.column_names - special - remove)
-
-        cols.map do |name|
-          field = service_field_overrides[name] || enrollment_fields[name] || Field.new(name: name)
-          [name, field]
-        end.to_h
-      end
-    end
-
-    def transform_value(field, value, record, pii_policy)
+    def transform_value(field, value, _record, pii_policy)
       # Treat nil as 99 (Data not collected) for HUD fields that support it
       value = 99 if value.nil? && field.not_collected
 
@@ -134,7 +105,7 @@ module HopwaCaper
     def pii_policy_for(record)
       @user.reporting_policy_for_project(
         project_id: record.project_id,
-        mode: html? ? :browse : :download
+        mode: html? ? :browse : :download,
       )
     end
 

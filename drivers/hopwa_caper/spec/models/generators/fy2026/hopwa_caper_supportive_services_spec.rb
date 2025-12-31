@@ -206,29 +206,45 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet, 
 
       expect(report.hopwa_caper_enrollments.size).to eq(1)
       enrollment = report.hopwa_caper_enrollments.first
+      presenter = HopwaCaper::DrilldownPresenter.new([enrollment], report, user)
 
       # Test display_value transforms percent_ami codes correctly
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 1, calculate_cell: false)).to eq('30% or less')
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 2, calculate_cell: false)).to eq('31% to 50%')
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 3, calculate_cell: false)).to eq('51% to 80%')
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 4, calculate_cell: false)).to eq('81% or greater')
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: 99, calculate_cell: false)).to eq('Data not collected')
+      enrollment.percent_ami = 1
+      expect(presenter.display_value(enrollment, 'percent_ami')).to eq('30% or less')
+      enrollment.percent_ami = 2
+      expect(presenter.display_value(enrollment, 'percent_ami')).to eq('31% to 50%')
+      enrollment.percent_ami = 3
+      expect(presenter.display_value(enrollment, 'percent_ami')).to eq('51% to 80%')
+      enrollment.percent_ami = 4
+      expect(presenter.display_value(enrollment, 'percent_ami')).to eq('81% or greater')
+      enrollment.percent_ami = 99
+      expect(presenter.display_value(enrollment, 'percent_ami')).to eq('Data not collected')
 
       # Test display_value transforms sex codes correctly
-      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 0, calculate_cell: false)).to eq('Female')
-      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 1, calculate_cell: false)).to eq('Male')
-      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: 99, calculate_cell: false)).to eq('Data not collected')
+      enrollment.sex = 0
+      expect(presenter.display_value(enrollment, 'sex')).to eq('Female')
+      enrollment.sex = 1
+      expect(presenter.display_value(enrollment, 'sex')).to eq('Male')
+      enrollment.sex = 99
+      expect(presenter.display_value(enrollment, 'sex')).to eq('Data not collected')
 
       # Test nil handling - nil should be treated as 99 (Data not collected)
-      expect(enrollment.display_value('sex', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
-      expect(enrollment.display_value('percent_ami', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
-      expect(enrollment.display_value('dob_quality', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
-      expect(enrollment.display_value('exit_destination', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
-      expect(enrollment.display_value('housing_assessment_at_exit', pii_policy: nil, cell_val: nil, calculate_cell: false)).to eq('Data not collected')
+      enrollment.sex = nil
+      expect(presenter.display_value(enrollment, 'sex')).to eq('Data not collected')
+      enrollment.percent_ami = nil
+      expect(presenter.display_value(enrollment, 'percent_ami')).to eq('Data not collected')
+      enrollment.dob_quality = nil
+      expect(presenter.display_value(enrollment, 'dob_quality')).to eq('Data not collected')
+      enrollment.exit_destination = nil
+      expect(presenter.display_value(enrollment, 'exit_destination')).to eq('Data not collected')
+      enrollment.housing_assessment_at_exit = nil
+      expect(presenter.display_value(enrollment, 'housing_assessment_at_exit')).to eq('Data not collected')
 
       # Verify that fields without 99 option still return nil
-      expect(enrollment.display_value('rental_subsidy_type', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
-      expect(enrollment.display_value('subsidy_information', pii_policy: nil, cell_val: nil, calculate_cell: false)).to be_nil
+      enrollment.rental_subsidy_type = nil
+      expect(presenter.display_value(enrollment, 'rental_subsidy_type')).to be_nil
+      enrollment.subsidy_information = nil
+      expect(presenter.display_value(enrollment, 'subsidy_information')).to be_nil
     end
   end
 end

@@ -46,15 +46,6 @@ module HopwaCaper
       enrollment.project.id
     end
 
-    def self.as_report_members
-      current_scope.map do |record|
-        ::HudReports::UniverseMember.new(
-          universe_membership_type: sti_name,
-          universe_membership_id: record.id,
-        )
-      end
-    end
-
     def self.from_hud_service(service:, enrollment:, report:, client:)
       hud_util = HudHelper.util('2026')
 

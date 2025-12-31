@@ -1,12 +1,15 @@
+# frozen_string_literal: true
+
 wb = xlsx_package.workbook
-wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+wb.add_worksheet(name: @name.slice(0, 30).gsub(':', ' ')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
 
   project_ids = @enrollments.map(&:project_id).uniq + @services.map(&:project_id).uniq
   current_user.policy_context.preload_project_dependencies(project_ids)
 
-  [@enrollments, @services].each do |records|
+  [@enrollments].each do |records|
     next if records.to_a.empty?
+
     presenter = HopwaCaper::DrilldownPresenter.new(records, @report, current_user, format: :excel)
     headers = presenter.headers
     sheet.add_row(headers.values, style: title)
