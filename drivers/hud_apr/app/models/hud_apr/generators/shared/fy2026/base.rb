@@ -54,10 +54,22 @@ module HudApr::Generators::Shared::Fy2026
     # generator = HudApr::Generators::Caper::Fy2023::Generator.new(report)
     # r = HudApr::Generators::Caper::Fy2023::QuestionFive.new(generator, report)
 
+    # Returns the universe cell for this question.
+    #
+    # NOTE: This returns a decorated cell that overrides .members to include
+    # household context joins. For new code, prefer calling #members directly.
     private def universe
       add_apr_clients unless apr_clients_populated?
 
-      @universe ||= @report.universe(self.class.question_number)
+      @universe ||= begin
+        # SimpleDelegator handles all method delegation to the raw_universe cell
+        require 'delegate'
+        proxy = SimpleDelegator.new(raw_universe)
+        question = self
+        # We override .members to ensure the household context is always joined
+        proxy.define_singleton_method(:members) { question.members }
+        proxy
+      end
     end
 
     def needs_ce_assessments?

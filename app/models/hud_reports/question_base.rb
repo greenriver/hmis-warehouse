@@ -92,7 +92,11 @@ module HudReports
     end
 
     def members
-      @members ||= household_query_service.with_household_context(universe.members)
+      @members ||= household_query_service.with_household_context(raw_universe.members)
+    end
+
+    def raw_universe
+      @report.universe(self.class.question_number)
     end
 
     def sub_populations
