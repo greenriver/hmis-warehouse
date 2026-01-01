@@ -57,7 +57,7 @@ class JobDetail
   # Normalizes the extraction of arguments from both ActiveJob (job_data)
   # and plain Delayed Job (PerformableMethod) payloads.
   def arguments
-    if payload.respond_to?(:job_data)
+    if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
       payload.job_data.try(:[], 'arguments')
     elsif payload.respond_to?(:args)
       payload.args
@@ -93,7 +93,7 @@ class JobDetail
   # This unwraps ActiveJob wrappers or PerformableMethod objects to find the actual
   # class where the business logic resides.
   def executor_class
-    @executor_class ||= if payload.respond_to?(:job_data)
+    @executor_class ||= if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
       begin
           payload.job_data['job_class'].constantize
         rescue StandardError

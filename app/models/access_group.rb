@@ -37,6 +37,11 @@ class AccessGroup < ApplicationRecord
 
   belongs_to :user, optional: true
 
+  # Allows the test environment to override how we wait for jobs.
+  # By default, we do nothing (the job runs in the background).
+  # In tests, we can "work off" the jobs immediately.
+  mattr_accessor :waiter_strategy, default: -> { nil }
+
   validates_presence_of :name, unless: :user_id
 
   scope :general, -> do
@@ -124,7 +129,7 @@ class AccessGroup < ApplicationRecord
 
   def self.delayed_system_group_maintenance(group: nil)
     delay.maintain_system_groups_no_named_arguments(group)
-    Delayed::Worker.new.work_off(1_000) if Rails.env.test?
+    waiter_strategy&.call
   end
 
   def self.maintain_system_groups_no_named_arguments(group)

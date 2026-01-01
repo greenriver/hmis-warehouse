@@ -29,8 +29,10 @@ end
 class DelayedJobJobIdProvider < Delayed::Plugin
   callbacks do |lifecycle|
     lifecycle.before(:invoke_job) do |job|
-      # job.id is the ID of the Delayed::Job record in the database
-      job.payload_object.job_data['provider_job_id'] = job.id if job.payload_object.respond_to?(:job_data)
+      # job.id is the ID of the Delayed::Job record in the database.
+      # We only inject this into ActiveJob-style payloads that have a job_data hash.
+      payload = job.payload_object
+      payload.job_data['provider_job_id'] = job.id if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
     end
   end
 end

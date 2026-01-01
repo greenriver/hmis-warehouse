@@ -85,6 +85,9 @@ RSpec.configure do |config|
       DelayedJobHelpers.work_off_all_ready_jobs(check_completion: check_completion)
     }
 
+    AccessGroup.waiter_strategy = -> { DelayedJobHelpers.work_off_all_ready_jobs }
+    Collection.waiter_strategy = -> { DelayedJobHelpers.work_off_all_ready_jobs }
+
     GrdaWarehouse::Utility.clear!
     examples = RSpec.world.filtered_examples.values.flatten
     example_file_paths = examples.map { |e| e.metadata[:file_path] }.uniq
