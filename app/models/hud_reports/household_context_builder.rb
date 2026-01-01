@@ -106,9 +106,13 @@ module HudReports
           chronic_status: m.enrollment&.chronically_homeless_at_start?,
           pit_chronic_status: m.enrollment&.chronically_homeless_at_start?(date: report_date),
           chronic_detail: m.enrollment&.chronically_homeless_at_start,
+          chronic_detail: m.enrollment&.chronically_homeless_at_start,
           relationship_to_hoh: m.enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
           veteran_status: m.enrollment&.client&.VeteranStatus,
+          enrollment_coc: m.enrollment&.EnrollmentCoC,
+          date_to_street: m.enrollment&.DateToStreetESSH,
+          entry_date: m.first_date_in_program,
         }
       end
 
@@ -141,6 +145,9 @@ module HudReports
           household_id: hh_id,
           hoh_id: hoh_data&.[](:client_id),
           hoh_service_history_enrollment_id: hoh_data&.[](:she_id),
+          hoh_entry_date: hoh_data&.[](:entry_date),
+          hoh_coc: hoh_data&.[](:enrollment_coc),
+          hoh_date_to_street: hoh_data&.[](:date_to_street),
           hoh_move_in_date: hoh_data&.[](:move_in_date),
           hoh_age: hoh_data&.[](:age),
           hoh_veteran: hoh_data&.[](:veteran_status) == 1,

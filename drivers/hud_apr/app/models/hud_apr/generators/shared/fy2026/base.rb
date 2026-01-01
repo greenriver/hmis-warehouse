@@ -88,10 +88,15 @@ module HudApr::Generators::Shared::Fy2026
         ).index_by(&:service_history_enrollment_id)
 
         # Load HoH enrollments needed for various calculations
-        hoh_she_ids = contexts_by_she_id.values.map(&:hoh_service_history_enrollment_id).compact.uniq
-        hoh_enrollments_by_id = GrdaWarehouse::ServiceHistoryEnrollment.where(id: hoh_she_ids).
-          preload(enrollment: [:client, :disabilities, :project]).
-          index_by(&:id)
+        # Only needed if CE assessments are required, otherwise we use pre-computed context fields
+        hoh_enrollments_by_id = if needs_ce_assessments?
+          hoh_she_ids = contexts_by_she_id.values.map(&:hoh_service_history_enrollment_id).compact.uniq
+          GrdaWarehouse::ServiceHistoryEnrollment.where(id: hoh_she_ids).
+            preload(enrollment: [:client, :disabilities, :project]).
+            index_by(&:id)
+        else
+          {}
+        end
 
         pending_associations = {}
         processed_source_clients = Set.new
@@ -107,11 +112,13 @@ module HudApr::Generators::Shared::Fy2026
           next unless ctx # Should not happen if builder ran
 
           ctx.household_id
-          hoh_enrollment = hoh_enrollments_by_id[ctx.hoh_service_history_enrollment_id] || last_service_history_enrollment
+          hoh_enrollment = hoh_enrollments_by_id[ctx.hoh_service_history_enrollment_id]
 
           if needs_ce_assessments?
-            ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
-            ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
+            # CE logic requires a full HoH enrollment. If we don't have one, fall back to current.
+            hoh_for_ce = hoh_enrollment || last_service_history_enrollment
+            ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_for_ce)
+            ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_for_ce, ce_latest_assessment)
             #
             # Adjust last service history enrollment if falls outside assessment date
             if ce_latest_assessment.present?
@@ -139,7 +146,7 @@ module HudApr::Generators::Shared::Fy2026
           enrollment.enrollment_coc = if enrollment.project.project_cocs.one?
             enrollment.project.project_cocs.first.coc_code
           else
-            hoh_enrollment&.enrollment&.enrollment_coc
+            ctx.hoh_coc || hoh_enrollment&.enrollment&.enrollment_coc
           end
 
           # Ignore any enrollment where the CoC is not in the chosen set
@@ -152,7 +159,8 @@ module HudApr::Generators::Shared::Fy2026
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
+          hoh_entry_date = ctx.hoh_entry_date || hoh_enrollment&.first_date_in_program
+          income_at_annual_assessment = annual_assessment(enrollment, hoh_entry_date)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -193,13 +201,25 @@ module HudApr::Generators::Shared::Fy2026
           end
 
           age = ctx.age
-          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          hoh_anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
+
+          # Use a lightweight struct if we didn't preload the full HoH record
+          hoh_light = hoh_enrollment || begin
+            # Struct needs to handle: entry_date, first_date_in_program, head_of_household?, and enrollment.DateToStreetESSH
+            hoh_enrollment_proxy = Struct.new(:DateToStreetESSH).new(ctx.hoh_date_to_street)
+            Struct.new(:entry_date, :first_date_in_program, :head_of_household?, :enrollment).new(
+              ctx.hoh_entry_date,
+              ctx.hoh_entry_date,
+              true,
+              hoh_enrollment_proxy
+            )
+          end
 
           annual_assessment_expected = if age.present? && age >= 18
-            annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date) &&
+            annual_assessment_expected?(hoh_enrollment: hoh_light, enrollment: last_service_history_enrollment, report_end_date: @report.end_date) &&
               last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
           else
-            annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
+            annual_assessment_expected?(hoh_enrollment: hoh_light, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end
 
           processed_source_clients << source_client.id
@@ -227,8 +247,8 @@ module HudApr::Generators::Shared::Fy2026
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
             # anniversary dates are always based on HoH enrollment
-            annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
-            approximate_time_to_move_in: approximate_time_to_move_in(last_service_history_enrollment, age, hoh_enrollment),
+            annual_assessment_in_window: annual_assessment_in_window?(hoh_light, income_at_annual_assessment&.InformationDate),
+            approximate_time_to_move_in: approximate_time_to_move_in(last_service_history_enrollment, age, hoh_light),
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
@@ -251,7 +271,7 @@ module HudApr::Generators::Shared::Fy2026
             current_ed_status_at_exit: youth_education_status_at_exit&.CurrentEdStatus,
 
             los_under_threshold: enrollment.LOSUnderThreshold,
-            date_to_street: date_to_street(last_service_history_enrollment, age, hoh_enrollment),
+            date_to_street: date_to_street(last_service_history_enrollment, age, hoh_light),
             destination: destination,
             developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability_exit: disabilities_at_exit.detect(&:developmental?)&.DisabilityResponse,

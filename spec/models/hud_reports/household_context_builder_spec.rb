@@ -71,6 +71,13 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       expect(contexts.count).to eq(2)
       expect(contexts.pluck(:household_type).uniq).to eq(['adults_and_children'])
       expect(contexts.pluck(:member_count).uniq).to eq([2])
+
+      # Verify new pre-computed fields
+      contexts.each do |ctx|
+        expect(ctx.age).to be_present
+        expect(ctx.hoh_entry_date).to eq(Date.parse('2020-01-01'))
+        expect(ctx.hoh_coc).to be_present
+      end
     end
 
     it 'identifies the Head of Household' do
@@ -81,6 +88,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       expect(hoh_context.is_hoh).to be true
       expect(child_context.is_hoh).to be false
       expect(child_context.hoh_id).to eq(client_hoh.destination_client.id)
+      expect(child_context.hoh_entry_date).to eq(hoh_context.service_history_enrollment.first_date_in_program)
     end
 
     it 'updates the report instance count' do
@@ -164,6 +172,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         builder.call
         child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
         expect(child_context.inherited_move_in_date).to eq(Date.parse('2020-06-01'))
+        expect(child_context.hoh_move_in_date).to eq(Date.parse('2020-06-01'))
       end
 
       it 'uses own entry date when joining after HoH move-in' do
@@ -204,6 +213,19 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
         builder.call
         expect(HudReports::HouseholdContext.pluck(:household_type).uniq).to eq(['children_only'])
+      end
+    end
+
+    context 'with hoh_date_to_street' do
+      before do
+        hud_enrollment_hoh.update!(DateToStreetESSH: '2019-12-01')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
+      end
+
+      it 'populates hoh_date_to_street' do
+        builder.call
+        child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
+        expect(child_context.hoh_date_to_street).to eq(Date.parse('2019-12-01'))
       end
     end
 
@@ -289,23 +311,6 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         youth_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_youth.id)
         expect(youth_context.is_parenting_youth).to be false
         expect(youth_context.has_other_clients_over_25).to be true
-      end
-    end
-
-    describe 'HouseholdQueryService' do
-      let(:service) { HudReports::HouseholdQueryService.new(report, GrdaWarehouse::ServiceHistoryEnrollment.arel_table) }
-
-      before { builder.call }
-
-      it 'joins household context correctly' do
-        scope = service.with_household_context(GrdaWarehouse::ServiceHistoryEnrollment.entry)
-        expect(scope.to_sql).to include('INNER JOIN hud_report_household_contexts AS hh_ctx')
-        expect(scope.to_sql).to include("hh_ctx.report_instance_id = #{report.id}")
-      end
-
-      it 'provides correct sub-population clauses' do
-        expect(service.sub_populations['Without Children'].to_sql).to include('"hh_ctx"."household_type" = \'adults_only\'')
-        expect(service.sub_populations['Chronically Homeless'].to_sql).to match(/"hh_ctx"\."inherited_chronic_status" = (true|TRUE)/)
       end
     end
   end

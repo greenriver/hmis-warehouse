@@ -18,7 +18,7 @@ module HudReports
     def with_household_context(scope)
       hh_ctx_table = Arel::Table.new(:hud_report_household_contexts).alias(:hh_ctx)
 
-      join_condition = hh_ctx_table[:source_enrollment_id].eq(@a_t[:source_enrollment_id]).
+      join_condition = hh_ctx_table[:service_history_enrollment_id].eq(@a_t[:id]).
         and(hh_ctx_table[:report_instance_id].eq(@report.id))
 
       join = @a_t.join(hh_ctx_table, Arel::Nodes::OuterJoin).on(join_condition)

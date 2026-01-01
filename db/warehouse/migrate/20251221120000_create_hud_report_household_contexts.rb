@@ -11,6 +11,9 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.string :household_id
       t.integer :hoh_id
       t.references :hoh_service_history_enrollment
+      t.date :hoh_entry_date
+      t.string :hoh_coc
+      t.date :hoh_date_to_street
       t.date :hoh_move_in_date
       t.integer :hoh_age
       t.boolean :hoh_veteran
