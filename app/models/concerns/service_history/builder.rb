@@ -9,6 +9,18 @@
 module ServiceHistory::Builder
   extend ActiveSupport::Concern
 
+  # Allows the test environment to override how we wait for jobs.
+  # By default, we just sleep. In tests, we can "work off" the jobs.
+  mattr_accessor :waiter_strategy, default: ->(check_completion:, max_wait_seconds:, interval:) {
+    started = Time.current
+    loop do
+      break if (Time.current - started) > max_wait_seconds
+      break if check_completion.call
+
+      sleep(interval)
+    end
+  }
+
   # Default maximum wait time (6 hours)
   DEFAULT_MAX_WAIT_SECONDS = 21_600
 
@@ -56,17 +68,11 @@ module ServiceHistory::Builder
     # @param interval [Integer] The number of seconds between queries
     # @param max_wait_seconds [Integer] The maximum number of seconds to wait
     def wait_for_processing(interval: 30, max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
-      if Rails.env.test?
-        # you must manually process these in the test environment since there are no workers
-        Delayed::Worker.new.work_off(2)
-      else
-        started = Time.current
-        while builder_batch_job_scope.exists?
-          return if (Time.current - started) > max_wait_seconds
-
-          sleep(interval)
-        end
-      end
+      ServiceHistory::Builder.waiter_strategy.call(
+        check_completion: -> { builder_batch_job_scope.empty? },
+        max_wait_seconds: max_wait_seconds,
+        interval: interval,
+      )
     end
 
     # Queue delayed jobs for the enrollments associated with destination clients
@@ -94,17 +100,11 @@ module ServiceHistory::Builder
     # @param interval [Integer] The number of seconds between queries
     # @param max_wait_seconds [Integer] The maximum number of seconds to wait
     def wait_for_clients(client_ids:, interval: 30, max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
-      if Rails.env.test?
-        # you must manually process these in the test environment since there are no workers
-        Delayed::Worker.new.work_off(2)
-      else
-        started = Time.current
-        while clients_still_processing?(client_ids: client_ids)
-          break if (Time.current - started) > max_wait_seconds
-
-          sleep(interval)
-        end
-      end
+      ServiceHistory::Builder.waiter_strategy.call(
+        check_completion: -> { builder_clients_still_processing_scope(client_ids).empty? },
+        max_wait_seconds: max_wait_seconds,
+        interval: interval,
+      )
     end
 
     # Test to see if there are queued enrollment processing jobs for the enrollments associated
@@ -113,12 +113,17 @@ module ServiceHistory::Builder
     # @param client_ids A destination client id, or an array of destination client ids
     # @return [Boolean] is any of the client's enrollment processing incomplete?
     def clients_still_processing?(client_ids:)
+      builder_clients_still_processing_scope(client_ids).exists?
+    end
+
+    # @api private
+    def builder_clients_still_processing_scope(client_ids)
       client_ids = Array.wrap(client_ids)
 
       GrdaWarehouse::Hud::Enrollment.where(
         id: builder_client_enrollment_ids(client_ids),
         service_history_processing_job_id: builder_batch_job_scope.pluck(:id),
-      ).exists?
+      )
     end
 
     # Class method

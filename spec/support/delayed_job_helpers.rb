@@ -1,35 +1,37 @@
 # frozen_string_literal: true
 
 module DelayedJobHelpers
+  def work_off_all_ready_jobs(...)
+    DelayedJobHelpers.work_off_all_ready_jobs(...)
+  end
+
   # Periodically calls work_off until no more jobs are ready to run.
-  # This is safer than looping on a database count because it won't hang
-  # if jobs are rescheduled for the future (e.g. during retries).
+  # Pulls future-scheduled jobs (like retries) forward to run immediately.
   #
-  # If there are any jobs scheduled in the near future (default 30 seconds),
-  # it will sleep until they are ready and try again.
-  #
-  # A safety counter (max_wait_iterations) is included to prevent infinite loops.
-  def work_off_all_ready_jobs(max_wait: 30.seconds, max_wait_iterations: 10)
+  # @param check_completion [Proc] An optional proc that returns boolean to stop waiting
+  def self.work_off_all_ready_jobs(check_completion: nil, max_iterations: 100)
     worker = Delayed::Worker.new
-    iterations = 0
-
+    n = 0
     loop do
-      loop do
-        successes, failures = worker.work_off
-        break if (successes + failures).zero?
-      end
+      n += 1
+      raise 'safety count exceeded work_off_all_ready_jobs' if n > max_iterations
 
-      next_job = Delayed::Job.queued.where(run_at: ..max_wait.from_now).order(:run_at).first
-      break unless next_job
+      successes, failures = worker.work_off
+      total_processed = (successes + failures)
 
-      iterations += 1
-      if iterations > max_wait_iterations
-        raise "work_off_all_ready_jobs exceeded max_wait_iterations (#{max_wait_iterations}). " \
-              'Possible infinite loop detected with jobs scheduled in the near future.'
-      end
+      break if check_completion&.call
 
-      sleep_duration = next_job.run_at - Time.current
-      sleep(sleep_duration) if sleep_duration.positive?
+      # Loop again if we did some work
+      next if total_processed > 0
+
+      # No work done, pull forward any pending jobs rescheduled for the future
+      now = Time.current
+      pending = Delayed::Job.where(failed_at: nil).
+        where('run_at > ?', now).
+        order(:run_at, :id).first
+      pending&.update!(run_at: now)
+
+      break if pending.nil?
     end
   end
 end

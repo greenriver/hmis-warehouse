@@ -80,6 +80,11 @@ RSpec.configure do |config|
     # disable rack attack unless we are testing it explicitly
     Rack::Attack.enabled = false
 
+    # Configure the waiter strategy for ServiceHistory::Builder to work off jobs in tests
+    ServiceHistory::Builder.waiter_strategy = ->(check_completion:, max_wait_seconds:, interval:) { # rubocop:disable Lint/UnusedBlockArgument
+      DelayedJobHelpers.work_off_all_ready_jobs(check_completion: check_completion)
+    }
+
     GrdaWarehouse::Utility.clear!
     examples = RSpec.world.filtered_examples.values.flatten
     example_file_paths = examples.map { |e| e.metadata[:file_path] }.uniq

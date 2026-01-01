@@ -18,6 +18,31 @@ The generation logic differs based on the program type:
 -   **Entry/Exit Programs:** For programs like Entry/Exit shelters, Transitional Housing, and Permanent Housing, the system builds `ServiceHistoryService` records for each day from the client's entry date through the day before their exit date. When the entry and exit dates are the same we include that day. For ongoing enrollments, we extend the services through the latest date covered by the source export (or today, if the enrollment is managed in the operational HMIS).
 -   **Street Outreach & Contact Extrapolation:** Street Outreach projects can create synthetic daily services from contact records. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand recorded contacts to fill the remainder of the month so that downstream reporting sees continuous engagement.
 
+## Asynchronous Processing & Synchronization
+
+Because service history generation is resource-intensive, it is typically processed asynchronously in batches.
+
+### Batching Logic
+When a rebuild is queued via the `ServiceHistory::Builder` module:
+1. Affected enrollments are identified.
+2. Enrollments are sliced into batches
+3. Each batch is enqueued as a `ServiceHistory::RebuildEnrollmentsByBatchJob`
+
+### Synchronization Pattern (`wait_for_clients`)
+Downstream processes that require guaranteed "up-to-date" data must account for this background processing. The `ServiceHistory::Builder` concern provides a synchronization mechanism that allows a process to block until specific clients have been fully processed:
+
+```ruby
+# 1. Queue the rebuild for specific clients
+queue_clients(client_ids)
+
+# 2. Block until background workers finish the jobs for these clients
+# This polls Delayed::Job for relevant RebuildEnrollmentsByBatchJob entries
+wait_for_clients(client_ids: client_ids)
+
+# 3. Now it is safe to query the data or update caches
+UpdateWarehouseClientsCachesJob.perform_later(client_ids: client_ids)
+```
+
 ## Storage & Performance Considerations
 
  The `service_history_services` dataset is among the largest tables in the warehouse regardless of installation scale. To keep inserts fast and maintenance manageable, we physically shard it by year. PostgreSQL trigger logic (see `db/warehouse_structure.sql`) routes each new service day into the correct annual partition (`service_history_services_2000`, `service_history_services_2001`, …, `service_history_services_2050`) with an overflow table (`service_history_services_remainder`) for out-of-range data. Queries continue to reference the parent `service_history_services` relation, but PostgreSQL prunes to the relevant partitions based on date filters.
@@ -174,6 +199,8 @@ The cached data in `WarehouseClientsProcessed` is used by:
 
 -   **Service History Enrollment Model:** `app/models/grda_warehouse/service_history_enrollment.rb`
 -   **Service History Service Model:** `app/models/grda_warehouse/service_history_service.rb`
+-   **Service History Builder Concern:** `app/models/concerns/service_history/builder.rb`
+    -   Handles asynchronous queuing (`queue_clients`) and synchronization (`wait_for_clients`).
 -   **Service History Generation Task:** `app/models/grda_warehouse/tasks/service_history/enrollment.rb`
     -   `rebuild_service_history!` - Main method that determines whether to rebuild or patch
     -   `calculate_hash` - Computes the hash used for change detection
