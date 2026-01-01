@@ -33,6 +33,9 @@ module Health
     end
 
     def index
+      # Pre-build agency user lookup cache to avoid N+1 queries
+      Health::AgencyUserLookup.build_cache
+
       @team_name = params[:entity_id]
       if @team_name.blank?
         @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
@@ -72,15 +75,16 @@ module Health
           end
           @pagy, @patients = pagy(
             @patients.preload(
+              :patient_referral,
               :care_coordinator,
               :nurse_care_manager,
-              :health_agency,
               careplans: [],
               qualifying_activities: [],
               client: [
                 :service_history_entries,
                 service_history_enrollments: :project,
               ],
+              health_agency: :agency_users,
             ),
           )
           @scores = calculate_dashboards(medicaid_ids)

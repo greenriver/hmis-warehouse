@@ -1183,9 +1183,11 @@ module Health
     end
 
     def available_user_ids
-      return [] unless health_agency.present?
+      @available_user_ids ||= begin
+        return [] unless health_agency.present?
 
-      Health::AgencyUser.where(agency_id: health_agency.id, user_id: User.active.pluck(:id)).pluck(:user_id)
+        Health::AgencyUserLookup.user_ids_for_agency(health_agency.id)
+      end
     end
 
     def available_care_coordinators
