@@ -21,7 +21,7 @@ module HudReports
       join_condition = hh_ctx_table[:source_enrollment_id].eq(@a_t[:source_enrollment_id]).
         and(hh_ctx_table[:report_instance_id].eq(@report.id))
 
-      join = @a_t.join(hh_ctx_table, Arel::Nodes::InnerJoin).on(join_condition)
+      join = @a_t.join(hh_ctx_table, Arel::Nodes::OuterJoin).on(join_condition)
 
       scope.joins(join.join_sources)
     end

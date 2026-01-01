@@ -192,7 +192,7 @@ module HudApr::Generators::Shared::Fy2026
             next
           end
 
-          age = source_client.age_on(client_start_date)
+          age = ctx.age
           hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
 
           annual_assessment_expected = if age.present? && age >= 18
@@ -235,7 +235,7 @@ module HudApr::Generators::Shared::Fy2026
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: ctx.inherited_chronic_status,
-            chronically_homeless_detail: ctx.inherited_chronic_detail || {},
+            chronically_homeless_detail: ctx.inherited_chronic_detail,
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
@@ -320,7 +320,7 @@ module HudApr::Generators::Shared::Fy2026
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
             move_in_date: last_service_history_enrollment.move_in_date,
-            hoh_move_in_date: ctx.hoh_service_history_enrollment_id ? hoh_enrollments_by_id[ctx.hoh_service_history_enrollment_id]&.move_in_date : nil,
+            hoh_move_in_date: ctx.hoh_move_in_date,
             adjusted_move_in_date: ctx.inherited_move_in_date,
             name_quality: source_client.NameDataQuality,
             non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
