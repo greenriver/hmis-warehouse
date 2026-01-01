@@ -31,7 +31,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSix
         last_row: 7,
       }
       @report.answer(question: table_name).update(metadata: metadata)
-      universe_members = members.where(engaged_clause)
+      universe_members = universe.members.where(engaged_clause)
 
       arrivals = universe_members.where(a_t[:first_date_in_program].gteq(@report.start_date))
 

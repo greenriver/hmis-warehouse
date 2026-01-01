@@ -16,11 +16,14 @@ module HudReports
     end
 
     def with_household_context(scope)
-      scope.joins(
-        'INNER JOIN hud_report_household_contexts AS hh_ctx ON ' \
-        "hh_ctx.source_enrollment_id = #{@a_t.name}.source_enrollment_id " \
-        "AND hh_ctx.report_instance_id = #{@report.id}",
-      )
+      hh_ctx_table = Arel::Table.new(:hud_report_household_contexts).alias(:hh_ctx)
+
+      join_condition = hh_ctx_table[:source_enrollment_id].eq(@a_t[:source_enrollment_id]).
+        and(hh_ctx_table[:report_instance_id].eq(@report.id))
+
+      join = @a_t.join(hh_ctx_table, Arel::Nodes::InnerJoin).on(join_condition)
+
+      scope.joins(join.join_sources)
     end
 
     def sub_populations

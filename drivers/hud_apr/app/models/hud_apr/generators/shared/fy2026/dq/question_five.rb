@@ -44,7 +44,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFive
       sso_ds_hp_projects = HudHelper.util('2026').performance_reporting[:services_only] + HudHelper.util('2026').performance_reporting[:day_shelter] + HudHelper.util('2026').performance_reporting[:prevention]
       report_projects = es_sh_so_projects + th_projects + ph_projects + ce_projects + sso_ds_hp_projects
 
-      adults_and_hohs = members.where(engaged_clause).where(
+      adults_and_hohs = universe.members.where(engaged_clause).where(
         a_t[:project_type].in(report_projects).
           and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
             and(a_t[:age].gteq(18).

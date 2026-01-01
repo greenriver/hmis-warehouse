@@ -67,7 +67,7 @@ module HudApr::Generators::Shared::Fy2026
         proxy = SimpleDelegator.new(raw_universe)
         question = self
         # We override .members to ensure the household context is always joined
-        proxy.define_singleton_method(:members) { question.members }
+        proxy.define_singleton_method(:members) { question.send(:members) }
         proxy
       end
     end

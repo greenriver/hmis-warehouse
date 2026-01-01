@@ -159,8 +159,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
         cell = "#{col}2"
 
         answer = @report.answer(question: table_name, cell: cell)
-
-        members_query = members.where(inclusion_clause)
+        members_query = universe.members.where(inclusion_clause)
         answer.add_members(members_query)
         answer.update(summary: members_query.count)
 
@@ -169,7 +168,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members_query = members.where(inclusion_clause).where(data[:clause])
+          members_query = universe.members.where(inclusion_clause).where(data[:clause])
           answer.add_members(members_query)
           answer.update(summary: members_query.count)
         end

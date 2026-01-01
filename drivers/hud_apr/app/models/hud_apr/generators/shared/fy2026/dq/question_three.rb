@@ -33,7 +33,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
         last_row: 6,
       }
       @report.answer(question: table_name).update(metadata: metadata)
-      universe_members = members.where(engaged_clause)
+      universe_members = universe.members.where(engaged_clause)
 
       sheet = question_sheet(question: table_name)
       q3_veteran_row(sheet, universe_members)

@@ -266,7 +266,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         )
       end
 
-    it 'identifies the HoH as a parenting youth' do
+      it 'identifies the HoH as a parenting youth' do
         described_class.new(generator_youth, report).call
         youth_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_youth.id)
         expect(youth_context.is_parenting_youth).to be true
