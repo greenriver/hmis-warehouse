@@ -14,6 +14,11 @@ RSpec.describe SignalHandlerPlugin do
     SignalHandlerPlugin.callback_block.call(lifecycle)
   end
 
+  after do
+    # Clean up thread-local storage after each test to prevent leakage
+    Thread.current[:delayed_job_worker] = nil
+  end
+
   describe 'callbacks' do
     it 'registers the plugin' do
       expect(Delayed::Worker.plugins).to include(SignalHandlerPlugin)
