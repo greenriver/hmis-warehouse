@@ -38,7 +38,6 @@ module HudReports::Clients
       # Notes from Annual Assessment section in
       # https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
       return false unless enrollment.present? && hoh_enrollment.present? && hoh_enrollment.head_of_household?
-      return false unless hoh_enrollment.entry_date && report_end_date
 
       # Calculate the head of household’s number of years in the project. This can be done using the same
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the
@@ -81,8 +80,6 @@ module HudReports::Clients
       return nil if assessment_date.nil?
 
       anniversary_date = anniversary_date(entry_date: enrollment_date, report_end_date: @report.end_date)
-      return nil unless anniversary_date
-
       assessment_date.between?(anniversary_date - 30.days, [anniversary_date + 30.days, @report.end_date].min)
     end
 
