@@ -843,6 +843,7 @@ Rails.application.routes.draw do
     end
     resources :links
     resources :content_pages
+    resources :app_config_properties
     resources :compliance_requirements, except: [:show] do
       post :activate, on: :member
       post :deactivate, on: :member
