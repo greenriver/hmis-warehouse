@@ -111,7 +111,6 @@ module HudApr::Generators::Shared::Fy2026
           ctx = contexts_by_she_id[last_service_history_enrollment.id]
           next unless ctx # Should not happen if builder ran
 
-          ctx.household_id
           hoh_enrollment = hoh_enrollments_by_id[ctx.hoh_service_history_enrollment_id]
 
           if needs_ce_assessments?
@@ -206,7 +205,7 @@ module HudApr::Generators::Shared::Fy2026
           # Use a lightweight struct if we didn't preload the full HoH record
           hoh_light = hoh_enrollment || begin
             # Struct needs to handle: entry_date, first_date_in_program, head_of_household?, and enrollment.DateToStreetESSH
-            hoh_enrollment_proxy = Struct.new(:DateToStreetESSH).new(ctx.hoh_date_to_street)
+            hoh_enrollment_proxy = Struct.new(:DateToStreetESSH).new(ctx.hoh_date_to_street) # rubocop:disable Naming/MethodName
             # Fallback to current enrollment entry date if pre-computed HoH entry date is missing
             entry_date_proxy = hoh_entry_date
             Struct.new(:entry_date, :first_date_in_program, :head_of_household?, :enrollment).new(
@@ -634,6 +633,11 @@ module HudApr::Generators::Shared::Fy2026
 
     delegate :client_scope, to: :@generator
     delegate :end_date, to: :@report, prefix: :report
+
+    private def hoh_exit_date(household_id)
+      @hoh_exit_dates ||= universe.members.where(hoh_clause).pluck(:household_id, :last_date_in_program).to_h
+      @hoh_exit_dates[household_id]
+    end
 
     private def report_client_universe
       HudApr::Fy2020::AprClient
