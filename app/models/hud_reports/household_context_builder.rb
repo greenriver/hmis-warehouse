@@ -121,6 +121,13 @@ module HudReports
 
       # HH Level Stats
       hoh_data = hh_member_hashes.detect { |m| m[:relationship_to_hoh] == 1 }
+      hoh_stayer_end_date = [hoh_data&.[](:exit_date), @report.end_date + 1.day].compact.min
+      hoh_length_of_stay = if hoh_data && hoh_stayer_end_date
+        (hoh_stayer_end_date - hoh_data[:entry_date]).to_i
+      else
+        0
+      end
+
       hh_ages = hh_member_hashes.map { |m| m[:age] }.compact
       hh_type = calculate_household_type(hh_ages)
       hh_max_age = hh_ages.max || 0
@@ -149,6 +156,8 @@ module HudReports
           hoh_id: hoh_data&.[](:client_id),
           hoh_service_history_enrollment_id: hoh_data&.[](:she_id),
           hoh_entry_date: hoh_data&.[](:entry_date),
+          hoh_exit_date: hoh_data&.[](:exit_date),
+          hoh_length_of_stay: hoh_length_of_stay,
           hoh_coc: hoh_data&.[](:enrollment_coc),
           hoh_date_to_street: hoh_data&.[](:date_to_street),
           hoh_move_in_date: hoh_data&.[](:move_in_date),

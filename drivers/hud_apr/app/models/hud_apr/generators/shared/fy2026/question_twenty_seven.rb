@@ -36,7 +36,7 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def youth_filter
-      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
+      hh_ctx[:age].between(12..24).and(hh_ctx[:has_other_clients_over_25].eq(false))
     end
 
     private def q27a_youth_age
@@ -156,7 +156,7 @@ module HudApr::Generators::Shared::Fy2026
     private def q27d_youth_living_situation
       living_situations_question(
         question: 'Q27d',
-        members: universe.members.where(hoh_clause.and(a_t[:age].in(12..24)).and(a_t[:other_clients_over_25].eq(false))),
+        members: universe.members.where(hoh_clause.and(hh_ctx[:age].in(12..24)).and(hh_ctx[:has_other_clients_over_25].eq(false))),
       )
     end
 
@@ -237,7 +237,7 @@ module HudApr::Generators::Shared::Fy2026
             income_clause.each do |part|
               ids += members.where.contains(part).pluck(a_t[:id])
             end
-            members = members.where(id: ids.to_a)
+            members = members.where(a_t[:id].in(ids.to_a))
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -290,7 +290,7 @@ module HudApr::Generators::Shared::Fy2026
                 ids << member.id if no_income?(apr_client, suffix)
               end
             end
-            members = youth.where(id: ids)
+            members = youth.where(a_t[:id].in(ids.to_a))
           else
             members = youth.where(income_case)
           end
@@ -337,7 +337,7 @@ module HudApr::Generators::Shared::Fy2026
             income_clause.each do |part|
               ids += members.where.contains(part).pluck(a_t[:id])
             end
-            members = members.where(id: ids.to_a)
+            members = members.where(a_t[:id].in(ids.to_a))
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -362,40 +362,40 @@ module HudApr::Generators::Shared::Fy2026
     private def q27i_disabilities
       {
         'AO: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:adults_only)),
+          and(hh_ctx[:household_type].eq('adults_only')),
         'AO: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:adults_only)),
-        'AO: Total Youths' => a_t[:household_type].eq(:adults_only),
+          and(hh_ctx[:household_type].eq('adults_only')),
+        'AO: Total Youths' => hh_ctx[:household_type].eq('adults_only'),
         'AO: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:adults_only),
+          household: hh_ctx[:household_type].eq('adults_only'),
         },
         'AC: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:adults_and_children)),
+          and(hh_ctx[:household_type].eq('adults_and_children')),
         'AC: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:adults_and_children)),
-        'AC: Total Youths' => a_t[:household_type].eq(:adults_and_children),
+          and(hh_ctx[:household_type].eq('adults_and_children')),
+        'AC: Total Youths' => hh_ctx[:household_type].eq('adults_and_children'),
         'AC: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:adults_and_children),
+          household: hh_ctx[:household_type].eq('adults_and_children'),
         },
         'CO: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:children_only)),
+          and(hh_ctx[:household_type].eq('children_only')),
         'CO: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:children_only)),
-        'CO: Total Youths' => a_t[:household_type].eq(:children_only),
+          and(hh_ctx[:household_type].eq('children_only')),
+        'CO: Total Youths' => hh_ctx[:household_type].eq('children_only'),
         'CO: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:children_only),
+          household: hh_ctx[:household_type].eq('children_only'),
         },
         'UK: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:unknown)),
+          and(hh_ctx[:household_type].eq('unknown')),
         'UK: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:unknown)),
-        'UK: Total Youths' => a_t[:household_type].eq(:unknown),
+          and(hh_ctx[:household_type].eq('unknown')),
+        'UK: Total Youths' => hh_ctx[:household_type].eq('unknown'),
         'UK: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:unknown),
+          household: hh_ctx[:household_type].eq('unknown'),
         },
       }
     end
@@ -808,10 +808,10 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def youth_adult_or_youth_hoh_clause
-      a_t[:other_clients_over_25].eq(false).
+      hh_ctx[:has_other_clients_over_25].eq(false).
         and(
-          hoh_clause.and(a_t[:age].between(12..24)).
-            or(a_t[:age].between(18..24)),
+          hoh_clause.and(hh_ctx[:age].between(12..24)).
+            or(hh_ctx[:age].between(18..24)),
         )
     end
 

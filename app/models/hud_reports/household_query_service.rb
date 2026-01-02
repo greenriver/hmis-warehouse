@@ -18,7 +18,7 @@ module HudReports
     def with_household_context(scope)
       hh_ctx_table = Arel::Table.new(:hud_report_household_contexts).alias(:hh_ctx)
 
-      join_condition = hh_ctx_table[:service_history_enrollment_id].eq(@a_t[:id]).
+      join_condition = hh_ctx_table[:source_enrollment_id].eq(@a_t[:source_enrollment_id]).
         and(hh_ctx_table[:report_instance_id].eq(@report.id))
 
       join = @a_t.join(hh_ctx_table, Arel::Nodes::OuterJoin).on(join_condition)
@@ -46,7 +46,15 @@ module HudReports
     end
 
     def adult_or_hoh_clause
-      @a_t[:age].gteq(18).or(hoh_clause)
+      hh_ctx[:age].gteq(18).or(hoh_clause)
+    end
+
+    def strict_leavers_clause(report_end_date)
+      @a_t[:last_date_in_program].lteq(report_end_date).and(
+        hoh_clause.or(
+          hh_ctx[:hoh_exit_date].eq(@a_t[:last_date_in_program]),
+        ),
+      )
     end
 
     def chronic_household_clause

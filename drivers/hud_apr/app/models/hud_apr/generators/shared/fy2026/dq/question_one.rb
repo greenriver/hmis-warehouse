@@ -75,7 +75,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
           row: '8',
           clause: leavers_clause.
             and(adult_clause.
-              or(a_t[:head_of_household].eq(true))),
+              or(hoh_clause)),
         },
         # Number of stayers
         {
@@ -102,29 +102,29 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
         # Number of youth under 25
         {
           row: '13',
-          clause: a_t[:age].lt(25).
-            and(a_t[:age].gteq(12)).
-            and(a_t[:other_clients_over_25].eq(false)),
+          clause: hh_ctx[:age].lt(25).
+            and(hh_ctx[:age].gteq(12)).
+            and(hh_ctx[:has_other_clients_over_25].eq(false)),
         },
         # Number of parenting youth under 25 with children
         {
           row: '14',
-          clause: a_t[:age].lt(25).
-            and(a_t[:age].gteq(12)).
-            and(a_t[:parenting_youth].eq(true)),
+          clause: hh_ctx[:age].lt(25).
+            and(hh_ctx[:age].gteq(12)).
+            and(parenting_youth_clause),
         },
         # Number of adult HoH
         {
           row: '15',
           clause: adult_clause.
-            and(a_t[:head_of_household].eq(true)),
+            and(hoh_clause),
         },
         # Number of child and unknown age HoH
         {
           row: '16',
           clause: a_t[:age].lt(18).
             or(a_t[:age].eq(nil)).
-            and(a_t[:head_of_household].eq(true)),
+            and(hoh_clause),
         },
         # HoH and adult stayers in project 365 days or more
         # "...any adult stayer present when the head of household’s stay is 365 days or more,
@@ -132,7 +132,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
         {
           row: '17',
           clause: a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-            and(adult_clause.or(a_t[:head_of_household].eq(true))),
+            and(adult_clause.or(hoh_clause)),
         },
       ]
     end

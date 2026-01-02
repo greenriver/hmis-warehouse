@@ -119,6 +119,10 @@ module HudReports
       household_query_service.adult_or_hoh_clause
     end
 
+    def strict_leavers_clause
+      household_query_service.strict_leavers_clause(@report.end_date)
+    end
+
     def chronic_household_clause
       household_query_service.chronic_household_clause
     end

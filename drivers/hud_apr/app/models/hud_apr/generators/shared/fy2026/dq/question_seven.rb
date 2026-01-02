@@ -75,7 +75,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
         inactive_so_or_path_funded_sso_member_ids << member.id if (@report.end_date - last_current_living_situation).to_i > 90
       end
 
-      inactive_so_or_path_funded_sso_members = so_or_path_funded_sso_members.where(id: inactive_so_or_path_funded_sso_member_ids)
+      inactive_so_or_path_funded_sso_members = so_or_path_funded_sso_members.where(a_t[:id].in(inactive_so_or_path_funded_sso_member_ids))
       answer.add_members(inactive_so_or_path_funded_sso_members)
       answer.update(summary: inactive_so_or_path_funded_sso_members.count)
 

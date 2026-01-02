@@ -61,7 +61,7 @@ module HudApr::Generators::Shared::Fy2026
             suffix: suffix,
           )
 
-          members = adults.where(id: ids)
+          members = adults.where(a_t[:id].in(ids))
           answer.add_members(members)
           if column[:column] == 'J'
             percent = 0
@@ -170,7 +170,7 @@ module HudApr::Generators::Shared::Fy2026
             income_clause.each do |part|
               ids += members.where.contains(part).pluck(a_t[:id])
             end
-            members = members.where(id: ids.to_a)
+            members = members.where(a_t[:id].in(ids.to_a))
           else
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
@@ -195,31 +195,31 @@ module HudApr::Generators::Shared::Fy2026
     private def adult_disabilities
       {
         'AO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:adults_only)),
+          and(hh_ctx[:household_type].eq('adults_only')),
         'AO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:adults_only)),
-        'AO: Total Adults' => a_t[:household_type].eq(:adults_only),
+          and(hh_ctx[:household_type].eq('adults_only')),
+        'AO: Total Adults' => hh_ctx[:household_type].eq('adults_only'),
         'AO: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:adults_only),
+          household: hh_ctx[:household_type].eq('adults_only'),
         },
         'AC: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:adults_and_children)),
+          and(hh_ctx[:household_type].eq('adults_and_children')),
         'AC: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:adults_and_children)),
-        'AC: Total Adults' => a_t[:household_type].eq(:adults_and_children),
+          and(hh_ctx[:household_type].eq('adults_and_children')),
+        'AC: Total Adults' => hh_ctx[:household_type].eq('adults_and_children'),
         'AC: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:adults_and_children),
+          household: hh_ctx[:household_type].eq('adults_and_children'),
         },
         'UK: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(a_t[:household_type].eq(:unknown)),
+          and(hh_ctx[:household_type].eq('unknown')),
         'UK: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(a_t[:household_type].eq(:unknown)),
-        'UK: Total Adults' => a_t[:household_type].eq(:unknown),
+          and(hh_ctx[:household_type].eq('unknown')),
+        'UK: Total Adults' => hh_ctx[:household_type].eq('unknown'),
         'UK: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: a_t[:household_type].eq(:unknown),
+          household: hh_ctx[:household_type].eq('unknown'),
         },
       }
     end

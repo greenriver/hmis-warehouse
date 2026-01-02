@@ -46,11 +46,8 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFive
 
       adults_and_hohs = universe.members.where(engaged_clause).where(
         a_t[:project_type].in(report_projects).
-          and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
-            and(a_t[:age].gteq(18).
-              or(a_t[:head_of_household].eq(true).
-                and(a_t[:age].lt(18).
-                  or(a_t[:age].eq(nil)))))),
+          and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01'))).
+          and(adult_or_hoh_clause),
       )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
