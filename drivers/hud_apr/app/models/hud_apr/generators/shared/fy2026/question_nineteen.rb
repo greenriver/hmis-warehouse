@@ -159,7 +159,7 @@ module HudApr::Generators::Shared::Fy2026
             where(adult_clause).
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
-            where(a_t[:income_from_any_source_at_exit].in([0, 1]))
+            where(a_t[:income_from_any_source_at_exit_raw].in([0, 1]))
 
           answer.update(summary: 0) and next if members.count.zero?
 
@@ -234,7 +234,7 @@ module HudApr::Generators::Shared::Fy2026
           'Other Source' => income_types(:exit).slice(*other_sources).values,
           # FIXME? There are some cases in the test kit that have income_from_any_source_at_exit = 1, but no other sources specified
           # where should those client's go?
-          'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
+          'No Sources' => a_t[:income_from_any_source_at_exit_raw].eq(0),
           'Unduplicated Total Adults' => Arel.sql('1=1'),
         },
       )

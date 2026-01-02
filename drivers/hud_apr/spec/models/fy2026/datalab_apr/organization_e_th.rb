@@ -36,7 +36,7 @@ RSpec.shared_context 'datalab organization e th apr', shared_context: :metadata 
           apr_validations.each do |question, table_validations|
             table_validations.each do |validation|
               next if validation_skips[question]&.include?(validation[:total])
-              next unless validation[:source][:relevant_project_types]&.include?(3)
+              next unless validation[:source][:relevant_project_types]&.include?(2)
 
               check_sum(validation: validation, question: question)
             end
@@ -331,15 +331,6 @@ RSpec.shared_context 'datalab organization e th apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
-        skip: [
-          'D2', # expected '3.0000' (3), got '1.0000' (1)
-          'H2', # expected '13.0000' (13), got '6.0000' (6)
-          'D3', # expected '0.0000' (0), got '2.0000' (2)
-          'H3', # expected '0.0000' (0), got '7.0000' (7)
-          'D4', # expected '140.0000' (140.0000), got '125.0000' (125.0)
-          'H4', # expected '232.2300' (232.2308), got '402.3300' (402.3333)
-          'H5', # expected '23.0000' (23.0000), got '130.5000' (130.5)
-        ],
       )
     end
 
