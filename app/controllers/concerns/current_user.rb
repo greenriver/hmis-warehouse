@@ -212,7 +212,14 @@ module CurrentUser
       jwt_helper = jwt_helper_for_request
       return nil unless jwt_helper&.token? && jwt_helper.validate!
 
-      authenticated_user = User.find_from_jwt(jwt_helper)
+      # If you want users to be created automatically based on successful login to their IDP:
+      # Add `allow_user_creation_from_idp_login`
+      auto_create_user = AppConfigProperty.find_by(key: 'idp/auto_create_user')&.value == 'true'
+      authenticated_user = if auto_create_user
+        User.find_or_create_from_jwt(jwt_helper)
+      else
+        User.find_from_jwt(jwt_helper)
+      end
       return nil unless authenticated_user
 
       # Cast to requested user class if different (e.g., Hmis::User)

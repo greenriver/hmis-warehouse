@@ -101,6 +101,48 @@ The authentication system uses JWT (JSON Web Token) tokens to authenticate users
 2. Fallback to email address lookup
 3. Automatically create `UserAuthenticationSource` if missing
 
+### Auto-Creation of Users
+
+By default, the application only looks up existing users during authentication. If a user successfully authenticates via the IDP but doesn't exist in the warehouse database, they will be denied access.
+
+You can enable automatic user creation so that users are automatically created in the warehouse database when they successfully authenticate via the IDP for the first time.
+
+#### How It Works
+
+When auto-creation is enabled:
+1. User successfully authenticates via OAuth2-proxy → Dex → IDP
+2. JWT token is validated and user information is extracted
+3. Application checks if user exists in warehouse database
+4. If user doesn't exist, a new `User` record is automatically created with:
+   - Email address from JWT token
+   - First name and last name from JWT token (or defaults if not available)
+   - `confirmed_at` set to current time (users from IDP are considered pre-confirmed)
+   - `active` set to `true`
+   - `agency_id` set to `0` (unknown agency - you will need to manually assign eventually)
+5. `UserAuthenticationSource` record is created/updated to link the user to the IDP connector
+6. User can immediately access the application, but will not have access to any data until an administrator grants permission
+
+#### Enabling Auto-Creation
+
+Auto-creation is controlled by an `AppConfigProperty` setting. To enable it:
+
+1. Log in to the warehouse application as an administrator
+2. Navigate to the App Config Properties admin page at `/admin/app_config_properties` (requires `can_manage_config?` permission)
+3. Click "New App Config Property"
+4. Create a new property with:
+   - **Key**: `idp/auto_create_user`
+   - **Value**: `"true"` (must be a JSON string - include the quotes)
+5. Click "Save"
+
+The setting takes effect immediately for all new authentication attempts.
+
+#### Disabling Auto-Creation
+
+To disable auto-creation:
+1. Navigate to the App Config Properties admin page at `/admin/app_config_properties`
+2. Find the property with key `idp/auto_create_user`
+3. Either delete the property, or edit it and change its value to `"false"`
+
 ## HTTP Headers
 
 OAuth2-proxy injects these headers into every request:

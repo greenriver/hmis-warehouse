@@ -38,6 +38,7 @@ module JwtUser
         last_name: jwt_helper.last_name.presence || '',
         confirmed_at: Time.current, # Users coming from IDP are already confirmed
         active: true,
+        agency_id: 0, # Unknown agency
       )
 
       # Find or create authentication source
