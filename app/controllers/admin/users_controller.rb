@@ -43,8 +43,10 @@ module Admin
     end
 
     def create
-      @user = User.new(user_params)
-      ensure_system_contact
+      @user = User.new
+      params_without_system_contact = user_params.except(:system_contact_attributes)
+      system_contact_attrs = user_params[:system_contact_attributes]
+      @user.assign_attributes(params_without_system_contact)
       set_system_alerts
       @agencies = Agency.order(:name)
 
@@ -53,6 +55,25 @@ module Admin
       begin
         User.transaction do
           @user.save!
+
+          # Create system_contact after user is saved so entity_id can be set
+          system_contact = @user.create_system_contact!(
+            entity_id: @user.id,
+            entity_type: 'User',
+            user_id: @user.id,
+            type: 'GrdaWarehouse::Contact::User',
+          )
+
+          # Handle alert_definition_ids if provided
+          if system_contact_attrs.present? && system_contact_attrs[:alert_definition_ids].present?
+            alert_definition_ids = Array(system_contact_attrs[:alert_definition_ids]).reject(&:blank?)
+            alert_definition_ids.each do |alert_def_id|
+              system_contact.contact_alert_subscriptions.find_or_create_by!(
+                alert_definition_id: alert_def_id,
+                active: true,
+              )
+            end
+          end
 
           # Create user in IDP if connector_id is provided and IDP supports user management
           if connector_id.present?
@@ -84,7 +105,13 @@ module Admin
           end
         end
       rescue ActiveRecord::RecordInvalid
-        flash[:error] = 'Please review the form problems below'
+        ensure_system_contact
+        error_messages = @user.errors.full_messages
+        flash[:error] = if error_messages.any?
+          "Please review the form problems below:<br>#{error_messages.map { |msg| "• #{msg}" }.join('<br>')}".html_safe
+        else
+          'Please review the form problems below'
+        end
         render :new
         return
       end
@@ -178,7 +205,12 @@ module Admin
         Rails.logger.error "User update failed: #{e.class} - #{e.message}"
         Rails.logger.error e.backtrace.first(10).join("\n")
         flash[:error] = if e.is_a?(ActiveRecord::RecordInvalid)
-          'Please review the form problems below'
+          error_messages = @user.errors.full_messages
+          if error_messages.any?
+            "Please review the form problems below:<br>#{error_messages.map { |msg| "• #{msg}" }.join('<br>')}".html_safe
+          else
+            'Please review the form problems below'
+          end
         else
           "Update failed: #{e.message}"
         end

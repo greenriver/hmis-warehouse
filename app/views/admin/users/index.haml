@@ -6,9 +6,13 @@
   .o-page__header
     - @prompt = t '.search_prompt'
 
-    .o-page__controls
+    .w-100.d-flex
       .o-page__search
         = render_generic_search_form(admin_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
+      .ms-auto
+        = link_to new_admin_user_path, class: 'btn btn-primary' do
+          %span.icon-plus
+          Add User Account
 
 = render 'admin/users/tabs', selected_path: admin_users_path
 

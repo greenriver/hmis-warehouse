@@ -1,6 +1,9 @@
 = simple_form_for [:admin, @user] do |f|
   = render 'admin/users/form_fields', f: f
 
+  - if @user.new_record?
+    .alert.alert-info.mt-4
+      %p This user account will be created but no notification will be sent.  Ensure the user is setup with a matching email address in their Identity Provider.
   .form-actions.mt-4
     = f.button :submit, class: 'btn btn-primary'
 

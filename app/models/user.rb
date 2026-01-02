@@ -44,16 +44,6 @@ class User < ApplicationRecord
 
   accepts_nested_attributes_for :system_contact
 
-  # Ensure system_contact has proper entity attributes before validation
-  before_validation :set_system_contact_entity, if: -> { system_contact.present? }
-
-  private def set_system_contact_entity
-    system_contact.entity_type = 'User'
-    system_contact.entity_id = id
-    system_contact.user_id = id
-    system_contact.type = 'GrdaWarehouse::Contact::User'
-  end
-
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
   # of their roles
