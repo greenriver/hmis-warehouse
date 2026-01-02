@@ -153,7 +153,7 @@ module HudApr::Generators::Shared::Fy2026
           # Step 7. of the CE APR, but really all APR related should work this way.  Filter the assessments/events, keeping only those where the CoC code assigned in step 6 matches the CoC on which the report is being run.
           next unless enrollment.enrollment_coc.in?(@report.coc_codes)
 
-          client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
+          [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
           exit_date = last_service_history_enrollment.last_date_in_program
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
@@ -213,7 +213,7 @@ module HudApr::Generators::Shared::Fy2026
               entry_date_proxy,
               entry_date_proxy,
               true,
-              hoh_enrollment_proxy
+              hoh_enrollment_proxy,
             )
           end
 
