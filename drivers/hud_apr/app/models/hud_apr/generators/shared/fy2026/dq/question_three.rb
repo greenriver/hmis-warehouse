@@ -80,14 +80,19 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
     end
 
     def q3_hoh_relationship_row(sheet, universe_members)
+      # Use pre-computed household context to identify households with multiple or no heads.
+      # This avoids loading the full household_members JSON which is no longer populated in FY2026.
+      hoh_counts = @report.household_contexts.
+        where(household_id: universe_members.select(:household_id)).
+        group(:household_id).
+        pluck(:household_id, Arel.sql('COUNT(*) FILTER (WHERE is_hoh = true)'))
+
       households_with_multiple_hohs = []
       households_with_no_hoh = []
 
-      universe_members.preload(:universe_membership).find_each do |member|
-        apr_client = member.universe_membership
-        count_of_heads = apr_client.household_members.select { |household_member| household_member['relationship_to_hoh'] == 1 }.count
-        households_with_multiple_hohs << apr_client.household_id if count_of_heads > 1
-        households_with_no_hoh << apr_client.household_id if count_of_heads.zero?
+      hoh_counts.each do |hh_id, count|
+        households_with_multiple_hohs << hh_id if count > 1
+        households_with_no_hoh << hh_id if count.zero?
       end
 
       missing_cell = sheet.update_cell_members(
