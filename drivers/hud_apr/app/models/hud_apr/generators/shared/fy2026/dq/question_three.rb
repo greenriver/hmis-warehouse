@@ -83,7 +83,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
       # Use pre-computed household context to identify households with multiple or no heads.
       # This avoids loading the full household_members JSON which is no longer populated in FY2026.
       hoh_counts = @report.household_contexts.
-        where(household_id: universe_members.select(:household_id)).
+        where(household_id: universe_members.select(a_t[:household_id])).
         group(:household_id).
         pluck(:household_id, Arel.sql('COUNT(*) FILTER (WHERE is_hoh = true)'))
 
