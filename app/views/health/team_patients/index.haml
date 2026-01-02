@@ -3,11 +3,6 @@
 .o-page__header
   %h1= content_for(:title)
 
-.mt-4.mb-6
-  = render 'background_render', url: render_section_health_team_patients_path, fetch_params: {start_date: @start_date, end_date: @end_date, entity_id: @team_name} do
-    .rollup
-      .rollup-container.well
-
 .btn-group.btn-group-action-2.btn-group-xs.mb-4{ role: 'group' }
   - @teams.each do |team|
     - btn_classes = ['btn', 'btn-secondary']
@@ -19,6 +14,11 @@
   - if @team_name == 'All Patients'
     - btn_classes.push(['active', 'btn-light'])
   = link_to 'All Patients', health_team_patients_path(entity_id: 'All Patients'), class: btn_classes
+
+.mt-4.mb-6
+  = render 'background_render', url: render_section_health_team_patients_path, fetch_params: {start_date: @start_date, end_date: @end_date, entity_id: @team_name} do
+    .rollup
+      .rollup-container.well
 
 .o-page__controls
   .o-page__search
