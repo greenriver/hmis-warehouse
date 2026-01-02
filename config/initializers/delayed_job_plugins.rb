@@ -27,8 +27,10 @@ class DelayedJobJobIdProvider < Delayed::Plugin
       # We only inject this into ActiveJob-style payloads that have a job_data hash.
       payload = job.payload_object
       if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
-        # ActiveJob data might be frozen; if so, we can't inject the ID.
-        payload.job_data['provider_job_id'] = job.id unless payload.job_data.frozen?
+        # avoid mutation of job_date due as it crashes if frozen
+        payload.job_data = payload.job_data.merge(
+          'provider_job_id' => job.id,
+        )
       end
     end
   end
