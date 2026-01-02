@@ -523,14 +523,14 @@ module HudApr::Generators::Shared::Fy2026
         enrollment_ids.merge(GrdaWarehouse::ServiceHistoryService.bed_night.
           service_excluding_extrapolated.
           service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
-          where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
+          where(service_history_enrollment_id: enrollment_scope_without_preloads.select(GrdaWarehouse::ServiceHistoryEnrollment.arel_table[:id])).
           pluck(:service_history_enrollment_id))
         # SO
         enrollment_ids.merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.
           joins(enrollment: [:current_living_situations, :project]).
           merge(GrdaWarehouse::Hud::Project.so.where(id: @report.project_ids)).
           merge(GrdaWarehouse::Hud::CurrentLivingSituation.between(start_date: @report.start_date, end_date: @report.end_date)).
-          pluck(:id))
+          pluck(GrdaWarehouse::ServiceHistoryEnrollment.arel_table[:id]))
       end
       @with_service.include?(enrollment.id)
     end

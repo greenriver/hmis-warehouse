@@ -235,7 +235,7 @@ module HudApr::Generators::Shared::Fy2026
           elsif income_clause.is_a?(Array)
             ids = Set.new
             income_clause.each do |part|
-              ids += members.where.contains(part).pluck(:id)
+              ids += members.where.contains(part).pluck(a_t[:id])
             end
             members = members.where(id: ids.to_a)
           else
@@ -335,7 +335,7 @@ module HudApr::Generators::Shared::Fy2026
           elsif income_clause.is_a?(Array)
             ids = Set.new
             income_clause.each do |part|
-              ids += members.where.contains(part).pluck(:id)
+              ids += members.where.contains(part).pluck(a_t[:id])
             end
             members = members.where(id: ids.to_a)
           else
