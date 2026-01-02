@@ -19,8 +19,9 @@ module JwtAuthenticationHelper
   # @param user [User, Hmis::User] The user to sign in
   # @return [String] The mock JWT token used for authentication
   def sign_in(user)
-    # Generate a unique mock token for this user
+    # Generate a unique mock token and session ID for this user
     mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
+    mock_session_id = "mock-session-id-#{user.id}-#{SecureRandom.hex(4)}"
 
     # Stub JwtHelper to validate the token and return user
     jwt_helper = instance_double(
@@ -31,6 +32,7 @@ module JwtAuthenticationHelper
       connector_user_id: user.id.to_s,
       payload_email: user.email,
       expiration_time: 1.hour.from_now,
+      session_id: mock_session_id,
     )
 
     # Stub JwtHelper.authenticated? class method
@@ -74,8 +76,9 @@ module JwtAuthenticationHelper
       request.session # This access initializes the session
     end
 
-    # Store token for use in headers
+    # Store token and session ID for use in headers and tests
     @jwt_token = mock_token
+    @jwt_session_id = mock_session_id
 
     # For request specs: Override get/post/etc to inject headers
     # The integration_session is what actually makes requests, so we need to
@@ -180,6 +183,13 @@ module JwtAuthenticationHelper
   # @return [String, nil] The mock JWT token or nil if not signed in
   def jwt_token
     @jwt_token
+  end
+
+  # Get the mock JWT session ID for the signed-in user.
+  #
+  # @return [String, nil] The mock JWT session ID or nil if not signed in
+  def jwt_session_id
+    @jwt_session_id
   end
 end
 

@@ -127,6 +127,17 @@ class JwtHelper
     Time.zone.at(exp)
   end
 
+  # Get the access token hash from the token.
+  #
+  # The 'at_hash' claim is a hash of the access token and changes with each new token issued.
+  # It remains constant across requests using the same token, making it ideal for session tracking.
+  # Used for token denylist/blacklist tracking to invalidate specific tokens.
+  #
+  # @return [String, nil] The access token hash, or nil if not available
+  def session_id
+    payload.first['at_hash']
+  end
+
   # Check if an access token represents an authenticated user.
   #
   # This is a lightweight check that validates the token exists and is valid.

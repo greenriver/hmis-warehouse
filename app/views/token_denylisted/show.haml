@@ -1,0 +1,30 @@
+- if TokenDenylist.denied?(current_user.unique_session_id)
+  .d-flex.align-items-center.justify-content-center
+    .card.shadow-lg
+      .card-body.p-5.text-center
+        %i.icon-alert.text-danger.fs-1
+        %h2.mt-4 Session Ended
+        %p.text-muted.mt-3
+          Your session has been ended by an administrator.
+        %p.text-muted
+          Please sign in again to continue.
+        .mt-4= link_to 'Sign Out and Log Back In', '/oauth2/sign_out', class: 'btn btn-primary btn-lg'
+        %p.text-muted.small.mt-4
+          If you continue to see this page, please clear your browser cache and cookies.
+- else
+  .mt-3= link_to 'Return to Home', root_path, class: 'btn btn-outline-secondary'
+
+- if Rails.env.development? && @jwt_payload
+  %hr.my-5
+  .container
+    %h4.mb-3 JWT Payload Debug (Development Only)
+    .row
+      .col-12
+        %pre
+          = JSON.pretty_generate(@jwt_payload)
+    %p.text-muted.small.mt-3
+      Current user unique_session_id:
+      %code= current_user.unique_session_id
+    %p.text-muted.small
+      Is denylisted?
+      %code= TokenDenylist.denied?(current_user.unique_session_id)

@@ -34,6 +34,17 @@ module CurrentUser
       @warden ||= WardenProxy.new(current_user, session: session)
     end
 
+    # Check if the current token is denylisted (force logged out).
+    #
+    # This is a separate before_action that can be skipped independently.
+    # If the token is denylisted, redirects to the captive portal.
+    def check_token_denylist!
+      jwt_helper = jwt_helper_for_request
+      return unless jwt_helper&.token? && jwt_helper.validate! && TokenDenylist.denied?(jwt_helper.session_id)
+
+      handle_denylisted_token
+    end
+
     # Authenticate user via JWT token.
     #
     # Redirects to sign-in page if authentication fails.
@@ -54,6 +65,11 @@ module CurrentUser
       end
 
       @current_user = user
+    end
+
+    # Override in subclasses for custom behavior (e.g., JSON responses)
+    def handle_denylisted_token
+      redirect_to token_denylisted_path
     end
 
     # Check if user is signed in.
@@ -210,6 +226,10 @@ module CurrentUser
       # Ensure authentication source exists (only once per request)
       ensure_authentication_source(authenticated_user, jwt_helper) unless @auth_source_ensured
 
+      # Update last activity timestamp and store current token's subject for session tracking
+      # The subject (sub claim) is used to invalidate sessions when admins force logout users
+      update_user_activity(authenticated_user, session_id: jwt_helper.session_id)
+
       # Check for impersonation state
       impersonation_manager = ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
@@ -230,6 +250,34 @@ module CurrentUser
       end
 
       user
+    end
+
+    # Update the user's last activity timestamp and store current token's subject.
+    #
+    # This is called on each authenticated request to track active sessions.
+    # Stores the current token's subject (sub claim) in the appropriate field:
+    # - unique_session_id for warehouse users
+    # - hmis_unique_session_id for HMIS users
+    # Uses update_column to avoid triggering validations and callbacks.
+    #
+    # @param user [User, Hmis::User] The user to update
+    # @param session_id [String] The token's subject (sub claim) from the current token
+    def update_user_activity(user, session_id: nil)
+      return if user.blank?
+
+      # Only update once per request to avoid excessive database writes
+      return if @activity_updated_for_user_id == user.id
+
+      updates = { last_activity_at: Time.current }
+
+      # Use appropriate session ID field based on user type
+      if session_id.present?
+        session_id_field = user.is_a?(Hmis::User) ? :hmis_unique_session_id : :unique_session_id
+        updates[session_id_field] = session_id
+      end
+
+      user.update_columns(updates)
+      @activity_updated_for_user_id = user.id
     end
 
     # Handle unauthenticated user.
@@ -260,6 +308,16 @@ module CurrentUser
         session_id: session&.id&.to_s,
       )
       redirect_to helpers.oauth2_sign_in_path(redirect_to: original_url), alert: 'Your account has been deactivated.'
+    end
+
+    # Handle denylisted (force-logged-out) user.
+    #
+    # Redirects to a captive portal that displays a message and provides a logout link.
+    # This is used when an admin has forcefully logged out a user via the sessions management page.
+    #
+    # Override in subclasses for custom behavior.
+    def handle_denylisted_token
+      redirect_to token_denylisted_path
     end
   end
 end

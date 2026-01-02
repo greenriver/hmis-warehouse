@@ -40,6 +40,7 @@ Rails.application.routes.draw do
   delete 'users/sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   get 'logout_talentlms', to: 'users/sessions#destroy', as: :logout_talentlms
   get 'session_keepalive', to: 'users/sessions#keepalive', as: :session_keepalive
+  get 'token_denylisted', to: 'token_denylisted#show', as: :token_denylisted
 
   namespace :users do
     resources :account_requests, only: [:new, :create]
