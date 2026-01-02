@@ -356,7 +356,6 @@ GEM
       logger (~> 1.5)
     choice (0.2.0)
     chronic (0.10.2)
-    chunky_png (1.4.0)
     coderay (1.1.3)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -418,8 +417,6 @@ GEM
     diff-lcs (1.6.0)
     docile (1.4.1)
     domain_name (0.6.20240107)
-    doorkeeper (5.8.1)
-      railties (>= 5)
     dotenv (3.1.7)
     dotenv-rails (3.1.7)
       dotenv (= 3.1.7)
@@ -852,10 +849,6 @@ GEM
       nokogiri
       roo (>= 2.0.0, < 3)
       spreadsheet (> 0.9.0)
-    rqrcode (2.2.0)
-      chunky_png (~> 1.0)
-      rqrcode_core (~> 1.0)
-    rqrcode_core (1.2.0)
     rserve-client (0.3.5)
     rserve-simpler (0.0.6)
       rserve-client (~> 0.3.0)
@@ -1162,7 +1155,6 @@ DEPENDENCIES
   dentaku
   deprecation_toolkit
   derailed_benchmarks
-  doorkeeper
   dotenv-rails
   drb
   ed25519
@@ -1265,7 +1257,6 @@ DEPENDENCIES
   roda
   roo
   roo-xls
-  rqrcode
   rserve-client
   rserve-simpler
   rspec-benchmark
@@ -1420,7 +1411,6 @@ CHECKSUMS
   childprocess (5.1.0) sha256=9a8d484be2fd4096a0e90a0cd3e449a05bc3aa33f8ac9e4d6dcef6ac1455b6ec
   choice (0.2.0) sha256=a19617f7dfd4921b38a85d0616446620de685a113ec6d1ecc85bdb67bf38c974
   chronic (0.10.2) sha256=766f2fcce6ac3cc152249ed0f2b827770d3e517e2e87c5fba7ed74f4889d2dc3
-  chunky_png (1.4.0) sha256=89d5b31b55c0cf4da3cf89a2b4ebc3178d8abe8cbaf116a1dba95668502fdcfe
   coderay (1.1.3) sha256=dc530018a4684512f8f38143cd2a096c9f02a1fc2459edcfe534787a7fc77d4b
   coercible (1.0.0) sha256=5081ad24352cc8435ce5472bc2faa30260c7ea7f2102cc6a9f167c4d9bffaadc
   coffee-rails (5.0.0) sha256=5daaa1ba51fd4907c98a333b6a9e7c1a99b1fff57fcef999b6c62d813cb91a9c
@@ -1446,7 +1436,6 @@ CHECKSUMS
   diff-lcs (1.6.0) sha256=a1e7f7b272962f8fc769358ad00001b87cdcf32ba349d6c70c6b544613d2da2e
   docile (1.4.1) sha256=96159be799bfa73cdb721b840e9802126e4e03dfc26863db73647204c727f21e
   domain_name (0.6.20240107) sha256=5f693b2215708476517479bf2b3802e49068ad82167bcd2286f899536a17d933
-  doorkeeper (5.8.1) sha256=6d54f3c36755d8cfcb7e4f04fbcf1ff3492c816090ad78126ec8a722c292d26c
   dotenv (3.1.7) sha256=c670df478675d23889e657beaca6fb423228f75ce9f052a0690c0d0daa333cf3
   dotenv-rails (3.1.7) sha256=02c07b9601ad64046e196f48f6280c2cc660b073e08b30ad5c2f78b4872e9189
   drb (2.2.1) sha256=e9d472bf785f558b96b25358bae115646da0dbfd45107ad858b0bc0d935cb340
@@ -1639,8 +1628,6 @@ CHECKSUMS
   roda (3.91.0) sha256=7eba67725e2772259308d34527722e688cd628885ed727a50c3167fecb1d20d4
   roo (2.10.1) sha256=cbb43bc955f9c110e74b721c835fb9bd3515b63af88ec709ac87fbf30f8be70e
   roo-xls (1.2.0) sha256=e340d7458d5f084e30f5eb4dc80925b047ecc7802a09115eaaba11bd4e8384cd
-  rqrcode (2.2.0) sha256=23eea88bb44c7ee6d6cab9354d08c287f7ebcdc6112e1fe7bcc2d010d1ffefc1
-  rqrcode_core (1.2.0) sha256=cf4989dc82d24e2877984738c4ee569308625fed2a810960f1b02d68d0308d1a
   rserve-client (0.3.5) sha256=73828f87f8f0aa60f1606e0e1c1a2b178780be91c2b929dc523dac4bd4990ecf
   rserve-simpler (0.0.6) sha256=63b65d3396f54a3d3619aaf97e11c079c2e71a9c1139ebca4be473d9a3eda6bd
   rspec (3.13.0) sha256=d490914ac1d5a5a64a0e1400c1d54ddd2a501324d703b8cfe83f458337bab993

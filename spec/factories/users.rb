@@ -84,6 +84,7 @@ FactoryBot.define do
     confirmed_at { Date.yesterday }
     notify_on_vispdat_completed { false }
     agency_id { 1 }
+    # Maintained for backward compatibility with legacy 2FA until we're comfortable with the state of Oauth2-proxy
     otp_secret { User.generate_otp_secret }
   end
 end

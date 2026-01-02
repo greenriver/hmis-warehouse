@@ -39,10 +39,6 @@ module UserConcern
                    encode_salt: true,
                    mode: :per_attribute_iv_and_salt
 
-    # Doorkeeper
-    has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
-    has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
-
     # Connect users to login attempts.
     # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
     has_many :login_activities, as: :user

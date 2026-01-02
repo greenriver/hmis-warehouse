@@ -95,14 +95,11 @@ gem 'acts-as-taggable-on', '~>12.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
 gem 'rack-cors'
-gem 'doorkeeper'
 # Zitadel client is used for migrating users to Zitadel
 gem 'zitadel-client', require: false
 gem 'jwt', '~> 3.1'
 gem 'faraday', '~> 2.2'
 gem 'oauth2'
-
-gem 'rqrcode'
 
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
