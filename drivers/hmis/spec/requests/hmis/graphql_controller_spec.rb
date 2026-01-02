@@ -21,7 +21,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:simple_query) do
     <<~GRAPHQL
       query {
-        projects {
+        projects(limit: 50) {
+          nodesCount
           nodes {
             projectName
           }
@@ -31,13 +32,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
 
   before(:each) do
     hmis_login(user)
@@ -97,15 +91,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  it 'is responsive' do
-    expect do
-      response, _result = post_graphql { simple_query }
-      expect(response.status).to eq 200
-    end.to make_database_queries(count: 1..20)
-    expect do
-      response, _result = post_graphql { simple_query }
-      expect(response.status).to eq 200
-    end.to perform_under(100).ms
+  context 'with a lot of projects' do
+    before(:each) do
+      create_list(:hmis_hud_project, 100, data_source: ds1, organization: o1)
+    end
+    it 'minimizes n+1 queries' do
+      expect do
+        response, result = post_graphql { simple_query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'projects', 'nodes').size).to eq(50)
+      end.to make_database_queries(count: 1..20)
+    end
+    it 'is responsive' do
+      expect do
+        response, _result = post_graphql { simple_query }
+        expect(response.status).to eq(200), result.inspect
+      end.to perform_under(110).ms
+    end
   end
 end
 

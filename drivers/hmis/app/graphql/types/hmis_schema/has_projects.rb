@@ -13,7 +13,15 @@ module Types
 
       class_methods do
         def projects_field(name = :projects, description = nil, filter_args: {}, **override_options, &block)
-          default_field_options = { type: Types::HmisSchema::Project.page_type, null: false, description: description }
+          default_field_options = {
+            type: Types::HmisSchema::Project.page_type,
+            null: false,
+            description: description,
+            after_paginate: ->(nodes, ctx) {
+              # Preload project dependencies to avoid N+1 queries when invoking HmisProjectPolicy
+              ctx[:current_user].policy_context.preload_project_dependencies(nodes.map(&:id))
+            },
+          }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::ProjectSortOption, required: false
