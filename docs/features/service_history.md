@@ -16,7 +16,7 @@ The generation logic differs based on the program type:
 
 -   **Night-by-Night (NBN) Programs:** A `ServiceHistoryService` record is created for each specific service date recorded in the source data (e.g., a bed night service).
 -   **Entry/Exit Programs:** For programs like Entry/Exit shelters, Transitional Housing, and Permanent Housing, the system builds `ServiceHistoryService` records for each day from the client's entry date through the day before their exit date. When the entry and exit dates are the same we include that day. For ongoing enrollments, we extend the services through the latest date covered by the source export (or today, if the enrollment is managed in the operational HMIS).
-  -   **Street Outreach & Contact Extrapolation:** Street Outreach projects can create synthetic daily services from contact records. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand recorded contacts to fill the remainder of the month so that downstream reporting sees continuous engagement.
+-   **Street Outreach & Contact Extrapolation:** Street Outreach projects can create synthetic daily services from contact records. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand recorded contacts to fill the remainder of the month so that downstream reporting sees continuous engagement.
 
 ## Storage & Performance Considerations
 
@@ -174,7 +174,6 @@ The cached data in `WarehouseClientsProcessed` is used by:
 
 -   **Service History Enrollment Model:** `app/models/grda_warehouse/service_history_enrollment.rb`
 -   **Service History Service Model:** `app/models/grda_warehouse/service_history_service.rb`
--   **Service History Builder Concern:** `app/models/concerns/service_history/builder.rb`
 -   **Service History Generation Task:** `app/models/grda_warehouse/tasks/service_history/enrollment.rb`
     -   `rebuild_service_history!` - Main method that determines whether to rebuild or patch
     -   `calculate_hash` - Computes the hash used for change detection
