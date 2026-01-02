@@ -37,7 +37,7 @@ connectors:
     id: zitadel
     name: Zitadel Account
     config:
-      issuer: http://op-zitadel.dev.test:8080
+      issuer: http://op-zitadel.dev.test:${ZITADEL_PORT}
       clientID: ${ZITADEL_IDP_CLIENT_ID}
       clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
       redirectURI: https://dex.dev.test/dex/callback

@@ -46,6 +46,8 @@ x-app: &app
     # Issuer must match what browsers see (https://dex.dev.test/dex) for token validation
     ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
     JWKS_URL: ${JWKS_URL:-http://dex:4443/dex/keys}
+    # Zitadel configuration
+    ZITADEL_PORT: ${ZITADEL_PORT:-8080}
 
   env_file: *env_file
 
@@ -61,6 +63,64 @@ x-backend: &backend
     - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
     - /etc/ssl/certs:/etc/ssl/certs
     - node_modules_bookworm:/node_modules
+
+x-oauth2-proxy: &oauth2-proxy
+  image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+  environment:
+    <<: *env
+  depends_on:
+    dex:
+      condition: service_healthy
+
+x-zitadel-url: &zitadel-url
+  ZITADEL_URL: http://op-zitadel.dev.test:${ZITADEL_PORT:-8080}
+  ZITADEL_API_URL: http://op-zitadel.dev.test:${ZITADEL_PORT:-8080}
+
+x-zitadel-all: &zitadel-all
+  # External configuration
+  ZITADEL_EXTERNALDOMAIN: op-zitadel.dev.test
+  ZITADEL_EXTERNALPORT: ${ZITADEL_PORT:-8080}
+  ZITADEL_EXTERNALSECURE: false
+  ZITADEL_TLS_ENABLED: false
+  # Database configuration
+  ZITADEL_DATABASE_POSTGRES_HOST: db
+  ZITADEL_DATABASE_POSTGRES_PORT: 5432
+  ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+  ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
+  ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: postgres
+  ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+  ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+  ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+  ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+  # Login client for V2 login UI
+  ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel-config/login-client.pat
+  ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+  ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+  ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Login Client
+  ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2035-01-01T00:00:00Z"
+  # Login V2 settings
+  ZITADEL_LOGIN_UI_BASE: http://op-zitadel.dev.test:3000/ui/v2/login
+  ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: false
+  ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: http://op-zitadel.dev.test:3000/ui/v2/login
+  ZITADEL_OIDC_DEFAULTLOGINURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/login?authRequest=
+  ZITADEL_OIDC_DEFAULTLOGOUTURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/logout?post_logout_redirect=
+  ZITADEL_SAML_DEFAULTLOGINURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/login?samlRequest=
+  # SMTP configuration (mailhog)
+  ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_HOST: mailhog:1025
+  ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_USER: ""
+  ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_PASSWORD: ""
+  ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_TLS: false
+  ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROM: noreply@op-zitadel.dev.test
+  ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROMNAME: Open Path IDP
+  # Initial organization and admin user
+  ZITADEL_FIRSTINSTANCE_ORG_NAME: openpath
+  ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
+  ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: AdminPassword1!
+  # Service account for automated setup
+  ZITADEL_FIRSTINSTANCE_PATPATH: /zitadel-config/admin.pat
+  ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: setup-admin
+  ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Automated Setup Admin
+  ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2035-01-01T00:00:00Z"
 
 services:
   shell:
@@ -163,6 +223,7 @@ services:
       minio:
         condition: service_started
   oauth2-proxy-warehouse:
+    <<: *oauth2-proxy
     labels:
       - traefik.enable=true
       - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`)
@@ -171,7 +232,6 @@ services:
       - traefik.http.routers.hmis-warehouse-oauth2.tls=true
       - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
     container_name: oauth2-proxy-warehouse
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
     command: --alpha-config /oauth2-proxy-warehouse.yaml --config /oauth2-proxy-warehouse.cfg
     hostname: hmis-warehouse.dev.test
     extra_hosts:
@@ -186,10 +246,8 @@ services:
       VIRTUAL_PORT: 4180
     ports:
       - 4180:4180/tcp
-    depends_on:
-      dex:
-        condition: service_healthy
   oauth2-proxy-hmis:
+    <<: *oauth2-proxy
     labels:
       - traefik.enable=true
       - traefik.http.routers.hmis-frontend-oauth2.rule=Host(`hmis.dev.test`)
@@ -198,7 +256,6 @@ services:
       - traefik.http.routers.hmis-frontend-oauth2.tls=true
       - traefik.http.services.hmis-frontend-oauth2.loadbalancer.server.port=4181
     container_name: oauth2-proxy-hmis
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
     command: --alpha-config /oauth2-proxy-hmis.yaml --config /oauth2-proxy-hmis.cfg
     hostname: hmis.dev.test
     extra_hosts:
@@ -215,10 +272,8 @@ services:
       VIRTUAL_PORT: 4181
     ports:
       - 4181:4181/tcp
-    depends_on:
-      dex:
-        condition: service_healthy
   oauth2-proxy-hmis-backend:
+    <<: *oauth2-proxy
     labels:
       - traefik.enable=true
       - traefik.http.routers.hmis-backend-oauth2.rule=Host(`hmis-backend.dev.test`)
@@ -227,7 +282,6 @@ services:
       - traefik.http.routers.hmis-backend-oauth2.tls=true
       - traefik.http.services.hmis-backend-oauth2.loadbalancer.server.port=4182
     container_name: oauth2-proxy-hmis-backend
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
     command: --alpha-config /oauth2-proxy-hmis-backend.yaml --config /oauth2-proxy-hmis-backend.cfg
     hostname: hmis-backend.dev.test
     extra_hosts:
@@ -244,9 +298,6 @@ services:
       VIRTUAL_PORT: 4182
     ports:
       - 4182:4182/tcp
-    depends_on:
-      dex:
-        condition: service_healthy
   dex-db-init:
     image: postgres:17.5-bookworm
     container_name: dex-db-init
@@ -270,18 +321,21 @@ services:
     container_name: dex
     # image: dexidp/dex:latest-alpine
     image: ghcr.io/dexidp/dex:v2.44.0
-    # Source Zitadel credentials at runtime before starting Dex
+    # Source Zitadel credentials and template dex.yaml at runtime before starting Dex
     command: >
       sh -c '
         if [ -f /auth/zitadel-credentials.env ]; then
           echo "Loading Zitadel credentials..."
           export $$(grep -v "^#" /auth/zitadel-credentials.env | xargs)
         fi
-        dex serve /dex.yaml
+        export ZITADEL_PORT=$${ZITADEL_PORT:-8080}
+        echo "Processing dex config template with ZITADEL_PORT=$${ZITADEL_PORT}..."
+        sed "s/\$${ZITADEL_PORT}/$${ZITADEL_PORT}/g" /auth/dev.dex.yaml.template > /tmp/dex.yaml
+        dex serve /tmp/dex.yaml
       '
     hostname: dex
     volumes:
-      - "./docker/auth/dev.dex.yaml:/dex.yaml"
+      - "./docker/auth/dev.dex.yaml.template:/auth/dev.dex.yaml.template:ro"
       - "./docker/auth:/auth:ro"
     env_file: *env_file
     environment:
@@ -462,54 +516,7 @@ services:
     container_name: op-zitadel
     command: start-from-init --masterkey "MasterkeyNeedsToHave32Characters"
     environment:
-      ZITADEL_EXTERNALDOMAIN: op-zitadel.dev.test
-      ZITADEL_EXTERNALPORT: 8080
-      ZITADEL_EXTERNALSECURE: false
-      ZITADEL_TLS_ENABLED: false
-
-      # Database connection (using main db container)
-      ZITADEL_DATABASE_POSTGRES_HOST: db
-      ZITADEL_DATABASE_POSTGRES_PORT: 5432
-      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
-      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
-      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: postgres
-      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
-      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
-      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
-      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
-
-      # Login client for V2 login UI
-      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel-config/login-client.pat
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Login Client
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2035-01-01T00:00:00Z"
-
-      # Login V2 settings
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: false
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: http://op-zitadel.dev.test:3000/ui/v2/login
-      ZITADEL_OIDC_DEFAULTLOGINURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/login?authRequest=
-      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/logout?post_logout_redirect=
-      ZITADEL_SAML_DEFAULTLOGINURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/login?samlRequest=
-
-      # SMTP configuration (mailhog)
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_HOST: mailhog:1025
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_USER: ""
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_PASSWORD: ""
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_TLS: false
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROM: noreply@op-zitadel.dev.test
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROMNAME: Open Path IDP
-
-      # Initial organization and admin user
-      ZITADEL_FIRSTINSTANCE_ORG_NAME: openpath
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: AdminPassword1!
-
-      # Service account for automated setup
-      ZITADEL_FIRSTINSTANCE_PATPATH: /zitadel-config/admin.pat
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: setup-admin
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Automated Setup Admin
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2035-01-01T00:00:00Z"
+      <<: *zitadel-all
     healthcheck:
       test: [CMD, /app/zitadel, ready]
       interval: 10s
@@ -520,7 +527,7 @@ services:
     volumes:
       - ./docker/auth:/zitadel-config:delegated
     ports:
-      - "8080:8080"
+      - "${ZITADEL_PORT:-8080}:8080"
       - "3001:3000"
     hostname: op-zitadel.dev.test
     networks:
@@ -538,7 +545,7 @@ services:
     image: ghcr.io/zitadel/zitadel-login:latest
     container_name: op-zitadel-login
     environment:
-      ZITADEL_API_URL: http://op-zitadel.dev.test:8080
+      <<: *zitadel-url
       NEXT_PUBLIC_BASE_PATH: /ui/v2/login
       ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel-config/login-client.pat
     network_mode: service:zitadel
@@ -560,7 +567,7 @@ services:
       - ./docker/auth:/auth
       - ./docker/zitadel/setup.sh:/setup.sh:ro
     environment:
-      ZITADEL_URL: http://op-zitadel.dev.test:8080
+      <<: *zitadel-url
       AUTH_DIR: /auth
       PAT_FILE: /auth/admin.pat
       CREDENTIALS_FILE: /auth/zitadel-credentials.env
