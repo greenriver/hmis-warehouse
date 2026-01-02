@@ -237,7 +237,7 @@ namespace :zitadel do
     end
 
     # Add TOTP secret if user has 2FA enabled
-    if user.encrypted_otp_secret.present?
+    if user.encrypted_otp_secret.present? && user.otp_required_for_login?
       begin
         otp_secret = user.otp_secret
         user_data[:otpCode] = otp_secret
