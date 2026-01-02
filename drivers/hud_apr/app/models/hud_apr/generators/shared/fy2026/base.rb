@@ -639,11 +639,6 @@ module HudApr::Generators::Shared::Fy2026
     delegate :client_scope, to: :@generator
     delegate :end_date, to: :@report, prefix: :report
 
-    private def hoh_exit_date(household_id)
-      @hoh_exit_dates ||= universe.members.where(hoh_clause).pluck(:household_id, :last_date_in_program).to_h
-      @hoh_exit_dates[household_id]
-    end
-
     private def report_client_universe
       HudApr::Fy2020::AprClient
     end

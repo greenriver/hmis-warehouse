@@ -56,5 +56,9 @@ module HudReports
     def parenting_youth_clause
       hh_ctx[:is_parenting_youth].eq(true)
     end
+
+    def hoh_exit_dates(members_scope)
+      members_scope.where(hoh_clause).pluck(hh_ctx[:household_id], @a_t[:last_date_in_program]).to_h
+    end
   end
 end

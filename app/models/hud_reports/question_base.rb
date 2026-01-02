@@ -126,5 +126,10 @@ module HudReports
     def parenting_youth_clause
       household_query_service.parenting_youth_clause
     end
+
+    def hoh_exit_date(household_id)
+      @hoh_exit_dates ||= household_query_service.hoh_exit_dates(members)
+      @hoh_exit_dates[household_id]
+    end
   end
 end
