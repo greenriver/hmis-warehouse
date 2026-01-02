@@ -76,8 +76,7 @@ x-zitadel-url: &zitadel-url
   ZITADEL_URL: http://op-zitadel.dev.test:${ZITADEL_PORT:-8080}
   ZITADEL_API_URL: http://op-zitadel.dev.test:${ZITADEL_PORT:-8080}
 
-x-zitadel-all: &zitadel-all
-  # External configuration
+x-zitadel-all: &zitadel-all # External configuration
   ZITADEL_EXTERNALDOMAIN: op-zitadel.dev.test
   ZITADEL_EXTERNALPORT: ${ZITADEL_PORT:-8080}
   ZITADEL_EXTERNALSECURE: false
@@ -112,7 +111,7 @@ x-zitadel-all: &zitadel-all
   ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_TLS: false
   ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROM: noreply@op-zitadel.dev.test
   ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROMNAME: Open Path IDP
-  # Initial organization and admin user
+  # Initial organization and admin user (login will be: admin@openpath.op-zitadel.dev.test)
   ZITADEL_FIRSTINSTANCE_ORG_NAME: openpath
   ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
   ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: AdminPassword1!
