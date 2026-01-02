@@ -56,14 +56,19 @@ module HudReports
         where(client_id: @generator.client_scope).
         merge(@generator.report_scope_source.open_between(start_date: @report.start_date, end_date: @report.end_date))
 
-      # Plucking all unique HH identifiers. For most datasets, this list fits in memory.
-      # This is simpler and more robust than driving through client_scope.in_batches.
-      hh_ids = hh_ids_query.distinct.pluck(:household_id, :enrollment_group_id).map do |hh_id, eg_id|
-        hh_id || "#{eg_id}*HH"
-      end.uniq
+      # Plucking unique HH identifiers in batches to avoid loading everything into memory.
+      hh_id_expr = "COALESCE(household_id, enrollment_group_id || '*HH')"
+      base_query = hh_ids_query.
+        distinct.
+        order(Arel.sql(hh_id_expr))
 
-      hh_ids.each_slice(batch_size) do |batch|
+      offset = 0
+      loop do
+        batch = base_query.limit(batch_size).offset(offset).pluck(Arel.sql(hh_id_expr))
+        break if batch.empty?
+
         yield batch
+        offset += batch_size
       end
     end
 
