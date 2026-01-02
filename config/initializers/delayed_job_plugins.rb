@@ -1,27 +1,21 @@
 # frozen_string_literal: true
 
-require_relative '../../lib/util/thread_safe_registry'
-
 class SignalHandlerPlugin < Delayed::Plugin
-  # While standard Delayed Job workers run in a single-threaded process,
-  # thread-safety will support future threaded worker configurations
-  # and parallelized test environments.
-  @registry = ::ThreadSafeRegistry.new
-
   class << self
-    attr_reader :registry
-
     def current_worker_stopping?
-      @registry.current&.stop? || false
+      # Use thread-local storage directly. This is safer and more idiomatic
+      # than a custom registry.
+      worker = Thread.current[:delayed_job_worker]
+      worker&.stop? || false
     end
   end
 
   callbacks do |lifecycle|
     lifecycle.around(:perform) do |worker, _job, &block|
-      SignalHandlerPlugin.registry.register(worker)
+      Thread.current[:delayed_job_worker] = worker
       block&.call
     ensure
-      SignalHandlerPlugin.registry.unregister
+      Thread.current[:delayed_job_worker] = nil
     end
   end
 end
@@ -32,7 +26,10 @@ class DelayedJobJobIdProvider < Delayed::Plugin
       # job.id is the ID of the Delayed::Job record in the database.
       # We only inject this into ActiveJob-style payloads that have a job_data hash.
       payload = job.payload_object
-      payload.job_data['provider_job_id'] = job.id if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
+      if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
+        # ActiveJob data might be frozen; if so, we can't inject the ID.
+        payload.job_data['provider_job_id'] = job.id unless payload.job_data.frozen?
+      end
     end
   end
 end

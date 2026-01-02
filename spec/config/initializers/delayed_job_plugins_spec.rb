@@ -8,7 +8,8 @@ RSpec.describe SignalHandlerPlugin do
   let(:lifecycle) { Delayed::Lifecycle.new }
 
   before do
-    SignalHandlerPlugin.registry.reset!
+    # Clear thread-local storage before each test
+    Thread.current[:delayed_job_worker] = nil
     # Apply the plugin callbacks to our test lifecycle
     SignalHandlerPlugin.callback_block.call(lifecycle)
   end
@@ -18,16 +19,12 @@ RSpec.describe SignalHandlerPlugin do
       expect(Delayed::Worker.plugins).to include(SignalHandlerPlugin)
     end
 
-    it 'registers the worker in the registry during performance' do
+    it 'registers the worker in thread-local storage during performance' do
       lifecycle.run_callbacks(:perform, worker, job) do
-        # Within the perform block, the worker should be registered
-        active_workers = SignalHandlerPlugin.registry.all
-        expect(active_workers[Thread.current]).to eq(worker)
+        expect(Thread.current[:delayed_job_worker]).to eq(worker)
       end
 
-      # After performance, it should be unregistered
-      active_workers = SignalHandlerPlugin.registry.all
-      expect(active_workers).not_to have_key(Thread.current)
+      expect(Thread.current[:delayed_job_worker]).to be_nil
     end
 
     it 'unregisters the worker even if perform raises' do
@@ -35,8 +32,7 @@ RSpec.describe SignalHandlerPlugin do
         lifecycle.run_callbacks(:perform, worker, job) { raise 'boom' }
       end.to raise_error('boom')
 
-      active_workers = SignalHandlerPlugin.registry.all
-      expect(active_workers).not_to have_key(Thread.current)
+      expect(Thread.current[:delayed_job_worker]).to be_nil
     end
   end
 
