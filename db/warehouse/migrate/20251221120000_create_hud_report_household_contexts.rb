@@ -18,6 +18,8 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.integer :hoh_age
       t.boolean :hoh_veteran
       t.boolean :is_hoh
+      t.integer :relationship_to_hoh
+      t.integer :pit_chronic_status
       t.string :household_type
       t.boolean :is_parenting_youth
       t.boolean :has_other_clients_over_25

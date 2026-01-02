@@ -113,7 +113,7 @@ module HudApr::Generators::Shared::Fy2026
               if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
                 # since apr_client is the HoH and we've already limited to only youth households,
                 # we can safely return the adults and the source client id of the apr_client
-                adult_ids = @report.household_contexts.where(household_id: apr_client.household_id).where('age >= 18').pluck(:source_client_id)
+                adult_ids = @report.household_contexts.where(household_id: apr_client.household_id).where('relationship_to_hoh IN (1, 3) OR age >= 18').pluck(:source_client_id)
                 adult_ids << apr_client.client_id
                 source_client_ids += adult_ids
                 households << apr_client.household_id
@@ -121,8 +121,8 @@ module HudApr::Generators::Shared::Fy2026
             when :children_of_youth_parents
               # Find source client ids where the HoH is a youth and the members are RelationshipToHoH == 2
               if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
-                # Fallback to age < 18 as proxy for RelationshipToHoH == 2 in youth households
-                source_client_ids += @report.household_contexts.where(household_id: apr_client.household_id).where('age < 18').pluck(:source_client_id)
+                # Use relationship_to_hoh now that it's stored in the context
+                source_client_ids += @report.household_contexts.where(household_id: apr_client.household_id, relationship_to_hoh: 2).pluck(:source_client_id)
                 households << apr_client.household_id
               end
             when :members_youth_households

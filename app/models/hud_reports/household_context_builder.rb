@@ -155,6 +155,8 @@ module HudReports
           hoh_age: hoh_data&.[](:age),
           hoh_veteran: hoh_data&.[](:veteran_status) == 1,
           is_hoh: m.enrollment&.RelationshipToHoH == 1,
+          relationship_to_hoh: member_hash[:relationship_to_hoh],
+          pit_chronic_status: member_hash[:pit_chronic_status],
           household_type: hh_type,
           is_parenting_youth: is_parenting_youth,
           has_other_clients_over_25: has_other_clients_over_25,

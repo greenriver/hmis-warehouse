@@ -54,10 +54,15 @@ module HudApr::Generators::Shared::Fy2026
     # generator = HudApr::Generators::Caper::Fy2023::Generator.new(report)
     # r = HudApr::Generators::Caper::Fy2023::QuestionFive.new(generator, report)
 
-    # Returns the universe cell for this question.
+    # Returns the universe cell wrapped in a proxy that overrides #members.
     #
-    # NOTE: This returns a decorated cell that overrides .members to include
-    # household context joins. For new code, prefer calling #members directly.
+    # IMPORTANT: The returned proxy delegates all methods to the underlying universe cell,
+    # EXCEPT for #members, which is overridden to automatically join the household context table.
+    # This ensures all FY2026 questions automatically get household context data without
+    # manually calling household_query_service.with_household_context.
+    #
+    # For debugging: If you need the raw members without context, use raw_universe.members.
+    # For new code: Prefer calling #members directly from question classes.
     private def universe
       add_apr_clients unless apr_clients_populated?
 

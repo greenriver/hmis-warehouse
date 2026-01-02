@@ -36,7 +36,12 @@ module HudReports::LengthOfStays
     # should include any adult stayer present when the head of household’s stay is 365 days or more,
     # even if that adult has not been in the household that long.
     private def hoh_lts_stayer_ids
-      @hoh_lts_stayer_ids ||= universe.members.where(
+      # Backward compatibility: Some reports (pre-FY2026) don't have household context.
+      # This fallback ensures those older report generators continue to work.
+      # FY2026+ reports should always provide a #members method via QuestionBase.
+      target_members = respond_to?(:members) ? members : universe.members
+
+      @hoh_lts_stayer_ids ||= target_members.where(
         hoh_clause.
           and(a_t[:length_of_stay].gteq(365)).
           and(stayers_clause),
