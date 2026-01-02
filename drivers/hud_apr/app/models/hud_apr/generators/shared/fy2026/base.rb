@@ -146,7 +146,7 @@ module HudApr::Generators::Shared::Fy2026
           enrollment.enrollment_coc = if enrollment.project.project_cocs.one?
             enrollment.project.project_cocs.first.coc_code
           else
-            ctx.hoh_coc || hoh_enrollment&.enrollment&.enrollment_coc
+            ctx.hoh_coc || hoh_enrollment&.enrollment&.enrollment_coc || enrollment.EnrollmentCoC
           end
 
           # Ignore any enrollment where the CoC is not in the chosen set
@@ -159,7 +159,7 @@ module HudApr::Generators::Shared::Fy2026
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          hoh_entry_date = ctx.hoh_entry_date || hoh_enrollment&.first_date_in_program
+          hoh_entry_date = ctx.hoh_entry_date || hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
           income_at_annual_assessment = annual_assessment(enrollment, hoh_entry_date)
           income_at_exit = exit_record&.income_benefits_at_exit
 
@@ -207,9 +207,11 @@ module HudApr::Generators::Shared::Fy2026
           hoh_light = hoh_enrollment || begin
             # Struct needs to handle: entry_date, first_date_in_program, head_of_household?, and enrollment.DateToStreetESSH
             hoh_enrollment_proxy = Struct.new(:DateToStreetESSH).new(ctx.hoh_date_to_street)
+            # Fallback to current enrollment entry date if pre-computed HoH entry date is missing
+            entry_date_proxy = hoh_entry_date
             Struct.new(:entry_date, :first_date_in_program, :head_of_household?, :enrollment).new(
-              ctx.hoh_entry_date,
-              ctx.hoh_entry_date,
+              entry_date_proxy,
+              entry_date_proxy,
               true,
               hoh_enrollment_proxy
             )
