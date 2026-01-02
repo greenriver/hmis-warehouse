@@ -34,6 +34,7 @@ module HudReports::Incomes
       #   b. and the lesser of (30 days after the [anniversary date], [report end date])
 
       anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
+      return unless anniversary_date
 
       enrollment.send(assessment_relation).
         where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
