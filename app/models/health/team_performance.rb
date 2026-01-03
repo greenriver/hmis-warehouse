@@ -15,6 +15,29 @@ module Health
       @team_scope = team_scope
     end
 
+    # Lightweight team list for the Team Patients index page.
+    # Avoids triggering full performance computations (e.g., claims lookups).
+    def teams_for_picker
+      team_scope.order(name: :asc)
+    end
+
+    # Patient ids for a single team within the report range.
+    # This is used to build the patient list without running full performance counts.
+    def patient_ids_for_team(team)
+      return [] unless team.present?
+
+      patient_ids_for_care_coordinator_ids(
+        Health::UserCareCoordinator.where(coordination_team_id: team.id).select(:user_id),
+      )
+    end
+
+    # Patient ids across all teams in the report scope within the report range.
+    def patient_ids_for_all_teams
+      patient_ids_for_care_coordinator_ids(
+        Health::UserCareCoordinator.where(coordination_team_id: team_scope.select(:id)).select(:user_id),
+      )
+    end
+
     DESCRIPTIONS = {
       without_required_qa: 'Patients in their outreach period with no QA in the current month, or who have completed a care plan and have no QA in the current or previous month.',
       without_required_f2f_visit: "Patients who have not received a face-to-face visit in the last #{F2F_WINDOW.inspect}.",
@@ -74,6 +97,17 @@ module Health
           )
         end
       end
+    end
+
+    private def patient_ids_for_care_coordinator_ids(care_coordinator_ids)
+      return [] unless care_coordinator_ids.exists?
+
+      Health::Patient.
+        joins(:patient_referral).
+        merge(Health::PatientReferral.active_within_range(start_date: @range.first, end_date: @range.last)).
+        where(care_coordinator_id: care_coordinator_ids).
+        distinct.
+        pluck(:id)
     end
   end
 end
