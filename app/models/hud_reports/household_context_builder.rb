@@ -135,6 +135,16 @@ module HudReports
       hh_has_minor_children = hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
       hh_max_age_of_parents = hh_member_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
 
+      # Veteran Stats
+      hh_adults = hh_member_hashes.select { |m| m[:age] && m[:age] >= 18 }
+      hh_veterans = hh_adults.select { |m| m[:veteran_status] == 1 }
+
+      hh_any_veteran_chronic = hh_veterans.any? { |m| m[:chronic_status] == true }
+      hh_any_veteran_non_chronic = hh_veterans.any? { |m| m[:chronic_status] == false }
+      hh_all_adult_non_veteran = hh_adults.present? && hh_adults.all? { |m| m[:veteran_status]&.zero? }
+      hh_any_adult_refused_veteran = hh_adults.any? { |m| [8, 9].include?(m[:veteran_status]) }
+      hh_any_adult_missing_veteran = hh_adults.any? { |m| m[:veteran_status] == 99 }
+
       members.map do |m|
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
 
@@ -176,6 +186,11 @@ module HudReports
           hh_max_age: hh_max_age,
           hh_has_minor_children: hh_has_minor_children,
           hh_max_age_of_parents: hh_max_age_of_parents,
+          hh_any_veteran_chronic: hh_any_veteran_chronic,
+          hh_any_veteran_non_chronic: hh_any_veteran_non_chronic,
+          hh_all_adult_non_veteran: hh_all_adult_non_veteran,
+          hh_any_adult_refused_veteran: hh_any_adult_refused_veteran,
+          hh_any_adult_missing_veteran: hh_any_adult_missing_veteran,
         )
       end
     end

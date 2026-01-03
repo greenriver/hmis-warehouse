@@ -18,8 +18,16 @@ module HudReports
     def with_household_context(scope)
       hh_ctx_table = Arel::Table.new(:hud_report_household_contexts).alias(:hh_ctx)
 
-      join_condition = hh_ctx_table[:source_enrollment_id].eq(@a_t[:source_enrollment_id]).
-        and(hh_ctx_table[:report_instance_id].eq(@report.id))
+      # Determine the join condition based on the table we're joining to.
+      # ServiceHistoryEnrollment joins on its primary key (id).
+      # Report-specific clients (like AprClient) join on source_enrollment_id.
+      join_condition = if @a_t.name == 'service_history_enrollments'
+        hh_ctx_table[:service_history_enrollment_id].eq(@a_t[:id])
+      else
+        hh_ctx_table[:source_enrollment_id].eq(@a_t[:source_enrollment_id])
+      end
+
+      join_condition = join_condition.and(hh_ctx_table[:report_instance_id].eq(@report.id))
 
       join = @a_t.join(hh_ctx_table, Arel::Nodes::OuterJoin).on(join_condition)
 

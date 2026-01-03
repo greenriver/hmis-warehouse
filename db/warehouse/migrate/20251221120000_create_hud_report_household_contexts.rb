@@ -32,6 +32,11 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.integer :hh_max_age
       t.boolean :hh_has_minor_children
       t.integer :hh_max_age_of_parents
+      t.boolean :hh_any_veteran_chronic
+      t.boolean :hh_any_veteran_non_chronic
+      t.boolean :hh_all_adult_non_veteran
+      t.boolean :hh_any_adult_refused_veteran
+      t.boolean :hh_any_adult_missing_veteran
 
       t.timestamps
     end
