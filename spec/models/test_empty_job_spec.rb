@@ -12,7 +12,7 @@ RSpec.describe TestEmptyJob, type: :model do
 
     it 'works off all jobs' do
       expect(Delayed::Job.where(failed_at: nil).count).to be > 100
-      Delayed::Worker.new.work_off(1_000)
+      work_off_all_ready_jobs
       expect(Delayed::Job.where(failed_at: nil).count).to eq(0)
       # No failed jobs
       expect(Delayed::Job.count).to eq(0)
