@@ -19,7 +19,7 @@ class ApplicationJob < ActiveJob::Base
     # Re-enqueue on SIGTERM so work resumes after the worker shuts down.
     # Delay to avoid immediately re-running in the same worker loop.
     wait_time = ENV.fetch('RETRY_DELAY_ON_INTERRUPTION', 60).to_i
-    retry_job wait: wait_time.to_i.seconds
+    retry_job wait: wait_time.seconds
   end
 
   # By default, jobs are not interruptible once they have started.
