@@ -17,7 +17,7 @@ RSpec.describe Health::TeamPerformance, type: :model do
 
       report = described_class.new(range: (Date.current.beginning_of_month..Date.current.end_of_month), team_scope: Health::CoordinationTeam.all)
 
-      expect(report.teams_for_picker.pluck(:id)).to eq([team_a.id, team_b.id])
+      expect(report.teams_for_picker.pluck(:name)).to eq([team_a.name, team_b.name])
     end
   end
 

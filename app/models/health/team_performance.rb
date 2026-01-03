@@ -18,7 +18,9 @@ module Health
     # Lightweight team list for the Team Patients index page.
     # Avoids triggering full performance computations (e.g., claims lookups).
     def teams_for_picker
-      team_scope.order(name: :asc)
+      # Keep parity with the historical UI behavior: the team picker is keyed by team name
+      # (params[:entity_id]) and should not show duplicate names.
+      team_scope.select(:name).distinct.order(name: :asc)
     end
 
     # Patient ids for a single team within the report range.
