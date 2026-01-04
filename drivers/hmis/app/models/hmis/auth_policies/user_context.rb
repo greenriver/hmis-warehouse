@@ -45,6 +45,11 @@ class Hmis::AuthPolicies::UserContext
     project_access_group_loader.preload(project_ids)
   end
 
+  def preload_client_dependencies(client_ids)
+    client_project_loader.preload(client_ids)
+    project_access_group_loader.preload(client_project_loader.cached_project_ids)
+  end
+
   # Client permissions are based on the user's permissions at projects they are enrolled in.
   # If they have no enrollments, it's based on the user's global permissions.
   def client_permissions(client_id)

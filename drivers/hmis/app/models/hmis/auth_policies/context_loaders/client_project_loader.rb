@@ -22,13 +22,23 @@ module Hmis::AuthPolicies::ContextLoaders
       @cache[client_id] || Set.new
     end
 
+    def cached_project_ids
+      @cache.values.flat_map(&:to_a).uniq
+    end
+
     # Preload project IDs for multiple clients at once
     def preload(client_ids)
       return if client_ids.empty?
 
+      new_client_ids = client_ids.uniq - @cache.keys
+      return if new_client_ids.empty?
+
+      # Ensure we cache empty sets for clients with no enrollments
+      new_client_ids.each { |id| @cache[id] ||= Set.new }
+
       # Load all enrollments for these clients and group by client_id
       enrollments = Hmis::Hud::Enrollment.joins(:client).
-        merge(Hmis::Hud::Client.where(id: client_ids)).
+        merge(Hmis::Hud::Client.where(id: new_client_ids)).
         pluck(c_t[:id], e_t[:project_pk])
 
       enrollments.each do |client_id, project_id|

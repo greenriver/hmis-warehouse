@@ -32,12 +32,10 @@ module Types
       Hmis::Hud::Client.hmis_configuration(version: '2024')
     end
 
-    # check for the most minimal permission needed to resolve this object
+    # Check policy before resolving object to ensure user is authorized to view client.
+    # This is a secondary guard, primary defense is applying the `viewable_by` / `visible_to` scope.
     def self.authorized?(object, ctx)
-      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
-      # the viewable_by scope is our primary defense against this.
-      permission = :can_view_clients
-      super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
+      super && ctx[:current_user].policy_for(object, policy_type: :hmis_client).can_view?
     end
 
     available_filter_options do
