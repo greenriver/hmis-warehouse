@@ -111,6 +111,7 @@ module HudReports
           chronic_status: m.enrollment&.chronically_homeless_at_start?,
           pit_chronic_status: m.enrollment&.chronically_homeless_at_start?(date: report_date),
           chronic_detail: m.enrollment&.chronically_homeless_at_start,
+          pit_chronic_detail: m.enrollment&.chronically_homeless_at_start(date: report_date),
           relationship_to_hoh: m.enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
           veteran_status: m.enrollment&.client&.VeteranStatus,
@@ -152,6 +153,7 @@ module HudReports
 
         # Inherited values
         chronic_source = calculate_chronic_status(hh_member_hashes, member_hash, hoh_data)
+        pit_chronic_source = calculate_chronic_status(hh_member_hashes, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)
         inherited_move_in_date = calculate_move_in_date(member_hash, hoh_data)
 
         # Parenting youth logic
@@ -181,8 +183,10 @@ module HudReports
           household_type: hh_type,
           is_parenting_youth: is_parenting_youth,
           has_other_clients_over_25: has_other_clients_over_25,
-          inherited_chronic_status: chronic_source&.[](:chronic_status) || false,
-          inherited_chronic_detail: chronic_source&.[](:chronic_detail),
+          inherited_chronic_status: chronic_source&.[](:status) || false,
+          inherited_chronic_detail: chronic_source&.[](:detail),
+          inherited_pit_chronic_status: pit_chronic_source&.[](:status) || false,
+          inherited_pit_chronic_detail: pit_chronic_source&.[](:detail),
           inherited_move_in_date: inherited_move_in_date,
           member_count: hh_member_count,
           hh_max_age: hh_max_age,
@@ -224,9 +228,10 @@ module HudReports
 
       current_member_entry_date = current_member[:entry_date]
       hoh_entry_date = hoh&.[](:entry_date)
+      detail_key = chronic_status_key == :pit_chronic_status ? :pit_chronic_detail : :chronic_detail
 
       # HoH if they are chronically homeless
-      return { chronic_status: true, chronic_detail: hoh[:chronic_detail] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
+      return { status: true, detail: hoh[detail_key] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
 
       # If the HoH is not chronically homeless, check if any other adult is
       chronic_adult = hh_members.detect do |hm|
@@ -237,21 +242,21 @@ module HudReports
         adult_is_chronic && adult_matches_entry_date
       end
 
-      return { chronic_status: true, chronic_detail: chronic_adult[:chronic_detail] } if chronic_adult
+      return { status: true, detail: chronic_adult[detail_key] } if chronic_adult
 
       # if no adults are either yes or no, use self for adults
-      return { chronic_status: current_member[chronic_status_key], chronic_detail: current_member[:chronic_detail] } if current_member[:age] && current_member[:age] >= 18
+      return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if current_member[:age] && current_member[:age] >= 18
 
       # if the data is bad and we don't have an HoH, use our own record
-      return { chronic_status: current_member[chronic_status_key], chronic_detail: current_member[:chronic_detail] } if hoh.blank?
+      return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if hoh.blank?
 
       # and the HoH enrollment for children if HoH status is unknown
-      return { chronic_status: hoh[chronic_status_key], chronic_detail: hoh[:chronic_detail] } if hoh[:chronic_detail].in?([:dk_or_r, :missing])
+      return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if hoh[detail_key].in?([:dk_or_r, :missing])
 
       # if we have an indeterminate response for the child, use the hoh
-      return { chronic_status: hoh[chronic_status_key], chronic_detail: hoh[:chronic_detail] } if current_member[:chronic_detail].in?([:dk_or_r, :missing])
+      return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if current_member[detail_key].in?([:dk_or_r, :missing])
 
-      { chronic_status: current_member[chronic_status_key], chronic_detail: current_member[:chronic_detail] }
+      { status: current_member[chronic_status_key], detail: current_member[detail_key] }
     end
 
     def calculate_move_in_date(member, hoh)
@@ -265,7 +270,9 @@ module HudReports
       return nil unless hoh[:entry_date] <= hoh[:move_in_date]
 
       # When a household member was already in the household when they became housed
-      return hoh[:move_in_date] if (member[:entry_date]..member[:exit_date]).cover?(hoh[:move_in_date])
+      # For stayers, we use a date far in the future to ensure the move-in date is covered
+      exit_date = member[:exit_date] || @report.end_date + 1.year
+      return hoh[:move_in_date] if (member[:entry_date]..exit_date).cover?(hoh[:move_in_date])
 
       # When a household member joins the household after they are already housed
       return member[:entry_date] if member[:entry_date] > hoh[:move_in_date]
@@ -276,15 +283,17 @@ module HudReports
     def calculate_is_parenting_youth(member, hh_members)
       age = member[:age]
       adult = age && age >= 18
-      (member[:relationship_to_hoh] == 1 || adult) && only_youth?(hh_members) && any_children?(hh_members)
+      (member[:relationship_to_hoh] == 1 || adult) && only_youth?(hh_members) && any_youth_children?(hh_members)
     end
 
     def only_youth?(hh_members)
       hh_members.all? { |m| m[:age] && m[:age] <= 24 }
     end
 
-    def any_children?(hh_members)
-      hh_members.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
+    def any_youth_children?(hh_members)
+      # Per HUD legacy logic, "children" in the context of youth households include anyone up to age 24
+      # if they have RelationshipToHoH == 2.
+      hh_members.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] <= 24 }
     end
   end
 end

@@ -97,7 +97,7 @@ module HudApr::Generators::Shared::Fy2026
         hoh_enrollments_by_id = if needs_ce_assessments?
           hoh_she_ids = contexts_by_she_id.values.map(&:hoh_service_history_enrollment_id).compact.uniq
           GrdaWarehouse::ServiceHistoryEnrollment.where(id: hoh_she_ids).
-            preload(enrollment: [:client, :disabilities, :project]).
+            preload(enrollment: [:assessments, :disabilities, client: :source_events, project: :ce_participations]).
             index_by(&:id)
         else
           {}

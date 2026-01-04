@@ -13,6 +13,7 @@ module HudReports
   #
   # ## Key Attributes
   # - Chronic Status Inheritance: Resolves if a member is chronic based on HoH or other adults.
+  # - PIT Chronic Status Inheritance: Resolves if a member is chronic on PIT date based on HoH or other adults.
   # - Move-in Date Inheritance: Derives move-in dates when missing based on HoH and entry dates.
   # - Household Composition: Categorizes the household (e.g., adults_only, children_only).
   #

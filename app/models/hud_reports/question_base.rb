@@ -132,6 +132,10 @@ module HudReports
       household_query_service.chronic_household_clause
     end
 
+    def chronic_pit_household_clause
+      household_query_service.chronic_pit_household_clause
+    end
+
     def parenting_youth_clause
       household_query_service.parenting_youth_clause
     end
