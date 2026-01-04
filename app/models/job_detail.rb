@@ -43,8 +43,11 @@ class JobDetail
 
   # User ID extracted from job arguments, or 'unknown'
   memoize def user_id
-    return arguments.last['user_id'] if job_name.starts_with?('BackgroundRender::') && arguments.last.is_a?(Hash)
-    return arguments.first['user_id'] if arguments.first.is_a?(Hash)
+    if arguments.present?
+      return arguments.last['user_id'] if job_name.starts_with?('BackgroundRender::') && arguments.last.is_a?(Hash)
+      return arguments.first['user_id'] if arguments.first.is_a?(Hash)
+    end
+
     return hud_report_instance&.user_id if job_name == 'Reporting::Hud::RunReportJob'
 
     'unknown'
@@ -55,6 +58,8 @@ class JobDetail
   def arguments
     if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
       payload.job_data.try(:[], 'arguments')
+    elsif payload.is_a?(Hash)
+      payload['arguments']
     elsif payload.respond_to?(:args)
       payload.args
     end
@@ -96,6 +101,12 @@ class JobDetail
     if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
       begin
         payload.job_data['job_class'].constantize
+      rescue StandardError
+        nil
+      end
+    elsif payload.is_a?(Hash) && payload['job_class'].present?
+      begin
+        payload['job_class'].constantize
       rescue StandardError
         nil
       end
