@@ -77,20 +77,23 @@ The framework tracks report execution progress using checkpoints stored in `HudR
 
 Report duration is calculated from completed checkpoints rather than wall-clock time.
 
-## Data Management
+## Data Management & Refinement Layers
 
-### Universes and Cells
-- **Universe**: A collection of records matching specific criteria (e.g., "All adults in Emergency Shelter")
-- **Cell**: A data point in the report output (e.g., "Question 5, Row 1, Column A")
+The framework uses three distinct layers of data denormalization to balance performance, consistency, and maintenance:
 
-`HudReports::ReportCell` represents a cell and links to underlying data via `HudReports::UniverseMember`, a polymorphic join model. This connects report cells to snapshot models (`SpmEnrollment`, `AprClient`) and caches PII for drill-down tables in the UI.
+| Layer | Responsibility | Lifecycle | Scope |
+| :--- | :--- | :--- | :--- |
+| **Service History** | Flattens HUD enrollments into a queryable "daily" span. The base for all reporting. | Persistent (Nightly/On-change) | Global |
+| **Household Context** | **Logic Layer**. Pre-computes shared business rules like Chronic Inheritance and Household Typing. | Ephemeral (Per Report Run) | Shared across reports |
+| **Report Snapshots** | **Presentation Layer**. Denormalizes all attributes needed for a specific report (e.g. `AprClient`). | Ephemeral (Per Report Run) | Feature-Specific |
 
-### Snapshot Models
-Many reports use snapshot models to cache calculated values (e.g., "Chronic Homelessness status on entry") in temporary or report-specific tables.
+### Pre-computed Logic Layers (Household Context)
+To avoid re-implementing complex HUD business rules in every report, the framework extracts shared derivations into the `HudReports::HouseholdContext`.
 
-Examples:
-- **APR/CAPER**: `AprClient` stores age, household type, and disability status
-- **SPM**: `SpmEnrollment` normalizes enrollment data across project types
+This "Logic Layer" is populated during the `Preparation` phase. Question classes join this table via the `HouseholdQueryService` to apply standardized filters (e.g., "Only Chronically Homeless Households") using SQL/Arel rather than Ruby loops.
+
+### Snapshot Models (Presentation Layer)
+Many reports create secondary snapshots (e.g., `AprClient`, `SpmEnrollment`) that bundle both raw data and pre-computed logic into a single table optimized for UI drill-down and CSV exports.
 
 ## Retry and Idempotency
 
