@@ -44,7 +44,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
 
       # Row 2 reports on adults and heads of household active in project type 4 (for all funding sources) and project type 6 if PATH-funded
       answer = @report.answer(question: table_name, cell: 'B2')
-      adults_and_hohs = relevant_clients.where(adult_or_hoh_clause)
+      adults_and_hohs = relevant_clients.adults_or_hohs
 
       # PATH funded project_ids
       path_funded_project_ids = GrdaWarehouse::Hud::Project.where(id: @report.project_ids).

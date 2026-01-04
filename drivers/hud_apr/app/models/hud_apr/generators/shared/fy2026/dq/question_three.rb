@@ -118,7 +118,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
     end
 
     def q3_client_location_row(sheet, universe_members)
-      hoh_scope = universe_members.where(hoh_clause)
+      hoh_scope = universe_members.heads_of_household
 
       valid_cocs = HudHelper.util('2026').cocs.keys
       missing_cell = sheet.update_cell_members(cell: 'C5', members: hoh_scope.where(a_t[:enrollment_coc].eq(nil)))
@@ -129,7 +129,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
       total_cell.add_members(missing_cell.members + issue_cell.members)
 
       # Issue Rate
-      hoh_denominator = universe_members.where(hoh_clause)
+      hoh_denominator = universe_members.heads_of_household
       # Use total_cell as per HMIS Reporting Glossary Reference: Data Quality - Q3.
       sheet.update_cell_value(cell: 'F5', value: percentage(total_cell.value / hoh_denominator.count.to_f))
     end

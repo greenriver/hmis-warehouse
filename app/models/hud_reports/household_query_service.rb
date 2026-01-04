@@ -31,7 +31,114 @@ module HudReports
 
       join = @a_t.join(hh_ctx_table, Arel::Nodes::OuterJoin).on(join_condition)
 
-      scope.joins(join.join_sources)
+      scope.joins(join.join_sources).extending(Filters)
+    end
+
+    module Filters
+      def hh_ctx
+        @hh_ctx ||= Arel::Table.new(:hh_ctx)
+      end
+
+      def a_t
+        @a_t ||= arel_table
+      end
+
+      def for_household_type(type)
+        where(hh_ctx[:household_type].eq(type))
+      end
+
+      def without_children
+        for_household_type('adults_only')
+      end
+
+      def with_children_and_adults
+        for_household_type('adults_and_children')
+      end
+
+      def with_only_children
+        for_household_type('children_only')
+      end
+
+      def unknown_household_type
+        for_household_type('unknown')
+      end
+
+      def chronically_homeless
+        where(hh_ctx[:inherited_chronic_status].eq(true))
+      end
+
+      def heads_of_household
+        where(hh_ctx[:is_hoh].eq(true))
+      end
+
+      def hoh_or_spouses
+        where(hh_ctx[:relationship_to_hoh].in([1, 3]))
+      end
+
+      def adults_or_hohs
+        where(hh_ctx[:age].gteq(18).or(hh_ctx[:is_hoh].eq(true)))
+      end
+
+      def parenting_youth
+        where(hh_ctx[:is_parenting_youth].eq(true))
+      end
+
+      def youth_only_households
+        where(hh_ctx[:has_other_clients_over_25].eq(false))
+      end
+
+      def youth_adults_or_youth_hohs
+        youth_only_households.where(
+          hh_ctx[:is_hoh].eq(true).and(hh_ctx[:age].in(12..24)).
+            or(hh_ctx[:age].in(18..24)),
+        )
+      end
+
+      def between_ages(range)
+        where(hh_ctx[:age].in(range))
+      end
+
+      def strict_leavers(report_end_date)
+        where(
+          a_t[:last_date_in_program].lteq(report_end_date).and(
+            hh_ctx[:is_hoh].eq(true).or(
+              hh_ctx[:hoh_exit_date].eq(a_t[:last_date_in_program]),
+            ),
+          ),
+        )
+      end
+
+      def chronic_households
+        where(hh_ctx[:inherited_chronic_status].eq(true).and(hh_ctx[:is_hoh].eq(true)))
+      end
+    end
+
+    def hoh_clause
+      hh_ctx[:is_hoh].eq(true)
+    end
+
+    def hoh_or_spouse_clause
+      hh_ctx[:relationship_to_hoh].in([1, 3])
+    end
+
+    def adult_or_hoh_clause
+      hh_ctx[:age].gteq(18).or(hh_ctx[:is_hoh].eq(true))
+    end
+
+    def strict_leavers_clause(report_end_date)
+      @a_t[:last_date_in_program].lteq(report_end_date).and(
+        hh_ctx[:is_hoh].eq(true).or(
+          hh_ctx[:hoh_exit_date].eq(@a_t[:last_date_in_program]),
+        ),
+      )
+    end
+
+    def chronic_household_clause
+      hh_ctx[:inherited_chronic_status].eq(true).and(hh_ctx[:is_hoh].eq(true))
+    end
+
+    def parenting_youth_clause
+      hh_ctx[:is_parenting_youth].eq(true)
     end
 
     def sub_populations
@@ -71,6 +178,21 @@ module HudReports
 
     def parenting_youth_clause
       hh_ctx[:is_parenting_youth].eq(true)
+    end
+
+    def youth_only_clause
+      hh_ctx[:has_other_clients_over_25].eq(false)
+    end
+
+    def between_ages_clause(range)
+      hh_ctx[:age].in(range)
+    end
+
+    def youth_adults_or_youth_hohs_clause
+      hh_ctx[:has_other_clients_over_25].eq(false).and(
+        hh_ctx[:is_hoh].eq(true).and(hh_ctx[:age].in(12..24)).
+          or(hh_ctx[:age].in(18..24)),
+      )
     end
 
     def hoh_exit_dates(members_scope)

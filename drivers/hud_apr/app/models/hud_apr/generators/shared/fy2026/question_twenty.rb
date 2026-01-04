@@ -47,7 +47,7 @@ module HudApr::Generators::Shared::Fy2026
           when :exit
             # non-HoH clients are limited to those who exited on or after the HoH
             # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
-            members = members.where(strict_leavers_clause)
+            members = members.strict_leavers(@report.end_date)
           end
 
           answer.update(summary: 0) and next if members.count.zero?
@@ -89,7 +89,7 @@ module HudApr::Generators::Shared::Fy2026
           when :exit
             # non-HoH clients are limited to those who exited on or after the HoH
             # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
-            members = members.where(strict_leavers_clause)
+            members = members.strict_leavers(@report.end_date)
           end
 
           # Row 4 is everyone not counted in 2, or 3

@@ -195,31 +195,31 @@ module HudApr::Generators::Shared::Fy2026
     private def adult_disabilities
       {
         'AO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(hh_ctx[:household_type].eq('adults_only')),
+          and(sub_populations['Without Children']),
         'AO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(hh_ctx[:household_type].eq('adults_only')),
-        'AO: Total Adults' => hh_ctx[:household_type].eq('adults_only'),
+          and(sub_populations['Without Children']),
+        'AO: Total Adults' => sub_populations['Without Children'],
         'AO: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: hh_ctx[:household_type].eq('adults_only'),
+          household: sub_populations['Without Children'],
         },
         'AC: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(hh_ctx[:household_type].eq('adults_and_children')),
+          and(sub_populations['With Children and Adults']),
         'AC: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(hh_ctx[:household_type].eq('adults_and_children')),
-        'AC: Total Adults' => hh_ctx[:household_type].eq('adults_and_children'),
+          and(sub_populations['With Children and Adults']),
+        'AC: Total Adults' => sub_populations['With Children and Adults'],
         'AC: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: hh_ctx[:household_type].eq('adults_and_children'),
+          household: sub_populations['With Children and Adults'],
         },
         'UK: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(hh_ctx[:household_type].eq('unknown')),
+          and(sub_populations['Unknown Household Type']),
         'UK: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(hh_ctx[:household_type].eq('unknown')),
-        'UK: Total Adults' => hh_ctx[:household_type].eq('unknown'),
+          and(sub_populations['Unknown Household Type']),
+        'UK: Total Adults' => sub_populations['Unknown Household Type'],
         'UK: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: hh_ctx[:household_type].eq('unknown'),
+          household: sub_populations['Unknown Household Type'],
         },
       }
     end

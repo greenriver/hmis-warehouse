@@ -91,6 +91,11 @@ module HudReports
       @household_query_service ||= HudReports::HouseholdQueryService.new(@report, a_t)
     end
 
+    # Returns the report universe joined with the pre-computed household context.
+    #
+    # The returned relation is decorated with semantic reporting scopes defined in
+    # HudReports::HouseholdQueryService::Filters. These scopes (e.g., .chronically_homeless)
+    # allow for clean, SQL-based population filtering without leaking table aliases.
     def members
       @members ||= household_query_service.with_household_context(raw_universe.members)
     end
@@ -129,6 +134,14 @@ module HudReports
 
     def parenting_youth_clause
       household_query_service.parenting_youth_clause
+    end
+
+    def youth_only_clause
+      household_query_service.youth_only_clause
+    end
+
+    def between_ages_clause(range)
+      household_query_service.between_ages_clause(range)
     end
 
     def hoh_exit_date(household_id)

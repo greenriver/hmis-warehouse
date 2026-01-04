@@ -74,7 +74,7 @@ module HudApr::Generators::Shared::Fy2026
       @report.answer(question: table_name).update(metadata: metadata)
 
       # Number of households
-      heads_of_household = universe.members.where(hoh_clause)
+      heads_of_household = universe.members.heads_of_household
 
       answer = @report.answer(question: table_name, cell: 'B2')
       members = heads_of_household
@@ -104,19 +104,18 @@ module HudApr::Generators::Shared::Fy2026
         },
       ].each do |col|
         answer = @report.answer(question: table_name, cell: col[:cell])
-        members = heads_of_household.where(hh_ctx[:household_type].eq(col[:household_type]))
+        members = heads_of_household.for_household_type(col[:household_type])
         answer.add_members(members)
         answer.update(summary: members.count)
       end
 
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      ps_rrh_w_move_in = universe.members.where(
-        hoh_clause.
-          and(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true))).
-          and(a_t[:hoh_move_in_date].not_eq(nil).
-          and(a_t[:hoh_move_in_date].lteq(@report.end_date))),
-      )
+      ps_rrh_w_move_in = universe.members.heads_of_household.
+        where(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true))).
+        where(a_t[:hoh_move_in_date].not_eq(nil)).
+        where(a_t[:hoh_move_in_date].lteq(@report.end_date))
+
       unless q8a_intentionally_blank.include?('B3')
         answer = @report.answer(question: table_name, cell: 'B3')
         members = ps_rrh_w_move_in
@@ -128,7 +127,7 @@ module HudApr::Generators::Shared::Fy2026
         next if q8a_intentionally_blank.include?(col[:cell])
 
         answer = @report.answer(question: table_name, cell: col[:cell])
-        members = ps_rrh_w_move_in.where(hh_ctx[:household_type].eq(col[:household_type]))
+        members = ps_rrh_w_move_in.for_household_type(col[:household_type])
         answer.add_members(members)
         answer.update(summary: members.count)
       end
@@ -189,7 +188,7 @@ module HudApr::Generators::Shared::Fy2026
         },
       ].each do |col|
         answer = @report.answer(question: table_name, cell: col[:cell])
-        members = row_universe.where(hh_ctx[:household_type].eq(col[:household_type]))
+        members = row_universe.for_household_type(col[:household_type])
         answer.add_members(members)
         answer.update(summary: members.count)
       end

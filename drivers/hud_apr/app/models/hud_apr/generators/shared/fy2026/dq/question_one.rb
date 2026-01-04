@@ -102,16 +102,12 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
         # Number of youth under 25
         {
           row: '13',
-          clause: hh_ctx[:age].lt(25).
-            and(hh_ctx[:age].gteq(12)).
-            and(hh_ctx[:has_other_clients_over_25].eq(false)),
+          clause: between_ages_clause(12..24).and(youth_only_clause),
         },
         # Number of parenting youth under 25 with children
         {
           row: '14',
-          clause: hh_ctx[:age].lt(25).
-            and(hh_ctx[:age].gteq(12)).
-            and(parenting_youth_clause),
+          clause: between_ages_clause(12..24).and(parenting_youth_clause),
         },
         # Number of adult HoH
         {
