@@ -63,4 +63,31 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
       end
     end
   end
+
+  context 'when policy is scoped to a different data source than the enrollment' do
+    let!(:ds2) { create(:hmis_data_source) }
+    let!(:ds2_user) { create(:hmis_user, data_source: ds2) }
+    let(:policy) { ds2_user.policy_for(enrollment, policy_type: :hmis_enrollment) } # scoped to ds2
+
+    it 'raises when checking permissions' do
+      expect(policy.context.data_source_id).to eq(ds2.id)
+      expect { policy.can_edit? }.to raise_error(ArgumentError, /not in data source/i)
+    end
+
+    context 'and user has permission in both data sources' do
+      before do
+        create_access_control(ds2_user, data_source, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(ds2_user, ds2, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      end
+
+      it 'still raises when scoped to the wrong data source' do
+        expect { policy.can_edit? }.to raise_error(ArgumentError, /not in data source/i)
+      end
+
+      it 'succeeds when scoped to the enrollment\'s data source' do
+        policy = ds2_user.policy_for(enrollment, policy_type: :hmis_enrollment, data_source_id: data_source.id)
+        expect(policy.can_edit?).to be true
+      end
+    end
+  end
 end

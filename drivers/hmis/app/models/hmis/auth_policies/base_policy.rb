@@ -24,6 +24,9 @@ class Hmis::AuthPolicies::BasePolicy
   # convenience
   def user = context.user
 
+  # convenience
+  def data_source_id = context.data_source_id
+
   # sanity check, is the resource what we expect
   def validate_resource!(_arg) = raise 'override this in child class'
 

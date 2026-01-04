@@ -269,15 +269,18 @@ class Hmis::User < ApplicationRecord
     can_access_ds
   end
 
-  memoize def policy_for(resource, policy_type:)
+  memoize def policy_for(resource, policy_type:, data_source_id: hmis_data_source_id)
     policy_name = "#{policy_type.to_s.camelize}Policy"
     policy_class = "Hmis::AuthPolicies::#{policy_name}".safe_constantize
     raise ArgumentError, "policy not found: #{policy_name}" unless policy_class
+    raise ArgumentError, 'data source not specified' unless data_source_id
+    raise ArgumentError, 'data source not found' unless GrdaWarehouse::DataSource.hmis.exists?(id: data_source_id)
 
-    policy_class.new(resource: resource, context: policy_context)
+    context = policy_context(data_source_id: data_source_id)
+    policy_class.new(resource: resource, context: context)
   end
 
-  memoize def policy_context
-    Hmis::AuthPolicies::UserContext.new(self)
+  memoize def policy_context(data_source_id:)
+    Hmis::AuthPolicies::UserContext.new(self, data_source_id: data_source_id)
   end
 end

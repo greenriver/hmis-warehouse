@@ -13,16 +13,19 @@ require 'memery'
 #
 # This context is shared across all policy objects for a single user/request,
 # enabling efficient bulk data loading and caching.
+# It is scoped to exactly one HMIS data source (to prevent cross-data-source leakage).
 class Hmis::AuthPolicies::UserContext
   include Memery
 
-  attr_reader :user
+  attr_reader :user, :data_source_id
   EMPTY_SET = Set.new.freeze
 
-  def initialize(user)
+  def initialize(user, data_source_id:)
     raise ArgumentError, 'Must be an HMIS user' unless user.is_a?(Hmis::User)
+    raise ArgumentError, 'Must be an HMIS data source' unless GrdaWarehouse::DataSource.hmis.exists?(id: data_source_id)
 
     @user = user
+    @data_source_id = data_source_id
   end
 
   # Global user permissions (across all projects/entities)
@@ -76,7 +79,7 @@ class Hmis::AuthPolicies::UserContext
   end
 
   memoize def project_access_group_loader
-    Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader.new
+    Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader.new(data_source_id: @data_source_id)
   end
 
   memoize def ce_referral_assignment_loader
