@@ -189,6 +189,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
     context 'with different household types' do
       it 'identifies adults only households' do
         # Remove child and add another adult
+        GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: hud_enrollment_child.EnrollmentID).delete_all
         hud_enrollment_child.destroy
         adult_2 = create_client_with_warehouse_link(dob: 30.years.ago)
         create(:hud_enrollment,
@@ -207,12 +208,90 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
       it 'identifies children only households' do
         # Change HoH to child
+        GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: hud_enrollment_hoh.EnrollmentID).delete_all
+        hud_enrollment_hoh.destroy
+
         child_2 = create_client_with_warehouse_link(dob: 12.years.ago)
-        hud_enrollment_hoh.update!(PersonalID: child_2.PersonalID)
+        create(:hud_enrollment,
+               PersonalID: child_2.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH123',
+               RelationshipToHoH: 1,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 
         builder.call
         expect(HudReports::HouseholdContext.pluck(:household_type).uniq).to eq(['children_only'])
+      end
+
+      it 'categorizes as unknown if an adult household has a member with a missing DOB' do
+        # Remove the child and add an adult with no DOB
+        GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: hud_enrollment_child.EnrollmentID).delete_all
+        hud_enrollment_child.destroy
+        unknown_adult = create_client_with_warehouse_link(dob: nil)
+        create(:hud_enrollment,
+               PersonalID: unknown_adult.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH123',
+               RelationshipToHoH: 3,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+        builder.call
+        # One 40yo adult + one unknown = unknown type
+        expect(HudReports::HouseholdContext.pluck(:household_type).uniq).to eq(['unknown'])
+      end
+
+      it 'categorizes as unknown if a child household has a member with a missing DOB' do
+        # Change HoH to child and remove the adult HoH
+        GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: hud_enrollment_hoh.EnrollmentID).delete_all
+        hud_enrollment_hoh.destroy
+
+        child_2 = create_client_with_warehouse_link(dob: 12.years.ago)
+        create(:hud_enrollment,
+               PersonalID: child_2.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH123',
+               RelationshipToHoH: 1,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+
+        # Child 10yo (from let) + Child 12yo + Unknown age member
+        unknown_member = create_client_with_warehouse_link(dob: nil)
+        create(:hud_enrollment,
+               PersonalID: unknown_member.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH123',
+               RelationshipToHoH: 3,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+        builder.call
+        expect(HudReports::HouseholdContext.pluck(:household_type).uniq).to eq(['unknown'])
+      end
+
+      it 'still categorizes as adults_and_children if both are present even with an unknown age member' do
+        # HoH (40yo) + Child (10yo) + Unknown age member
+        unknown_member = create_client_with_warehouse_link(dob: nil)
+        create(:hud_enrollment,
+               PersonalID: unknown_member.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH123',
+               RelationshipToHoH: 3,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+        builder.call
+        # Adults + Children present, so it's known even if one member is missing DOB
+        expect(HudReports::HouseholdContext.pluck(:household_type).uniq).to eq(['adults_and_children'])
       end
     end
 

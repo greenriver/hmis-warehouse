@@ -88,7 +88,7 @@ module HudReports
         scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil)
       end
 
-      query.to_a
+      query.to_a.select { |m| m.enrollment.present? }
     end
 
     def build_contexts_for_household(hh_id, members)
@@ -128,8 +128,10 @@ module HudReports
         0
       end
 
-      hh_ages = hh_member_hashes.map { |m| m[:age] }.compact
-      hh_type = calculate_household_type(hh_ages)
+      hh_all_ages = hh_member_hashes.map { |m| m[:age] }
+      hh_type = calculate_household_type(hh_all_ages)
+
+      hh_ages = hh_all_ages.compact
       hh_max_age = hh_ages.max || 0
       hh_member_count = members.size
       hh_has_minor_children = hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
@@ -196,11 +198,14 @@ module HudReports
     end
 
     def calculate_household_type(ages)
-      adults = ages.any? { |a| a >= 18 }
-      children = ages.any? { |a| a < 18 }
+      adults = ages.any? { |a| a.present? && a >= 18 }
+      children = ages.any? { |a| a.present? && a < 18 }
+      any_unknown = ages.any?(&:nil?)
 
       if adults && children
         :adults_and_children
+      elsif any_unknown
+        :unknown
       elsif adults
         :adults_only
       elsif children
