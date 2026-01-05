@@ -20,6 +20,9 @@ module Health
     include Search
 
     def index
+      # Pre-build agency user lookup cache to avoid N+1 queries
+      Health::AgencyUserLookup.build_cache
+
       @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
 
       @column = params[:sort] || 'name'

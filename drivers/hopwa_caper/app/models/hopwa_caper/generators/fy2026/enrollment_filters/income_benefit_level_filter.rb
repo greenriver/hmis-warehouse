@@ -11,6 +11,8 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
     def apply(scope)
       cond = HopwaCaper::Enrollment.
         where(percent_ami: ..4).
+        # HUD Glossary strategy: only look at Adults (age >= 18) or Head of Household (rel == 1)
+        where('age >= 18 OR relationship_to_hoh = 1').
         group(:report_household_id).
         having('MAX(percent_ami) = ?', code)
       scope.where(report_household_id: cond.select(:report_household_id))
