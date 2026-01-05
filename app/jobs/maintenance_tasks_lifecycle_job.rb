@@ -7,6 +7,8 @@
 ###
 
 class MaintenanceTasksLifecycleJob < BaseJob
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
   def perform
     GrdaWarehouse::Tasks::SystemMaintenanceTask.find_each(&:process_alerts)
 

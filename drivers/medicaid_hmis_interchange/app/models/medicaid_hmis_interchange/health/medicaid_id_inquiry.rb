@@ -111,7 +111,7 @@ module MedicaidHmisInterchange::Health
           repetition: '^',
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
-        file = w.write.upcase
+        file = w.write(String.new).upcase
       end
       file
     end

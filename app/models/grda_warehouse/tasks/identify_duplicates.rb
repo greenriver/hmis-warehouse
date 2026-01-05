@@ -223,7 +223,7 @@ module GrdaWarehouse::Tasks
             end
           end
         end
-        ClientCleanupJob.set(priority: 6).perform_later(batch.flatten)
+        ClientCleanupJob.set(priority: BaseJob::CLEANUP_BACKGROUND_PRIORITY_6).perform_later(batch.flatten)
         post_process_clients(client_ids: batch.map(&:first))
       end
       Rails.logger.info '=== Completed match_existing! ==='
