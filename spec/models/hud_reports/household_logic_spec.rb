@@ -1,0 +1,135 @@
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe HudReports::HouseholdLogic do
+  describe '.calculate_household_type' do
+    it 'returns :adults_and_children when both adults and children are present' do
+      expect(described_class.calculate_household_type([40, 10])).to eq(:adults_and_children)
+    end
+
+    it 'returns :adults_only when only adults are present' do
+      expect(described_class.calculate_household_type([40, 25])).to eq(:adults_only)
+    end
+
+    it 'returns :children_only when only children are present' do
+      expect(described_class.calculate_household_type([10, 12])).to eq(:children_only)
+    end
+
+    it 'returns :unknown if any age is nil' do
+      expect(described_class.calculate_household_type([40, nil])).to eq(:unknown)
+    end
+
+    it 'returns :unknown if ages are empty' do
+      expect(described_class.calculate_household_type([])).to eq(:unknown)
+    end
+  end
+
+  describe '.calculate_chronic_status' do
+    let(:hoh) do
+      {
+        client_id: 1,
+        entry_date: Date.parse('2020-01-01'),
+        age: 40,
+        chronic_status: true,
+        chronic_detail: 'yes'
+      }
+    end
+
+    let(:child) do
+      {
+        client_id: 2,
+        entry_date: Date.parse('2020-01-01'),
+        age: 10,
+        chronic_status: false,
+        chronic_detail: 'no'
+      }
+    end
+
+    let(:members) { [hoh, child] }
+
+    it 'inherits chronic status from HoH if they are chronic and entry dates match' do
+      result = described_class.calculate_chronic_status(members, child, hoh)
+      expect(result[:status]).to be true
+      expect(result[:detail]).to eq('yes')
+    end
+
+    it 'inherits from another chronic adult if HoH is not chronic' do
+      hoh[:chronic_status] = false
+      hoh[:chronic_detail] = 'no'
+
+      adult2 = {
+        client_id: 3,
+        entry_date: Date.parse('2020-01-01'),
+        age: 35,
+        chronic_status: true,
+        chronic_detail: 'yes'
+      }
+
+      result = described_class.calculate_chronic_status([hoh, child, adult2], child, hoh)
+      expect(result[:status]).to be true
+      expect(result[:detail]).to eq('yes')
+    end
+
+    it 'uses own status for adults even if HoH is chronic' do
+      adult2 = {
+        client_id: 3,
+        entry_date: Date.parse('2020-01-01'),
+        age: 35,
+        chronic_status: false,
+        chronic_detail: 'no'
+      }
+      # Note: Legacy logic says if HoH is chronic, return HoH if entry dates match
+      result = described_class.calculate_chronic_status([hoh, adult2], adult2, hoh)
+      expect(result[:status]).to be true
+    end
+
+    it 'uses own status for adults if no other adult is chronic' do
+      hoh[:chronic_status] = false
+      adult2 = {
+        client_id: 3,
+        entry_date: Date.parse('2020-01-01'),
+        age: 35,
+        chronic_status: true,
+        chronic_detail: 'yes'
+      }
+      result = described_class.calculate_chronic_status([hoh, adult2], adult2, hoh)
+      expect(result[:status]).to be true
+    end
+  end
+
+  describe '.calculate_move_in_date' do
+    let(:hoh) do
+      {
+        entry_date: Date.parse('2020-01-01'),
+        move_in_date: Date.parse('2020-02-01')
+      }
+    end
+
+    let(:member) do
+      {
+        entry_date: Date.parse('2020-01-01'),
+        exit_date: nil
+      }
+    end
+
+    it 'uses members own move-in date if valid' do
+      member[:move_in_date] = Date.parse('2020-03-01')
+      expect(described_class.calculate_move_in_date(member, hoh)).to eq(Date.parse('2020-03-01'))
+    end
+
+    it 'inherits HoH move-in date if member was present' do
+      expect(described_class.calculate_move_in_date(member, hoh)).to eq(Date.parse('2020-02-01'))
+    end
+
+    it 'uses entry date if member joined after HoH moved in' do
+      member[:entry_date] = Date.parse('2020-03-01')
+      expect(described_class.calculate_move_in_date(member, hoh)).to eq(Date.parse('2020-03-01'))
+    end
+
+    it 'returns nil if HoH has no move-in date' do
+      hoh[:move_in_date] = nil
+      expect(described_class.calculate_move_in_date(member, hoh)).to eq(nil)
+    end
+  end
+end

@@ -41,9 +41,12 @@ module HudReports::Households
     end
 
     private def ages_for(household_id, date)
-      return [] unless households[household_id]
+      members = households[household_id]
+      return [] unless members
 
-      households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
+      members.map do |member|
+        GrdaWarehouse::Hud::Client.age(date: date, dob: member[:dob])
+      end
     end
 
     def household_members_for(household_id)
@@ -53,10 +56,10 @@ module HudReports::Households
     def hoh_age(household_id, date)
       return unless households[household_id]
 
-      hoh_dob = households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :dob)
-      return unless hoh_dob
+      hoh = households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }
+      return unless hoh
 
-      GrdaWarehouse::Hud::Client.age(date: date, dob: hoh_dob)
+      GrdaWarehouse::Hud::Client.age(date: date, dob: hoh[:dob])
     end
 
     private def hoh_exit_date(household_id)
@@ -89,50 +92,26 @@ module HudReports::Households
     # see AirTable Issue ID 30
     private def calculate_household_chronic_status(hh_id, client_id, chronic_status: :chronic_status)
       household_members = households[hh_id]
-      # we couldn't find a household
       return false unless household_members.present?
 
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
       current_member = household_members.detect { |hm| hm[:client_id] == client_id }
-
-      # When no specific client_id is provided (PIT), use the HoH as the current_member for the household calculation
-      # This will allow the entire HH to have the same chronic status
       current_member ||= hoh
 
-      current_member_entry_date = current_member[:entry_date] if current_member.present?
-      hoh_entry_date = hoh[:entry_date] if hoh.present?
+      result = HudReports::HouseholdLogic.calculate_chronic_status(
+        household_members,
+        current_member,
+        hoh,
+        chronic_status_key: chronic_status,
+      )
 
-      # HoH if they are chronically homeless
-      return hoh if hoh.present? && hoh[chronic_status] && hoh_entry_date == current_member_entry_date
-
-      # If the HoH is not chronically homeless, check if any other adult is
-      # The HH CH status will inherit from a CH adultas long as they have the same entry date as the HoH
-      chronic_adult = household_members.detect do |hm|
-        next false unless hm[:age].present?
-
-        adult_is_chronic = hm[:age] >= 18 && hm[chronic_status]
-        adult_matches_entry_date = hm[:entry_date] == hoh_entry_date
-
-        adult_is_chronic && adult_matches_entry_date
-      end
-      # if not, use any other adult who is (with the same entry date)
-      return chronic_adult if chronic_adult.present?
-
-      # Return false if we don't have a valid member to check
-      return false unless current_member.present?
-
-      # if no adults are either yes or no, use self for adults
-      return current_member if current_member[:age].present? && current_member[:age] >= 18
-      # if the data is bad and we don't have an HoH, use our own record
-      return current_member if hoh.blank?
-
-      # and the HoH enrollment for children if HoH status is unknown
-      return hoh if hoh[:chronic_detail].in?([:dk_or_r, :missing])
-
-      # if we have an indeterminate response for the child, use the hoh
-      return hoh if current_member[:chronic_detail].in?([:dk_or_r, :missing])
-
-      current_member
+      # Return a hash compatible with legacy usage
+      {
+        chronic_status: result[:status],
+        chronic_detail: result[:detail],
+        pit_chronic_status: result[:status],
+        pit_chronic_detail: result[:detail],
+      }.with_indifferent_access
     end
 
     private def household_chronic_status(hh_id, client_id)
@@ -144,31 +123,18 @@ module HudReports::Households
     end
 
     private def calculate_hh_move_in_date(hh_id, she)
-      # Get HoH for further calculations
       household_members = households[hh_id]
-      hoh = household_members&.detect { |hm| hm[:relationship_to_hoh] == 1 }
+      return nil unless household_members.present?
 
-      # HoH does not exist or does not have a move-in date - cannot do further calculations
-      return nil unless hoh.present? && hoh[:move_in_date].present?
+      hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
 
-      # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
+      member_data = {
+        entry_date: she.entry_date,
+        exit_date: she.exit_date,
+        move_in_date: she.move_in_date,
+      }
 
-      # Heads of household with [housing move-in dates] prior to their [project start dates] should have the [housing move-in dates] disregarded entirely.
-      return nil unless hoh[:entry_date] <= hoh[:move_in_date]
-
-      # When a household member was already in the household when they became housed (individual's [project
-      # start date] <= head of household's [housing move-in date]), the head of household's [housing move-in date]
-      # should be used as the individual's [housing move-in date]. If the household member exited before the
-      # household moved into housing, they do not inherit this [housing move-in date].
-      return hoh[:move_in_date] if (she.entry_date..she.exit_date).cover?(hoh[:move_in_date])
-
-      # When a household member joins the household after they are already housed (individual's [project start
-      # date] > head of household's [housing move-in date]), the individual's [project start date] should be used as
-      # the individual's [housing move-in date].
-      return she.entry_date if she.entry_date > hoh[:move_in_date]
-
-      # Otherwise this move-in is completely invalid
-      nil
+      HudReports::HouseholdLogic.calculate_move_in_date(member_data, hoh, report_end_date: @report.end_date)
     end
 
     private def calculate_move_in_date(hh_id, she)
@@ -179,9 +145,41 @@ module HudReports::Households
       calculate_hh_move_in_date(hh_id, she)
     end
 
+    private def load_households_from_context
+      # Join with Client to get DOB if needed for legacy compatibility
+      # We use find_in_batches to keep memory usage low even when loading from the context table
+      @report.household_contexts.includes(service_history_enrollment: { enrollment: :client }).find_in_batches(batch_size: batch_size) do |batch|
+        batch.each do |ctx|
+          she = ctx.service_history_enrollment
+          @hoh_enrollments[ctx.household_id] = she if ctx.is_hoh
+
+          @households[ctx.household_id] ||= []
+          @households[ctx.household_id] << {
+            client_id: ctx.source_client_id,
+            source_client_id: ctx.source_client_id,
+            dob: she.enrollment&.client&.DOB,
+            age: ctx.age,
+            veteran_status: ctx.hoh_veteran ? 1 : 0, # Note: this is an approximation for legacy
+            pit_chronic_status: ctx.pit_chronic_status,
+            chronic_status: ctx.inherited_chronic_status,
+            chronic_detail: ctx.inherited_chronic_detail,
+            relationship_to_hoh: ctx.relationship_to_hoh,
+            entry_date: ctx.hoh_entry_date,
+            exit_date: ctx.hoh_exit_date,
+            move_in_date: ctx.move_in_date,
+          }.with_indifferent_access
+        end
+      end
+    end
+
     private def calculate_households
       @hoh_enrollments ||= {}
       @households ||= {}
+
+      if @report.respond_to?(:household_context_count) && @report.household_context_count.to_i > 0
+        load_households_from_context
+        return
+      end
 
       # NOTE: batch_size must match calculate_households in the class that includes this concern
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
@@ -292,11 +290,7 @@ module HudReports::Households
 
     private def household_makeup(household_id, date)
       household_ages = ages_for(household_id, date)
-      return :adults_and_children if adults?(household_ages) && children?(household_ages)
-      return :adults_only if adults?(household_ages) && ! children?(household_ages) && ! unknown_ages?(household_ages)
-      return :children_only if children?(household_ages) && ! adults?(household_ages) && ! unknown_ages?(household_ages)
-
-      :unknown
+      HudReports::HouseholdLogic.calculate_household_type(household_ages)
     end
 
     private def sub_populations
