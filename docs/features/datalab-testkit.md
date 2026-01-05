@@ -41,19 +41,35 @@ Discrepancies often arise from ambiguities in HUD specifications or issues in th
 - **Investigation**: Developers can use the `detail_columns` parameter to inspect the specific records contributing to a discrepant cell value.
 
 ### Rebuilding Fixpoints
+
 Fixpoints should be rebuilt when the underlying HUD data sets are updated or when systematic changes to the import process occur. This is done by including `[gh:rebuild_fixpoints]` in a commit message, which triggers the `test_kit_fixpoints.yml` workflow.
 
 ### Support Utilities
+
 Several utilities assist in maintaining the testkit fixtures:
-- `DatalabTestkit::TestkitCsvMerge`: Combines multiple HUD CSV export directories into a single source. This is used when updating the testkit with new raw data sets (e.g., merging dozens of individual zip exports into a single `merged/source` directory).
-- `DatalabTestkit::TestkitSpmXlsxToCsv`: Converts SPM Excel reports into CSV format for automated comparison.
+
+- **`DatalabTestkit::TestkitSpmXlsxToCsv`**: Translates SPM results from `.xlsx` files into the CSV format used for Warehouse tests.
+  ```ruby
+  DatalabTestkit::TestkitSpmXlsxToCsv.new(directory).convert("excel_filename.xlsx")
+  ```
+
+- **`DatalabTestkit::TestkitCsvMerge`**: Consolidates multiple HMIS zip export directories into a single source. This is used when updating the test kit with new raw data sets.
+  ```ruby
+  source_dirs = Dir.glob('var/csvs/*')
+  destination_dir = 'drivers/datalab_testkit/spec/fixtures/inputs/merged/source'
+  DatalabTestkit::TestkitCsvMerge.new(source_dirs, destination_dir).merge_dirs
+  ```
 
 ### Updating Raw Data
+
 When a new version of the test kit is released:
+
 1. Extract all provided HMIS zip files into subdirectories of `var/csvs/`.
-2. Run the `TestkitCsvMerge` utility to consolidate them into `drivers/datalab_testkit/spec/fixtures/inputs/merged/source`.
-3. Set `skip_location_cleanup: true` during import to ensure that intentional data anomalies (like invalid CoC codes) are preserved for testing.
-4. Rebuild fixpoints using the CI workflow.
+2. Run the `TestkitCsvMerge` utility (see above) to consolidate them into `drivers/datalab_testkit/spec/fixtures/inputs/merged/source`.
+3. Ensure `skip_location_cleanup: true` is set during the import process.
+
+#### Location Cleanup Note
+By default, `GrdaWarehouse::Tasks::ProjectCleanup` (called in `HmisCsvImporter::Importer::Importer#post_process`) attempts to reconcile and "fix" CoC Codes. However, Test Kits often include intentional data anomalies, such as invalid CoC codes, to test report robustness. Setting `skip_location_cleanup: true` ensures these codes are preserved exactly as they appear in the source CSVs.
 
 ## Entry Points
 
