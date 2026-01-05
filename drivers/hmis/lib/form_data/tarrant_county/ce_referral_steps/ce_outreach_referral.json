@@ -416,6 +416,26 @@
             "read_only": false,
             "warn_if_empty": true,
             "disabled_display": "HIDDEN"
+          },
+          {
+            "text": "Is there any additional information (not listed or kept confidential) that the service provider should contact the client directly to obtain?",
+            "type": "CHOICE",
+            "link_id": "additional_information_to_contact_client_directly",
+            "mapping": {
+              "custom_field_key": "ce_outreach_referral_additional_info"
+            },
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
           }
         ],
         "text": "Referrer Questions",

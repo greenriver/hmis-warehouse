@@ -21,14 +21,16 @@ module GrdaWarehouse::Confidence
     end
 
     def self.collection_dates_for_client client_id
-      [{
-        census: Date.current,
-        calculate_after: Date.yesterday,
-        iteration: 0,
-        of_iterations: 1,
-        resource_id: client_id,
-        type: name,
-      }]
+      [
+        {
+          census: Date.current,
+          calculate_after: Date.yesterday,
+          iteration: 0,
+          of_iterations: 1,
+          resource_id: client_id,
+          type: name,
+        },
+      ]
     end
 
     def self.queue_batch force_run: false, force_create: false
@@ -51,7 +53,7 @@ module GrdaWarehouse::Confidence
         Delayed::Job.enqueue(
           ::Confidence::SourceExitsJob.new(client_ids: batch),
           queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
-          priority: 10,
+          priority: BaseJob::BULK_PROCESSING_PRIORITY_10,
         )
       end
     end

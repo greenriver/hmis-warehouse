@@ -405,7 +405,7 @@ namespace :grda_warehouse do
     # Purge old soft-deleted records
     safely_execute do
       enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
-      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
+      PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
     end
 
     # Run CSG Engage export if ready
@@ -524,7 +524,7 @@ namespace :grda_warehouse do
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
     # Queue the cohort analytics generation job if it's not already queued
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: BaseJob::CACHE_REFRESH_PRIORITY_12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'

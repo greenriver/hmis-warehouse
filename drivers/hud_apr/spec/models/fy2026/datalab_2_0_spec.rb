@@ -39,7 +39,7 @@ RSpec.describe 'Datalab 2026', type: :model do
   end
 
   before(:all) do
-    setup
+    setup(cleanup_enrollment_cocs: true)
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
@@ -51,9 +51,9 @@ RSpec.describe 'Datalab 2026', type: :model do
     include_context 'datalab organization y sso apr'
 
     include_context 'datalab organization g rrh caper'
-    # include_context 'datalab organization j es caper'
-    # include_context 'datalab organization s so caper'
-    # include_context 'datalab organization t es caper'
+    include_context 'datalab organization j es caper'
+    include_context 'datalab organization s so caper'
+    include_context 'datalab organization t es caper'
     include_context 'datalab organization t hp caper'
 
     # include_context 'datalab systemwide ce apr' # Looks like data issues - likely missing clients/enrollments
