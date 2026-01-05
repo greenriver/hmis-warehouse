@@ -34,4 +34,36 @@ RSpec.describe HudReports::HouseholdQueryService, type: :model do
       expect(service.sub_populations['Chronically Homeless'].to_sql).to match(/"hh_ctx"\."inherited_chronic_status" = (true|TRUE)/)
     end
   end
+
+  describe 'semantic scope extensions (Dynamic Filters)' do
+    let(:apr_table) { HudApr::Fy2020::AprClient.arel_table }
+    let(:apr_service) { described_class.new(report, apr_table) }
+    # In reports, we often extend a UniverseMember relation that has joined the universe model
+    let(:base_relation) { HudReports::UniverseMember.all }
+    let(:extended_scope) { apr_service.with_household_context(base_relation) }
+
+    it 'correctly resolves columns from the universe table rather than the base relation table' do
+      # strict_leavers uses 'last_date_in_program', which exists on AprClient but NOT UniverseMember
+      sql = extended_scope.strict_leavers(Date.current).to_sql
+
+      # It should use "hud_report_apr_clients" (from apr_table) not "hud_report_universe_members"
+      expect(sql).to include('"hud_report_apr_clients"."last_date_in_program"')
+      expect(sql).not_to include('"hud_report_universe_members"."last_date_in_program"')
+    end
+
+    it 'chains multiple scopes using the correct tables' do
+      sql = extended_scope.heads_of_household.without_children.to_sql
+
+      expect(sql).to match(/"hh_ctx"\."is_hoh" = (true|TRUE)/)
+      expect(sql).to include('"hh_ctx"."household_type" = \'adults_only\'')
+    end
+
+    it 'correctly handles age-based scopes' do
+      sql = extended_scope.adults_or_hohs.to_sql
+
+      # Should use hh_ctx for age and is_hoh
+      expect(sql).to include('"hh_ctx"."age" >= 18')
+      expect(sql).to match(/"hh_ctx"\."is_hoh" = (true|TRUE)/)
+    end
+  end
 end

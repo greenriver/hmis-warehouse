@@ -31,7 +31,16 @@ module HudReports
 
       join = @a_t.join(hh_ctx_table, Arel::Nodes::OuterJoin).on(join_condition)
 
-      scope.joins(join.join_sources).extending(Filters)
+      # We need to ensure that the semantic scopes use the correct arel table (e.g. AprClient)
+      # rather than the base UniverseMember table. We define a dynamic module that captures
+      # our instance's @a_t and overrides the default universe_arel_table in the Filters module.
+      context_a_t = @a_t
+      extension = Module.new do
+        include Filters
+        define_method(:universe_arel_table) { context_a_t }
+      end
+
+      scope.joins(join.join_sources).extending(extension)
     end
 
     module Filters
@@ -39,8 +48,8 @@ module HudReports
         @hh_ctx ||= Arel::Table.new(:hh_ctx)
       end
 
-      def a_t
-        @a_t ||= arel_table
+      def universe_arel_table
+        arel_table
       end
 
       def for_household_type(type)
@@ -104,9 +113,9 @@ module HudReports
 
       def strict_leavers(report_end_date)
         where(
-          a_t[:last_date_in_program].lteq(report_end_date).and(
+          universe_arel_table[:last_date_in_program].lteq(report_end_date).and(
             hh_ctx[:is_hoh].eq(true).or(
-              hh_ctx[:hoh_exit_date].eq(a_t[:last_date_in_program]),
+              hh_ctx[:hoh_exit_date].eq(universe_arel_table[:last_date_in_program]),
             ),
           ),
         )
