@@ -203,6 +203,10 @@ module HudApr::Generators::Shared::Fy2026
             )
           end
 
+          # Households with required assessments are calculated earlier for performance reasons.
+          # An APR is being submitted to verify assessment requirements for non-HoH adults entering the HH at a different date than the HoH.
+          # e.g. If an adult enters 1 day prior HoH assessment date, is their assessment required on the HoH date (1 day later) or on the following year (1 year + 1 day later)
+          #      If an adult enters 1 day after the HoH assessment date is their assessment due on the HoH date (1 year - 1 day later) or on the following year (2 years - 1 day)
           annual_assessment_expected = if age.present? && age >= 18
             annual_assessment_expected?(hoh_enrollment: hoh_light, enrollment: last_service_history_enrollment, report_end_date: @report.end_date) &&
               last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
@@ -281,13 +285,14 @@ module HudApr::Generators::Shared::Fy2026
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
             sex: source_client.Sex || 99,
-            head_of_household_id: ctx.hoh_id,
+            head_of_household_id: ctx.hoh_personal_id,
             head_of_household: ctx.is_hoh,
             hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
             household_id: ctx.household_id,
+            household_members: household_member_data(last_service_history_enrollment),
             household_type: ctx.household_type,
             housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,

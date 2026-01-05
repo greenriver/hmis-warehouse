@@ -6,10 +6,14 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.references :report_instance, null: false, index: false
       t.references :service_history_enrollment, null: false
       t.references :source_enrollment
+      t.references :destination_client
       t.references :source_client
       t.integer :age
+      t.date :dob
+      t.integer :veteran_status
       t.string :household_id
-      t.integer :hoh_id
+      t.references :hoh_destination_client
+      t.string :hoh_personal_id
       t.references :hoh_service_history_enrollment
       t.date :hoh_entry_date
       t.date :hoh_exit_date

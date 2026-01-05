@@ -104,10 +104,13 @@ module HudReports
         {
           she_id: m.id,
           enrollment_id: m.enrollment&.id,
-          client_id: m.client_id,
+          destination_client_id: m.client_id,
+          source_client_id: m.enrollment&.client&.id,
+          personal_id: m.enrollment&.client&.PersonalID,
           entry_date: m.first_date_in_program,
           exit_date: m.last_date_in_program,
           age: age,
+          dob: m.enrollment&.client&.DOB,
           chronic_status: m.enrollment&.chronically_homeless_at_start?,
           pit_chronic_status: m.enrollment&.chronically_homeless_at_start?(date: report_date),
           chronic_detail: m.enrollment&.chronically_homeless_at_start,
@@ -122,6 +125,10 @@ module HudReports
 
       # HH Level Stats
       hoh_data = hh_member_hashes.detect { |m| m[:relationship_to_hoh] == 1 }
+      hoh_adjusted_move_in_date = if hoh_data
+        HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date)
+      end
+
       hoh_stayer_end_date = [hoh_data&.[](:exit_date), @report.end_date + 1.day].compact.min
       hoh_length_of_stay = if hoh_data && hoh_stayer_end_date
         (hoh_stayer_end_date - hoh_data[:entry_date]).to_i
@@ -164,17 +171,21 @@ module HudReports
           report_instance_id: @report.id,
           service_history_enrollment_id: m.id,
           source_enrollment_id: member_hash[:enrollment_id],
-          source_client_id: m.client_id,
+          source_client_id: member_hash[:source_client_id],
+          destination_client_id: member_hash[:destination_client_id],
           age: member_hash[:age],
+          dob: member_hash[:dob],
+          veteran_status: member_hash[:veteran_status],
           household_id: hh_id,
-          hoh_id: hoh_data&.[](:client_id),
+          hoh_destination_client_id: hoh_data&.[](:destination_client_id),
+          hoh_personal_id: hoh_data&.[](:personal_id),
           hoh_service_history_enrollment_id: hoh_data&.[](:she_id),
           hoh_entry_date: hoh_data&.[](:entry_date),
           hoh_exit_date: hoh_data&.[](:exit_date),
           hoh_length_of_stay: hoh_length_of_stay,
           hoh_coc: hoh_data&.[](:enrollment_coc),
           hoh_date_to_street: hoh_data&.[](:date_to_street),
-          hoh_move_in_date: hoh_data&.[](:move_in_date),
+          hoh_move_in_date: hoh_adjusted_move_in_date,
           hoh_age: hoh_data&.[](:age),
           hoh_veteran: hoh_data&.[](:veteran_status) == 1,
           is_hoh: m.enrollment&.RelationshipToHoH == 1,

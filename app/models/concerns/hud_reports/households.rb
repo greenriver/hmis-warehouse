@@ -93,6 +93,9 @@ module HudReports::Households
 
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
       current_member = household_members.detect { |hm| hm[:client_id] == client_id }
+
+      # When no specific client_id is provided (PIT), use the HoH as the current_member for the household calculation
+      # This will allow the entire HH to have the same chronic status
       current_member ||= hoh
 
       result = HudReports::HouseholdLogic.calculate_chronic_status(
@@ -123,6 +126,7 @@ module HudReports::Households
       household_members = households[hh_id]
       return nil unless household_members.present?
 
+      # Get HoH for further calculations
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
 
       member_data = {
@@ -145,18 +149,17 @@ module HudReports::Households
     private def load_households_from_context
       # Join with Client to get DOB if needed for legacy compatibility
       # We use find_in_batches to keep memory usage low even when loading from the context table
-      @report.household_contexts.includes(service_history_enrollment: { enrollment: :client }).find_in_batches(batch_size: batch_size) do |batch|
+      @report.household_contexts.find_in_batches(batch_size: batch_size) do |batch|
         batch.each do |ctx|
-          she = ctx.service_history_enrollment
-          @hoh_enrollments[ctx.household_id] = she if ctx.is_hoh
+          @hoh_enrollments[ctx.household_id] = ctx.service_history_enrollment if ctx.is_hoh
 
           @households[ctx.household_id] ||= []
           @households[ctx.household_id] << {
-            client_id: ctx.source_client_id,
+            client_id: ctx.destination_client_id,
             source_client_id: ctx.source_client_id,
-            dob: she.enrollment&.client&.DOB,
+            dob: ctx.dob,
             age: ctx.age,
-            veteran_status: ctx.hoh_veteran ? 1 : 0, # Note: this is an approximation for legacy
+            veteran_status: ctx.veteran_status,
             pit_chronic_status: ctx.pit_chronic_status,
             chronic_status: ctx.inherited_chronic_status,
             chronic_detail: ctx.inherited_chronic_detail,

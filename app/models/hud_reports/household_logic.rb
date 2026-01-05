@@ -71,6 +71,7 @@ module HudReports
         { status: current_member[chronic_status_key], detail: current_member[detail_key] }
       end
 
+      # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
       def calculate_move_in_date(member, hoh, report_end_date: nil)
         # If the move-in-date is valid, just use it
         return member[:move_in_date] if member[:move_in_date].present? && member[:move_in_date] >= member[:entry_date]
