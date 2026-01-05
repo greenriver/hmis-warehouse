@@ -41,12 +41,9 @@ module HudReports::Households
     end
 
     private def ages_for(household_id, date)
-      members = households[household_id]
-      return [] unless members
+      return [] unless households[household_id]
 
-      members.map do |member|
-        GrdaWarehouse::Hud::Client.age(date: date, dob: member[:dob])
-      end
+      households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
     end
 
     def household_members_for(household_id)
@@ -56,10 +53,10 @@ module HudReports::Households
     def hoh_age(household_id, date)
       return unless households[household_id]
 
-      hoh = households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }
-      return unless hoh
+      hoh_dob = households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :dob)
+      return unless hoh_dob
 
-      GrdaWarehouse::Hud::Client.age(date: date, dob: hoh[:dob])
+      GrdaWarehouse::Hud::Client.age(date: date, dob: hoh_dob)
     end
 
     private def hoh_exit_date(household_id)
