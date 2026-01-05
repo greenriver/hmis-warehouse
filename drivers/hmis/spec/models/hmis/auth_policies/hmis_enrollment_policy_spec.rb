@@ -4,7 +4,11 @@ require 'rails_helper'
 
 RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
-  let(:user) { create(:hmis_user, data_source: data_source) }
+  let(:user) do
+    u = create(:hmis_user)
+    u.hmis_data_source_id = data_source.id
+    u
+  end
   let(:project) { create(:hmis_hud_project, data_source: data_source) }
   let(:other_project) { create(:hmis_hud_project, data_source: data_source) }
   let(:client) { create(:hmis_hud_client, data_source: data_source) }
@@ -61,6 +65,23 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
         create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
         expect(policy.can_delete?).to be true
       end
+    end
+  end
+
+  context 'when enrollment belongs to a different data source' do
+    let(:other_client) { create(:hmis_hud_client, data_source: other_data_source) }
+    let(:other_data_source) { create(:hmis_data_source) }
+    let(:other_project) { create(:hmis_hud_project, data_source: other_data_source) }
+    let(:other_enrollment) { create(:hmis_hud_enrollment, project: other_project, client: other_client, data_source: other_data_source) }
+    let(:policy) { user.policy_for(other_enrollment, policy_type: :hmis_enrollment) }
+
+    before do
+      create_access_control(user, other_project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+    end
+
+    it 'denies all permissions even if permission is granted via access control' do
+      expect(policy.can_edit?).to be false
+      expect(policy.can_delete?).to be false
     end
   end
 end

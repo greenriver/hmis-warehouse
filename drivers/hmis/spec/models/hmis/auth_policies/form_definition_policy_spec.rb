@@ -4,7 +4,11 @@ require 'rails_helper'
 
 RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
-  let(:user) { create(:hmis_user, data_source: data_source) }
+  let(:user) do
+    u = create(:hmis_user)
+    u.hmis_data_source_id = data_source.id
+    u
+  end
   let(:form_definition) { create(:hmis_form_definition, role: 'SERVICE', status: 'draft') }
   let(:policy) { user.policy_for(form_definition, policy_type: :form_definition) }
   let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_view_clients]) }

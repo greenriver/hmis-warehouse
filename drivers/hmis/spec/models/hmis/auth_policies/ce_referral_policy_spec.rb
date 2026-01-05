@@ -8,7 +8,11 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   end
 
   let(:data_source) { create(:hmis_data_source) }
-  let(:user) { create(:hmis_user, data_source: data_source) }
+  let(:user) do
+    u = create(:hmis_user)
+    u.hmis_data_source_id = data_source.id
+    u
+  end
   let(:client) { create :hmis_hud_client_complete, data_source: data_source }
   let(:project) { create :hmis_hud_project, data_source: data_source }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }

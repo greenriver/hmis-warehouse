@@ -6,7 +6,11 @@ RSpec.describe Hmis::AuthPolicies::CeOpportunityPolicy, type: :model do
   before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
 
   let(:data_source) { create(:hmis_data_source) }
-  let(:user) { create(:hmis_user, data_source: data_source) }
+  let(:user) do
+    u = create(:hmis_user)
+    u.hmis_data_source_id = data_source.id
+    u
+  end
   let(:project) { create(:hmis_hud_project, data_source: data_source) }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }
   let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template) }
