@@ -13,7 +13,6 @@ require 'memery'
 #
 # This context is shared across all policy objects for a single user/request,
 # enabling efficient bulk data loading and caching.
-# It is scoped to exactly one HMIS data source (to prevent cross-data-source leakage).
 class Hmis::AuthPolicies::UserContext
   include Memery
 
