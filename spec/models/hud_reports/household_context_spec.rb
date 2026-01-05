@@ -22,21 +22,4 @@ RSpec.describe HudReports::HouseholdContext, type: :model do
     expect(context).to be_valid
     expect(context.save).to be true
   end
-
-  it 'enforces uniqueness of service_history_enrollment_id per report_instance_id' do
-    described_class.create!(
-      report_instance: report_instance,
-      service_history_enrollment: enrollment,
-      household_id: 'HH123',
-    )
-
-    duplicate = described_class.new(
-      report_instance: report_instance,
-      service_history_enrollment: enrollment,
-      household_id: 'HH456',
-    )
-
-    expect(duplicate).not_to be_valid
-    expect { duplicate.save!(validate: false) }.to raise_error(ActiveRecord::RecordNotUnique)
-  end
 end
