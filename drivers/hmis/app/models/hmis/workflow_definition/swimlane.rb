@@ -8,5 +8,6 @@ module Hmis::WorkflowDefinition
 
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
     has_many :tasks, class_name: 'Hmis::WorkflowDefinition::UserTask', dependent: :nullify
+    has_many :default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', dependent: :destroy
   end
 end

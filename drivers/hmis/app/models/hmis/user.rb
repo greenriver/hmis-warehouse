@@ -31,6 +31,8 @@ class Hmis::User < ApplicationRecord
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
   has_many :workflow_step_assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment'
   has_many :ce_referral_participants, class_name: 'Hmis::Ce::ReferralParticipant'
+  # todo @martha - think more about this - when would users be deleted? shouldnt they just become inactive?
+  has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', dependent: :destroy
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'

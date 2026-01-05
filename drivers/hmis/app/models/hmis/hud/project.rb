@@ -60,6 +60,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :ce_opportunities, through: :units, class_name: 'Hmis::Ce::Opportunity', source: :opportunities
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
   has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
+  has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
 
   # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
