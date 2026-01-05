@@ -12,10 +12,19 @@ module Health
     include AjaxModalRails::Controller
     include HealthPatientDashboard
     include Search
+    extend BackgroundRenderAction
 
     before_action :require_can_view_patients_for_own_agency!
     before_action :require_has_team_or_admin!
     before_action :set_dates
+
+    background_render_action(:render_section, ::BackgroundRender::HealthTeamPatientsTableJob) do
+      {
+        user_id: current_user.id,
+        start_date: @start_date.to_s,
+        end_date: @end_date.to_s,
+      }
+    end
 
     def require_has_team_or_admin!
       return if current_user.can_administer_health? || current_user.team_mates.exists?
@@ -24,6 +33,9 @@ module Health
     end
 
     def index
+      # Pre-build agency user lookup cache to avoid N+1 queries
+      Health::AgencyUserLookup.build_cache
+
       @team_name = params[:entity_id]
       if @team_name.blank?
         @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
@@ -51,15 +63,30 @@ module Health
       @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          medicaid_ids = @patients.map(&:medicaid_id)
-          @patients = patient_source.where(id: @patients.pluck(:id))
+          ids = @patients.pluck(:id, :medicaid_id)
+          patient_ids = ids.map(&:first)
+          medicaid_ids = ids.map(&:last)
+          @patients = patient_source.where(id: patient_ids)
           if @column == 'name'
             @patients = @patients.order(last_name: @direction, first_name: @direction)
           else
             sort_order = determine_sort_order(medicaid_ids, @column, @direction)
             @patients = @patients.order_as_specified(sort_order)
           end
-          @pagy, @patients = pagy(@patients)
+          @pagy, @patients = pagy(
+            @patients.preload(
+              :patient_referral,
+              :care_coordinator,
+              :nurse_care_manager,
+              careplans: [],
+              qualifying_activities: [],
+              client: [
+                :service_history_entries,
+                service_history_enrollments: :project,
+              ],
+              health_agency: :agency_users,
+            ),
+          )
           @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do
