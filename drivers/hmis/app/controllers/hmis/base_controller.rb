@@ -53,6 +53,11 @@ class Hmis::BaseController < ActionController::Base
     current_hmis_user.hmis_data_source_id = data_source_id
   end
 
+  def data_source
+    @data_source ||= GrdaWarehouse::DataSource.find(current_hmis_user.hmis_data_source_id) if current_hmis_user&.hmis_data_source_id.present?
+  end
+  helper_method :data_source
+
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
   #
   # Returns the true user ID when impersonating, otherwise the current user ID.
