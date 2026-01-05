@@ -195,12 +195,12 @@ module HudApr::Generators::Shared::Fy2026
       sub_populations_by_destination_question(
         question: 'Q27f1',
         # FIXME: need to check this universe
-        members: members.between_ages(12..24).youth_only_households, # .where(youth_adult_or_youth_hoh_clause),
+        members: members.between_ages(12..24).youth_only_households.where(leavers_clause), # .where(youth_adult_or_youth_hoh_clause),
       )
     end
 
     def q27f2_subsidy_type_of_persons_exiting_to_rental_by_client_with_an_ongoing_subsidy
-      sub_populations_by_subsidy_type_question(question: 'Q27f2', members: members.between_ages(12..24).youth_only_households)
+      sub_populations_by_subsidy_type_question(question: 'Q27f2', members: members.between_ages(12..24).youth_only_households.where(leavers_clause))
     end
 
     private def q27g_youth_income_sources

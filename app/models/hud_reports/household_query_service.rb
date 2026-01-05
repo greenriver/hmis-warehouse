@@ -52,8 +52,30 @@ module HudReports
         arel_table
       end
 
+      def hh_column(name)
+        if universe_arel_table.name == 'hud_report_apr_clients'
+          case name
+          when :household_type then universe_arel_table[:household_type]
+          when :inherited_chronic_status then universe_arel_table[:chronically_homeless]
+          when :is_hoh then universe_arel_table[:head_of_household]
+          when :relationship_to_hoh then universe_arel_table[:relationship_to_hoh]
+          when :age then universe_arel_table[:age]
+          when :is_parenting_youth then universe_arel_table[:parenting_youth]
+          when :has_other_clients_over_25 then universe_arel_table[:other_clients_over_25]
+          when :household_id then universe_arel_table[:household_id]
+          when :hoh_id then universe_arel_table[:head_of_household_id]
+          when :inherited_move_in_date then universe_arel_table[:adjusted_move_in_date]
+          when :hoh_move_in_date then universe_arel_table[:hoh_move_in_date]
+          when :inherited_chronic_detail then universe_arel_table[:chronically_homeless_detail]
+          else hh_ctx[name]
+          end
+        else
+          hh_ctx[name]
+        end
+      end
+
       def for_household_type(type)
-        where(hh_ctx[:household_type].eq(type))
+        where(hh_column(:household_type).eq(type))
       end
 
       def without_children
@@ -73,120 +95,142 @@ module HudReports
       end
 
       def chronically_homeless
-        where(hh_ctx[:inherited_chronic_status].eq(true))
+        where(hh_column(:inherited_chronic_status).eq(true))
       end
 
       def chronically_homeless_pit
-        where(hh_ctx[:inherited_pit_chronic_status].eq(true))
+        where(hh_column(:inherited_pit_chronic_status).eq(true))
       end
 
       def heads_of_household
-        where(hh_ctx[:is_hoh].eq(true))
+        where(hh_column(:is_hoh).eq(true))
       end
 
       def hoh_or_spouses
-        where(hh_ctx[:relationship_to_hoh].in([1, 3]))
+        where(hh_column(:relationship_to_hoh).in([1, 3]))
       end
 
       def adults_or_hohs
-        where(hh_ctx[:age].gteq(18).or(hh_ctx[:is_hoh].eq(true)))
+        where(hh_column(:age).gteq(18).or(hh_column(:is_hoh).eq(true)))
       end
 
       def parenting_youth
-        where(hh_ctx[:is_parenting_youth].eq(true))
+        where(hh_column(:is_parenting_youth).eq(true))
       end
 
       def youth_only_households
-        where(hh_ctx[:has_other_clients_over_25].eq(false))
+        where(hh_column(:has_other_clients_over_25).eq(false))
       end
 
       def youth_adults_or_youth_hohs
         youth_only_households.where(
-          hh_ctx[:is_hoh].eq(true).and(hh_ctx[:age].in(12..24)).
-            or(hh_ctx[:age].in(18..24)),
+          hh_column(:is_hoh).eq(true).and(hh_column(:age).in(12..24)).
+            or(hh_column(:age).in(18..24)),
         )
       end
 
       def between_ages(range)
-        where(hh_ctx[:age].in(range))
+        where(hh_column(:age).in(range))
       end
 
       def strict_leavers(report_end_date)
         where(
           universe_arel_table[:last_date_in_program].lteq(report_end_date).and(
-            hh_ctx[:is_hoh].eq(true).or(
-              hh_ctx[:hoh_exit_date].eq(universe_arel_table[:last_date_in_program]),
+            hh_column(:is_hoh).eq(true).or(
+              hh_column(:hoh_exit_date).eq(universe_arel_table[:last_date_in_program]),
             ),
           ),
         )
       end
 
       def chronic_households
-        where(hh_ctx[:inherited_chronic_status].eq(true).and(hh_ctx[:is_hoh].eq(true)))
+        where(hh_column(:inherited_chronic_status).eq(true).and(hh_column(:is_hoh).eq(true)))
+      end
+    end
+
+    def hh_column(name)
+      if @a_t.name == 'hud_report_apr_clients'
+        case name
+        when :household_type then @a_t[:household_type]
+        when :inherited_chronic_status then @a_t[:chronically_homeless]
+        when :is_hoh then @a_t[:head_of_household]
+        when :relationship_to_hoh then @a_t[:relationship_to_hoh]
+        when :age then @a_t[:age]
+        when :is_parenting_youth then @a_t[:parenting_youth]
+        when :has_other_clients_over_25 then @a_t[:other_clients_over_25]
+        when :household_id then @a_t[:household_id]
+        when :hoh_id then @a_t[:head_of_household_id]
+        when :inherited_move_in_date then @a_t[:adjusted_move_in_date]
+        when :hoh_move_in_date then @a_t[:hoh_move_in_date]
+        when :inherited_chronic_detail then @a_t[:chronically_homeless_detail]
+        else hh_ctx[name]
+        end
+      else
+        hh_ctx[name]
       end
     end
 
     def hoh_clause
-      hh_ctx[:is_hoh].eq(true)
+      hh_column(:is_hoh).eq(true)
     end
 
     def hoh_or_spouse_clause
-      hh_ctx[:relationship_to_hoh].in([1, 3])
+      hh_column(:relationship_to_hoh).in([1, 3])
     end
 
     def adult_or_hoh_clause
-      hh_ctx[:age].gteq(18).or(hoh_clause)
+      hh_column(:age).gteq(18).or(hoh_clause)
     end
 
     def strict_leavers_clause(report_end_date)
       @a_t[:last_date_in_program].lteq(report_end_date).and(
         hoh_clause.or(
-          hh_ctx[:hoh_exit_date].eq(@a_t[:last_date_in_program]),
+          hh_column(:hoh_exit_date).eq(@a_t[:last_date_in_program]),
         ),
       )
     end
 
     def chronic_household_clause
-      hh_ctx[:inherited_chronic_status].eq(true).and(hoh_clause)
+      hh_column(:inherited_chronic_status).eq(true).and(hoh_clause)
     end
 
     def chronic_pit_household_clause
-      hh_ctx[:inherited_pit_chronic_status].eq(true).and(hoh_clause)
+      hh_column(:inherited_pit_chronic_status).eq(true).and(hoh_clause)
     end
 
     def parenting_youth_clause
-      hh_ctx[:is_parenting_youth].eq(true)
+      hh_column(:is_parenting_youth).eq(true)
     end
 
     def sub_populations
       {
         'Total' => Arel.sql('1=1'),
-        'Without Children' => hh_ctx[:household_type].eq('adults_only'),
-        'With Children and Adults' => hh_ctx[:household_type].eq('adults_and_children'),
-        'With Only Children' => hh_ctx[:household_type].eq('children_only'),
-        'Unknown Household Type' => hh_ctx[:household_type].eq('unknown'),
-        'Chronically Homeless' => hh_ctx[:inherited_chronic_status].eq(true),
-        'Chronically Homeless (PIT)' => hh_ctx[:inherited_pit_chronic_status].eq(true),
+        'Without Children' => hh_column(:household_type).eq('adults_only'),
+        'With Children and Adults' => hh_column(:household_type).eq('adults_and_children'),
+        'With Only Children' => hh_column(:household_type).eq('children_only'),
+        'Unknown Household Type' => hh_column(:household_type).eq('unknown'),
+        'Chronically Homeless' => hh_column(:inherited_chronic_status).eq(true),
+        'Chronically Homeless (PIT)' => hh_column(:inherited_pit_chronic_status).eq(true),
       }
     end
 
     def youth_only_clause
-      hh_ctx[:has_other_clients_over_25].eq(false)
+      hh_column(:has_other_clients_over_25).eq(false)
     end
 
     def between_ages_clause(range)
-      hh_ctx[:age].in(range)
+      hh_column(:age).in(range)
     end
 
     def youth_adults_or_youth_hohs_clause
-      hh_ctx[:has_other_clients_over_25].eq(false).and(
-        hh_ctx[:is_hoh].eq(true).and(hh_ctx[:age].in(12..24)).
-          or(hh_ctx[:age].in(18..24)),
+      hh_column(:has_other_clients_over_25).eq(false).and(
+        hh_column(:is_hoh).eq(true).and(hh_column(:age).in(12..24)).
+          or(hh_column(:age).in(18..24)),
       )
     end
 
     def hoh_exit_dates(members_scope)
-      members_scope.where(hoh_clause).pluck(hh_ctx[:household_id], @a_t[:last_date_in_program]).to_h
+      members_scope.where(hoh_clause).pluck(hh_column(:household_id), @a_t[:last_date_in_program]).to_h
     end
   end
 end
