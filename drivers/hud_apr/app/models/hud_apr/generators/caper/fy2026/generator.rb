@@ -34,6 +34,11 @@ module HudApr::Generators::Caper::Fy2026
       hud_reports_caper_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
+    def prepare_report
+      super
+      HudReports::HouseholdContextBuilder.call(self, report)
+    end
+
     def self.filter_class
       ::Filters::HudFilterBase
     end

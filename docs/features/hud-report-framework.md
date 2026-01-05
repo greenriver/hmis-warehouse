@@ -88,28 +88,9 @@ The framework uses three distinct layers of data denormalization to balance perf
 | **Report Snapshots** | **Presentation Layer**. Denormalizes all attributes needed for a specific report (e.g. `AprClient`). | Ephemeral (Per Report Run) | Feature-Specific |
 
 ### Pre-computed Logic Layers (Household Context)
-To avoid re-implementing complex HUD business rules in every report, the framework extracts shared derivations into the `HudReports::HouseholdContext`.
+To optimize the creation of report snapshots (like `AprClient`), the framework uses `HudReports::HouseholdContext` to pre-compute shared household business rules (e.g. Chronic Inheritance, Move-in Date Inheritance, Household Typing).
 
-This "Logic Layer" is populated during the `Preparation` phase. Question classes access this table via the `members` method, which returns a decorated ActiveRecord relation.
-
-#### Dynamic Scope Extensions
-Instead of raw Arel joins, the framework uses **ActiveRecord Scope Extensions** to provide a clean, Rails-idiomatic API for population filtering.
-
-When you call `members` in a Question class, you receive a relation that is already joined to the household context and "infected" with semantic scopes defined in `HudReports::HouseholdQueryService::Filters`.
-
-**Example Usage:**
-```ruby
-# Filter for chronically homeless heads of household
-chronically_homeless_hohs = members.heads_of_household.chronically_homeless
-
-# Filter by specific household type
-adults_only = members.for_household_type('adults_only')
-
-# Combine with standard warehouse attributes
-active_adults = members.adults_or_hohs.where(a_t[:project_type].eq(1))
-```
-
-This pattern ensures that complex logic (like youth population categorization or chronic inheritance) is centralized in the `HouseholdQueryService` while keeping the Question classes readable and focused on report structure.
+This logic is populated during the `prepare_report` phase of the generator. FY2026 reports use these pre-computed values when building their snapshot models to avoid expensive in-memory Ruby calculations.
 
 ### Snapshot Models (Presentation Layer)
 Many reports create secondary snapshots (e.g., `AprClient`, `SpmEnrollment`) that bundle both raw data and pre-computed logic into a single table optimized for UI drill-down and CSV exports.

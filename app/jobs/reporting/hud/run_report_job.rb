@@ -76,7 +76,6 @@ module Reporting::Hud
 
         report.track_progress('Preparation') do
           generator.prepare_report
-          HudReports::HouseholdContextBuilder.call(generator, report)
         end
         completed_questions = report.completed_questions
 

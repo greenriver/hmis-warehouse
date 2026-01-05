@@ -13,6 +13,7 @@ module HudApr::Generators::Shared::Fy2026
     include HudReports::Util
     include HudReports::Clients
     include HudReports::Ages
+    include HudReports::Households
     include HudReports::Destinations
     include HudReports::Veterans
     include HudReports::LengthOfStays
@@ -54,27 +55,10 @@ module HudApr::Generators::Shared::Fy2026
     # generator = HudApr::Generators::Caper::Fy2023::Generator.new(report)
     # r = HudApr::Generators::Caper::Fy2023::QuestionFive.new(generator, report)
 
-    # Returns the universe cell wrapped in a proxy that overrides #members.
-    #
-    # IMPORTANT: The returned proxy delegates all methods to the underlying universe cell,
-    # EXCEPT for #members, which is overridden to automatically join the household context table.
-    # This ensures all FY2026 questions automatically get household context data without
-    # manually calling household_query_service.with_household_context.
-    #
-    # For debugging: If you need the raw members without context, use raw_universe.members.
-    # For new code: Prefer calling #members directly from question classes.
     private def universe
       add_apr_clients unless apr_clients_populated?
 
-      @universe ||= begin
-        # SimpleDelegator handles all method delegation to the raw_universe cell
-        require 'delegate'
-        proxy = SimpleDelegator.new(raw_universe)
-        question = self
-        # We override .members to ensure the household context is always joined
-        proxy.define_singleton_method(:members) { question.send(:members) }
-        proxy
-      end
+      @universe ||= @report.universe(self.class.question_number)
     end
 
     def needs_ce_assessments?

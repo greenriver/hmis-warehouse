@@ -63,7 +63,7 @@ module HudApr::Generators::Shared::Fy2026
                 ids << member.id if no_income?(apr_client, suffix) && ! missing_income?(apr_client, suffix)
               end
             end
-            members = adults.where(a_t[:id].in(ids))
+            members = adults.where(id: ids)
           else
             members = adults.where(income_case)
           end

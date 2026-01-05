@@ -58,7 +58,7 @@ module HudApr::Generators::Shared::Fy2026
                 ids << member.id if apr_client["income_sources_at_#{suffix}"].values_at(*sources).count(1) > 1
               end
             end
-            members = members.where(a_t[:id].in(ids.to_a))
+            members = members.where(id: ids)
           else
             members = members.where(income_clause)
           end

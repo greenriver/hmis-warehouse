@@ -36,7 +36,7 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def youth_filter
-      between_ages_clause(12..24).and(youth_only_clause)
+      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
     end
 
     private def q27a_youth_age
@@ -53,7 +53,7 @@ module HudApr::Generators::Shared::Fy2026
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      youth = members.between_ages(12..24).youth_only_households
+      youth = universe.members.where(youth_filter)
 
       q27_populations.values.each_with_index do |population_clause, col_index|
         youth_age_ranges.values.each_with_index do |response_clause, row_index|
@@ -113,7 +113,7 @@ module HudApr::Generators::Shared::Fy2026
               if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
                 # since apr_client is the HoH and we've already limited to only youth households,
                 # we can safely return the adults and the source client id of the apr_client
-                adult_ids = @report.household_contexts.where(household_id: apr_client.household_id).where('relationship_to_hoh IN (1, 3) OR age >= 18').pluck(:source_client_id)
+                adult_ids = adult_source_client_ids(apr_client)
                 adult_ids << apr_client.client_id
                 source_client_ids += adult_ids
                 households << apr_client.household_id
@@ -121,14 +121,13 @@ module HudApr::Generators::Shared::Fy2026
             when :children_of_youth_parents
               # Find source client ids where the HoH is a youth and the members are RelationshipToHoH == 2
               if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
-                # Use relationship_to_hoh now that it's stored in the context
-                source_client_ids += @report.household_contexts.where(household_id: apr_client.household_id, relationship_to_hoh: 2).pluck(:source_client_id)
+                source_client_ids += youth_child_source_client_ids(apr_client)
                 households << apr_client.household_id
               end
             when :members_youth_households
               # Return all clients within the household, regardless of relationship
               if ! households.include?(apr_client.household_id) && apr_client.parenting_youth
-                source_client_ids += @report.household_contexts.where(household_id: apr_client.household_id).pluck(:source_client_id)
+                source_client_ids += apr_client.household_members.map { |m| m['source_client_id'] }
                 households << apr_client.household_id
               end
             when :youth_households
@@ -156,7 +155,7 @@ module HudApr::Generators::Shared::Fy2026
     private def q27d_youth_living_situation
       living_situations_question(
         question: 'Q27d',
-        members: members.heads_of_household.between_ages(12..24).youth_only_households,
+        members: universe.members.where(hoh_clause.and(a_t[:age].in(12..24)).and(a_t[:other_clients_over_25].eq(false))),
       )
     end
 
@@ -181,12 +180,12 @@ module HudApr::Generators::Shared::Fy2026
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members_relation = members.between_ages(12..24).youth_only_households.
+          members = universe.members.where(youth_filter).
             where(population_clause).
             where(length_clause)
 
-          answer.add_members(members_relation)
-          answer.update(summary: members_relation.count)
+          answer.add_members(members)
+          answer.update(summary: members.count)
         end
       end
     end
@@ -195,12 +194,12 @@ module HudApr::Generators::Shared::Fy2026
       sub_populations_by_destination_question(
         question: 'Q27f1',
         # FIXME: need to check this universe
-        members: members.between_ages(12..24).youth_only_households.where(leavers_clause), # .where(youth_adult_or_youth_hoh_clause),
+        members: universe.members.where(youth_filter), # .where(youth_adult_or_youth_hoh_clause),
       )
     end
 
     def q27f2_subsidy_type_of_persons_exiting_to_rental_by_client_with_an_ongoing_subsidy
-      sub_populations_by_subsidy_type_question(question: 'Q27f2', members: members.between_ages(12..24).youth_only_households.where(leavers_clause))
+      sub_populations_by_subsidy_type_question(question: 'Q27f2', members: universe.members.where(youth_filter))
     end
 
     private def q27g_youth_income_sources
@@ -223,26 +222,29 @@ module HudApr::Generators::Shared::Fy2026
           next if intentionally_blank_27g.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members_relation = members.youth_adults_or_youth_hohs
+          members = universe.members.
+            # Add youth filter to Q17, but expand universe to include youth adults AND youth
+            # heads of household even if they are not adults.
+            where(youth_adult_or_youth_hoh_clause)
 
-          answer.update(summary: 0) and next if members_relation.count.zero?
+          answer.update(summary: 0) and next if members.count.zero?
 
           if income_clause.is_a?(Hash)
-            members_relation = members_relation.where.contains(income_clause)
+            members = members.where.contains(income_clause)
           elsif income_clause.is_a?(Array)
             ids = Set.new
             income_clause.each do |part|
-              ids += members_relation.where.contains(part).pluck(a_t[:id])
+              ids += members.where.contains(part).pluck(:id)
             end
-            members_relation = members_relation.where(a_t[:id].in(ids.to_a))
+            members = members.where(id: ids.to_a)
           else
             # The final question doesn't require accessing the jsonb column
-            members_relation = members_relation.where(income_clause)
+            members = members.where(income_clause)
           end
-          members_relation = members_relation.where(stayers_clause) if suffix == :annual_assessment
-          members_relation = members_relation.where(leavers_clause) if suffix == :exit
-          answer.add_members(members_relation)
-          answer.update(summary: members_relation.count)
+          members = members.where(stayers_clause) if suffix == :annual_assessment
+          members = members.where(leavers_clause) if suffix == :exit
+          answer.add_members(members)
+          answer.update(summary: members.count)
         end
       end
     end
@@ -267,7 +269,8 @@ module HudApr::Generators::Shared::Fy2026
           next if intentionally_blank_27h.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          youth = members.youth_adults_or_youth_hohs
+          youth = universe.members.
+            where(youth_adult_or_youth_hoh_clause)
           youth = youth.where(stayers_clause) if suffix == :annual_assessment
           youth = youth.where(leavers_clause) if suffix == :exit
 
@@ -286,13 +289,13 @@ module HudApr::Generators::Shared::Fy2026
                 ids << member.id if no_income?(apr_client, suffix)
               end
             end
-            members_relation = youth.where(a_t[:id].in(ids.to_a))
+            members = youth.where(id: ids)
           else
-            members_relation = youth.where(income_case)
+            members = youth.where(income_case)
           end
 
-          answer.add_members(members_relation)
-          answer.update(summary: members_relation.count)
+          answer.add_members(members)
+          answer.update(summary: members.count)
         end
       end
     end
@@ -317,37 +320,39 @@ module HudApr::Generators::Shared::Fy2026
           next if intentionally_blank_q27i.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members_relation = members.youth_adults_or_youth_hohs.
+          members = universe.members.
+            # Only relevant to youth or < 24 HoH leavers with answers for income at exit and disability
+            where(youth_adult_or_youth_hoh_clause).
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
             where(a_t[:income_from_any_source_at_exit].in([0, 1]))
 
-          answer.update(summary: 0) and next if members_relation.count.zero?
+          answer.update(summary: 0) and next if members.count.zero?
 
           if income_clause.is_a?(Hash)
-            members_relation = members_relation.where.contains(income_clause)
+            members = members.where.contains(income_clause)
           elsif income_clause.is_a?(Array)
             ids = Set.new
             income_clause.each do |part|
-              ids += members_relation.where.contains(part).pluck(a_t[:id])
+              ids += members.where.contains(part).pluck(:id)
             end
-            members_relation = members_relation.where(a_t[:id].in(ids.to_a))
+            members = members.where(id: ids.to_a)
           else
             # The final question doesn't require accessing the jsonb column
-            members_relation = members_relation.where(income_clause)
+            members = members.where(income_clause)
           end
           value = 0
           if disabilities_clause.is_a?(Hash)
-            disabled_count = members_relation.where(disabilities_clause[:household]).
+            disabled_count = members.where(disabilities_clause[:household]).
               where(a_t[:disabling_condition].eq(1)).count
-            total_count = members_relation.where(disabilities_clause[:household]).count
+            total_count = members.where(disabilities_clause[:household]).count
             value = percentage((disabled_count.to_f / total_count).round(4)) if total_count.positive?
           else
-            members_relation = members_relation.where(disabilities_clause)
-            value = members_relation.count
+            members = members.where(disabilities_clause)
+            value = members.count
           end
 
-          answer.add_members(members_relation)
+          answer.add_members(members)
           answer.update(summary: value)
         end
       end
@@ -356,40 +361,40 @@ module HudApr::Generators::Shared::Fy2026
     private def q27i_disabilities
       {
         'AO: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(sub_populations['Without Children']),
+          and(a_t[:household_type].eq(:adults_only)),
         'AO: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(sub_populations['Without Children']),
-        'AO: Total Youths' => sub_populations['Without Children'],
+          and(a_t[:household_type].eq(:adults_only)),
+        'AO: Total Youths' => a_t[:household_type].eq(:adults_only),
         'AO: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: sub_populations['Without Children'],
+          household: a_t[:household_type].eq(:adults_only),
         },
         'AC: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(sub_populations['With Children and Adults']),
+          and(a_t[:household_type].eq(:adults_and_children)),
         'AC: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(sub_populations['With Children and Adults']),
-        'AC: Total Youths' => sub_populations['With Children and Adults'],
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'AC: Total Youths' => a_t[:household_type].eq(:adults_and_children),
         'AC: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: sub_populations['With Children and Adults'],
+          household: a_t[:household_type].eq(:adults_and_children),
         },
         'CO: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(sub_populations['With Only Children']),
+          and(a_t[:household_type].eq(:children_only)),
         'CO: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(sub_populations['With Only Children']),
-        'CO: Total Youths' => sub_populations['With Only Children'],
+          and(a_t[:household_type].eq(:children_only)),
+        'CO: Total Youths' => a_t[:household_type].eq(:children_only),
         'CO: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: sub_populations['With Only Children'],
+          household: a_t[:household_type].eq(:children_only),
         },
         'UK: Youth with Disabling Condition' => a_t[:disabling_condition].eq(1).
-          and(sub_populations['Unknown Household Type']),
+          and(a_t[:household_type].eq(:unknown)),
         'UK: Youth without Disabling Condition' => a_t[:disabling_condition].eq(0).
-          and(sub_populations['Unknown Household Type']),
-        'UK: Total Youths' => sub_populations['Unknown Household Type'],
+          and(a_t[:household_type].eq(:unknown)),
+        'UK: Total Youths' => a_t[:household_type].eq(:unknown),
         'UK: % with Disabling Condition by Source' => {
           calculation: :percent,
-          household: sub_populations['Unknown Household Type'],
+          household: a_t[:household_type].eq(:unknown),
         },
       }
     end
@@ -409,7 +414,7 @@ module HudApr::Generators::Shared::Fy2026
         {
           'Other Source' => income_types(:exit).slice(*other_sources).values,
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
-          'Unduplicated Total Youth' => household_query_service.youth_adults_or_youth_hohs_clause,
+          'Unduplicated Total Youth' => youth_filter,
         },
       )
     end
@@ -435,10 +440,10 @@ module HudApr::Generators::Shared::Fy2026
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members_relation = members.
+          members = universe.members.
             where(population_clause).
-            between_ages(12..24).youth_only_households
-          stay_lengths = members_relation.pluck(a_t[:length_of_stay]).compact
+            where(youth_filter)
+          stay_lengths = members.pluck(a_t[:length_of_stay]).compact
           value = 0
           case method
           when :average
@@ -451,7 +456,7 @@ module HudApr::Generators::Shared::Fy2026
             end
           end
 
-          answer.add_members(members_relation)
+          answer.add_members(members)
           answer.update(summary: value)
         end
       end
@@ -461,7 +466,7 @@ module HudApr::Generators::Shared::Fy2026
       # members: start_to_move_in_universe
       start_to_move_in_question(
         question: 'Q27k',
-        members: members.between_ages(12..24).youth_only_households,
+        members: universe.members.where(youth_filter),
       )
     end
 
@@ -480,7 +485,7 @@ module HudApr::Generators::Shared::Fy2026
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       # 0 (ES-EE); 1 (EE-NbN); 2 (TH); 3 (PSH); 7 (Other) with 2.06 Funding Source of HUD: Pay for Success (35); 8 (SH); 9 (PH); 13 (RRH)
-      relevant_members = members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]).or(a_t[:pay_for_success].eq(true)))
+      relevant_members = universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]).or(a_t[:pay_for_success].eq(true)))
       q27l_populations.values.each_with_index do |population_clause, col_index|
         q27l_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -488,12 +493,12 @@ module HudApr::Generators::Shared::Fy2026
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members_relation = relevant_members.where(population_clause).
+          members = relevant_members.where(population_clause).
             where(length_clause).
-            between_ages(12..24).youth_only_households
+            where(youth_filter)
 
-          answer.add_members(members_relation)
-          answer.update(summary: members_relation.count)
+          answer.add_members(members)
+          answer.update(summary: members.count)
         end
       end
     end
@@ -802,7 +807,11 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def youth_adult_or_youth_hoh_clause
-      household_query_service.youth_adults_or_youth_hohs_clause
+      a_t[:other_clients_over_25].eq(false).
+        and(
+          hoh_clause.and(a_t[:age].between(12..24)).
+            or(a_t[:age].between(18..24)),
+        )
     end
 
     private def intentionally_blank

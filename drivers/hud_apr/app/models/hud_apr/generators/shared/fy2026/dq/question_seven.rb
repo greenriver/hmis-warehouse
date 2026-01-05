@@ -31,20 +31,19 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
 
       # Clients whose enrollment date is more than 90 days before the end of the report, and are still
       # enrolled until after the reporting period
-      relevant_clients = household_query_service.with_household_context(
-        universe.universe_members.joins(:apr_client).
-        joins(report_cell: :report_instance),
-      ).where(
-        datediff(report_client_universe, 'day', hr_ri_t[:end_date], a_t[:first_date_in_program]).gteq(90).
-          and(
-            a_t[:last_date_in_program].eq(nil).
-              or(a_t[:last_date_in_program].gt(@report.end_date)),
-          ),
-      )
+      relevant_clients = universe.universe_members.joins(:apr_client).
+        joins(report_cell: :report_instance).
+        where(
+          datediff(report_client_universe, 'day', hr_ri_t[:end_date], a_t[:first_date_in_program]).gteq(90).
+            and(
+              a_t[:last_date_in_program].eq(nil).
+                or(a_t[:last_date_in_program].gt(@report.end_date)),
+            ),
+        )
 
       # Row 2 reports on adults and heads of household active in project type 4 (for all funding sources) and project type 6 if PATH-funded
       answer = @report.answer(question: table_name, cell: 'B2')
-      adults_and_hohs = relevant_clients.adults_or_hohs
+      adults_and_hohs = relevant_clients.where(adult_or_hoh_clause)
 
       # PATH funded project_ids
       path_funded_project_ids = GrdaWarehouse::Hud::Project.where(id: @report.project_ids).
@@ -75,7 +74,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
         inactive_so_or_path_funded_sso_member_ids << member.id if (@report.end_date - last_current_living_situation).to_i > 90
       end
 
-      inactive_so_or_path_funded_sso_members = so_or_path_funded_sso_members.where(a_t[:id].in(inactive_so_or_path_funded_sso_member_ids))
+      inactive_so_or_path_funded_sso_members = so_or_path_funded_sso_members.where(id: inactive_so_or_path_funded_sso_member_ids)
       answer.add_members(inactive_so_or_path_funded_sso_members)
       answer.update(summary: inactive_so_or_path_funded_sso_members.count)
 

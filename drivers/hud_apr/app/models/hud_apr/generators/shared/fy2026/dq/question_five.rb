@@ -44,10 +44,14 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFive
       sso_ds_hp_projects = HudHelper.util('2026').performance_reporting[:services_only] + HudHelper.util('2026').performance_reporting[:day_shelter] + HudHelper.util('2026').performance_reporting[:prevention]
       report_projects = es_sh_so_projects + th_projects + ph_projects + ce_projects + sso_ds_hp_projects
 
-      adults_and_hohs = universe.members.where(engaged_clause).
-        where(a_t[:project_type].in(report_projects)).
-        where(a_t[:first_date_in_program].gt(Date.parse('2016-10-01'))).
-        adults_or_hohs
+      adults_and_hohs = universe.members.where(engaged_clause).where(
+        a_t[:project_type].in(report_projects).
+          and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
+            and(a_t[:age].gteq(18).
+              or(a_t[:head_of_household].eq(true).
+                and(a_t[:age].lt(18).
+                  or(a_t[:age].eq(nil)))))),
+      )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
       th_clients = project_type_row(table_name, adults_and_hohs, row_number: 3, project_types: th_projects)

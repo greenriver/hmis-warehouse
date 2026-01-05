@@ -80,19 +80,14 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
     end
 
     def q3_hoh_relationship_row(sheet, universe_members)
-      # Use pre-computed household context to identify households with multiple or no heads.
-      # This avoids loading the full household_members JSON which is no longer populated in FY2026.
-      hoh_counts = @report.household_contexts.
-        where(household_id: universe_members.select(a_t[:household_id])).
-        group(:household_id).
-        pluck(:household_id, Arel.sql('COUNT(*) FILTER (WHERE is_hoh = true)'))
-
       households_with_multiple_hohs = []
       households_with_no_hoh = []
 
-      hoh_counts.each do |hh_id, count|
-        households_with_multiple_hohs << hh_id if count > 1
-        households_with_no_hoh << hh_id if count.zero?
+      universe_members.preload(:universe_membership).find_each do |member|
+        apr_client = member.universe_membership
+        count_of_heads = apr_client.household_members.select { |household_member| household_member['relationship_to_hoh'] == 1 }.count
+        households_with_multiple_hohs << apr_client.household_id if count_of_heads > 1
+        households_with_no_hoh << apr_client.household_id if count_of_heads.zero?
       end
 
       missing_cell = sheet.update_cell_members(
@@ -118,7 +113,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
     end
 
     def q3_client_location_row(sheet, universe_members)
-      hoh_scope = universe_members.heads_of_household
+      hoh_scope = universe_members.where(hoh_clause)
 
       valid_cocs = HudHelper.util('2026').cocs.keys
       missing_cell = sheet.update_cell_members(cell: 'C5', members: hoh_scope.where(a_t[:enrollment_coc].eq(nil)))
@@ -129,7 +124,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
       total_cell.add_members(missing_cell.members + issue_cell.members)
 
       # Issue Rate
-      hoh_denominator = universe_members.heads_of_household
+      hoh_denominator = universe_members.where(hoh_clause)
       # Use total_cell as per HMIS Reporting Glossary Reference: Data Quality - Q3.
       sheet.update_cell_value(cell: 'F5', value: percentage(total_cell.value / hoh_denominator.count.to_f))
     end

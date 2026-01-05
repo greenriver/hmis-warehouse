@@ -36,22 +36,22 @@ module HudApr::Generators::Shared::Fy2026
         {
           # w/ no children
           cell: 'C3',
-          household_type: 'adults_only',
+          household_type: :adults_only,
         },
         {
           # w/ children
           cell: 'D3',
-          household_type: 'adults_and_children',
+          household_type: :adults_and_children,
         },
         {
           # w/ no adults
           cell: 'E3',
-          household_type: 'children_only',
+          household_type: :children_only,
         },
         {
           # in unknown household type
           cell: 'F3',
-          household_type: 'unknown',
+          household_type: :unknown,
         },
       ].reject do |q|
         q[:cell].in?(q8a_intentionally_blank)
@@ -74,7 +74,7 @@ module HudApr::Generators::Shared::Fy2026
       @report.answer(question: table_name).update(metadata: metadata)
 
       # Number of households
-      heads_of_household = universe.members.heads_of_household
+      heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
 
       answer = @report.answer(question: table_name, cell: 'B2')
       members = heads_of_household
@@ -85,37 +85,38 @@ module HudApr::Generators::Shared::Fy2026
         {
           # Number of households w/ no children
           cell: 'C2',
-          household_type: 'adults_only',
+          household_type: :adults_only,
         },
         {
           # Number of households w/ children
           cell: 'D2',
-          household_type: 'adults_and_children',
+          household_type: :adults_and_children,
         },
         {
           # Number of households w/ only children
           cell: 'E2',
-          household_type: 'children_only',
+          household_type: :children_only,
         },
         {
           # Number of households in unknown household type
           cell: 'F2',
-          household_type: 'unknown',
+          household_type: :unknown,
         },
       ].each do |col|
         answer = @report.answer(question: table_name, cell: col[:cell])
-        members = heads_of_household.for_household_type(col[:household_type])
+        members = heads_of_household.where(a_t[:household_type].eq(col[:household_type]))
         answer.add_members(members)
         answer.update(summary: members.count)
       end
 
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      ps_rrh_w_move_in = universe.members.heads_of_household.
-        where(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true))).
-        where(a_t[:hoh_move_in_date].not_eq(nil)).
-        where(a_t[:hoh_move_in_date].lteq(@report.end_date))
-
+      ps_rrh_w_move_in = universe.members.where(
+        a_t[:head_of_household].eq(true).
+          and(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true))).
+          and(a_t[:hoh_move_in_date].not_eq(nil).
+          and(a_t[:hoh_move_in_date].lteq(@report.end_date))),
+      )
       unless q8a_intentionally_blank.include?('B3')
         answer = @report.answer(question: table_name, cell: 'B3')
         members = ps_rrh_w_move_in
@@ -127,7 +128,7 @@ module HudApr::Generators::Shared::Fy2026
         next if q8a_intentionally_blank.include?(col[:cell])
 
         answer = @report.answer(question: table_name, cell: col[:cell])
-        members = ps_rrh_w_move_in.for_household_type(col[:household_type])
+        members = ps_rrh_w_move_in.where(a_t[:household_type].eq(col[:household_type]))
         answer.add_members(members)
         answer.update(summary: members.count)
       end
@@ -169,26 +170,26 @@ module HudApr::Generators::Shared::Fy2026
         {
           # Without children
           cell: 'C' + row.to_s,
-          household_type: 'adults_only',
+          household_type: :adults_only,
         },
         {
           #  Adults and children
           cell: 'D' + row.to_s,
-          household_type: 'adults_and_children',
+          household_type: :adults_and_children,
         },
         {
           # Without adults
           cell: 'E' + row.to_s,
-          household_type: 'children_only',
+          household_type: :children_only,
         },
         {
           # Unknown family type
           cell: 'F' + row.to_s,
-          household_type: 'unknown',
+          household_type: :unknown,
         },
       ].each do |col|
         answer = @report.answer(question: table_name, cell: col[:cell])
-        members = row_universe.for_household_type(col[:household_type])
+        members = row_universe.where(a_t[:household_type].eq(col[:household_type]))
         answer.add_members(members)
         answer.update(summary: members.count)
       end
