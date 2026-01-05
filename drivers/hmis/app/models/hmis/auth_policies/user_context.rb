@@ -17,15 +17,14 @@ require 'memery'
 class Hmis::AuthPolicies::UserContext
   include Memery
 
-  attr_reader :user, :data_source_id
+  attr_reader :user
   EMPTY_SET = Set.new.freeze
 
-  def initialize(user, data_source_id:)
+  def initialize(user)
     raise ArgumentError, 'Must be an HMIS user' unless user.is_a?(Hmis::User)
-    raise ArgumentError, 'Must be an HMIS data source' unless GrdaWarehouse::DataSource.hmis.exists?(id: data_source_id)
+    raise ArgumentError, 'Must be tied to an HMIS data source' unless user.hmis_data_source_id.present?
 
     @user = user
-    @data_source_id = data_source_id
   end
 
   # Global user permissions (across all projects/entities)
@@ -35,18 +34,25 @@ class Hmis::AuthPolicies::UserContext
 
   # Project-specific permissions
   def project_permissions(project_id)
+    return EMPTY_SET unless project_belongs_to_current_data_source?(project_id)
+
     access_group_ids = project_access_group_loader.get(project_id)
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
   def preload_project_dependencies(project_ids)
+    project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
   end
 
   def preload_referral_dependencies(referral_ids)
     ce_referral_project_loader.preload(referral_ids)
     ce_referral_source_project_loader.preload(referral_ids)
-    project_access_group_loader.preload(ce_referral_project_loader.cached_project_ids + ce_referral_source_project_loader.cached_project_ids)
+
+    # preload project ids associated with the referrals (including both source and target projects)
+    project_ids = (ce_referral_project_loader.cached_project_ids + ce_referral_source_project_loader.cached_project_ids).uniq
+    project_data_source_loader.preload(project_ids)
+    project_access_group_loader.preload(project_ids)
   end
 
   # CE Referral assignment data
@@ -73,13 +79,29 @@ class Hmis::AuthPolicies::UserContext
 
   protected
 
+  def project_belongs_to_current_data_source?(project_id)
+    project_data_source_id = project_data_source_loader.get(project_id)
+    return true if project_data_source_id == user.hmis_data_source_id
+    return false if project_data_source_id.nil?
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Project #{project_id} (DS: #{project_data_source_id})",
+    )
+    false
+  end
+
   # Context loaders (memoized for request-level caching)
+  memoize def project_data_source_loader
+    Hmis::AuthPolicies::ContextLoaders::ProjectDataSourceLoader.new
+  end
+
   memoize def permission_loader
     Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader.new(user)
   end
 
   memoize def project_access_group_loader
-    Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader.new(data_source_id: @data_source_id)
+    Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader.new
   end
 
   memoize def ce_referral_assignment_loader
