@@ -1,0 +1,9 @@
+- title = "Edit Property: #{@property.key}"
+- content_for :title, title
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+
+  = render 'form'
