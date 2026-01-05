@@ -87,7 +87,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
       expect(hoh_context.is_hoh).to be true
       expect(child_context.is_hoh).to be false
-      expect(child_context.hoh_id).to eq(client_hoh.destination_client.id)
+      expect(child_context.hoh_destination_client_id).to eq(client_hoh.destination_client.id)
       expect(child_context.hoh_entry_date).to eq(hoh_context.service_history_enrollment.first_date_in_program)
     end
 

@@ -32,7 +32,7 @@ RSpec.describe HudReports::HouseholdLogic do
         entry_date: Date.parse('2020-01-01'),
         age: 40,
         chronic_status: true,
-        chronic_detail: 'yes'
+        chronic_detail: 'yes',
       }
     end
 
@@ -42,7 +42,7 @@ RSpec.describe HudReports::HouseholdLogic do
         entry_date: Date.parse('2020-01-01'),
         age: 10,
         chronic_status: false,
-        chronic_detail: 'no'
+        chronic_detail: 'no',
       }
     end
 
@@ -63,7 +63,7 @@ RSpec.describe HudReports::HouseholdLogic do
         entry_date: Date.parse('2020-01-01'),
         age: 35,
         chronic_status: true,
-        chronic_detail: 'yes'
+        chronic_detail: 'yes',
       }
 
       result = described_class.calculate_chronic_status([hoh, child, adult2], child, hoh)
@@ -77,7 +77,7 @@ RSpec.describe HudReports::HouseholdLogic do
         entry_date: Date.parse('2020-01-01'),
         age: 35,
         chronic_status: false,
-        chronic_detail: 'no'
+        chronic_detail: 'no',
       }
       # Note: Legacy logic says if HoH is chronic, return HoH if entry dates match
       result = described_class.calculate_chronic_status([hoh, adult2], adult2, hoh)
@@ -91,7 +91,7 @@ RSpec.describe HudReports::HouseholdLogic do
         entry_date: Date.parse('2020-01-01'),
         age: 35,
         chronic_status: true,
-        chronic_detail: 'yes'
+        chronic_detail: 'yes',
       }
       result = described_class.calculate_chronic_status([hoh, adult2], adult2, hoh)
       expect(result[:status]).to be true
@@ -102,14 +102,14 @@ RSpec.describe HudReports::HouseholdLogic do
     let(:hoh) do
       {
         entry_date: Date.parse('2020-01-01'),
-        move_in_date: Date.parse('2020-02-01')
+        move_in_date: Date.parse('2020-02-01'),
       }
     end
 
     let(:member) do
       {
         entry_date: Date.parse('2020-01-01'),
-        exit_date: nil
+        exit_date: nil,
       }
     end
 

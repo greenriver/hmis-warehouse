@@ -57,18 +57,28 @@ module HudReports
         merge(@generator.report_scope_source.open_between(start_date: @report.start_date, end_date: @report.end_date))
 
       # Plucking unique HH identifiers in batches to avoid loading everything into memory.
-      hh_id_expr = "COALESCE(household_id, enrollment_group_id || '*HH')"
+      she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+      hh_id_expr = Arel::Nodes::NamedFunction.new(
+        'COALESCE',
+        [
+          she_table[:household_id],
+          Arel::Nodes::InfixOperation.new('||', she_table[:enrollment_group_id], Arel::Nodes.build_quoted('*HH')),
+        ],
+      )
+
       base_query = hh_ids_query.
         distinct.
-        order(Arel.sql(hh_id_expr))
+        order(hh_id_expr)
 
-      offset = 0
+      last_hh_id = nil
       loop do
-        batch = base_query.limit(batch_size).offset(offset).pluck(Arel.sql(hh_id_expr))
+        query = base_query.limit(batch_size)
+        query = query.where(hh_id_expr.gt(last_hh_id)) if last_hh_id
+        batch = query.pluck(hh_id_expr)
         break if batch.empty?
 
         yield batch
-        offset += batch_size
+        last_hh_id = batch.last
       end
     end
 
@@ -78,7 +88,7 @@ module HudReports
 
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        preload(enrollment: [:client, :disabilities, :project])
+        preload(enrollment: [:client, :disabilities_at_entry, :project])
 
       query = if real_hh_ids.any? && synthetic_eg_ids.any?
         scope.where(household_id: real_hh_ids).or(scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil))
@@ -94,40 +104,46 @@ module HudReports
     def build_contexts_for_household(hh_id, members)
       # Pre-calculate common HH values
       hh_member_hashes = members.map do |m|
+        enrollment = m.enrollment
+        client = enrollment&.client
         date = [m.first_date_in_program, @report.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: m.enrollment&.client&.DOB)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: client&.DOB)
 
         # Determine report_date for chronic calculation
         report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
-        report_date ||= m.enrollment&.EntryDate
+
+        chronic_at_start = enrollment&.chronically_homeless_at_start
+        if report_date.blank? || report_date == enrollment&.EntryDate
+          pit_chronic_at_start = chronic_at_start
+        else
+          pit_chronic_at_start = enrollment&.chronically_homeless_at_start(date: report_date)
+        end
 
         {
           she_id: m.id,
-          enrollment_id: m.enrollment&.id,
+          enrollment_id: enrollment&.id,
           destination_client_id: m.client_id,
-          source_client_id: m.enrollment&.client&.id,
-          personal_id: m.enrollment&.client&.PersonalID,
+          source_client_id: client&.id,
+          personal_id: client&.PersonalID,
           entry_date: m.first_date_in_program,
           exit_date: m.last_date_in_program,
           age: age,
-          dob: m.enrollment&.client&.DOB,
-          chronic_status: m.enrollment&.chronically_homeless_at_start?,
-          pit_chronic_status: m.enrollment&.chronically_homeless_at_start?(date: report_date),
-          chronic_detail: m.enrollment&.chronically_homeless_at_start,
-          pit_chronic_detail: m.enrollment&.chronically_homeless_at_start(date: report_date),
-          relationship_to_hoh: m.enrollment&.RelationshipToHoH,
+          dob: client&.DOB,
+          chronic_status: chronic_at_start == :yes,
+          pit_chronic_status: pit_chronic_at_start == :yes,
+          chronic_detail: chronic_at_start,
+          pit_chronic_detail: pit_chronic_at_start,
+          relationship_to_hoh: enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
-          veteran_status: m.enrollment&.client&.VeteranStatus,
-          enrollment_coc: m.enrollment&.EnrollmentCoC,
-          date_to_street: m.enrollment&.DateToStreetESSH,
+          veteran_status: client&.VeteranStatus,
+          enrollment_coc: enrollment&.EnrollmentCoC,
+          date_to_street: enrollment&.DateToStreetESSH,
         }
       end
 
       # HH Level Stats
       hoh_data = hh_member_hashes.detect { |m| m[:relationship_to_hoh] == 1 }
-      hoh_adjusted_move_in_date = if hoh_data
-        HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date)
-      end
+      hoh_adjusted_move_in_date = (HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
 
       hoh_stayer_end_date = [hoh_data&.[](:exit_date), @report.end_date + 1.day].compact.min
       hoh_length_of_stay = if hoh_data && hoh_stayer_end_date
@@ -210,10 +226,6 @@ module HudReports
           hh_any_adult_missing_veteran: hh_any_adult_missing_veteran,
         )
       end
-    end
-
-    def calculate_move_in_date(member, hoh)
-      HudReports::HouseholdLogic.calculate_move_in_date(member, hoh, report_end_date: @report.end_date)
     end
   end
 end

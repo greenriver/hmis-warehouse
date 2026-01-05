@@ -35,9 +35,7 @@ module HudReports
         detail_key = chronic_status_key == :pit_chronic_status ? :pit_chronic_detail : :chronic_detail
 
         # HoH if they are chronically homeless
-        if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
-          return { status: true, detail: hoh[detail_key] }
-        end
+        return { status: true, detail: hoh[detail_key] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
 
         # If the HoH is not chronically homeless, check if any other adult is
         chronic_adult = hh_members.detect do |hm|
@@ -51,22 +49,16 @@ module HudReports
         return { status: true, detail: chronic_adult[detail_key] } if chronic_adult
 
         # if no adults are either yes or no, use self for adults
-        if current_member[:age] && current_member[:age] >= 18
-          return { status: current_member[chronic_status_key], detail: current_member[detail_key] }
-        end
+        return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if current_member[:age] && current_member[:age] >= 18
 
         # if the data is bad and we don't have an HoH, use our own record
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if hoh.blank?
 
         # and the HoH enrollment for children if HoH status is unknown
-        if hoh[detail_key].to_s.in?(%w[dk_or_r missing])
-          return { status: hoh[chronic_status_key], detail: hoh[detail_key] }
-        end
+        return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if hoh[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
         # if we have an indeterminate response for the child, use the hoh
-        if current_member[detail_key].to_s.in?(%w[dk_or_r missing])
-          return { status: hoh[chronic_status_key], detail: hoh[detail_key] }
-        end
+        return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if current_member[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
         { status: current_member[chronic_status_key], detail: current_member[detail_key] }
       end
