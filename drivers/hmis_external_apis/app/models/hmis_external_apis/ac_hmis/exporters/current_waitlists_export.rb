@@ -86,6 +86,7 @@ module HmisExternalApis::AcHmis::Exporters
 
     def candidate_pool_ids_for_data_source
       @candidate_pool_ids_for_data_source ||= Hmis::Ce::Match::CandidatePool.
+        active_for_current_eligibility. # matches logic of ce_clients fields, which backs the global eligible clients list on the admin screen
         joins(unit_groups: :project).
         where(Hmis::Hud::Project.arel_table[:data_source_id].eq(data_source.id)).
         distinct.
