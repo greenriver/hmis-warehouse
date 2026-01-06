@@ -6,15 +6,70 @@ module HudReports
       new(...).call
     end
 
-    def initialize(generator, report)
+    def initialize(generator, report, source_report_id: nil)
       @generator = generator
       @report = report
+      @source_report_id = source_report_id
     end
 
     def call
       # Idempotency: clear existing context for this report run
       @report.household_contexts.delete_all
 
+      if @source_report_id.present?
+        copy_contexts_from_source
+      else
+        build_contexts_from_scratch
+      end
+
+      # Update count on report instance
+      @report.update!(household_context_count: @report.household_contexts.count)
+    end
+
+    private
+
+    def copy_contexts_from_source
+      # Validate date ranges match
+      source_report = HudReports::ReportInstance.find(@source_report_id)
+      unless source_report.start_date == @report.start_date &&
+             source_report.end_date == @report.end_date
+        raise ArgumentError, "Cannot share contexts: date ranges don't match"
+      end
+
+      # Discover which SHE IDs this report needs
+      needed_she_ids = discover_needed_enrollment_ids
+
+      return if needed_she_ids.empty?
+
+      # Load contexts from source report that match our needed enrollments
+      source_contexts = HudReports::HouseholdContext.where(
+        report_instance_id: @source_report_id,
+        service_history_enrollment_id: needed_she_ids,
+      )
+
+      # Batch copy contexts in chunks
+      source_contexts.find_in_batches(batch_size: 2000) do |batch|
+        new_contexts = batch.map do |ctx|
+          ctx.dup.tap { |new_ctx| new_ctx.report_instance_id = @report.id }
+        end
+        HudReports::HouseholdContext.import!(new_contexts)
+      end
+    end
+
+    def discover_needed_enrollment_ids
+      # Same logic as each_household_id_batch but collect SHE IDs directly
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: @generator.client_scope).
+        merge(@generator.report_scope_source.open_between(
+                start_date: @report.start_date,
+                end_date: @report.end_date,
+              ))
+
+      ids = scope.pluck(:id)
+      ids
+    end
+
+    def build_contexts_from_scratch
       contexts = []
       each_household_id_batch do |batch|
         all_members_by_hh = load_unfiltered_members(batch).group_by { |she| get_hh_id(she) }
@@ -30,12 +85,7 @@ module HudReports
       end
 
       HudReports::HouseholdContext.import!(contexts) if contexts.any?
-
-      # Update count on report instance
-      @report.update!(household_context_count: @report.household_contexts.count)
     end
-
-    private
 
     def batch_size
       500

@@ -9,6 +9,9 @@
 module HudApr::Generators::Dq::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
+
+    attr_accessor :source_report_id_for_contexts
+
     def self.fiscal_year
       'FY 2026'
     end
@@ -35,7 +38,7 @@ module HudApr::Generators::Dq::Fy2026
 
     def prepare_report
       super
-      HudReports::HouseholdContextBuilder.call(self, report)
+      HudReports::HouseholdContextBuilder.call(self, report, source_report_id: source_report_id_for_contexts)
     end
 
     def self.filter_class

@@ -392,5 +392,77 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         expect(youth_context.has_other_clients_over_25).to be true
       end
     end
+
+    describe 'context copying from source report' do
+      let(:user) { create(:user) }
+      let(:start_date) { Date.parse('2020-01-01') }
+      let(:end_date) { Date.parse('2020-12-31') }
+      let(:source_report) { create(:hud_reports_report_instance, user: user, start_date: start_date, end_date: end_date) }
+      let(:target_report) { create(:hud_reports_report_instance, user: user, start_date: start_date, end_date: end_date) }
+
+      # Create a simple test generator class to avoid instance_double issues
+      let(:test_generator_class) do
+        Class.new(HudReports::GeneratorBase) do
+          attr_accessor :client_scope_override
+          def client_scope(...)
+            client_scope_override || super
+          end
+
+          def self.filter_class
+            ::Filters::HudFilterBase
+          end
+        end
+      end
+      let(:source_generator) do
+        test_generator_class.new(source_report).tap do |g|
+          g.client_scope_override = GrdaWarehouse::Hud::Client.all
+        end
+      end
+
+      before do
+        # Create contexts in source report
+        builder = described_class.new(source_generator, source_report)
+        builder.call
+      end
+
+      it 'copies relevant contexts from source report' do
+        # Target report has subset of projects
+        target_generator = test_generator_class.new(target_report)
+        target_generator.client_scope_override = GrdaWarehouse::Hud::Client.where(id: client_hoh.destination_client.id)
+
+        builder = described_class.new(target_generator, target_report, source_report_id: source_report.id)
+        builder.call
+
+        # Verify contexts were copied with new report_instance_id
+        expect(target_report.reload.household_contexts.count).to be > 0
+        expect(target_report.household_contexts.pluck(:report_instance_id).uniq).to eq([target_report.id])
+
+        # Verify context data matches source
+        source_ctx = source_report.reload.household_contexts.first
+        target_ctx = target_report.household_contexts.find_by(service_history_enrollment_id: source_ctx.service_history_enrollment_id)
+        expect(target_ctx.inherited_chronic_status).to eq(source_ctx.inherited_chronic_status)
+        expect(target_ctx.inherited_move_in_date).to eq(source_ctx.inherited_move_in_date)
+      end
+
+      it 'raises error if date ranges do not match' do
+        mismatched_report = create(:hud_reports_report_instance,
+                                   start_date: start_date + 1.day,
+                                   end_date: end_date)
+
+        builder = described_class.new(source_generator, mismatched_report, source_report_id: source_report.id)
+
+        expect { builder.call }.to raise_error(ArgumentError, /date ranges don't match/)
+      end
+
+      it 'handles empty result set gracefully' do
+        empty_generator = test_generator_class.new(target_report)
+        empty_generator.client_scope_override = GrdaWarehouse::Hud::Client.none
+
+        builder = described_class.new(empty_generator, target_report, source_report_id: source_report.id)
+        builder.call
+
+        expect(target_report.household_contexts.count).to eq(0)
+      end
+    end
   end
 end
