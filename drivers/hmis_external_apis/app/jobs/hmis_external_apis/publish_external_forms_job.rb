@@ -42,7 +42,7 @@ class HmisExternalApis::PublishExternalFormsJob
 
   def validate_form!(definition)
     raise 'form must have external_form_object_key' unless definition.external_form_object_key.present?
-    raise 'form must be published' unless definition.published? # must publish in Form Builder first
+    raise 'form must be published in Form Builder first' unless definition.published? # must publish in Form Builder first
 
     # Validate the form structure and CDEDs
     errors = Hmis::Form::DefinitionValidator.perform(definition.definition)
