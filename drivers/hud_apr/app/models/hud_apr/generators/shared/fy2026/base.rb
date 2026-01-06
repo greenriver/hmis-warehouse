@@ -100,12 +100,15 @@ module HudApr::Generators::Shared::Fy2026
 
         # 1. Build APR Client records
         batch.each do |client|
+          enrollments = enrollments_by_client_id[client.id]
+          next if enrollments.blank?
+
           builder = AprClientBuilder.new(
             report: @report,
             enrollment_scope: enrollment_scope,
             client_scope: client_scope,
             client: client,
-            enrollments: enrollments_by_client_id[client.id],
+            enrollments: enrollments,
             context_map: contexts_by_she_id,
             hoh_enrollment_map: hoh_enrollments_by_id,
             needs_ce_assessments: needs_ce_assessments?,

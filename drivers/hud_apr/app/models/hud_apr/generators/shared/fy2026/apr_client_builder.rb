@@ -21,7 +21,7 @@ module HudApr::Generators::Shared::Fy2026
       @enrollment_scope = enrollment_scope
       @client_scope = client_scope
       @client = client # Destination client
-      @raw_enrollments = enrollments
+      @raw_enrollments = Array(enrollments)
       @context_map = context_map
       @hoh_enrollment_map = hoh_enrollment_map
       @needs_ce_assessments = needs_ce_assessments
