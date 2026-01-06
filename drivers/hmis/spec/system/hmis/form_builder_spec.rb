@@ -262,8 +262,21 @@ RSpec.feature 'HMIS Form Builder', type: :system do
     context 'with a draft that has advanced features and non-admin user' do
       let!(:advanced_draft) { create :custom_assessment_with_field_rules_and_autofill, identifier: 'advanced_form', status: 'draft', data_source: ds1 }
 
+      # Create a separate non-admin user who never had admin permissions
+      let!(:non_admin_user) { create(:user) }
+      let!(:non_admin_hmis_user) { non_admin_user.related_hmis_user(ds1) }
+      let!(:non_admin_access_control) do
+        create(
+          :hmis_access_control,
+          role: create(:hmis_role_with_no_permissions, can_configure_data_collection: true, can_manage_forms: true),
+          user_group: create(:hmis_user_group).tap { |ug| ug.add(non_admin_hmis_user) },
+          access_group: create(:hmis_access_group, with_entities: p1),
+        )
+      end
+
       before(:each) do
-        remove_permissions(access_control, :can_administrate_config)
+        # Sign in the non-admin Hmis::User instead of the admin user
+        sign_in(non_admin_hmis_user)
         visit "/admin/forms/#{advanced_draft.identifier}/#{advanced_draft.id}/edit"
       end
 
