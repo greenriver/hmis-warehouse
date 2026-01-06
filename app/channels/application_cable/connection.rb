@@ -25,12 +25,6 @@ module ApplicationCable
         end
       end
 
-      # Fallback to warden for backward compatibility during transition
-      if env['warden']
-        verified_user = env['warden'].user
-        return verified_user if verified_user&.active?
-      end
-
       reject_unauthorized_connection
     end
   end
