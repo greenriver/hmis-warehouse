@@ -18,5 +18,29 @@ module Hmis::Ce
 
     validates :user, :swimlane, :owner, presence: true
     validates :user_id, uniqueness: { scope: [:owner_type, :owner_id, :swimlane_id] }, if: -> { deleted_at.nil? }
+
+    # Fetch assignments for a project, including inherited assignments from org and data source
+    scope :for_project, ->(project) do
+      owners = [project, project.organization, project.data_source].compact
+      with_owners(owners)
+    end
+
+    # Helper scope to fetch assignments for multiple owners at once
+    scope :with_owners, ->(owners) do
+      return Hmis::Ce::DefaultSwimlaneAssignment.none if owners.blank?
+
+      # Group owners by class to build efficient OR conditions
+      owner_groups = owners.compact.group_by(&:class)
+
+      # Build Arel predicates for each owner type
+      predicates = owner_groups.map do |klass, items|
+        arel_table[:owner_type].eq(klass.name).
+          and(arel_table[:owner_id].in(items.map(&:id)))
+      end
+
+      # Combine all predicates with OR
+      combined_predicate = predicates.reduce { |combined, predicate| combined.or(predicate) }
+      where(combined_predicate)
+    end
   end
 end
