@@ -146,40 +146,9 @@ module HudReports::Households
       calculate_hh_move_in_date(hh_id, she)
     end
 
-    private def load_households_from_context
-      # Join with Client to get DOB if needed for legacy compatibility
-      # We use find_in_batches to keep memory usage low even when loading from the context table
-      @report.household_contexts.find_in_batches(batch_size: batch_size) do |batch|
-        batch.each do |ctx|
-          @hoh_enrollments[ctx.household_id] = ctx.service_history_enrollment if ctx.is_hoh
-
-          @households[ctx.household_id] ||= []
-          @households[ctx.household_id] << {
-            client_id: ctx.destination_client_id,
-            source_client_id: ctx.source_client_id,
-            dob: ctx.dob,
-            age: ctx.age,
-            veteran_status: ctx.veteran_status,
-            pit_chronic_status: ctx.pit_chronic_status,
-            chronic_status: ctx.inherited_chronic_status,
-            chronic_detail: ctx.inherited_chronic_detail,
-            relationship_to_hoh: ctx.relationship_to_hoh,
-            entry_date: ctx.hoh_entry_date,
-            exit_date: ctx.hoh_exit_date,
-            move_in_date: ctx.move_in_date,
-          }.with_indifferent_access
-        end
-      end
-    end
-
     private def calculate_households
       @hoh_enrollments ||= {}
       @households ||= {}
-
-      if @report.respond_to?(:household_context_count) && @report.household_context_count.to_i > 0
-        load_households_from_context
-        return
-      end
 
       # NOTE: batch_size must match calculate_households in the class that includes this concern
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|

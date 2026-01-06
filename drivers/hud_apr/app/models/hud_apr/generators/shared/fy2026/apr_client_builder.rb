@@ -5,7 +5,6 @@ module HudApr::Generators::Shared::Fy2026
     include HudReports::Util
     include HudReports::Clients
     include HudReports::Ages
-    include HudReports::Households
     include HudReports::Destinations
     include HudReports::Veterans
     include HudReports::LengthOfStays
@@ -230,7 +229,7 @@ module HudApr::Generators::Shared::Fy2026
         hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
         hiv_aids: disabilities.detect(&:hiv?).present?,
         household_id: @ctx.household_id,
-        household_members: household_member_data(@last_service_history_enrollment),
+        household_members: @households[@ctx.household_id] || [],
         household_type: @ctx.household_type,
         housing_assessment: @enrollment.exit&.HousingAssessment,
         income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,

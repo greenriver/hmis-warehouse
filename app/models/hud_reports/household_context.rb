@@ -26,5 +26,22 @@ module HudReports
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
+
+    def to_legacy_member_hash
+      {
+        client_id: destination_client_id,
+        source_client_id: source_client_id,
+        dob: dob,
+        age: age,
+        veteran_status: veteran_status,
+        pit_chronic_status: pit_chronic_status,
+        chronic_status: inherited_chronic_status,
+        chronic_detail: inherited_chronic_detail,
+        relationship_to_hoh: relationship_to_hoh,
+        entry_date: hoh_entry_date,
+        exit_date: hoh_exit_date,
+        move_in_date: inherited_move_in_date,
+      }.with_indifferent_access
+    end
   end
 end

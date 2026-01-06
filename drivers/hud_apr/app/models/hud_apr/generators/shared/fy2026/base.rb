@@ -76,6 +76,15 @@ module HudApr::Generators::Shared::Fy2026
           service_history_enrollment_id: enrollment_ids,
         ).index_by(&:service_history_enrollment_id)
 
+        # Load ALL members for households in this batch to build legacy JSON blobs
+        batch_hh_ids = contexts_by_she_id.values.map(&:household_id).uniq
+        batch_households = HudReports::HouseholdContext.where(
+          report_instance_id: @report.id,
+          household_id: batch_hh_ids,
+        ).group_by(&:household_id).transform_values do |members|
+          members.map(&:to_legacy_member_hash)
+        end
+
         # Load HoH enrollments needed for various calculations
         hoh_enrollments_by_id = if needs_ce_assessments?
           hoh_she_ids = contexts_by_she_id.values.map(&:hoh_service_history_enrollment_id).compact.uniq
@@ -100,7 +109,7 @@ module HudApr::Generators::Shared::Fy2026
             context_map: contexts_by_she_id,
             hoh_enrollment_map: hoh_enrollments_by_id,
             needs_ce_assessments: needs_ce_assessments?,
-            households: households,
+            households: batch_households,
           )
 
           next unless builder.resolvable?
