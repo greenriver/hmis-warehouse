@@ -14,7 +14,12 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::HmisParticipation.viewable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :hmis_participation, permissions: [:can_edit_project_details])
+      access_denied! unless record && policy_for(record.project, policy_type: :hmis_project).can_edit?
+
+      record.destroy!
+      {
+        hmis_participation: record,
+      }
     end
   end
 end

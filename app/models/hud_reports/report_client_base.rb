@@ -72,7 +72,7 @@ module HudReports
     def format_complex_value(col, value, pii_policy, include_content_tag)
       if value.is_a?(Array)
         # For Arrays, calculate each array element's value using the column name for the array
-        value.map { |item| display_value(col, pii_policy: pii_policy, include_content_tag: include_content_tag, cell_val: item, calculate_cell: false) }
+        value = value.map { |item| display_value(col, pii_policy: pii_policy, include_content_tag: include_content_tag, cell_val: item, calculate_cell: false) }
       elsif value.is_a?(Hash)
         # For Hashes, calculate each entry's value using each entry's key as the column name
         value.each do |k, v|

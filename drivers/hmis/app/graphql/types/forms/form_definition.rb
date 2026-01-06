@@ -30,6 +30,7 @@ module Types
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :version, ID, null: false
+    field :external_form_object_key, String, null: true, description: 'External object key, only present for External Form role'
     field :supports_save_in_progress, Boolean, null: false
     field :definition, Forms::FormDefinitionJson, null: false
     field :raw_definition, JsonObject, null: false

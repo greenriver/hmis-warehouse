@@ -18,5 +18,5 @@
             = page.compliance_requirements.pluck(:name).join(', ')
           - else
             %span.text-muted None
-        %td= page.updated_at.to_fs(:short)
+        %td= l page.updated_at, format: :table_compact
         %td= render 'action_menu', page: page

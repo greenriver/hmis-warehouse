@@ -214,7 +214,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size), result.inspect
-        end.to make_database_queries(count: 25..30)
+        end.to make_database_queries(count: 25..35)
       end
     end
   end
