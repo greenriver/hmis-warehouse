@@ -10113,6 +10113,11 @@ type Query {
   ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
 
   """
+  All CE swimlanes from published workflow templates
+  """
+  ceSwimlanes: [CeSwimlane!]!
+
+  """
   Client lookup
   """
   client(id: ID!): Client

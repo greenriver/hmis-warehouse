@@ -645,6 +645,17 @@ module Types
       Hmis::Ce::ClientProxy.find_by(id: id)
     end
 
+    field :ce_swimlanes, [HmisSchema::CeSwimlane], null: false, description: 'All CE swimlanes from published workflow templates'
+    def ce_swimlanes
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      Hmis::WorkflowDefinition::Swimlane.
+        joins(:template).
+        merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user)).
+        order(:name, :id).
+        distinct
+    end
+
     field :unit_group, HmisSchema::UnitGroup, null: true do
       argument :id, ID, required: true
     end
