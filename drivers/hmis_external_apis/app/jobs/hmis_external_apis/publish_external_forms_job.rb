@@ -20,7 +20,7 @@ class HmisExternalApis::PublishExternalFormsJob
     validate_form!(definition)
     # Validate the external forms setup
     missing_config = HmisExternalApis::ExternalForms::Config.validate_external_forms_setup
-    raise "external forms feature is not not properly configured: #{missing_config.join(', ')}" if missing_config.any? && (Rails.env.production? || Rails.env.staging?)
+    raise "external forms feature is not properly configured: #{missing_config.join(', ')}" if missing_config.any? && (Rails.env.production? || Rails.env.staging?)
 
     publication = definition.external_form_publications.new
 
