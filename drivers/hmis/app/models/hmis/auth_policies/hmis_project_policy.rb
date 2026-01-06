@@ -37,6 +37,10 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_view_outgoing_referral_details) || project_permissions.include?(:can_manage_outgoing_referrals)
   end
 
+  def can_manage_ce_default_contacts?
+    project_permissions.include?(:can_administrate_coordinated_entry)
+  end
+
   protected
 
   memoize def project_permissions
