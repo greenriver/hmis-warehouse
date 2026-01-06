@@ -17,6 +17,16 @@ RSpec.describe HudApr::Generators::Dq::Fy2026::QuestionThree, type: :model, excl
       es_project_type = HudHelper.util('2026').project_type_number_from_code(:es).first
       @project = create_project(project_type: es_project_type)
 
+      # Add a second CoC to the project to disable the automatic CoC assignment in AprClientBuilder
+      # and allow testing of missing/invalid CoCs. Otherwise, the builder sees only one CoC
+      # on the project and assumes that CoC for all enrollments, overwriting nil/invalid data.
+      create(
+        :hud_project_coc,
+        project_id: @project.project_id,
+        data_source: @project.data_source,
+        coc_code: 'ZZ-999',
+      )
+
       # Row 2: Veteran Status (3.07)
       # B2: Adult with Veteran Status 8 or 9
       client_v_8 = create_client_with_warehouse_link(dob: Date.new(1980, 1, 1), veteran_status: 8)
