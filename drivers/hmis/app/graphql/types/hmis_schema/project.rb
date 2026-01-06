@@ -90,6 +90,7 @@ module Types
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
     field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
     field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
+    field :default_swimlane_assignments, [HmisSchema::CeProjectDefaultAssignment], null: false, description: 'Default swimlane assignments for this project, grouped by swimlane'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -165,6 +166,21 @@ module Types
         receives_direct_referrals: receives_direct_referrals,
         sends_direct_referrals: sends_referrals_config.present?,
       )
+    end
+
+    def default_swimlane_assignments
+      all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.for_project(object)
+
+      # Group assignments by swimlane
+      grouped_by_swimlane = all_assignments.group_by(&:swimlane)
+
+      # todo @martha - think more about deduplication
+      grouped_by_swimlane.map do |swimlane, assignments|
+        OpenStruct.new(
+          swimlane: swimlane,
+          assignments: assignments,
+        )
+      end
     end
 
     def assessments(**args)

@@ -831,6 +831,16 @@ type CeCustomReferralStatus {
   name: String!
 }
 
+type CeDefaultSwimlaneAssignment {
+  global: Boolean!
+  id: ID!
+  organization: Organization
+  project: Project
+  swimlane: CeSwimlane!
+  unitGroup: UnitGroup
+  user: ApplicationUser!
+}
+
 type CeEligibleUnitGroup {
   """
   Timestamp when the candidate was added to the pool
@@ -1040,6 +1050,14 @@ type CeParticipationsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+type CeProjectDefaultAssignment {
+  """
+  Default assignments for this swimlane
+  """
+  assignments: [CeDefaultSwimlaneAssignment!]!
+  swimlane: CeSwimlane!
 }
 
 type CeReferral {
@@ -1369,6 +1387,13 @@ type CeReferralsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+type CeSwimlane {
+  id: ID!
+  name: String!
+  templateIdentifier: String!
+  templateName: String!
 }
 
 """
@@ -9650,6 +9675,11 @@ type Project {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+
+  """
+  Default swimlane assignments for this project, grouped by swimlane
+  """
+  defaultSwimlaneAssignments: [CeProjectDefaultAssignment!]!
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, formDefinitionIdentifier: ID!, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
