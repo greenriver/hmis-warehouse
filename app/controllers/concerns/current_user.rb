@@ -214,7 +214,7 @@ module CurrentUser
 
       # If you want users to be created automatically based on successful login to their IDP:
       # Add `allow_user_creation_from_idp_login`
-      auto_create_user = AppConfigProperty.find_by(key: 'idp/auto_create_user')&.value == 'true'
+      auto_create_user = AppConfigProperty.value_for('idp/auto_create_user') == 'true'
       authenticated_user = if auto_create_user
         User.find_or_create_from_jwt(jwt_helper)
       else
@@ -226,7 +226,7 @@ module CurrentUser
       user = if user_class == User
         authenticated_user
       else
-        user_class.find_by(id: authenticated_user.id)
+        user_class.cached_user_find(authenticated_user.id)
       end
       return nil unless user
 

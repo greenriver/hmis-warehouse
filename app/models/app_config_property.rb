@@ -15,6 +15,15 @@ class AppConfigProperty < ApplicationRecord
   validates :value, presence: true
   validate :value_input_is_valid_json
 
+  class << self
+    include Memery
+
+    def value_for(key)
+      find_by(key: key)&.value
+    end
+    memoize :value_for, ttl: 30 # 30 seconds
+  end
+
   def value_input
     @value_input || (value.is_a?(Enumerable) ? JSON.pretty_generate(value) : value&.to_json)
   end

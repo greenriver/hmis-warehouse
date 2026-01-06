@@ -640,6 +640,11 @@ module UserConcern
         }.freeze
       end
       memoize :group_associations
+
+      def cached_user_find(id)
+        find_by(id: id)
+      end
+      memoize :cached_user_find, ttl: 30 # 30 seconds
     end
 
     # def health_agency
