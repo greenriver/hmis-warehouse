@@ -41,8 +41,6 @@ module BaseApplicationControllerBehavior
 
     # Skip tracking timeout for AJAX requests (no-op for JWT auth).
     def skip_timeout
-      # FIXME, we need to figure out how to handle routes that should not extend the session
-      # for JWT auth.  Or more to the point, we need to figure out how to handle routes that should.
       # Session timeout is handled by JWT expiration, not trackable
     end
 
