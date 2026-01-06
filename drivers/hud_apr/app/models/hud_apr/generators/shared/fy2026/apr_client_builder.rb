@@ -10,39 +10,49 @@ module HudApr::Generators::Shared::Fy2026
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
-    attr_reader :last_service_history_enrollment, :ctx, :source_client, :enrollment_scope, :client_scope
+    attr_reader :last_service_history_enrollment, :ctx, :source_client
 
     private def a_t
       @a_t ||= HudApr::Fy2020::AprClient.arel_table
     end
 
-    def initialize(report:, enrollment_scope:, client_scope:, client:, enrollments:, context_map:, hoh_enrollment_map:, needs_ce_assessments:, households:)
+    def initialize(report:, client:, enrollments:, context_map:, hoh_enrollment_map:, needs_ce_assessments:, households:)
       @report = report
-      @enrollment_scope = enrollment_scope
-      @client_scope = client_scope
       @client = client # Destination client
       @raw_enrollments = Array(enrollments)
       @context_map = context_map
       @hoh_enrollment_map = hoh_enrollment_map
       @needs_ce_assessments = needs_ce_assessments
       @households = households
+    end
 
+    def self.build(...)
+      new(...).resolve_and_build
+    end
+
+    def resolve_and_build
       resolve_primary_enrollment!
+
+      return { success: false } unless @last_service_history_enrollment && valid_coc?
+
+      raise ArgumentError, "Missing context for SHE #{@last_service_history_enrollment.id}" unless @ctx
+      raise ArgumentError, "Missing source client for SHE #{@last_service_history_enrollment.id}" unless @source_client
+
+      {
+        success: true,
+        attributes: build_attributes_internal,
+        source_client_id: @source_client.id,
+        enrollment_id: @last_service_history_enrollment.enrollment.id,
+      }
     end
 
-    def resolvable?
-      @last_service_history_enrollment.present? && @ctx.present? && @source_client.present? && valid_coc?
-    end
+    private
 
-    def build_attributes
-      return {} unless resolvable?
-
+    def build_attributes_internal
       options = map_standard_attributes
       options.merge!(map_ce_attributes) if @needs_ce_assessments
       options
     end
-
-    private
 
     def resolve_primary_enrollment!
       @last_service_history_enrollment = @raw_enrollments.last

@@ -103,10 +103,8 @@ module HudApr::Generators::Shared::Fy2026
           enrollments = enrollments_by_client_id[client.id]
           next if enrollments.blank?
 
-          builder = AprClientBuilder.new(
+          result = AprClientBuilder.build(
             report: @report,
-            enrollment_scope: enrollment_scope,
-            client_scope: client_scope,
             client: client,
             enrollments: enrollments,
             context_map: contexts_by_she_id,
@@ -115,16 +113,16 @@ module HudApr::Generators::Shared::Fy2026
             households: batch_households,
           )
 
-          next unless builder.resolvable?
+          next unless result[:success]
 
           # Handle duplication check here (Orchestration concern)
-          if processed_source_clients.include?(builder.source_client.id)
-            @notifier.ping "Duplicate source client: #{builder.source_client.id} for destination client: #{client.id} in enrollment: #{builder.last_service_history_enrollment.enrollment.id}" if @send_notifications
+          if processed_source_clients.include?(result[:source_client_id])
+            @notifier.ping "Duplicate source client: #{result[:source_client_id]} for destination client: #{client.id} in enrollment: #{result[:enrollment_id]}" if @send_notifications
             next
           end
 
-          processed_source_clients << builder.source_client.id
-          pending_associations[client] = report_client_universe.new(builder.build_attributes)
+          processed_source_clients << result[:source_client_id]
+          pending_associations[client] = report_client_universe.new(result[:attributes])
         end
 
         # 2. Persist APR Clients
