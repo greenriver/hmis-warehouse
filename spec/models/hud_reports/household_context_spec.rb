@@ -22,4 +22,28 @@ RSpec.describe HudReports::HouseholdContext, type: :model do
     expect(context).to be_valid
     expect(context.save).to be true
   end
+
+  describe '.prune!' do
+    let!(:recent_report) { create(:hud_reports_report_instance, created_at: 1.day.ago) }
+    let!(:old_report) { create(:hud_reports_report_instance, created_at: 3.weeks.ago) }
+    let!(:deleted_report) { create(:hud_reports_report_instance, created_at: 1.day.ago).tap(&:destroy) }
+
+    let!(:recent_context) { create(:hud_reports_household_context, report_instance: recent_report, service_history_enrollment: enrollment) }
+    let!(:old_context) { create(:hud_reports_household_context, report_instance: old_report, service_history_enrollment: enrollment) }
+    let!(:deleted_report_context) { create(:hud_reports_household_context, report_instance: deleted_report, service_history_enrollment: enrollment) }
+    let!(:orphaned_context) do
+      ctx = build(:hud_reports_household_context, report_instance_id: 0, service_history_enrollment: enrollment)
+      ctx.save!(validate: false)
+      ctx
+    end
+
+    it 'removes old, deleted, and orphaned contexts' do
+      expect { described_class.prune! }.to change(described_class, :count).by(-3)
+
+      expect(described_class.exists?(recent_context.id)).to be true
+      expect(described_class.exists?(old_context.id)).to be false
+      expect(described_class.exists?(deleted_report_context.id)).to be false
+      expect(described_class.exists?(orphaned_context.id)).to be false
+    end
+  end
 end

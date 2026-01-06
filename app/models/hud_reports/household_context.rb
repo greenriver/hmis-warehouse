@@ -27,6 +27,12 @@ module HudReports
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
+    def self.prune!
+      # Delete contexts for reports older than 2 weeks or reports that have been deleted
+      valid_report_ids = HudReports::ReportInstance.where('created_at >= ?', 2.weeks.ago).select(:id)
+      where.not(report_instance_id: valid_report_ids).delete_all
+    end
+
     def to_legacy_member_hash
       {
         client_id: destination_client_id,
