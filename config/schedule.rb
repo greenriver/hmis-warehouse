@@ -178,7 +178,6 @@ tasks = [
     task: 'dba:unbloat',
     frequency: :sunday,
     at: '2:00 am',
-    trigger: ENV['RAILS_ENV'] == 'staging',
     interruptable: true,
   },
   {

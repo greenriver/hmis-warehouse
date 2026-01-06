@@ -38,7 +38,7 @@ module GrdaWarehouse::Confidence
         Delayed::Job.enqueue(
           ::Confidence::DaysHomelessJob.new(client_ids: batch),
           queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
-          priority: 10,
+          priority: BaseJob::BULK_PROCESSING_PRIORITY_10,
         )
       end
     end

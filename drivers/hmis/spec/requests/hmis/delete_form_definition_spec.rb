@@ -82,7 +82,7 @@ RSpec.describe 'DeleteFormDefinition mutation', type: :request do
     expect_access_denied post_graphql(id: fd.id) { mutation }
   end
   it 'errors if user lacks admin permission for disallowed form role' do
-    fd = create(:hmis_form_definition, role: :CLIENT, status: :published)
+    fd = create(:hmis_form_definition, role: :CLIENT, status: :draft)
     remove_permissions(access_control, :can_administrate_config)
     expect_access_denied post_graphql(id: fd.id) { mutation }
   end
