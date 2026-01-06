@@ -93,7 +93,7 @@ module HudApr::Generators::Shared::Fy2026
       # ensure enrollment is in the correct CoC (step 6 of report universe for the CE APR)
       # If the enrolment is in a project that only operates in one CoC, use the project's CoC
       # Use the HoH's CoC (as CoC is only collected for the HoH)
-      @enrollment.enrollment_coc = if @enrollment.project.project_cocs.one?
+      @calculated_enrollment_coc = if @enrollment.project.project_cocs.one?
         @enrollment.project.project_cocs.first.coc_code
       else
         @ctx.hoh_coc || @hoh_enrollment&.enrollment&.enrollment_coc || @enrollment.EnrollmentCoC
@@ -103,7 +103,7 @@ module HudApr::Generators::Shared::Fy2026
       # Step 7. of the CE APR, but really all APR related should work this way.
       # Filter the assessments/events, keeping only those where the CoC code assigned in step 6
       # matches the CoC on which the report is being run.
-      @enrollment.enrollment_coc.in?(@report.coc_codes)
+      @calculated_enrollment_coc.in?(@report.coc_codes)
     end
 
     # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -225,7 +225,7 @@ module HudApr::Generators::Shared::Fy2026
         drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
         drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
         drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-        enrollment_coc: @enrollment.enrollment_coc,
+        enrollment_coc: @calculated_enrollment_coc,
         enrollment_created: @enrollment.DateCreated || @enrollment.DateUpdated || DateTime.current,
         exit_created: exit_record&.exit&.DateCreated,
         exit_destination_subsidy_type: destination_subsidy_type,

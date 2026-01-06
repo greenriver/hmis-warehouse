@@ -33,6 +33,23 @@ module HudReports
       where.not(report_instance_id: valid_report_ids).delete_all
     end
 
+    # Efficiently copies contexts from a source report for a specific set of enrollments
+    # Used when sharing logic between reports (e.g. SPM -> DQ) to ensure consistency
+    # NOTE: this could be done more efficiently in SQL, room for future optimization
+    def self.copy_subset!(source_report_id:, target_report_id:, service_history_enrollment_ids:)
+      source_contexts = where(
+        report_instance_id: source_report_id,
+        service_history_enrollment_id: service_history_enrollment_ids,
+      )
+
+      source_contexts.find_in_batches(batch_size: 1000) do |batch|
+        new_contexts = batch.map do |ctx|
+          ctx.dup.tap { |new_ctx| new_ctx.report_instance_id = target_report_id }
+        end
+        import!(new_contexts)
+      end
+    end
+
     def to_legacy_member_hash
       {
         client_id: destination_client_id,

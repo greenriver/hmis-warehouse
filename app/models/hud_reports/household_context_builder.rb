@@ -37,36 +37,24 @@ module HudReports
       end
 
       # Discover which SHE IDs this report needs
-      needed_she_ids = discover_needed_enrollment_ids
+      needed_she_ids = enrollment_scope.pluck(:id)
 
       return if needed_she_ids.empty?
 
-      # Load contexts from source report that match our needed enrollments
-      source_contexts = HudReports::HouseholdContext.where(
-        report_instance_id: @source_report_id,
-        service_history_enrollment_id: needed_she_ids,
+      HudReports::HouseholdContext.copy_subset!(
+        source_report_id: @source_report_id,
+        target_report_id: @report.id,
+        service_history_enrollment_ids: needed_she_ids,
       )
-
-      # Batch copy contexts in chunks
-      source_contexts.find_in_batches(batch_size: 2000) do |batch|
-        new_contexts = batch.map do |ctx|
-          ctx.dup.tap { |new_ctx| new_ctx.report_instance_id = @report.id }
-        end
-        HudReports::HouseholdContext.import!(new_contexts)
-      end
     end
 
-    def discover_needed_enrollment_ids
-      # Same logic as each_household_id_batch but collect SHE IDs directly
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+    def enrollment_scope
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: @generator.client_scope).
         merge(@generator.report_scope_source.open_between(
                 start_date: @report.start_date,
                 end_date: @report.end_date,
               ))
-
-      ids = scope.pluck(:id)
-      ids
     end
 
     def build_contexts_from_scratch
@@ -102,9 +90,7 @@ module HudReports
     def each_household_id_batch
       # Get unique HH IDs for the report universe by driving directly from ServiceHistoryEnrollment.
       # We drive from the clients that are in the report universe.
-      hh_ids_query = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        where(client_id: @generator.client_scope).
-        merge(@generator.report_scope_source.open_between(start_date: @report.start_date, end_date: @report.end_date))
+      hh_ids_query = enrollment_scope
 
       # Plucking unique HH identifiers in batches to avoid loading everything into memory.
       she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table

@@ -105,6 +105,8 @@ module HudReports::Households
         chronic_status_key: chronic_status,
       )
 
+      return false unless result
+
       # Return a hash compatible with legacy usage
       {
         chronic_status: result[:status],
