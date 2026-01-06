@@ -2247,7 +2247,7 @@ module GrdaWarehouse::Hud
       end
 
       Rails.logger.info "Queueing cleanup for clients: #{to_clean.inspect}"
-      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq)
+      ClientCleanupJob.set(priority: BaseJob::CLEANUP_BACKGROUND_PRIORITY_6).perform_later(to_clean.uniq)
       Rails.logger.info '=== Completed client split ==='
 
       client_names
@@ -2339,7 +2339,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
-      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq) if cleanup
+      ClientCleanupJob.set(priority: BaseJob::CLEANUP_BACKGROUND_PRIORITY_6).perform_later(to_clean.uniq) if cleanup
       moved
     end
 
