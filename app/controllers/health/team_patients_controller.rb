@@ -41,20 +41,18 @@ module Health
         @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
           Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
           ::Health::CoordinationTeam.first
-        @active_team&.name
+        @team_name = @active_team&.name
       else
         @active_team = ::Health::CoordinationTeam.find_by(name: @team_name)
       end
 
       @report = Health::TeamPerformance.new(range: (@start_date..@end_date), team_scope: Health::CoordinationTeam.all)
-      @teams = @report.team_counts
-      @totals = @report.total_counts
+      @teams = @report.teams_for_picker
 
       @patients = if @active_team.present?
-        referrals = @report.team_counts.detect { |counts| counts.name == @active_team.name }&.patient_referrals
-        patient_source.where(id: referrals)
+        patient_source.where(id: @report.patient_ids_for_team(@active_team))
       else
-        patient_source.where(id: @report.total_counts.patient_referrals)
+        patient_source.where(id: @report.patient_ids_for_all_teams)
       end
 
       @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
