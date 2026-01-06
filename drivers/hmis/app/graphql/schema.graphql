@@ -10191,6 +10191,11 @@ type Query {
   Funder lookup
   """
   funder(id: ID!): Funder
+
+  """
+  Global CE default contacts
+  """
+  globalCeDefaultContacts: [CeDefaultSwimlaneAssignment!]!
   globalFeatureFlags: GlobalFeatureFlags!
 
   """

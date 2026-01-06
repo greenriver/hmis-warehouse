@@ -616,6 +616,18 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
+    field :global_ce_default_contacts, [HmisSchema::CeDefaultSwimlaneAssignment], null: false, description: 'Global CE default contacts'
+    def global_ce_default_contacts
+      # todo @martha - use global policy
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
+      Hmis::Ce::DefaultSwimlaneAssignment.
+        where(owner: data_source).
+        includes(:user, :swimlane).
+        order(:id)
+    end
+
     field :table_config_lookup, Types::TableConfigLookup, null: false
     def table_config_lookup
       {}
