@@ -215,6 +215,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
     end
 
+    it 'should error if the user lacks permission to edit the enrollment' do
+      remove_permissions(access_control, :can_edit_enrollments)
+      expect_gql_error post_graphql(input: { input: test_input }) { mutation }
+    end
+
     [
       [
         'should error if assessment date is missing',
