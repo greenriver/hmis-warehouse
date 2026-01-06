@@ -81,7 +81,6 @@ class Hmis::AuthPolicies::UserContext
   def project_belongs_to_current_data_source?(project_id)
     project_data_source_id = project_data_source_loader.get(project_id)
     return true if project_data_source_id == user.hmis_data_source_id
-    return false if project_data_source_id.nil?
 
     Sentry.capture_message(
       "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
