@@ -264,6 +264,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
+    # TODO: this can be expanded to test for n+1 caused by the policy check, specifically N clients that each have N enrollments at N different projects
     it 'minimizes n+1 queries' do
       # TODO(#185555687): improve performance of client search, decrease the upper bound here
       expect do
