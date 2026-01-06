@@ -12,6 +12,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
 
   before_action do
     # Only allow calling the controller directly in development. See PublishExternalFormsJob for production usage
+    # Dev usage: https://hmis-warehouse.dev.test/hmis_external_api/external_forms/<external_form_object_key>
     raise unless Rails.env.development?
   end
 
@@ -28,7 +29,8 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   def show
     # to refresh form content
     object_key = params[:object_key]
-    definition = Hmis::Form::Definition.published.where(external_form_object_key: object_key).first!
+    definition = Hmis::Form::Definition.where(role: :EXTERNAL_FORM).published.find_by(external_form_object_key: object_key)
+    raise "Form with external_form_object_key '#{object_key}' not found. Form must be published and have role EXTERNAL_FORM." unless definition
 
     HmisExternalApis::PublishExternalFormsJob.new.perform(definition.id)
     definition.reload

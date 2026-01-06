@@ -12,15 +12,15 @@ require 'nokogiri'
 #
 # currently this needs to be run manually
 class HmisExternalApis::PublishExternalFormsJob
-  # queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   include SafeInspectable
 
   def perform(definition_id)
-    definition = Hmis::Form::Definition.find(definition_id)
-    raise unless definition.external_form_object_key.present?
-
-    # In order to publish to S3, the form should already be published in HMIS (ideally via Form Builder)
-    raise "cannot publish form with status #{definition.status}" unless definition.published?
+    definition = Hmis::Form::Definition.where(role: :EXTERNAL_FORM).published.find(definition_id)
+    # Validate the form structure and CDEDs
+    validate_form!(definition)
+    # Validate the external forms setup
+    missing_config = HmisExternalApis::ExternalForms::Config.validate_external_forms_setup
+    raise "external forms feature is not properly configured: #{missing_config.join(', ')}" if missing_config.any? && (Rails.env.production? || Rails.env.staging?)
 
     publication = definition.external_form_publications.new
 
@@ -32,10 +32,6 @@ class HmisExternalApis::PublishExternalFormsJob
     publication.content = process_content(raw_content, digest: digest, definition_id: definition.id)
     publication.content_definition = definition.definition
 
-    # Note: Most likely, the form was already published using the Form Builder, so the CDEDs have already been created.
-    # Future improvement would be to invoke this job from publish mutation so that External Forms can be published to S3 from the config tool.
-    update_cdeds(definition)
-
     upload_to_s3(publication)
 
     publication.save!
@@ -44,26 +40,21 @@ class HmisExternalApis::PublishExternalFormsJob
 
   protected
 
+  def validate_form!(definition)
+    raise 'form must have external_form_object_key' unless definition.external_form_object_key.present?
+    raise 'form must be published in Form Builder first' unless definition.published? # must publish in Form Builder first
+
+    # Validate the form structure and CDEDs
+    errors = Hmis::Form::DefinitionValidator.perform(definition.definition)
+    raise "cannot publish form with errors: #{errors.full_messages.join(', ')}" if errors.any?
+  end
+
   def user_id
     @user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id
   end
 
   def data_source_id
     @data_source_id ||= GrdaWarehouse::DataSource.hmis.first.id
-  end
-
-  # construct custom data element definitions from the nodes in the form definition
-  def update_cdeds(definition)
-    Hmis::Hud::CustomDataElementDefinition.transaction do
-      generator = Hmis::Form::CustomDataElementGenerator.new(
-        definition: definition,
-        data_source: GrdaWarehouse::DataSource.find(data_source_id),
-        create_missing_mappings: false,
-        set_form_definition_identifier: true,
-      )
-      cdeds = generator.run
-      cdeds.each(&:save!)
-    end
   end
 
   # prepare form content for publication

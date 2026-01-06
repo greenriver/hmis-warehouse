@@ -4844,6 +4844,11 @@ type FormDefinition {
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   definition: FormDefinitionJson!
+
+  """
+  External object key, only present for External Form role
+  """
+  externalFormObjectKey: String
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!

@@ -174,6 +174,27 @@ RSpec.describe 'GetProjects query', type: :request do
       end.to perform_under(110).ms
     end
   end
+
+  context 'when there are multiple HMIS data sources' do
+    let!(:ds2) { create :hmis_data_source }
+    let!(:ds2_project) { create :hmis_hud_project, data_source: ds2 }
+    # Give user access to view all projects in ds2
+    let!(:ds2_access_control) { create_access_control(hmis_user, ds2) }
+
+    it 'does not include projects from other data sources' do
+      perform_query do |projects|
+        expect(projects.dig('nodes')).not_to include(include('id' => ds2_project.id.to_s))
+      end
+    end
+
+    it 'fails authorization check if project leaked through viewable_by scope (related to regression #6758)' do
+      # Mock a scenario where Project viewable_by scope incorrectly returns a project in ds2.
+      # (This wouldn't happen in real life thanks to the viewable_by scope filtering to projects in the users current data source (user.hmis_data_source_id))
+      expect(Hmis::Hud::Project).to receive(:viewable_by).and_return(Hmis::Hud::Project.where(id: ds2_project.id))
+
+      expect { perform_query }.to raise_error(/failed authorization check/)
+    end
+  end
 end
 
 RSpec.configure do |c|
