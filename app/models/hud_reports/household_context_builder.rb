@@ -6,7 +6,7 @@ module HudReports
       new(...).call
     end
 
-    def initialize(generator, report, source_report_id: nil, enrollment_scope: nil, lookback_years: 20)
+    def initialize(generator, report, enrollment_scope:, source_report_id: nil, lookback_years: 20)
       @generator = generator
       @report = report
       @source_report_id = source_report_id
@@ -51,14 +51,7 @@ module HudReports
     end
 
     def enrollment_scope
-      return @enrollment_scope if @enrollment_scope.present?
-
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        where(client_id: @generator.client_scope).
-        merge(@generator.report_scope_source.open_between(
-                start_date: @report.start_date,
-                end_date: @report.end_date,
-              ))
+      @enrollment_scope
     end
 
     def build_contexts_from_scratch

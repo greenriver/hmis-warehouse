@@ -35,7 +35,7 @@ module HudApr::Generators::Apr::Fy2026
 
     def prepare_report
       super
-      HudReports::HouseholdContextBuilder.call(self, report)
+      HudReports::HouseholdContextBuilder.call(self, report, enrollment_scope: base_enrollment_scope)
     end
 
     def self.filter_class

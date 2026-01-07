@@ -29,7 +29,7 @@ module HudReports
 
     def self.prune!
       # Delete contexts for reports older than 2 weeks or reports that have been deleted
-      valid_report_ids = HudReports::ReportInstance.where('created_at >= ?', 2.weeks.ago).select(:id)
+      valid_report_ids = HudReports::ReportInstance.where(created_at: ..2.weeks.ago).select(:id)
       where.not(report_instance_id: valid_report_ids).delete_all
     end
 
