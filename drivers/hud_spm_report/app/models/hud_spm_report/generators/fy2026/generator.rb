@@ -39,12 +39,12 @@ module HudSpmReport::Generators::Fy2026
 
       # Build enrollment scope for SPM (includes 7-year lookback)
       adapter = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report)
-      hud_enrollment_ids = adapter.enrollments.pluck(:id)
+      hud_enrollments = adapter.enrollments
 
-      # Map HUD Enrollments to ServiceHistoryEnrollments
+      # Map HUD Enrollments to ServiceHistoryEnrollments via scale-safe subquery
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:enrollment).
-        where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].in(hud_enrollment_ids))
+        where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].in(hud_enrollments.reselect(:id)))
 
       # Pass scope directly to builder
       HudReports::HouseholdContextBuilder.call(

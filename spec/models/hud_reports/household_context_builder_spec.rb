@@ -98,7 +98,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
     context 'when re-running (idempotency)' do
       before do
-        create(:hud_reports_household_context, report_instance: report)
+        create(:hud_reports_household_context,report_instance: report)
       end
 
       it 'clears previous contexts' do
@@ -116,7 +116,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           MonthsHomelessPastThreeYears: 112, # 112 = 12 months
         )
         # Re-rebuild to pick up changes
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).rebuild_service_history!
       end
 
       it 'passes chronic status from HoH to the child' do
@@ -128,7 +128,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       it 'passes chronic status from another adult to the child if HoH is not chronic' do
         # HoH not chronic
         hud_enrollment_hoh.update!(DisablingCondition: 0)
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).rebuild_service_history!
 
         # Add another adult who is chronic
         adult_2 = create_client_with_warehouse_link(dob: 30.years.ago)
@@ -473,6 +473,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         builder.call
 
         # Should only build context for enrollments in custom scope
+        report.reload
         expect(report.household_contexts.count).to eq(1)
         expect(report.household_contexts.first.service_history_enrollment_id).to eq(enrollment_hoh.id)
       end
