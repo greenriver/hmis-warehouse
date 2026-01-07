@@ -165,16 +165,23 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
-  # Projects that are open and have CE waitlist referrals enabled
-  scope :with_ce_waitlists_enabled, -> do
-    configs = Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?)
-
+  scope :with_configs, ->(configs) do
     conditions = [
       arel_table[:project_type].in(configs.map(&:project_type)),
       arel_table[:id].in(configs.map(&:project_id)),
       Hmis::Hud::Organization.arel_table[:id].in(configs.map(&:organization_id)),
     ]
     open_on_date.joins(:organization).where(conditions.inject(&:or))
+  end
+
+  # Projects that are open and have CE waitlist referrals enabled
+  scope :with_ce_waitlists_enabled, -> do
+    with_configs(Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?))
+  end
+
+  # Projects that are open and have CE enabled
+  scope :with_ce_enabled, -> do
+    with_configs(Hmis::ProjectCeConfig.active)
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze

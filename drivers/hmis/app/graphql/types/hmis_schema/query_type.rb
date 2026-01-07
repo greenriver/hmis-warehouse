@@ -616,25 +616,6 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
-    field :global_ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Global Coordinated Entry default contacts, grouped by swimlane'
-    def global_ce_default_contacts
-      access_denied! unless policy_for(GrdaWarehouse::DataSource, policy_type: :ce_admin).can_manage_contacts?
-
-      data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
-      all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
-        where(owner: data_source).
-        includes(:user).
-        joins(:swimlane).
-        order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
-
-      all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
-        OpenStruct.new(
-          swimlane: swimlane,
-          contacts: assignments,
-        )
-      end
-    end
-
     field :table_config_lookup, Types::TableConfigLookup, null: false
     def table_config_lookup
       {}
@@ -671,6 +652,36 @@ module Types
         merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user)).
         order(:name, :id).
         distinct
+    end
+
+    field :global_ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Global Coordinated Entry default contacts, grouped by swimlane'
+    def global_ce_default_contacts
+      access_denied! unless policy_for(GrdaWarehouse::DataSource, policy_type: :ce_admin).can_manage_contacts?
+
+      data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
+      all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
+        where(owner: data_source).
+        includes(:user).
+        joins(:swimlane).
+        order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
+
+      all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
+        OpenStruct.new(
+          swimlane: swimlane,
+          contacts: assignments,
+        )
+      end
+    end
+
+    field :projects_with_ce_default_contacts, HmisSchema::Project.page_type, null: false, description: 'Projects with CE default contacts' do
+      # todo @martha - customize the filters specifically for this query, specifically to add user filter.
+      #  (and maybe project, but search term might be good enough)
+      filters_argument HmisSchema::Project
+    end
+    def projects_with_ce_default_contacts(filters: nil)
+      scope = Hmis::Hud::Project.viewable_by(current_user).with_ce_enabled
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.sort_by_option(:organization_and_name)
     end
 
     field :unit_group, HmisSchema::UnitGroup, null: true do

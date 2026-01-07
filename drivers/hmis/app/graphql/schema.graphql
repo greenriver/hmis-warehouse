@@ -10271,6 +10271,11 @@ type Query {
   projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
 
   """
+  Projects with CE default contacts
+  """
+  projectsWithCeDefaultContacts(filters: ProjectFilterOptions, limit: Int, offset: Int): ProjectsPaginated!
+
+  """
   Get the most relevant Form Definition to use for record viewing/editing
   """
   recordFormDefinition(
