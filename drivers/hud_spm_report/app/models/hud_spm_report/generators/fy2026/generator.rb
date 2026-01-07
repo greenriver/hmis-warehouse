@@ -42,9 +42,11 @@ module HudSpmReport::Generators::Fy2026
       hud_enrollments = adapter.enrollments
 
       # Map HUD Enrollments to ServiceHistoryEnrollments via scale-safe subquery
+      # Join on both EnrollmentID and data_source_id for safety
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:enrollment).
-        where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].in(hud_enrollments.reselect(:id)))
+        where(
+          "(enrollment_group_id, data_source_id) IN (SELECT \"EnrollmentID\", data_source_id FROM (#{hud_enrollments.reselect(:EnrollmentID, :data_source_id).to_sql}) AS subquery)"
+        )
 
       # Pass scope directly to builder
       HudReports::HouseholdContextBuilder.call(
