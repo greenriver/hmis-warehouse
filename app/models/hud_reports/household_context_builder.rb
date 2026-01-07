@@ -63,11 +63,12 @@ module HudReports
 
     def build_contexts_from_scratch
       contexts = []
-      each_household_id_batch do |batch|
-        all_members_by_hh = load_unfiltered_members(batch).group_by { |she| get_hh_id(she) }
+      each_household_batch do |batch|
+        # batch is array of [hh_id, data_source_id]
+        all_members_by_hh = load_unfiltered_members(batch).group_by { |she| [get_hh_id(she), she.data_source_id] }
 
-        all_members_by_hh.each do |hh_id, members|
-          contexts.concat(build_contexts_for_household(hh_id, members))
+        all_members_by_hh.each do |(hh_id, data_source_id), members|
+          contexts.concat(build_contexts_for_household(hh_id, data_source_id, members))
         end
 
         if contexts.size >= import_batch_size
@@ -88,16 +89,21 @@ module HudReports
     end
 
     def get_hh_id(she)
+      # If a HUD HouseholdID is missing, we use the EnrollmentID as a synthetic household ID.
+      # We append '*HH' to these synthetic IDs to prevent accidental collisions with real
+      # HouseholdIDs that might share the same string value within the same data source.
       she.household_id || "#{she.enrollment_group_id}*HH"
     end
 
-    def each_household_id_batch
-      # Get unique HH IDs for the report universe by driving directly from ServiceHistoryEnrollment.
-      # We drive from the clients that are in the report universe.
+    def each_household_batch
+      # Get unique HH IDs + data_source_id for the report universe
       hh_ids_query = enrollment_scope
 
-      # Plucking unique HH identifiers in batches to avoid loading everything into memory.
       she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+
+      # We drive batching using the same synthetic ID logic as get_hh_id.
+      # The '*HH' suffix ensures we don't conflate a real HouseholdID with a synthetic one
+      # derived from an EnrollmentID of the same value within the same data source.
       hh_id_expr = Arel::Nodes::NamedFunction.new(
         'COALESCE',
         [
@@ -108,49 +114,67 @@ module HudReports
 
       base_query = hh_ids_query.
         distinct.
-        order(hh_id_expr)
+        order(hh_id_expr, she_table[:data_source_id])
 
       last_hh_id = nil
+      last_ds_id = nil
+
       loop do
         query = base_query.limit(batch_size)
-        query = query.where(hh_id_expr.gt(last_hh_id)) if last_hh_id
-        batch = query.pluck(hh_id_expr)
+
+        if last_hh_id
+          # Seek logic for composite order
+          condition = hh_id_expr.gt(last_hh_id).or(
+            hh_id_expr.eq(last_hh_id).and(she_table[:data_source_id].gt(last_ds_id))
+          )
+          query = query.where(condition)
+        end
+
+        # We need both values
+        batch = query.pluck(hh_id_expr, she_table[:data_source_id])
         break if batch.empty?
 
         yield batch
-        last_hh_id = batch.last
+        last_hh_id, last_ds_id = batch.last
       end
     end
 
-    def load_unfiltered_members(household_ids)
-      real_hh_ids = household_ids.reject { |id| id.end_with?('*HH') }
-      synthetic_eg_ids = household_ids.select { |id| id.end_with?('*HH') }.map { |id| id.sub('*HH', '') }
+    def load_unfiltered_members(batch)
+      # batch is array of [hh_id, data_source_id]
+      # We group by data_source_id to make queries more efficient (fewer IN clauses)
+      members = []
+      batch.group_by(&:last).each do |ds_id, pairs|
+        hh_ids = pairs.map(&:first)
+        real_hh_ids = hh_ids.reject { |id| id.end_with?('*HH') }
+        synthetic_eg_ids = hh_ids.select { |id| id.end_with?('*HH') }.map { |id| id.sub('*HH', '') }
 
-      # For reports with lookbacks (like SPM), we need to find members outside the report year.
-      lookback_start = @report.start_date - @lookback_years.years
+        lookback_start = @report.start_date - @lookback_years.years
 
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: lookback_start, end_date: @report.end_date).
-        preload(enrollment: [:client, :disabilities_at_entry, :project])
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          where(data_source_id: ds_id).
+          open_between(start_date: lookback_start, end_date: @report.end_date).
+          preload(enrollment: [:client, :disabilities_at_entry, :project])
 
-      query = if real_hh_ids.any? && synthetic_eg_ids.any?
-        scope.where(household_id: real_hh_ids).or(scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil))
-      elsif real_hh_ids.any?
-        scope.where(household_id: real_hh_ids)
-      else
-        scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil)
+        query = if real_hh_ids.any? && synthetic_eg_ids.any?
+          scope.where(household_id: real_hh_ids).or(scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil))
+        elsif real_hh_ids.any?
+          scope.where(household_id: real_hh_ids)
+        else
+          scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil)
+        end
+
+        members.concat(query.to_a.select { |m| m.enrollment.present? })
       end
-
-      query.to_a.select { |m| m.enrollment.present? }
+      members
     end
 
-    def build_contexts_for_household(hh_id, members)
+    def build_contexts_for_household(hh_id, data_source_id, members)
       # Pre-calculate common HH values
       hh_member_hashes = members.map do |m|
         enrollment = m.enrollment
-        client = enrollment&.client
+        source_client = enrollment&.client
         date = [m.first_date_in_program, @report.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: client&.DOB)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: source_client&.DOB)
 
         # Determine report_date for chronic calculation
         report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
@@ -166,19 +190,19 @@ module HudReports
           she_id: m.id,
           enrollment_id: enrollment&.id,
           destination_client_id: m.client_id,
-          source_client_id: client&.id,
-          personal_id: client&.PersonalID,
+          source_client_id: source_client&.id,
+          personal_id: source_client&.PersonalID,
           entry_date: m.first_date_in_program,
           exit_date: m.last_date_in_program,
           age: age,
-          dob: client&.DOB,
+          dob: source_client&.DOB,
           chronic_status: chronic_at_start == :yes,
           pit_chronic_status: pit_chronic_at_start == :yes,
           chronic_detail: chronic_at_start,
           pit_chronic_detail: pit_chronic_at_start,
           relationship_to_hoh: enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
-          veteran_status: client&.VeteranStatus,
+          veteran_status: source_client&.VeteranStatus,
           enrollment_coc: enrollment&.EnrollmentCoC,
           date_to_street: enrollment&.DateToStreetESSH,
         }
@@ -235,6 +259,7 @@ module HudReports
         HudReports::HouseholdContext.new(
           report_instance_id: @report.id,
           service_history_enrollment_id: m.id,
+          data_source_id: data_source_id,
           source_enrollment_id: member_hash[:enrollment_id],
           source_client_id: member_hash[:source_client_id],
           destination_client_id: member_hash[:destination_client_id],

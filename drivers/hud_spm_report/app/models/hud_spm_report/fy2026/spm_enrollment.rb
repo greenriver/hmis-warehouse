@@ -139,20 +139,29 @@ module HudSpmReport::Fy2026
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
 
       # Subquery for scale-safe lookups (avoids PostgreSQL parameter limits)
+      # PAIR identity by EnrollmentID + data_source_id
+      she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
       she_subquery = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        where(enrollment_group_id: enrollments.reselect(:EnrollmentID))
+        where(
+          Arel::Nodes::In.new(
+            Arel::Nodes::Grouping.new([she_table[:enrollment_group_id], she_table[:data_source_id]]),
+            Arel.sql(enrollments.reselect(:EnrollmentID, :data_source_id).to_sql)
+          )
+        )
 
-      # Map enrollment_group_id -> service_history_enrollment_id
-      enrollment_group_to_she_id = she_subquery.pluck(:enrollment_group_id, :id).to_h
+      # Map [enrollment_group_id, data_source_id] -> service_history_enrollment_id
+      eg_ds_to_she_id = she_subquery.pluck(:enrollment_group_id, :data_source_id, :id).each_with_object({}) do |(eg_id, ds_id, she_id), hash|
+        hash[[eg_id, ds_id]] = she_id
+      end
 
-      # Map service_history_enrollment_id -> enrollment_group_id (for context indexing)
-      she_id_to_enrollment_group = enrollment_group_to_she_id.invert
+      # Map service_history_enrollment_id -> [enrollment_group_id, data_source_id] (for context indexing)
+      she_id_to_eg_ds = eg_ds_to_she_id.invert
 
-      # Load pre-computed contexts indexed by enrollment_group_id (EnrollmentID)
-      contexts_by_enrollment_group = HudReports::HouseholdContext.
+      # Load pre-computed contexts indexed by [enrollment_group_id, data_source_id]
+      contexts_by_eg_ds = HudReports::HouseholdContext.
         where(report_instance_id: report_instance.id).
         where(service_history_enrollment_id: she_subquery.reselect(:id)).
-        index_by { |ctx| she_id_to_enrollment_group[ctx.service_history_enrollment_id] }
+        index_by { |ctx| she_id_to_eg_ds[ctx.service_history_enrollment_id] }
 
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
         members = []
@@ -161,8 +170,8 @@ module HudSpmReport::Fy2026
           client = enrollment.client
           next if client.blank?
 
-          # Find pre-computed context
-          context = contexts_by_enrollment_group[enrollment.EnrollmentID]
+          # Find pre-computed context using paired identity
+          context = contexts_by_eg_ds[[enrollment.EnrollmentID, enrollment.data_source_id]]
           next unless context # Skip if no context (shouldn't happen in normal flow)
 
           current_income_benefits = current_income_benefits(enrollment, filter.end)
