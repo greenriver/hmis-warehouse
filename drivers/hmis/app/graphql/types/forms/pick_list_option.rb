@@ -235,12 +235,25 @@ module Types
 
     def self.eligible_referral_step_assignment_user_picklist(project)
       return [] unless Hmis::Ce.configuration.enabled?
-      return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
 
       user_scope = Hmis::User.active
 
-      user_scope.can_perform_any_referral_tasks_for(project).
-        or(user_scope.can_perform_own_referral_tasks_for(project)).
+      if project.present?
+        # Confirm the project has an applicable CE config
+        return [] if Hmis::ProjectCeConfig.detect_best_config_for_project(project).blank?
+
+        # Return users who can perform referral tasks in this project
+        user_scope = user_scope.can_perform_any_referral_tasks_for(project).
+          or(user_scope.can_perform_own_referral_tasks_for(project))
+      else
+        # If project is not passed, return all users who have permission to perform referral tasks at any project.
+        # This is used by the global Default Contacts dropdowns.
+        # The list is too big, but we don't yet have a good way to know who is a CE admin.
+        user_scope = user_scope.can_perform_any_referral_tasks.
+          or(user_scope.can_perform_own_referral_tasks)
+      end
+
+      user_scope.
         order(:last_name, :first_name, :id).
         map(&:to_pick_list_option).uniq
     end
