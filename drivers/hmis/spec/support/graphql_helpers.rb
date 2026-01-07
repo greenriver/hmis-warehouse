@@ -10,7 +10,16 @@ module GraphqlHelpers
   HMIS_ORIGIN = 'https://hmis.dev.test:5173/'
   HMIS_HOSTNAME = 'hmis.dev.test'
 
+  # In request specs we can make multiple GraphQL requests after mutating roles/permissions.
+  # HMIS auth uses `Hmis::User.cached_user_find` (memoized), which can otherwise return the same
+  # user instance across requests and keep stale `@permissions` values.
+  private def clear_current_user_memoization_for_request_specs
+    Hmis::User.clear_memery_cache! if defined?(Hmis::User) && Hmis::User.respond_to?(:clear_memery_cache!)
+    User.clear_memery_cache! if defined?(User) && User.respond_to?(:clear_memery_cache!)
+  end
+
   def post_graphql(variables = {})
+    clear_current_user_memoization_for_request_specs
     variables = transform_graphql_variables(variables)
     params = { query: yield, variables: variables }.compact_blank
     post '/hmis/hmis-gql', params: params.to_json, headers: graphql_post_headers
@@ -27,6 +36,7 @@ module GraphqlHelpers
   end
 
   def post_graphql_single(query:, variables: {}, headers: {}, operation_name: nil)
+    clear_current_user_memoization_for_request_specs
     variables = transform_graphql_variables(variables)
     params = { query: query, variables: variables, operationName: operation_name }.compact_blank
     post '/hmis/hmis-gql', params: params.to_json, headers: graphql_post_headers(headers)
@@ -43,6 +53,7 @@ module GraphqlHelpers
   end
 
   def post_graphql_multi(queries:, headers: {})
+    clear_current_user_memoization_for_request_specs
     params = queries.map do |query|
       {
         variables: transform_graphql_variables(query[:variables]),

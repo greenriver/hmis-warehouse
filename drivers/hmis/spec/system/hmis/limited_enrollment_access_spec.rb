@@ -26,15 +26,15 @@ RSpec.feature 'Enrollment/household management', type: :system do
   let!(:p3) { create :hmis_hud_project, project_name: 'Hidden Project', data_source: ds1, organization: o1 }
   let!(:e3) { create :hmis_hud_enrollment, client: client, data_source: ds1, project: p3 }
 
-  before(:each) do
-    sign_in(hmis_user)
-  end
-
   context 'A user who has full access to p1 and limited access to p2' do
     # full enrollment visibility for p1
     let!(:access_control1) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details]) }
     # limited enrollment visibility for p2
     let!(:access_control2) { create_access_control(hmis_user, p2, with_permission: [:can_view_limited_enrollment_details]) }
+
+    before(:each) do
+      sign_in(hmis_user)
+    end
 
     # user should see both full-access and limited-access enrollments
     it 'sees both enrollments on client dashboard' do
@@ -72,6 +72,10 @@ RSpec.feature 'Enrollment/household management', type: :system do
   context 'A user who can not view any enrollments' do
     # give user access to view the client record
     let!(:access_control1) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+
+    before(:each) do
+      sign_in(hmis_user)
+    end
 
     it 'sees no enrollments on client dashboard' do
       visit "/client/#{client.id}"
