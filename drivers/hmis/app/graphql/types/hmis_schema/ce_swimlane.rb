@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::CeSwimlane < Types::BaseObject
+    # todo @martha - include tooltip or helper text for what tasks apply
     field :id, ID, null: false
     field :name, String, null: false
     field :template_name, String, null: false
