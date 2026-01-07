@@ -839,6 +839,14 @@ type CeCustomReferralStatus {
   name: String!
 }
 
+type CeDefaultAssignmentsBySwimlane {
+  """
+  Default assignments for this swimlane
+  """
+  assignments: [CeDefaultSwimlaneAssignment!]!
+  swimlane: CeSwimlane!
+}
+
 type CeDefaultSwimlaneAssignment {
   global: Boolean!
   id: ID!
@@ -1073,14 +1081,6 @@ type CeParticipationsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
-}
-
-type CeProjectDefaultAssignment {
-  """
-  Default assignments for this swimlane
-  """
-  assignments: [CeDefaultSwimlaneAssignment!]!
-  swimlane: CeSwimlane!
 }
 
 type CeReferral {
@@ -9701,9 +9701,9 @@ type Project {
   dateUpdated: ISO8601DateTime
 
   """
-  Default swimlane assignments for this project, grouped by swimlane
+  Default swimlane assignments grouped by swimlane
   """
-  defaultSwimlaneAssignments: [CeProjectDefaultAssignment!]!
+  defaultSwimlaneAssignments: [CeDefaultAssignmentsBySwimlane!]!
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, formDefinitionIdentifier: ID!, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
@@ -10193,9 +10193,9 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Global CE default contacts
+  Global CE default contacts, grouped by swimlane
   """
-  globalCeDefaultContacts: [CeDefaultSwimlaneAssignment!]!
+  globalCeDefaultContacts: [CeDefaultAssignmentsBySwimlane!]!
   globalFeatureFlags: GlobalFeatureFlags!
 
   """

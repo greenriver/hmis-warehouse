@@ -616,16 +616,24 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
-    field :global_ce_default_contacts, [HmisSchema::CeDefaultSwimlaneAssignment], null: false, description: 'Global CE default contacts'
+    field :global_ce_default_contacts, [HmisSchema::CeDefaultAssignmentsBySwimlane], null: false, description: 'Global CE default contacts, grouped by swimlane'
     def global_ce_default_contacts
       # todo @martha - use global policy
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
-      Hmis::Ce::DefaultSwimlaneAssignment.
+      all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
         where(owner: data_source).
-        includes(:user, :swimlane).
-        order(:id)
+        includes(:user).
+        joins(:swimlane).
+        order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
+
+      all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
+        OpenStruct.new(
+          swimlane: swimlane,
+          assignments: assignments,
+        )
+      end
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false
