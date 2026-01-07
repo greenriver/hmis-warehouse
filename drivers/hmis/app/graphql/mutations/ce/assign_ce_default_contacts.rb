@@ -9,7 +9,7 @@
 module Mutations
   module Ce
     class AssignCeDefaultContacts < Mutations::CleanBaseMutation
-      argument :input, Types::HmisSchema::CeDefaultSwimlaneAssignmentInput, required: true
+      argument :input, Types::HmisSchema::CeDefaultContactsInput, required: true
 
       field :default_swimlane_assignments, [Types::HmisSchema::CeDefaultSwimlaneAssignment], null: false
 
