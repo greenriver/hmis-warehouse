@@ -20,7 +20,7 @@ module Mutations
         else
           # If no project_id, it's a global assignment. Owner is the current user's HMIS data source
           owner = current_user.hmis_data_source
-          access_denied! unless current_user.can_administrate_coordinated_entry? # todo @martha - consider making a global policy
+          access_denied! unless policy_for(GrdaWarehouse::DataSource, policy_type: :ce_admin).can_manage_contacts?
         end
 
         # todo @martha - validation errors
