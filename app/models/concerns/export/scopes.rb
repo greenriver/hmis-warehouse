@@ -47,11 +47,12 @@ module Export::Scopes
         end
 
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
-        if @coc_codes.present?
-          e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
-            or(e_scope.where(EnrollmentCoC: nil)).
-            or(e_scope.where.not(EnrollmentCoC: HudHelper.util.cocs.keys))
-        end
+        # Only include enrollments where:
+        # 1. HouseholdID is null → check enrollment's own CoC
+        # 2. HouseholdID exists and HoH exists with valid CoC → include
+        # 3. HouseholdID exists but no HoH exists → check enrollment's own CoC (fallback)
+        e_scope = e_scope.where(hoh_exists_with_valid_coc_clause) if @coc_codes.present?
+        # puts "e_scope: #{e_scope.to_sql}"
         e_scope.distinct.preload(:project, :client)
       end
     end
@@ -87,23 +88,71 @@ module Export::Scopes
         # no-op
       end
       # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
-      if @coc_codes.present?
-        e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
-          or(e_scope.where(EnrollmentCoC: nil)).
-          or(e_scope.where.not(EnrollmentCoC: HudHelper.util.cocs.keys))
-      end
-      e_scope.where(
+      # Only include enrollments where:
+      # 1. HouseholdID is null → check enrollment's own CoC
+      # 2. HouseholdID exists and HoH exists with valid CoC → include
+      # 3. HouseholdID exists but no HoH exists → check enrollment's own CoC (fallback)
+      e_scope = e_scope.where(hoh_exists_with_valid_coc_clause) if @coc_codes.present?
+      e_scope = e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).
           and(e_t[:data_source_id].eq(c_t[:data_source_id])),
       ).where(
         project_exists_for_enrollment,
       ).arel.exists
+      e_scope
     end
 
     def project_exists_for_enrollment
       project_scope.where(
         p_t[:ProjectID].eq(e_t[:ProjectID]).
           and(p_t[:data_source_id].eq(e_t[:data_source_id])),
+      ).arel.exists
+    end
+
+    # Only include enrollments where:
+    # 1. HouseholdID is null → check enrollment's own CoC
+    # 2. HouseholdID exists and HoH exists with valid CoC → include
+    # 3. HouseholdID exists but no HoH exists → check enrollment's own CoC (fallback)
+    def hoh_exists_with_valid_coc_clause
+      e_t[:HouseholdID].eq(nil).and(enrollment_coc_query(e_t)).
+        or(
+          Arel::Nodes::Grouping.new(
+            e_t[:HouseholdID].not_eq(nil).and(
+              hoh_exists_with_valid_coc.or(
+                Arel::Nodes::Not.new(hoh_exists_at_all).and(enrollment_coc_query(e_t)),
+              ),
+            ),
+          ),
+        )
+    end
+
+    # Used for limiting enrollments that are missing HouseholdID to those where the Enrollment CoC is matching, invalid, or missing
+    def enrollment_coc_query(table)
+      table[:EnrollmentCoC].in(@coc_codes).
+        or(table[:EnrollmentCoC].eq(nil)).
+        or(table[:EnrollmentCoC].not_in(HudHelper.util.cocs.keys))
+    end
+
+    # For enrollments with a HouseholdID, check if a HoH exists with matching CoC
+    def hoh_exists_with_valid_coc
+      hoh_t = GrdaWarehouse::Hud::Enrollment.arel_table.alias('hoh_t')
+      GrdaWarehouse::Hud::Enrollment.from(hoh_t).where(
+        hoh_t[:HouseholdID].eq(e_t[:HouseholdID]).
+          and(hoh_t[:data_source_id].eq(e_t[:data_source_id])).
+          and(hoh_t[:ProjectID].eq(e_t[:ProjectID])).
+          and(hoh_t[:RelationshipToHoH].eq(1)).
+          and(enrollment_coc_query(hoh_t)),
+      ).arel.exists
+    end
+
+    # Check if ANY HoH exists for this household (regardless of CoC)
+    def hoh_exists_at_all
+      hoh_t = GrdaWarehouse::Hud::Enrollment.arel_table.alias('hoh_exists_t')
+      GrdaWarehouse::Hud::Enrollment.from(hoh_t).where(
+        hoh_t[:HouseholdID].eq(e_t[:HouseholdID]).
+          and(hoh_t[:data_source_id].eq(e_t[:data_source_id])).
+          and(hoh_t[:ProjectID].eq(e_t[:ProjectID])).
+          and(hoh_t[:RelationshipToHoH].eq(1)),
       ).arel.exists
     end
   end
