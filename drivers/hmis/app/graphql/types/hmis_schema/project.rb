@@ -35,8 +35,7 @@ module Types
     def self.authorized?(object, ctx)
       # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
       # the viewable_by scope is our primary defense against this.
-      permission = :can_view_project
-      super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
+      super && ctx[:current_user].policy_for(object, policy_type: :hmis_project).can_view?
     end
 
     available_filter_options do

@@ -148,8 +148,9 @@ window.addHouseholdTypeListener = function (individualOrFamilySelector) {
   // Generates a "household id" that is unlikely to have collisions among form submissions,
   // without using external library (uuid) or modern browser features (crypto)
   var generateHouseholdId = function () {
-    var current = (new Date()).getTime().toString()
-    var rand = Math.random().toString(16).substring(2)
+    // Keep the ID a constant length: "HH" + 13 (ms timestamp) + 13 (random hex-ish)
+    var current = (new Date()).getTime().toString().slice(-13).padStart(13, '0')
+    var rand = Math.random().toString(16).substring(2).padStart(13, '0').slice(-13)
     return String('HH' + current + rand).toUpperCase();
   }
 
