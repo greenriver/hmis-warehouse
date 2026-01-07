@@ -15,6 +15,6 @@ module Types
     # which is how the frontend displays them.
 
     field :swimlane, HmisSchema::CeSwimlane, null: false
-    field :assignments, [HmisSchema::CeDefaultSwimlaneAssignment], null: false, description: 'Default assignments for this swimlane'
+    field :assignments, [HmisSchema::CeDefaultContact], null: false, description: 'Default assignments for this swimlane'
   end
 end

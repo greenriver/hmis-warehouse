@@ -11,7 +11,7 @@ module Mutations
     class AssignCeDefaultContacts < Mutations::CleanBaseMutation
       argument :input, Types::HmisSchema::CeDefaultContactsInput, required: true
 
-      field :default_swimlane_assignments, [Types::HmisSchema::CeDefaultSwimlaneAssignment], null: false
+      field :default_contacts, [Types::HmisSchema::CeDefaultContact], null: false
 
       def resolve(input:)
         if input.project_id.present?
@@ -26,17 +26,17 @@ module Mutations
         # todo @martha - validation errors
         # errors = HmisErrors::Errors.new
         seen_assignment_ids = []
-        swimlane_ids = input.assignments.map(&:swimlane_id).uniq
+        swimlane_ids = input.contacts.map(&:swimlane_id).uniq
         swimlanes = Hmis::WorkflowDefinition::Swimlane.where(id: swimlane_ids).index_by(&:id)
 
-        user_ids = input.assignments.flat_map(&:user_ids).uniq
+        user_ids = input.contacts.flat_map(&:user_ids).uniq
         users = Hmis::User.where(id: user_ids).index_by(&:id)
 
         # Process each swimlane-to-users mapping
-        input.assignments.each do |assignment_input|
-          swimlane = swimlanes[assignment_input.swimlane_id.to_i]
+        input.contacts.each do |contact_input|
+          swimlane = swimlanes[contact_input.swimlane_id.to_i]
 
-          assignment_input.user_ids.each do |user_id|
+          contact_input.user_ids.each do |user_id|
             user = users[user_id.to_i]
 
             # Find or create the assignment
@@ -56,10 +56,10 @@ module Mutations
           where.not(id: seen_assignment_ids).
           each(&:destroy!)
 
-        # Return all current assignments for these swimlanes
+        # Return all current assignments for this owner and these swimlanes
         assignments = Hmis::Ce::DefaultSwimlaneAssignment.where(owner: owner, swimlane_id: swimlane_ids)
 
-        { default_swimlane_assignments: assignments }
+        { default_contacts: assignments }
       end
     end
   end

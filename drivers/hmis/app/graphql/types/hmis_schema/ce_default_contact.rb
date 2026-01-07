@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::CeDefaultSwimlaneAssignment < Types::BaseObject
+  class HmisSchema::CeDefaultContact < Types::BaseObject
     field :id, ID, null: false
     field :user, Application::User, null: false
     field :swimlane, HmisSchema::CeSwimlane, null: false

@@ -17,11 +17,11 @@ module Types
   class HmisSchema::CeDefaultContactsInput < Types::BaseInputObject
     description 'Input for creating CE default contacts'
 
-    # If project_id is provided, assignments are project-specific. If null, assignments are global, tied to the current user's HMIS data source.
+    # If project_id is provided, assignments are project-specific. If null, contacts are tied to the current user's HMIS data source.
     # Later we could add unit_group_id and organization_id as optional inputs here.
-    argument :project_id, ID, required: false, description: 'Project ID (if null, assignments are global)'
+    argument :project_id, ID, required: false, description: 'Project ID (if null, contacts are global)'
 
     # Array of swimlane-to-users mappings
-    argument :assignments, [Types::HmisSchema::CeSwimlaneUsersInput], required: true, description: 'Swimlane to user ID mappings'
+    argument :contacts, [Types::HmisSchema::CeSwimlaneUsersInput], required: true, description: 'Swimlane to user ID mappings'
   end
 end
