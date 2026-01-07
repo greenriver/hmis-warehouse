@@ -23,8 +23,6 @@ module Mutations
           access_denied! unless policy_for(GrdaWarehouse::DataSource, policy_type: :ce_admin).can_manage_contacts?
         end
 
-        # todo @martha - validation errors
-        # errors = HmisErrors::Errors.new
         seen_assignment_ids = []
         swimlane_ids = input.contacts.map(&:swimlane_id).uniq
         swimlanes = Hmis::WorkflowDefinition::Swimlane.where(id: swimlane_ids).index_by(&:id)
@@ -56,7 +54,7 @@ module Mutations
           where.not(id: seen_assignment_ids).
           each(&:destroy!)
 
-        # Return all current assignments for this owner and these swimlanes
+        # Return all current assignments for this owner and the provided swimlanes
         assignments = Hmis::Ce::DefaultSwimlaneAssignment.where(owner: owner, swimlane_id: swimlane_ids)
 
         { default_contacts: assignments }

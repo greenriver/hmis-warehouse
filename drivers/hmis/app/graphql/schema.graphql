@@ -1415,6 +1415,7 @@ type CeReferralsPaginated {
 type CeSwimlane {
   id: ID!
   name: String!
+  taskNames: [String!]!
   templateIdentifier: String!
   templateName: String!
 }

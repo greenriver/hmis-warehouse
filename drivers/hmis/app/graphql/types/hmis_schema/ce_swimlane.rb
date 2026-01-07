@@ -8,11 +8,11 @@
 
 module Types
   class HmisSchema::CeSwimlane < Types::BaseObject
-    # todo @martha - include tooltip or helper text for what tasks apply
     field :id, ID, null: false
     field :name, String, null: false
     field :template_name, String, null: false
     field :template_identifier, String, null: false
+    field :task_names, [String], null: false
 
     def template_name
       template.name
@@ -20,6 +20,11 @@ module Types
 
     def template_identifier
       template.identifier
+    end
+
+    def task_names
+      tasks = load_ar_association(object, :tasks)
+      tasks.sort_by(&:id).map(&:name)
     end
 
     private def template
