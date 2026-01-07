@@ -90,6 +90,7 @@ module Types
     field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
     field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
     field :ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Coordinated Entry default contacts grouped by swimlane'
+    field :ce_swimlanes, [HmisSchema::CeSwimlane], null: false, description: 'Coordinated Entry swimlanes that are in templates used by this project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -179,6 +180,19 @@ module Types
           contacts: assignments,
         )
       end
+    end
+
+    def ce_swimlanes
+      template_scope = Hmis::WorkflowDefinition::Template.
+        ce.published.
+        viewable_by(current_user).
+        used_in_projects([object.id])
+
+      Hmis::WorkflowDefinition::Swimlane.
+        joins(:template).
+        merge(template_scope).
+        order(:name, :id).
+        distinct
     end
 
     def assessments(**args)

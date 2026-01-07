@@ -9702,6 +9702,11 @@ type Project {
   ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
+
+  """
+  Coordinated Entry swimlanes that are in templates used by this project
+  """
+  ceSwimlanes: [CeSwimlane!]!
   contactInformation: String
   continuumProject: NoYes
 
