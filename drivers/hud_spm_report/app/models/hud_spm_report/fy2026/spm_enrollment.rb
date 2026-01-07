@@ -138,20 +138,21 @@ module HudSpmReport::Fy2026
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
 
-      # Load contexts mapping: enrollment_group_id -> context
-      she_by_enrollment_group = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        where(
-          enrollment_group_id: enrollments.pluck(:EnrollmentID),
-        ).
-        pluck(:enrollment_group_id, :id).
-        to_h
+      # Subquery for scale-safe lookups (avoids PostgreSQL parameter limits)
+      she_subquery = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(enrollment_group_id: enrollments.reselect(:EnrollmentID))
 
+      # Map enrollment_group_id -> service_history_enrollment_id
+      enrollment_group_to_she_id = she_subquery.pluck(:enrollment_group_id, :id).to_h
+
+      # Map service_history_enrollment_id -> enrollment_group_id (for context indexing)
+      she_id_to_enrollment_group = enrollment_group_to_she_id.invert
+
+      # Load pre-computed contexts indexed by enrollment_group_id (EnrollmentID)
       contexts_by_enrollment_group = HudReports::HouseholdContext.
-        where(
-          report_instance_id: report_instance.id,
-          service_history_enrollment_id: she_by_enrollment_group.values,
-        ).
-        index_by { |ctx| she_by_enrollment_group.key(ctx.service_history_enrollment_id) }
+        where(report_instance_id: report_instance.id).
+        where(service_history_enrollment_id: she_subquery.reselect(:id)).
+        index_by { |ctx| she_id_to_enrollment_group[ctx.service_history_enrollment_id] }
 
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
         members = []

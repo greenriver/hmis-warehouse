@@ -6,7 +6,7 @@ module HudReports
       new(...).call
     end
 
-    def initialize(generator, report, source_report_id: nil, enrollment_scope: nil, lookback_years: 0)
+    def initialize(generator, report, source_report_id: nil, enrollment_scope: nil, lookback_years: 20)
       @generator = generator
       @report = report
       @source_report_id = source_report_id
