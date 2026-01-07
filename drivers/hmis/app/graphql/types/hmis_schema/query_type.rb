@@ -631,7 +631,7 @@ module Types
       all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
         OpenStruct.new(
           swimlane: swimlane,
-          assignments: assignments,
+          contacts: assignments,
         )
       end
     end

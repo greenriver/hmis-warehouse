@@ -168,7 +168,7 @@ module Types
       )
     end
 
-    def default_swimlane_assignments
+    def ce_default_contacts
       all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
         for_project(object).
         joins(:swimlane).
@@ -177,7 +177,7 @@ module Types
       all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
         OpenStruct.new(
           swimlane: swimlane,
-          assignments: assignments,
+          contacts: assignments,
         )
       end
     end
