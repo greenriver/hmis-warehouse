@@ -38,6 +38,11 @@ context.assigned_referral_step_ids           # => Set of step IDs user is assign
 context.potential_permissions                # => All permissions user could have
 ```
 
+**Authorization is scoped to the user's current HMIS data source:**
+
+- `Hmis::AuthPolicies::UserContext` expects the user to have `user.hmis_data_source_id` set. This value is populated by the GraphQL/controller layer based on **which HMIS the request is coming from** (see attach_data_source_id).
+- `context.project_permissions(project_id)` returns an empty set when the `project_id` does not belong to the user's current data source. When this happens, we also log the mismatch to Sentry (useful for detecting cross-data-source access attempts). This is a secondary defense; the primary guard should be `viewable_by` scopes that filter records by `hmis_data_source_id`.
+
 ### 3. **Context Loaders**
 - **Location**: `drivers/hmis/app/models/hmis/auth_policies/context_loaders/`
 - **Purpose**: Efficient batch loading of authorization data from the database
