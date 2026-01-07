@@ -464,5 +464,18 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         expect(target_report.household_contexts.count).to eq(0)
       end
     end
+
+    context 'with custom enrollment_scope' do
+      let(:custom_scope) { GrdaWarehouse::ServiceHistoryEnrollment.where(id: [enrollment_hoh.id]) }
+
+      it 'uses provided scope instead of generator discovery' do
+        builder = described_class.new(generator, report, enrollment_scope: custom_scope)
+        builder.call
+
+        # Should only build context for enrollments in custom scope
+        expect(report.household_contexts.count).to eq(1)
+        expect(report.household_contexts.first.service_history_enrollment_id).to eq(enrollment_hoh.id)
+      end
+    end
   end
 end

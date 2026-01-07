@@ -6,10 +6,12 @@ module HudReports
       new(...).call
     end
 
-    def initialize(generator, report, source_report_id: nil)
+    def initialize(generator, report, source_report_id: nil, enrollment_scope: nil, lookback_years: 0)
       @generator = generator
       @report = report
       @source_report_id = source_report_id
+      @enrollment_scope = enrollment_scope
+      @lookback_years = lookback_years
     end
 
     def call
@@ -49,6 +51,8 @@ module HudReports
     end
 
     def enrollment_scope
+      return @enrollment_scope if @enrollment_scope.present?
+
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: @generator.client_scope).
         merge(@generator.report_scope_source.open_between(
@@ -122,8 +126,11 @@ module HudReports
       real_hh_ids = household_ids.reject { |id| id.end_with?('*HH') }
       synthetic_eg_ids = household_ids.select { |id| id.end_with?('*HH') }.map { |id| id.sub('*HH', '') }
 
+      # For reports with lookbacks (like SPM), we need to find members outside the report year.
+      lookback_start = @report.start_date - @lookback_years.years
+
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: @report.start_date, end_date: @report.end_date).
+        open_between(start_date: lookback_start, end_date: @report.end_date).
         preload(enrollment: [:client, :disabilities_at_entry, :project])
 
       query = if real_hh_ids.any? && synthetic_eg_ids.any?
@@ -215,6 +222,12 @@ module HudReports
         pit_chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)
         inherited_move_in_date = HudReports::HouseholdLogic.calculate_move_in_date(member_hash, hoh_data, report_end_date: @report.end_date)
 
+        # SPM-specific: Calculate inherited date to street for Measure 1b
+        inherited_date_to_street = HudReports::HouseholdLogic.calculate_date_to_street(
+          member_hash,
+          hoh_data,
+        )
+
         # Parenting youth logic
         is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, hh_member_hashes)
         has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(hh_member_hashes)
@@ -251,6 +264,9 @@ module HudReports
           inherited_pit_chronic_status: pit_chronic_source&.[](:status) || false,
           inherited_pit_chronic_detail: pit_chronic_source&.[](:detail),
           inherited_move_in_date: inherited_move_in_date,
+          member_entry_date: member_hash[:entry_date],
+          member_date_to_street: member_hash[:date_to_street],
+          inherited_date_to_street: inherited_date_to_street,
           member_count: hh_member_count,
           hh_max_age: hh_max_age,
           hh_has_minor_children: hh_has_minor_children,

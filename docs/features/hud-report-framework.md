@@ -92,6 +92,8 @@ To optimize the creation of report snapshots (like `AprClient`), the framework u
 
 This logic is populated during the `prepare_report` phase of the generator. FY2026 reports use these pre-computed values when building their snapshot models to avoid expensive in-memory Ruby calculations.
 
+The `HouseholdContextBuilder` accepts an optional `enrollment_scope:` parameter for flexibility. If provided, it uses that scope directly; otherwise, it discovers enrollments via `generator.client_scope` and `generator.report_scope_source`. This allows different report types (APR, SPM) to use different enrollment discovery strategies while sharing the same context building logic.
+
 ### Snapshot Models (Presentation Layer)
 Many reports create secondary snapshots (e.g., `AprClient`, `SpmEnrollment`) that bundle both raw data and pre-computed logic into a single table optimized for UI drill-down and CSV exports.
 

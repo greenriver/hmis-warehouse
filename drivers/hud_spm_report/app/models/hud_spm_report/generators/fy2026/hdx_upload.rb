@@ -30,7 +30,7 @@ module HudSpmReport::Generators::Fy2026
 
     def run_question!
       # Build the complete set of contexts to share with each APR DQ report
-      HudReports::HouseholdContextBuilder.call(@generator, @report)
+      HudReports::HouseholdContextBuilder.call(@generator, @report, lookback_years: 7)
 
       tables = [
         ['csv', :run_csv],
