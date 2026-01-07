@@ -839,14 +839,6 @@ type CeCustomReferralStatus {
   name: String!
 }
 
-type CeDefaultAssignmentsBySwimlane {
-  """
-  Default assignments for this swimlane
-  """
-  assignments: [CeDefaultContact!]!
-  swimlane: CeSwimlane!
-}
-
 type CeDefaultContact {
   global: Boolean!
   id: ID!
@@ -855,6 +847,14 @@ type CeDefaultContact {
   swimlane: CeSwimlane!
   unitGroup: UnitGroup
   user: ApplicationUser!
+}
+
+type CeDefaultContactsBySwimlane {
+  """
+  Default contacts for this swimlane
+  """
+  contacts: [CeDefaultContact!]!
+  swimlane: CeSwimlane!
 }
 
 """
@@ -9688,6 +9688,11 @@ type Project {
   Whether auto-exit is enabled in this project
   """
   autoExitEnabled: Boolean!
+
+  """
+  Coordinated Entry default contacts grouped by swimlane
+  """
+  ceDefaultContacts: [CeDefaultContactsBySwimlane!]!
   ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
@@ -9714,11 +9719,6 @@ type Project {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-
-  """
-  Default swimlane assignments grouped by swimlane
-  """
-  defaultSwimlaneAssignments: [CeDefaultAssignmentsBySwimlane!]!
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, formDefinitionIdentifier: ID!, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
@@ -10208,9 +10208,9 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Global CE default contacts, grouped by swimlane
+  Global Coordinated Entry default contacts, grouped by swimlane
   """
-  globalCeDefaultContacts: [CeDefaultAssignmentsBySwimlane!]!
+  globalCeDefaultContacts: [CeDefaultContactsBySwimlane!]!
   globalFeatureFlags: GlobalFeatureFlags!
 
   """

@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::CeDefaultContact < Types::BaseObject
+    # underlying object is a Hmis::Ce::DefaultSwimlaneAssignment
+
     field :id, ID, null: false
     field :user, Application::User, null: false
     field :swimlane, HmisSchema::CeSwimlane, null: false

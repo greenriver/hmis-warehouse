@@ -90,7 +90,7 @@ module Types
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
     field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
     field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
-    field :default_swimlane_assignments, [HmisSchema::CeDefaultAssignmentsBySwimlane], null: false, description: 'Default swimlane assignments grouped by swimlane'
+    field :ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Coordinated Entry default contacts grouped by swimlane'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests

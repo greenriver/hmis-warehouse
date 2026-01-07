@@ -616,7 +616,7 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
-    field :global_ce_default_contacts, [HmisSchema::CeDefaultAssignmentsBySwimlane], null: false, description: 'Global CE default contacts, grouped by swimlane'
+    field :global_ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Global Coordinated Entry default contacts, grouped by swimlane'
     def global_ce_default_contacts
       # todo @martha - use global policy
       access_denied! unless current_user.can_administrate_coordinated_entry?
