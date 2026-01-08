@@ -62,7 +62,8 @@ module Health
         where(patient_id: patient_ids).
         in_range(@range).
         where(activity: :discharge_follow_up).
-        pluck(:patient_id).uniq
+        distinct.
+        pluck(:patient_id)
     end
 
     def with_completed_intake
@@ -120,11 +121,8 @@ module Health
     # critically, allows the existing (member_id, procedure_code) index to be used
     # for the procedure-code branch instead of being blocked by the OR.
     private def wellcare_patient_ids(patient_id_slice, anchor)
-      if ENV['WELLCARE_USE_UNION_QUERY'].present?
-        wellcare_patient_ids_union(patient_id_slice, anchor)
-      else
-        wellcare_patient_ids_legacy(patient_id_slice, anchor)
-      end
+      use_union_query = ENV.fetch('WELLCARE_USE_UNION_QUERY', '1') != '0'
+      use_union_query ? wellcare_patient_ids_union(patient_id_slice, anchor) : wellcare_patient_ids_legacy(patient_id_slice, anchor)
     end
 
     private def wellcare_patient_ids_legacy(patient_id_slice, anchor)
