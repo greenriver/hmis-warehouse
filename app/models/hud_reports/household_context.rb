@@ -28,9 +28,11 @@ module HudReports
     belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
     def self.prune!
-      # Delete contexts for reports older than 2 weeks or reports that have been deleted
-      valid_report_ids = HudReports::ReportInstance.where(created_at: ..2.weeks.ago).select(:id)
-      where.not(report_instance_id: valid_report_ids).delete_all
+      # Delete contexts for reports older than 2 weeks or reports where the report instance no longer exists
+      old_report_ids = HudReports::ReportInstance.where(created_at: ..2.weeks.ago).select(:id)
+      where(report_instance_id: old_report_ids).
+        or(where.not(report_instance_id: HudReports::ReportInstance.select(:id))).
+        delete_all
     end
 
     # Efficiently copies contexts from a source report for a specific set of enrollments
