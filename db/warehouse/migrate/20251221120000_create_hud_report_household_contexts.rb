@@ -46,7 +46,7 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.boolean :hh_all_adult_non_veteran
       t.boolean :hh_any_adult_refused_veteran
       t.boolean :hh_any_adult_missing_veteran
-      t.bigint :data_source_id, null: false
+      t.references :data_source, null: false
 
       t.timestamps
     end
@@ -54,9 +54,6 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
     add_index :hud_report_household_contexts, [:report_instance_id, :service_history_enrollment_id],
               unique: true,
               name: 'index_hud_report_hh_contexts_on_report_and_she'
-
-    add_index :hud_report_household_contexts, [:report_instance_id, :household_id, :data_source_id],
-              name: 'index_hud_report_hh_contexts_on_report_hh_ds'
 
     add_column :hud_report_instances, :household_context_count, :integer
   end
