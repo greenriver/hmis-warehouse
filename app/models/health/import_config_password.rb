@@ -14,6 +14,7 @@ module Health
         username,
         password: password,
         port: port_number,
+        skip_verify_host_key: true,
       ) do |connection|
         yield connection
       end
