@@ -6,7 +6,7 @@ module HudReports
       new(...).call
     end
 
-    def initialize(generator, report, enrollment_scope:, source_report_id: nil, lookback_years: 20)
+    def initialize(generator, report, enrollment_scope:, source_report_id: nil, lookback_years: 2)
       @generator = generator
       @report = report
       @source_report_id = source_report_id
@@ -206,6 +206,12 @@ module HudReports
       end
 
       # HH Level Stats
+      # For household composition and veteran stats, only consider members active during the report period.
+      # Historical members (from lookback) are used for inheritance but should not affect the current report's household type.
+      active_hh_member_hashes = hh_member_hashes.select do |mh|
+        (mh[:exit_date].nil? || mh[:exit_date] >= @report.start_date) && mh[:entry_date] <= @report.end_date
+      end
+
       hoh_data = hh_member_hashes.detect { |m| m[:relationship_to_hoh] == 1 }
       hoh_adjusted_move_in_date = (HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
 
@@ -216,17 +222,17 @@ module HudReports
         0
       end
 
-      hh_all_ages = hh_member_hashes.map { |m| m[:age] }
+      hh_all_ages = active_hh_member_hashes.map { |m| m[:age] }
       hh_type = HudReports::HouseholdLogic.calculate_household_type(hh_all_ages)
 
       hh_ages = hh_all_ages.compact
       hh_max_age = hh_ages.max || 0
-      hh_member_count = members.size
-      hh_has_minor_children = hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
-      hh_max_age_of_parents = hh_member_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
+      hh_member_count = active_hh_member_hashes.size
+      hh_has_minor_children = active_hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
+      hh_max_age_of_parents = active_hh_member_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
 
-      # Veteran Stats
-      hh_adults = hh_member_hashes.select { |m| m[:age] && m[:age] >= 18 }
+      # Veteran Stats (active members only)
+      hh_adults = active_hh_member_hashes.select { |m| m[:age] && m[:age] >= 18 }
       hh_veterans = hh_adults.select { |m| m[:veteran_status] == 1 }
 
       hh_any_veteran_chronic = hh_veterans.any? { |m| m[:chronic_status] == true }
@@ -249,9 +255,9 @@ module HudReports
           hoh_data,
         )
 
-        # Parenting youth logic
-        is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, hh_member_hashes)
-        has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(hh_member_hashes)
+        # Parenting youth logic (active members only)
+        is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, active_hh_member_hashes)
+        has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(active_hh_member_hashes)
 
         HudReports::HouseholdContext.new(
           report_instance_id: @report.id,
