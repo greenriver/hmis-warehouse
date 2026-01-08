@@ -556,6 +556,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS' do
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:project_config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true) }
 
     let!(:admin_user) { hmis_user }
     let!(:ac1) { create_access_control(admin_user, project, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
@@ -571,6 +572,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns eligible users and not ineligible users' do
       response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', project_id: project.id.to_s) { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options).to contain_exactly(
+        a_hash_including('code' => hmis_user.id.to_s),
+        a_hash_including('code' => user_who_can_perform_own_tasks.id.to_s),
+      )
+    end
+
+    it 'returns all users who can perform any tasks when no project is passed' do
+      response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS') { query }
       expect(response.status).to eq 200
       options = result.dig('data', 'pickList')
       expect(options).to contain_exactly(
