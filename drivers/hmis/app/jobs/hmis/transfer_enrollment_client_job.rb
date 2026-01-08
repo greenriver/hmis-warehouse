@@ -66,13 +66,11 @@ module Hmis
 
       # All record types that reference PersonalID and are associated with enrollments
       record_types = [
+        # HUD Record Types
         Hmis::Hud::Assessment,
         Hmis::Hud::AssessmentQuestion,
         Hmis::Hud::AssessmentResult,
         Hmis::Hud::CurrentLivingSituation,
-        Hmis::Hud::CustomAssessment,
-        Hmis::Hud::CustomCaseNote,
-        Hmis::Hud::CustomService,
         Hmis::Hud::Disability,
         Hmis::Hud::EmploymentEducation,
         Hmis::Hud::Event,
@@ -81,7 +79,12 @@ module Hmis
         Hmis::Hud::IncomeBenefit,
         Hmis::Hud::Service,
         Hmis::Hud::YouthEducationStatus,
+        # Custom Record Types
+        Hmis::Hud::CustomAssessment,
+        Hmis::Hud::CustomCaseNote,
+        Hmis::Hud::CustomService,
       ]
+      # Note: there is no need to update other associated records like CustomDataElement which are associated with the enrollment via primary key, without a PersonalID reference.
 
       record_types.each do |record_type|
         t = record_type.arel_table
