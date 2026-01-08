@@ -26,6 +26,20 @@ If importing the test kit data into your web app, you may need to disable some a
 
 When running `GrdaWarehouse::Tasks::ProjectCleanup` in `HmisCsvImporter::Importer::Importer.post_process` (_File: `drivers/hmis_csv_importer/app/models/hmis_csv_importer/importer/importer.rb`_), the warehouse attempts to reconcile CoC Codes. This can interfere with Test Kits that are meant to have bad CoC codes. If you set the `skip_location_cleanup` argument to false during the Test Kit import process, these CoC codes will remain as they are in the CSVs.
 
+### Fixing EnrollmentCoC Mismatches
+
+By default, the test kit preserves data exactly as it appears in the CSVs, including any EnrollmentCoC mismatches. However, in production, `ProjectCleanup#fix_client_locations` automatically corrects enrollments where the EnrollmentCoC doesn't match the project's single ProjectCoC.
+
+To make tests match production behavior, you can opt-in to this cleanup:
+
+```ruby
+before(:all) do
+  setup(cleanup_enrollment_cocs: true)
+end
+```
+
+This will correct EnrollmentCoC values for single-CoC projects after fixtures load, matching the production behavior without requiring fixpoint regeneration.
+
 
 ### Rebuilding test kit
 

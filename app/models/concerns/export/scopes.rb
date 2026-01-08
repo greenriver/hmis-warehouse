@@ -47,11 +47,11 @@ module Export::Scopes
         end
 
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
-        if @coc_codes.present?
-          e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
-            or(e_scope.where(EnrollmentCoC: nil)).
-            or(e_scope.where.not(EnrollmentCoC: HudHelper.util.cocs.keys))
-        end
+        # Use LEFT JOIN to HoH + COALESCE for efficient filtering:
+        # - For HoH records: uses their own CoC
+        # - For non-HoH with HoH present: uses HoH's CoC
+        # - For non-HoH without HoH: falls back to their own CoC
+        e_scope = apply_hoh_coc_filter(e_scope) if @coc_codes.present?
         e_scope.distinct.preload(:project, :client)
       end
     end
@@ -87,11 +87,8 @@ module Export::Scopes
         # no-op
       end
       # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
-      if @coc_codes.present?
-        e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
-          or(e_scope.where(EnrollmentCoC: nil)).
-          or(e_scope.where.not(EnrollmentCoC: HudHelper.util.cocs.keys))
-      end
+      # Use LEFT JOIN to HoH + COALESCE for efficient filtering
+      e_scope = apply_hoh_coc_filter(e_scope) if @coc_codes.present?
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).
           and(e_t[:data_source_id].eq(c_t[:data_source_id])),
@@ -105,6 +102,35 @@ module Export::Scopes
         p_t[:ProjectID].eq(e_t[:ProjectID]).
           and(p_t[:data_source_id].eq(e_t[:data_source_id])),
       ).arel.exists
+    end
+
+    # Apply LEFT JOIN to HoH enrollment and filter on coalesced CoC value
+    # This efficiently handles all three cases in a single join:
+    # 1. No HouseholdID → COALESCE(NULL, enrollment.EnrollmentCoC) = enrollment's own CoC
+    # 2. HoH exists → COALESCE(hoh.EnrollmentCoC, enrollment.EnrollmentCoC) = HoH's CoC
+    # 3. HouseholdID exists but no HoH → COALESCE(NULL, enrollment.EnrollmentCoC) = enrollment's own CoC
+    def apply_hoh_coc_filter(scope)
+      hoh_t = GrdaWarehouse::Hud::Enrollment.arel_table.alias('hoh')
+      scope.joins(
+        e_t.create_join(
+          hoh_t,
+          e_t.create_on(
+            hoh_t[:HouseholdID].eq(e_t[:HouseholdID]).
+              and(hoh_t[:data_source_id].eq(e_t[:data_source_id])).
+              and(hoh_t[:ProjectID].eq(e_t[:ProjectID])).
+              and(hoh_t[:RelationshipToHoH].eq(1)),
+          ),
+          Arel::Nodes::OuterJoin,
+        ),
+      ).where(enrollment_coc_query_coalesced(cl(hoh_t[:EnrollmentCoC], e_t[:EnrollmentCoC])))
+    end
+
+    # Filter on coalesced CoC value (HoH's CoC if exists, else enrollment's own CoC)
+    # Accepts in @coc_codes, is NULL, or is not a valid CoC code
+    def enrollment_coc_query_coalesced(coalesced_coc_node)
+      coalesced_coc_node.in(@coc_codes).
+        or(coalesced_coc_node.eq(nil)).
+        or(coalesced_coc_node.not_in(HudHelper.util.cocs.keys))
     end
   end
 end

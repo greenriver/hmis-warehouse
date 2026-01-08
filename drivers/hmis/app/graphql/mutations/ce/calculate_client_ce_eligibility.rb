@@ -22,7 +22,7 @@ module Mutations
 
     def resolve(enrollment_id:, form_definition_id:, values_by_link_id:)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
-      access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
+      access_denied! unless policy_for(enrollment, policy_type: :hmis_enrollment).can_edit?
 
       # The match engine expects destination clients
       client = enrollment.client.destination_client

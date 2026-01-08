@@ -12,7 +12,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:organization) { create(:hmis_hud_organization, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
-  let(:user) { create(:hmis_user) }
+  let(:user) { create(:hmis_user, data_source: data_source) }
   let(:policy) { user.policy_for(project, policy_type: :hmis_project) }
 
   shared_examples 'permission checks with access' do
@@ -72,5 +72,24 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
 
   context 'without any access' do
     include_examples 'permission checks without access'
+  end
+
+  context 'when project belongs to a different data source' do
+    let(:other_data_source) { create(:hmis_data_source) }
+    before do
+      # grant user access to the project
+      create_access_control(user, project, with_permission: [:can_view_project, :can_edit_project_details])
+      # link user to the other data source
+      user.hmis_data_source_id = other_data_source.id
+    end
+
+    it 'is denied' do
+      expect(policy.can_view?).to be false
+    end
+
+    it 'reports the mismatch to Sentry' do
+      expect(Sentry).to receive(:capture_message).with(/HMIS Data Source Mismatch/)
+      policy.can_view?
+    end
   end
 end
