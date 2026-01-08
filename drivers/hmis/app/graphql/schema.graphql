@@ -198,6 +198,7 @@ enum AnnualPercentAMI {
 User account for a user of the system
 """
 type ApplicationUser {
+  active: Boolean!
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
   auditHistory(filters: UserAuditEventFilterOptions, limit: Int, offset: Int): ApplicationUserAuditEventsPaginated!
   clientAccessSummaries(filters: ClientAccessSummaryFilterOptions, limit: Int, offset: Int): ClientAccessSummariesPaginated!
