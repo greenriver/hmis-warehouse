@@ -186,6 +186,12 @@ tasks = [
     at: import_cleanup_time,
     interruptable: false,
   },
+  {
+    task: 'reports:csv:purge_eligible',
+    frequency: 1.day,
+    at: '2:00 am',
+    interruptable: true,
+  },
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'

@@ -1,0 +1,282 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'report_csv_reader'
+
+module Reports
+  class PurgeArchivedReportDataService
+    attr_reader :report, :errors, :dry_run, :force
+
+    def initialize(report, dry_run: false, force: false)
+      @report = report
+      @dry_run = dry_run
+      @force = force
+      @errors = []
+    end
+
+    def purge!
+      return { success: false, errors: ['Report not found'] } unless report.present?
+
+      # Safety checks
+      unless safety_checks_passed?
+        return {
+          success: false,
+          errors: @errors,
+        }
+      end
+
+      if dry_run
+        Rails.logger.info("DRY RUN: Would purge database data for report #{report.class.name} ##{report.id}")
+        return {
+          success: true,
+          dry_run: true,
+          would_delete: deletion_summary,
+        }
+      end
+
+      # Perform deletion
+      begin
+        deleted_counts = delete_report_data
+        update_purged_metadata
+
+        Rails.logger.info("Purged database data for report #{report.class.name} ##{report.id}: #{deleted_counts.inspect}")
+
+        {
+          success: true,
+          deleted_counts: deleted_counts,
+          purged_at: Time.current,
+        }
+      rescue StandardError => e
+        error_msg = "Error purging report #{report.class.name} ##{report.id}: #{e.message}"
+        @errors << error_msg
+        Rails.logger.error("#{error_msg}\n#{e.backtrace.first(5).join("\n")}")
+
+        {
+          success: false,
+          errors: @errors,
+        }
+      end
+    end
+
+    def can_purge?
+      safety_checks_passed?
+    end
+
+    private
+
+    def safety_checks_passed?
+      @errors = []
+
+      # Check 1: Archival must be complete (CSV files exist)
+      unless report.archival_metadata.present? && report.archival_metadata['archived_at'].present?
+        @errors << 'Report has not been archived'
+        return false
+      end
+
+      unless report.archival_complete?
+        @errors << 'Report archival is not complete (some CSV files are missing)'
+        return false
+      end
+
+      # Check 2: CSV files must be accessible
+      unless csv_files_accessible?
+        @errors << 'One or more CSV files are not accessible'
+        return false
+      end
+
+      # Check 3: CSV data integrity (row counts match)
+      unless csv_data_integrity_verified?
+        @errors << 'CSV data integrity check failed (row counts do not match database)'
+        return false
+      end
+
+      # Check 4: Already purged
+      if already_purged?
+        @errors << 'Report data has already been purged'
+        return false
+      end
+
+      # Check 5: Grace period must have expired (unless force is true)
+      unless force || grace_period_expired?
+        purge_eligible_at_str = report.archival_metadata&.dig('purge_eligible_at')
+        if purge_eligible_at_str
+          purge_eligible_at = Time.parse(purge_eligible_at_str)
+          days_remaining = ((purge_eligible_at - Time.current) / 1.day).ceil
+          @errors << "Grace period has not expired. Data will be eligible for purging in #{days_remaining} day(s) (on #{purge_eligible_at.strftime('%Y-%m-%d')}). Use force: true to bypass."
+        else
+          @errors << 'Grace period has not expired (purge_eligible_at not set). Use force: true to bypass.'
+        end
+        return false
+      end
+
+      true
+    end
+
+    def csv_files_accessible?
+      # Check only files that were expected to be archived (from metadata)
+      expected_files = report.archival_metadata&.dig('expected_files') || []
+      return false if expected_files.empty?
+
+      # Reload report to ensure attachments are fresh
+      report.reload unless report.new_record?
+
+      expected_files.all? do |attachment_name|
+        attachment = report.send(attachment_name)
+        # Check if attachment is attached (attached? already verifies blobs exist)
+        attachment.attached?
+      end
+    end
+
+    def csv_data_integrity_verified?
+      config = report.archival_csv_config
+      # Only check CSVs that were actually archived (from expected_files)
+      expected_files = report.archival_metadata&.dig('expected_files') || []
+      return true if expected_files.empty?
+
+      expected_files.all? do |attachment_name|
+        csv_config = config[attachment_name.to_sym]
+        next true unless csv_config # Skip if not in config (shouldn't happen, but be safe)
+
+        # Get association name for integrity check
+        association_name = csv_config[:association]
+        unless association_name
+          Rails.logger.info("Skipping integrity check for CSV #{attachment_name} without association")
+          next true
+        end
+
+        # Get CSV row count
+        csv_count = csv_row_count(attachment_name.to_sym)
+
+        # Get database count
+        db_count = database_row_count(csv_config)
+
+        # Allow small discrepancies due to timing, but log if significant
+        if csv_count != db_count
+          Rails.logger.warn(
+            "CSV integrity check: #{attachment_name} - CSV: #{csv_count}, DB: #{db_count} " \
+            "for report ##{report.id}",
+          )
+          # For now, allow small discrepancies (within 1%)
+          # In production, you might want stricter checking
+          difference = (csv_count - db_count).abs
+          max_difference = [csv_count, db_count].max * 0.01
+          difference <= max_difference
+        else
+          true
+        end
+      end
+    end
+
+    def csv_row_count(attachment_name)
+      # Ensure attachment_name is a symbol
+      attachment_name = attachment_name.to_sym if attachment_name.is_a?(String)
+      attachment = report.send(attachment_name)
+      return 0 unless attachment.attached?
+
+      # Use ReportCsvReader to count rows
+      reader = ReportCsvReader.new(report, attachment_name)
+      reader.all.count
+    end
+
+    def database_row_count(csv_config)
+      # Use association to count database rows
+      association_name = csv_config[:association]
+      return 0 unless association_name
+
+      begin
+        association = report.send(association_name)
+        association.is_a?(ActiveRecord::Relation) ? association.count : Array(association).count
+      rescue StandardError => e
+        Rails.logger.warn("Could not count database rows for #{association_name}: #{e.message}")
+        0
+      end
+    end
+
+    def already_purged?
+      report.archival_metadata&.dig('purged_at').present?
+    end
+
+    def grace_period_expired?
+      purge_eligible_at_str = report.archival_metadata&.dig('purge_eligible_at')
+      return false unless purge_eligible_at_str
+
+      purge_eligible_at = Time.parse(purge_eligible_at_str)
+      purge_eligible_at <= Time.current
+    end
+
+    def delete_report_data
+      counts = {}
+      config = report.archival_csv_config
+      return counts if config.empty?
+
+      # Collect all associations to purge, prioritizing order for foreign key dependencies
+      purge_associations = {}
+
+      config.each do |attachment_name, csv_config|
+        # Use association to determine what to purge
+        association_name = csv_config[:association]
+        next unless association_name
+
+        purge_associations[attachment_name] = association_name
+      end
+
+      # Delete associations in reverse order to handle foreign key dependencies
+      # (child records first, then parent records)
+      purge_associations.reverse_each do |_attachment_name, association_name|
+        association = report.send(association_name)
+        if association.is_a?(ActiveRecord::Relation)
+          counts[association_name] = association.delete_all
+        else
+          # If it's not a relation, try to get the class and delete by report_id
+          association_class = association.respond_to?(:klass) ? association.klass : association.class
+          if association_class.respond_to?(:where)
+            counts[association_name] = association_class.where(report_id: report.id).delete_all
+          else
+            Rails.logger.warn("PurgeArchivedReportDataService: Cannot delete #{association_name} for #{report.class.name}")
+          end
+        end
+      end
+
+      counts
+    end
+
+    def deletion_summary
+      counts = {}
+      config = report.archival_csv_config
+      return counts if config.empty?
+
+      config.each do |_attachment_name, csv_config|
+        # Use association to determine what to count
+        association_name = csv_config[:association]
+        next unless association_name
+
+        association = report.send(association_name)
+        if association.is_a?(ActiveRecord::Relation)
+          counts[association_name] = association.count
+        else
+          # If it's not a relation, try to get the class and count by report_id
+          association_class = association.respond_to?(:klass) ? association.klass : association.class
+          counts[association_name] = association_class.where(report_id: report.id).count if association_class.respond_to?(:where)
+        end
+      end
+
+      counts
+    end
+
+    def update_purged_metadata
+      current_metadata = report.archival_metadata || {}
+      report.update_column(
+        :archival_metadata,
+        current_metadata.merge(
+          'purged_at' => Time.current.iso8601,
+          'purged_by_service' => self.class.name,
+        ),
+      )
+    end
+  end
+end

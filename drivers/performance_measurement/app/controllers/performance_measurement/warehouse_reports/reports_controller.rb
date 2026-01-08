@@ -126,6 +126,20 @@ module PerformanceMeasurement::WarehouseReports
       end
     end
 
+    def reload_from_csv
+      require_can_publish_reports!
+      service = Reports::ReloadReportFromCsvService.new(@report)
+      result = service.reload!
+
+      if result[:success]
+        flash[:notice] = "Report data reloaded successfully. #{result[:reloaded_counts].values.sum} records restored."
+      else
+        flash[:error] = "Failed to reload report data: #{result[:errors].join(', ')}"
+      end
+
+      redirect_to performance_measurement_warehouse_reports_report_path(@report)
+    end
+
     def details_params
       params.permit(
         :key,

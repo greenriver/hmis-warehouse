@@ -23,6 +23,8 @@ module PerformanceMeasurement
     include PerformanceMeasurement::Details
 
     include ::WarehouseReports::Publish
+    # Prepend ReportArchival to ensure status override takes precedence
+    prepend ReportArchival
 
     attr_accessor :households, :include_in_published_version, :include_in_summary_only_version
 
@@ -33,6 +35,12 @@ module PerformanceMeasurement
     has_many :results
     has_many :client_projects
     has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
+
+    # Active Storage attachments for CSV archival
+    has_many_attached :clients_csv
+    has_many_attached :projects_csv
+    has_many_attached :client_projects_csv
+    has_many_attached :results_csv
 
     after_initialize :filter
 
@@ -49,11 +57,11 @@ module PerformanceMeasurement
     end
 
     def reporting_spm_id
-      @reporting_spm_id ||= clients.detect { |c| c.reporting_spm_id.present? }&.reporting_spm_id
+      @reporting_spm_id ||= clients.where.not(reporting_spm_id: nil).pluck(:reporting_spm_id).first
     end
 
     def comparison_spm_id
-      @comparison_spm_id ||= clients.detect { |c| c.comparison_spm_id.present? }&.comparison_spm_id
+      @comparison_spm_id ||= clients.where.not(comparison_spm_id: nil).pluck(:comparison_spm_id).first
     end
 
     def using_static_spm_for_comparison?
@@ -70,6 +78,7 @@ module PerformanceMeasurement
         create_universe
         add_capacities
         save_results
+        archive_to_csv!
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
@@ -1581,6 +1590,28 @@ module PerformanceMeasurement
           type: 'text/css',
         },
       ]
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+        projects_csv: {
+          association: :projects,
+          filename: -> { "#{report_type}-projects-#{id}.csv" },
+        },
+        client_projects_csv: {
+          association: :client_projects,
+          filename: -> { "#{report_type}-client_projects-#{id}.csv" },
+        },
+        results_csv: {
+          association: :results,
+          filename: -> { "#{report_type}-results-#{id}.csv" },
+        },
+      }
     end
 
     private def asset_path(asset)
