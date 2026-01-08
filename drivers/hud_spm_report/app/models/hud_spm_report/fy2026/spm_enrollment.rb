@@ -144,12 +144,12 @@ module HudSpmReport::Fy2026
         # Load contexts for THIS batch to minimize memory footprint
         # Identity is paired: [EnrollmentID, data_source_id]
         # Use raw SQL for composite IN clause as it's more reliable across different DB adapters
-        pairs = batch.map { |e| [e.EnrollmentID, e.data_source_id] }
-        placeholders = pairs.map { '(?, ?)' }.join(',')
-        values = pairs.flatten
+        identity_tuples = batch.map do |e|
+          "(#{GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)}, #{e.data_source_id})"
+        end.join(',')
 
         she_mapping = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          where("(enrollment_group_id, data_source_id) IN (#{placeholders})", *values).
+          where("(enrollment_group_id, data_source_id) IN (#{identity_tuples})").
           pluck(:enrollment_group_id, :data_source_id, :id).
           each_with_object({}) do |(eg_id, ds_id, she_id), hash|
             hash[[eg_id, ds_id]] = she_id
