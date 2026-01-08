@@ -132,4 +132,59 @@ RSpec.describe HudReports::HouseholdLogic do
       expect(described_class.calculate_move_in_date(member, hoh)).to eq(nil)
     end
   end
+
+  describe '.calculate_date_to_street' do
+    let(:hoh) do
+      {
+        entry_date: Date.parse('2020-01-01'),
+        date_to_street: Date.parse('2019-12-01'),
+      }
+    end
+
+    let(:member) do
+      {
+        entry_date: Date.parse('2020-01-01'),
+        age: 10,
+        dob: Date.parse('2010-01-01'),
+      }
+    end
+
+    it 'uses members own date_to_street if present' do
+      member[:date_to_street] = Date.parse('2019-12-15')
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(Date.parse('2019-12-15'))
+    end
+
+    it 'caps own date_to_street at DOB' do
+      member[:date_to_street] = Date.parse('2009-12-15') # Before birth
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(member[:dob])
+    end
+
+    it 'inherits from HoH if child under 17 and same entry date' do
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(hoh[:date_to_street])
+    end
+
+    it 'caps inherited date_to_street at DOB' do
+      hoh[:date_to_street] = Date.parse('2000-01-01') # Long before child birth
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(member[:dob])
+    end
+
+    it 'does not inherit if member entry date differs' do
+      member[:entry_date] = Date.parse('2020-01-02')
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(nil)
+    end
+
+    it 'does not inherit if member is over 17' do
+      member[:age] = 18
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(nil)
+    end
+
+    it 'returns nil if HoH has no date_to_street' do
+      hoh[:date_to_street] = nil
+      expect(described_class.calculate_date_to_street(member, hoh)).to eq(nil)
+    end
+
+    it 'returns nil if HoH is missing' do
+      expect(described_class.calculate_date_to_street(member, nil)).to eq(nil)
+    end
+  end
 end

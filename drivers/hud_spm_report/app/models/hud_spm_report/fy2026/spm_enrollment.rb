@@ -130,8 +130,6 @@ module HudSpmReport::Fy2026
       enrollment&.project&.id
     end
 
-    HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
-
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
@@ -139,60 +137,55 @@ module HudSpmReport::Fy2026
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
-      household_infos = household(enrollments)
+
+      GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
+        # Load contexts for THIS batch to minimize memory footprint
+        # Identity is paired: [EnrollmentID, data_source_id]
+        # Use raw SQL for composite IN clause as it's more reliable across different DB adapters
+        identity_tuples = batch.map do |e|
+          "(#{GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)}, #{e.data_source_id})"
+        end.join(',')
+
+        she_mapping = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          where("(enrollment_group_id, data_source_id) IN (#{identity_tuples})").
+          pluck(:enrollment_group_id, :data_source_id, :id).
+          each_with_object({}) do |(eg_id, ds_id, she_id), hash|
+            hash[[eg_id, ds_id]] = she_id
+          end
+
+        contexts_by_she_id = HudReports::HouseholdContext.
+          where(report_instance_id: report_instance.id, service_history_enrollment_id: she_mapping.values).
+          index_by(&:service_history_enrollment_id)
+
         members = []
+
         batch.each do |enrollment|
           client = enrollment.client
           next if client.blank?
 
+          # Find pre-computed context using paired identity
+          she_id = she_mapping[[enrollment.EnrollmentID, enrollment.data_source_id]]
+          context = contexts_by_she_id[she_id]
+          next unless context # Skip if no context (shouldn't happen in normal flow)
+
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
-          household_info = household_infos[enrollment.household_id] ||
-            HomelessnessInfo.new(
-              start_of_homelessness: enrollment.date_to_street_essh,
-              entry_date: enrollment.entry_date,
-              move_in_date: enrollment_own_move_in_date(enrollment),
-            ) # If there is no HoH, use the enrollment
-          members << {
-            report_instance_id: report_instance.id,
 
-            first_name: client.first_name,
-            last_name: client.last_name,
-            client_id: enrollment.destination_client.id,
-            enrollment_id: enrollment.id,
+          attributes = SpmEnrollmentBuilder.build(
+            report: report_instance,
+            enrollment: enrollment,
+            context: context,
+            filter: filter,
+            current_income: current_income_benefits,
+            previous_income: previous_income_benefits,
+          )
 
-            personal_id: client.personal_id,
-            data_source_id: enrollment.data_source_id,
-            age: client.age_on([filter.start, enrollment.entry_date].max),
-            start_of_homelessness: start_of_homelessness(filter, household_info, enrollment),
-            entry_date: enrollment.entry_date,
-            exit_date: enrollment&.exit&.exit_date,
-            move_in_date: move_in_date(household_info, enrollment),
-            project_type: enrollment.project.project_type,
-            eligible_funding: eligible_funding?(enrollment, filter.start, filter.end),
-            destination: enrollment.exit&.destination,
-
-            prior_living_situation: enrollment.living_situation,
-            length_of_stay: enrollment.length_of_stay,
-            los_under_threshold: enrollment.los_under_threshold == 1,
-            previous_street_essh: enrollment.previous_street_essh == 1,
-
-            current_income_benefits_id: current_income_benefits&.id,
-            current_earned_income: earned_income(current_income_benefits),
-            current_non_employment_income: non_employment_income(current_income_benefits),
-            current_total_income: total_income(current_income_benefits),
-
-            previous_income_benefits_id: previous_income_benefits&.id,
-            previous_earned_income: earned_income(previous_income_benefits),
-            previous_non_employment_income: non_employment_income(previous_income_benefits),
-            previous_total_income: total_income(previous_income_benefits),
-
-            # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec59oPiPxyysL4nL
-            days_enrolled: ([enrollment&.exit&.exit_date, filter.end].compact.min - enrollment.entry_date).to_i + 1, # enter and exit on the same day == 1 day
-          }
+          members << attributes if attributes.present?
         end
-        import!(members)
+
+        import!(members) if members.any?
       end
     end
 
@@ -218,62 +211,6 @@ module HudSpmReport::Fy2026
         table[:personal_id],
         Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
       ]
-    end
-
-    private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
-      # If the HMIS also collects this element on children and unknown-age household members, their data should be used in measure 1b
-      return [enrollment.date_to_street_essh, enrollment.client&.dob].compact.max if enrollment.date_to_street_essh.present?
-
-      # If the HMIS does not collect this element on child household members:
-      # •	The data from the head of household's response to 3.917 should be propagated to these children for the purposes of measure 1b.
-      # •	This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
-      # •	Only propagate the head of household's data to children with the same [project start date] as the head of household.
-      age = enrollment.client.age_on([filter.start, enrollment.entry_date].max)
-      start_of_homelessness = if age.present? && age <= 17 &&
-        enrollment.entry_date == household_info.entry_date
-        # Inherit start of homelessness from HoH for any household member aged <- 17 if they entered with the HoH
-        household_info.start_of_homelessness
-      else
-        enrollment.date_to_street_essh
-      end
-      # Start of homelessness is never before birth
-      start_of_homelessness = [start_of_homelessness, enrollment.client&.dob].compact.max if start_of_homelessness.present?
-
-      start_of_homelessness
-    end
-
-    private_class_method def self.move_in_date(household_info, enrollment)
-      # Use the client move in date if they are the HoH
-      return enrollment_own_move_in_date(enrollment) if enrollment.head_of_household?
-      # Don't inherit move in date if the client exited before the HoH moved in
-      return enrollment_own_move_in_date(enrollment) if enrollment.exit.present? && household_info.move_in_date.present? && enrollment.exit.exit_date <= household_info.move_in_date
-      # Use the client's entry date if a client entered the household after the HoH had already moved in
-      return enrollment.entry_date if household_info.move_in_date.present? && enrollment.entry_date > household_info.move_in_date
-
-      # Otherwise, inherit move in date from HoH
-      household_info.move_in_date
-    end
-
-    private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
-      enrollment.project.funders.any? do |funder|
-        # Unroll open_between to allow preload
-        funder.funder.in?(HudHelper.util('2026').spm_coc_funders.map(&:to_s)) &&
-          # Unroll open_between to allow preload
-          (funder.end_date.nil? || funder.end_date >= start_date) &&
-          (funder.start_date.nil? || funder.start_date <= end_date)
-      end
-    end
-
-    private_class_method def self.total_income(income_benefit)
-      (income_benefit&.hud_total_monthly_income || 0).clamp(0..)
-    end
-
-    private_class_method def self.earned_income(income_benefit)
-      (income_benefit&.earned_amount || 0).clamp(0..)
-    end
-
-    private_class_method def self.non_employment_income(income_benefit)
-      (total_income(income_benefit) - earned_income(income_benefit)).clamp(0..)
     end
 
     private_class_method def self.current_income_benefits(enrollment, end_date)
@@ -337,28 +274,6 @@ module HudSpmReport::Fy2026
           ) AS gs
         )
       SQL
-    end
-
-    private_class_method def self.enrollment_own_move_in_date(enrollment)
-      return nil unless enrollment.move_in_date
-
-      enrollment.move_in_date >= enrollment.entry_date ? enrollment.move_in_date : nil
-    end
-
-    private_class_method def self.household(enrollments)
-      result = {}
-
-      scope = enrollments.heads_of_households.order(e_t[:household_id], e_t[:move_in_date].asc.nulls_last)
-      scope.find_in_batches do |batch|
-        batch.each do |enrollment|
-          result[enrollment.household_id] = HomelessnessInfo.new(
-            start_of_homelessness: enrollment.date_to_street_essh,
-            entry_date: enrollment.entry_date,
-            move_in_date: enrollment_own_move_in_date(enrollment),
-          )
-        end
-      end
-      result
     end
   end
 end

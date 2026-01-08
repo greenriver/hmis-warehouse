@@ -6,10 +6,12 @@ module HudReports
       new(...).call
     end
 
-    def initialize(generator, report, source_report_id: nil)
+    def initialize(generator, report, enrollment_scope:, source_report_id: nil, lookback_years: 2)
       @generator = generator
       @report = report
       @source_report_id = source_report_id
+      @enrollment_scope = enrollment_scope
+      @lookback_years = lookback_years
     end
 
     def call
@@ -27,6 +29,10 @@ module HudReports
     end
 
     private
+
+    def universe_she_ids
+      enrollment_scope.pluck(:id).to_set
+    end
 
     def copy_contexts_from_source
       # Validate date ranges match
@@ -48,22 +54,20 @@ module HudReports
       )
     end
 
-    def enrollment_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        where(client_id: @generator.client_scope).
-        merge(@generator.report_scope_source.open_between(
-                start_date: @report.start_date,
-                end_date: @report.end_date,
-              ))
-    end
+    attr_reader :enrollment_scope
 
     def build_contexts_from_scratch
       contexts = []
-      each_household_id_batch do |batch|
-        all_members_by_hh = load_unfiltered_members(batch).group_by { |she| get_hh_id(she) }
+      universe_ids = universe_she_ids
+      each_household_batch do |batch|
+        # batch is array of [hh_id, data_source_id]
+        all_members = load_unfiltered_members(batch)
+        all_members_by_hh = all_members.group_by { |she| [get_hh_id(she), she.data_source_id] }
 
-        all_members_by_hh.each do |hh_id, members|
-          contexts.concat(build_contexts_for_household(hh_id, members))
+        all_members_by_hh.each do |(hh_id, data_source_id), members|
+          household_contexts = build_contexts_for_household(hh_id, data_source_id, members)
+          # Only keep contexts for members that are part of the report universe
+          contexts.concat(household_contexts.select { |c| universe_ids.include?(c.service_history_enrollment_id) })
         end
 
         if contexts.size >= import_batch_size
@@ -84,16 +88,21 @@ module HudReports
     end
 
     def get_hh_id(she)
+      # If a HUD HouseholdID is missing, we use the EnrollmentID as a synthetic household ID.
+      # We append '*HH' to these synthetic IDs to prevent accidental collisions with real
+      # HouseholdIDs that might share the same string value within the same data source.
       she.household_id || "#{she.enrollment_group_id}*HH"
     end
 
-    def each_household_id_batch
-      # Get unique HH IDs for the report universe by driving directly from ServiceHistoryEnrollment.
-      # We drive from the clients that are in the report universe.
+    def each_household_batch
+      # Get unique HH IDs + data_source_id for the report universe
       hh_ids_query = enrollment_scope
 
-      # Plucking unique HH identifiers in batches to avoid loading everything into memory.
       she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+
+      # We drive batching using the same synthetic ID logic as get_hh_id.
+      # The '*HH' suffix ensures we don't conflate a real HouseholdID with a synthetic one
+      # derived from an EnrollmentID of the same value within the same data source.
       hh_id_expr = Arel::Nodes::NamedFunction.new(
         'COALESCE',
         [
@@ -104,46 +113,67 @@ module HudReports
 
       base_query = hh_ids_query.
         distinct.
-        order(hh_id_expr)
+        order(hh_id_expr, she_table[:data_source_id])
 
       last_hh_id = nil
+      last_ds_id = nil
+
       loop do
         query = base_query.limit(batch_size)
-        query = query.where(hh_id_expr.gt(last_hh_id)) if last_hh_id
-        batch = query.pluck(hh_id_expr)
+
+        if last_hh_id
+          # Seek logic for composite order
+          condition = hh_id_expr.gt(last_hh_id).or(
+            hh_id_expr.eq(last_hh_id).and(she_table[:data_source_id].gt(last_ds_id)),
+          )
+          query = query.where(condition)
+        end
+
+        # We need both values
+        batch = query.pluck(hh_id_expr, she_table[:data_source_id])
         break if batch.empty?
 
         yield batch
-        last_hh_id = batch.last
+        last_hh_id, last_ds_id = batch.last
       end
     end
 
-    def load_unfiltered_members(household_ids)
-      real_hh_ids = household_ids.reject { |id| id.end_with?('*HH') }
-      synthetic_eg_ids = household_ids.select { |id| id.end_with?('*HH') }.map { |id| id.sub('*HH', '') }
+    def load_unfiltered_members(batch)
+      # batch is array of [hh_id, data_source_id]
+      # We group by data_source_id to make queries more efficient (fewer IN clauses)
+      members = []
+      batch.group_by(&:last).each do |ds_id, pairs|
+        hh_ids = pairs.map(&:first)
+        real_hh_ids = hh_ids.reject { |id| id.end_with?('*HH') }
+        synthetic_eg_ids = hh_ids.select { |id| id.end_with?('*HH') }.map { |id| id.sub('*HH', '') }
 
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: @report.start_date, end_date: @report.end_date).
-        preload(enrollment: [:client, :disabilities_at_entry, :project])
+        lookback_start = @report.start_date - @lookback_years.years
 
-      query = if real_hh_ids.any? && synthetic_eg_ids.any?
-        scope.where(household_id: real_hh_ids).or(scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil))
-      elsif real_hh_ids.any?
-        scope.where(household_id: real_hh_ids)
-      else
-        scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil)
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          where(data_source_id: ds_id).
+          open_between(start_date: lookback_start, end_date: @report.end_date).
+          preload(enrollment: [:client, :disabilities_at_entry, :project])
+
+        query = if real_hh_ids.any? && synthetic_eg_ids.any?
+          scope.where(household_id: real_hh_ids).or(scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil))
+        elsif real_hh_ids.any?
+          scope.where(household_id: real_hh_ids)
+        else
+          scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil)
+        end
+
+        members.concat(query.to_a.select { |m| m.enrollment.present? })
       end
-
-      query.to_a.select { |m| m.enrollment.present? }
+      members
     end
 
-    def build_contexts_for_household(hh_id, members)
+    def build_contexts_for_household(hh_id, data_source_id, members)
       # Pre-calculate common HH values
       hh_member_hashes = members.map do |m|
         enrollment = m.enrollment
-        client = enrollment&.client
+        source_client = enrollment&.client
         date = [m.first_date_in_program, @report.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: client&.DOB)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: source_client&.DOB)
 
         # Determine report_date for chronic calculation
         report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
@@ -159,25 +189,31 @@ module HudReports
           she_id: m.id,
           enrollment_id: enrollment&.id,
           destination_client_id: m.client_id,
-          source_client_id: client&.id,
-          personal_id: client&.PersonalID,
+          source_client_id: source_client&.id,
+          personal_id: source_client&.PersonalID,
           entry_date: m.first_date_in_program,
           exit_date: m.last_date_in_program,
           age: age,
-          dob: client&.DOB,
+          dob: source_client&.DOB,
           chronic_status: chronic_at_start == :yes,
           pit_chronic_status: pit_chronic_at_start == :yes,
           chronic_detail: chronic_at_start,
           pit_chronic_detail: pit_chronic_at_start,
           relationship_to_hoh: enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
-          veteran_status: client&.VeteranStatus,
+          veteran_status: source_client&.VeteranStatus,
           enrollment_coc: enrollment&.EnrollmentCoC,
           date_to_street: enrollment&.DateToStreetESSH,
         }
       end
 
       # HH Level Stats
+      # For household composition and veteran stats, only consider members active during the report period.
+      # Historical members (from lookback) are used for inheritance but should not affect the current report's household type.
+      active_hh_member_hashes = hh_member_hashes.select do |mh|
+        (mh[:exit_date].nil? || mh[:exit_date] >= @report.start_date) && mh[:entry_date] <= @report.end_date
+      end
+
       hoh_data = hh_member_hashes.detect { |m| m[:relationship_to_hoh] == 1 }
       hoh_adjusted_move_in_date = (HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
 
@@ -188,17 +224,17 @@ module HudReports
         0
       end
 
-      hh_all_ages = hh_member_hashes.map { |m| m[:age] }
+      hh_all_ages = active_hh_member_hashes.map { |m| m[:age] }
       hh_type = HudReports::HouseholdLogic.calculate_household_type(hh_all_ages)
 
       hh_ages = hh_all_ages.compact
       hh_max_age = hh_ages.max || 0
-      hh_member_count = members.size
-      hh_has_minor_children = hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
-      hh_max_age_of_parents = hh_member_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
+      hh_member_count = active_hh_member_hashes.size
+      hh_has_minor_children = active_hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
+      hh_max_age_of_parents = active_hh_member_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
 
-      # Veteran Stats
-      hh_adults = hh_member_hashes.select { |m| m[:age] && m[:age] >= 18 }
+      # Veteran Stats (active members only)
+      hh_adults = active_hh_member_hashes.select { |m| m[:age] && m[:age] >= 18 }
       hh_veterans = hh_adults.select { |m| m[:veteran_status] == 1 }
 
       hh_any_veteran_chronic = hh_veterans.any? { |m| m[:chronic_status] == true }
@@ -215,13 +251,20 @@ module HudReports
         pit_chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)
         inherited_move_in_date = HudReports::HouseholdLogic.calculate_move_in_date(member_hash, hoh_data, report_end_date: @report.end_date)
 
-        # Parenting youth logic
-        is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, hh_member_hashes)
-        has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(hh_member_hashes)
+        # SPM-specific: Calculate inherited date to street for Measure 1b
+        inherited_date_to_street = HudReports::HouseholdLogic.calculate_date_to_street(
+          member_hash,
+          hoh_data,
+        )
+
+        # Parenting youth logic (active members only)
+        is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, active_hh_member_hashes)
+        has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(active_hh_member_hashes)
 
         HudReports::HouseholdContext.new(
           report_instance_id: @report.id,
           service_history_enrollment_id: m.id,
+          data_source_id: data_source_id,
           source_enrollment_id: member_hash[:enrollment_id],
           source_client_id: member_hash[:source_client_id],
           destination_client_id: member_hash[:destination_client_id],
@@ -251,6 +294,9 @@ module HudReports
           inherited_pit_chronic_status: pit_chronic_source&.[](:status) || false,
           inherited_pit_chronic_detail: pit_chronic_source&.[](:detail),
           inherited_move_in_date: inherited_move_in_date,
+          member_entry_date: member_hash[:entry_date],
+          member_date_to_street: member_hash[:date_to_street],
+          inherited_date_to_street: inherited_date_to_street,
           member_count: hh_member_count,
           hh_max_age: hh_max_age,
           hh_has_minor_children: hh_has_minor_children,

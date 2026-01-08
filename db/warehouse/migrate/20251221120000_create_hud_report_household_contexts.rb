@@ -34,6 +34,9 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.boolean :inherited_pit_chronic_status
       t.string :inherited_pit_chronic_detail
       t.date :inherited_move_in_date
+      t.date :member_entry_date              # Member's entry date for comparison logic
+      t.date :member_date_to_street          # Member's own DateToStreetESSH (before inheritance)
+      t.date :inherited_date_to_street       # Start of homelessness with SPM child inheritance applied
       t.integer :member_count
       t.integer :hh_max_age
       t.boolean :hh_has_minor_children
@@ -43,6 +46,7 @@ class CreateHudReportHouseholdContexts < ActiveRecord::Migration[7.1]
       t.boolean :hh_all_adult_non_veteran
       t.boolean :hh_any_adult_refused_veteran
       t.boolean :hh_any_adult_missing_veteran
+      t.references :data_source, null: false
 
       t.timestamps
     end

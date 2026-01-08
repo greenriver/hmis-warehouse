@@ -65,7 +65,7 @@ module HudApr::Generators::Shared::Fy2026
       false
     end
 
-    private def add_apr_clients(batch_size: 500)
+    private def add_apr_clients(batch_size: 500) # rubocop:disable Metrics/AbcSize
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
 
@@ -77,12 +77,17 @@ module HudApr::Generators::Shared::Fy2026
         ).index_by(&:service_history_enrollment_id)
 
         # Load ALL members for households in this batch to build legacy JSON blobs
-        batch_hh_ids = contexts_by_she_id.values.map(&:household_id).uniq
-        batch_households = HudReports::HouseholdContext.where(
-          report_instance_id: @report.id,
-          household_id: batch_hh_ids,
-        ).group_by(&:household_id).transform_values do |members|
-          members.map(&:to_legacy_member_hash)
+        # Must isolate by data_source_id to prevent PII leakage across vendors
+        batch_hh_keys = contexts_by_she_id.values.map { |c| [c.household_id, c.data_source_id] }.uniq
+        batch_households = if batch_hh_keys.any?
+          values = batch_hh_keys.map { |id, ds| "(#{ActiveRecord::Base.connection.quote(id)}, #{ds})" }.join(', ')
+          HudReports::HouseholdContext.where(
+            report_instance_id: @report.id,
+          ).where("(household_id, data_source_id) IN (#{values})").group_by { |c| [c.household_id, c.data_source_id] }.transform_values do |members|
+            members.map(&:to_legacy_member_hash)
+          end
+        else
+          {}
         end
 
         # Load HoH enrollments needed for various calculations
@@ -209,7 +214,7 @@ module HudApr::Generators::Shared::Fy2026
           report_ce_event_universe.import(events)
         end
       end
-    end
+    end # rubocop:enable Metrics/AbcSize
 
     private def apr_clients_populated?
       @report.report_cells.joins(universe_members: :apr_client).exists?

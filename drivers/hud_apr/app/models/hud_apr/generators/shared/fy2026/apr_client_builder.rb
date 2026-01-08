@@ -239,7 +239,7 @@ module HudApr::Generators::Shared::Fy2026
         hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
         hiv_aids: disabilities.detect(&:hiv?).present?,
         household_id: @ctx.household_id,
-        household_members: @households[@ctx.household_id] || [],
+        household_members: @households[[@ctx.household_id, @ctx.data_source_id]] || [],
         household_type: @ctx.household_type,
         housing_assessment: @enrollment.exit&.HousingAssessment,
         income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,

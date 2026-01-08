@@ -94,6 +94,26 @@ module HudReports
         nil
       end
 
+      # SPM Measure 1b: Start of homelessness inheritance for children
+      def calculate_date_to_street(member, hoh)
+        # If member has own DateToStreetESSH, use it (capped at DOB)
+        return [member[:date_to_street], member[:dob]].compact.max if member[:date_to_street].present?
+
+        # Inherit from HoH if:
+        # 1. Member is age <= 17 (child)
+        # 2. Member entered on same date as HoH
+        if member[:age].present? &&
+           member[:age] <= 17 &&
+           member[:entry_date] == hoh&.[](:entry_date)
+          date_to_street = hoh&.[](:date_to_street)
+          # Cap at DOB if present
+          return [date_to_street, member[:dob]].compact.max if date_to_street.present?
+        end
+
+        # Otherwise no start of homelessness
+        nil
+      end
+
       def calculate_is_parenting_youth(member, hh_members)
         age = member[:age]
         adult = age && age >= 18

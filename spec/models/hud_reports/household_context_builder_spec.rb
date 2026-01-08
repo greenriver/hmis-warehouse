@@ -9,6 +9,12 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       HudReports::GeneratorBase,
       client_scope: GrdaWarehouse::Hud::Client.all,
       report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
+      base_enrollment_scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: GrdaWarehouse::Hud::Client.all).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+                start_date: report.start_date,
+                end_date: report.end_date,
+              )),
     )
   end
 
@@ -57,7 +63,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
   let(:enrollment_hoh) { GrdaWarehouse::ServiceHistoryEnrollment.find_by(enrollment_group_id: hud_enrollment_hoh.EnrollmentID) }
   let(:enrollment_child) { GrdaWarehouse::ServiceHistoryEnrollment.find_by(enrollment_group_id: hud_enrollment_child.EnrollmentID) }
 
-  subject(:builder) { described_class.new(generator, report) }
+  subject(:builder) { described_class.new(generator, report, enrollment_scope: generator.base_enrollment_scope) }
 
   describe '#call' do
     it 'creates a context for each enrollment in the household' do
@@ -116,7 +122,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           MonthsHomelessPastThreeYears: 112, # 112 = 12 months
         )
         # Re-rebuild to pick up changes
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).rebuild_service_history!
       end
 
       it 'passes chronic status from HoH to the child' do
@@ -128,7 +134,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       it 'passes chronic status from another adult to the child if HoH is not chronic' do
         # HoH not chronic
         hud_enrollment_hoh.update!(DisablingCondition: 0)
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).rebuild_service_history!
 
         # Add another adult who is chronic
         adult_2 = create_client_with_warehouse_link(dob: 30.years.ago)
@@ -314,6 +320,12 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           HudReports::GeneratorBase,
           client_scope: GrdaWarehouse::Hud::Client.where(id: [client_hoh.destination_client.id]),
           report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
+          base_enrollment_scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            where(client_id: GrdaWarehouse::Hud::Client.where(id: [client_hoh.destination_client.id])).
+            merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+                    start_date: report.start_date,
+                    end_date: report.end_date,
+                  )),
         )
       end
 
@@ -324,7 +336,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
 
       it 'generates a synthetic ID using enrollment_group_id' do
-        described_class.new(generator_synthetic, report).call
+        described_class.new(generator_synthetic, report, enrollment_scope: generator_synthetic.base_enrollment_scope).call
         expect(HudReports::HouseholdContext.last.household_id).to eq("#{hud_enrollment_hoh.EnrollmentID}*HH")
       end
     end
@@ -364,11 +376,17 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           HudReports::GeneratorBase,
           client_scope: GrdaWarehouse::Hud::Client.where(id: [youth_hoh.destination_client.id, child.destination_client.id]),
           report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
+          base_enrollment_scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            where(client_id: GrdaWarehouse::Hud::Client.where(id: [youth_hoh.destination_client.id, child.destination_client.id])).
+            merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+                    start_date: report.start_date,
+                    end_date: report.end_date,
+                  )),
         )
       end
 
       it 'identifies the HoH as a parenting youth' do
-        described_class.new(generator_youth, report).call
+        described_class.new(generator_youth, report, enrollment_scope: generator_youth.base_enrollment_scope).call
         youth_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_youth.id)
         expect(youth_context.is_parenting_youth).to be true
       end
@@ -386,7 +404,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 
-        described_class.new(generator, report).call
+        described_class.new(generator, report, enrollment_scope: generator.base_enrollment_scope).call
         youth_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_youth.id)
         expect(youth_context.is_parenting_youth).to be false
         expect(youth_context.has_other_clients_over_25).to be true
@@ -421,7 +439,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
       before do
         # Create contexts in source report
-        builder = described_class.new(source_generator, source_report)
+        builder = described_class.new(source_generator, source_report, enrollment_scope: source_generator.base_enrollment_scope)
         builder.call
       end
 
@@ -430,7 +448,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         target_generator = test_generator_class.new(target_report)
         target_generator.client_scope_override = GrdaWarehouse::Hud::Client.where(id: client_hoh.destination_client.id)
 
-        builder = described_class.new(target_generator, target_report, source_report_id: source_report.id)
+        builder = described_class.new(target_generator, target_report, enrollment_scope: target_generator.base_enrollment_scope, source_report_id: source_report.id)
         builder.call
 
         # Verify contexts were copied with new report_instance_id
@@ -449,7 +467,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
                                    start_date: start_date + 1.day,
                                    end_date: end_date)
 
-        builder = described_class.new(source_generator, mismatched_report, source_report_id: source_report.id)
+        builder = described_class.new(source_generator, mismatched_report, enrollment_scope: source_generator.base_enrollment_scope, source_report_id: source_report.id)
 
         expect { builder.call }.to raise_error(ArgumentError, /date ranges don't match/)
       end
@@ -458,10 +476,24 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         empty_generator = test_generator_class.new(target_report)
         empty_generator.client_scope_override = GrdaWarehouse::Hud::Client.none
 
-        builder = described_class.new(empty_generator, target_report, source_report_id: source_report.id)
+        builder = described_class.new(empty_generator, target_report, enrollment_scope: empty_generator.base_enrollment_scope, source_report_id: source_report.id)
         builder.call
 
         expect(target_report.household_contexts.count).to eq(0)
+      end
+    end
+
+    context 'with custom enrollment_scope' do
+      let(:custom_scope) { GrdaWarehouse::ServiceHistoryEnrollment.where(id: [enrollment_hoh.id]) }
+
+      it 'uses provided scope instead of generator discovery' do
+        builder = described_class.new(generator, report, enrollment_scope: custom_scope)
+        builder.call
+
+        # Should only build context for enrollments in custom scope
+        report.reload
+        expect(report.household_contexts.count).to eq(1)
+        expect(report.household_contexts.first.service_history_enrollment_id).to eq(enrollment_hoh.id)
       end
     end
   end
