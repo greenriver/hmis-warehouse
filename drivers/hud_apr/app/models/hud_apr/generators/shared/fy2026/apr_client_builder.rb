@@ -281,7 +281,12 @@ module HudApr::Generators::Shared::Fy2026
         months_homeless: @enrollment.MonthsHomelessPastThreeYears,
         move_in_date: @last_service_history_enrollment.move_in_date,
         hoh_move_in_date: @ctx.hoh_move_in_date,
-        adjusted_move_in_date: @ctx.inherited_move_in_date,
+        adjusted_move_in_date: begin
+          calculated_move_in_date = @ctx.inherited_move_in_date
+          is_ph_or_pfs_project = @last_service_history_enrollment.ph? ||
+            (@last_service_history_enrollment.other? && @enrollment.project.pay_for_success?)
+          calculated_move_in_date || (is_ph_or_pfs_project ? nil : @last_service_history_enrollment.first_date_in_program)
+        end,
         name_quality: @source_client.NameDataQuality,
         non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
         non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
