@@ -62,7 +62,8 @@ module Health
         where(patient_id: patient_ids).
         in_range(@range).
         where(activity: :discharge_follow_up).
-        pluck(:patient_id).uniq
+        distinct.
+        pluck(:patient_id)
     end
 
     def with_completed_intake

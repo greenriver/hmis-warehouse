@@ -7697,6 +7697,13 @@ CREATE INDEX idx_crmc_member_service_start_date ON public.claims_reporting_medic
 
 
 --
+-- Name: idx_qa_dfu_patient_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_qa_dfu_patient_date ON public.qualifying_activities USING btree (patient_id, date_of_activity) WHERE ((deleted_at IS NULL) AND ((activity)::text = 'discharge_follow_up'::text));
+
+
+--
 -- Name: index_any_careplans_on_instrument; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8978,6 +8985,7 @@ ALTER TABLE ONLY public.team_members
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260108154000'),
 ('20260107184500'),
 ('20240807185011'),
 ('20240807183449'),
