@@ -168,128 +168,23 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
         end
       end
 
+      # More comprehensive specs for default participant assignment are in the model spec
+      # (see spec/models/hmis/ce/referral_spec.rb #create_default_participants!)
       context 'with default swimlane assignments' do
-        let!(:case_manager_1) { create :hmis_user }
-        let!(:case_manager_2) { create :hmis_user }
-        let!(:provider_user) { create :hmis_user }
-        let!(:provider_swimlane) { template.swimlanes.create!(name: 'Providers') }
-
-        context 'assigned at the project level' do
-          let!(:default_assignment_1) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: project)
-          end
-          let!(:default_assignment_2) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_2, swimlane: swimlane, owner: project)
-          end
-          let!(:default_assignment_provider) do
-            create(:hmis_ce_default_swimlane_assignment, user: provider_user, swimlane: provider_swimlane, owner: project)
-          end
-
-          it 'creates referral participants from project-level defaults' do
-            expect do
-              post_graphql(**variables) { mutation }
-            end.to change(Hmis::Ce::ReferralParticipant, :count).by(3)
-
-            referral = Hmis::Ce::Referral.last
-            expect(referral.participants.pluck(:user_id, :swimlane_id)).to contain_exactly(
-              [case_manager_1.id, swimlane.id],
-              [case_manager_2.id, swimlane.id],
-              [provider_user.id, provider_swimlane.id],
-            )
-          end
+        let!(:case_manager) { create :hmis_user }
+        let!(:default_assignment) do
+          create(:hmis_ce_default_swimlane_assignment, user: case_manager, swimlane: swimlane, owner: project)
         end
 
-        shared_examples 'creates participant from single assignment' do |owner_description|
-          it "creates referral participant from #{owner_description}-level default" do
-            expect do
-              post_graphql(**variables) { mutation }
-            end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
+        it 'creates referral participants from default assignments' do
+          expect do
+            post_graphql(**variables) { mutation }
+          end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
 
-            referral = Hmis::Ce::Referral.last
-            participant = referral.participants.first
-            expect(participant.user).to eq(case_manager_1)
-            expect(participant.swimlane).to eq(swimlane)
-          end
-        end
-
-        context 'assigned at the unit group level' do
-          let!(:default_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: unit_group)
-          end
-
-          include_examples 'creates participant from single assignment', 'unit group'
-        end
-
-        context 'assigned at the organization level' do
-          let!(:default_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: project.organization)
-          end
-
-          include_examples 'creates participant from single assignment', 'organization'
-        end
-
-        context 'assigned at the data source level' do
-          let!(:default_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: ds1)
-          end
-
-          include_examples 'creates participant from single assignment', 'data source'
-        end
-
-        context 'with assignments at multiple levels' do
-          let!(:project_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: project)
-          end
-          let!(:unit_group_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: unit_group)
-          end
-          let!(:org_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_2, swimlane: swimlane, owner: project.organization)
-          end
-          let!(:ds_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: provider_user, swimlane: provider_swimlane, owner: ds1)
-          end
-
-          it 'creates participants additively from all levels, deduplicating by user and swimlane' do
-            expect do
-              post_graphql(**variables) { mutation }
-            end.to change(Hmis::Ce::ReferralParticipant, :count).by(3)
-
-            referral = Hmis::Ce::Referral.last
-            # case_manager_1 assigned from project/unit_group (deduplicated to one participant)
-            # case_manager_2 assigned from organization
-            # provider_user assigned from data source with different swimlane
-            expect(referral.participants.pluck(:user_id, :swimlane_id)).to contain_exactly(
-              [case_manager_1.id, swimlane.id],
-              [case_manager_2.id, swimlane.id],
-              [provider_user.id, provider_swimlane.id],
-            )
-          end
-        end
-
-        context 'with default assignment for an unrelated project' do
-          let!(:other_project) { create :hmis_hud_project, data_source: ds1 }
-          let!(:unrelated_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: other_project)
-          end
-
-          it 'does not create participants for unrelated projects' do
-            expect do
-              post_graphql(**variables) { mutation }
-            end.not_to change(Hmis::Ce::ReferralParticipant, :count)
-          end
-        end
-
-        context 'with soft-deleted default assignments' do
-          let!(:default_assignment) do
-            create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: swimlane, owner: project, deleted_at: Time.current)
-          end
-
-          it 'does not create participants for soft-deleted assignments' do
-            expect do
-              post_graphql(**variables) { mutation }
-            end.not_to change(Hmis::Ce::ReferralParticipant, :count)
-          end
+          referral = Hmis::Ce::Referral.last
+          participant = referral.participants.first
+          expect(participant.user).to eq(case_manager)
+          expect(participant.swimlane).to eq(swimlane)
         end
       end
     end
