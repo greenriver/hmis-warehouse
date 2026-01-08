@@ -30,6 +30,10 @@ module HudReports
 
     private
 
+    def universe_she_ids
+      enrollment_scope.pluck(:id).to_set
+    end
+
     def copy_contexts_from_source
       # Validate date ranges match
       source_report = HudReports::ReportInstance.find(@source_report_id)
@@ -54,18 +58,16 @@ module HudReports
 
     def build_contexts_from_scratch
       contexts = []
+      universe_ids = universe_she_ids
       each_household_batch do |batch|
         # batch is array of [hh_id, data_source_id]
         all_members = load_unfiltered_members(batch)
         all_members_by_hh = all_members.group_by { |she| [get_hh_id(she), she.data_source_id] }
 
-        # Identify which of these members are actually in the report universe (enrollment_scope)
-        universe_she_ids = enrollment_scope.where(id: all_members.map(&:id)).pluck(:id).to_set
-
         all_members_by_hh.each do |(hh_id, data_source_id), members|
           household_contexts = build_contexts_for_household(hh_id, data_source_id, members)
           # Only keep contexts for members that are part of the report universe
-          contexts.concat(household_contexts.select { |c| universe_she_ids.include?(c.service_history_enrollment_id) })
+          contexts.concat(household_contexts.select { |c| universe_ids.include?(c.service_history_enrollment_id) })
         end
 
         if contexts.size >= import_batch_size
