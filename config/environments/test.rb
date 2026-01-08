@@ -45,8 +45,6 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
 
-  # time zone - use UTC for tests to match database and container timezone and HMIS front-end JS
-  # Production/staging use TIMEZONE environment variable (defaults to America/New_York)
   config.time_zone = 'America/New_York'
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
