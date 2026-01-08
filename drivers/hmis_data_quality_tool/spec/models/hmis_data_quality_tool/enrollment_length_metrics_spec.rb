@@ -221,243 +221,99 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
     end
 
     describe 'PH Move-in Date Issues' do
-      context 'with enrollment without move-in date for 90+ days' do
-        context 'for PSH project' do
-          before do
-            @project = create_project(project_type: 3) # PSH
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 100.days, # More than 90 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
+      context 'for PSH project' do
+        before do
+          @project = create_project(project_type: 3) # PSH
+          report_end = default_filter.end
 
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-          end
-        end
-
-        context 'for SSO project with VA: GPD CM/HR funder' do
-          before do
-            @project = create_project(project_type: 6) # SSO
-            # Add VA: GPD Case Management/Housing Retention funder (funder code 45)
-            create(
-              :hud_funder,
-              data_source: data_source,
-              ProjectID: @project.ProjectID,
-              Funder: 45, # VA: Grant Per Diem - Case Management/Housing Retention
-            )
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 100.days, # More than 90 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
-
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-          end
-        end
-
-        context 'for Pay for Success project' do
-          before do
-            @project = create_project(project_type: 7) # Other
-            # Add Pay for Success funder (funder code 35)
-            create(
-              :hud_funder,
-              data_source: data_source,
-              ProjectID: @project.ProjectID,
-              Funder: 35, # HUD: Pay for Success
-            )
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 100.days, # More than 90 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
-
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-          end
-        end
-      end
-
-      context 'with enrollment without move-in date for 180+ days' do
-        context 'for PSH project' do
-          before do
-            @project = create_project(project_type: 3) # PSH
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 200.days, # More than 180 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
-
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-            expect_result(key: :days_in_ph_prior_to_move_in_180_issues, invalid_count: 1)
-          end
-        end
-
-        context 'for Pay for Success project' do
-          before do
-            @project = create_project(project_type: 7) # Other
-            # Add Pay for Success funder (funder code 35)
-            create(
-              :hud_funder,
-              data_source: data_source,
-              ProjectID: @project.ProjectID,
-              Funder: 35, # HUD: Pay for Success
-            )
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 200.days, # More than 180 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
-
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-            expect_result(key: :days_in_ph_prior_to_move_in_180_issues, invalid_count: 1)
-          end
-        end
-      end
-
-      context 'with enrollment without move-in date for 365+ days' do
-        context 'for PSH project' do
-          before do
-            @project = create_project(project_type: 3) # PSH
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 400.days, # More than 365 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
-
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-            expect_result(key: :days_in_ph_prior_to_move_in_180_issues, invalid_count: 1)
-            expect_result(key: :days_in_ph_prior_to_move_in_365_issues, invalid_count: 1)
-          end
-        end
-
-        context 'for Pay for Success project' do
-          before do
-            @project = create_project(project_type: 7) # Other
-            # Add Pay for Success funder (funder code 35)
-            create(
-              :hud_funder,
-              data_source: data_source,
-              ProjectID: @project.ProjectID,
-              Funder: 35, # HUD: Pay for Success
-            )
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            @enrollment = create_enrollment(
-              client: @client,
-              project: @project,
-              entry_date: report_end - 400.days, # More than 365 days before report end
-              exit_date: nil, # Still active
-              relationship_to_ho_h: 1,
-            )
-            # No move-in date set
-            @report = setup_report([@project.id])
-          end
-
-          it 'flags missing move-in date' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 1)
-            expect_result(key: :days_in_ph_prior_to_move_in_180_issues, invalid_count: 1)
-            expect_result(key: :days_in_ph_prior_to_move_in_365_issues, invalid_count: 1)
-          end
-        end
-      end
-
-      context 'with enrollment with valid move-in date' do
-        context 'for PSH project' do
-          before do
-            @project = create_project(project_type: 3) # PSH
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            entry_date = report_end - 60.days
-            @enrollment = create_enrollment(
-              client: @client,
+          [60, 90, 180, 365].each do |days|
+            client = create_client_with_warehouse_link
+            entry_date = report_end - days.days
+            create_enrollment(
+              client: client,
               project: @project,
               entry_date: entry_date,
               exit_date: nil,
               relationship_to_ho_h: 1,
-              move_in_date: entry_date + 14.days, # Move-in shortly after entry
+              move_in_date: days == 60 ? entry_date + 14.days : nil, # Only the 60 day enrollment has a move-in date
             )
-            @report = setup_report([@project.id])
           end
 
-          it 'does not flag valid move-in dates' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 0)
-          end
+          @report = setup_report([@project.id])
         end
 
-        context 'for Pay for Success project' do
-          before do
-            @project = create_project(project_type: 7) # Other
-            # Add Pay for Success funder (funder code 35)
-            create(
-              :hud_funder,
-              data_source: data_source,
-              ProjectID: @project.ProjectID,
-              Funder: 35, # HUD: Pay for Success
-            )
-            @client = create_client_with_warehouse_link
-            report_end = default_filter.end
-            entry_date = report_end - 60.days
-            @enrollment = create_enrollment(
-              client: @client,
+        it 'flags missing move-in date and does not flag valid move-in dates' do
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, total: 4, invalid_count: 3)
+          expect_result(key: :days_in_ph_prior_to_move_in_180_issues, total: 4, invalid_count: 2)
+          expect_result(key: :days_in_ph_prior_to_move_in_365_issues, total: 4, invalid_count: 1)
+        end
+      end
+
+      context 'for SSO project with VA: GPD CM/HR funder' do
+        before do
+          @project = create_project(project_type: 6) # SSO
+          create(
+            :hud_funder,
+            data_source: data_source,
+            ProjectID: @project.ProjectID,
+            Funder: 45, # VA: Grant Per Diem - Case Management/Housing Retention
+          )
+          report_end = default_filter.end
+
+          [60, 90, 180, 365].each do |days|
+            client = create_client_with_warehouse_link
+            entry_date = report_end - days.days
+            create_enrollment(
+              client: client,
               project: @project,
               entry_date: entry_date,
               exit_date: nil,
               relationship_to_ho_h: 1,
-              move_in_date: entry_date + 14.days, # Move-in shortly after entry
+              move_in_date: days == 60 ? entry_date + 14.days : nil, # Only the 60 day enrollment has a move-in date
             )
-            @report = setup_report([@project.id])
           end
 
-          it 'does not flag valid move-in dates' do
-            expect_result(key: :days_in_ph_prior_to_move_in_90_issues, invalid_count: 0)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags missing move-in date and does not flag valid move-in dates' do
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, total: 4, invalid_count: 3)
+          expect_result(key: :days_in_ph_prior_to_move_in_180_issues, total: 4, invalid_count: 2)
+          expect_result(key: :days_in_ph_prior_to_move_in_365_issues, total: 4, invalid_count: 1)
+        end
+      end
+
+      context 'for Pay for Success project' do
+        before do
+          @project = create_project(project_type: 7) # Other
+          create(
+            :hud_funder,
+            data_source: data_source,
+            ProjectID: @project.ProjectID,
+            Funder: 35, # HUD: Pay for Success
+          )
+          report_end = default_filter.end
+
+          [60, 90, 180, 365].each do |days|
+            client = create_client_with_warehouse_link
+            entry_date = report_end - days.days
+            create_enrollment(
+              client: client,
+              project: @project,
+              entry_date: entry_date,
+              exit_date: nil,
+              relationship_to_ho_h: 1,
+              move_in_date: days == 60 ? entry_date + 14.days : nil, # Only the 60 day enrollment has a move-in date
+            )
           end
+
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags missing move-in date and does not flag valid move-in dates' do
+          expect_result(key: :days_in_ph_prior_to_move_in_90_issues, total: 4, invalid_count: 3)
+          expect_result(key: :days_in_ph_prior_to_move_in_180_issues, total: 4, invalid_count: 2)
+          expect_result(key: :days_in_ph_prior_to_move_in_365_issues, total: 4, invalid_count: 1)
         end
       end
     end

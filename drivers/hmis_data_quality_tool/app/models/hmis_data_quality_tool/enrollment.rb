@@ -554,13 +554,14 @@ module HmisDataQualityTool
       return false unless item.project_type == 7 # Other project type
       return false unless item.enrollment.present?
 
-      item.enrollment.project.pay_for_success?
+      item.enrollment&.project&.pay_for_success?
     end
 
     def self.requires_move_in_date?(item)
       return false unless hoh?(item)
 
       in_ph_and_not_rrh_sso = HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type) && ! rrh_sso_only?(item)
+      # SSO project with the 'VA: Grant Per Diem - Case Management/Housing Retention' funder
       sso_with_gpd_cm_hr = sso_with_gpd_cm_hr_funder?(item)
       pay_for_success = pay_for_success_project?(item)
       in_ph_and_not_rrh_sso || sso_with_gpd_cm_hr || pay_for_success
