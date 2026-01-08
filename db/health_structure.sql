@@ -1,8 +1,3 @@
--- \restrict d5jKJWDEudoxJPrGSz5tZm6Uzta7TBQwE87T7bBcMqO6SLKXLgGZD2agahItER2
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -7702,6 +7697,13 @@ CREATE INDEX idx_crmc_member_service_start_date ON public.claims_reporting_medic
 
 
 --
+-- Name: idx_qa_dfu_patient_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_qa_dfu_patient_date ON public.qualifying_activities USING btree (patient_id, date_of_activity) WHERE ((deleted_at IS NULL) AND ((activity)::text = 'discharge_follow_up'::text));
+
+
+--
 -- Name: index_any_careplans_on_instrument; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8980,11 +8982,11 @@ ALTER TABLE ONLY public.team_members
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict d5jKJWDEudoxJPrGSz5tZm6Uzta7TBQwE87T7bBcMqO6SLKXLgGZD2agahItER2
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260108154000'),
+('20260107184500'),
 ('20240807185011'),
 ('20240807183449'),
 ('20240807182354'),
