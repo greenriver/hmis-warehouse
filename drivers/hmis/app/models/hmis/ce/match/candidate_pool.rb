@@ -41,13 +41,51 @@ module Hmis::Ce::Match
     # foreign key constraint violations
     before_destroy :nullify_deleted_associations
 
-    scope :active, -> {
-      # Pool is active if there are any active Opportunities that reference it
-      active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.distinct.pluck(:candidate_pool_id).compact
-      # Pool is active if there are any UnitGroups that reference it
-      active_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.distinct.pluck(:candidate_pool_id).compact
-      all_active_ids = (active_ids_for_opportunities + active_ids_for_unit_groups).sort.uniq
-      where(id: all_active_ids)
+    # Returns candidate pools that need to be maintained by the system.
+    #
+    # Use this scope in maintenance operations such as the processing jobs (ProcessPoolsJob, ProcessClientsJob)
+    # when determining which candidate pools should be kept up-to-date.
+    #
+    # Includes pools that are referenced by:
+    # - Any active opportunities (both 'open' and 'locked' status)
+    #   - note: includes "stale" opportunities that no longer reflect the latest requirements
+    #   - note: includes locked opportunities, because their candidate pools should remain updated in case the opportunity becomes available again
+    # - Any unit groups with CE waitlists enabled
+    #   - note: candidate pools tied to unit groups are maintained to ensure they are up-to-date even if there are no vacancies at the moment
+    scope :active_for_maintenance, -> {
+      # Pool should be maintained if there are any open or locked Opportunities that reference it
+      ids_through_opportunities = referenced_by_opportunities_with_status(status: ['open', 'locked']).select(:id)
+      # Pool should be maintained if there are any UnitGroups that reference it
+      ids_through_unit_groups = referenced_by_unit_groups.select(:id)
+      where(id: (ids_through_opportunities + ids_through_unit_groups).sort.uniq)
+    }
+
+    # Returns candidate pools that represent current or future referral opportunities for clients.
+    #
+    # Use this scope when displaying unit groups that a client is "eligible for" on
+    # client profiles or similar user-facing features.
+    #
+    # Includes pools that are referenced by:
+    # - Any unit groups with CE waitlists enabled, regardless of vacancies
+    # - Open opportunities
+    #   - note: excludes locked opportunities because they can't be refreshed when stale.
+    #     If the candidate pool is *only* associated with locked stale opportunities,
+    #     clients shouldn't be considered eligible for that pool for the purposes of user-facing features.
+    scope :active_for_current_eligibility, -> {
+      # Pool reflects current eligibility if it is referenced by any open opportunities (different logic from active_for_maintenance)
+      ids_through_opportunities = referenced_by_opportunities_with_status(status: 'open').select(:id)
+      # Pool reflects current eligibility if there are any UnitGroups that reference it (same logic as active_for_maintenance)
+      ids_through_unit_groups = referenced_by_unit_groups.select(:id)
+      where(id: (ids_through_opportunities + ids_through_unit_groups).sort.uniq)
+    }
+
+    # Helper scope - Candidate pools that are referenced by unit groups with CE waitlists enabled.
+    scope :referenced_by_unit_groups, -> {
+      joins(:unit_groups).merge(Hmis::UnitGroup.with_ce_waitlists_enabled).distinct
+    }
+    # Helper scope - Candidate pools that are referenced by opportunities with the specified status.
+    scope :referenced_by_opportunities_with_status, ->(status:) {
+      joins(:opportunities).merge(Hmis::Ce::Opportunity.where(status: status)).distinct
     }
 
     # orphan pools can be safely deleted after a period if inactivity.
@@ -74,7 +112,7 @@ module Hmis::Ce::Match
       )
     end
 
-    def active?
+    def active_for_maintenance?
       ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.with_ce_waitlists_enabled.exists?(candidate_pool_id: id)
     end
 

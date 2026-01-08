@@ -101,7 +101,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
 
   # All referrals where this enrollment is the source enrollment. NOT only 'direct' referrals
-  has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id
+  has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id, dependent: :destroy
   # The referral that created this enrollment (if any)
   has_one :source_ce_referral, class_name: 'Hmis::Ce::Referral', foreign_key: :target_enrollment_id
 

@@ -4,7 +4,7 @@ module HudSpmReport
   module DocumentExports
     class CellDetailExport < ::GrdaWarehouse::DocumentExport
       def authorized?
-        report.user_id == user_id && user.can_view_any_reports?
+        user.can_view_any_reports?
       end
 
       def perform
