@@ -45,7 +45,7 @@ module HudSpmReport::Generators::Fy2026
       # Join on both EnrollmentID and data_source_id for safety
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(
-          "(enrollment_group_id, data_source_id) IN (SELECT \"EnrollmentID\", data_source_id FROM (#{hud_enrollments.reselect(:EnrollmentID, :data_source_id).to_sql}) AS subquery)"
+          "(enrollment_group_id, data_source_id) IN (SELECT \"EnrollmentID\", data_source_id FROM (#{hud_enrollments.reselect(:EnrollmentID, :data_source_id).to_sql}) AS subquery)",
         )
 
       # Pass scope directly to builder

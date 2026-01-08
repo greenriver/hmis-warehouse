@@ -50,9 +50,7 @@ module HudReports
       )
     end
 
-    def enrollment_scope
-      @enrollment_scope
-    end
+    attr_reader :enrollment_scope
 
     def build_contexts_from_scratch
       contexts = []
@@ -124,7 +122,7 @@ module HudReports
         if last_hh_id
           # Seek logic for composite order
           condition = hh_id_expr.gt(last_hh_id).or(
-            hh_id_expr.eq(last_hh_id).and(she_table[:data_source_id].gt(last_ds_id))
+            hh_id_expr.eq(last_hh_id).and(she_table[:data_source_id].gt(last_ds_id)),
           )
           query = query.where(condition)
         end

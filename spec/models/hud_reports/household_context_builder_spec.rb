@@ -104,7 +104,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
     context 'when re-running (idempotency)' do
       before do
-        create(:hud_reports_household_context,report_instance: report)
+        create(:hud_reports_household_context, report_instance: report)
       end
 
       it 'clears previous contexts' do
