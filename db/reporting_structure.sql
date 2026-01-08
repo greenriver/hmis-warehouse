@@ -1,3 +1,8 @@
+-- \restrict ev8undYEDFLV4rJaDCpXx1db4FlVc1qSQxfgeU0stCiHDmNe1sawKDDIHZHneuL
+
+-- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -2869,6 +2874,8 @@ CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_
 --
 -- PostgreSQL database dump complete
 --
+
+-- \unrestrict ev8undYEDFLV4rJaDCpXx1db4FlVc1qSQxfgeU0stCiHDmNe1sawKDDIHZHneuL
 
 SET search_path TO "$user", public;
 
