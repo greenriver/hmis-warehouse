@@ -299,42 +299,154 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
     describe 'Move-in Date Issues' do
       context 'with move-in date before entry date' do
-        before do
-          @project = create_project(project_type: 3) # PSH
-          @client = create_client_with_warehouse_link
-          @enrollment = create_enrollment(
-            client: @client,
-            project: @project,
-            entry_date: '2022-11-01'.to_date,
-            exit_date: '2023-01-15'.to_date,
-            relationship_to_ho_h: 1,
-          )
-          @enrollment.update(MoveInDate: '2022-10-15'.to_date) # Before entry
-          @report = setup_report([@project.id])
+        context 'for PSH project' do
+          before do
+            @project = create_project(project_type: 3) # PSH
+            @client = create_client_with_warehouse_link
+            @enrollment = create_enrollment(
+              client: @client,
+              project: @project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+            )
+            @enrollment.update(MoveInDate: '2022-10-15'.to_date) # Before entry
+            @report = setup_report([@project.id])
+          end
+
+          it 'flags move-in date issues' do
+            expect_result(key: :move_in_prior_to_start_issues, invalid_count: 1)
+          end
         end
 
-        it 'flags move-in date issues' do
-          expect_result(key: :move_in_prior_to_start_issues, invalid_count: 1)
+        context 'for SSO project with VA: GPD CM/HR funder' do
+          before do
+            @project = create_project(project_type: 6) # SSO
+            # Add VA: GPD Case Management/Housing Retention funder (funder code 45)
+            create(
+              :hud_funder,
+              data_source: data_source,
+              ProjectID: @project.ProjectID,
+              Funder: 45, # VA: Grant Per Diem - Case Management/Housing Retention
+            )
+            @client = create_client_with_warehouse_link
+            @enrollment = create_enrollment(
+              client: @client,
+              project: @project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+            )
+            @enrollment.update(MoveInDate: '2022-10-15'.to_date) # Before entry
+            @report = setup_report([@project.id])
+          end
+
+          it 'flags move-in date issues' do
+            expect_result(key: :move_in_prior_to_start_issues, invalid_count: 1)
+          end
+        end
+
+        context 'for Pay for Success project' do
+          before do
+            @project = create_project(project_type: 7) # Other
+            # Add Pay for Success funder (funder code 35)
+            create(
+              :hud_funder,
+              data_source: data_source,
+              ProjectID: @project.ProjectID,
+              Funder: 35, # HUD: Pay for Success
+            )
+            @client = create_client_with_warehouse_link
+            @enrollment = create_enrollment(
+              client: @client,
+              project: @project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+            )
+            @enrollment.update(MoveInDate: '2022-10-15'.to_date) # Before entry
+            @report = setup_report([@project.id])
+          end
+
+          it 'flags move-in date issues' do
+            expect_result(key: :move_in_prior_to_start_issues, invalid_count: 1)
+          end
         end
       end
 
       context 'with move-in date after exit date' do
-        before do
-          @project = create_project(project_type: 3) # PSH
-          @client = create_client_with_warehouse_link
-          @enrollment = create_enrollment(
-            client: @client,
-            project: @project,
-            entry_date: '2022-11-01'.to_date,
-            exit_date: '2023-01-15'.to_date,
-            relationship_to_ho_h: 1,
-          )
-          @enrollment.update(MoveInDate: '2023-01-20'.to_date) # After exit
-          @report = setup_report([@project.id])
+        context 'for PSH project' do
+          before do
+            @project = create_project(project_type: 3) # PSH
+            @client = create_client_with_warehouse_link
+            @enrollment = create_enrollment(
+              client: @client,
+              project: @project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+            )
+            @enrollment.update(MoveInDate: '2023-01-20'.to_date) # After exit
+            @report = setup_report([@project.id])
+          end
+
+          it 'flags move-in date issues' do
+            expect_result(key: :move_in_post_exit_issues, invalid_count: 1)
+          end
         end
 
-        it 'flags move-in date issues' do
-          expect_result(key: :move_in_post_exit_issues, invalid_count: 1)
+        context 'for SSO project with VA: GPD CM/HR funder' do
+          before do
+            @project = create_project(project_type: 6) # SSO
+            # Add VA: GPD Case Management/Housing Retention funder (funder code 45)
+            create(
+              :hud_funder,
+              data_source: data_source,
+              ProjectID: @project.ProjectID,
+              Funder: 45, # VA: Grant Per Diem - Case Management/Housing Retention
+            )
+            @client = create_client_with_warehouse_link
+            @enrollment = create_enrollment(
+              client: @client,
+              project: @project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+            )
+            @enrollment.update(MoveInDate: '2023-01-20'.to_date) # After exit
+            @report = setup_report([@project.id])
+          end
+
+          it 'flags move-in date issues' do
+            expect_result(key: :move_in_post_exit_issues, invalid_count: 1)
+          end
+        end
+
+        context 'for Pay for Success project' do
+          before do
+            @project = create_project(project_type: 7) # Other
+            # Add Pay for Success funder (funder code 35)
+            create(
+              :hud_funder,
+              data_source: data_source,
+              ProjectID: @project.ProjectID,
+              Funder: 35, # HUD: Pay for Success
+            )
+            @client = create_client_with_warehouse_link
+            @enrollment = create_enrollment(
+              client: @client,
+              project: @project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+            )
+            @enrollment.update(MoveInDate: '2023-01-20'.to_date) # After exit
+            @report = setup_report([@project.id])
+          end
+
+          it 'flags move-in date issues' do
+            expect_result(key: :move_in_post_exit_issues, invalid_count: 1)
+          end
         end
       end
     end
