@@ -21,258 +21,67 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
   end
   let(:service) { described_class.new(report, dry_run: false) }
 
-  describe '#can_purge?' do
-    context 'when report is not archived' do
-      it 'returns false' do
-        expect(service.can_purge?).to be false
-        expect(service.errors).to include('Report has not been archived')
+  # Helper methods to DRY up test setup
+  def generate_clients_csv(clients)
+    CSV.generate do |csv|
+      csv << ['id', 'client_id', 'reporting_age']
+      clients.each do |client|
+        csv << [client.id, client.client_id, client.reporting_age]
       end
     end
+  end
 
-    context 'when archival is incomplete' do
-      before do
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv', 'projects_csv', 'client_projects_csv'],
-          },
-        )
-        report.clients_csv.attach(
-          io: StringIO.new('id,name\n1,Client 1'),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
-        # Missing projects_csv and client_projects_csv
-      end
+  def attach_clients_csv(report, csv_content, filename: nil)
+    report.clients_csv.attach(
+      io: StringIO.new(csv_content),
+      filename: filename || "clients-#{report.id}.csv",
+      content_type: 'text/csv',
+    )
+  end
 
-      it 'returns false' do
-        expect(service.can_purge?).to be false
-        expect(service.errors).to include('Report archival is not complete (some CSV files are missing)')
-      end
+  def attach_projects_csv(report, csv_content, filename: nil)
+    report.projects_csv.attach(
+      io: StringIO.new(csv_content),
+      filename: filename || "projects-#{report.id}.csv",
+      content_type: 'text/csv',
+    )
+  end
+
+  def setup_archival_metadata(report, expected_files:, complete: false, purge_eligible_at: nil, purged_at: nil)
+    metadata = {
+      archived_at: Time.current.iso8601,
+      expected_files: expected_files,
+    }
+    metadata[:complete] = true if complete
+    metadata[:purge_eligible_at] = purge_eligible_at.iso8601 if purge_eligible_at
+    metadata[:purged_at] = purged_at.iso8601 if purged_at
+
+    report.update!(
+      completed_at: Time.current,
+      archival_metadata: metadata,
+    )
+  end
+
+  def setup_archived_report_with_clients(report, client_count: 1, expected_files: ['clients_csv'], purge_eligible_at: nil)
+    clients = client_count.times.map do |i|
+      PerformanceMeasurement::Client.create!(
+        report_id: report.id,
+        client_id: i + 1,
+        reporting_age: 25 + i,
+      )
     end
 
-    context 'when CSV files are not accessible' do
-      before do
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-          },
-        )
-        # Don't attach any files
-      end
+    csv_content = generate_clients_csv(clients)
+    attach_clients_csv(report, csv_content)
 
-      it 'returns false' do
-        expect(service.can_purge?).to be false
-        # Since no files are attached, archival_complete? will fail first
-        expect(service.errors).to include('Report archival is not complete (some CSV files are missing)')
-      end
-    end
+    setup_archival_metadata(
+      report,
+      expected_files: expected_files,
+      complete: true,
+      purge_eligible_at: purge_eligible_at,
+    )
 
-    context 'when CSV data integrity check fails' do
-      before do
-        # Create database records
-        client1 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 1,
-          reporting_age: 25,
-        )
-        PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 2,
-          reporting_age: 30,
-        )
-
-        # Attach CSV with different count (only 1 client instead of 2)
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
-
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purge_eligible_at: 1.day.ago.iso8601, # Grace period expired
-          },
-        )
-      end
-
-      it 'returns false when discrepancy is too large' do
-        # The discrepancy is 50% (1 vs 2), which exceeds the 1% threshold
-        expect(service.can_purge?).to be false
-        expect(service.errors).to include('CSV data integrity check failed (row counts do not match database)')
-      end
-    end
-
-    context 'when report is already purged' do
-      before do
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purged_at: 1.day.ago.iso8601,
-          },
-        )
-        report.clients_csv.attach(
-          io: StringIO.new('id,name\n1,Client 1'),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
-      end
-
-      it 'returns false' do
-        expect(service.can_purge?).to be false
-        expect(service.errors).to include('Report data has already been purged')
-      end
-    end
-
-    context 'when all safety checks pass' do
-      before do
-        # Create database records
-        client1 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 1,
-          reporting_age: 25,
-        )
-        project1 = PerformanceMeasurement::Project.create!(
-          report_id: report.id,
-          project_id: 100,
-        )
-        PerformanceMeasurement::ClientProject.create!(
-          report_id: report.id,
-          client_id: client1.client_id,
-          project_id: project1.project_id,
-          for_question: 'test_question',
-          period: 'reporting',
-        )
-
-        # Attach CSV with matching count
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
-
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purge_eligible_at: 1.day.ago.iso8601, # Grace period expired
-          },
-        )
-      end
-
-      it 'returns true' do
-        expect(service.can_purge?).to be true
-        expect(service.errors).to be_empty
-      end
-    end
-
-    context 'when grace period has not expired' do
-      before do
-        # Create database records
-        client1 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 1,
-          reporting_age: 25,
-        )
-
-        # Attach CSV with matching count
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
-
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purge_eligible_at: 1.day.from_now.iso8601, # Grace period not expired
-          },
-        )
-      end
-
-      it 'returns false' do
-        expect(service.can_purge?).to be false
-        expect(service.errors.first).to match(/Grace period has not expired/)
-      end
-
-      it 'allows purge when force is true' do
-        forced_service = described_class.new(report, dry_run: false, force: true)
-        expect(forced_service.can_purge?).to be true
-      end
-    end
-
-    context 'when force is enabled' do
-      before do
-        # Create database records
-        client1 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 1,
-          reporting_age: 25,
-        )
-
-        # Attach CSV with matching count
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
-
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purge_eligible_at: 1.day.from_now.iso8601, # Grace period not expired
-          },
-        )
-      end
-
-      let(:forced_service) { described_class.new(report, dry_run: false, force: true) }
-
-      it 'allows purge even when grace period has not expired' do
-        expect(forced_service.can_purge?).to be true
-      end
-
-      it 'successfully purges data when force is true' do
-        result = forced_service.purge!
-
-        expect(result[:success]).to be true
-        expect(result[:deleted_counts]).to include(clients: 1)
-        expect(PerformanceMeasurement::Client.where(report_id: report.id).count).to eq(0)
-      end
-    end
+    clients
   end
 
   describe '#purge!' do
@@ -286,12 +95,140 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
       end
     end
 
-    context 'when safety checks fail' do
-      it 'returns error without deleting data' do
-        result = service.purge!
+    context 'when report is not archived' do
+      before do
+        report.update!(completed_at: Time.current)
+      end
 
+      it 'returns false and includes error' do
+        result = service.purge!
         expect(result[:success]).to be false
-        expect(result[:errors]).to be_present
+        expect(result[:errors]).to include('Report has not been archived or archival is not complete')
+      end
+    end
+
+    context 'when archival is incomplete' do
+      before do
+        report.update!(
+          completed_at: Time.current,
+          archival_metadata: {
+            archived_at: Time.current.iso8601,
+            expected_files: ['clients_csv', 'projects_csv', 'client_projects_csv'],
+          },
+        )
+        report.clients_csv.attach(
+          io: StringIO.new('id,name\n1,Client 1'),
+          filename: 'clients-1.csv',
+          content_type: 'text/csv',
+        )
+        # Missing projects_csv and client_projects_csv
+      end
+
+      it 'returns false and includes error' do
+        result = service.purge!
+        expect(result[:success]).to be false
+        expect(result[:errors]).to include('Report has not been archived or archival is not complete')
+      end
+    end
+
+    context 'when CSV files are not accessible' do
+      before do
+        report.update!(
+          completed_at: Time.current,
+          archival_metadata: {
+            archived_at: Time.current.iso8601,
+            expected_files: ['clients_csv'],
+            complete: true,
+          },
+        )
+        # Don't attach any files
+      end
+
+      it 'returns false and includes error' do
+        result = service.purge!
+        expect(result[:success]).to be false
+        # Since no files are attached, archival_complete? will fail first
+        expect(result[:errors]).to include('Report has not been archived or archival is not complete')
+      end
+    end
+
+    context 'when CSV data integrity check fails' do
+      before do
+        # Create database records
+        client1 = PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
+        PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 2, reporting_age: 30)
+
+        # Attach CSV with different count (only 1 client instead of 2)
+        csv_content = generate_clients_csv([client1])
+        attach_clients_csv(report, csv_content, filename: 'clients-1.csv')
+
+        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true, purge_eligible_at: 1.day.ago)
+      end
+
+      it 'returns false when discrepancy is too large' do
+        # The discrepancy is 50% (1 vs 2), which exceeds the 1% threshold
+        result = service.purge!
+        expect(result[:success]).to be false
+        expect(result[:errors]).to include('CSV data integrity check failed (row counts do not match database)')
+      end
+    end
+
+    context 'when report is already purged' do
+      before do
+        attach_clients_csv(report, 'id,name\n1,Client 1', filename: 'clients-1.csv')
+        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true, purged_at: 1.day.ago)
+      end
+
+      it 'returns false and includes error' do
+        result = service.purge!
+        expect(result[:success]).to be false
+        expect(result[:errors]).to include('Report data has already been purged')
+      end
+    end
+
+    context 'when grace period has not expired' do
+      before do
+        setup_archived_report_with_clients(
+          report,
+          client_count: 1,
+          purge_eligible_at: 1.day.from_now,
+        )
+      end
+
+      it 'returns false' do
+        result = service.purge!
+        expect(result[:success]).to be false
+        expect(result[:errors].first).to match(/Grace period has not expired/)
+      end
+
+      it 'allows purge when force is true' do
+        forced_service = described_class.new(report, dry_run: false, force: true)
+        result = forced_service.purge!
+        expect(result[:success]).to be true
+      end
+    end
+
+    context 'when force is enabled' do
+      before do
+        setup_archived_report_with_clients(
+          report,
+          client_count: 1,
+          purge_eligible_at: 1.day.from_now,
+        )
+      end
+
+      let(:forced_service) { described_class.new(report, dry_run: false, force: true) }
+
+      it 'allows purge even when grace period has not expired' do
+        result = forced_service.purge!
+        expect(result[:success]).to be true
+      end
+
+      it 'successfully purges data when force is true' do
+        result = forced_service.purge!
+
+        expect(result[:success]).to be true
+        expect(result[:deleted_counts]).to include(clients: 1)
         expect(PerformanceMeasurement::Client.where(report_id: report.id).count).to eq(0)
       end
     end
@@ -301,49 +238,16 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
       before do
         # Create database records
-        client1 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 1,
-          reporting_age: 25,
-        )
-        client2 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 2,
-          reporting_age: 30,
-        )
-        project1 = PerformanceMeasurement::Project.create!(
-          report_id: report.id,
-          project_id: 100,
-        )
-        PerformanceMeasurement::ClientProject.create!(
-          report_id: report.id,
-          client_id: client1.client_id,
-          project_id: project1.project_id,
-          for_question: 'test_question',
-          period: 'reporting',
-        )
+        client1 = PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
+        client2 = PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 2, reporting_age: 30)
+        project1 = PerformanceMeasurement::Project.create!(report_id: report.id, project_id: 100)
+        PerformanceMeasurement::ClientProject.create!(report_id: report.id, client_id: client1.client_id, project_id: project1.project_id, for_question: 'test_question', period: 'reporting')
 
         # Attach CSV with matching counts
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-          csv << [client2.id, client2.client_id, client2.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
+        csv_content = generate_clients_csv([client1, client2])
+        attach_clients_csv(report, csv_content, filename: 'clients-1.csv')
 
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purge_eligible_at: 1.day.ago.iso8601, # Grace period expired
-          },
-        )
+        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true, purge_eligible_at: 1.day.ago)
       end
 
       it 'returns would_delete summary without deleting data' do
@@ -412,26 +316,10 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
       before do
         # Attach CSV with matching counts
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-          csv << [client2.id, client2.client_id, client2.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
+        csv_content = generate_clients_csv([client1, client2])
+        attach_clients_csv(report, csv_content, filename: 'clients-1.csv')
 
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-            purge_eligible_at: 1.day.ago.iso8601, # Grace period expired
-          },
-        )
+        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true, purge_eligible_at: 1.day.ago)
       end
 
       it 'deletes all database records for the report' do
@@ -461,7 +349,6 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         expect(result[:success]).to be true
         report.reload
         expect(report.archival_metadata['purged_at']).to be_present
-        expect(report.archival_metadata['purged_by_service']).to eq(described_class.name)
       end
 
       it 'does not delete records from other reports' do
@@ -471,11 +358,7 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         )
         other_report.update_goal_configuration!
         other_report.save!
-        other_client = PerformanceMeasurement::Client.create!(
-          report_id: other_report.id,
-          client_id: 999,
-          reporting_age: 40,
-        )
+        other_client = PerformanceMeasurement::Client.create!(report_id: other_report.id, client_id: 999, reporting_age: 40)
 
         result = service.purge!
 
@@ -489,32 +372,13 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
     context 'when deletion fails' do
       before do
-        # Create database records
-        client1 = PerformanceMeasurement::Client.create!(
-          report_id: report.id,
-          client_id: 1,
-          reporting_age: 25,
-        )
+        client1 = PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
 
         # Attach CSV with matching count
-        csv_content = CSV.generate do |csv|
-          csv << ['id', 'client_id', 'reporting_age']
-          csv << [client1.id, client1.client_id, client1.reporting_age]
-        end
-        report.clients_csv.attach(
-          io: StringIO.new(csv_content),
-          filename: 'clients-1.csv',
-          content_type: 'text/csv',
-        )
+        csv_content = generate_clients_csv([client1])
+        attach_clients_csv(report, csv_content, filename: 'clients-1.csv')
 
-        report.update!(
-          archival_metadata: {
-            archived_at: Time.current.iso8601,
-            expected_files: ['clients_csv'],
-            complete: true,
-            completed_at: Time.current.iso8601,
-          },
-        )
+        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true)
 
         # Simulate deletion failure
         allow(PerformanceMeasurement::Client).to receive(:where).and_raise(StandardError, 'Database error')
@@ -562,11 +426,11 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         )
 
         @test_report.update!(
+          completed_at: Time.current,
           archival_metadata: {
             archived_at: Time.current.iso8601,
             expected_files: ['projects_csv'],
             complete: true,
-            completed_at: Time.current.iso8601,
             purge_eligible_at: 1.day.ago.iso8601, # Grace period expired
           },
         )
@@ -575,23 +439,17 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
       it 'skips integrity check for generator-based CSV' do
         purge_service = described_class.new(@test_report)
         # Should pass safety checks even though there's no database count to compare
-        expect(purge_service.can_purge?).to be true
+        result = purge_service.purge!
+        expect(result[:success]).to be true
       end
     end
   end
 
   describe 'integration with ArchiveReportService' do
     it 'does not automatically purge data after successful archival' do
-      # Create database records
-      PerformanceMeasurement::Client.create!(
-        report_id: report.id,
-        client_id: 1,
-        reporting_age: 25,
-      )
-      PerformanceMeasurement::Project.create!(
-        report_id: report.id,
-        project_id: 100,
-      )
+      # Create database records for associations that will be archived
+      PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
+      PerformanceMeasurement::Project.create!(report_id: report.id, project_id: 100)
 
       # Archive the report (should NOT trigger immediate purge)
       archive_service = Reports::ArchiveReportService.new(report)
@@ -599,7 +457,7 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
       # Verify data is NOT purged immediately
       report.reload
-      expect(report.archived?).to be true # CSV files exist
+      expect(report.archived?).to be true # CSV files exist (including empty ones with headers)
       expect(report.purged?).to be false # Data not purged yet
       expect(report.archival_metadata['purged_at']).to be_nil
       expect(PerformanceMeasurement::Client.where(report_id: report.id).count).to eq(1)
@@ -608,11 +466,7 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
     it 'does not purge if archival fails' do
       # Create database records
-      PerformanceMeasurement::Client.create!(
-        report_id: report.id,
-        client_id: 1,
-        reporting_age: 25,
-      )
+      PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
 
       # Simulate archival failure by making archival_csv_config return empty
       allow(report).to receive(:archival_csv_config).and_return({})
@@ -667,36 +521,13 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
   describe 'csv_data_integrity_verified?' do
     before do
-      client1 = PerformanceMeasurement::Client.create!(
-        report_id: report.id,
-        client_id: 1,
-        reporting_age: 25,
-      )
-      client2 = PerformanceMeasurement::Client.create!(
-        report_id: report.id,
-        client_id: 2,
-        reporting_age: 30,
-      )
+      client1 = PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
+      client2 = PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 2, reporting_age: 30)
 
-      csv_content = CSV.generate do |csv|
-        csv << ['id', 'client_id', 'reporting_age']
-        csv << [client1.id, client1.client_id, client1.reporting_age]
-        csv << [client2.id, client2.client_id, client2.reporting_age]
-      end
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients-1.csv',
-        content_type: 'text/csv',
-      )
+      csv_content = generate_clients_csv([client1, client2])
+      attach_clients_csv(report, csv_content, filename: 'clients-1.csv')
 
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current.iso8601,
-          expected_files: ['clients_csv'],
-          complete: true,
-          completed_at: Time.current.iso8601,
-        },
-      )
+      setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true)
     end
 
     it 'returns true when counts match exactly' do
@@ -744,17 +575,8 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
   describe 'database_row_count' do
     before do
-      PerformanceMeasurement::Client.create!(
-        report_id: report.id,
-        client_id: 1,
-        reporting_age: 25,
-      )
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current.iso8601,
-          expected_files: ['clients_csv'],
-        },
-      )
+      PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
+      setup_archival_metadata(report, expected_files: ['clients_csv'])
     end
 
     it 'handles errors gracefully' do
@@ -776,34 +598,13 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
   describe 'delete_report_data' do
     before do
-      PerformanceMeasurement::Client.create!(
-        report_id: report.id,
-        client_id: 1,
-        reporting_age: 25,
-      )
-      PerformanceMeasurement::Project.create!(
-        report_id: report.id,
-        project_id: 100,
-      )
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current.iso8601,
-          expected_files: ['clients_csv', 'projects_csv'],
-          complete: true,
-          completed_at: Time.current.iso8601,
-          purge_eligible_at: 1.day.ago.iso8601,
-        },
-      )
-      report.clients_csv.attach(
-        io: StringIO.new('id,client_id\n1,1'),
-        filename: 'clients-1.csv',
-        content_type: 'text/csv',
-      )
-      report.projects_csv.attach(
-        io: StringIO.new('id,project_id\n1,100'),
-        filename: 'projects-1.csv',
-        content_type: 'text/csv',
-      )
+      PerformanceMeasurement::Client.create!(report_id: report.id, client_id: 1, reporting_age: 25)
+      PerformanceMeasurement::Project.create!(report_id: report.id, project_id: 100)
+
+      attach_clients_csv(report, 'id,client_id\n1,1', filename: 'clients-1.csv')
+      attach_projects_csv(report, 'id,project_id\n1,100', filename: 'projects-1.csv')
+
+      setup_archival_metadata(report, expected_files: ['clients_csv', 'projects_csv'], complete: true, purge_eligible_at: 1.day.ago)
     end
 
     it 'deletes records in correct order (child records first)' do
@@ -831,16 +632,8 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         client_id: 1,
         reporting_age: 25,
       )
-      PerformanceMeasurement::Project.create!(
-        report_id: report.id,
-        project_id: 100,
-      )
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current.iso8601,
-          expected_files: ['clients_csv', 'projects_csv'],
-        },
-      )
+      PerformanceMeasurement::Project.create!(report_id: report.id, project_id: 100)
+      setup_archival_metadata(report, expected_files: ['clients_csv', 'projects_csv'])
     end
 
     it 'returns counts for all associations' do
@@ -895,32 +688,22 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
 
   describe 'error message formatting' do
     before do
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current.iso8601,
-          expected_files: ['clients_csv'],
-          complete: true,
-          completed_at: Time.current.iso8601,
-          purge_eligible_at: 5.days.from_now.iso8601,
-        },
-      )
-      report.clients_csv.attach(
-        io: StringIO.new('id,name\n1,Client 1'),
-        filename: 'clients-1.csv',
-        content_type: 'text/csv',
-      )
+      attach_clients_csv(report, 'id,name\n1,Client 1', filename: 'clients-1.csv')
+      setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true, purge_eligible_at: 5.days.from_now)
     end
 
     it 'includes days remaining in error message' do
       service = described_class.new(report)
-      expect(service.can_purge?).to be false
-      expect(service.errors.first).to match(/day\(s\)/)
+      result = service.purge!
+      expect(result[:success]).to be false
+      expect(result[:errors].first).to match(/day\(s\)/)
     end
 
     it 'includes date in error message' do
       service = described_class.new(report)
-      expect(service.can_purge?).to be false
-      expect(service.errors.first).to match(/\d{4}-\d{2}-\d{2}/)
+      result = service.purge!
+      expect(result[:success]).to be false
+      expect(result[:errors].first).to match(/\d{4}-\d{2}-\d{2}/)
     end
   end
 end

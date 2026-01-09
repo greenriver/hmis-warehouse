@@ -107,7 +107,6 @@ These methods are provided by the `ReportArchival` concern:
 - **`purge_eligible?`** - Returns `true` if grace period has expired (data eligible for purging)
 - **`archival_complete?`** - Returns `true` if all expected CSV files are attached
 - **`incomplete_archival?`** - Returns `true` if archival started but didn't complete
-- **`missing_archival_files?`** - Returns `true` if any expected files are missing
 - **`archival_status`** - Returns a detailed hash with archival information
 - **`expected_archival_files`** - Returns an array of expected attachment names
 
@@ -298,7 +297,7 @@ service.reload! if service.can_reload?
 report.archival_complete? # => false
 
 # Check which files are missing
-report.missing_archival_files? # => true
+report.incomplete_archival? # => true
 report.archival_status
 # Look for files with attached: false
 ```

@@ -9,15 +9,69 @@
 require 'rails_helper'
 
 RSpec.describe Reports::ArchiveReportService, type: :service do
+  # Create test model classes and tables
+  before(:all) do
+    connection = GrdaWarehouseBase.connection
+
+    # Create test clients table
+    unless connection.table_exists?(:test_archive_clients)
+      connection.create_table :test_archive_clients, force: true do |t|
+        t.integer :report_id, null: false
+        t.string :name
+        t.integer :age
+        t.timestamps
+      end
+    end
+
+    # Create test projects table
+    unless connection.table_exists?(:test_archive_projects)
+      connection.create_table :test_archive_projects, force: true do |t|
+        t.integer :report_id, null: false
+        t.string :name
+        t.timestamps
+      end
+    end
+  end
+
+  after(:all) do
+    connection = GrdaWarehouseBase.connection
+    connection.drop_table :test_archive_clients if connection.table_exists?(:test_archive_clients)
+    connection.drop_table :test_archive_projects if connection.table_exists?(:test_archive_projects)
+  end
+
+  # Test model classes
+  let(:test_client_class) do
+    klass = Class.new(GrdaWarehouseBase) do
+      self.table_name = 'test_archive_clients'
+      belongs_to :report, class_name: 'SimpleReports::ReportInstance', foreign_key: :report_id
+    end
+    class_name = "TestArchiveClient#{SecureRandom.hex(8)}"
+    Object.const_set(class_name, klass)
+    klass
+  end
+
+  let(:test_project_class) do
+    klass = Class.new(GrdaWarehouseBase) do
+      self.table_name = 'test_archive_projects'
+      belongs_to :report, class_name: 'SimpleReports::ReportInstance', foreign_key: :report_id
+    end
+    class_name = "TestArchiveProject#{SecureRandom.hex(8)}"
+    Object.const_set(class_name, klass)
+    klass
+  end
+
   # Create a test report model
   let(:test_report_class) do
+    client_class_ref = test_client_class
+    project_class_ref = test_project_class
+
     klass = Class.new(SimpleReports::ReportInstance) do
       include ReportArchival
 
       has_many_attached :clients_csv
       has_many_attached :projects_csv
 
-      def archival_csv_config
+      define_method :archival_csv_config do
         {
           clients_csv: {
             association: :test_clients,
@@ -30,19 +84,13 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         }
       end
 
-      # Mock associations
-      def test_clients
-        [
-          { id: 1, name: 'Client 1' },
-          { id: 2, name: 'Client 2' },
-        ]
+      # Associations that return ActiveRecord::Relation
+      define_method :test_clients do
+        client_class_ref.where(report_id: id)
       end
 
-      def test_projects
-        [
-          { id: 1, name: 'Project 1' },
-          { id: 2, name: 'Project 2' },
-        ]
+      define_method :test_projects do
+        project_class_ref.where(report_id: id)
       end
     end
     # Give the class a name so Active Storage can work properly
@@ -53,6 +101,18 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
 
   let(:report) { test_report_class.create!(user_id: User.system_user.id) }
   let(:service) { described_class.new(report) }
+
+  # Create test data before each test (unless overridden in specific contexts)
+  before do
+    # Skip if this is an empty records test
+    example_description = RSpec.current_example&.full_description || ''
+    next if example_description.include?('empty') || example_description.include?('Empty')
+
+    test_client_class.create!(report_id: report.id, name: 'Client 1', age: nil)
+    test_client_class.create!(report_id: report.id, name: 'Client 2', age: nil)
+    test_project_class.create!(report_id: report.id, name: 'Project 1')
+    test_project_class.create!(report_id: report.id, name: 'Project 2')
+  end
 
   describe '#eligible?' do
     it 'returns true when report includes concern and has non-empty config' do
@@ -112,50 +172,41 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         csv_content = report.clients_csv.first.download
         parsed = CSV.parse(csv_content, headers: true)
         expect(parsed.length).to eq(2)
-        expect(parsed.first['id']).to eq('1')
-        expect(parsed.first['name']).to eq('Client 1')
+        expect(parsed.map { |r| r['name'] }).to contain_exactly('Client 1', 'Client 2')
       end
 
-      it 'generates correct CSV content from associations' do
+      it 'generates correct CSV content from associations for projects' do
         service.archive!
 
         csv_content = report.projects_csv.first.download
         parsed = CSV.parse(csv_content, headers: true)
         expect(parsed.length).to eq(2)
-        expect(parsed.first['id']).to eq('1')
-        expect(parsed.first['name']).to eq('Project 1')
+        expect(parsed.map { |r| r['name'] }).to contain_exactly('Project 1', 'Project 2')
       end
 
       it 'marks archival as complete' do
         service.archive!
 
         expect(report.archival_complete?).to be true
-        expect(report.archival_metadata['completed_at']).to be_present
+        expect(report.archival_metadata['archived_at']).to be_present
         expect(report.archival_metadata['complete']).to be true
       end
 
-      it 'sets grace period metadata' do
+      it 'does not set grace period metadata (set at completion or reload)' do
         service.archive!
 
-        expect(report.archival_metadata['grace_period_days']).to eq(Reports::DEFAULT_ARCHIVAL_GRACE_PERIOD_DAYS)
-        expect(report.archival_metadata['purge_eligible_at']).to be_present
-        purge_eligible_at = Time.parse(report.archival_metadata['purge_eligible_at'])
-        expected_days = Reports::DEFAULT_ARCHIVAL_GRACE_PERIOD_DAYS
-        expect(purge_eligible_at).to be > Time.current + (expected_days - 1).days
-        expect(purge_eligible_at).to be <= Time.current + (expected_days + 1).days
+        # These are set at report completion or on reload
+        expect(report.archival_metadata['grace_period_days']).to be_nil
+        expect(report.archival_metadata['purge_eligible_at']).to be_nil
       end
 
       it 'does not purge database data immediately' do
-        # Create some test data
-        test_data = [{ id: 1, name: 'Client 1' }]
-        allow(report).to receive(:test_clients).and_return(test_data)
-
         service.archive!
 
         # Database data should still be accessible (not purged)
-        # Since we're using a mock, we can't actually verify this,
-        # but we can verify that purge_eligible_at is set (meaning purge hasn't happened yet)
         expect(report.archival_metadata['purged_at']).to be_nil
+        # Verify data is still in database
+        expect(report.test_clients.count).to eq(2)
       end
     end
 
@@ -195,65 +246,26 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
     end
 
     context 'with empty records' do
-      it 'handles empty associations gracefully' do
-        allow(report).to receive(:test_clients).and_return([])
-        service.archive!
-
-        csv_content = report.clients_csv.first.download
-        expect(csv_content).to eq('')
+      let(:empty_report) do
+        # Create a fresh report without any data
+        test_report_class.create!(user_id: User.system_user.id).tap do |r|
+          # Ensure no test clients exist for this report
+          test_client_class.where(report_id: r.id).delete_all
+        end
       end
-    end
-  end
+      let(:empty_service) { described_class.new(empty_report) }
 
-  describe '#complete_archival' do
-    it 'completes incomplete archival' do
-      # Start archival but don't complete it
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current,
-          expected_files: ['clients_csv', 'projects_csv'],
-        },
-      )
-      report.clients_csv.attach(
-        io: StringIO.new('id,name\n1,Client 1'),
-        filename: 'clients-1.csv',
-        content_type: 'text/csv',
-      )
+      it 'handles empty associations gracefully by creating CSV with headers only' do
+        empty_report.reload
+        empty_service.archive!
 
-      service.complete_archival
-
-      expect(report.projects_csv.attached?).to be true
-      expect(report.archival_complete?).to be true
-    end
-
-    it 'returns false when report is not eligible' do
-      ineligible_report = SimpleReports::ReportInstance.create!(user_id: User.system_user.id)
-      ineligible_service = described_class.new(ineligible_report)
-      expect(ineligible_service.complete_archival).to be false
-    end
-
-    it 'returns false when archival is already complete' do
-      service.archive!
-      expect(service.complete_archival).to be false
-    end
-
-    it 'handles errors during completion gracefully' do
-      report.update!(
-        archival_metadata: {
-          archived_at: Time.current,
-          expected_files: ['clients_csv', 'projects_csv'],
-        },
-      )
-      report.clients_csv.attach(
-        io: StringIO.new('id,name\n1,Client 1'),
-        filename: 'clients-1.csv',
-        content_type: 'text/csv',
-      )
-      allow(report).to receive(:test_projects).and_raise(StandardError.new('Data fetch failed'))
-
-      result = service.complete_archival
-      expect(result).to be false
-      expect(service.errors).to be_present
+        # Empty associations should still create CSV files with headers
+        expect(empty_report.clients_csv.attached?).to be true
+        csv_content = empty_report.clients_csv.first.download
+        parsed = CSV.parse(csv_content, headers: true)
+        expect(parsed.headers).to be_present # Should have column headers
+        expect(parsed.length).to eq(0) # But no data rows
+      end
     end
   end
 
@@ -299,18 +311,6 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       end
     end
 
-    context 'with grace period' do
-      it 'uses default grace period constant' do
-        service.archive!
-
-        expect(report.archival_metadata['grace_period_days']).to eq(Reports::DEFAULT_ARCHIVAL_GRACE_PERIOD_DAYS)
-        purge_eligible_at = Time.parse(report.archival_metadata['purge_eligible_at'])
-        expected_days = Reports::DEFAULT_ARCHIVAL_GRACE_PERIOD_DAYS
-        expect(purge_eligible_at).to be > Time.current + (expected_days - 1).days
-        expect(purge_eligible_at).to be <= Time.current + (expected_days + 1).days
-      end
-    end
-
     context 'when association is missing' do
       it 'raises error and tracks it' do
         allow(report).to receive(:archival_csv_config).and_return(
@@ -348,35 +348,43 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       end
     end
 
-    context 'with hash records' do
-      it 'generates CSV from hash records' do
-        allow(report).to receive(:test_clients).and_return(
-          [
-            { id: 1, name: 'Client 1', age: 25 },
-            { id: 2, name: 'Client 2', age: 30 },
-          ],
-        )
+    context 'with additional columns' do
+      it 'generates CSV with all model columns' do
+        # Update a client to have an age
+        test_client_class.where(report_id: report.id).first.update!(age: 25)
+        test_client_class.where(report_id: report.id).last.update!(age: 30)
 
         service.archive!
 
         csv_content = report.clients_csv.first.download
         parsed = CSV.parse(csv_content, headers: true)
         expect(parsed.length).to eq(2)
-        expect(parsed.first['id']).to eq('1')
-        expect(parsed.first['name']).to eq('Client 1')
-        expect(parsed.first['age']).to eq('25')
+        # Verify age column is included
+        expect(parsed.headers).to include('age')
+        expect(parsed.map { |r| r['age'] }).to include('25', '30')
       end
     end
 
     context 'with ActiveRecord::Relation' do
-      it 'handles empty relations gracefully' do
-        # Test that empty relations don't cause errors
-        allow(report).to receive(:test_clients).and_return([])
-        service.archive!
+      let(:empty_report) do
+        # Create a fresh report without any data
+        test_report_class.create!(user_id: User.system_user.id).tap do |r|
+          # Ensure no test clients exist for this report
+          test_client_class.where(report_id: r.id).delete_all
+        end
+      end
+      let(:empty_service) { described_class.new(empty_report) }
 
-        expect(report.clients_csv.attached?).to be true
-        csv_content = report.clients_csv.first.download
-        expect(csv_content).to eq('')
+      it 'handles empty relations gracefully by creating CSV with headers only' do
+        empty_report.reload
+        empty_service.archive!
+
+        # Empty relations should still create CSV files with headers
+        expect(empty_report.clients_csv.attached?).to be true
+        csv_content = empty_report.clients_csv.first.download
+        parsed = CSV.parse(csv_content, headers: true)
+        expect(parsed.headers).to be_present # Should have column headers
+        expect(parsed.length).to eq(0) # But no data rows
       end
     end
   end

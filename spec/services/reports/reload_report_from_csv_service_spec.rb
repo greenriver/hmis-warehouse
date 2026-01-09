@@ -121,7 +121,7 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         expect(report.archival_metadata['purge_eligible_at']).to be_present
 
         purge_eligible_at = Time.parse(report.archival_metadata['purge_eligible_at'])
-        expected_days = Reports::DEFAULT_ARCHIVAL_GRACE_PERIOD_DAYS
+        expected_days = Reports.archival_grace_period_days
         expect(purge_eligible_at).to be > Time.current + (expected_days - 1).days
         expect(purge_eligible_at).to be <= Time.current + (expected_days + 1).days
       end

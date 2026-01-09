@@ -21,7 +21,14 @@
 module ReportArchival
   extend ActiveSupport::Concern
 
+  def self.register_report_type(klass)
+    Rails.application.config.report_archival_types << klass.name unless Rails.application.config.report_archival_types.include?(klass.name)
+  end
+
   included do
+    # Register this report type for archival
+    ReportArchival.register_report_type(self)
+
     # Override in report models to define CSV structure
     # Returns hash like: { clients_csv: { association: :clients }, ... }
     def archival_csv_config
@@ -74,15 +81,6 @@ module ReportArchival
     !archival_complete?
   end
 
-  def missing_archival_files?
-    return false unless archival_metadata.present? && archival_metadata['archived_at'].present?
-
-    expected_files = archival_metadata['expected_files'] || []
-    return false if expected_files.empty?
-
-    expected_files.any? { |attachment_name| !send(attachment_name).attached? }
-  end
-
   def archival_status
     has_csv = archival_metadata.present? && archival_metadata['archived_at'].present?
     return { archived: false } unless has_csv
@@ -132,15 +130,27 @@ module ReportArchival
   # Archival Actions
   # ============================================================================
 
-  def archive_to_csv!
-    service = Reports::ArchiveReportService.new(self)
+  def archive_and_purge!(force: false)
+    # Archive if needed
+    unless archived? && archival_complete?
+      service = Reports::ArchiveReportService.new(self)
 
-    # Reload report to ensure associations are fresh after bulk imports
-    reload
+      # Reload report to ensure associations are fresh after bulk imports
+      reload
 
-    success = service.archive!
-    return if success
+      success = service.archive!
+      unless success
+        error_messages = service.errors.map { |e| e.is_a?(Hash) ? "#{e[:attachment]}: #{e[:error]}" : e.to_s }
+        Rails.logger.error("Failed to archive report ##{id} (#{self.class.name}). Errors: #{error_messages.inspect}")
+        return {
+          success: false,
+          errors: ["Failed to archive report before purge: #{error_messages.join(', ')}"],
+        }
+      end
+    end
 
-    Rails.logger.error("Failed to archive report ##{id} (#{self.class.name}). Errors: #{service.errors.inspect}")
+    # Purge the data
+    purge_service = Reports::PurgeArchivedReportDataService.new(self, dry_run: false, force: force)
+    purge_service.purge!
   end
 end

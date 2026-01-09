@@ -8,7 +8,7 @@
 
 require 'report_csv_reader'
 require 'csv'
-require_relative 'constants'
+require_relative 'archive_report_service'
 
 module Reports
   class ReloadReportFromCsvService
@@ -43,12 +43,20 @@ module Reports
       config = report.archival_csv_config
       return { success: false, errors: ['No archival configuration found'] } if config.empty?
 
+      # Only reload associations that were actually archived (from expected_files)
+      expected_files = report.archival_metadata&.dig('expected_files') || []
+      return { success: false, errors: ['No expected files found in archival metadata'] } if expected_files.empty?
+
+      # Filter config to only include expected files
+      config_to_reload = config.select { |attachment_name, _| expected_files.include?(attachment_name.to_s) }
+      return { success: false, errors: ['No matching archival configuration found for expected files'] } if config_to_reload.empty?
+
       reloaded_counts = {}
       errors = []
 
       begin
         # Reload each association from its CSV
-        config.each do |attachment_name, csv_config|
+        config_to_reload.each do |attachment_name, csv_config|
           count = reload_association(attachment_name, csv_config)
           reloaded_counts[attachment_name] = count
         rescue StandardError => e
@@ -60,7 +68,7 @@ module Reports
 
         # If all reloads succeeded, update metadata to restart grace period
         if errors.empty?
-          grace_period_days = Reports::DEFAULT_ARCHIVAL_GRACE_PERIOD_DAYS
+          grace_period_days = Reports.archival_grace_period_days
           reloaded_at = Time.current
           purge_eligible_at = reloaded_at + grace_period_days.days
 

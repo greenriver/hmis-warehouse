@@ -187,7 +187,7 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'reports:csv:purge_eligible',
+    task: 'reports:csv:archive_and_purge_eligible',
     frequency: 1.day,
     at: '2:00 am',
     interruptable: true,

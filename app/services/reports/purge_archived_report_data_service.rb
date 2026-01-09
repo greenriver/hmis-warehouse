@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'report_csv_reader'
+require_relative 'archive_report_service'
 
 module Reports
   class PurgeArchivedReportDataService
@@ -63,45 +64,42 @@ module Reports
       end
     end
 
-    def can_purge?
-      safety_checks_passed?
-    end
-
     private
 
     def safety_checks_passed?
       @errors = []
 
-      # Check 1: Archival must be complete (CSV files exist)
-      unless report.archival_metadata.present? && report.archival_metadata['archived_at'].present?
-        @errors << 'Report has not been archived'
+      # Check 1: Report must be completed
+      unless report.completed_at.present?
+        @errors << 'Report has not been completed'
         return false
       end
 
-      unless report.archival_complete?
-        @errors << 'Report archival is not complete (some CSV files are missing)'
+      # Check 2: Archival must be complete (CSV files exist)
+      unless report.archived? && report.archival_complete?
+        @errors << 'Report has not been archived or archival is not complete'
         return false
       end
 
-      # Check 2: CSV files must be accessible
+      # Check 3: CSV files must be accessible
       unless csv_files_accessible?
         @errors << 'One or more CSV files are not accessible'
         return false
       end
 
-      # Check 3: CSV data integrity (row counts match)
+      # Check 4: CSV data integrity (row counts match)
       unless csv_data_integrity_verified?
         @errors << 'CSV data integrity check failed (row counts do not match database)'
         return false
       end
 
-      # Check 4: Already purged
+      # Check 5: Already purged
       if already_purged?
         @errors << 'Report data has already been purged'
         return false
       end
 
-      # Check 5: Grace period must have expired (unless force is true)
+      # Check 6: Grace period must have expired (unless force is true)
       unless force || grace_period_expired?
         purge_eligible_at_str = report.archival_metadata&.dig('purge_eligible_at')
         if purge_eligible_at_str
@@ -202,11 +200,20 @@ module Reports
     end
 
     def grace_period_expired?
+      # Use purge_eligible_at from metadata if present
       purge_eligible_at_str = report.archival_metadata&.dig('purge_eligible_at')
-      return false unless purge_eligible_at_str
+      if purge_eligible_at_str
+        purge_eligible_at = Time.parse(purge_eligible_at_str)
+        return purge_eligible_at <= Time.current
+      end
 
-      purge_eligible_at = Time.parse(purge_eligible_at_str)
-      purge_eligible_at <= Time.current
+      # Otherwise calculate from completed_at + grace_period_days
+      # This will cover reports that were created before this metadata was added
+      return false unless report.completed_at.present?
+
+      grace_period_days = report.archival_metadata&.dig('grace_period_days') || Reports.archival_grace_period_days
+      calculated_purge_eligible_at = report.completed_at + grace_period_days.days
+      calculated_purge_eligible_at <= Time.current
     end
 
     def delete_report_data
@@ -274,7 +281,6 @@ module Reports
         :archival_metadata,
         current_metadata.merge(
           'purged_at' => Time.current.iso8601,
-          'purged_by_service' => self.class.name,
         ),
       )
     end

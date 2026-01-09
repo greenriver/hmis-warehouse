@@ -41,7 +41,7 @@ module HomelessSummaryReport
     end
 
     scope :ordered, -> do
-      order(updated_at: :desc)
+      order(completed_at: :desc)
     end
 
     def run_and_save!
@@ -49,7 +49,6 @@ module HomelessSummaryReport
       begin
         populate_universe
         populate_results
-        archive_to_csv!
       rescue Exception => e
         update(failed_at: Time.current)
         raise e

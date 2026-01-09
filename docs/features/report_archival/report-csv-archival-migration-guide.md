@@ -72,30 +72,18 @@ end
 - CSV files store the exact data from the database table. All columns from the association's model are included. The CSV is used only for backup/restore - when reloaded, it restores the exact same data that was archived.
 - **Best Practice:** Include the report type in filenames (e.g., `my-report-items-1.csv`) to avoid conflicts between different report types that might have the same ID.
 
-### Step 4: Integrate Archival into Report Lifecycle
+### Step 4: Archival Happens Automatically
 
-Add archival to your report's `run_and_save!` or equivalent method. The `archive_to_csv!` method is provided by the `ReportArchival` concern, so you just need to call it:
+No additional code is needed! Archival metadata is initialized automatically when the archive service runs. The scheduled rake task `reports:csv:archive_and_purge_eligible` will:
 
-```ruby
-def run_and_save!
-  start
-  begin
-    # Your report generation logic here
-    generate_report_data
-    save!
-    archive_to_csv!  # Provided by ReportArchival concern
-  rescue Exception => e
-    update(failed_at: Time.current)
-    raise e
-  end
-  complete
-end
-```
+1. Find reports where the grace period has expired (based on `completed_at` date)
+2. Archive the CSV files (if not already archived)
+3. Purge the database data
 
 **Note:** 
-- The `archive_to_csv!` method is automatically available when you include the `ReportArchival` concern - no need to implement it yourself.
 - Archival eligibility is automatically determined by checking if the report includes the `ReportArchival` concern and has a non-empty `archival_csv_config`. No additional configuration is needed.
-- Archival happens automatically after successful report generation. Database data remains intact during the grace period and can be purged after the grace period expires.
+- The grace period is calculated from the report's `completed_at` date. No metadata initialization is required at report completion.
+- CSV archival happens automatically via the scheduled rake task when the grace period expires, right before purging.
 
 ### Step 5: Add Reload Button to Views (Optional)
 
@@ -201,14 +189,16 @@ class MyReport < GrdaWarehouse::SimpleReports::ReportInstance
     }
   end
   
-  # Integrate archival into your report lifecycle
+  def complete
+    update(completed_at: Time.current)
+  end
+  
   def run_and_save!
     start
     begin
       # Your report generation logic here
       generate_report_data
       save!
-      archive_to_csv!  # Provided by ReportArchival concern
     rescue Exception => e
       update(failed_at: Time.current)
       raise e
@@ -265,12 +255,14 @@ When adding CSV archival to a new report type, verify:
 
 ### Archival Not Happening
 
-**Problem:** Report doesn't archive after generation.
+**Problem:** Report doesn't archive when grace period expires.
 
 **Solution:**
 - Verify report includes `ReportArchival` concern
 - Check that `archival_csv_config` is defined and returns a non-empty hash
-- Verify `archive_to_csv!` is called after report generation
+- Verify report has `completed_at` set (required for grace period calculation)
+- Check that the scheduled rake task `reports:csv:archive_and_purge_eligible` is running
+- Verify grace period has expired (calculated from `completed_at` + grace period days)
 
 ### CSV Files Not Attached
 

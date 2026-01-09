@@ -21,10 +21,9 @@ module PerformanceMeasurement
     include ArelHelper
     include PerformanceMeasurement::ResultCalculation
     include PerformanceMeasurement::Details
+    include ReportArchival
 
     include ::WarehouseReports::Publish
-    # Prepend ReportArchival to ensure status override takes precedence
-    prepend ReportArchival
 
     attr_accessor :households, :include_in_published_version, :include_in_summary_only_version
 
@@ -53,7 +52,7 @@ module PerformanceMeasurement
     end
 
     scope :ordered, -> do
-      order(updated_at: :desc)
+      order(created_at: :desc)
     end
 
     def reporting_spm_id
@@ -78,7 +77,6 @@ module PerformanceMeasurement
         create_universe
         add_capacities
         save_results
-        archive_to_csv!
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
