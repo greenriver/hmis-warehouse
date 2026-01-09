@@ -83,6 +83,9 @@ class JobDetail
 
   # Attempts to extract a logical "Record ID" from the arguments to display in the dashboard.
   memoize def report_id
+    # HUD reports use [class_name, report_id, options_hash]
+    return arguments.second if job_name == 'Reporting::Hud::RunReportJob' && arguments.is_a?(Array)
+
     if arguments.is_a?(Hash)
       arguments['report_id']
     elsif arguments.is_a?(Array)
@@ -91,6 +94,10 @@ class JobDetail
         res = arguments.first['report_id']
         return res if res
       end
+
+      # If the second element is an Integer and the first is a String (likely a class name)
+      # prefer the integer as the ID.
+      return arguments.second if arguments.first.is_a?(String) && arguments.second.is_a?(Integer)
 
       # If the last element is an Integer, it's often the ID (especially for .delay calls)
       return arguments.last if arguments.last.is_a?(Integer)

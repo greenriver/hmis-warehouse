@@ -193,6 +193,19 @@ RSpec.describe JobDetail, type: :model do
       allow(job).to receive(:payload_object).and_return(payload)
       expect(describe.report_id).to eq(999)
     end
+
+    it 'extracts report_id from second element for RunReportJob' do
+      allow(job).to receive(:name).and_return('Reporting::Hud::RunReportJob')
+      payload = double('ActiveJobWrapper', job_data: { 'arguments' => ['SomeClass', 123, { email: true }] })
+      allow(job).to receive(:payload_object).and_return(payload)
+      expect(describe.report_id).to eq(123)
+    end
+
+    it 'prefers second argument if first is a class string' do
+      payload = double('ActiveJobWrapper', job_data: { 'arguments' => ['MyClass', 456, {}] })
+      allow(job).to receive(:payload_object).and_return(payload)
+      expect(describe.report_id).to eq(456)
+    end
   end
 
   describe '#created_at' do
