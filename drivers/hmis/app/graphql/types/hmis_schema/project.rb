@@ -171,6 +171,7 @@ module Types
     def ce_default_contacts
       all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
         for_project(object).
+        includes(:user, swimlane: :template).
         joins(:swimlane).
         order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
 

@@ -15,10 +15,8 @@ class Hmis::AuthPolicies::CeAdminPolicy < Hmis::AuthPolicies::BasePolicy
 
   protected
 
-  # todo - this (ai gen) isn't right, but I need more discussion/understanding of our future approach to "global" (data source level) permissions
+  # todo @martha - this (ai gen) isn't right, but I need more discussion/understanding of our approach to "global" (data source level) permissions
   #  theron's point: >I had hoped we could avoid such global permissions by, say authorizing against a data-source or some other entity.
-  # Global CE permissions are not tied to a specific resource.
-  # The resource is expected to be a class (e.g., GrdaWarehouse::DataSource)
   def validate_resource!(arg)
     return if arg.is_a?(Class)
 

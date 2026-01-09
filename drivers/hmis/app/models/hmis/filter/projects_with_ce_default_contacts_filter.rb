@@ -27,7 +27,6 @@ class Hmis::Filter::ProjectsWithCeDefaultContactsFilter < Hmis::Filter::BaseFilt
   end
 
   def with_users(scope)
-    # todo @martha - this needs spec
     with_filter(scope, :user) do
       return scope unless input.user.present?
 
