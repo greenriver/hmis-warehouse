@@ -164,6 +164,33 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     it 'returns false if user has no relevant permissions' do
       expect(policy.can_view?).to be false
     end
+
+    context 'when policy is scoped to a different data source than the referral' do
+      # Set up a user in another data source
+      let!(:ds2) { create(:hmis_data_source) }
+      let!(:ds2_user) { create(:hmis_user, data_source: ds2) }
+      let!(:policy) { ds2_user.policy_for(referral, policy_type: :ce_referral) } # policy is scoped to ds2
+
+      it 'is denied' do
+        expect(policy.can_view?).to be false
+      end
+
+      context 'and user has permission in both data sources' do
+        before do
+          create_access_control(ds2_user, data_source, with_permission: [:can_view_referrals, :can_view_project])
+          create_access_control(ds2_user, ds2, with_permission: [:can_view_referrals, :can_view_project])
+        end
+
+        it 'is denied when scoped to the wrong data source' do
+          expect(policy.can_view?).to be false
+        end
+        it 'is allowed when scoped to the referral\'s data source' do
+          ds2_user.hmis_data_source_id = data_source.id
+          policy = ds2_user.policy_for(referral, policy_type: :ce_referral)
+          expect(policy.can_view?).to be true
+        end
+      end
+    end
   end
 
   describe '#can_perform?' do

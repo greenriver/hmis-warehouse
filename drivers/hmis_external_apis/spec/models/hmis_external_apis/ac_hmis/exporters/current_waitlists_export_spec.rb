@@ -12,6 +12,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CurrentWaitlistsExport, type
   let!(:ds) { create(:hmis_data_source) }
   let!(:project) { create(:hmis_hud_project, data_source: ds) }
   let!(:unit_group) { create(:hmis_unit_group, project: project) }
+  let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
 
   let!(:destination_client) { create(:grda_warehouse_hud_client) }
   let!(:client_proxy) { create(:hmis_ce_client_proxy, client: destination_client) }
@@ -54,5 +55,12 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CurrentWaitlistsExport, type
     expect(row['PriorityScore1']).to eq('5')
     expect(row['PriorityScore2']).to eq('4')
     expect(row['PriorityScore3']).to eq('3')
+  end
+
+  it 'excludes candidates from inactive candidate pools' do
+    unit_group.update!(candidate_pool: nil) # remove candidate pool association, rendering the pool inactive
+    subject.run!
+    result = CSV.parse(output, headers: true)
+    expect(result.length).to eq(0)
   end
 end
