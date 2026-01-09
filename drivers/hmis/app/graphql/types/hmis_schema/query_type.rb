@@ -661,7 +661,7 @@ module Types
       data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
       all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
         where(owner: data_source).
-        includes(:user).
+        includes(:user, swimlane: :template).
         joins(:swimlane).
         order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
 
