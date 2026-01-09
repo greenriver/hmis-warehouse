@@ -43,9 +43,14 @@ class JobDetail
 
   # User ID extracted from job arguments, or 'unknown'
   memoize def user_id
-    if arguments.present?
-      return arguments.last['user_id'] if job_name.starts_with?('BackgroundRender::') && arguments.last.is_a?(Hash)
-      return arguments.first['user_id'] if arguments.first.is_a?(Hash)
+    if arguments.is_a?(Hash)
+      return arguments['user_id'] if arguments['user_id'].present?
+    elsif arguments.is_a?(Array)
+      if job_name.starts_with?('BackgroundRender::') && arguments.last.is_a?(Hash)
+        return arguments.last['user_id'] if arguments.last['user_id'].present?
+      end
+
+      return arguments.first['user_id'] if arguments.first.is_a?(Hash) && arguments.first['user_id'].present?
     end
 
     return hud_report_instance&.user_id if job_name == 'Reporting::Hud::RunReportJob'
@@ -81,11 +86,17 @@ class JobDetail
     if arguments.is_a?(Hash)
       arguments['report_id']
     elsif arguments.is_a?(Array)
-      if arguments.first.is_a?(String) || arguments.first.is_a?(Numeric)
-        arguments.first
-      else
-        arguments.first.try(:[], 'report_id') || (arguments.last if arguments.last.is_a?(Integer))
+      # If the first element is a Hash, try to get report_id from it
+      if arguments.first.is_a?(Hash)
+        res = arguments.first['report_id']
+        return res if res
       end
+
+      # If the last element is an Integer, it's often the ID (especially for .delay calls)
+      return arguments.last if arguments.last.is_a?(Integer)
+
+      # Fall back to the first element if it's a simple value
+      arguments.first if arguments.first.is_a?(String) || arguments.first.is_a?(Numeric)
     end
   end
 
