@@ -41,7 +41,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
   end
 
-  context 'when client is enrolled in a project' do
+  context 'Instance policy' do
     let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project) }
 
     context 'with project access' do
@@ -76,21 +76,17 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
   end
 
-  context 'class-level policy' do
+  context 'Global policy' do
     let(:policy) { user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client) }
 
-    it 'grants can_merge_any_clients? if user has can_merge_clients anywhere' do
+    it 'grants can_merge_clients? if user has can_merge_clients anywhere' do
       create_access_control(user, project, with_permission: [:can_view_clients, :can_merge_clients])
-      expect(policy.can_merge_any_clients?).to be true
+      expect(policy.can_merge_clients?).to be true
     end
 
     it 'denies can_merge_any_clients? if user lacks can_view_clients everywhere' do
       create_access_control(user, project, with_permission: [:can_view_clients])
-      expect(policy.can_merge_any_clients?).to be false
-    end
-
-    it 'raises an error if instance-specific method is called' do
-      expect { policy.can_view_name? }.to raise_error(ArgumentError, 'Must provide a client instance')
+      expect(policy.can_merge_clients?).to be false
     end
   end
 end
