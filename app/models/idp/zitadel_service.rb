@@ -233,6 +233,69 @@ module Idp
       true
     end
 
+    # Test connection to Zitadel API.
+    #
+    # Makes a simple API call to verify credentials and connectivity.
+    #
+    # @return [Hash] Result hash with :success (Boolean) and optional :message (String)
+    def test_connection
+      response = make_request(:get, '/management/v1/orgs/me')
+
+      case response.code.to_i
+      when 200..299
+        {
+          success: true,
+          message: "Connection successful to Zitadel",
+        }
+      when 401, 403
+        {
+          success: false,
+          message: "Authentication failed: Invalid token or insufficient permissions",
+        }
+      when 404
+        {
+          success: false,
+          message: "API endpoint not found: Check API URL is correct",
+        }
+      when 500..599
+        {
+          success: false,
+          message: "Zitadel server error: #{response.code}",
+        }
+      else
+        begin
+          error_data = JSON.parse(response.body)
+          message = error_data['message'] || error_data['error'] || response.body
+        rescue StandardError
+          message = response.body
+        end
+        {
+          success: false,
+          message: "Connection failed: #{message}",
+        }
+      end
+    rescue Errno::ECONNREFUSED
+      {
+        success: false,
+        message: "Connection refused: Unable to reach Zitadel at #{api_url}",
+      }
+    rescue Errno::EHOSTUNREACH
+      {
+        success: false,
+        message: "Host unreachable: Check API URL is correct (#{api_url})",
+      }
+    rescue Timeout::Error
+      {
+        success: false,
+        message: "Connection timeout: Zitadel is not responding",
+      }
+    rescue StandardError => e
+      {
+        success: false,
+        message: "Connection error: #{e.message}",
+      }
+    end
+
     # Generate OIDC RP-Initiated Logout URL for Zitadel.
     #
     # Creates a logout URL that will:

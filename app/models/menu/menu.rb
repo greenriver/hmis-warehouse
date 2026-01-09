@@ -389,6 +389,14 @@ class Menu::Menu
       Menu::Item.new(
         user: user,
         visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_idp_service_configs_path,
+        title: 'Identity Providers',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: admin_translation_keys_path,
         title: 'Translations',
       ),

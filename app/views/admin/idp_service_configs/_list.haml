@@ -1,4 +1,4 @@
-.table-responsive
+.card.overflow-visible
   %table.table.table-striped
     %thead
       %tr
@@ -16,6 +16,9 @@
           %td= truncate(config.api_url, length: 50)
           %td= checkmark(config.active)
           %td
-            = link_to admin_idp_service_config_path(config), method: :delete, data: {confirm: "Would you really like to delete the IDP service config #{config.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
-              %span.icon-cross
-              Delete
+            :ruby
+              items = []
+              items << { link_to: { path: edit_admin_idp_service_config_path(config) }, icon: 'pencil', label: 'Edit' }
+              items << { link_to: { path: test_admin_idp_service_config_path(config), method: :post }, icon: 'check', label: 'Test' }
+              items << { link_to: { path: admin_idp_service_config_path(config), method: :delete, class: ['label-danger'], data: { confirm: "Would you really like to delete the IDP service config #{config.name}?" } }, icon: 'cross', label: 'Delete' }
+            = action_menu_or_button(items: items)

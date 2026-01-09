@@ -916,7 +916,11 @@ Rails.application.routes.draw do
     end
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
-    resources :idp_service_configs, except: [:show]
+    resources :idp_service_configs, except: [:show] do
+      member do
+        post :test
+      end
+    end
     resources :delayed_jobs, only: [:index, :update, :destroy]
 
     resources :system_maintenance_tasks, only: [:index]

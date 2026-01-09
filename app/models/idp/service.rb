@@ -87,6 +87,21 @@ module Idp
       false
     end
 
+    # Test connection to the IDP service.
+    #
+    # By default, returns false (not supported). IDP implementations should override
+    # this to perform a specific test for their service (e.g., making an API call).
+    #
+    # @return [Hash] Result hash with :success (Boolean) and optional :message (String)
+    #   Example: { success: true, message: "Connection successful" }
+    #   Example: { success: false, message: "Failed to connect: connection timeout" }
+    def test_connection
+      {
+        success: false,
+        message: "Connection testing not supported for this IDP",
+      }
+    end
+
     # Generate OIDC RP-Initiated Logout URL for this IDP.
     #
     # By default, returns the post_logout_redirect_uri (typically oauth2-proxy sign_out).

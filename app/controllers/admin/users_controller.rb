@@ -44,8 +44,9 @@ module Admin
 
     def create
       @user = User.new
-      params_without_system_contact = user_params.except(:system_contact_attributes)
+      params_without_system_contact = user_params.except(:system_contact_attributes, :connector_id, :legacy_role_ids)
       system_contact_attrs = user_params[:system_contact_attributes]
+      legacy_role_ids = user_params[:legacy_role_ids]
       @user.assign_attributes(params_without_system_contact)
       set_system_alerts
       @agencies = Agency.order(:name)
@@ -55,6 +56,11 @@ module Admin
       begin
         User.transaction do
           @user.save!
+
+          # Assign roles after user is saved so the user_id is available
+          if legacy_role_ids.present?
+            @user.legacy_role_ids = legacy_role_ids.reject(&:blank?)
+          end
 
           # Create system_contact after user is saved so entity_id can be set
           system_contact = @user.create_system_contact!(
