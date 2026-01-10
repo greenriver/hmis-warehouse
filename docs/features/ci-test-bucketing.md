@@ -19,15 +19,54 @@ The `ci` namespace provides tools for managing buckets:
 *   **`ci:profile_stats`**: Provides statistical analysis of RSpec profile data to help tune the bucketing strategy (optional)
 
 ### 3. CI Workflow (`.github/workflows/rails_tests.yml`)
-The GitHub Actions workflow orchestrates the execution:
+The GitHub Actions workflow orchestrates the execution of unit tests, HMIS system tests, and warehouse system tests in a single unified pipeline.
 
-1.  **Matrix Generation**: The `determine_matrix` job reads `.github/rspec_buckets.json` and dynamically generates a build matrix.
-    *   It creates a job for each defined bucket (tag: `ci_bucket:bucket-N`).
-    *   It adds a "default" job for any tests *not* in a specific bucket (tag: `~ci_bucket`).
-2.  **Tag Injection**: In each parallel job, the `ci:update_spec_tags` rake task runs *before* the tests. This ensures the source code on the runner has the correct tags for filtering, even if the source repository doesn't permanently store these tags.
-3.  **Test Execution**: RSpec runs with `--tag ci_bucket:bucket-N` (or `~ci_bucket` for the default group), executing only the relevant tests for that shard.
+The complex logic for determining which tests to run and how to shard them is encapsulated in `bin/ci_matrix_router.rb`.
+
+1.  **Matrix & Routing Generation**: The `determine_matrix` job calls `bin/ci_matrix_router.rb` which decides which test jobs to spin up based on the presence of a "focused run" tag or whether it's a pull request.
+    *   It creates a matrix for unit tests (bucketed or focused).
+    *   It triggers `hmis_system_tests` and `warehouse_system_tests` as needed.
+2.  **Tag Injection**: In parallel unit test jobs, the `ci:update_spec_tags` rake task runs *before* the tests.
+3.  **Test Execution**: RSpec runs with the appropriate filters or targeted paths.
 
 ## Workflow
+
+### Targeted Test Execution (Focused Runs)
+
+If you are debugging a specific test and want to bypass the full suite to save time, you can trigger a "Focused Run". This will create a matrix with exactly one job running only the requested tests.
+
+**Smart Routing:**
+The CI automatically routes your focused path to the correct environment:
+*   **Unit/Functional Tests**: Runs in the standard parallelizable environment.
+*   **HMIS System Tests (`drivers/hmis/spec/system/hmis/`)**: Triggers the job that builds the React frontend.
+*   **Warehouse System Tests (`spec/system/rails/`)**: Triggers the dedicated warehouse system test job.
+
+When a focused run is active for a specific category, the other categories will automatically skip to save resources.
+
+#### Trigger via Commit Message
+Add `ci-focus: <path>` to your commit message (anywhere in the message).
+
+**Format**: `ci-focus:` followed by the spec path (spaces after the colon are optional)
+
+*   **Single file**: `git commit -m "debugging [ci-focus: spec/models/user_spec.rb]"`
+*   **Directory**: `git commit -m "debugging [ci-focus: spec/requests]"`
+*   **Multiple paths**: `git commit -m "debugging [ci-focus: spec/models/user_spec.rb spec/models/post_spec.rb]"`
+
+Optional flags (can be included anywhere in the commit message, separate from ci-focus):
+*   `with-okta`: Runs Okta request specs (Omniauth/Sessions). Use if debugging login or session logic.
+*   `with-logging`: Runs the 5-way logging configuration matrix. Use if modifying environment log settings.
+
+**Example combined usage:**
+`git commit -m "fix session timeout [ci-focus: spec/requests/sessions_spec.rb] with-okta"`
+
+#### Trigger via GitHub UI
+1.  Go to the **Actions** tab in GitHub.
+2.  Select the **Rails Tests** workflow.
+3.  Click **Run workflow**.
+4.  Enter the file or directory path in the **test_path** input.
+5.  Check **Run Okta integration tests** or **Run logging configuration tests** if needed.
+
+---
 
 ### Rebalancing Buckets
 
