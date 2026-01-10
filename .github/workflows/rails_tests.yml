@@ -27,6 +27,11 @@ on:
         required: false
         type: boolean
         default: false
+      with_profiling:
+        description: 'Enable RSpec profiling'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.ref }}-tests
@@ -98,6 +103,7 @@ jobs:
       focused_path: ${{ steps.set-matrix.outputs.focused_path }}
       okta: ${{ steps.set-matrix.outputs.okta }}
       logging: ${{ steps.set-matrix.outputs.logging }}
+      profiling: ${{ steps.set-matrix.outputs.profiling }}
 
     steps:
       - name: Install git
@@ -114,6 +120,7 @@ jobs:
           INPUT_TEST_PATH: ${{ github.event.inputs.test_path }}
           INPUT_WITH_OKTA: ${{ github.event.inputs.with_okta }}
           INPUT_WITH_LOGGING: ${{ github.event.inputs.with_logging }}
+          INPUT_WITH_PROFILING: ${{ github.event.inputs.with_profiling }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           ruby bin/ci_matrix_router.rb
@@ -272,12 +279,14 @@ jobs:
           else
             bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
-            # capture rspec profiling information
-            # see lib/tasks/ci.rake for more details
-            # mkdir -p tmp/rspec_profiles
-            # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
-
-            bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
+            if [ "${{ needs.determine_matrix.outputs.profiling }}" = "true" ]; then
+              # see lib/tasks/ci.rake for more details
+              echo "Running tests with profiling..."
+              mkdir -p tmp/rspec_profiles
+              bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
+            else
+              bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
+            fi
           fi
 
       - name: Run okta tests

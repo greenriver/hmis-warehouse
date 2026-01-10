@@ -15,6 +15,7 @@ RSpec.describe 'bin/ci_matrix_router.rb' do
       'INPUT_TEST_PATH' => '',
       'INPUT_WITH_OKTA' => 'false',
       'INPUT_WITH_LOGGING' => 'false',
+      'INPUT_WITH_PROFILING' => 'false',
     }
   end
 
@@ -96,6 +97,16 @@ RSpec.describe 'bin/ci_matrix_router.rb' do
     it 'enables okta via workflow input' do
       output = run_script('INPUT_WITH_OKTA' => 'true')
       expect(output['okta']).to eq 'true'
+    end
+
+    it 'enables profiling when ci-profile is in commit message' do
+      output = run_script('COMMIT_MSG' => 'test ci-profile')
+      expect(output['profiling']).to eq 'true'
+    end
+
+    it 'enables profiling via workflow input' do
+      output = run_script('INPUT_WITH_PROFILING' => 'true')
+      expect(output['profiling']).to eq 'true'
     end
   end
 

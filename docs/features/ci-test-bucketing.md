@@ -55,6 +55,7 @@ Add `ci-focus: <path>` to your commit message (anywhere in the message).
 Optional flags (can be included anywhere in the commit message, separate from ci-focus):
 *   `with-okta`: Runs Okta request specs (Omniauth/Sessions). Use if debugging login or session logic.
 *   `with-logging`: Runs the 5-way logging configuration matrix. Use if modifying environment log settings.
+*   `ci-profile`: Enables RSpec profiling and outputs `rspec_results.json`. Use when re-balancing buckets.
 
 **Example combined usage:**
 `git commit -m "fix session timeout [ci-focus: spec/requests/sessions_spec.rb] with-okta"`
@@ -64,7 +65,7 @@ Optional flags (can be included anywhere in the commit message, separate from ci
 2.  Select the **Rails Tests** workflow.
 3.  Click **Run workflow**.
 4.  Enter the file or directory path in the **test_path** input.
-5.  Check **Run Okta integration tests** or **Run logging configuration tests** if needed.
+5.  Check **Run Okta integration tests**, **Run logging configuration tests**, or **Enable RSpec profiling** if needed.
 
 ---
 

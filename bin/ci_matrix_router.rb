@@ -13,6 +13,7 @@ class CiMatrixRouter
     @input_test_path = ENV['INPUT_TEST_PATH']
     @input_with_okta = ENV['INPUT_WITH_OKTA'] == 'true'
     @input_with_logging = ENV['INPUT_WITH_LOGGING'] == 'true'
+    @input_with_profiling = ENV['INPUT_WITH_PROFILING'] == 'true'
     @buckets_file = ENV['BUCKETS_FILE'] || '.github/rspec_buckets.json'
     @commit_msg = fetch_commit_message
   end
@@ -30,6 +31,7 @@ class CiMatrixRouter
       focused_path: focus_path,
       okta: @input_with_okta || @commit_msg.include?('with-okta'),
       logging: @input_with_logging || @commit_msg.include?('with-logging'),
+      profiling: @input_with_profiling || @commit_msg.include?('ci-profile'),
     }
 
     log_routing_decisions(focus_path, routing, outputs)
