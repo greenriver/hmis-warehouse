@@ -272,10 +272,11 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           TODO_OR_DIE_LOG_ONLY: true
+          FOCUS_PATH: ${{ matrix.test_group.test_path }}
         run: |
-          if [ -n "${{ matrix.test_group.test_path }}" ]; then
-            echo "Running focused tests: ${{ matrix.test_group.test_path }}"
-            bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color ${{ matrix.test_group.test_path }}
+          if [ -n "$FOCUS_PATH" ]; then
+            echo "Running focused tests: $FOCUS_PATH"
+            bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color "$FOCUS_PATH"
           else
             bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
@@ -454,7 +455,7 @@ jobs:
         run: |
           FOCUS_PATH="${{ needs.determine_matrix.outputs.focused_path }}"
           if [ -n "$FOCUS_PATH" ]; then
-            bundle exec rspec $FOCUS_PATH -fd --fail-fast=$MAX_FAILURES --color
+            bundle exec rspec "$FOCUS_PATH" -fd --fail-fast=$MAX_FAILURES --color
           else
             bundle exec rspec spec/system/rails --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
           fi

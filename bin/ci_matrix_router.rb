@@ -43,12 +43,21 @@ class CiMatrixRouter
   def fetch_commit_message
     return ENV['COMMIT_MSG'] unless ENV['COMMIT_MSG'].nil?
 
+    # Ensure we are not in a shallow clone which breaks history-based routing
+    is_shallow = `git rev-parse --is-shallow-repository 2>/dev/null`.strip == 'true'
+    warn 'WARNING: Shallow clone detected. Routing may be inaccurate.' if is_shallow
+
     # Try to get the message from HEAD, and if it looks like a merge commit (common in CI),
     # also check the second parent (the branch being merged).
     msg = `git log -1 --pretty=%B 2>/dev/null`.strip
     if @event_name == 'pull_request'
-      # HEAD^2 is the head of the feature branch in a GitHub merge commit
-      msg += "\n" + `git log -1 --pretty=%B HEAD^2 2>/dev/null`.strip
+      # In GitHub Actions PR events, HEAD is a merge commit where HEAD^2 is the PR branch.
+      # Check if HEAD^2 exists before trying to read it (e.g., in shallow clones or
+      # non-merge commits, this ref won't exist).
+      if system('git rev-parse --verify HEAD^2 >/dev/null 2>&1')
+        head2_msg = `git log -1 --pretty=%B HEAD^2 2>/dev/null`.strip
+        msg += "\n#{head2_msg}" unless head2_msg.empty?
+      end
     end
     msg
   end
@@ -66,10 +75,24 @@ class CiMatrixRouter
     # Parse focus path from workflow input or commit message
     # Expected format: "ci-focus: path/to/spec" anywhere in commit message
     path = @input_test_path&.strip
-    return path if path && !path.empty?
+    return validate_path(path) if path && !path.empty?
 
     path = @commit_msg[/ci-focus:\s*([^\]\n]+)/, 1]&.strip
-    path && !path.empty? ? path : nil
+    path && !path.empty? ? validate_path(path) : nil
+  end
+
+  def validate_path(path)
+    return nil if path.nil? || path.empty?
+
+    # Whitelist: Only allow alphanumerics, slashes, dots, underscores, hyphens, spaces and glob stars
+    # This prevents shell injection by rejecting metacharacters like ; | & ` $ ( ) etc.
+    if path =~ /\A[a-zA-Z0-9\/._\-* ]+\z/
+      path
+    else
+      warn "ERROR: Unsafe characters detected in test path: #{path}"
+      warn 'Test paths must only contain: a-z A-Z 0-9 / _ - . * and spaces'
+      nil
+    end
   end
 
   def determine_routing(focus_path)

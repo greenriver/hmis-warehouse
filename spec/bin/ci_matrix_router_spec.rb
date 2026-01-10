@@ -84,28 +84,21 @@ RSpec.describe 'bin/ci_matrix_router.rb' do
   end
 
   context 'when flags are provided' do
-    it 'enables okta when with-okta is in commit message' do
-      output = run_script('COMMIT_MSG' => 'test with-okta')
+    it 'enables flags from commit message' do
+      output = run_script('COMMIT_MSG' => 'test with-okta with-logging ci-profile')
       expect(output['okta']).to eq 'true'
-    end
-
-    it 'enables logging when with-logging is in commit message' do
-      output = run_script('COMMIT_MSG' => 'test with-logging')
       expect(output['logging']).to eq 'true'
-    end
-
-    it 'enables okta via workflow input' do
-      output = run_script('INPUT_WITH_OKTA' => 'true')
-      expect(output['okta']).to eq 'true'
-    end
-
-    it 'enables profiling when ci-profile is in commit message' do
-      output = run_script('COMMIT_MSG' => 'test ci-profile')
       expect(output['profiling']).to eq 'true'
     end
 
-    it 'enables profiling via workflow input' do
-      output = run_script('INPUT_WITH_PROFILING' => 'true')
+    it 'enables flags from workflow input' do
+      output = run_script(
+        'INPUT_WITH_OKTA' => 'true',
+        'INPUT_WITH_LOGGING' => 'true',
+        'INPUT_WITH_PROFILING' => 'true',
+      )
+      expect(output['okta']).to eq 'true'
+      expect(output['logging']).to eq 'true'
       expect(output['profiling']).to eq 'true'
     end
   end
@@ -136,6 +129,31 @@ RSpec.describe 'bin/ci_matrix_router.rb' do
       ensure
         buckets_file.unlink
       end
+    end
+  end
+
+  context 'when validating test paths' do
+    it 'rejects paths with shell metacharacters' do
+      output = run_script('COMMIT_MSG' => 'test [ci-focus: spec/models/user_spec.rb; rm -rf /]')
+      expect(output['focused_path']).to eq ''
+      expect(output['run_unit']).to eq 'true'
+    end
+
+    it 'accepts paths with safe characters including glob patterns and spaces' do
+      output = run_script('COMMIT_MSG' => 'test [ci-focus: drivers/hmis/spec/system/*_spec.rb]')
+      expect(output['focused_path']).to eq 'drivers/hmis/spec/system/*_spec.rb'
+
+      output = run_script('COMMIT_MSG' => 'test [ci-focus: spec/models/user spec.rb]')
+      expect(output['focused_path']).to eq 'spec/models/user spec.rb'
+    end
+  end
+
+  context 'when fetching commit messages from git' do
+    it 'handles pull_request events gracefully when HEAD^2 does not exist' do
+      # Without COMMIT_MSG, it will try to fetch from git. Even if HEAD^2 doesn't exist,
+      # the script should continue gracefully without appending empty strings
+      output = run_script('EVENT_NAME' => 'pull_request')
+      expect(output['run_unit']).to eq 'true'
     end
   end
 end

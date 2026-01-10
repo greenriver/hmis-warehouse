@@ -8,10 +8,13 @@ The CI parallelizes the RSpec test suite by distributing tests into balanced gro
 Test assignments are stored in `.github/rspec_buckets.json`. This file maps spec files to specific bucket IDs (e.g., `bucket-1`, `bucket-2`).
 
 ### 2. Tag Injection (`ci:update_spec_tags`)
-Inside each parallel CI job, the `ci:update_spec_tags` rake task runs *before* the tests. It dynamically modifies the spec files on the runner's filesystem, injecting a `ci_bucket: 'bucket-id'` tag into the top-level `RSpec.describe` block.
+Inside each parallel CI job, the `ci:update_spec_tags` rake task runs *before* the tests. It dynamically modifies the spec files on the runner's filesystem, injecting a `ci_bucket: 'bucket-id'` tag into the top-level `RSpec.describe` block. This ensures RSpec can filter tests using standard tags even though the tags aren't committed to the source repository.
 
 ### 3. Matrix Routing (`bin/ci_matrix_router.rb`)
-A standalone Ruby script determines which test categories (Unit, HMIS System, Warehouse System) should run based on the event type and commit message. This script is used by the `determine_matrix` job in `.github/workflows/rails_tests.yml`.
+A standalone Ruby script determines which test categories (Unit, HMIS System, Warehouse System) should run.
+*   **Sharding**: It reads the buckets file and creates one job per bucket.
+*   **Coverage**: It always adds a "default" job with the `~ci_bucket` tag to catch any tests not explicitly assigned to a bucket, ensuring no tests are skipped.
+*   **Logic**: It determines the matrix based on the event type and commit message flags.
 
 ---
 
@@ -48,16 +51,16 @@ Flags can be included anywhere in the commit message (separate from `ci-focus`):
 To update the bucket distribution when test times change significantly:
 
 ### 1. Generate Profile Data in CI
-Trigger a CI run with the profiling flag enabled:
+Trigger a CI run with the profiling flag enabled. Profiling is done in CI to ensure timing data is consistent with the CI runner's hardware:
 *   **Commit message**: `git commit --allow-empty -m "rebalance buckets [ci-profile]"`
 *   **GitHub UI**: Check **Enable RSpec profiling** when running the workflow.
 
-This will upload an artifact named `artifacts-unit-*` containing `rspec_results.json`.
+This will upload artifacts named `artifacts-unit-*` containing `rspec_results.json`.
 
-### 2. Download and Prepare Data
+### 2. Download and Analyze Data
 1. Download the profiling artifacts from the GitHub Actions run summary.
 2. Unzip them into a local directory (e.g., `tmp/rspec_profiles`).
-3. You should have one `.json` file per parallel job.
+3. (Optional) Run `bundle exec rails ci:profile_stats[tmp/rspec_profiles]` to see a statistical breakdown of your test runtimes.
 
 ### 3. Build New Assignments
 Run the rebalancing task locally:
