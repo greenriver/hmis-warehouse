@@ -1722,17 +1722,6 @@
         ]
       },
       {
-        "file_path": "./drivers/hmis/spec/requests/hmis/form_definition_lookup_spec.rb",
-        "total_time": 24.004989699,
-        "groups": [
-          {
-            "location": "./drivers/hmis/spec/requests/hmis/form_definition_lookup_spec.rb:13",
-            "total_time": 24.004989699,
-            "description": "Hmis::GraphqlController"
-          }
-        ]
-      },
-      {
         "file_path": "./drivers/hud_spm_report/spec/models/fy2026/measure_1a_spec.rb",
         "total_time": 21.218972671,
         "groups": [
@@ -2322,17 +2311,6 @@
         ]
       },
       {
-        "file_path": "./drivers/performance_measurement/spec/models/performance_measurement/pm_spm_alignment_spec.rb",
-        "total_time": 248.88670941420003,
-        "groups": [
-          {
-            "location": "./drivers/performance_measurement/spec/models/performance_measurement/pm_spm_alignment_spec.rb:6",
-            "total_time": 226.260644922,
-            "description": "Performance Measurement and SPM Alignment"
-          }
-        ]
-      },
-      {
         "file_path": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_four/force_prioritization_status_spec.rb",
         "total_time": 234.5006892591,
         "groups": [
@@ -2663,17 +2641,6 @@
         ]
       },
       {
-        "file_path": "./drivers/hud_spm_report/spec/models/fy2026/retry_behavior_spec.rb",
-        "total_time": 15.883109285,
-        "groups": [
-          {
-            "location": "./drivers/hud_spm_report/spec/models/fy2026/retry_behavior_spec.rb:12",
-            "total_time": 15.883109285,
-            "description": "HUD SPM FY2026 retry behavior"
-          }
-        ]
-      },
-      {
         "file_path": "./drivers/hmis/spec/requests/hmis/ce/mark_units_unavailable_spec.rb",
         "total_time": 14.944328179,
         "groups": [
@@ -2745,17 +2712,6 @@
     "id": "bucket-9",
     "total_time": 2498.1631156777994,
     "specs": [
-      {
-        "file_path": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/custom_augmentation_spec.rb",
-        "total_time": 507.15249226559996,
-        "groups": [
-          {
-            "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/custom_augmentation_spec.rb:11",
-            "total_time": 422.627076888,
-            "description": "Custom Augmentation File Imports"
-          }
-        ]
-      },
       {
         "file_path": "./drivers/client_access_control/spec/requests/client_visibility_spec.rb",
         "total_time": 259.9262274466,
