@@ -9,6 +9,9 @@ module DelayedJobHelpers
   # We cap at 1,000 iterations to avoid infinite loops from self-enqueuing jobs.
   def self.work_off_all_ready_jobs(job_limit: 1_000)
     total_processed = 0
+    # Ensure any previous worker state is cleared from this thread
+    Thread.current[:delayed_job_worker] = nil
+
     Delayed::Job.uncached do
       worker = Delayed::Worker.new
 
