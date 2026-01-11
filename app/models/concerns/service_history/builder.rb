@@ -58,7 +58,7 @@ module ServiceHistory::Builder
     def wait_for_processing(interval: 30, max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
       if Rails.env.test?
         # you must manually process these in the test environment since there are no workers
-        Delayed::Worker.new(queues: []).work_off(2)
+        Delayed::Worker.new.work_off(2)
       else
         started = Time.current
         while builder_batch_job_scope.exists?
@@ -96,7 +96,7 @@ module ServiceHistory::Builder
     def wait_for_clients(client_ids:, interval: 30, max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
       if Rails.env.test?
         # you must manually process these in the test environment since there are no workers
-        Delayed::Worker.new(queues: []).work_off(2)
+        Delayed::Worker.new.work_off(2)
       else
         started = Time.current
         while clients_still_processing?(client_ids: client_ids)

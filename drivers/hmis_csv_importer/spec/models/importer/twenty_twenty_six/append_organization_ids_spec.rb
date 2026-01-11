@@ -73,6 +73,6 @@ RSpec.describe 'Append Organization IDs', type: :model do
       remove_files: false,
     )
     @loader.import!
-    Delayed::Worker.new(queues: []).work_off(2)
+    Delayed::Worker.new.work_off(2)
   end
 end
