@@ -151,7 +151,6 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         # archived? returns true when CSV files exist
         expect(report.archived?).to be true
         expect(report.purged?).to be false
-        expect(report.archival_complete?).to be true
         expect(report.archival_metadata['expected_file_count']).to eq(2)
         expect(report.archival_metadata['expected_files']).to include('clients_csv', 'projects_csv')
       end
@@ -187,7 +186,7 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       it 'marks archival as complete' do
         service.archive!
 
-        expect(report.archival_complete?).to be true
+        expect(report.archived?).to be true
         expect(report.archival_metadata['archived_at']).to be_present
         expect(report.archival_metadata['complete']).to be true
       end

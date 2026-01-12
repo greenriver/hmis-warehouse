@@ -51,7 +51,7 @@ module Reports
       return false unless eligible?
 
       # Skip if already archived to avoid re-attaching files (which triggers PurgeJob)
-      if report.archived? && report.archival_complete?
+      if report.archived?
         Rails.logger.info("ArchiveReportService: Report ##{report.id} is already archived, skipping")
         return true
       end

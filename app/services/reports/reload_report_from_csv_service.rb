@@ -21,7 +21,7 @@ module Reports
 
     def can_reload?
       return false unless report.present?
-      return false unless report.archival_complete?
+      return false unless report.archived?
 
       # CSV files must exist and be complete
       expected_files = report.archival_metadata&.dig('expected_files') || []

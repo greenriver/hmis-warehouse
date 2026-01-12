@@ -29,6 +29,7 @@ RSpec.describe ReportArchival, type: :model do
       klass = Class.new(SimpleReports::ReportInstance) do
         include ReportArchival
         has_many_attached :file1_csv
+        has_many_attached :file2_csv
       end
       class_name = "TestReportForArchived#{SecureRandom.hex(8)}"
       Object.const_set(class_name, klass)
@@ -46,13 +47,28 @@ RSpec.describe ReportArchival, type: :model do
       expect(report.archived?).to be false
     end
 
-    it 'returns true when CSV files exist and are complete' do
+    it 'returns false when expected_files is empty' do
+      report_with_attachments.update_column(:archival_metadata, { archived_at: Time.current })
+      expect(report_with_attachments.archived?).to be false
+    end
+
+    it 'returns false when files are not attached' do
       report_with_attachments.update_column(
         :archival_metadata,
         {
-          archived_at: Time.current.iso8601,
-          expected_files: ['file1_csv'],
-          complete: true,
+          archived_at: Time.current,
+          expected_files: ['file1_csv', 'file2_csv'],
+        },
+      )
+      expect(report_with_attachments.archived?).to be false
+    end
+
+    it 'returns true when all expected files are attached' do
+      report_with_attachments.update_column(
+        :archival_metadata,
+        {
+          archived_at: Time.current,
+          expected_files: ['file1_csv', 'file2_csv'],
         },
       )
       report_with_attachments.file1_csv.attach(
@@ -60,17 +76,20 @@ RSpec.describe ReportArchival, type: :model do
         filename: 'file1.csv',
         content_type: 'text/csv',
       )
+      report_with_attachments.file2_csv.attach(
+        io: StringIO.new('test'),
+        filename: 'file2.csv',
+        content_type: 'text/csv',
+      )
       expect(report_with_attachments.archived?).to be true
-      expect(report_with_attachments.purged?).to be false
     end
 
     it 'returns true when CSV exists regardless of purge status' do
       report_with_attachments.update_column(
         :archival_metadata,
         {
-          archived_at: Time.current.iso8601,
+          archived_at: Time.current,
           expected_files: ['file1_csv'],
-          complete: true,
           purged_at: Time.current.iso8601,
         },
       )
@@ -207,120 +226,6 @@ RSpec.describe ReportArchival, type: :model do
         },
       )
       expect { report.purge_eligible? }.to raise_error(ArgumentError)
-    end
-  end
-
-  describe '#archival_complete?' do
-    let(:test_report_class_with_attachments) do
-      klass = Class.new(SimpleReports::ReportInstance) do
-        include ReportArchival
-        has_many_attached :file1_csv
-        has_many_attached :file2_csv
-      end
-      # Give the class a name so Active Storage can work properly
-      class_name = "TestReportForArchivalComplete#{SecureRandom.hex(8)}"
-      Object.const_set(class_name, klass)
-      klass
-    end
-
-    let(:report_with_attachments) { test_report_class_with_attachments.create!(user_id: User.system_user.id) }
-
-    it 'returns false when not archived' do
-      expect(report_with_attachments.archival_complete?).to be false
-    end
-
-    it 'returns false when expected_files is empty' do
-      report_with_attachments.update_column(:archival_metadata, { archived_at: Time.current })
-      expect(report_with_attachments.archival_complete?).to be false
-    end
-
-    it 'returns false when files are not attached' do
-      report_with_attachments.update_column(
-        :archival_metadata,
-        {
-          archived_at: Time.current,
-          expected_files: ['file1_csv', 'file2_csv'],
-        },
-      )
-      expect(report_with_attachments.archival_complete?).to be false
-    end
-
-    it 'returns true when all expected files are attached' do
-      report_with_attachments.update_column(
-        :archival_metadata,
-        {
-          archived_at: Time.current,
-          expected_files: ['file1_csv', 'file2_csv'],
-        },
-      )
-      report_with_attachments.file1_csv.attach(
-        io: StringIO.new('test'),
-        filename: 'file1.csv',
-        content_type: 'text/csv',
-      )
-      report_with_attachments.file2_csv.attach(
-        io: StringIO.new('test'),
-        filename: 'file2.csv',
-        content_type: 'text/csv',
-      )
-      expect(report_with_attachments.archival_complete?).to be true
-    end
-  end
-
-  describe '#incomplete_archival?' do
-    let(:test_report_class_with_attachments) do
-      klass = Class.new(SimpleReports::ReportInstance) do
-        include ReportArchival
-        has_many_attached :file1_csv
-        has_many_attached :file2_csv
-      end
-      # Give the class a name so Active Storage can work properly
-      class_name = "TestReportForIncompleteArchival#{SecureRandom.hex(8)}"
-      Object.const_set(class_name, klass)
-      klass
-    end
-
-    let(:report_with_attachments) { test_report_class_with_attachments.create!(user_id: User.system_user.id) }
-
-    it 'returns false when not archived' do
-      expect(report_with_attachments.incomplete_archival?).to be false
-    end
-
-    it 'returns true when archived but incomplete' do
-      report_with_attachments.update_column(
-        :archival_metadata,
-        {
-          archived_at: Time.current,
-          expected_files: ['file1_csv', 'file2_csv'],
-        },
-      )
-      report_with_attachments.file1_csv.attach(
-        io: StringIO.new('test'),
-        filename: 'file1.csv',
-        content_type: 'text/csv',
-      )
-      expect(report_with_attachments.incomplete_archival?).to be true
-    end
-
-    it 'returns false when archival is complete' do
-      report_with_attachments.update_column(
-        :archival_metadata,
-        {
-          archived_at: Time.current,
-          expected_files: ['file1_csv', 'file2_csv'],
-        },
-      )
-      report_with_attachments.file1_csv.attach(
-        io: StringIO.new('test'),
-        filename: 'file1.csv',
-        content_type: 'text/csv',
-      )
-      report_with_attachments.file2_csv.attach(
-        io: StringIO.new('test'),
-        filename: 'file2.csv',
-        content_type: 'text/csv',
-      )
-      expect(report_with_attachments.incomplete_archival?).to be false
     end
   end
 
@@ -509,7 +414,6 @@ RSpec.describe ReportArchival, type: :model do
       allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false, force: false).and_return(purge_service_double)
       allow(purge_service_double).to receive(:purge!).and_return({ success: true })
       allow(report_with_archival).to receive(:archived?).and_return(true)
-      allow(report_with_archival).to receive(:archival_complete?).and_return(true)
 
       report_with_archival.archive_and_purge!
 

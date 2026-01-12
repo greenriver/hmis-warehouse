@@ -147,7 +147,7 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
       it 'returns false and includes error' do
         result = service.purge!
         expect(result[:success]).to be false
-        # Since no files are attached, archival_complete? will fail first
+        # Since no files are attached, archived? will fail first
         expect(result[:errors]).to include('Report has not been archived or archival is not complete')
       end
     end

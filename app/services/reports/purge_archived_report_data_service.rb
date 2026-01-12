@@ -76,7 +76,7 @@ module Reports
       end
 
       # Check 2: Archival must be complete (CSV files exist)
-      unless report.archived? && report.archival_complete?
+      unless report.archived?
         @errors << 'Report has not been archived or archival is not complete'
         return false
       end

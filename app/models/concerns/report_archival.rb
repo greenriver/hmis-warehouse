@@ -44,7 +44,12 @@ module ReportArchival
     # Archived means CSV files exist and are complete
     return false unless archival_metadata.present? && archival_metadata['archived_at'].present?
 
-    archival_complete?
+    expected_files = archival_metadata['expected_files'] || []
+    return false if expected_files.empty?
+
+    expected_files.all? do |attachment_name|
+      send(attachment_name).attached?
+    end
   end
 
   def purged?
@@ -62,23 +67,6 @@ module ReportArchival
 
     purge_eligible_at = Time.parse(purge_eligible_at_str)
     purge_eligible_at <= Time.current
-  end
-
-  def archival_complete?
-    return false unless archival_metadata.present? && archival_metadata['archived_at'].present?
-
-    expected_files = archival_metadata['expected_files'] || []
-    return false if expected_files.empty?
-
-    expected_files.all? do |attachment_name|
-      send(attachment_name).attached?
-    end
-  end
-
-  def incomplete_archival?
-    return false unless archival_metadata.present? && archival_metadata['archived_at'].present?
-
-    !archival_complete?
   end
 
   def archival_status
@@ -110,7 +98,7 @@ module ReportArchival
       expected_file_count: archival_metadata['expected_file_count'],
       expected_files: expected_files,
       files: files_status,
-      complete: archival_complete?,
+      complete: archived?,
     }
   end
 
@@ -132,7 +120,7 @@ module ReportArchival
 
   def archive_and_purge!(force: false)
     # Archive if needed
-    unless archived? && archival_complete?
+    unless archived?
       service = Reports::ArchiveReportService.new(self)
 
       # Reload report to ensure associations are fresh after bulk imports
