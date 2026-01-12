@@ -51,48 +51,7 @@ module Reports
       config_to_reload = config.select { |attachment_name, _| expected_files.include?(attachment_name.to_s) }
       return { success: false, errors: ['No matching archival configuration found for expected files'] } if config_to_reload.empty?
 
-      reloaded_counts = {}
-      errors = []
-
-      begin
-        # Reload each association from its CSV
-        config_to_reload.each do |attachment_name, csv_config|
-          count = reload_association(attachment_name, csv_config)
-          reloaded_counts[attachment_name] = count
-        rescue StandardError => e
-          error_msg = "Failed to reload #{attachment_name}: #{e.message}"
-          errors << error_msg
-          Rails.logger.error("ReloadReportFromCsvService: #{error_msg}")
-          Rails.logger.error(e.backtrace.first(10).join("\n"))
-        end
-
-        # If all reloads succeeded, update metadata to restart grace period
-        if errors.empty?
-          grace_period_days = Reports.archival_grace_period_days
-          reloaded_at = Time.current
-          purge_eligible_at = reloaded_at + grace_period_days.days
-
-          update_reload_metadata(
-            reloaded_at: reloaded_at.iso8601,
-            purge_eligible_at: purge_eligible_at.iso8601,
-          )
-
-          Rails.logger.info("Reloaded report #{report.class.name} ##{report.id} - grace period restarted, purge eligible at #{purge_eligible_at}")
-        end
-
-        {
-          success: errors.empty?,
-          reloaded_counts: reloaded_counts,
-          errors: errors,
-        }
-      rescue StandardError => e
-        error_msg = "Error reloading report #{report.class.name} ##{report.id}: #{e.message}"
-        Rails.logger.error("#{error_msg}\n#{e.backtrace.first(10).join("\n")}")
-        {
-          success: false,
-          errors: [error_msg] + errors,
-        }
-      end
+      reload_associations(config_to_reload)
     end
 
     def reload_association(attachment_name, csv_config)
@@ -125,17 +84,14 @@ module Reports
       records = csv_data.map do |row|
         # Convert symbol keys to model attributes
         attributes = row.transform_keys(&:to_s)
-        # Ensure report_id is set (must be done before filtering)
-        attributes['report_id'] = report.id
-        # Ensure deleted_at is nil (for acts_as_paranoid models)
-        attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
-        # Set timestamps if columns exist
-        attributes['created_at'] = now if valid_columns.include?('created_at') && attributes['created_at'].blank?
-        attributes['updated_at'] = now if valid_columns.include?('updated_at') && attributes['updated_at'].blank?
-        # Only include columns that exist in the model and aren't excluded
+        # Filter to only include valid columns and exclude id
         filtered_attributes = attributes.select { |key, _| valid_columns.include?(key) && !columns_to_exclude.include?(key) }
-        # Ensure report_id is included (double-check)
+        # Set required fields
         filtered_attributes['report_id'] = report.id if valid_columns.include?('report_id')
+        filtered_attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
+        # Set timestamps if columns exist and not already set
+        filtered_attributes['created_at'] = now if valid_columns.include?('created_at') && filtered_attributes['created_at'].blank?
+        filtered_attributes['updated_at'] = now if valid_columns.include?('updated_at') && filtered_attributes['updated_at'].blank?
         # Convert string values to appropriate types based on model columns
         # Use model's attribute assignment to handle type conversion
         model_instance = model_class.new
@@ -145,21 +101,13 @@ module Reports
         final_attributes = model_instance.attributes
         # Remove id if it was set by the model (from CSV data)
         final_attributes.delete('id')
-        # Final safety check: ensure report_id is in the final attributes
+        # Ensure report_id and deleted_at are set (insert_all needs explicit values)
         final_attributes['report_id'] = report.id if valid_columns.include?('report_id')
-        # Explicitly set deleted_at to nil for acts_as_paranoid models (insert_all needs this)
         final_attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
         final_attributes
       end
 
-      # Verify report_id is present in all records
-      missing_report_id = records.any? { |r| r['report_id'].blank? || r['report_id'] != report.id }
-      if missing_report_id
-        Rails.logger.error('ReloadReportFromCsvService: WARNING - Some records are missing report_id!')
-        Rails.logger.error("Sample record: #{records.first&.inspect}")
-      end
-
-      Rails.logger.info("ReloadReportFromCsvService: Converted #{records.size} records, sample keys: #{records.first&.keys&.first(5)&.inspect}, report_id present: #{records.first&.dig('report_id') == report.id}")
+      Rails.logger.info("ReloadReportFromCsvService: Converted #{records.size} records for #{attachment_name}")
 
       # Bulk insert records using Rails' insert_all
       # Delete existing records for this report first to avoid duplicates
@@ -172,14 +120,9 @@ module Reports
       all_keys = records.flat_map(&:keys).uniq
       # Ensure all records have the same columns (fill missing with nil)
       normalized_records = records.map do |record|
-        normalized = all_keys.each_with_object({}) do |key, hash|
+        all_keys.each_with_object({}) do |key, hash|
           hash[key] = record[key]
         end
-        # Final safety check: ensure report_id is always set
-        normalized['report_id'] = report.id if valid_columns.include?('report_id')
-        # Explicitly set deleted_at to nil for acts_as_paranoid models
-        normalized['deleted_at'] = nil if valid_columns.include?('deleted_at')
-        normalized
       end
 
       normalized_records.each_slice(5_000) do |batch|
@@ -213,6 +156,42 @@ module Reports
     end
 
     private
+
+    def reload_associations(config_to_reload)
+      reloaded_counts = {}
+      errors = []
+
+      # Reload each association from its CSV
+      config_to_reload.each do |attachment_name, csv_config|
+        count = reload_association(attachment_name, csv_config)
+        reloaded_counts[attachment_name] = count
+      rescue StandardError => e
+        error_msg = "Failed to reload #{attachment_name}: #{e.message}"
+        errors << error_msg
+        Rails.logger.error("ReloadReportFromCsvService: #{error_msg}")
+        Rails.logger.error(e.backtrace.first(10).join("\n"))
+      end
+
+      # If all reloads succeeded, update metadata to restart grace period
+      if errors.empty?
+        grace_period_days = Reports.archival_grace_period_days
+        reloaded_at = Time.current
+        purge_eligible_at = reloaded_at + grace_period_days.days
+
+        update_reload_metadata(
+          reloaded_at: reloaded_at.iso8601,
+          purge_eligible_at: purge_eligible_at.iso8601,
+        )
+
+        Rails.logger.info("Reloaded report #{report.class.name} ##{report.id} - grace period restarted, purge eligible at #{purge_eligible_at}")
+      end
+
+      {
+        success: errors.empty?,
+        reloaded_counts: reloaded_counts,
+        errors: errors,
+      }
+    end
 
     def update_reload_metadata(updates)
       current_metadata = report.archival_metadata || {}

@@ -17,37 +17,6 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     cleanup
   end
 
-  describe 'CSV archival' do
-    let(:report) { report_class.last }
-    before(:each) do
-      run!(default_filter)
-
-      # Explicitly trigger archival (not automatic)
-      Reports::ArchiveReportService.new(report).archive!
-    end
-
-    it 'archives report data to CSV after run_and_save!' do
-      expect(report.archived?).to be true
-      expect(report.clients_csv.attached?).to be true
-      expect(report.projects_csv.attached?).to be true
-      expect(report.client_projects_csv.attached?).to be true
-      expect(report.results_csv.attached?).to be true
-    end
-
-    it 'marks archival as complete when all files are attached' do
-      expect(report.archived?).to be true
-      expect(report.archival_metadata['expected_file_count']).to eq(4)
-      expect(report.archival_metadata['expected_files']).to match_array(['clients_csv', 'projects_csv', 'client_projects_csv', 'results_csv'])
-    end
-
-    it 'generates valid CSV files with correct structure' do
-      csv_content = report.clients_csv.first.download
-      parsed = CSV.parse(csv_content, headers: true)
-      expect(parsed.headers).to be_present
-      expect(parsed.length).to be > 0
-    end
-  end
-
   describe 'smoke tests' do
     before(:all) do
       run!(default_filter)

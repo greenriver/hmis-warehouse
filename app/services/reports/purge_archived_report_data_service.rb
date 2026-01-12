@@ -41,30 +41,23 @@ module Reports
       end
 
       # Perform deletion
-      begin
-        deleted_counts = delete_report_data
-        update_purged_metadata
+      deleted_counts = delete_report_data
+      update_purged_metadata
 
-        Rails.logger.info("Purged database data for report #{report.class.name} ##{report.id}: #{deleted_counts.inspect}")
+      Rails.logger.info("Purged database data for report #{report.class.name} ##{report.id}: #{deleted_counts.inspect}")
 
-        {
-          success: true,
-          deleted_counts: deleted_counts,
-          purged_at: Time.current,
-        }
-      rescue StandardError => e
-        error_msg = "Error purging report #{report.class.name} ##{report.id}: #{e.message}"
-        @errors << error_msg
-        Rails.logger.error("#{error_msg}\n#{e.backtrace.first(5).join("\n")}")
-
-        {
-          success: false,
-          errors: @errors,
-        }
-      end
+      {
+        success: true,
+        deleted_counts: deleted_counts,
+        purged_at: Time.current,
+      }
     end
 
     private
+
+    def expected_files
+      @expected_files ||= report.archival_metadata&.dig('expected_files') || []
+    end
 
     def safety_checks_passed?
       @errors = []
@@ -117,7 +110,6 @@ module Reports
 
     def csv_files_accessible?
       # Check only files that were expected to be archived (from metadata)
-      expected_files = report.archival_metadata&.dig('expected_files') || []
       return false if expected_files.empty?
 
       # Reload report to ensure attachments are fresh
@@ -133,7 +125,6 @@ module Reports
     def csv_data_integrity_verified?
       config = report.archival_csv_config
       # Only check CSVs that were actually archived (from expected_files)
-      expected_files = report.archival_metadata&.dig('expected_files') || []
       return true if expected_files.empty?
 
       expected_files.all? do |attachment_name|
@@ -186,13 +177,8 @@ module Reports
       association_name = csv_config[:association]
       return 0 unless association_name
 
-      begin
-        association = report.send(association_name)
-        association.is_a?(ActiveRecord::Relation) ? association.count : Array(association).count
-      rescue StandardError => e
-        Rails.logger.warn("Could not count database rows for #{association_name}: #{e.message}")
-        0
-      end
+      association = report.send(association_name)
+      association.count
     end
 
     def already_purged?
@@ -235,18 +221,7 @@ module Reports
       # Delete associations in reverse order to handle foreign key dependencies
       # (child records first, then parent records)
       purge_associations.reverse_each do |_attachment_name, association_name|
-        association = report.send(association_name)
-        if association.is_a?(ActiveRecord::Relation)
-          counts[association_name] = association.delete_all
-        else
-          # If it's not a relation, try to get the class and delete by report_id
-          association_class = association.respond_to?(:klass) ? association.klass : association.class
-          if association_class.respond_to?(:where)
-            counts[association_name] = association_class.where(report_id: report.id).delete_all
-          else
-            Rails.logger.warn("PurgeArchivedReportDataService: Cannot delete #{association_name} for #{report.class.name}")
-          end
-        end
+        counts[association_name] = report.send(association_name).delete_all
       end
 
       counts
@@ -258,18 +233,10 @@ module Reports
       return counts if config.empty?
 
       config.each do |_attachment_name, csv_config|
-        # Use association to determine what to count
         association_name = csv_config[:association]
         next unless association_name
 
-        association = report.send(association_name)
-        if association.is_a?(ActiveRecord::Relation)
-          counts[association_name] = association.count
-        else
-          # If it's not a relation, try to get the class and count by report_id
-          association_class = association.respond_to?(:klass) ? association.klass : association.class
-          counts[association_name] = association_class.where(report_id: report.id).count if association_class.respond_to?(:where)
-        end
+        counts[association_name] = report.send(association_name).count
       end
 
       counts

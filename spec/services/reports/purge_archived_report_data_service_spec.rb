@@ -378,17 +378,25 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         csv_content = generate_clients_csv([client1])
         attach_clients_csv(report, csv_content, filename: 'clients-1.csv')
 
-        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true)
+        setup_archival_metadata(report, expected_files: ['clients_csv'], complete: true, purge_eligible_at: 1.day.ago)
 
-        # Simulate deletion failure
-        allow(PerformanceMeasurement::Client).to receive(:where).and_raise(StandardError, 'Database error')
+        # Simulate deletion failure during actual deletion (not during integrity check)
+        # Mock the association to allow count (for integrity check) but fail on delete_all
+        real_association = PerformanceMeasurement::Client.where(report_id: report.id)
+        association_double = double('association')
+        allow(association_double).to receive(:count).and_return(1)
+        allow(association_double).to receive(:delete_all).and_raise(StandardError, 'Database error')
+        # Return real association for integrity check (first call), double for deletion (subsequent calls)
+        call_count = 0
+        allow(report).to receive(:clients) do
+          call_count += 1
+          # First call is for integrity check (count), subsequent calls are for deletion (delete_all)
+          call_count == 1 ? real_association : association_double
+        end
       end
 
-      it 'returns error and does not update metadata' do
-        result = service.purge!
-
-        expect(result[:success]).to be false
-        expect(result[:errors]).to be_present
+      it 'raises error and does not update metadata' do
+        expect { service.purge! }.to raise_error(StandardError, 'Database error')
         report.reload
         expect(report.archival_metadata['purged_at']).to be_nil
       end
@@ -579,20 +587,16 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
       setup_archival_metadata(report, expected_files: ['clients_csv'])
     end
 
-    it 'handles errors gracefully' do
+    it 'returns count from association' do
       service = described_class.new(report)
-      allow(report).to receive(:clients).and_raise(StandardError.new('Database error'))
-
-      count = service.send(:database_row_count, { association: :clients })
-      expect(count).to eq(0)
-    end
-
-    it 'handles non-relation associations' do
-      service = described_class.new(report)
-      allow(report).to receive(:clients).and_return([double('client')])
-
       count = service.send(:database_row_count, { association: :clients })
       expect(count).to eq(1)
+    end
+
+    it 'returns 0 when association name is missing' do
+      service = described_class.new(report)
+      count = service.send(:database_row_count, {})
+      expect(count).to eq(0)
     end
   end
 

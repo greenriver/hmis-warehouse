@@ -129,11 +129,6 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       allow(report).to receive(:archival_csv_config).and_return({})
       expect(service.eligible?).to be false
     end
-
-    it 'handles errors gracefully' do
-      allow(report).to receive(:archival_csv_config).and_raise(StandardError.new('Config error'))
-      expect(service.eligible?).to be false
-    end
   end
 
   describe '#archive!' do
@@ -207,6 +202,17 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         # Verify data is still in database
         expect(report.test_clients.count).to eq(2)
       end
+
+      it 'uses existing expected_files from metadata if present' do
+        # Set up metadata with expected_files
+        report.update_column(:archival_metadata, { expected_files: ['clients_csv'] })
+        service.archive!
+
+        # Should only archive clients_csv, not projects_csv
+        expect(report.clients_csv.attached?).to be true
+        expect(report.projects_csv.attached?).to be false
+        expect(report.archival_metadata['expected_files']).to eq(['clients_csv'])
+      end
     end
 
     context 'when report is not eligible' do
@@ -244,31 +250,6 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       end
     end
 
-    context 'with empty records' do
-      let(:empty_report) do
-        # Create a fresh report without any data
-        test_report_class.create!(user_id: User.system_user.id).tap do |r|
-          # Ensure no test clients exist for this report
-          test_client_class.where(report_id: r.id).delete_all
-        end
-      end
-      let(:empty_service) { described_class.new(empty_report) }
-
-      it 'handles empty associations gracefully by creating CSV with headers only' do
-        empty_report.reload
-        empty_service.archive!
-
-        # Empty associations should still create CSV files with headers
-        expect(empty_report.clients_csv.attached?).to be true
-        csv_content = empty_report.clients_csv.first.download
-        parsed = CSV.parse(csv_content, headers: true)
-        expect(parsed.headers).to be_present # Should have column headers
-        expect(parsed.length).to eq(0) # But no data rows
-      end
-    end
-  end
-
-  describe '#archive!' do
     context 'when report is already archived' do
       before do
         # Archive the report first
@@ -364,7 +345,7 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       end
     end
 
-    context 'with ActiveRecord::Relation' do
+    context 'with empty records' do
       let(:empty_report) do
         # Create a fresh report without any data
         test_report_class.create!(user_id: User.system_user.id).tap do |r|
@@ -374,11 +355,11 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
       end
       let(:empty_service) { described_class.new(empty_report) }
 
-      it 'handles empty relations gracefully by creating CSV with headers only' do
+      it 'handles empty associations gracefully by creating CSV with headers only' do
         empty_report.reload
         empty_service.archive!
 
-        # Empty relations should still create CSV files with headers
+        # Empty associations should still create CSV files with headers
         expect(empty_report.clients_csv.attached?).to be true
         csv_content = empty_report.clients_csv.first.download
         parsed = CSV.parse(csv_content, headers: true)

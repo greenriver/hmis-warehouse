@@ -24,18 +24,20 @@ RSpec.describe ReportArchival, type: :model do
 
   let(:report) { test_model_class.create!(user_id: User.system_user.id) }
 
-  describe '#archived?' do
-    let(:test_report_class_with_attachments) do
-      klass = Class.new(SimpleReports::ReportInstance) do
-        include ReportArchival
-        has_many_attached :file1_csv
-        has_many_attached :file2_csv
-      end
-      class_name = "TestReportForArchived#{SecureRandom.hex(8)}"
-      Object.const_set(class_name, klass)
-      klass
+  # Helper method to create test report classes with attachments
+  def create_test_report_class_with_attachments(attachment_names, class_suffix = nil)
+    attachment_names_array = Array(attachment_names)
+    klass = Class.new(SimpleReports::ReportInstance) do
+      include ReportArchival
+      attachment_names_array.each { |name| has_many_attached name }
     end
+    class_name = "TestReport#{class_suffix || SecureRandom.hex(8)}"
+    Object.const_set(class_name, klass)
+    klass
+  end
 
+  describe '#archived?' do
+    let(:test_report_class_with_attachments) { create_test_report_class_with_attachments([:file1_csv, :file2_csv], "ForArchived#{SecureRandom.hex(8)}") }
     let(:report_with_attachments) { test_report_class_with_attachments.create!(user_id: User.system_user.id) }
 
     it 'returns false when archival_metadata is blank' do
@@ -104,16 +106,7 @@ RSpec.describe ReportArchival, type: :model do
   end
 
   describe '#purged?' do
-    let(:test_report_class_with_attachments) do
-      klass = Class.new(SimpleReports::ReportInstance) do
-        include ReportArchival
-        has_many_attached :file1_csv
-      end
-      class_name = "TestReportForPurged#{SecureRandom.hex(8)}"
-      Object.const_set(class_name, klass)
-      klass
-    end
-
+    let(:test_report_class_with_attachments) { create_test_report_class_with_attachments(:file1_csv, "ForPurged#{SecureRandom.hex(8)}") }
     let(:report_with_attachments) { test_report_class_with_attachments.create!(user_id: User.system_user.id) }
 
     it 'returns false when not purged' do
@@ -157,16 +150,7 @@ RSpec.describe ReportArchival, type: :model do
   end
 
   describe '#purge_eligible?' do
-    let(:test_report_class_with_attachments) do
-      klass = Class.new(SimpleReports::ReportInstance) do
-        include ReportArchival
-        has_many_attached :file1_csv
-      end
-      class_name = "TestReportForPurgeEligible#{SecureRandom.hex(8)}"
-      Object.const_set(class_name, klass)
-      klass
-    end
-
+    let(:test_report_class_with_attachments) { create_test_report_class_with_attachments(:file1_csv, "ForPurgeEligible#{SecureRandom.hex(8)}") }
     let(:report_with_attachments) { test_report_class_with_attachments.create!(user_id: User.system_user.id) }
 
     it 'returns false when not archived' do
@@ -230,18 +214,7 @@ RSpec.describe ReportArchival, type: :model do
   end
 
   describe '#archival_status' do
-    let(:test_report_class_with_attachments) do
-      klass = Class.new(SimpleReports::ReportInstance) do
-        include ReportArchival
-        has_many_attached :file1_csv
-        has_many_attached :file2_csv
-      end
-      # Give the class a name so Active Storage can work properly
-      class_name = "TestReportForArchivalStatus#{SecureRandom.hex(8)}"
-      Object.const_set(class_name, klass)
-      klass
-    end
-
+    let(:test_report_class_with_attachments) { create_test_report_class_with_attachments([:file1_csv, :file2_csv], "ForArchivalStatus#{SecureRandom.hex(8)}") }
     let(:report_with_attachments) { test_report_class_with_attachments.create!(user_id: User.system_user.id) }
 
     it 'returns archived: false when not archived' do
@@ -390,7 +363,7 @@ RSpec.describe ReportArchival, type: :model do
 
     let(:report_with_archival) { test_report_class_with_archival.create!(user_id: User.system_user.id) }
 
-    it 'calls ArchiveReportService to archive the report when not already archived' do
+    it 'calls ArchiveReportService and PurgeArchivedReportDataService when not already archived' do
       archive_service_double = instance_double(Reports::ArchiveReportService)
       purge_service_double = instance_double(Reports::PurgeArchivedReportDataService)
       allow(Reports::ArchiveReportService).to receive(:new).with(report_with_archival).and_return(archive_service_double)
@@ -402,13 +375,26 @@ RSpec.describe ReportArchival, type: :model do
 
       report_with_archival.archive_and_purge!
 
+      expect(report_with_archival).to have_received(:reload)
       expect(Reports::ArchiveReportService).to have_received(:new).with(report_with_archival)
       expect(archive_service_double).to have_received(:archive!)
       expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false, force: false)
       expect(purge_service_double).to have_received(:purge!)
     end
 
-    it 'skips archiving when already archived and complete' do
+    it 'passes force parameter to purge service' do
+      purge_service_double = instance_double(Reports::PurgeArchivedReportDataService)
+      allow(report_with_archival).to receive(:archived?).and_return(true)
+      allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false, force: true).and_return(purge_service_double)
+      allow(purge_service_double).to receive(:purge!).and_return({ success: true })
+
+      report_with_archival.archive_and_purge!(force: true)
+
+      expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false, force: true)
+      expect(purge_service_double).to have_received(:purge!)
+    end
+
+    it 'skips archiving when already archived' do
       purge_service_double = instance_double(Reports::PurgeArchivedReportDataService)
       allow(Reports::ArchiveReportService).to receive(:new).and_call_original
       allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false, force: false).and_return(purge_service_double)
@@ -420,21 +406,6 @@ RSpec.describe ReportArchival, type: :model do
       expect(Reports::ArchiveReportService).not_to have_received(:new)
       expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false, force: false)
       expect(purge_service_double).to have_received(:purge!)
-    end
-
-    it 'reloads the report before archiving' do
-      archive_service_double = instance_double(Reports::ArchiveReportService)
-      purge_service_double = instance_double(Reports::PurgeArchivedReportDataService)
-      allow(Reports::ArchiveReportService).to receive(:new).and_return(archive_service_double)
-      allow(archive_service_double).to receive(:archive!).and_return(true)
-      allow(Reports::PurgeArchivedReportDataService).to receive(:new).and_return(purge_service_double)
-      allow(purge_service_double).to receive(:purge!).and_return({ success: true })
-      allow(report_with_archival).to receive(:reload).and_return(report_with_archival)
-      allow(report_with_archival).to receive(:archived?).and_return(false)
-
-      report_with_archival.archive_and_purge!
-
-      expect(report_with_archival).to have_received(:reload)
     end
 
     it 'returns error when archiving fails' do

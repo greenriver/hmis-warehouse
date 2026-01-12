@@ -140,8 +140,8 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         expect(client.reporting_age).to eq(25)
       end
 
-      it 'handles errors gracefully' do
-        # Cause an error by removing the association from archival_csv_config
+      it 'handles errors gracefully when association fails' do
+        # Cause an error by using a nonexistent association
         allow(report).to receive(:archival_csv_config).and_return(
           clients_csv: {
             association: :nonexistent_association,
@@ -154,6 +154,29 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         expect(result[:success]).to be false
         expect(result[:errors]).to be_present
         expect(result[:errors].first).to match(/Failed to reload/)
+      end
+
+      it 'handles partial failures - some associations reload successfully' do
+        # Set up so clients_csv fails but projects_csv succeeds
+        allow(report).to receive(:archival_csv_config).and_return(
+          clients_csv: {
+            association: :nonexistent_association,
+            filename: -> { "clients-#{report.id}.csv" },
+          },
+          projects_csv: {
+            association: :projects,
+            filename: -> { "projects-#{report.id}.csv" },
+          },
+        )
+
+        result = service.reload!
+
+        expect(result[:success]).to be false
+        expect(result[:errors]).to be_present
+        expect(result[:reloaded_counts][:projects_csv]).to eq(1)
+        expect(result[:reloaded_counts][:clients_csv]).to be_nil
+        # Grace period should not be restarted if there are errors
+        expect(report.archival_metadata['reloaded_at']).to be_nil
       end
     end
 
@@ -179,6 +202,59 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         result = service.reload!
         expect(result[:success]).to be false
         expect(result[:errors]).to include('No archival configuration found')
+      end
+    end
+
+    context 'when expected files do not match config' do
+      before do
+        # Attach files so can_reload? passes
+        report.clients_csv.attach(
+          io: StringIO.new('id,client_id\n1,100'),
+          filename: 'clients-1.csv',
+          content_type: 'text/csv',
+        )
+        report.projects_csv.attach(
+          io: StringIO.new('id,project_id\n1,200'),
+          filename: 'projects-1.csv',
+          content_type: 'text/csv',
+        )
+        report.update!(
+          archival_metadata: {
+            archived_at: Time.current.iso8601,
+            expected_files: ['clients_csv', 'projects_csv'],
+            complete: true,
+          },
+        )
+      end
+
+      it 'returns error when none of the expected files match config' do
+        # Config has neither clients_csv nor projects_csv
+        allow(report).to receive(:archival_csv_config).and_return(
+          results_csv: {
+            association: :results,
+            filename: -> { "results-#{report.id}.csv" },
+          },
+        )
+
+        result = service.reload!
+        expect(result[:success]).to be false
+        expect(result[:errors]).to include('No matching archival configuration found for expected files')
+      end
+
+      it 'reloads only files that match config when some expected files are missing from config' do
+        # Config only has clients_csv, but expected_files includes both
+        # This should succeed and only reload clients_csv
+        allow(report).to receive(:archival_csv_config).and_return(
+          clients_csv: {
+            association: :clients,
+            filename: -> { "clients-#{report.id}.csv" },
+          },
+        )
+
+        result = service.reload!
+        expect(result[:success]).to be true
+        expect(result[:reloaded_counts]).to have_key(:clients_csv)
+        expect(result[:reloaded_counts]).not_to have_key(:projects_csv)
       end
     end
   end

@@ -42,9 +42,6 @@ module Reports
       return false if config.blank?
 
       true
-    rescue StandardError => e
-      Rails.logger.warn("Error checking archival eligibility for report #{report.class.name} ##{report.id}: #{e.message}") if defined?(Rails.logger)
-      false
     end
 
     def archive!
@@ -60,6 +57,9 @@ module Reports
       existing_metadata = report.archival_metadata || {}
       expected_files = existing_metadata['expected_files'] || config.keys.map(&:to_s)
       expected_file_count = expected_files.size
+
+      # Ensure report is reloaded once before processing attachments
+      report.reload unless report.new_record?
 
       # Generate and attach CSV files (only for expected files)
       expected_files.each do |attachment_name_str|
@@ -101,8 +101,6 @@ module Reports
       association_name = csv_config[:association]
       raise "No association specified for #{attachment_name}" unless association_name
 
-      # Ensure report is reloaded to get fresh associations after bulk imports
-      report.reload unless report.new_record?
       association = report.send(association_name)
 
       # Generate filename
@@ -171,38 +169,12 @@ module Reports
       )
     end
 
-    # update_file_status(attachment_name, attached: true, attached_at: Time.current.iso8601)
     def update_file_status(attachment_name, status_updates)
       current_metadata = report.archival_metadata || {}
       files = current_metadata['files'] || {}
       files[attachment_name] = (files[attachment_name] || {}).merge(status_updates.with_indifferent_access)
 
       update_archival_metadata({ files: files })
-    end
-
-    def archival_metadata
-      report.archival_metadata || {}
-    end
-
-    def purge_database_data
-      purge_service = Reports::PurgeArchivedReportDataService.new(report, dry_run: false)
-      result = purge_service.purge!
-
-      if result[:success]
-        Rails.logger.info("Purged database data for report #{report.class.name} ##{report.id} after archival")
-      else
-        # Log errors but don't fail archival if purge fails
-        Rails.logger.error("Failed to purge database data for report #{report.class.name} ##{report.id}: #{result[:errors].join(', ')}")
-        @errors << { purge: result[:errors] }
-      end
-    rescue StandardError => e
-      # Send to Sentry but don't fail archival if purge fails
-      Sentry.capture_exception_with_info(
-        e,
-        "Error purging database data for report #{report.class.name} ##{report.id}",
-        { report_id: report.id, report_class: report.class.name },
-      )
-      @errors << { purge: e.message }
     end
   end
 end
