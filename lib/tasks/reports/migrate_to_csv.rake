@@ -29,7 +29,7 @@ namespace :reports do
       # - Must be one of the configured archival types
       # - Must have completed_at
       # - Must not be purged yet (purged_at is null)
-      # - Must have purge_eligible_at <= now OR completed_at + grace_period_days <= now
+      # - Must have purge_eligible_at <= now OR (purge_eligible_at doesn't exist AND completed_at + grace_period_days <= now)
       reports_to_process = SimpleReports::ReportInstance.
         where(type: archival_types).
         where.not(completed_at: nil).
@@ -37,7 +37,7 @@ namespace :reports do
         where(
           Arel.sql(
             "((archival_metadata->>'purge_eligible_at' IS NOT NULL AND (archival_metadata->>'purge_eligible_at')::timestamp <= ?) OR " \
-            "(completed_at + INTERVAL '#{grace_period_days} days' <= ?))",
+            "(archival_metadata->>'purge_eligible_at' IS NULL AND completed_at + INTERVAL '#{grace_period_days} days' <= ?))",
             now, now
           ),
         ).
@@ -90,7 +90,7 @@ namespace :reports do
         end
       rescue StandardError => e
         failure_count += 1
-        error_msg = "Error processing report ##{report.id}: #{e.message}"
+        error_msg = "Error processing report #{report.class.name} ##{report.id}: #{e.message}"
         errors << error_msg
         Rails.logger.error("#{error_msg}\n#{e.backtrace.first(5).join("\n")}")
         Sentry.capture_exception_with_info(

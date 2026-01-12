@@ -165,7 +165,10 @@ module Reports
 
     def update_archival_metadata(updates)
       current_metadata = report.archival_metadata || {}
-      report.update(archival_metadata: current_metadata.merge(updates.with_indifferent_access))
+      report.update_column(
+        :archival_metadata,
+        current_metadata.merge(updates.with_indifferent_access),
+      )
     end
 
     # update_file_status(attachment_name, attached: true, attached_at: Time.current.iso8601)
