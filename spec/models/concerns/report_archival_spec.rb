@@ -490,7 +490,7 @@ RSpec.describe ReportArchival, type: :model do
       purge_service_double = instance_double(Reports::PurgeArchivedReportDataService)
       allow(Reports::ArchiveReportService).to receive(:new).with(report_with_archival).and_return(archive_service_double)
       allow(archive_service_double).to receive(:archive!).and_return(true)
-      allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false).and_return(purge_service_double)
+      allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false, force: false).and_return(purge_service_double)
       allow(purge_service_double).to receive(:purge!).and_return({ success: true })
       allow(report_with_archival).to receive(:reload).and_return(report_with_archival)
       allow(report_with_archival).to receive(:archived?).and_return(false)
@@ -499,14 +499,14 @@ RSpec.describe ReportArchival, type: :model do
 
       expect(Reports::ArchiveReportService).to have_received(:new).with(report_with_archival)
       expect(archive_service_double).to have_received(:archive!)
-      expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false)
+      expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false, force: false)
       expect(purge_service_double).to have_received(:purge!)
     end
 
     it 'skips archiving when already archived and complete' do
       purge_service_double = instance_double(Reports::PurgeArchivedReportDataService)
       allow(Reports::ArchiveReportService).to receive(:new).and_call_original
-      allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false).and_return(purge_service_double)
+      allow(Reports::PurgeArchivedReportDataService).to receive(:new).with(report_with_archival, dry_run: false, force: false).and_return(purge_service_double)
       allow(purge_service_double).to receive(:purge!).and_return({ success: true })
       allow(report_with_archival).to receive(:archived?).and_return(true)
       allow(report_with_archival).to receive(:archival_complete?).and_return(true)
@@ -514,7 +514,7 @@ RSpec.describe ReportArchival, type: :model do
       report_with_archival.archive_and_purge!
 
       expect(Reports::ArchiveReportService).not_to have_received(:new)
-      expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false)
+      expect(Reports::PurgeArchivedReportDataService).to have_received(:new).with(report_with_archival, dry_run: false, force: false)
       expect(purge_service_double).to have_received(:purge!)
     end
 
@@ -546,7 +546,7 @@ RSpec.describe ReportArchival, type: :model do
       result = report_with_archival.archive_and_purge!
 
       expect(result[:success]).to be false
-      expect(result[:errors]).to include('Failed to archive report before purge')
+      expect(result[:errors].first).to include('Failed to archive report before purge')
       expect(Rails.logger).to have_received(:error).with(match(/Failed to archive report/))
       expect(Reports::PurgeArchivedReportDataService).not_to have_received(:new)
     end

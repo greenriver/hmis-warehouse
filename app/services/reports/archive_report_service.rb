@@ -8,6 +8,7 @@
 
 require 'csv'
 require 'tempfile'
+require 'stringio'
 
 module Reports
   # Get the archival grace period in days from AppConfigProperty, defaulting to 60
@@ -117,12 +118,25 @@ module Reports
         generate_csv_to_file(association, attachment_name, temp_file.path)
 
         attachment = report.send(attachment_name)
-        File.open(temp_file.path, 'rb') do |file|
+
+        # Verify file is not empty before opening
+        raise "Generated CSV is empty for #{attachment_name}" if File.size(temp_file.path) == 0
+
+        # Open file handle and keep it open until after save completes
+        # Active Storage reads the file during attach and save, so we need the handle to stay open
+        file_handle = File.open(temp_file.path, 'rb')
+        begin
           attachment.attach(
-            io: file,
+            io: file_handle,
             filename: filename,
             content_type: 'text/csv',
           )
+
+          # Ignore validation here. We are only persisting the csv attachements for existing reports, and
+          # some older reports may be in invalid states. We still want to archive their data.
+          report.save(validate: false)
+        ensure
+          file_handle.close
         end
       ensure
         temp_file.close

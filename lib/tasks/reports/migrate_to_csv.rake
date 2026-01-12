@@ -40,7 +40,8 @@ namespace :reports do
             "(completed_at + INTERVAL '#{grace_period_days} days' <= ?))",
             now, now
           ),
-        )
+        ).
+        order(completed_at: :asc)
 
       puts "Found #{reports_to_process.count} reports eligible for archival and purging (grace period expired)"
       puts ''
