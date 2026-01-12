@@ -247,7 +247,7 @@ module HmisExternalApis::ExternalForms
           {
             value: option['code'],
             label: option['label'] || option['code'],
-            initial_selected: option['initial_selected'],
+            initial_selected: option['initial_selected'] == true,
           }
         end
       end
