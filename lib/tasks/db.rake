@@ -69,7 +69,7 @@ def load_structure_sql(connection_class, filename)
   env = {}
   password = config[:password]
   env['PGPASSWORD'] = password if password && !password.empty?
-  command = ['psql', '-v', 'ON_ERROR_STOP=1']
+  command = ['psql', '-v', 'ON_ERROR_STOP=1', '--quiet']
   host = config[:host]
   command += ['-h', host] if host && !host.empty?
   port = config[:port]
