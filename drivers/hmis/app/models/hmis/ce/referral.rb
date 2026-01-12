@@ -36,6 +36,7 @@ module Hmis::Ce
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
     belongs_to :custom_status, class_name: 'Hmis::Ce::CustomReferralStatus', foreign_key: :custom_referral_status_id, optional: true
+    belongs_to :decline_reason, class_name: 'Hmis::Ce::ReferralDeclineReason', optional: true
     has_one :ce_event, class_name: 'Hmis::Hud::Event', foreign_key: :ce_referral_id, dependent: :nullify
 
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
@@ -122,6 +123,7 @@ module Hmis::Ce
     validate :ce_template
     validate :consistent_data_source
     validate :consistent_project
+    validate :no_decline_reason_when_accepted
 
     # When referral status changes, its CustomReferralStatus (user-facing status) should also be updated.
     # See ReferralMessageHandler for example.
@@ -258,6 +260,12 @@ module Hmis::Ce
       return unless target_enrollment
 
       errors.add(:target_enrollment, 'must be in same project as referral') unless target_enrollment.project == target_project
+    end
+
+    def no_decline_reason_when_accepted
+      return unless accepted? && decline_reason.present?
+
+      errors.add(:decline_reason, 'cannot be set on an accepted referral')
     end
   end
 end

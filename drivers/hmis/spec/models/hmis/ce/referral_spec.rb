@@ -97,5 +97,20 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         end.to change(Hmis::Ce::Referral, :count).from(3).to(4)
       end
     end
+
+    describe '#no_decline_reason_when_accepted' do
+      let(:decline_reason) { create(:ce_referral_decline_reason, data_source: data_source) }
+
+      it 'does not allow setting a decline reason on an accepted referral' do
+        referral = build(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'accepted', decline_reason: decline_reason)
+        expect(referral.valid?).to be_falsy
+        expect(referral.errors[:decline_reason]).to include('cannot be set on an accepted referral')
+      end
+
+      it 'allows setting a decline reason on a rejected referral' do
+        referral = build(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'rejected', decline_reason: decline_reason)
+        expect(referral.valid?).to be_truthy
+      end
+    end
   end
 end
