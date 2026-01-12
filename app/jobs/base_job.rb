@@ -101,9 +101,23 @@ class BaseJob < ApplicationJob
   # This is somewhat brittle at this time and expects to be operating on
   # an ActiveJob instance (something like an instance of Importing::HudZip::HmisAutoMigrateJob).
   # Additionally, this expects the rails job backend to be Delayed::Job
+  #
+  # Postpones the current job when a "collision" is detected.
+  # A collision occurs when an advisory lock cannot be acquired because another worker
+  # is already processing the same data. Instead of blocking the worker or failing,
+  # we clone the job and schedule it for a future time, allowing the current worker
+  # to move on to other tasks.
   def requeue_at(timestamp, message)
+    job = delayed_job
+    # It is possible for the delayed_job record to be missing (e.g. if a user deleted it
+    # from the UI while the job was running). Return if we can't find the job
+    unless job.present?
+      Sentry.capture_message("Unable to find delayed_job for requeue_at in #{self.class.name} (AJ ID: #{job_id}, Provider ID: #{provider_job_id})")
+      return
+    end
+
     Rails.logger.info(message) if message.present?
-    new_job = delayed_job.dup
+    new_job = job.dup
     new_job.update(
       locked_at: nil,
       locked_by: nil,
@@ -114,11 +128,11 @@ class BaseJob < ApplicationJob
 
   # Attempt to find the associated delayed job so we can use it
   def delayed_job
-    job = Delayed::Job.jobs_for_class(job_id).first
-    # NOTE: job_id will probably be a UUID in the handler of the row
-    raise "Unable to find a related delayed job (ID: #{job_id})" unless job.present?
+    # provider_job_id is the numeric ID of the Delayed::Job row
+    return Delayed::Job.find_by(id: provider_job_id) if provider_job_id.present?
 
-    job
+    # fallback to using handler
+    Delayed::Job.jobs_for_class(job_id).first
   end
 
   # Override as necessary to limit the number of times a job is tried
