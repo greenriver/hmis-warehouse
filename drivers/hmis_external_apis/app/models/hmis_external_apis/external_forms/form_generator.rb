@@ -244,7 +244,11 @@ module HmisExternalApis::ExternalForms
         end
       elsif pick_list_options
         pick_list_options.map do |option|
-          { value: option['code'], label: option['label'] || option['code'] }
+          {
+            value: option['code'],
+            label: option['label'] || option['code'],
+            initial_selected: option['initial_selected'],
+          }
         end
       end
     end
