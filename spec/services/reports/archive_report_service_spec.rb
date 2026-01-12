@@ -102,12 +102,8 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
   let(:report) { test_report_class.create!(user_id: User.system_user.id) }
   let(:service) { described_class.new(report) }
 
-  # Create test data before each test (unless overridden in specific contexts)
+  # Create test data before each test
   before do
-    # Skip if this is an empty records test
-    example_description = RSpec.current_example&.full_description || ''
-    next if example_description.include?('empty') || example_description.include?('Empty')
-
     test_client_class.create!(report_id: report.id, name: 'Client 1', age: nil)
     test_client_class.create!(report_id: report.id, name: 'Client 2', age: nil)
     test_project_class.create!(report_id: report.id, name: 'Project 1')
@@ -183,7 +179,6 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
 
         expect(report.archived?).to be true
         expect(report.archival_metadata['archived_at']).to be_present
-        expect(report.archival_metadata['complete']).to be true
       end
 
       it 'does not set grace period metadata (set at completion or reload)' do

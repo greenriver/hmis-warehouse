@@ -119,7 +119,6 @@ RSpec.describe ReportArchival, type: :model do
         {
           archived_at: Time.current.iso8601,
           expected_files: ['file1_csv'],
-          complete: true,
         },
       )
       report_with_attachments.file1_csv.attach(
@@ -136,7 +135,6 @@ RSpec.describe ReportArchival, type: :model do
         {
           archived_at: Time.current.iso8601,
           expected_files: ['file1_csv'],
-          complete: true,
           purged_at: Time.current.iso8601,
         },
       )
@@ -247,7 +245,6 @@ RSpec.describe ReportArchival, type: :model do
         archived: true, # CSV files exist
         purged: false, # Data not purged yet
         purge_eligible: false,
-        complete: true,
         archived_at: be_present,
         expected_file_count: 2,
         expected_files: ['file1_csv', 'file2_csv'],

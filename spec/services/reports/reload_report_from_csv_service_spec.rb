@@ -9,16 +9,103 @@
 require 'rails_helper'
 
 RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
-  let(:user) { User.system_user }
-  let(:report) do
-    PerformanceMeasurement::Goal.ensure_default
-    report = PerformanceMeasurement::Report.new(
-      user_id: user.id,
-    )
-    report.update_goal_configuration!
-    report.save!
-    report
+  # Create test model classes and tables
+  before(:all) do
+    connection = GrdaWarehouseBase.connection
+
+    # Create test clients table
+    unless connection.table_exists?(:test_reload_clients)
+      connection.create_table :test_reload_clients, force: true do |t|
+        t.integer :report_id, null: false
+        t.integer :client_id
+        t.integer :reporting_age
+        t.timestamps
+      end
+    end
+
+    # Create test projects table
+    unless connection.table_exists?(:test_reload_projects)
+      connection.create_table :test_reload_projects, force: true do |t|
+        t.integer :report_id, null: false
+        t.integer :project_id
+        t.timestamps
+      end
+    end
   end
+
+  after(:all) do
+    connection = GrdaWarehouseBase.connection
+    connection.drop_table :test_reload_clients if connection.table_exists?(:test_reload_clients)
+    connection.drop_table :test_reload_projects if connection.table_exists?(:test_reload_projects)
+  end
+
+  # Test model classes - create and name them first
+  let(:test_client_class) do
+    klass = Class.new(GrdaWarehouseBase) do
+      self.table_name = 'test_reload_clients'
+      belongs_to :report, class_name: 'SimpleReports::ReportInstance', foreign_key: :report_id
+    end
+    class_name = "TestReloadClient#{SecureRandom.hex(8)}"
+    Object.const_set(class_name, klass)
+    klass
+  end
+
+  let(:test_project_class) do
+    klass = Class.new(GrdaWarehouseBase) do
+      self.table_name = 'test_reload_projects'
+      belongs_to :report, class_name: 'SimpleReports::ReportInstance', foreign_key: :report_id
+    end
+    class_name = "TestReloadProject#{SecureRandom.hex(8)}"
+    Object.const_set(class_name, klass)
+    klass
+  end
+
+  # Create a test report model
+  let(:test_report_class) do
+    # Ensure client and project classes are created and named first
+    client_class = test_client_class
+    project_class = test_project_class
+
+    klass = Class.new(SimpleReports::ReportInstance) do
+      include ReportArchival
+
+      has_many_attached :clients_csv
+      has_many_attached :projects_csv
+
+      define_method :archival_csv_config do
+        {
+          clients_csv: {
+            association: :test_clients,
+            filename: -> { "clients-#{id}.csv" },
+          },
+          projects_csv: {
+            association: :test_projects,
+            filename: -> { "projects-#{id}.csv" },
+          },
+        }
+      end
+    end
+    # Give the class a name so Active Storage can work properly
+    class_name = "TestReportForReloadService#{SecureRandom.hex(8)}"
+    Object.const_set(class_name, klass)
+
+    # Define associations after class is named, using class_eval to ensure proper context
+    # Capture class names as strings for use in class_eval
+    client_class_name = client_class.name
+    project_class_name = project_class.name
+    klass.class_eval do
+      has_many :test_clients, class_name: client_class_name, foreign_key: :report_id, dependent: :destroy
+      has_many :test_projects, class_name: project_class_name, foreign_key: :report_id, dependent: :destroy
+    end
+
+    # Force Rails to process the associations
+    klass.reflect_on_association(:test_clients)
+    klass.reflect_on_association(:test_projects)
+
+    klass
+  end
+
+  let(:report) { test_report_class.create!(user_id: User.system_user.id) }
   let(:service) { described_class.new(report) }
 
   describe '#can_reload?' do
@@ -27,32 +114,46 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
       expect(service.can_reload?).to be false
     end
 
-    it 'returns false when archival is not complete' do
-      expect(service.can_reload?).to be false
-    end
-
     it 'returns false when CSV files are missing' do
       report.update!(
         archival_metadata: {
           archived_at: Time.current.iso8601,
           expected_files: ['clients_csv'],
-          complete: true,
         },
       )
       expect(service.can_reload?).to be false
     end
 
-    it 'returns true when CSV files are available' do
+    it 'returns false when only some of the expected CSV files are available' do
       report.update!(
         archival_metadata: {
           archived_at: Time.current.iso8601,
-          expected_files: ['clients_csv'],
-          complete: true,
+          expected_files: ['clients_csv', 'projects_csv'],
         },
       )
       report.clients_csv.attach(
         io: StringIO.new('id,client_id,reporting_age\n1,100,25'),
         filename: 'clients-1.csv',
+        content_type: 'text/csv',
+      )
+      expect(service.can_reload?).to be false
+    end
+
+    it 'returns true when all of the expected CSV files are available' do
+      report.update!(
+        archival_metadata: {
+          archived_at: Time.current.iso8601,
+          expected_files: ['clients_csv', 'projects_csv'],
+        },
+      )
+      report.clients_csv.attach(
+        io: StringIO.new('id,client_id,reporting_age\n1,100,25'),
+        filename: 'clients-1.csv',
+        content_type: 'text/csv',
+      )
+      report.projects_csv.attach(
+        io: StringIO.new('id,project_id\n1,200'),
+        filename: 'projects-1.csv',
         content_type: 'text/csv',
       )
       expect(service.can_reload?).to be true
@@ -97,7 +198,6 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
           archival_metadata: {
             archived_at: Time.current.iso8601,
             expected_files: ['clients_csv', 'projects_csv'],
-            complete: true,
             completed_at: Time.current.iso8601,
             purged_at: Time.current.iso8601, # Data was purged
           },
@@ -127,15 +227,15 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
       end
 
       it 'creates database records from CSV data' do
-        expect(PerformanceMeasurement::Client.where(report_id: report.id).count).to eq(0)
-        expect(PerformanceMeasurement::Project.where(report_id: report.id).count).to eq(0)
+        expect(test_client_class.where(report_id: report.id).count).to eq(0)
+        expect(test_project_class.where(report_id: report.id).count).to eq(0)
 
         service.reload!
 
-        expect(PerformanceMeasurement::Client.where(report_id: report.id).count).to eq(2)
-        expect(PerformanceMeasurement::Project.where(report_id: report.id).count).to eq(1)
+        expect(test_client_class.where(report_id: report.id).count).to eq(2)
+        expect(test_project_class.where(report_id: report.id).count).to eq(1)
 
-        client = PerformanceMeasurement::Client.find_by(report_id: report.id, client_id: 100)
+        client = test_client_class.find_by(report_id: report.id, client_id: 100)
         expect(client).to be_present
         expect(client.reporting_age).to eq(25)
       end
@@ -164,7 +264,7 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
             filename: -> { "clients-#{report.id}.csv" },
           },
           projects_csv: {
-            association: :projects,
+            association: :test_projects,
             filename: -> { "projects-#{report.id}.csv" },
           },
         )
@@ -177,6 +277,7 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         expect(result[:reloaded_counts][:clients_csv]).to be_nil
         # Grace period should not be restarted if there are errors
         expect(report.archival_metadata['reloaded_at']).to be_nil
+        expect(report.archival_metadata['purge_eligible_at']).to be <= Time.current
       end
     end
 
@@ -192,7 +293,6 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
           archival_metadata: {
             archived_at: Time.current.iso8601,
             expected_files: ['clients_csv'],
-            complete: true,
           },
         )
         allow(report).to receive(:archival_csv_config).and_return({})
@@ -222,7 +322,6 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
           archival_metadata: {
             archived_at: Time.current.iso8601,
             expected_files: ['clients_csv', 'projects_csv'],
-            complete: true,
           },
         )
       end
@@ -246,7 +345,7 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         # This should succeed and only reload clients_csv
         allow(report).to receive(:archival_csv_config).and_return(
           clients_csv: {
-            association: :clients,
+            association: :test_clients,
             filename: -> { "clients-#{report.id}.csv" },
           },
         )

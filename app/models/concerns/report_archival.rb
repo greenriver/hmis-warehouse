@@ -98,7 +98,6 @@ module ReportArchival
       expected_file_count: archival_metadata['expected_file_count'],
       expected_files: expected_files,
       files: files_status,
-      complete: archived?,
     }
   end
 

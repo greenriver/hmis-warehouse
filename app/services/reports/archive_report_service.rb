@@ -88,7 +88,6 @@ module Reports
                                  expected_file_count: expected_file_count,
                                  expected_files: expected_files,
                                  archived_at: archived_at.iso8601,
-                                 complete: true,
                                })
 
       Rails.logger.info("Archived report #{report.class.name} ##{report.id}")

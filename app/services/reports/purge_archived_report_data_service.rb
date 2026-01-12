@@ -144,20 +144,16 @@ module Reports
         # Get database count
         db_count = database_row_count(csv_config)
 
-        # Allow small discrepancies due to timing, but log if significant
+        # Counts must match exactly
         if csv_count != db_count
           Rails.logger.warn(
-            "CSV integrity check: #{attachment_name} - CSV: #{csv_count}, DB: #{db_count} " \
+            "CSV integrity check failed: #{attachment_name} - CSV: #{csv_count}, DB: #{db_count} " \
             "for report ##{report.id}",
           )
-          # For now, allow small discrepancies (within 1%)
-          # In production, you might want stricter checking
-          difference = (csv_count - db_count).abs
-          max_difference = [csv_count, db_count].max * 0.01
-          difference <= max_difference
-        else
-          true
+          return false
         end
+
+        true
       end
     end
 
