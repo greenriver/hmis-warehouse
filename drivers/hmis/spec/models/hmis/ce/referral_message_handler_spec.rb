@@ -62,4 +62,66 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
       end.to change(referral, :custom_status).to(custom_status)
     end
   end
+
+  describe 'workflow with side effect that sets a decline reason' do
+    let!(:decline_reason) { create(:ce_referral_decline_reason, data_source: ds1, key: 'user_error') }
+
+    let!(:set_decline_reason_script_task) do
+      create(
+        :hmis_workflow_definition_script_task,
+        template: workflow_template,
+        name: 'Set Decline Reason',
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'set_referral_decline_reason',
+            params: { 'decline_reason_field': 'decline_reason' },
+          },
+        ],
+      )
+    end
+
+    before do
+      # Modify the workflow from ce_spec_helper to set the decline reason before rejection
+      acceptance_gateway.outflows.find_by(target_node: reject_referral).destroy!
+      acceptance_gateway.connect_to!(set_decline_reason_script_task)
+      set_decline_reason_script_task.connect_to!(reject_referral)
+
+      engine.start_workflow!(user: hmis_user)
+
+      # Complete the initial steps to reach the
+      client_acceptance = engine.active_steps.sole
+      engine.start_step!(client_acceptance, user: hmis_user)
+      engine.complete_step!(client_acceptance, user: hmis_user, submitted_values: { 'client_accepted' => '1' })
+    end
+
+    it 'updates the referral decline reason from submitted values' do
+      expect do
+        provider_acceptance = engine.active_steps.sole
+        engine.start_step!(provider_acceptance, user: hmis_user)
+        engine.complete_step!(provider_acceptance, user: hmis_user, submitted_values: { 'client_accepted' => '0', 'decline_reason' => 'user_error' })
+        referral.reload
+      end.to change(referral, :decline_reason).to(decline_reason)
+    end
+
+    it 'does nothing if no decline reason is submitted' do
+      expect do
+        provider_acceptance = engine.active_steps.sole
+        engine.start_step!(provider_acceptance, user: hmis_user)
+        engine.complete_step!(provider_acceptance, user: hmis_user, submitted_values: { 'client_accepted' => '1' })
+        referral.reload
+      end.not_to change(referral, :decline_reason)
+    end
+
+    it 'clears the decline reason' do
+      referral.update!(decline_reason: decline_reason)
+      handler = described_class.new(referral)
+      message = double('Message', type: 'clear_referral_decline_reason')
+
+      expect do
+        handler.call(message)
+        referral.reload
+      end.to change(referral, :decline_reason).to(nil)
+    end
+  end
 end

@@ -52,6 +52,10 @@ module Hmis::Ce
         referral_enroller.set_move_in_date(message)
       when 'set_custom_referral_status'
         set_custom_referral_status(status_key: message.params['custom_status_key'])
+      when 'set_referral_decline_reason'
+        set_referral_decline_reason(message)
+      when 'clear_referral_decline_reason'
+        clear_referral_decline_reason
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -124,6 +128,22 @@ module Hmis::Ce
 
       status = Hmis::Ce::CustomReferralStatus.find_by!(key: status_key, data_source: referral.data_source)
       referral.update!(custom_status: status)
+    end
+
+    def set_referral_decline_reason(message) # rubocop:disable Naming/AccessorMethodName
+      decline_reason_field = message.params['decline_reason_field'] || 'decline_reason'
+      decline_reason_key = message.all_submitted_values[decline_reason_field] # todo @martha - this might be pretty error prone
+      raise "Received empty decline reason key. Decline reason field: #{decline_reason_field}, step: #{message.step.id}" if decline_reason_key.blank?
+
+      reason = Hmis::Ce::ReferralDeclineReason.find_by!(
+        key: decline_reason_key,
+        data_source: referral.data_source,
+      )
+      referral.update!(decline_reason: reason)
+    end
+
+    def clear_referral_decline_reason
+      referral.update!(decline_reason: nil)
     end
 
     private

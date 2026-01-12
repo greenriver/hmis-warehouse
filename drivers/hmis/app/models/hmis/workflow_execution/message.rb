@@ -16,5 +16,5 @@
 #     user: current_user,
 #   )
 module Hmis::WorkflowExecution
-  Message = Struct.new(:type, :params, :step, :user, keyword_init: true)
+  Message = Struct.new(:type, :params, :step, :user, :all_submitted_values, keyword_init: true)
 end
