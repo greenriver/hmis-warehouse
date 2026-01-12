@@ -13,7 +13,7 @@ module DelayedJobHelpers
     Thread.current[:delayed_job_worker] = nil
 
     Delayed::Job.uncached do
-      worker = Delayed::Worker.new
+      worker = Delayed::Worker.new(queues: [])
 
       until total_processed >= job_limit
         # Handling potential clock skew in CI by forcing jobs to be ready
