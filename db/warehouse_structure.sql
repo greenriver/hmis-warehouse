@@ -908,10 +908,10 @@ CREATE VIEW analytics.ce_opportunities AS
     name,
     status,
     expires_at,
-    unit_id,
-    stale,
     created_at,
-    updated_at
+    updated_at,
+    unit_id,
+    stale
    FROM public.ce_opportunities;
 
 
@@ -994,10 +994,10 @@ CREATE VIEW analytics.ce_referral_notes AS
  SELECT id,
     referral_id,
     user_id,
-    wfe_step_id AS step_id,
-    note,
     created_at,
-    updated_at
+    updated_at,
+    note,
+    wfe_step_id AS step_id
    FROM public.ce_referral_notes;
 
 
@@ -1160,10 +1160,10 @@ CREATE VIEW analytics.ce_referral_steps AS
     step.status,
     step.started_at,
     step.completed_at,
-    step.available_at,
-    step.updated_by_id,
     step.created_at,
-    step.updated_at
+    step.updated_at,
+    step.available_at,
+    step.updated_by_id
    FROM (((public.wfe_steps step
      JOIN public.wfe_instances instance ON ((instance.id = step.instance_id)))
      JOIN public.ce_referrals referral ON ((referral.workflow_instance_id = instance.id)))
@@ -1178,17 +1178,16 @@ CREATE VIEW analytics.ce_referrals AS
  SELECT referral.id,
     referral.client_id,
     referral.opportunity_id,
-    referral.workflow_instance_id,
-    instance.template_id,
+    referral.created_at,
+    referral.updated_at,
+    referral.completed_at,
     referral.status,
     referral.custom_referral_status_id,
     referral.referred_by_id,
     referral.target_enrollment_id,
     referral.source_enrollment_id,
     referral.referral_origin,
-    referral.completed_at,
-    referral.created_at,
-    referral.updated_at
+    instance.template_id
    FROM (public.ce_referrals referral
      LEFT JOIN public.wfe_instances instance ON ((instance.id = referral.workflow_instance_id)));
 

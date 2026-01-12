@@ -2,8 +2,8 @@ SELECT
   id,
   referral_id,
   user_id,
-  wfe_step_id AS step_id,
-  note,
   created_at,
-  updated_at
+  updated_at,
+  note,
+  wfe_step_id AS step_id
 FROM ce_referral_notes
