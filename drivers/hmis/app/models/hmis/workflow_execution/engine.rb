@@ -65,7 +65,6 @@ module Hmis::WorkflowExecution
       step.completed_at = Time.current
       step.updated_by = user
       step.complete!
-      instance.steps.reset # load the freshest step data after completing the step in the db
       process_triggers(node: step.node, event_type: 'complete_step', user: user, step: step)
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
       traverse_node(step.node, user)
