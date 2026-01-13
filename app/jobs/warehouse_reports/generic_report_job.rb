@@ -21,7 +21,7 @@ module WarehouseReports
       # Attempt to acquire an advisory lock to ensure only one instance of this report class runs at a time.
       # If the lock is already held by another worker, the job will be postponed.
       lock_acquired = false
-      execution_result = ApplicationRecord.with_advisory_lock(advisory_lock_name(report_class), timeout_seconds: 0) do
+      execution_result = GrdaWarehouseBase.with_advisory_lock(advisory_lock_name(report_class), timeout_seconds: 0) do
         lock_acquired = true
         run_report(user_id, report_class, report_id)
       end

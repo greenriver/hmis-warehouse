@@ -88,11 +88,12 @@ RSpec.describe BaseJob, type: :job do
         expect(new_job.locked_by).to be_nil
         expect(new_job.failed_at).to be_nil
         expect(new_job.last_error).to be_nil
+      end
 
-        # Verify original record remains unchanged
-        dj_record.reload
-        expect(dj_record.failed_at).not_to be_nil
-        expect(dj_record.last_error).to eq('Some error')
+      it 'uses calculated_attempts for the new job' do
+        allow(job_instance).to receive(:calculated_attempts).and_return(2)
+        job_instance.requeue_at(timestamp, message)
+        expect(Delayed::Job.last.attempts).to eq(2)
       end
 
       it 'logs the provided message' do

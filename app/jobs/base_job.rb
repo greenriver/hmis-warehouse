@@ -137,12 +137,47 @@ class BaseJob < ApplicationJob
     # provider_job_id is the numeric ID of the Delayed::Job row
     return Delayed::Job.find_by(id: provider_job_id) if provider_job_id.present?
 
-    # fallback to using handler
+    # fallback to using handler with ActiveJob ID
     Delayed::Job.jobs_for_class(job_id).first
   end
 
   # Override as necessary to limit the number of times a job is tried
   def calculated_attempts
-    0
+    return 0 if supports_idempotent_retry?
+
+    # For non-idempotent jobs, we want to limit retries.
+    # By default, we'll allow only 1 attempt.
+    max_attempts = 1
+    [0, (Delayed::Worker.max_attempts || 25) - max_attempts].max
+  end
+
+  # Returns true if this job can be safely retried after a partial failure.
+  # Most jobs should be idempotent by default.
+  def supports_idempotent_retry?
+    dj = delayed_job
+    return true unless dj
+
+    # Use JobDetail to extract the domain-specific class being processed
+    # (e.g. the Generator for HUD reports, or the Export class for generic reports)
+    klass_name = JobDetail.new(dj).job_class
+    klass = klass_name&.safe_constantize
+
+    if klass.respond_to?(:supports_idempotent_retry?)
+      klass.supports_idempotent_retry?
+    else
+      true
+    end
+  end
+
+  # When you call jobs with .perform_later, they are executed in the ActiveJob world, which doesn't
+  # obey they max_attempts for Delayed Job. We'll adjust the attempts to give us what we want
+  #
+  # Note: after_enqueue only runs when the job is first created. Requeuing via requeue_at
+  # uses manual Delayed::Job manipulation and handles attempts there.
+  after_enqueue :enforce_max_attempts
+
+  def enforce_max_attempts
+    dj = delayed_job
+    dj&.update_column(:attempts, calculated_attempts)
   end
 end
