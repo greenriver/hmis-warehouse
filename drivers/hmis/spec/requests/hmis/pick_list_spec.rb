@@ -670,12 +670,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, receives_direct_referrals: true) }
     let!(:access_control) { create_access_control(hmis_user, ce_project.organization, with_permission: [:can_manage_outgoing_referrals]) }
 
-    let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
-    let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template) }
+    let!(:workflow_template) { create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: ds1, template_type: 'ce_referral', status: 'published') }
 
     let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template) }
     let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template) }
     let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group', workflow_template: workflow_template) }
+
+    # Unit group in the project that doesn't point to a workflow template. (Cruft, not included in picklist)
+    let!(:unit_group_with_no_template) { create(:hmis_unit_group, project: ce_project, name: 'No Template Group', workflow_template: nil) }
 
     # Unit group with available units
     let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
