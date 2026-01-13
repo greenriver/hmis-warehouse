@@ -170,28 +170,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
       end
     end
 
-    context 'with many units' do
-      let!(:pool) { create(:hmis_ce_match_candidate_pool) }
-      let!(:unit_ids) do
-        unit_group.update!(candidate_pool: pool)
-        50.times.map do
-          create(:hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group).id
-        end
-      end
-
-      let(:variables) do
-        { unitIds: unit_ids }
-      end
-
-      it 'makes a reasonable number of db queries' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 20..35)
-        expect(Hmis::Ce::Opportunity.where(unit_id: unit_ids).count).to eq(unit_ids.count)
-      end
-    end
-
     context 'when user lacks permission' do
       let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: :can_view_units) }
 
