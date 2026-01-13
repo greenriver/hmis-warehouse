@@ -47,17 +47,22 @@ if rails_system_enabled
   Capybara.javascript_driver = :rails_cuprite
 end
 
-# Password from existing user factory (plaintext, not hashed)
-RAILS_SYSTEM_DEFAULT_PASSWORD = 'abcd1234abcd1234'
+# Password from existing user factory
+RAILS_SYSTEM_DEFAULT_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
 
 # Standard Rails system test helpers
 RSpec.shared_context 'RailsSystemHelper' do
   def sign_in_user(user, password: RAILS_SYSTEM_DEFAULT_PASSWORD)
     visit new_user_session_path
 
+    # Wait for the email field to be visible before filling
+    find('input[type="email"]', visible: true)
     fill_in 'Email', with: user.email
     fill_in 'Password', with: password
     click_button 'Sign In'
+
+    # Wait a bit for the form submission to process
+    sleep 0.5
 
     # Check if sign in was successful - look for user name or absence of sign in form
     return true if page.has_content?(user.first_name) # Success - user name appears
