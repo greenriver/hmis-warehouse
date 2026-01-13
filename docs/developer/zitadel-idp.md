@@ -93,8 +93,61 @@ The following instructions are for manually configuring Zitadel, which may be ne
 9. Click the `+` next to the ZA and Robot icons
 10. Choose the **rails-app** user, grant **Iam Owner** and **Iam User Manager**, click **Add**
 
-## Export/Import Process
-1. Run `rails zitadel:test_connection` to confirm the connection is setup correctly
-2. Run `rails zitadel:export_users[2]` to export a sample of 2 users
-3. Verify `tmp/zitadel_users_export.json` to confirm it looks sane
-4. Run `rails zitadel:import_users[tmp/zitadel_users_export.json]` to import users into Zitadel
+## User Migration to Zitadel
+
+### Quick Start (Recommended for most migrations)
+
+For migrating users directly to Zitadel, use the batch migration task:
+
+```bash
+# Test the connection first
+rails zitadel:test_connection
+
+# Migrate all users in batches of 50
+rails zitadel:migrate_users
+
+# Or migrate a subset (e.g., first 100 users)
+rails zitadel:migrate_users[100]
+
+# Or use custom batch size (e.g., 25 users per batch)
+rails zitadel:migrate_users[,25]
+```
+
+### File-Based Export/Import (for review or delayed import)
+
+**NOTE:** If you choose to export the file, ensure it is sufficiently protected as it contains hashed passwords and TOTP seeds.
+
+If you need to review users before importing:
+
+```bash
+# Export users to a JSON file (with optional limit)
+rails zitadel:export_users[2]        # Export 2 users for testing
+rails zitadel:export_users           # Export all users
+
+# Review the exported file
+cat tmp/zitadel_users_export.json
+
+# Import the users from file
+rails zitadel:import_users[tmp/zitadel_users_export.json]
+rails zitadel:import_users           # Defaults to tmp/zitadel_users_export.json
+
+# Cleanup the tmp file
+rm tmp/zitadel_users_export.json
+```
+
+### Single User Import (for testing)
+
+```bash
+rails zitadel:import_single_user[user@example.com]
+```
+
+### Service Architecture
+
+All rake tasks use the centralized `Idp::ZitadelService` which handles:
+- Bulk user imports with password hashes and 2FA data
+- Connection testing and error handling
+- User data export in Zitadel bulk import format
+
+Configuration is read from either:
+1. **Database**: `Idp::ServiceConfig` records (preferred for production)
+2. **Environment Variables**: `ZITADEL_API_URL`, `ZITADEL_SERVICE_USER_TOKEN`, `ZITADEL_ORG_ID`, `ZITADEL_PROJECT_ID`
