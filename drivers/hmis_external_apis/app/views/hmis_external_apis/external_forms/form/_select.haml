@@ -2,5 +2,5 @@
 %select.form-control{id: html_id, name: name, required: required, autocomplete: "off"}
   %option{value: ""}= "-- Select"
   - options.each do |option|
-    %option{value: option[:value]}= option[:label]
+    %option{value: option[:value], selected: option[:initial_selected]}= option[:label]
 .invalid-feedback This is required

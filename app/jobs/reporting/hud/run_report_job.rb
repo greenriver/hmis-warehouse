@@ -12,6 +12,10 @@ module Reporting::Hud
     WAIT_MINUTES = 4
     ORIGINAL_FAILURE_SEPARATOR = "\nOriginal failure:\n"
 
+    def self.interruptible?
+      true
+    end
+
     class NonIdempotentRetryError < StandardError; end
 
     def perform(class_name, report_id, email: true)
@@ -21,6 +25,8 @@ module Reporting::Hud
       report = HudReports::ReportInstance.find_by(id: report_id)
       # Occasionally people delete the report before it actually runs
       return unless report.present?
+
+      report.active_job = self
 
       # advisory lock to check the number of jobs running for this generator so we don't
       # all check at exactly the same time and get the same result
@@ -109,8 +115,7 @@ module Reporting::Hud
     private def requeue_job(class_name)
       # Re-queue this report before processing if another report is running for the same class
       # This should help prevent tying up delayed job workers when someone kicks off a dozen of the same report.
-      a_t = Delayed::Job.arel_table
-      job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
+      job_object = Delayed::Job.find_by(id: provider_job_id)
       return unless job_object
 
       Rails.logger.info("Report: #{class_name} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")

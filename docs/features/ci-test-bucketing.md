@@ -1,56 +1,73 @@
-# CI Test Bucketing System
+# CI Test Bucketing & Routing System
 
-The system parallelizes the RSpec test suite in Continuous Integration (CI) by distributing tests into balanced groups ("buckets") based on their historical execution time.
+The CI parallelizes the RSpec test suite by distributing tests into balanced groups ("buckets") based on their historical execution time, and routes system tests to specialized environments.
 
-## Overview
+## Core Mechanics
 
-The system uses a bin-packing algorithm to assign spec files to buckets, ensuring even distribution of test runtime across parallel CI jobs. This reduces the overall wall-clock time for the full test suite.
+### 1. Bucket Configuration (`.github/rspec_buckets.json`)
+Test assignments are stored in `.github/rspec_buckets.json`. This file maps spec files to specific bucket IDs (e.g., `bucket-1`, `bucket-2`).
 
-## Components
+### 2. Tag Injection (`ci:update_spec_tags`)
+Inside each parallel CI job, the `ci:update_spec_tags` rake task runs *before* the tests. It dynamically modifies the spec files on the runner's filesystem, injecting a `ci_bucket: 'bucket-id'` tag into the top-level `RSpec.describe` block. This ensures RSpec can filter tests using standard tags even though the tags aren't committed to the source repository.
 
-### 1. Bucket Configuration
-The assignments are stored in `.github/rspec_buckets.json`. This file maps spec files to specific bucket IDs (e.g., `bucket-1`, `bucket-2`).
+### 3. Matrix Routing (`bin/ci_matrix_router.rb`)
+A standalone Ruby script determines which test categories (Unit, HMIS System, Warehouse System) should run.
+*   **Sharding**: It reads the buckets file and creates one job per bucket.
+*   **Coverage**: It always adds a "default" job with the `~ci_bucket` tag to catch any tests not explicitly assigned to a bucket, ensuring no tests are skipped.
+*   **Logic**: It determines the matrix based on the event type and commit message flags.
 
-### 2. Rake Tasks (`lib/tasks/ci.rake`)
-The `ci` namespace provides tools for managing buckets:
+---
 
-*   **`ci:build_bucket_assignments`**: Analyzes RSpec profile data (`rspec_results.json`) to create or update the bucket configuration. It uses a bin-packing algorithm with overhead multipliers (accounting for setup/teardown).
-*   **`ci:update_spec_tags`**: Reads the bucket configuration and modifies the actual spec files in the codebase, adding or updating the `ci_bucket: 'bucket-id'` metadata tag to the top-level `RSpec.describe` block.
-*   **`ci:profile_stats`**: Provides statistical analysis of RSpec profile data to help tune the bucketing strategy (optional)
+## Developer Workflows
 
-### 3. CI Workflow (`.github/workflows/rails_tests.yml`)
-The GitHub Actions workflow orchestrates the execution:
+### Standard CI Run
+By default, every Pull Request triggers:
+1.  **Unit/Functional Tests**: Sharded into parallel buckets.
+2.  **HMIS System Tests**: A dedicated job that builds the React frontend.
+3.  **Warehouse System Tests**: A dedicated job for Rails-side system tests.
 
-1.  **Matrix Generation**: The `determine_matrix` job reads `.github/rspec_buckets.json` and dynamically generates a build matrix.
-    *   It creates a job for each defined bucket (tag: `ci_bucket:bucket-N`).
-    *   It adds a "default" job for any tests *not* in a specific bucket (tag: `~ci_bucket`).
-2.  **Tag Injection**: In each parallel job, the `ci:update_spec_tags` rake task runs *before* the tests. This ensures the source code on the runner has the correct tags for filtering, even if the source repository doesn't permanently store these tags.
-3.  **Test Execution**: RSpec runs with `--tag ci_bucket:bucket-N` (or `~ci_bucket` for the default group), executing only the relevant tests for that shard.
+### Targeted Test Execution (Focused Runs)
+If you are debugging a specific test, you can bypass the full suite to save time. This triggers a "Focused Run" with exactly one job running only the requested tests.
 
-## Workflow
+#### Trigger via Commit Message
+Add `ci-focus: <path>` to your commit message.
+*   **Single file**: `git commit -m "debugging [ci-focus: spec/models/user_spec.rb]"`
+*   **Directory**: `git commit -m "debugging [ci-focus: spec/requests]"`
 
-### Rebalancing Buckets
+#### Available Flags
+Flags can be included anywhere in the commit message (separate from `ci-focus`):
+*   `with-okta`: Runs Okta request specs (Omniauth/Sessions).
+*   `with-logging`: Runs the 5-way logging configuration matrix.
+*   `ci-profile`: Enables RSpec profiling and outputs `rspec_results.json`.
 
-To update the bucket distribution (e.g., when test times change significantly):
+#### Trigger via GitHub UI
+1. Go to **Actions** -> **Rails Tests** -> **Run workflow**.
+2. Enter the path in **test_path** and check any required flags.
 
-1.  **Generate Profile Data in CI**:
-    *   Modify `.github/workflows/rails_tests.yml` to enable RSpec profiling (uncomment the lines generating `rspec_results.json`).
-    *   Commit and push this change to trigger a CI build.
-    *   The workflow will capture profiling information and upload it as an artifact named `rspec_profiles`.
-    *   *Note: Profiling is typically not done locally due to hardware differences and parallelization.*
-2.  **Download Artifacts**:
-    *   Go to the GitHub Actions run summary.
-    *   Download the `rspec_profiles` artifact containing the `rspec_results.json` files.
-    *   Unzip the artifacts into a local directory (e.g., `tmp/rspec_profiles`).
-3.  **Generate Assignments**:
-    *   Run `bundle exec rails ci:build_bucket_assignments[tmp/rspec_profiles]`.
-4.  **Commit Changes**:
-    *   Commit the updated `.github/rspec_buckets.json` file.
+---
 
-### Execution in CI
+## Maintenance: Rebalancing Buckets
 
-When CI runs:
-1.  The workflow parses the buckets file.
-2.  It spawns parallel jobs.
-3.  **Source Modification**: Inside each job, the `ci:update_spec_tags` rake task runs and explicitly modifies the spec files on the runner's filesystem. It parses the source code, finds the `RSpec.describe` block, and injects the `ci_bucket: 'bucket-id'` tag directly into the file content.
-4.  **Test Execution**: RSpec runs using the `--tag` filter (e.g., `--tag ci_bucket:bucket-1`), which matches the tags that were just injected into the source code.
+To update the bucket distribution when test times change significantly:
+
+### 1. Generate Profile Data in CI
+Trigger a CI run with the profiling flag enabled. Profiling is done in CI to ensure timing data is consistent with the CI runner's hardware:
+*   **Commit message**: `git commit --allow-empty -m "rebalance buckets [ci-profile]"`
+*   **GitHub UI**: Check **Enable RSpec profiling** when running the workflow.
+
+This will upload artifacts named `artifacts-unit-*` containing `rspec_results.json`.
+
+### 2. Download and Analyze Data
+1. Download the profiling artifacts from the GitHub Actions run summary.
+2. Unzip them into a local directory (e.g., `tmp/rspec_profiles`).
+3. (Optional) Run `bundle exec rails ci:profile_stats[tmp/rspec_profiles]` to see a statistical breakdown of your test runtimes.
+
+### 3. Build New Assignments
+Run the rebalancing task locally:
+```bash
+bundle exec rails ci:build_bucket_assignments[tmp/rspec_profiles]
+```
+This uses a bin-packing algorithm to generate a new `.github/rspec_buckets.json`.
+
+### 4. Commit Changes
+Commit the updated `.github/rspec_buckets.json` to the repository.
