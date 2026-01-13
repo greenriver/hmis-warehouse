@@ -73,6 +73,7 @@ module CeWorkflows::Ph
       )
 
       provider_swimlane = template.swimlanes.find_or_create_by!(name: 'Provider')
+      referrer_swimlane = template.swimlanes.find_or_create_by!(name: 'Referrer')
 
       # Events
       start_event = CeWorkflows::Shared::CeBuilderUtils.create_start_event(template)
@@ -85,9 +86,9 @@ module CeWorkflows::Ph
         form_definition_identifier: outgoing_step_form_identifier,
         template: template,
       )
-      # Swimlane is irrelevant since this is just for direct referrals and is completed by the sending project
-      # TODO - adding the Provider swimlane here does cause it to show up under "Provider tasks" for direct referrals, which is confusing.
-      send_referral_task.swimlane = provider_swimlane
+      # Swimlane is mostly irrelevant since this is just for direct referrals and is completed by the sending project.
+      # But, it's less confusing to use a different swimlane to avoid confusion in the UI, especially with default contacts.
+      send_referral_task.swimlane = referrer_swimlane
       send_referral_task.save!
 
       # Step 2: Provider decision (accept/deny with note)
