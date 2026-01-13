@@ -38,28 +38,14 @@ module WarehouseReports
       end
       return if lock_obtained
 
-      requeue_job(report_class)
+      requeue_at(
+        Time.current + WAIT_MINUTES.minutes,
+        "Report: #{report_class} already running...re-queuing job for #{WAIT_MINUTES} minutes from now",
+      )
     end
 
     private def advisory_lock_name(report_class)
       "generic_report_#{report_class}"
-    end
-
-    private def requeue_job(class_name)
-      # Re-queue this repot before processing if another report is running for the same class
-      # This should help prevent tying up delayed job workers when someone kicks off a dozen of the same report.
-      a_t = Delayed::Job.arel_table
-      job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
-      return unless job_object
-
-      Rails.logger.info("Report: #{class_name} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
-      new_job = job_object.dup
-      new_job.update(
-        locked_at: nil,
-        locked_by: nil,
-        run_at: Time.current + WAIT_MINUTES.minutes,
-        attempts: 0,
-      )
     end
 
     def allowed_reports
