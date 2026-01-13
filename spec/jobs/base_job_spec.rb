@@ -3,6 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe BaseJob, type: :job do
+  around do |example|
+    previous_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = :delayed_job
+    example.run
+  ensure
+    ActiveJob::Base.queue_adapter = previous_adapter
+  end
+
   let(:job_class) do
     stub_const('TestBaseJob', Class.new(described_class) do
       def perform
@@ -17,8 +25,19 @@ RSpec.describe BaseJob, type: :job do
   end
 
   describe '#calculated_attempts' do
-    it 'defaults to 0' do
+    it 'defaults to 0 for idempotent jobs' do
       expect(job_instance.calculated_attempts).to eq(0)
+    end
+
+    context 'when the job is non-idempotent' do
+      before do
+        allow(job_instance).to receive(:supports_idempotent_retry?).and_return(false)
+      end
+
+      it 'returns a reduced count to limit retries' do
+        max_dj_attempts = Delayed::Worker.max_attempts || 25
+        expect(job_instance.calculated_attempts).to eq(max_dj_attempts - 1)
+      end
     end
   end
 
@@ -83,17 +102,11 @@ RSpec.describe BaseJob, type: :job do
         new_job = Delayed::Job.last
         expect(new_job.id).not_to eq(original_id)
         expect(new_job.run_at.to_i).to eq(timestamp.to_i)
-        expect(new_job.attempts).to eq(0)
+        expect(new_job.attempts).to eq(job_instance.calculated_attempts)
         expect(new_job.locked_at).to be_nil
         expect(new_job.locked_by).to be_nil
         expect(new_job.failed_at).to be_nil
         expect(new_job.last_error).to be_nil
-      end
-
-      it 'uses calculated_attempts for the new job' do
-        allow(job_instance).to receive(:calculated_attempts).and_return(2)
-        job_instance.requeue_at(timestamp, message)
-        expect(Delayed::Job.last.attempts).to eq(2)
       end
 
       it 'logs the provided message' do
@@ -118,6 +131,36 @@ RSpec.describe BaseJob, type: :job do
           /Unable to find delayed_job for requeue_at in TestBaseJob/,
         )
       end
+    end
+  end
+
+  describe 'retry behavior and initial attempts' do
+    let(:max_attempts) { Delayed::Worker.max_attempts || 25 }
+
+    # Using actual classes instead of stub_const for these because they need to be
+    # reachable by the Delayed Job worker during perform_later integration tests.
+    class IdempotentTestJob < BaseJob
+      def perform
+      end
+    end
+
+    class NonIdempotentTestJob < BaseJob
+      def supports_idempotent_retry?
+        false
+      end
+
+      def perform
+      end
+    end
+
+    it 'sets attempts to 0 for idempotent jobs upon enqueue' do
+      IdempotentTestJob.perform_later
+      expect(Delayed::Job.last.attempts).to eq(0)
+    end
+
+    it 'sets reduced attempts for non-idempotent jobs upon enqueue' do
+      NonIdempotentTestJob.perform_later
+      expect(Delayed::Job.last.attempts).to eq(max_attempts - 1)
     end
   end
 end
