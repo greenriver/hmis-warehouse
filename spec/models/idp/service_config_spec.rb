@@ -25,7 +25,7 @@ RSpec.describe Idp::ServiceConfig, type: :model do
       end
 
       it 'allows duplicate connector_id when one is soft-deleted' do
-        existing.delete
+        existing.destroy
         config = build(:idp_service_config, connector_id: 'zitadel')
         expect(config).to be_valid
       end

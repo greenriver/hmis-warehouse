@@ -74,7 +74,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
           :idp_service_config,
           connector_id: 'zitadel',
         )
-        config.delete
+        config.destroy
         config
       end
 
