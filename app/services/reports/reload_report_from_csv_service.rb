@@ -161,29 +161,43 @@ module Reports
       reloaded_counts = {}
       errors = []
 
-      # Reload each association from its CSV
-      config_to_reload.each do |attachment_name, csv_config|
-        count = reload_association(attachment_name, csv_config)
-        reloaded_counts[attachment_name] = count
-      rescue StandardError => e
-        error_msg = "Failed to reload #{attachment_name}: #{e.message}"
-        errors << error_msg
-        Rails.logger.error("ReloadReportFromCsvService: #{error_msg}")
-        Rails.logger.error(e.backtrace.first(10).join("\n"))
-      end
+      # Capture original updated_at before any operations
+      original_updated_at = report.updated_at
 
-      # If all reloads succeeded, update metadata to restart grace period
-      if errors.empty?
-        grace_period_days = Reports.archival_grace_period_days
-        reloaded_at = Time.current
-        purge_eligible_at = reloaded_at + grace_period_days.days
+      begin
+        # Wrap entire reload process in no_touching to prevent updating parent report's updated_at timestamp
+        # This prevents any child record operations from touching the parent report
+        # Use ActiveRecord::Base.no_touching to disable touching for all models
+        ActiveRecord::Base.no_touching do
+          # Reload each association from its CSV
+          config_to_reload.each do |attachment_name, csv_config|
+            count = reload_association(attachment_name, csv_config)
+            reloaded_counts[attachment_name] = count
+          rescue StandardError => e
+            error_msg = "Failed to reload #{attachment_name}: #{e.message}"
+            errors << error_msg
+            Rails.logger.error("ReloadReportFromCsvService: #{error_msg}")
+            Rails.logger.error(e.backtrace.first(10).join("\n"))
+          end
+        end
 
-        update_reload_metadata(
-          reloaded_at: reloaded_at.iso8601,
-          purge_eligible_at: purge_eligible_at.iso8601,
-        )
+        # If all reloads succeeded, update metadata to restart grace period
+        if errors.empty?
+          grace_period_days = Reports.archival_grace_period_days
+          reloaded_at = Time.current
+          purge_eligible_at = reloaded_at + grace_period_days.days
 
-        Rails.logger.info("Reloaded report #{report.class.name} ##{report.id} - grace period restarted, purge eligible at #{purge_eligible_at}")
+          update_reload_metadata(
+            reloaded_at: reloaded_at.iso8601,
+            purge_eligible_at: purge_eligible_at.iso8601,
+          )
+
+          Rails.logger.info("Reloaded report #{report.class.name} ##{report.id} - grace period restarted, purge eligible at #{purge_eligible_at}")
+        end
+      ensure
+        # Always restore the original timestamp, regardless of success or failure
+        report.reload
+        report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at
       end
 
       {

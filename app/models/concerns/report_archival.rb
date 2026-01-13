@@ -58,15 +58,28 @@ module ReportArchival
   end
 
   def purge_eligible?
-    # Check if grace period has expired
-    return false unless archival_metadata.present?
-    return false if archival_metadata['purged_at'].present? # Already purged
+    return false if purged?
 
-    purge_eligible_at_str = archival_metadata['purge_eligible_at']
-    return false unless purge_eligible_at_str
+    now = Time.current
+    purge_eligible_at_str = archival_metadata&.dig('purge_eligible_at')
 
-    purge_eligible_at = Time.parse(purge_eligible_at_str)
-    purge_eligible_at <= Time.current
+    if purge_eligible_at_str
+      # If purge_eligible_at exists, check if it's <= now
+      purge_eligible_at = Time.parse(purge_eligible_at_str)
+      return purge_eligible_at <= now
+    end
+
+    # Otherwise calculate from completed_at + grace_period_days
+    return false unless completed_at.present?
+
+    # Get grace_period_days from metadata or from AppConfigProperty (defaults to 60)
+    grace_period_days = archival_metadata&.dig('grace_period_days')
+    unless grace_period_days
+      property = AppConfigProperty.find_by(key: 'reports/archival_grace_period_days')
+      grace_period_days = property&.value&.to_i || 60
+    end
+    calculated_purge_eligible_at = completed_at + grace_period_days.days
+    calculated_purge_eligible_at <= now
   end
 
   def archival_status

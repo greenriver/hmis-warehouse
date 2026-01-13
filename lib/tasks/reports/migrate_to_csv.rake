@@ -28,19 +28,11 @@ namespace :reports do
       # Filter at database level:
       # - Must be one of the configured archival types
       # - Must have completed_at
-      # - Must not be purged yet (purged_at is null)
-      # - Must have purge_eligible_at <= now OR (purge_eligible_at doesn't exist AND completed_at + grace_period_days <= now)
+      # - Must not be purged yet (purged_at is null) and must have purge_eligible_at <= now OR (purge_eligible_at doesn't exist AND completed_at + grace_period_days <= now)
       reports_to_process = SimpleReports::ReportInstance.
-        where(type: archival_types).
-        where.not(completed_at: nil).
-        where(Arel.sql("archival_metadata->>'purged_at' IS NULL")).
-        where(
-          Arel.sql(
-            "((archival_metadata->>'purge_eligible_at' IS NOT NULL AND (archival_metadata->>'purge_eligible_at')::timestamp <= ?) OR " \
-            "(archival_metadata->>'purge_eligible_at' IS NULL AND completed_at + INTERVAL '#{grace_period_days} days' <= ?))",
-            now, now
-          ),
-        ).
+        of_types(archival_types).
+        completed.
+        purge_eligible(grace_period_days, now).
         order(completed_at: :asc)
 
       puts "Found #{reports_to_process.count} reports eligible for archival and purging (grace period expired)"

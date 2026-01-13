@@ -52,7 +52,7 @@ module PerformanceMeasurement
     end
 
     scope :ordered, -> do
-      order(created_at: :desc)
+      order(updated_at: :desc)
     end
 
     def reporting_spm_id

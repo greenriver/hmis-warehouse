@@ -41,7 +41,7 @@ module HomelessSummaryReport
     end
 
     scope :ordered, -> do
-      order(completed_at: :desc)
+      order(updated_at: :desc)
     end
 
     def run_and_save!

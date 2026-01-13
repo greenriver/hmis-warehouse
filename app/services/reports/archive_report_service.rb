@@ -53,6 +53,10 @@ module Reports
         return true
       end
 
+      # Capture original timestamp at the start of archival process
+      original_updated_at = report.updated_at
+      Rails.logger.info("ArchiveReportService: Original updated_at: #{original_updated_at}")
+
       # Use existing expected_files from metadata if present, otherwise calculate from config
       existing_metadata = report.archival_metadata || {}
       expected_files = existing_metadata['expected_files'] || config.keys.map(&:to_s)
@@ -89,6 +93,13 @@ module Reports
                                  expected_files: expected_files,
                                  archived_at: archived_at.iso8601,
                                })
+
+      # Restore original timestamp after all archival operations complete
+      report.reload
+      if report.updated_at != original_updated_at
+        Rails.logger.info("ArchiveReportService: Restoring updated_at from #{report.updated_at} to #{original_updated_at}")
+        report.update_column(:updated_at, original_updated_at)
+      end
 
       Rails.logger.info("Archived report #{report.class.name} ##{report.id}")
     end
