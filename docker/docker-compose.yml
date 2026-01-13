@@ -534,7 +534,7 @@ services:
 
   zitadel-login:
     restart: unless-stopped
-    image: ghcr.io/zitadel/zitadel-login:latest
+    image: ghcr.io/zitadel/zitadel-login@sha256:d7e22b6977424b14d6b2ac48eca454964591389ceed9b0a3bf942dd7e4c8060e # v4.9.0
     container_name: op-zitadel-login
     environment:
       ZITADEL_API_URL: http://op-zitadel.dev.test:8080
@@ -552,7 +552,7 @@ services:
   # Automated Zitadel configuration for Dex integration
   # Runs once on first startup, skips if already configured
   zitadel-setup:
-    image: curlimages/curl:latest
+    image: curlimages/curl:v8.18.0
     container_name: zitadel-setup
     user: "0"
     volumes:
