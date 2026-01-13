@@ -125,12 +125,12 @@ RSpec.describe 'Health::PerformanceBase well-care visit query', type: :model do
       service_end_date: service_date,
     )
 
-    legacy_ids = with_env(WELLCARE_ENV_KEY, nil) do
+    legacy_ids = with_env(WELLCARE_ENV_KEY, '0') do
       report = Health::TeamPerformance.new(range: range, team_scope: Health::CoordinationTeam.where(id: team.id))
       report.with_required_wellcare_visit
     end
 
-    union_ids = with_env(WELLCARE_ENV_KEY, '1') do
+    union_ids = with_env(WELLCARE_ENV_KEY, nil) do
       report = Health::TeamPerformance.new(range: range, team_scope: Health::CoordinationTeam.where(id: team.id))
       report.with_required_wellcare_visit
     end

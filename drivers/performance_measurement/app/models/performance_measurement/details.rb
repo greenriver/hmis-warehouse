@@ -404,10 +404,10 @@ module PerformanceMeasurement::Details
           goal_unit: '%',
           goal_calculation: :people,
           denominator_label: '',
-          calculation_description: 'The difference (as a percentage) between the number of persons who entered a homeless project with no prior enrollments in HMIS (via the CoC\'s ES, SH, TH, and PH projects) during the reporting range and comparison range.',
+          calculation_description: 'The difference (as a percentage) between the number of persons who entered a ES, SH, TH, or PH project with no prior enrollments in HMIS (via the CoC\'s ES, SH, TH, and PH projects) during the reporting range and comparison range.',
           calculation_column: :first_time,
           measure: 'Measure 5',
-          table: '5.1',
+          table: '5.2',
           cell: 'C4',
           detail_columns: [
             'first_time',
