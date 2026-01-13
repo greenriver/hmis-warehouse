@@ -7,6 +7,6 @@ SELECT
   created_at,
   updated_at,
   unit_id,
-  stale
-  -- todo: add created_by_id
+  stale,
+  created_by_id
 FROM ce_opportunities
