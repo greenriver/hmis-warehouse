@@ -200,7 +200,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     let(:enrollment_task) do
-      create(:hmis_workflow_definition_user_task, template: template, name: 'income check task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'enrollment task')
     end
 
     before do

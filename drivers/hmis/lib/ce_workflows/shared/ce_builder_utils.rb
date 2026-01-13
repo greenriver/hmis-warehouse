@@ -260,6 +260,14 @@ module CeWorkflows::Shared
     end
 
     def self.create_gateway(template, name, gateway_type: 'exclusive')
+      Hmis::WorkflowDefinition::Gateway.create!(
+        template: template,
+        gateway_type: gateway_type,
+        name: "#{gateway_type.capitalize} Gateway: #{name}",
+      )
+    end
+
+    def self.find_or_create_gateway(template, name, gateway_type: 'exclusive')
       Hmis::WorkflowDefinition::Gateway.find_or_create_by!(
         template: template,
         gateway_type: gateway_type,

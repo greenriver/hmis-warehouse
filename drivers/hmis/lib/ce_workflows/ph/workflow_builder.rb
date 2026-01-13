@@ -127,7 +127,7 @@ module CeWorkflows::Ph
       set_decline_reason_task.save!
 
       # Exclusive gateway for decision routing
-      decision_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_decision')
+      decision_gateway = CeWorkflows::Shared::CeBuilderUtils.find_or_create_gateway(template, 'provider_decision')
 
       # Wire up flow
       start_event.connect_to!(send_referral_task) unless start_event.outflows.exists?(target_node: send_referral_task)
