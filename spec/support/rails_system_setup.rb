@@ -47,8 +47,8 @@ if rails_system_enabled
   Capybara.javascript_driver = :rails_cuprite
 end
 
-# Password from existing user factory
-RAILS_SYSTEM_DEFAULT_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
+# Password from existing user factory (plaintext, not hashed)
+RAILS_SYSTEM_DEFAULT_PASSWORD = 'abcd1234abcd1234'
 
 # Standard Rails system test helpers
 RSpec.shared_context 'RailsSystemHelper' do
