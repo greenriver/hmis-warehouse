@@ -680,7 +680,7 @@ module Types
         # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
         available_count = unit_group.available_unit_count
 
-        # don't display this unit group in the list if it can't accept direct referrals
+        # don't return this unit group if it can't accept direct referrals
         next nil unless unit_group.direct_referral_form_definition.present?
 
         {

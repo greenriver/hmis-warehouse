@@ -132,8 +132,8 @@ module Hmis::Ce
 
     def set_referral_decline_reason(message) # rubocop:disable Naming/AccessorMethodName
       decline_reason_field = message.params['decline_reason_field'] || 'decline_reason'
-      decline_reason_key = message.all_submitted_values[decline_reason_field] # todo @martha - this might be pretty error prone
-      raise "Received empty decline reason key. Decline reason field: #{decline_reason_field}, step: #{message.step.id}" if decline_reason_key.blank?
+      decline_reason_key = message.all_submitted_values[decline_reason_field]
+      return if decline_reason_key.blank?
 
       reason = Hmis::Ce::ReferralDeclineReason.find_by!(
         key: decline_reason_key,

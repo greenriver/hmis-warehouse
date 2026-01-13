@@ -20,10 +20,8 @@ class CreateCeReferralDeclineReasons < ActiveRecord::Migration[7.2]
 
     safety_assured do
       # Strong Migrations warns that creating a foreign key blocks writes on both tables,
-      # but it's acceptable here because:
-      # - the decline_reason column is empty for now
-      # - the referrals table is not huge
-      # so there isn't data to validate yet, and the locks will be released quickly.
+      # but it's acceptable here because: the referrals' decline_reason col is empty for now
+      # and the referrals itself table is not huge, so the locks will be released quickly.
       add_reference :ce_referrals, :decline_reason,
                     null: true,
                     foreign_key: { to_table: :ce_referral_decline_reasons }
@@ -31,5 +29,5 @@ class CreateCeReferralDeclineReasons < ActiveRecord::Migration[7.2]
   end
 end
 
-# rails db:migrate:up:warehouse VERSION=20260112100000
-# rails db:migrate:down:warehouse VERSION=20260112100000
+# rails db:migrate:up:warehouse VERSION=20260112201542
+# rails db:migrate:down:warehouse VERSION=20260112201542
