@@ -16,6 +16,9 @@ module DelayedJobHelpers
       worker = Delayed::Worker.new(queues: [])
 
       until total_processed >= job_limit
+        # Handling potential clock skew in CI by forcing jobs to be ready
+        Delayed::Job.where(run_at: Time.current..).update_all(run_at: 1.minute.ago)
+
         successes, failures = worker.work_off(job_limit - total_processed)
         processed_this_pass = successes + failures
         total_processed += processed_this_pass
