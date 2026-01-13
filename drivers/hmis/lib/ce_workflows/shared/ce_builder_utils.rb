@@ -187,21 +187,21 @@ module CeWorkflows::Shared
     def self.publish_template(template:)
       raise "Template with status #{template.status} cannot be published" unless template.draft?
 
-      template_to_retire = Hmis::WorkflowDefinition::Template.find_by!(
+      template_to_retire = Hmis::WorkflowDefinition::Template.find_by(
         identifier: template.identifier,
         data_source: template.data_source,
         status: 'published',
       )
-      raise "Template with version #{template.version} cannot be published, the current published version is #{template_to_retire.version}" unless template_to_retire.version == template.version - 1
+      raise "Template with version #{template.version} cannot be published, the current published version is #{template_to_retire.version}" if template_to_retire.present? && template_to_retire.version != template.version - 1
 
       Hmis::WorkflowDefinition::Template.transaction do
-        template_to_retire.retire!
+        template_to_retire&.retire!
         template.publish!
       end
     end
 
     def self.unpublish_template(template:) # Development helper. Do not use in production
-      raise 'This method has undefined behavior with templates associated with existing referrals, and should not be run in production' if Rails.env.production?
+      raise 'Should not be run in production' if Rails.env.production?
       raise "Template with status #{template.status} cannot be unpublished" unless template.published?
 
       template_to_republish = Hmis::WorkflowDefinition::Template.where(
@@ -212,7 +212,7 @@ module CeWorkflows::Shared
 
       Hmis::WorkflowDefinition::Template.transaction do
         template.update!(status: 'draft')
-        template_to_republish.update!(status: 'published')
+        template_to_republish&.update!(status: 'published')
       end
     end
 

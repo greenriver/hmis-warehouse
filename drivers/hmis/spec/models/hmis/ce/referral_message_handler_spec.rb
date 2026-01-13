@@ -89,7 +89,7 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
 
       engine.start_workflow!(user: hmis_user)
 
-      # Complete the initial steps to reach the
+      # Complete the initial step to reach the Provider Acceptance step
       client_acceptance = engine.active_steps.sole
       engine.start_step!(client_acceptance, user: hmis_user)
       engine.complete_step!(client_acceptance, user: hmis_user, submitted_values: { 'client_accepted' => '1' })
