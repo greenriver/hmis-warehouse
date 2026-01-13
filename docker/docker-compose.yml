@@ -552,7 +552,7 @@ services:
   # Automated Zitadel configuration for Dex integration
   # Runs once on first startup, skips if already configured
   zitadel-setup:
-    image: curlimages/curl:v8.18.0
+    image: curlimages/curl:latest
     container_name: zitadel-setup
     user: "0"
     volumes:
