@@ -98,7 +98,7 @@ module Idp
     def test_connection
       {
         success: false,
-        message: "Connection testing not supported for this IDP",
+        message: 'Connection testing not supported for this IDP',
       }
     end
 

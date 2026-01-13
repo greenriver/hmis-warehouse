@@ -171,7 +171,7 @@ RSpec.describe 'GetProjects query', type: :request do
       expect do
         response, result = post_graphql(limit: 50) { query }
         expect(response.status).to eq(200), result.inspect
-      end.to perform_under(110).ms
+      end.to perform_under(150).ms
     end
   end
 

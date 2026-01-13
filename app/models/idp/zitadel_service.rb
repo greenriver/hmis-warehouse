@@ -245,17 +245,17 @@ module Idp
       when 200..299
         {
           success: true,
-          message: "Connection successful to Zitadel",
+          message: 'Connection successful to Zitadel',
         }
       when 401, 403
         {
           success: false,
-          message: "Authentication failed: Invalid token or insufficient permissions",
+          message: 'Authentication failed: Invalid token or insufficient permissions',
         }
       when 404
         {
           success: false,
-          message: "API endpoint not found: Check API URL is correct",
+          message: 'API endpoint not found: Check API URL is correct',
         }
       when 500..599
         {
@@ -287,7 +287,7 @@ module Idp
     rescue Timeout::Error
       {
         success: false,
-        message: "Connection timeout: Zitadel is not responding",
+        message: 'Connection timeout: Zitadel is not responding',
       }
     rescue StandardError => e
       {
@@ -323,6 +323,135 @@ module Idp
       params[:client_id] = client_id if client_id.present?
 
       "#{api_url}/oidc/v1/end_session?#{params.to_query}"
+    end
+
+    # Build user data structure for bulk import (includes password hash and 2FA).
+    #
+    # @param user [User] User object from Rails app
+    # @return [Hash] User data in Zitadel bulk import format
+    def build_import_user_data(user)
+      {
+        userId: user.id.to_s,
+        user: {
+          userName: user.email,
+          profile: {
+            firstName: user.first_name,
+            lastName: user.last_name,
+            displayName: "#{user.first_name} #{user.last_name}",
+            preferredLanguage: 'en',
+          },
+          email: {
+            email: user.email,
+            isEmailVerified: user.confirmed_at.present?,
+          },
+          hashedPassword: build_password_data(user),
+          otpCode: extract_otp_secret(user),
+          phone: build_phone_data(user),
+        }.compact,
+      }
+    end
+
+    # Bulk import multiple users to Zitadel (processes in single request).
+    #
+    # @param users [Array<User>] Array of User objects to import
+    # @param timeout [String] Request timeout (default: '10m')
+    # @return [Hash] Result with :success (Boolean), :imported_count (Integer), and optional :error (String)
+    def bulk_import_users(users, timeout: '10m')
+      human_users = users.map { |user| build_import_user_data(user) }
+
+      import_data = {
+        timeout: timeout,
+        data_orgs: {
+          orgs: [
+            {
+              orgId: org_id,
+              humanUsers: human_users,
+            },
+          ],
+        },
+      }
+
+      response = make_request(:post, '/admin/v1/import', body: import_data)
+
+      case response.code.to_i
+      when 200..299
+        {
+          success: true,
+          imported_count: users.size,
+          response: JSON.parse(response.body),
+        }
+      else
+        begin
+          error_data = JSON.parse(response.body)
+          error_message = error_data['message'] || error_data['error'] || response.body
+        rescue StandardError
+          error_message = response.body
+        end
+        {
+          success: false,
+          error: "Import failed (#{response.code}): #{error_message}",
+          failed_count: users.size,
+        }
+      end
+    rescue StandardError => e
+      {
+        success: false,
+        error: e.message,
+        failed_count: users.size,
+      }
+    end
+
+    # Import users from JSON file (backwards compatibility with export format).
+    #
+    # @param file_path [String] Path to JSON file with bulk import data
+    # @return [Hash] Result with :success (Boolean) and :response (Hash)
+    # @raise [Idp::ServiceError] if file not found or import fails
+    def import_from_file(file_path)
+      raise Idp::ServiceError, "File not found: #{file_path}" unless File.exist?(file_path)
+
+      import_data = JSON.parse(File.read(file_path))
+
+      response = make_request(:post, '/admin/v1/import', body: import_data)
+
+      case response.code.to_i
+      when 200..299
+        {
+          success: true,
+          response: JSON.parse(response.body),
+        }
+      else
+        begin
+          error_data = JSON.parse(response.body)
+          error_message = error_data['message'] || error_data['error'] || response.body
+        rescue StandardError
+          error_message = response.body
+        end
+        raise Idp::ServiceError.new(
+          "Import failed (#{response.code}): #{error_message}",
+          idp_name: idp_name,
+          operation: :import_from_file,
+        )
+      end
+    end
+
+    # Export users to bulk import format (without making API call).
+    #
+    # @param users [Array<User>] Array of User objects to export
+    # @return [Hash] Zitadel bulk import JSON structure
+    def export_users_to_import_format(users)
+      human_users = users.map { |user| build_import_user_data(user) }
+
+      {
+        timeout: '10m',
+        data_orgs: {
+          orgs: [
+            {
+              orgId: org_id,
+              humanUsers: human_users,
+            },
+          ],
+        },
+      }
     end
 
     private
@@ -395,6 +524,47 @@ module Idp
       # For now, we'll log a warning if project_id is set but we can't grant access
       Rails.logger.warn "Project ID configured but project access granting not yet implemented. User ID: #{user_id}, Project ID: #{project_id}"
       true
+    end
+
+    # Build password data hash for bulk import (bcrypt hash).
+    #
+    # @param user [User] User object from Rails app
+    # @return [Hash, nil] Password data with algorithm and value, or nil if no password
+    def build_password_data(user)
+      return nil unless user.encrypted_password.present?
+
+      {
+        value: user.encrypted_password,
+        algorithm: 'bcrypt',
+      }
+    end
+
+    # Extract OTP secret from user (decrypts if present, handles errors gracefully).
+    #
+    # @param user [User] User object from Rails app
+    # @return [String, nil] OTP secret or nil if not present or decryption fails
+    def extract_otp_secret(user)
+      return nil unless user.encrypted_otp_secret.present? && user.otp_required_for_login?
+
+      begin
+        user.otp_secret
+      rescue StandardError => e
+        Rails.logger.warn "Failed to decrypt OTP secret for #{user.email}: #{e.message}"
+        nil
+      end
+    end
+
+    # Build phone data hash for bulk import.
+    #
+    # @param user [User] User object from Rails app
+    # @return [Hash, nil] Phone data with phone number, or nil if no phone
+    def build_phone_data(user)
+      return nil unless user.phone.present?
+
+      {
+        phone: user.phone,
+        isPhoneVerified: false,
+      }
     end
 
     protected

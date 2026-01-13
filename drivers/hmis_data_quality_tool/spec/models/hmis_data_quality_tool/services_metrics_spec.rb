@@ -125,75 +125,164 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
     describe 'Overlapping Post Move-in PH Enrollments' do
       context 'with overlapping PH enrollments after move-in' do
-        before do
-          @ph_project = create_project(project_type: 3) # PSH
-          @client = create_client_with_warehouse_link
-          @enrollment1 = create_enrollment(
-            client: @client,
-            project: @ph_project,
-            entry_date: '2022-11-01'.to_date,
-            exit_date: '2023-01-15'.to_date,
-            relationship_to_ho_h: 1,
-            move_in_date: '2022-11-15'.to_date,
-          )
-          @enrollment2 = create_enrollment(
-            client: @client,
-            project: @ph_project,
-            entry_date: '2022-12-01'.to_date, # Overlaps with first after move-in
-            exit_date: '2023-02-15'.to_date,
-            relationship_to_ho_h: 1,
-            move_in_date: '2022-12-15'.to_date,
-          )
-          @report = setup_report([@ph_project.id])
+        context 'for PSH projects' do
+          before do
+            @ph_project = create_project(project_type: 3) # PSH
+            @client = create_client_with_warehouse_link
+            @enrollment1 = create_enrollment(
+              client: @client,
+              project: @ph_project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+              move_in_date: '2022-11-15'.to_date,
+            )
+            @enrollment2 = create_enrollment(
+              client: @client,
+              project: @ph_project,
+              entry_date: '2022-12-01'.to_date, # Overlaps with first after move-in
+              exit_date: '2023-02-15'.to_date,
+              relationship_to_ho_h: 1,
+              move_in_date: '2022-12-15'.to_date,
+            )
+            @report = setup_report([@ph_project.id])
+          end
+
+          it 'flags overlapping PH enrollments' do
+            expect_result(key: :overlapping_post_move_in_issues, invalid_count: 1)
+          end
         end
 
-        it 'flags overlapping PH enrollments' do
-          expect_result(key: :overlapping_post_move_in_issues, invalid_count: 1)
+        context 'for Pay for Success projects' do
+          before do
+            @pfs_project = create_project(project_type: 7) # Other
+            # Add Pay for Success funder (funder code 35)
+            create(
+              :hud_funder,
+              data_source: data_source,
+              ProjectID: @pfs_project.ProjectID,
+              Funder: 35, # HUD: Pay for Success
+            )
+            @client = create_client_with_warehouse_link
+            @enrollment1 = create_enrollment(
+              client: @client,
+              project: @pfs_project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+              move_in_date: '2022-11-15'.to_date,
+            )
+            @enrollment2 = create_enrollment(
+              client: @client,
+              project: @pfs_project,
+              entry_date: '2022-12-01'.to_date, # Overlaps with first after move-in
+              exit_date: '2023-02-15'.to_date,
+              relationship_to_ho_h: 1,
+              move_in_date: '2022-12-15'.to_date,
+            )
+            @report = setup_report([@pfs_project.id])
+          end
+
+          it 'flags overlapping Pay for Success enrollments' do
+            expect_result(key: :overlapping_post_move_in_issues, invalid_count: 1)
+          end
         end
       end
     end
 
     describe 'Overlapping Homeless Service After Move-in in PH' do
       context 'with homeless service overlapping PH move-in' do
-        before do
-          @th_project = create_project(project_type: 2) # TH
-          @ph_project = create_project(project_type: 3) # PSH
-          @client = create_client_with_warehouse_link
+        context 'for PSH project' do
+          before do
+            @th_project = create_project(project_type: 2) # TH
+            @ph_project = create_project(project_type: 3) # PSH
+            @client = create_client_with_warehouse_link
 
-          @th_enrollment1 = create_enrollment(
-            client: @client,
-            project: @th_project,
-            entry_date: '2022-11-01'.to_date,
-            exit_date: '2022-12-15'.to_date,
-          )
-          @th_enrollment2 = create_enrollment(
-            client: @client,
-            project: @th_project,
-            entry_date: '2022-11-02'.to_date,
-            exit_date: '2022-12-15'.to_date,
-          )
-          @th_enrollment3 = create_enrollment(
-            client: @client,
-            project: @th_project,
-            entry_date: '2022-11-03'.to_date,
-            exit_date: '2022-12-15'.to_date,
-          )
-          @ph_enrollment = create_enrollment(
-            client: @client,
-            project: @ph_project,
-            entry_date: '2022-11-15'.to_date,
-            exit_date: '2023-01-15'.to_date,
-            relationship_to_ho_h: 1,
-            move_in_date: '2022-12-01'.to_date,
-          )
-          create_bed_night_service(enrollment: @th_enrollment1, date: '2022-12-02'.to_date)
-          create_bed_night_service(enrollment: @th_enrollment2, date: '2022-12-03'.to_date)
-          create_bed_night_service(enrollment: @th_enrollment3, date: '2022-12-04'.to_date)
-          @report = setup_report([@th_project.id, @ph_project.id])
+            @th_enrollment1 = create_enrollment(
+              client: @client,
+              project: @th_project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2022-12-15'.to_date,
+            )
+            @th_enrollment2 = create_enrollment(
+              client: @client,
+              project: @th_project,
+              entry_date: '2022-11-02'.to_date,
+              exit_date: '2022-12-15'.to_date,
+            )
+            @th_enrollment3 = create_enrollment(
+              client: @client,
+              project: @th_project,
+              entry_date: '2022-11-03'.to_date,
+              exit_date: '2022-12-15'.to_date,
+            )
+            @ph_enrollment = create_enrollment(
+              client: @client,
+              project: @ph_project,
+              entry_date: '2022-11-15'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+              move_in_date: '2022-12-01'.to_date,
+            )
+            create_bed_night_service(enrollment: @th_enrollment1, date: '2022-12-02'.to_date)
+            create_bed_night_service(enrollment: @th_enrollment2, date: '2022-12-03'.to_date)
+            create_bed_night_service(enrollment: @th_enrollment3, date: '2022-12-04'.to_date)
+            @report = setup_report([@th_project.id, @ph_project.id])
+          end
+
+          it 'flags overlapping homeless service after PH move-in' do
+            expect_result(key: :overlapping_pre_move_in_issues, invalid_count: 1)
+          end
         end
 
-        it 'flags overlapping homeless service after PH move-in' do
-          expect_result(key: :overlapping_pre_move_in_issues, invalid_count: 1)
+        context 'for Pay for Success project' do
+          before do
+            @th_project = create_project(project_type: 2) # TH
+            @pfs_project = create_project(project_type: 7) # Other
+            # Add Pay for Success funder (funder code 35)
+            create(
+              :hud_funder,
+              data_source: data_source,
+              ProjectID: @pfs_project.ProjectID,
+              Funder: 35, # HUD: Pay for Success
+            )
+            @client = create_client_with_warehouse_link
+
+            @th_enrollment1 = create_enrollment(
+              client: @client,
+              project: @th_project,
+              entry_date: '2022-11-01'.to_date,
+              exit_date: '2022-12-15'.to_date,
+            )
+            @th_enrollment2 = create_enrollment(
+              client: @client,
+              project: @th_project,
+              entry_date: '2022-11-02'.to_date,
+              exit_date: '2022-12-15'.to_date,
+            )
+            @th_enrollment3 = create_enrollment(
+              client: @client,
+              project: @th_project,
+              entry_date: '2022-11-03'.to_date,
+              exit_date: '2022-12-15'.to_date,
+            )
+            @pfs_enrollment = create_enrollment(
+              client: @client,
+              project: @pfs_project,
+              entry_date: '2022-11-15'.to_date,
+              exit_date: '2023-01-15'.to_date,
+              relationship_to_ho_h: 1,
+              move_in_date: '2022-12-01'.to_date,
+            )
+            create_bed_night_service(enrollment: @th_enrollment1, date: '2022-12-02'.to_date)
+            create_bed_night_service(enrollment: @th_enrollment2, date: '2022-12-03'.to_date)
+            create_bed_night_service(enrollment: @th_enrollment3, date: '2022-12-04'.to_date)
+            @report = setup_report([@th_project.id, @pfs_project.id])
+          end
+
+          it 'flags overlapping homeless service after Pay for Success move-in' do
+            expect_result(key: :overlapping_pre_move_in_issues, invalid_count: 1)
+          end
         end
       end
     end

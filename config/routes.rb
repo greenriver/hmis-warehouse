@@ -921,7 +921,10 @@ Rails.application.routes.draw do
         post :test
       end
     end
-    resources :delayed_jobs, only: [:index, :update, :destroy]
+
+    resources :delayed_jobs, only: [:index, :update, :destroy] do
+      patch :cancel, on: :member
+    end
 
     resources :system_maintenance_tasks, only: [:index]
   end

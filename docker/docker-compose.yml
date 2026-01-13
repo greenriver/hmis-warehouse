@@ -231,6 +231,7 @@ services:
       - traefik.http.routers.hmis-warehouse-oauth2.tls=true
       - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
     container_name: oauth2-proxy-warehouse
+    image: quay.io/oauth2-proxy/oauth2-proxy@sha256:786bed0f000c0f8a7b31619244ebab02406a8856a4faf3f5fb1df61fbd6c30ed # v7.12.0
     command: --alpha-config /oauth2-proxy-warehouse.yaml --config /oauth2-proxy-warehouse.cfg
     hostname: hmis-warehouse.dev.test
     extra_hosts:
@@ -255,6 +256,7 @@ services:
       - traefik.http.routers.hmis-frontend-oauth2.tls=true
       - traefik.http.services.hmis-frontend-oauth2.loadbalancer.server.port=4181
     container_name: oauth2-proxy-hmis
+    image: quay.io/oauth2-proxy/oauth2-proxy@sha256:786bed0f000c0f8a7b31619244ebab02406a8856a4faf3f5fb1df61fbd6c30ed # v7.12.0
     command: --alpha-config /oauth2-proxy-hmis.yaml --config /oauth2-proxy-hmis.cfg
     hostname: hmis.dev.test
     extra_hosts:
@@ -281,6 +283,7 @@ services:
       - traefik.http.routers.hmis-backend-oauth2.tls=true
       - traefik.http.services.hmis-backend-oauth2.loadbalancer.server.port=4182
     container_name: oauth2-proxy-hmis-backend
+    image: quay.io/oauth2-proxy/oauth2-proxy@sha256:786bed0f000c0f8a7b31619244ebab02406a8856a4faf3f5fb1df61fbd6c30ed # v7.12.0
     command: --alpha-config /oauth2-proxy-hmis-backend.yaml --config /oauth2-proxy-hmis-backend.cfg
     hostname: hmis-backend.dev.test
     extra_hosts:
@@ -298,7 +301,7 @@ services:
     ports:
       - 4182:4182/tcp
   dex-db-init:
-    image: postgres:17.5-bookworm
+    image: index.docker.io/library/postgres@sha256:fbcea1bd13b6a882cd6caa6b58db3ae5c102efe50ec625b3e2a5cbc50db5bfe4 # 17.5-bookworm
     container_name: dex-db-init
     command: >
       bash -c "psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'dex'\" | grep -q 1 || psql -h db -U postgres -c 'CREATE DATABASE dex'"
@@ -319,8 +322,8 @@ services:
       - traefik.http.services.dex.loadbalancer.server.scheme=http
     container_name: dex
     # image: dexidp/dex:latest-alpine
-    image: ghcr.io/dexidp/dex:v2.44.0
-    # Source Zitadel credentials and template dex.yaml at runtime before starting Dex
+    image: ghcr.io/dexidp/dex@sha256:5d0656fce7d453c0e3b2706abf40c0d0ce5b371fb0b73b3cf714d05f35fa5f86 # v2.44.0
+    # Source Zitadel credentials at runtime before starting Dex
     command: >
       sh -c '
         if [ -f /auth/zitadel-credentials.env ]; then
@@ -454,7 +457,7 @@ services:
 
   redis:
     container_name: hmis-warehouse-redis
-    image: redis:alpine
+    image: index.docker.io/library/redis@sha256:6cbef353e480a8a6e7f10ec545f13d7d3fa85a212cdcc5ffaf5a1c818b9d3798 # alpine
     volumes:
       - redis:/data
     expose:
@@ -498,7 +501,7 @@ services:
   # Zitadel IDP services
   # Automatically configures Dex integration on first startup
   zitadel-db-init:
-    image: postgres:17.5-bookworm
+    image: index.docker.io/library/postgres@sha256:fbcea1bd13b6a882cd6caa6b58db3ae5c102efe50ec625b3e2a5cbc50db5bfe4 # 17.5-bookworm
     container_name: zitadel-db-init
     command: >
       bash -c "psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'zitadel'\" | grep -q 1 || psql -h db -U postgres -c 'CREATE DATABASE zitadel'"
@@ -511,7 +514,7 @@ services:
 
   zitadel:
     restart: unless-stopped
-    image: ghcr.io/zitadel/zitadel:latest
+    image: ghcr.io/zitadel/zitadel@sha256:7475b0b7fc7dd2ccf6486a44a6f4edae0e82a430f35561898b35c0e687378623 # v4.9.0
     container_name: op-zitadel
     command: start-from-init --masterkey "MasterkeyNeedsToHave32Characters"
     environment:
@@ -541,7 +544,7 @@ services:
 
   zitadel-login:
     restart: unless-stopped
-    image: ghcr.io/zitadel/zitadel-login:latest
+    image: ghcr.io/zitadel/zitadel-login@sha256:d7e22b6977424b14d6b2ac48eca454964591389ceed9b0a3bf942dd7e4c8060e # v4.9.0
     container_name: op-zitadel-login
     environment:
       <<: *zitadel-url

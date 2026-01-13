@@ -15,6 +15,10 @@ class TestJob < BaseJob
     end
   end
 
+  def self.interruptible?
+    true
+  end
+
   def perform(length_in_seconds: 10, memory_bloat_per_second: 10_000_000, simulate_failure: false)
     Rails.logger.info 'TestJob started and has a log message in the job'
     Rails.logger.tagged({ process_name: 'testjob' }) do
@@ -34,6 +38,7 @@ class TestJob < BaseJob
     bloater = {}
 
     while (Time.now - a) < length_in_seconds
+      check_halt_status!
       Rails.logger.info 'Simulating processing.'
       bloater[Random.rand.to_s] = Array.new(memory_bloat_per_second * SLEEP_TIME) if memory_bloat_per_second
       sleep SLEEP_TIME

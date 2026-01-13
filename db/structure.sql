@@ -624,7 +624,8 @@ CREATE TABLE public.delayed_jobs (
     locked_by character varying,
     queue character varying,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    cancellation_requested_at timestamp(6) without time zone
 );
 
 
@@ -3528,7 +3529,7 @@ CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USI
 -- Name: idx_on_connector_user_id_connector_id_2c69cda92c; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_on_connector_user_id_connector_id_2c69cda92c ON public.user_authentication_sources USING btree (connector_user_id, connector_id);
+CREATE UNIQUE INDEX idx_on_connector_user_id_connector_id_2c69cda92c ON public.user_authentication_sources USING btree (connector_user_id, connector_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -4307,6 +4308,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251224185104'),
+('20251215205826'),
 ('20251120143000'),
 ('20251106020333'),
 ('20251102194520'),

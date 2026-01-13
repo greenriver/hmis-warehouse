@@ -592,61 +592,64 @@ ZITADEL_HMIS_PROJECT_ID=<hmis-project-id>
 docker compose restart dex oauth2-proxy-warehouse oauth2-proxy-hmis oauth2-proxy-hmis-backend
 ```
 
-# User Migration
+## User Migration to Zitadel
 
-## Test Connection
+### Quick Start (Recommended for most migrations)
+
+For migrating users directly to Zitadel, use the batch migration task:
 
 ```bash
+# Test the connection first
 rails zitadel:test_connection
+
+# Migrate all users in batches of 50
+rails zitadel:migrate_users
+
+# Or migrate a subset (e.g., first 100 users)
+rails zitadel:migrate_users[100]
+
+# Or use custom batch size (e.g., 25 users per batch)
+rails zitadel:migrate_users[,25]
 ```
 
-## Export and Import Warehouse Users
+### File-Based Export/Import (for review or delayed import)
 
-1. Export a sample of 2 Warehouse users for testing:
-   ```bash
-   rails zitadel:export_users[warehouse,2]
-   ```
+**NOTE:** If you choose to export the file, ensure it is sufficiently protected as it contains hashed passwords and TOTP seeds.
 
-2. Verify `tmp/zitadel_warehouse_users_export.json` looks correct
-
-3. Import users to Warehouse project:
-   ```bash
-   rails zitadel:import_users[warehouse,tmp/zitadel_warehouse_users_export.json]
-   ```
-
-4. Export all Warehouse users:
-   ```bash
-   rails zitadel:export_users[warehouse]
-   ```
-
-5. Import all users:
-   ```bash
-   rails zitadel:import_users[warehouse]
-   ```
-
-## Export and Import HMIS Users
-
-1. Export HMIS users:
-   ```bash
-   rails zitadel:export_users[hmis,2]
-   ```
-
-2. Verify `tmp/zitadel_hmis_users_export.json` looks correct
-
-3. Import users to HMIS project:
-   ```bash
-   rails zitadel:import_users[hmis,tmp/zitadel_hmis_users_export.json]
-   ```
-
-## Import Single User (for testing)
+If you need to review users before importing:
 
 ```bash
-# Import to Warehouse project
-rails zitadel:import_single_user[warehouse,user@example.com]
+# Export users to a JSON file (with optional limit)
+rails zitadel:export_users[2]        # Export 2 users for testing
+rails zitadel:export_users           # Export all users
 
-# Import to HMIS project
-rails zitadel:import_single_user[hmis,user@example.com]
+# Review the exported file
+cat tmp/zitadel_users_export.json
+
+# Import the users from file
+rails zitadel:import_users[tmp/zitadel_users_export.json]
+rails zitadel:import_users           # Defaults to tmp/zitadel_users_export.json
+
+# Cleanup the tmp file
+rm tmp/zitadel_users_export.json
 ```
+
+### Single User Import (for testing)
+
+```bash
+rails zitadel:import_single_user[user@example.com]
+```
+
+### Service Architecture
+
+All rake tasks use the centralized `Idp::ZitadelService` which handles:
+- Bulk user imports with password hashes and 2FA data
+- Connection testing and error handling
+- User data export in Zitadel bulk import format
+
+Configuration is read from either:
+1. **Database**: `Idp::ServiceConfig` records (preferred for production)
+2. **Environment Variables**: `ZITADEL_API_URL`, `ZITADEL_SERVICE_USER_TOKEN`, `ZITADEL_ORG_ID`, `ZITADEL_PROJECT_ID`
 
 # Access Control
 
