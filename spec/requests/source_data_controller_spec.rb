@@ -14,12 +14,12 @@ RSpec.describe SourceDataController, type: :request do
   describe 'logged out' do
     it 'redirects index to login' do
       get source_data_path
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_sign_in)
     end
 
     it 'redirects show to login' do
       get source_datum_path(id: item.id, type: 'Client')
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_sign_in)
     end
   end
 

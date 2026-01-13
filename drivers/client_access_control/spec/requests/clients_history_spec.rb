@@ -32,12 +32,12 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
   describe 'logged out' do
     it 'doesn\'t allow show' do
       get client_history_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_sign_in)
     end
 
     it 'doesn\'t allow queue' do
       post queue_client_history_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_sign_in)
     end
 
     it 'does not allow pdf if client not set to generate pdf' do
