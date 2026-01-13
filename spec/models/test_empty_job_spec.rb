@@ -10,17 +10,9 @@ RSpec.describe TestEmptyJob, type: :model do
       end
     end
 
-    it 'works off all jobs when looping' do
+    it 'works off all jobs' do
       expect(Delayed::Job.where(failed_at: nil).count).to be > 100
-      Delayed::Worker.new.work_off while Delayed::Job.where(failed_at: nil).count > 0
-      expect(Delayed::Job.where(failed_at: nil).count).to eq(0)
-      # No failed jobs
-      expect(Delayed::Job.count).to eq(0)
-    end
-
-    it 'works off all jobs when told to work off 1,000' do
-      expect(Delayed::Job.where(failed_at: nil).count).to be > 100
-      Delayed::Worker.new.work_off(1_000)
+      work_off_all_ready_jobs
       expect(Delayed::Job.where(failed_at: nil).count).to eq(0)
       # No failed jobs
       expect(Delayed::Job.count).to eq(0)

@@ -23,6 +23,9 @@ module HudReports
 
     self.table_name = 'hud_report_instances'
 
+    # Reference to the ActiveJob instance currently processing this report
+    attr_accessor :active_job
+
     belongs_to :user, optional: true
     has_many :report_cells # , dependent: :destroy # for the moment, this is too slow
     has_many :universe_cells, -> do
@@ -165,8 +168,14 @@ module HudReports
       update!(state: 'Started', started_at: started_at)
     end
 
+    def check_halt_status!
+      active_job&.check_halt_status!
+    end
+
     def track_progress(checkpoint_name)
       raise unless checkpoint_name.present?
+
+      check_halt_status!
 
       # If this step has already been successfully completed, skip it (resume)
       existing = checkpoints.find_by(name: checkpoint_name, status: 'success')
