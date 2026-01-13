@@ -75,6 +75,8 @@ class JwtHelper
         algorithm: algorithm,
         aud: ENV.fetch('IDP_AUD'),
         iss: ENV.fetch('ISS_URL'),
+        verify_aud: ENV.fetch('IDP_AUD').present?,
+        verify_iss: ENV.fetch('ISS_URL').present?,
       },
     )
   end
@@ -105,7 +107,7 @@ class JwtHelper
 
   # TODO: this is inconsistent based on the IDP
   def first_name
-    payload.first['name'].strip.split.first.titleize
+    payload.first['given_name'].presence || payload.first['name'].strip.split.first.titleize
   end
 
   # TODO: this is inconsistent based on the IDP
@@ -118,10 +120,22 @@ class JwtHelper
   #
   # @return [Hash] The parsed JSON response containing public keys.
   # @raise [JSON::ParserError] if the response is not valid JSON.
-  memoize private def jwks
-    uri = URI(ENV.fetch('JWKS_URL'))
-    response = Net::HTTP.get(uri)
-    JSON.parse(response)
+  def jwks
+    self.class.jwks
+  end
+
+  class << self
+    def jwks
+      memory_cache.fetch('jwt_helper_jwks', expires_in: 1.hour) do
+        uri = URI(ENV.fetch('JWKS_URL'))
+        response = Net::HTTP.get(uri)
+        JSON.parse(response)
+      end
+    end
+
+    def memory_cache
+      @memory_cache ||= ActiveSupport::Cache::MemoryStore.new
+    end
   end
 
   # Extracts and returns the JWT header.
@@ -139,26 +153,7 @@ class JwtHelper
     key_data = jwks['keys'].find { |key| key['kid'] == header['kid'] }
     return nil unless key_data
 
-    # Inspired by: https://stackoverflow.com/questions/77209118/creating-rsa-key-with-openssl-v3-using-modulus-and-exponent-doesnt-work-in
-    data_sequence = OpenSSL::ASN1::Sequence(
-      [
-        OpenSSL::ASN1::Integer(base64_to_long(key_data['n'])),
-        OpenSSL::ASN1::Integer(base64_to_long(key_data['e'])),
-      ],
-    )
-    asn_1 = OpenSSL::ASN1::Sequence(data_sequence)
-    OpenSSL::PKey::RSA.new(asn_1.to_der)
-  end
-
-  private def base64_to_long(data)
-    decoded_with_padding = Base64.urlsafe_decode64(data) + Base64.decode64('==')
-    decoded_with_padding.to_s.unpack('C*').map do |byte|
-      byte_to_hex(byte)
-    end.join.to_i(16)
-  end
-
-  private def byte_to_hex(int)
-    int < 16 ? "0#{int.to_s(16)}" : int.to_s(16)
+    JWT::JWK.import(key_data).keypair
   end
 
   # Retrieves the expected JWT algorithm from environment variables.
