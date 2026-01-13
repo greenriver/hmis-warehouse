@@ -18,30 +18,39 @@ module WarehouseReports
     # `run_and_save!` should run whatever calculations are necessary and save the results
     # `url` must provide a link to the individual report
     def perform(user_id:, report_class:, report_id:)
-      lock_obtained = HudReports::ReportInstance.with_advisory_lock(advisory_lock_name(report_class), timeout_seconds: 0) do
-        report_completed = false
-        klass = allowed_reports[report_class]
-        if klass
-          report = klass.find_by(id: report_id)
-          # Occassionally people delete the report before it actually runs
-          return unless report.present?
-
-          report_completed = report.run_and_save!
-
-          NotifyUser.report_completed(user_id, report).deliver_later
-        else
-          setup_notifier('Generic Report Runner')
-          msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."
-          @notifier.ping(msg) if @send_notifications
-        end
-        report_completed
+      # Attempt to acquire an advisory lock to ensure only one instance of this report class runs at a time.
+      # If the lock is already held by another worker, the job will be postponed.
+      lock_acquired = false
+      execution_result = ApplicationRecord.with_advisory_lock(advisory_lock_name(report_class), timeout_seconds: 0) do
+        lock_acquired = true
+        run_report(user_id, report_class, report_id)
       end
-      return if lock_obtained
+
+      return execution_result if lock_acquired
 
       requeue_at(
         Time.current + WAIT_MINUTES.minutes,
-        "Report: #{report_class} already running...re-queuing job for #{WAIT_MINUTES} minutes from now",
+        "Report: #{report_class} already running (advisory lock contention)...re-queuing job for #{WAIT_MINUTES} minutes from now",
       )
+      false
+    end
+
+    private def run_report(user_id, report_class, report_id)
+      klass = allowed_reports[report_class]
+      unless klass
+        setup_notifier('Generic Report Runner')
+        msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."
+        @notifier.ping(msg) if @send_notifications
+        return false
+      end
+
+      report = klass.find_by(id: report_id)
+      # Occassionally people delete the report before it actually runs
+      return false unless report.present?
+
+      completed = report.run_and_save!
+      NotifyUser.report_completed(user_id, report).deliver_later
+      completed
     end
 
     private def advisory_lock_name(report_class)

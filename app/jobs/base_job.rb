@@ -107,6 +107,10 @@ class BaseJob < ApplicationJob
   # is already processing the same data. Instead of blocking the worker or failing,
   # we clone the job and schedule it for a future time, allowing the current worker
   # to move on to other tasks.
+  #
+  # This creates a new Delayed::Job record that is a copy of the current one, but
+  # with cleared failure metadata (failed_at, last_error) and reset attempt count,
+  # ensuring it starts as a fresh attempt.
   def requeue_at(timestamp, message)
     job = delayed_job
     # It is possible for the delayed_job record to be missing (e.g. if a user deleted it
@@ -121,6 +125,8 @@ class BaseJob < ApplicationJob
     new_job.update(
       locked_at: nil,
       locked_by: nil,
+      failed_at: nil,
+      last_error: nil,
       run_at: timestamp,
       attempts: calculated_attempts,
     )

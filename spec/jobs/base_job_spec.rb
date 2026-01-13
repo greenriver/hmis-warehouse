@@ -59,21 +59,40 @@ RSpec.describe BaseJob, type: :job do
     let(:message) { 'Requeuing for collision' }
 
     context 'when the job record exists' do
-      let!(:dj_record) { Delayed::Job.create!(handler: 'dummy', attempts: 0) }
+      let!(:dj_record) do
+        Delayed::Job.create!(
+          handler: 'dummy',
+          attempts: 1,
+          failed_at: Time.current,
+          last_error: 'Some error',
+          locked_at: Time.current,
+          locked_by: 'worker-1',
+        )
+      end
 
       before do
         allow(job_instance).to receive(:provider_job_id).and_return(dj_record.id)
       end
 
-      it 'duplicates the job and schedules it for the future' do
+      it 'duplicates the job and schedules it for the future with cleared metadata' do
+        original_id = dj_record.id
         expect do
           job_instance.requeue_at(timestamp, message)
         end.to change(Delayed::Job, :count).by(1)
 
         new_job = Delayed::Job.last
+        expect(new_job.id).not_to eq(original_id)
         expect(new_job.run_at.to_i).to eq(timestamp.to_i)
         expect(new_job.attempts).to eq(0)
         expect(new_job.locked_at).to be_nil
+        expect(new_job.locked_by).to be_nil
+        expect(new_job.failed_at).to be_nil
+        expect(new_job.last_error).to be_nil
+
+        # Verify original record remains unchanged
+        dj_record.reload
+        expect(dj_record.failed_at).not_to be_nil
+        expect(dj_record.last_error).to eq('Some error')
       end
 
       it 'logs the provided message' do
