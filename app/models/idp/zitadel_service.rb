@@ -544,7 +544,7 @@ module Idp
     # @param user [User] User object from Rails app
     # @return [String, nil] OTP secret or nil if not present or decryption fails
     def extract_otp_secret(user)
-      return nil unless user.encrypted_otp_secret.present?
+      return nil unless user.encrypted_otp_secret.present? && user.otp_required_for_login?
 
       begin
         user.otp_secret
