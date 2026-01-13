@@ -39,7 +39,7 @@ module Importing::HudZip
     end
 
     def enforce_max_attempts
-      delayed_job.update!(attempts: calculated_attempts)
+      delayed_job&.update!(attempts: calculated_attempts)
     end
 
     def calculated_attempts

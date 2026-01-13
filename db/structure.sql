@@ -624,7 +624,8 @@ CREATE TABLE public.delayed_jobs (
     locked_by character varying,
     queue character varying,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    cancellation_requested_at timestamp(6) without time zone
 );
 
 
@@ -4307,6 +4308,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251224185104'),
+('20251215205826'),
 ('20251120143000'),
 ('20251106020333'),
 ('20251102194520'),
