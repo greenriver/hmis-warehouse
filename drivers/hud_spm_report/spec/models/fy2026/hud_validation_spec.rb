@@ -282,13 +282,13 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode2.days_homeless).to eq(9)
     end
 
-    # 9. TH negating ES (Metric 1)
+    # 9a. TH negating ES (Metric 1)
     it 'Metric 1: TH bed nights negate overlapping ES nights' do
       @es_project = create_project(project_type: 0) # ES-EE
       @th_project = create_project(project_type: 2) # TH
       @client = create_client_with_warehouse_link
 
-      # ES: 2022-11-01 to 2022-11-15 (14 nights)
+      # ES: 2022-11-01 to 2022-11-15 (14 nights: 1st through 14th)
       create_enrollment(
         client: @client,
         project: @es_project,
@@ -296,7 +296,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
         exit_date: '2022-11-15'.to_date,
       )
 
-      # TH: 2022-11-05 to 2022-11-10 (5 nights: 5,6,7,8,9)
+      # TH: 2022-11-05 to 2022-11-10 (5 nights: 5, 6, 7, 8, 9)
       create_enrollment(
         client: @client,
         project: @th_project,
@@ -312,6 +312,37 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       # TH nights: 5, 6, 7, 8, 9 (5 total)
       # Expected: 14 - 5 = 9 nights
       expect(episode.days_homeless).to eq(9)
+    end
+
+    # 9b. TH additive with ES (Metric 2)
+    it 'Metric 2: TH bed nights are additive/inclusive with ES nights' do
+      @es_project = create_project(project_type: 0) # ES-EE
+      @th_project = create_project(project_type: 2) # TH
+      @client = create_client_with_warehouse_link
+
+      # ES: 2022-11-01 to 2022-11-15 (14 nights)
+      create_enrollment(
+        client: @client,
+        project: @es_project,
+        entry_date: '2022-11-01'.to_date,
+        exit_date: '2022-11-15'.to_date,
+      )
+
+      # TH: 2022-11-05 to 2022-11-10 (5 nights: 5, 6, 7, 8, 9)
+      create_enrollment(
+        client: @client,
+        project: @th_project,
+        entry_date: '2022-11-05'.to_date,
+        exit_date: '2022-11-10'.to_date,
+      )
+
+      @report = setup_report([@es_project.id, @th_project.id])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+
+      # For m1a2 (Metric 2), TH is included as a homeless project type.
+      episode = @report.universe('m1a2').members.first.universe_membership
+      # Expected: 14 nights (TH nights are included and don't negate ES)
+      expect(episode.days_homeless).to eq(14)
     end
 
     # 10. PH move-in date before project start (Discarded)
@@ -517,6 +548,26 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
 
       # Should be excluded from Measure 1b (Metric 2)
       expect(@report.universe('m1b2').members.count).to eq(0)
+    end
+
+    it 'Measure 1b Metric 2: includes TH stayers who were literally homeless at entry' do
+      @th_project = create_project(project_type: 2) # TH
+      @client = create_client_with_warehouse_link
+
+      # TH stayer: started 2022-01-01, active during report range (2022-10-01 to 2023-09-30)
+      # Literally homeless at entry (Living Situation 101)
+      create_enrollment(
+        client: @client,
+        project: @th_project,
+        entry_date: '2022-01-01'.to_date,
+        living_situation: 101,
+      )
+
+      @report = setup_report([@th_project.id])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+
+      # Metric 2 (m1b2) should include this client.
+      expect(@report.universe('m1b2').members.count).to eq(1)
     end
   end
 end

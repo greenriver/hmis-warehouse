@@ -44,7 +44,7 @@ module HudSpmReport::Fy2026
       # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
       # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
       batch_services = GrdaWarehouse::Hud::Service.bed_night.
-        between(start_date: @filter.start - 7.years, end_date: @filter.end). # Lookback stop date is 7 years prior to start
+        between(start_date: nil, end_date: @filter.end). # We don't need anything after the report end date, but may need services before the start date
         where(PersonalID: batch_personal_ids). # impose some basic limit so we don't load the entire set of services
         pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).
         group_by { |r| r.shift(3) }.
