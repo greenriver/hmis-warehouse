@@ -16,16 +16,20 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'View-only access to Enrollments', type: :system do
   include_context 'hmis base setup'
 
+  # Freeze to noon in Rails timezone to avoid UTC/local timezone date mismatches
+  before(:each)  { freeze_time Time.zone.now.at_noon }
+  after(:each) { travel_back }
+
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, first_name: 'Quentin', last_name: 'Coldwater' }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, first_name: 'Alice', last_name: 'Quinn' }
 
+  let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_client_name, :can_view_project, :can_view_enrollment_details]) }
+  let!(:today) { Date.current }
+
   before(:each) do
     sign_in(hmis_user)
   end
-
-  let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_client_name, :can_view_project, :can_view_enrollment_details]) }
-  let!(:today) { Date.current }
 
   # Forms created in base setup
   let(:intake_form) { Hmis::Form::Definition.find_by(role: :INTAKE) }

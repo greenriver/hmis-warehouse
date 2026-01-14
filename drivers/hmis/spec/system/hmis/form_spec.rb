@@ -12,6 +12,11 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'Hmis Form behavior', type: :system do
   include_context 'hmis base setup'
+
+  # Freeze to noon in Rails timezone to avoid UTC/local timezone date mismatches
+  before(:each)  { freeze_time Time.zone.now.at_noon }
+  after(:each) { travel_back }
+
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
 
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
