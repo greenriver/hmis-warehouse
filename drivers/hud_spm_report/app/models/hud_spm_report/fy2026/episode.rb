@@ -355,35 +355,43 @@ module HudSpmReport::Fy2026
     private def filter_episode(calculated_bed_nights)
       return unless calculated_bed_nights.present?
 
-      # Sort by date to ensure chronological order
+      # Sort by date to ensure chronological order and remove duplicates
       calculated_bed_nights = calculated_bed_nights.sort_by(&:last).uniq(&:last)
+
+      # Step 4b: A [client start date] will usually be prior to the [report start date]...
+      # Step 6.2: ...going back until you hit the Lookback Stop Date or a gap in homelessness.
       # Keep bed nights that are:
       # - on or after the lookback date
-      # - OR associated with an enrollment that started on or after the lookback date
-      calculated_bed_nights = calculated_bed_nights.select do |enrollment, _, bed_night_date|
-        bed_night_on_or_after_lookback = bed_night_date >= lookback_date
-        enrollment_on_or_after_lookback = enrollment.entry_date >= lookback_date
-
-        bed_night_on_or_after_lookback || enrollment_on_or_after_lookback
+      # - OR associated with an enrollment that started on or after the lookback date (Measure 1b exception)
+      calculated_bed_nights = calculated_bed_nights.select do |enrollment, _, date|
+        date >= lookback_date || enrollment.entry_date >= lookback_date
       end
 
       # If we've filtered out all bed nights, return nil
       return if calculated_bed_nights.empty?
 
-      # Now find the client's end date based on the remaining bed nights
-      client_end_date = calculated_bed_nights.last.last
-      client_start_date = client_end_date - 365.days
+      # Step 3: Determine each client's latest homeless bed night which is >= [report start date] and <= [report end date].
+      # This date becomes that particular client's [client end date].
+      end_index = calculated_bed_nights.rindex { |_, _, date| date.between?(report_start_date, report_end_date) }
+      return if end_index.nil?
+
+      client_end_date = calculated_bed_nights[end_index].last
+      # Truncate the dataset at the client's end date (Step 3a/b/c/d)
+      calculated_bed_nights = calculated_bed_nights[0..end_index]
+
+      # Step 4: Establish [client start date] (clamped to lookback_date)
+      client_start_date = [client_end_date - 365.days, lookback_date].max
 
       @debugger&.log("client_start_date: #{client_start_date.to_fs(:db)}")
       @debugger&.log("client_end_date: #{client_end_date.to_fs(:db)}")
 
-      # Include contiguous dates before the calculated client start date:
-      # First, find as close to the start date as possible in the array
+      # Step 6: Expand the Dataset (Contiguous Nights)
+      # Find index at or just past client_start_date
       index = 0
-      index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last <= client_start_date
+      index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last < client_start_date
 
-      # Then walk back until there is a break
-      index -= 1 while index.positive? && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
+      # Work backward, allowing dates "no more than one day earlier" (≤ 2 days difference between recorded nights)
+      index -= 1 while index.positive? && (calculated_bed_nights[index].last - calculated_bed_nights[index - 1].last) <= 2
 
       # Finally, return the selected dates
       calculated_bed_nights[index..]
