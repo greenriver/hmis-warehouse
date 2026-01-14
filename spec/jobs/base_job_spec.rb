@@ -135,7 +135,7 @@ RSpec.describe BaseJob, type: :job do
   end
 
   describe 'retry behavior and initial attempts' do
-    let(:max_attempts) { Delayed::Worker.max_attempts || 25 }
+    let(:max_attempts) { Delayed::Worker.max_attempts }
 
     # Using actual classes instead of stub_const for these because they need to be
     # reachable by the Delayed Job worker during perform_later integration tests.

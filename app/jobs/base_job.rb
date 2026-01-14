@@ -148,7 +148,7 @@ class BaseJob < ApplicationJob
     # For non-idempotent jobs, we want to limit retries.
     # By default, we'll allow only 1 attempt.
     max_attempts = 1
-    [0, (Delayed::Worker.max_attempts || 25) - max_attempts].max
+    [0, Delayed::Worker.max_attempts - max_attempts].max
   end
 
   # Returns true if this job can be safely retried after a partial failure.
