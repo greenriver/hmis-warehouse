@@ -155,6 +155,8 @@ module Reports
       reloaded_counts = {}
       errors = []
 
+      # Reload report from database to ensure we have current updated_at value
+      report.reload
       # Capture original updated_at before any operations
       original_updated_at = report.updated_at
 
@@ -184,6 +186,8 @@ module Reports
           Rails.logger.info("Reloaded report #{report.class.name} ##{report.id} - grace period restarted, purge eligible at #{purge_eligible_at}")
         end
       ensure
+        # Reload report from database to get current updated_at value before comparing
+        report.reload
         # Always restore the original timestamp, regardless of success or failure
         report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at
       end
