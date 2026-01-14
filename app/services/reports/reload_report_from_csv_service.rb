@@ -55,14 +55,6 @@ module Reports
     end
 
     def reload_association(attachment_name, csv_config)
-      # Read CSV data
-      reader = ReportCsvReader.new(report, attachment_name)
-      csv_data = reader.all
-
-      Rails.logger.info("ReloadReportFromCsvService: Reading #{csv_data.size} rows from #{attachment_name} for report ##{report.id}")
-
-      return 0 if csv_data.empty?
-
       # Determine which association/model to reload
       association_name = csv_config[:association]
       raise "No association specified for #{attachment_name}" unless association_name
@@ -76,73 +68,50 @@ module Reports
       # Get valid column names for the model
       valid_columns = model_class.column_names.to_set
       # Exclude id from inserts - let database auto-generate new IDs
-      # This avoids primary key conflicts and sequence issues
       columns_to_exclude = ['id'].to_set
 
-      # Convert CSV data to model attributes
-      now = Time.current
-      records = csv_data.map do |row|
-        # Convert symbol keys to model attributes
-        attributes = row.transform_keys(&:to_s)
-        # Filter to only include valid columns and exclude id
-        filtered_attributes = attributes.select { |key, _| valid_columns.include?(key) && !columns_to_exclude.include?(key) }
-        # Set required fields
-        filtered_attributes['report_id'] = report.id if valid_columns.include?('report_id')
-        filtered_attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
-        # Set timestamps if columns exist and not already set
-        filtered_attributes['created_at'] = now if valid_columns.include?('created_at') && filtered_attributes['created_at'].blank?
-        filtered_attributes['updated_at'] = now if valid_columns.include?('updated_at') && filtered_attributes['updated_at'].blank?
-        # Convert string values to appropriate types based on model columns
-        # Use model's attribute assignment to handle type conversion
-        model_instance = model_class.new
-        filtered_attributes.each do |key, value|
-          model_instance.send("#{key}=", value) if model_instance.respond_to?("#{key}=")
-        end
-        final_attributes = model_instance.attributes
-        # Remove id if it was set by the model (from CSV data)
-        final_attributes.delete('id')
-        # Ensure report_id and deleted_at are set (insert_all needs explicit values)
-        final_attributes['report_id'] = report.id if valid_columns.include?('report_id')
-        final_attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
-        final_attributes
-      end
-
-      Rails.logger.info("ReloadReportFromCsvService: Converted #{records.size} records for #{attachment_name}")
-
-      # Bulk insert records using Rails' insert_all
-      # Delete existing records for this report first to avoid duplicates
+      # Delete existing records first to ensure all data is coming from the CSV
       model_class.where(report_id: report.id).delete_all
 
-      # Insert in batches
-      return 0 if records.empty?
+      # Stream CSV and insert in batches to avoid loading everything into memory
+      reader = ReportCsvReader.new(report, attachment_name)
+      now = Time.current
+      total_rows = 0
 
-      # Get all columns that appear in any record
-      all_keys = records.flat_map(&:keys).uniq
-      # Ensure all records have the same columns (fill missing with nil)
-      normalized_records = records.map do |record|
-        all_keys.each_with_object({}) do |key, hash|
-          hash[key] = record[key]
+      reader.batch_read(batch_size: 5_000) do |csv_batch|
+        # Process batch of CSV rows into model attributes
+        processed_batch = csv_batch.map do |row|
+          total_rows += 1
+
+          # Convert CSV row to model attributes
+          attributes = row.transform_keys(&:to_s)
+          # Filter to only include valid columns and exclude id
+          filtered_attributes = attributes.select { |key, _| valid_columns.include?(key) && !columns_to_exclude.include?(key) }
+          # Set required fields
+          filtered_attributes['report_id'] = report.id if valid_columns.include?('report_id')
+          filtered_attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
+          # Set timestamps if columns exist and not already set
+          filtered_attributes['created_at'] = now if valid_columns.include?('created_at') && filtered_attributes['created_at'].blank?
+          filtered_attributes['updated_at'] = now if valid_columns.include?('updated_at') && filtered_attributes['updated_at'].blank?
+
+          # Convert string values to appropriate types using model
+          model_instance = model_class.new
+          filtered_attributes.each do |key, value|
+            model_instance.send("#{key}=", value) if model_instance.respond_to?("#{key}=")
+          end
+          final_attributes = model_instance.attributes
+          final_attributes.delete('id')
+
+          final_attributes
         end
+
+        # Insert the processed batch
+        insert_batch(model_class, processed_batch, attachment_name)
       end
 
-      normalized_records.each_slice(5_000) do |batch|
-        # Log sample record before insert
-        if batch.first
-          sample = batch.first
-          Rails.logger.info("ReloadReportFromCsvService: Inserting batch - sample record keys: #{sample.keys.inspect}")
-          Rails.logger.info("ReloadReportFromCsvService: Sample report_id: #{sample['report_id']}, deleted_at: #{sample['deleted_at'].inspect}")
-        end
+      Rails.logger.info("ReloadReportFromCsvService: Processed #{total_rows} rows from #{attachment_name} for report ##{report.id}")
 
-        inserted = model_class.insert_all(batch)
-        Rails.logger.info("ReloadReportFromCsvService: Inserted batch of #{batch.size} records for #{attachment_name}, insert_all returned: #{inserted.inspect}")
-      rescue StandardError => e
-        Rails.logger.error("Failed to insert batch for #{attachment_name}: #{e.message}")
-        Rails.logger.error("Batch size: #{batch.size}, Columns: #{batch.first&.keys&.inspect}")
-        Rails.logger.error("Sample record: #{batch.first&.inspect}")
-        raise
-      end
-
-      # Verify records were inserted (check both scoped and unscoped)
+      # Verify records were inserted
       inserted_count_scoped = model_class.where(report_id: report.id).count
       inserted_count_unscoped = model_class.unscoped.where(report_id: report.id).count
       Rails.logger.info("ReloadReportFromCsvService: Verified #{inserted_count_scoped} records (scoped) / #{inserted_count_unscoped} records (unscoped) in database for #{attachment_name} (report ##{report.id})")
@@ -152,10 +121,35 @@ module Reports
         Rails.logger.warn("ReloadReportFromCsvService: WARNING - #{soft_deleted} records have deleted_at set (should be 0)")
       end
 
-      records.size
+      total_rows
     end
 
     private
+
+    def insert_batch(model_class, batch, attachment_name)
+      return if batch.empty?
+
+      # Normalize batch records to have same columns
+      all_keys = batch.flat_map(&:keys).uniq
+      normalized_batch = batch.map do |record|
+        all_keys.each_with_object({}) { |key, hash| hash[key] = record[key] }
+      end
+
+      # Log sample record before insert
+      if normalized_batch.first
+        sample = normalized_batch.first
+        Rails.logger.info("ReloadReportFromCsvService: Inserting batch - sample record keys: #{sample.keys.inspect}")
+        Rails.logger.info("ReloadReportFromCsvService: Sample report_id: #{sample['report_id']}, deleted_at: #{sample['deleted_at'].inspect}")
+      end
+
+      inserted = model_class.insert_all(normalized_batch)
+      Rails.logger.info("ReloadReportFromCsvService: Inserted batch of #{normalized_batch.size} records for #{attachment_name}, insert_all returned: #{inserted.inspect}")
+    rescue StandardError => e
+      Rails.logger.error("Failed to insert batch for #{attachment_name}: #{e.message}")
+      Rails.logger.error("Batch size: #{batch.size}, Columns: #{batch.first&.keys&.inspect}")
+      Rails.logger.error("Sample record: #{batch.first&.inspect}")
+      raise
+    end
 
     def reload_associations(config_to_reload)
       reloaded_counts = {}
@@ -165,20 +159,15 @@ module Reports
       original_updated_at = report.updated_at
 
       begin
-        # Wrap entire reload process in no_touching to prevent updating parent report's updated_at timestamp
-        # This prevents any child record operations from touching the parent report
-        # Use ActiveRecord::Base.no_touching to disable touching for all models
-        ActiveRecord::Base.no_touching do
-          # Reload each association from its CSV
-          config_to_reload.each do |attachment_name, csv_config|
-            count = reload_association(attachment_name, csv_config)
-            reloaded_counts[attachment_name] = count
-          rescue StandardError => e
-            error_msg = "Failed to reload #{attachment_name}: #{e.message}"
-            errors << error_msg
-            Rails.logger.error("ReloadReportFromCsvService: #{error_msg}")
-            Rails.logger.error(e.backtrace.first(10).join("\n"))
-          end
+        # Reload each association from its CSV
+        config_to_reload.each do |attachment_name, csv_config|
+          count = reload_association(attachment_name, csv_config)
+          reloaded_counts[attachment_name] = count
+        rescue StandardError => e
+          error_msg = "Failed to reload #{attachment_name}: #{e.message}"
+          errors << error_msg
+          Rails.logger.error("ReloadReportFromCsvService: #{error_msg}")
+          Rails.logger.error(e.backtrace.first(10).join("\n"))
         end
 
         # If all reloads succeeded, update metadata to restart grace period
@@ -196,7 +185,6 @@ module Reports
         end
       ensure
         # Always restore the original timestamp, regardless of success or failure
-        report.reload
         report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at
       end
 

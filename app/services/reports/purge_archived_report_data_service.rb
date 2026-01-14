@@ -112,9 +112,6 @@ module Reports
       # Check only files that were expected to be archived (from metadata)
       return false if expected_files.empty?
 
-      # Reload report to ensure attachments are fresh
-      report.reload unless report.new_record?
-
       expected_files.all? do |attachment_name|
         attachment = report.send(attachment_name)
         # Check if attachment is attached (attached? already verifies blobs exist)
@@ -163,9 +160,8 @@ module Reports
       attachment = report.send(attachment_name)
       return 0 unless attachment.attached?
 
-      # Use ReportCsvReader to count rows
       reader = ReportCsvReader.new(report, attachment_name)
-      reader.all.count
+      reader.count
     end
 
     def database_row_count(csv_config)

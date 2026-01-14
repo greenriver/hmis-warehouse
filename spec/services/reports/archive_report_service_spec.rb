@@ -198,6 +198,17 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         expect(report.test_clients.count).to eq(2)
       end
 
+      it 'does not update report updated_at timestamp' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+        service.archive!
+
+        # Reload to get fresh database state
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
+      end
+
       it 'uses existing expected_files from metadata if present' do
         # Set up metadata with expected_files
         report.update_column(:archival_metadata, { expected_files: ['clients_csv'] })
@@ -242,6 +253,17 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         expect(service.errors).to be_present
         expect(service.errors.first[:attachment]).to eq(:clients_csv)
         expect(result).to be false # Returns false when errors occur
+      end
+
+      it 'does not update report updated_at timestamp even when errors occur' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+        allow(report).to receive(:test_clients).and_raise(StandardError.new('Data fetch failed'))
+        service.archive!
+
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
       end
     end
 

@@ -256,6 +256,22 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         expect(result[:success]).to be false
         expect(result[:errors]).to include('CSV data integrity check failed (row counts do not match database)')
       end
+
+      it 'does not update report updated_at timestamp even when integrity check fails' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+
+        result = service.purge!
+
+        # Verify that the integrity check actually failed
+        expect(result[:success]).to be false
+        expect(result[:errors]).to include('CSV data integrity check failed (row counts do not match database)')
+
+        # Verify timestamp was not updated
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
+      end
     end
 
     context 'when report is already purged' do
@@ -337,6 +353,16 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         expect(test_client_class.where(report_id: report.id).count).to eq(2)
         expect(test_project_class.where(report_id: report.id).count).to eq(1)
       end
+
+      it 'does not update report updated_at timestamp in dry-run mode' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+        service.purge!
+
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
+      end
     end
 
     context 'when all safety checks pass' do
@@ -399,6 +425,17 @@ RSpec.describe Reports::PurgeArchivedReportDataService, type: :service do
         expect(result[:success]).to be true
         report.reload
         expect(report.archival_metadata['purged_at']).to be_present
+      end
+
+      it 'does not update report updated_at timestamp' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+        service.purge!
+
+        # Reload to get fresh database state
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
       end
 
       it 'does not delete records from other reports' do

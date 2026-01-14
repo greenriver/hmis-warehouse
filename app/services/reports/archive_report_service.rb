@@ -57,48 +57,43 @@ module Reports
       original_updated_at = report.updated_at
       Rails.logger.info("ArchiveReportService: Original updated_at: #{original_updated_at}")
 
-      # Use existing expected_files from metadata if present, otherwise calculate from config
-      existing_metadata = report.archival_metadata || {}
-      expected_files = existing_metadata['expected_files'] || config.keys.map(&:to_s)
-      expected_file_count = expected_files.size
+      begin
+        # Use existing expected_files from metadata if present, otherwise calculate from config
+        existing_metadata = report.archival_metadata || {}
+        expected_files = existing_metadata['expected_files'] || config.keys.map(&:to_s)
+        expected_file_count = expected_files.size
 
-      # Ensure report is reloaded once before processing attachments
-      report.reload unless report.new_record?
+        # Generate and attach CSV files (only for expected files)
+        expected_files.each do |attachment_name_str|
+          attachment_name = attachment_name_str.to_sym
+          csv_config = config[attachment_name]
+          next unless csv_config # Skip if not in config (shouldn't happen, but be safe)
 
-      # Generate and attach CSV files (only for expected files)
-      expected_files.each do |attachment_name_str|
-        attachment_name = attachment_name_str.to_sym
-        csv_config = config[attachment_name]
-        next unless csv_config # Skip if not in config (shouldn't happen, but be safe)
+          # Skip if already attached
+          if report.send(attachment_name).attached?
+            Rails.logger.info("ArchiveReportService: #{attachment_name} already attached for report ##{report.id}, skipping")
+            update_file_status(attachment_name, { attached: true, attached_at: Time.current.iso8601 })
+            next
+          end
 
-        # Skip if already attached to avoid triggering PurgeJob
-        if report.send(attachment_name).attached?
-          Rails.logger.info("ArchiveReportService: #{attachment_name} already attached for report ##{report.id}, skipping")
+          generate_and_attach_csv(attachment_name, csv_config)
           update_file_status(attachment_name, { attached: true, attached_at: Time.current.iso8601 })
-          next
+        rescue StandardError => e
+          @errors << { attachment: attachment_name, error: e.message }
+          update_file_status(attachment_name, { attached: false, error: e.message })
         end
 
-        generate_and_attach_csv(attachment_name, csv_config)
-        update_file_status(attachment_name, { attached: true, attached_at: Time.current.iso8601 })
-      rescue StandardError => e
-        @errors << { attachment: attachment_name, error: e.message }
-        update_file_status(attachment_name, { attached: false, error: e.message })
-      end
+        return false unless @errors.empty?
 
-      return false unless @errors.empty?
-
-      archived_at = Time.current
-      update_archival_metadata({
-                                 expected_file_count: expected_file_count,
-                                 expected_files: expected_files,
-                                 archived_at: archived_at.iso8601,
-                               })
-
-      # Restore original timestamp after all archival operations complete
-      report.reload
-      if report.updated_at != original_updated_at
-        Rails.logger.info("ArchiveReportService: Restoring updated_at from #{report.updated_at} to #{original_updated_at}")
-        report.update_column(:updated_at, original_updated_at)
+        archived_at = Time.current
+        update_archival_metadata({
+                                   expected_file_count: expected_file_count,
+                                   expected_files: expected_files,
+                                   archived_at: archived_at.iso8601,
+                                 })
+      ensure
+        # Always restore the original timestamp, regardless of success or failure
+        report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at
       end
 
       Rails.logger.info("Archived report #{report.class.name} ##{report.id}")

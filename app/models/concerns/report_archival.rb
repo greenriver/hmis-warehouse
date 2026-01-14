@@ -42,7 +42,7 @@ module ReportArchival
 
   def archived?
     # Archived means CSV files exist and are complete
-    return false unless archival_metadata.present? && archival_metadata['archived_at'].present?
+    return false unless csv_exists?
 
     expected_files = archival_metadata['expected_files'] || []
     return false if expected_files.empty?
@@ -83,8 +83,7 @@ module ReportArchival
   end
 
   def archival_status
-    has_csv = archival_metadata.present? && archival_metadata['archived_at'].present?
-    return { archived: false } unless has_csv
+    return { archived: false } unless csv_exists?
 
     expected_files = archival_metadata['expected_files'] || []
     files_status = expected_files.each_with_object({}) do |attachment_name, hash|
@@ -115,7 +114,7 @@ module ReportArchival
   end
 
   def expected_archival_files
-    return [] unless archival_metadata.present? && archival_metadata['archived_at'].present?
+    return [] unless csv_exists?
 
     archival_metadata['expected_files'] || []
   end
@@ -152,5 +151,11 @@ module ReportArchival
     # Purge the data
     purge_service = Reports::PurgeArchivedReportDataService.new(self, dry_run: false, force: force)
     purge_service.purge!
+  end
+
+  private
+
+  def csv_exists?
+    archival_metadata.present? && archival_metadata['archived_at'].present?
   end
 end

@@ -199,6 +199,7 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
             archived_at: Time.current.iso8601,
             expected_files: ['clients_csv', 'projects_csv'],
             completed_at: Time.current.iso8601,
+            purge_eligible_at: (Time.current - 1.day).iso8601, # Was eligible for purge
             purged_at: Time.current.iso8601, # Data was purged
           },
         )
@@ -240,6 +241,17 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         expect(client.reporting_age).to eq(25)
       end
 
+      it 'does not update report updated_at timestamp' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+        service.reload!
+
+        # Reload to get fresh database state
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
+      end
+
       it 'handles errors gracefully when association fails' do
         # Cause an error by using a nonexistent association
         allow(report).to receive(:archival_csv_config).and_return(
@@ -278,6 +290,25 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         # Grace period should not be restarted if there are errors
         expect(report.archival_metadata['reloaded_at']).to be_nil
         expect(report.archival_metadata['purge_eligible_at']).to be <= Time.current
+      end
+
+      it 'does not update report updated_at timestamp even when errors occur' do
+        # reload to get fresh database state - the database is truncating nanoseconds off of the timestamp
+        report.reload
+        original_updated_at = report.updated_at
+
+        # Cause an error by using a nonexistent association
+        allow(report).to receive(:archival_csv_config).and_return(
+          clients_csv: {
+            association: :nonexistent_association,
+            filename: -> { "clients-#{report.id}.csv" },
+          },
+        )
+
+        service.reload!
+
+        report.reload
+        expect(report.updated_at).to eq(original_updated_at)
       end
     end
 

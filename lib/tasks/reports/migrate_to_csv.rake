@@ -33,7 +33,7 @@ namespace :reports do
         of_types(archival_types).
         completed.
         purge_eligible(grace_period_days, now).
-        order(completed_at: :asc)
+        order(updated_at: :asc)
 
       puts "Found #{reports_to_process.count} reports eligible for archival and purging (grace period expired)"
       puts ''

@@ -23,36 +23,14 @@ RSpec.describe ReportCsvReader, type: :lib do
   let(:report) { test_report_class.create!(user_id: User.system_user.id) }
   let(:reader) { described_class.new(report, :clients_csv) }
 
-  def create_report_without_attachment
-    klass = Class.new(SimpleReports::ReportInstance) do
-      # No attachment defined
-    end
-    class_name = "TestReportNoAttachment#{SecureRandom.hex(8)}"
-    Object.const_set(class_name, klass)
-    klass.create!(user_id: User.system_user.id)
-  end
-
-  describe '#attached?' do
-    it 'returns false when no file is attached' do
-      expect(reader.attached?).to be false
+  describe '#batch_read' do
+    it 'yields nothing when no file is attached' do
+      batches = []
+      reader.batch_read { |batch| batches << batch }
+      expect(batches).to eq([])
     end
 
-    it 'returns true when file is attached' do
-      report.clients_csv.attach(
-        io: StringIO.new('id,name\n1,Client 1'),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-      expect(reader.attached?).to be true
-    end
-  end
-
-  describe '#all' do
-    it 'returns empty array when no file is attached' do
-      expect(reader.all).to eq([])
-    end
-
-    it 'parses CSV and returns array of hashes' do
+    it 'yields batches of rows' do
       csv_content = "id,name,age\n1,Client 1,25\n2,Client 2,30"
       report.clients_csv.attach(
         io: StringIO.new(csv_content),
@@ -60,11 +38,13 @@ RSpec.describe ReportCsvReader, type: :lib do
         content_type: 'text/csv',
       )
 
-      results = reader.all
-      expect(results.length).to eq(2)
-      expect(results.first[:id]).to eq('1')
-      expect(results.first[:name]).to eq('Client 1')
-      expect(results.first[:age]).to eq('25')
+      batches = []
+      reader.batch_read { |batch| batches << batch }
+      expect(batches.length).to eq(1)
+      expect(batches.first.length).to eq(2)
+      expect(batches.first.first[:id]).to eq('1')
+      expect(batches.first.first[:name]).to eq('Client 1')
+      expect(batches.first.first[:age]).to eq('25')
     end
 
     it 'uses symbol keys for headers' do
@@ -75,111 +55,45 @@ RSpec.describe ReportCsvReader, type: :lib do
         content_type: 'text/csv',
       )
 
-      results = reader.all
+      batches = []
+      reader.batch_read { |batch| batches << batch }
       # We now use symbol keys consistently
-      expect(results.first.keys).to all(be_a(Symbol))
-      expect(results.first.keys).to contain_exactly(:id, :name)
-      expect(results.first[:id]).to eq('1')
-      expect(results.first[:name]).to eq('Client 1')
+      expect(batches.first.first.keys).to all(be_a(Symbol))
+      expect(batches.first.first.keys).to contain_exactly(:id, :name)
+      expect(batches.first.first[:id]).to eq('1')
+      expect(batches.first.first[:name]).to eq('Client 1')
     end
-  end
 
-  describe '#find_by' do
-    before do
-      csv_content = "id,name,age\n1,Client 1,25\n2,Client 2,30"
+    it 'respects custom batch size' do
+      csv_content = "id,name\n" + (1..10).map { |i| "#{i},Client #{i}" }.join("\n")
       report.clients_csv.attach(
         io: StringIO.new(csv_content),
         filename: 'clients.csv',
         content_type: 'text/csv',
       )
+
+      batches = []
+      reader.batch_read(batch_size: 3) { |batch| batches << batch }
+      expect(batches.length).to eq(4) # 3, 3, 3, 1
+      expect(batches[0].length).to eq(3)
+      expect(batches[1].length).to eq(3)
+      expect(batches[2].length).to eq(3)
+      expect(batches[3].length).to eq(1)
     end
 
-    it 'finds record matching all conditions' do
-      result = reader.find_by(id: '1', name: 'Client 1')
-      expect(result).to be_present
-      expect(result[:id]).to eq('1')
-    end
-
-    it 'returns nil when no match found' do
-      result = reader.find_by(id: '999')
-      expect(result).to be_nil
-    end
-
-    it 'handles string keys in conditions' do
-      result = reader.find_by('id' => '1')
-      expect(result).to be_present
-      expect(result[:id]).to eq('1')
-    end
-
-    it 'raises error when attachment method does not exist' do
-      report_no_attachment = create_report_without_attachment
-      reader = described_class.new(report_no_attachment, :nonexistent_csv)
-      expect { reader.find_by(id: '1') }.to raise_error(NoMethodError)
-    end
-  end
-
-  describe '#where' do
-    before do
-      csv_content = "id,name,age\n1,Client 1,25\n2,Client 2,30\n3,Client 1,35"
+    it 'handles exact multiple of batch size' do
+      csv_content = "id,name\n" + (1..6).map { |i| "#{i},Client #{i}" }.join("\n")
       report.clients_csv.attach(
         io: StringIO.new(csv_content),
         filename: 'clients.csv',
         content_type: 'text/csv',
       )
-    end
 
-    it 'returns all matching records' do
-      results = reader.where(name: 'Client 1')
-      expect(results.length).to eq(2)
-      expect(results.map { |r| r[:id] }).to contain_exactly('1', '3')
-    end
-
-    it 'returns empty array when no matches' do
-      results = reader.where(name: 'Nonexistent')
-      expect(results).to eq([])
-    end
-
-    it 'handles string keys in conditions' do
-      results = reader.where('name' => 'Client 1')
-      expect(results.length).to eq(2)
-    end
-
-    it 'raises error when attachment method does not exist' do
-      report_no_attachment = create_report_without_attachment
-      reader = described_class.new(report_no_attachment, :nonexistent_csv)
-      expect { reader.where(name: 'Client 1') }.to raise_error(NoMethodError)
-    end
-  end
-
-  describe '#pluck' do
-    before do
-      csv_content = "id,name,age\n1,Client 1,25\n2,Client 2,30"
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-    end
-
-    it 'extracts values for specified column' do
-      names = reader.pluck(:name)
-      expect(names).to eq(['Client 1', 'Client 2'])
-    end
-
-    it 'extracts multiple columns' do
-      results = reader.pluck(:name, :age)
-      expect(results).to eq([['Client 1', '25'], ['Client 2', '30']])
-    end
-
-    it 'handles missing columns gracefully' do
-      results = reader.pluck(:nonexistent_column)
-      expect(results).to eq([nil, nil])
-    end
-
-    it 'raises error when attachment method does not exist' do
-      report_no_attachment = create_report_without_attachment
-      reader = described_class.new(report_no_attachment, :nonexistent_csv)
-      expect { reader.pluck(:name) }.to raise_error(NoMethodError)
+      batches = []
+      reader.batch_read(batch_size: 3) { |batch| batches << batch }
+      expect(batches.length).to eq(2) # 3, 3
+      expect(batches[0].length).to eq(3)
+      expect(batches[1].length).to eq(3)
     end
   end
 
@@ -200,92 +114,6 @@ RSpec.describe ReportCsvReader, type: :lib do
     end
   end
 
-  describe '#empty?' do
-    it 'returns true when no file attached' do
-      expect(reader.empty?).to be true
-    end
-
-    it 'returns false when file has data' do
-      csv_content = "id,name\n1,Client 1"
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-
-      expect(reader.empty?).to be false
-    end
-  end
-
-  describe '#loaded?' do
-    it 'returns false before data is loaded' do
-      expect(reader.loaded?).to be false
-    end
-
-    it 'returns true after data is loaded' do
-      csv_content = "id,name\n1,Client 1"
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-
-      reader.all
-      expect(reader.loaded?).to be true
-    end
-  end
-
-  describe '#load!' do
-    it 'returns false when not attached' do
-      expect(reader.load!).to be false
-    end
-
-    it 'returns false when attachment is nil' do
-      allow(report).to receive(:clients_csv).and_return(double(attached?: true, first: nil))
-      expect(reader.load!).to be false
-    end
-
-    it 'returns true when successfully loaded' do
-      csv_content = "id,name\n1,Client 1"
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-
-      expect(reader.load!).to be true
-      expect(reader.loaded?).to be true
-    end
-  end
-
-  describe '#any?' do
-    it 'returns false when no file attached' do
-      expect(reader.any?).to be false
-    end
-
-    it 'returns false when file is empty' do
-      csv_content = "id,name\n"
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-
-      expect(reader.any?).to be false
-    end
-
-    it 'returns true when file has data' do
-      csv_content = "id,name\n1,Client 1"
-      report.clients_csv.attach(
-        io: StringIO.new(csv_content),
-        filename: 'clients.csv',
-        content_type: 'text/csv',
-      )
-
-      expect(reader.any?).to be true
-    end
-  end
-
   describe 'edge cases' do
     it 'handles empty CSV file' do
       csv_content = ''
@@ -295,7 +123,9 @@ RSpec.describe ReportCsvReader, type: :lib do
         content_type: 'text/csv',
       )
 
-      expect(reader.all).to eq([])
+      batches = []
+      reader.batch_read { |batch| batches << batch }
+      expect(batches).to eq([])
       expect(reader.count).to eq(0)
     end
 
@@ -307,7 +137,9 @@ RSpec.describe ReportCsvReader, type: :lib do
         content_type: 'text/csv',
       )
 
-      expect(reader.all).to eq([])
+      batches = []
+      reader.batch_read { |batch| batches << batch }
+      expect(batches).to eq([])
       expect(reader.count).to eq(0)
     end
 
@@ -319,10 +151,12 @@ RSpec.describe ReportCsvReader, type: :lib do
         content_type: 'text/csv',
       )
 
-      results = reader.all
-      expect(results.length).to eq(2)
-      expect(results.first[:name]).to eq('Client, with comma')
-      expect(results.second[:name]).to eq('Client with "quotes"')
+      batches = []
+      reader.batch_read { |batch| batches << batch }
+      expect(batches.length).to eq(1)
+      expect(batches.first.length).to eq(2)
+      expect(batches.first.first[:name]).to eq('Client, with comma')
+      expect(batches.first.second[:name]).to eq('Client with "quotes"')
     end
   end
 end

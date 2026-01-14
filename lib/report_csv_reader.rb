@@ -9,98 +9,75 @@
 require 'csv'
 
 # Base CSV reader for report data stored in Active Storage
+# Uses streaming to avoid loading entire CSVs into memory
 class ReportCsvReader
-  attr_reader :report, :attachment_name, :csv_data
+  attr_reader :report, :attachment_name
 
   def initialize(report, attachment_name)
     @report = report
     @attachment_name = attachment_name
-    @csv_data = nil
   end
 
-  def load!
-    return false unless attached?
+  def count
+    return 0 unless attached?
 
-    attachment = report.send(attachment_name)
-    return false unless attachment.attached?
+    @count ||= begin
+      row_count = 0
+      each_row { row_count += 1 }
+      row_count
+    end
+  end
 
-    # Get the first attached file (for has_one_attached) or most recent (for has_many_attached)
-    file = if attachment.respond_to?(:first)
-      attachment.first
-    else
-      attachment
+  # Stream CSV rows in batches without loading entire file into memory
+  # Yields an array of rows to the given block
+  def batch_read(batch_size: 5_000)
+    return unless attached?
+
+    batch = []
+    each_row do |row|
+      batch << row
+      if batch.size >= batch_size
+        yield batch
+        batch = []
+      end
     end
 
-    return false unless file.present?
-
-    # Download and parse CSV
-    csv_content = file.download
-    @csv_data = CSV.parse(csv_content, headers: true, header_converters: :symbol)
-    true
+    # Yield any remaining rows
+    yield batch if batch.any?
   end
 
-  def loaded?
-    @csv_data.present?
-  end
+  private
 
   def attached?
     report.send(attachment_name).attached?
   end
 
-  def all
-    load! unless loaded?
-    return [] unless @csv_data.present?
+  # Stream CSV rows without loading entire file into memory
+  # Yields each row as a hash to the given block
+  def each_row
+    file = attachment_file
+    return unless file.present?
 
-    @csv_data.map(&:to_h)
-  end
-
-  def find_by(conditions)
-    load! unless loaded?
-    return nil unless @csv_data.present?
-
-    row = @csv_data.find do |csv_row|
-      conditions.all? { |key, value| csv_row[key.to_sym] == value }
-    end
-
-    row&.to_h
-  end
-
-  def where(conditions)
-    load! unless loaded?
-    return [] unless @csv_data.present?
-
-    matching_rows = @csv_data.select do |csv_row|
-      conditions.all? { |key, value| csv_row[key.to_sym] == value }
-    end
-
-    matching_rows.map(&:to_h)
-  end
-
-  def pluck(*columns)
-    load! unless loaded?
-    return [] unless @csv_data.present?
-
-    @csv_data.map do |row|
-      if columns.size == 1
-        row[columns.first.to_sym]
-      else
-        columns.map { |col| row[col.to_sym] }
+    file.open do |io|
+      CSV.foreach(io, headers: true, header_converters: :symbol) do |csv_row|
+        yield csv_row.to_h
       end
     end
+  rescue StandardError => e
+    Rails.logger.error("Error reading CSV: #{e.message}")
   end
 
-  def count
-    load! unless loaded?
-    return 0 unless @csv_data.present?
+  def attachment_file
+    return nil unless attached?
 
-    @csv_data.size
-  end
+    attachment = report.send(attachment_name)
+    return nil unless attachment.attached?
 
-  def empty?
-    count.zero?
-  end
-
-  def any?
-    !empty?
+    # Get the first attached file (for has_one_attached) or most recent (for has_many_attached)
+    if attachment.respond_to?(:first)
+      attachment.first
+    else
+      attachment
+    end
   end
 end
