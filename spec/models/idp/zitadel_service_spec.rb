@@ -222,7 +222,7 @@ RSpec.describe Idp::ZitadelService, type: :model do
       let(:otp_secret) { 'JBSWY3DPEHPK3PXP' }
 
       before do
-        user.update(encrypted_otp_secret: 'encrypted_value')
+        user.update(encrypted_otp_secret: 'encrypted_value', otp_required_for_login: true)
         allow(user).to receive(:otp_secret).and_return(otp_secret)
       end
 
@@ -234,9 +234,9 @@ RSpec.describe Idp::ZitadelService, type: :model do
 
     context 'when OTP decryption fails' do
       before do
-        user.update(encrypted_otp_secret: 'encrypted_value')
+        user.update(encrypted_otp_secret: 'encrypted_value', otp_required_for_login: true)
         allow(user).to receive(:otp_secret).
-          and_raise(OpenSSL::Cipher.new('cip-her-err'))
+          and_raise(OpenSSL::Cipher::CipherError, 'unsupported cipher algorithm')
         allow(Rails.logger).to receive(:warn)
       end
 

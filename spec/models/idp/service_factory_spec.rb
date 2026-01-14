@@ -106,6 +106,13 @@ RSpec.describe Idp::ServiceFactory, type: :model do
 
   describe '.idp_supports_feature?' do
     context 'with Zitadel connector' do
+      before do
+        allow_any_instance_of(Idp::ZitadelService).
+          to receive(:api_url).and_return('http://test.zitadel:8080')
+        allow_any_instance_of(Idp::ZitadelService).
+          to receive(:token).and_return('test-token')
+      end
+
       it 'supports user_management feature' do
         result = described_class.idp_supports_feature?('zitadel', :user_management)
         expect(result).to be true
