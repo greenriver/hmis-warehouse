@@ -182,8 +182,8 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
         fields_without_project_results.each do |field|
           # system-level row still exists
           expect(report.results.system_level.for_field(field)).to exist
-          # project-level rows should be absent
-          expect(report.results.project.for_field(field)).not_to exist
+          # project-level rows should be present as well
+          expect(report.results.project.for_field(field)).to exist
         end
       end
     end
