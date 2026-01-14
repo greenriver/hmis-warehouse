@@ -14,8 +14,7 @@ RSpec.feature 'Join Households', type: :system do
   include_context 'hmis base setup'
 
   # consistent time for avoid failures when run across day boundaries
-  # Freeze to noon in Rails timezone to avoid UTC/local timezone date mismatches
-  before(:each)  { freeze_time Time.zone.now.at_noon }
+  before(:each)  { freeze_time }
   after(:each) { travel_back }
 
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
