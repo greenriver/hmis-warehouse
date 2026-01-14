@@ -33,8 +33,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation FetchAhaScore($clientId: ID!) {
-        fetchAhaScore(clientId: $clientId) {
+      mutation FetchAhaScore($clientId: ID!, $lookupCatalyst: String, $lookupReason: [String!]) {
+        fetchAhaScore(clientId: $clientId, lookupCatalyst: $lookupCatalyst, lookupReason: $lookupReason) {
           score
           mciQualityIndicator
           dwClientId
@@ -46,8 +46,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  def perform_mutation(client_id:)
-    response, result = post_graphql(client_id: client_id) { mutation }
+  def perform_mutation(client_id:, lookup_catalyst: nil, lookup_reason: nil)
+    response, result = post_graphql(client_id: client_id, lookup_catalyst: lookup_catalyst, lookup_reason: lookup_reason) { mutation }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
@@ -73,9 +73,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'returns AHA score successfully' do
-        allow(stub_aha).to receive(:fetch_score).with(c1).and_return(aha_result)
+        allow(stub_aha).to receive(:fetch_score).with(c1, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other']).and_return(aha_result)
 
-        perform_mutation(client_id: c1.id) do |data, errors|
+        perform_mutation(client_id: c1.id, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other']) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(8)
           expect(data['mciQualityIndicator']).to eq(0)
@@ -92,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           dw_client_id: mci_unique_id.value,
           generator: 'AHA',
         )
-        allow(stub_aha).to receive(:fetch_score).with(c1).and_return(aha_result_neg_one)
+        allow(stub_aha).to receive(:fetch_score).with(c1, lookup_catalyst: nil, lookup_reason: nil).and_return(aha_result_neg_one)
 
         perform_mutation(client_id: c1.id) do |data, errors|
           expect(errors).to be_empty
@@ -107,7 +107,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:client_without_mci) { create(:hmis_hud_client, data_source: ds1, user: u1) }
 
       it 'returns score -1 with NO_MCI_UNIQUE_ID reason' do
-        allow(stub_aha).to receive(:fetch_score).with(client_without_mci).
+        allow(stub_aha).to receive(:fetch_score).with(client_without_mci, lookup_catalyst: nil, lookup_reason: nil).
           and_raise(HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError)
 
         perform_mutation(client_id: client_without_mci.id) do |data, errors|

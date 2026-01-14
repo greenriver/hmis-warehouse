@@ -42,7 +42,7 @@ module HmisExternalApis::AcHmis
     # Custom error class for MciUniqueId so the mutation can catch it
     class NoMciUniqueIdError < HmisErrors::ApiError; end
 
-    def fetch_score(client)
+    def fetch_score(client, lookup_catalyst: nil, lookup_reason: nil)
       # Collect MCI unique IDs for this client and all source clients with the same destination client
       clients = [client, *client.destination_client&.source_clients&.to_a]
       mci_uniq_ids = clients.compact.uniq.filter_map do |c|
@@ -51,10 +51,15 @@ module HmisExternalApis::AcHmis
 
       raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
+      base_payload = { # todo @martha - probably this should be a backend enum that validates the frontend input. or it should be validated in the graphql model
+        **(lookup_catalyst ? { "lookup_catalyst": lookup_catalyst } : {}),
+        **(lookup_reason&.any? ? { "lookup_reason": lookup_reason } : {}),
+      }
+
       payload = if mci_uniq_ids.size > 1
-        { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(',') }
+        { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(','), **base_payload }
       else
-        { 'dw_client_id__dw_client_id__includes': mci_uniq_ids.first }
+        { 'dw_client_id__dw_client_id__includes': mci_uniq_ids.first, **base_payload }
       end
 
       result = conn.post('api/v1/clients/scores/search/', payload).
