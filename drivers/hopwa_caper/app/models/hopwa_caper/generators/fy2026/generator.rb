@@ -53,14 +53,18 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def self.questions
-      [
+      sheets = [
         HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet,
         HopwaCaper::Generators::Fy2026::Sheets::TbraSheet,
         HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet,
         HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
         HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
         HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
-      ].map do |q|
+      ]
+
+      sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
+
+      sheets.map do |q|
         [q.question_number, q]
       end.to_h.freeze
     end
@@ -157,6 +161,13 @@ module HopwaCaper::Generators::Fy2026
         update_hopwa_eligibility(enrollments)
       end
 
+      report.hopwa_caper_enrollments.distinct.pluck(:report_household_id).in_groups_of(100, false) do |household_ids|
+        enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
+        populate_household_aggregated_fields(enrollments)
+      end
+
+      populate_atc_data
+
       true
     end
 
@@ -201,6 +212,47 @@ module HopwaCaper::Generators::Fy2026
       return hiv.first if hiv.any?
 
       hohs.first
+    end
+
+    # Populate household-level income and insurance fields for all members.
+    # Following HUD reporting glossary strategy: income data is analyzed for all adults (age >= 18)
+    # and heads of household (regardless of age).
+    def populate_household_aggregated_fields(enrollments)
+      rows_to_import = []
+
+      enrollments.group_by(&:report_household_id).values.each do |household|
+        # Step 1: Identify the "Income Generating" Universe within the Household
+        # Glossary: select all clients with Relationship to HoH = Self (1) OR Age >= 18.
+        income_universe = household.select { |e| e.age.to_i >= 18 || e.relationship_to_hoh == 1 }
+
+        # Step 2: Aggregate to the Household Level
+        # Income follows the Adult/HoH universe.
+        income_sources = income_universe.flat_map(&:income_benefit_source_types).uniq.sort
+        # Insurance follows the full household universe.
+        insurance_types = household.flat_map(&:medical_insurance_types).uniq.sort
+
+        household.each do |enrollment|
+          enrollment.assign_attributes(
+            household_income_benefit_source_types: income_sources,
+            household_medical_insurance_types: insurance_types,
+          )
+          rows_to_import << enrollment
+        end
+      end
+
+      return unless rows_to_import.any?
+
+      HopwaCaper::Enrollment.import(
+        rows_to_import,
+        validate: false,
+        on_duplicate_key_update: {
+          conflict_target: [:report_instance_id, :enrollment_id],
+          columns: [
+            :household_income_benefit_source_types,
+            :household_medical_insurance_types,
+          ],
+        },
+      )
     end
 
     def import_rows(klass, rows)
@@ -250,6 +302,118 @@ module HopwaCaper::Generators::Fy2026
 
     def service_date_range
       @service_date_range ||= (report.start_date - SERVICE_LOOKBACK)..report.end_date
+    end
+
+    def populate_atc_data
+      sheet_config = HopwaCaper::Configuration.new
+      return unless sheet_config.atc_tab_enabled?
+
+      # build row config
+      row_configs = [
+        [sheet_config.atc_maintained_contact_field_name, :atc_maintained_contact],
+        [sheet_config.atc_housing_plan_field_name, :atc_housing_plan],
+        [sheet_config.atc_primary_health_contact_field_name, :atc_primary_health_contact],
+      ].filter_map do |key, column|
+        next unless key
+
+        cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: key)
+        next unless cded
+
+        { column: column, cded: cded }
+      end
+
+      # columns we intend to update via import
+      atc_columns = row_configs.map { |c| c[:column] }
+
+      updates = {}
+      report.hopwa_caper_enrollments.in_batches(of: 100) do |batch|
+        # lookup map for the most recently submitted custom assessment
+        hud_enrollment_scope = Hmis::Hud::Enrollment.where(id: batch.map(&:enrollment_id))
+        assessments_by_enrollment = Hmis::Hud::CustomAssessment.
+          joins(:enrollment).merge(hud_enrollment_scope).
+          where(AssessmentDate: ..@report.end_date).
+          order(AssessmentDate: :desc, id: :desc).
+          preload(:enrollment, :custom_data_elements).group_by { |r| r.enrollment.id }
+
+        batch.each do |report_enrollment|
+          assessments = assessments_by_enrollment[report_enrollment.enrollment_id]
+          next unless assessments
+
+          row_configs.each do |config|
+            column, cded = config.values_at(:column, :cded)
+
+            boolean_value = nil
+            assessments.each do |asm|
+              cde = asm.custom_data_elements.detect { |e| e.data_element_definition_id == cded.id }
+              next unless cde
+
+              boolean_value = cde_value_to_boolean(cded, cde)
+              break unless boolean_value.nil?
+            end
+
+            next if boolean_value.nil?
+
+            # Initialize with all potential keys to avoid Hash key mismatch in import
+            unless updates.key?(report_enrollment.id)
+              updates[report_enrollment.id] = {
+                id: report_enrollment.id,
+                # must include for non-nullable cols for upsert
+                report_instance_id: report_enrollment.report_instance_id,
+                destination_client_id: report_enrollment.destination_client_id,
+                enrollment_id: report_enrollment.enrollment_id,
+                report_household_id: report_enrollment.report_household_id,
+                personal_id: report_enrollment.personal_id,
+                relationship_to_hoh: report_enrollment.relationship_to_hoh,
+              }
+              # Initialize ATC columns to nil to ensure uniform keys across all hashes
+              atc_columns.each { |col| updates[report_enrollment.id][col] = nil }
+            end
+
+            updates[report_enrollment.id][column] = boolean_value
+          end
+        end
+      end
+
+      return unless updates.any?
+
+      result = HopwaCaper::Enrollment.import(
+        updates.values,
+        validate: false,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [:atc_maintained_contact, :atc_housing_plan, :atc_primary_health_contact],
+        },
+      )
+      raise "Failed to import: #{result.inspect}" if result.failed_instances.present?
+    end
+
+    # cast to boolean; support mixed types
+    def cde_value_to_boolean(cded, cde)
+      return nil if cde.nil?
+
+      case cded.field_type
+      when 'integer'
+        val = cde.value_integer
+        case val
+        when 1 then true
+        when 0 then false
+        end
+      when 'boolean'
+        val = cde.value_boolean
+        return nil if val.nil?
+
+        val == true
+      when 'string'
+        val = cde.value_string
+        return nil if val.blank?
+
+        case val.strip
+        when /\A(true|yes|1)\z/i then true
+        when /\A(false|no|0)\z/i then false
+        end
+      else
+        raise ArgumentError, "Invalid field type: #{cded.field_type} for definition #{cded.key}"
+      end
     end
   end
 end

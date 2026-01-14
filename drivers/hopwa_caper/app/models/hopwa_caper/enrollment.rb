@@ -18,6 +18,7 @@ module HopwaCaper
              class_name: 'HudReports::UniverseMember',
              foreign_key: :universe_membership_id
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
+    # source enrollment
     belongs_to :enrollment, -> { with_deleted }, class_name: 'GrdaWarehouse::Hud::Enrollment'
 
     def project_id
@@ -42,6 +43,9 @@ module HopwaCaper
       )
     }
 
+    # HUD guidance for CAPER/APR reports specifies that unduplicated household counts
+    # should be determined by a distinct count of Personal IDs for all Heads of Household.
+    # In the warehouse, destination_client_id is used as the stable proxy for Personal ID.
     scope :latest_by_distinct_client_id, -> {
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
@@ -51,6 +55,7 @@ module HopwaCaper
     scope :active_after, ->(date) { where('exit_date IS NULL OR exit_date > ?', date) }
 
     INSURANCE_FIELDS = [
+      :InsuranceFromAnySource,
       :Medicaid,
       :Medicare,
       :VAMedicalServices,
@@ -59,6 +64,7 @@ module HopwaCaper
       :RyanWhiteMedDent,
     ].freeze
     INCOME_SOURCE_FIELDS = [
+      :IncomeFromAnySource,
       :Earned,
       :SocSecRetirement,
       :SSI,
@@ -75,18 +81,26 @@ module HopwaCaper
     def self.from_hud_record(enrollment:, report:, client:)
       project = enrollment.project
       # get deterministic order
-      hiv_disabilities = enrollment.disabilities.filter(&:hiv?).sort_by(&:id)
+      hiv_disabilities = enrollment.disabilities.
+        filter { |r| r.hiv? && r.disability_response == 1 }.
+        sort_by(&:id)
 
-      report_date_range = report.start_date..report.end_date
-      income_benefit_source_types = enrollment.income_benefits.flat_map do |record|
-        next unless record.InformationDate.in?(report_date_range)
+      # Determines current income/insurance status using most recent assessment as of report end date
+      latest_income_benefit = enrollment.income_benefits.
+        select { |r| r.InformationDate && r.InformationDate <= report.end_date }.
+        max_by { |r| [r.InformationDate, r.id] }
 
-        INCOME_SOURCE_FIELDS.filter { |field| record[field] == 1 }
-      end
-      medical_insurance_types = enrollment.income_benefits.flat_map do |record|
-        next unless record.InformationDate.in?(report_date_range)
+      income_benefit_source_types = []
+      medical_insurance_types = []
 
-        INSURANCE_FIELDS.filter { |field| record[field] == 1 }
+      if latest_income_benefit
+        income_benefit_source_types = INCOME_SOURCE_FIELDS.filter { |field| latest_income_benefit[field] == 1 }.map(&:to_s).sort
+        medical_insurance_types = INSURANCE_FIELDS.filter { |field| latest_income_benefit[field] == 1 }.map(&:to_s).sort
+
+        # Add explicit markers for "No" responses to distinguish from "No Data"
+        # Only add if no other specific sources are present to maintain logical consistency
+        income_benefit_source_types << 'NoIncomeSource' if latest_income_benefit.IncomeFromAnySource == 0 && income_benefit_source_types.empty?
+        medical_insurance_types << 'NoInsuranceSource' if latest_income_benefit.InsuranceFromAnySource == 0 && medical_insurance_types.empty?
       end
 
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
@@ -104,12 +118,12 @@ module HopwaCaper
         dob: client.dob,
         dob_quality: client.dob_data_quality,
         sex: client.sex,
-        races: client.race_multi.sort,
+        races: client.race_multi.compact.uniq.sort,
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
 
         relationship_to_hoh: enrollment.relationship_to_hoh || 99,
-        project_funders: project.funders.map(&:funder).compact.sort,
+        project_funders: project.funders.map(&:funder).compact.uniq.sort,
         project_type: project.project_type,
         entry_date: enrollment.entry_date,
         exit_destination: exit&.destination,
@@ -129,68 +143,6 @@ module HopwaCaper
 
     def hmis_enrollment_id
       enrollment.enrollment_id
-    end
-
-    DETAIL_HEADER_ORDER = [
-      'personal_id',
-      'hmis_enrollment_id',
-      'first_name',
-      'last_name',
-      'destination_client_id',
-      'age',
-      'dob',
-      'dob_quality',
-      'genders',
-      'races',
-      'sex',
-      'veteran',
-      'entry_date',
-      'exit_date',
-      'relationship_to_hoh',
-      'project_funders',
-      'project_type',
-      'income_benefit_source_types',
-      'medical_insurance_types',
-      'hiv_positive',
-      'hopwa_eligible',
-      'chronically_homeless',
-      'prior_living_situation',
-      'rental_subsidy_type',
-      'exit_destination',
-      'housing_assessment_at_exit',
-      'subsidy_information',
-      'ever_prescribed_anti_retroviral_therapy',
-      'viral_load_suppression',
-      'percent_ami',
-    ].freeze
-
-    def self.detail_headers
-      DETAIL_HEADER_ORDER.map do |header|
-        label = case header
-        when 'destination_client_id'
-          'Warehouse Client ID'
-        when 'personal_id'
-          'HMIS Personal ID'
-        when 'hmis_enrollment_id'
-          'HMIS Enrollment ID'
-        when 'hiv_positive'
-          'HIV positive'
-        when 'percent_ami'
-          'Percent AMI'
-        else
-          header.humanize
-        end
-        [header, label]
-      end.to_h
-    end
-
-    private
-
-    def transform_value(column, value, pii_policy)
-      return HudHelper.util('2026').sex(value) if column == 'sex'
-      return HudHelper.util('2026').percent_ami(value) if column == 'percent_ami'
-
-      super
     end
   end
 end

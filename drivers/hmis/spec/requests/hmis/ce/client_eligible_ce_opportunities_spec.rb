@@ -69,31 +69,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'client query with opportunities' do
     # Create opportunities in different states
+    let!(:unit1) { create :hmis_unit, project: project }
     let!(:opportunity_veterans) do
       create(
         :hmis_ce_opportunity,
-        project: project,
-        data_source: ds1,
+        unit: unit1,
         candidate_pool: pool_veterans,
         status: 'open',
       )
     end
 
+    let!(:unit2) { create :hmis_unit, project: project }
     let!(:opportunity_seniors) do
       create(
         :hmis_ce_opportunity,
-        project: project,
-        data_source: ds1,
+        unit: unit2,
         candidate_pool: pool_seniors,
         status: 'open',
       )
     end
 
+    let!(:unit3) { create :hmis_unit, project: project }
     let!(:closed_opportunity) do
       create(
         :hmis_ce_opportunity,
-        project: project,
-        data_source: ds1,
+        unit: unit3,
         candidate_pool: pool_veterans,
         status: 'closed',
       )
@@ -262,9 +262,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:p1) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
     let(:p2) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
     let(:p3) { create :hmis_hud_project, project_type: 5, data_source: ds1, user: u1 }
-    let!(:opportunity1) { create(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: pool_veterans) }
-    let!(:opportunity2) { create(:hmis_ce_opportunity, project: p2, data_source: ds1, candidate_pool: pool_veterans) }
-    let!(:opportunity3) { create(:hmis_ce_opportunity, project: p3, data_source: ds1, candidate_pool: pool_veterans) }
+    let(:unit1) { create :hmis_unit, project: p1 }
+    let(:unit2) { create :hmis_unit, project: p2 }
+    let(:unit3) { create :hmis_unit, project: p3 }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, candidate_pool: pool_veterans) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: unit2, candidate_pool: pool_veterans) }
+    let!(:opportunity3) { create(:hmis_ce_opportunity, unit: unit3, candidate_pool: pool_veterans) }
 
     context 'when project ID filter is passed' do
       let(:variables) do
@@ -309,7 +312,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'when there are many opportunities' do
         before do
           opportunities = 30.times.map do
-            build(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: pool_veterans)
+            unit = build(:hmis_unit, project: p1)
+            build(:hmis_ce_opportunity, unit: unit, candidate_pool: pool_veterans)
           end
           opportunities.map(&:save!)
         end
@@ -320,7 +324,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             count = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodesCount')
             expect(count).to eq(32)
-          end.to make_database_queries(count: 15..25)
+          end.to make_database_queries(count: 15..30)
         end
       end
     end

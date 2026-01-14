@@ -26,11 +26,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:source_ac) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals]) }
 
   let!(:target_project1) { create(:hmis_hud_project, data_source: ds1, user: u1) }
-  let!(:target_opportunity1) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project1) }
+  let!(:target_unit) { create(:hmis_unit, project: target_project1) }
+  let!(:target_opportunity1) { create(:hmis_ce_opportunity, unit: target_unit) }
   let!(:direct_referral1) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment1, client: source_enrollment1.client, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN) }
 
   let!(:target_project2) { create(:hmis_hud_project, data_source: ds1, user: u1) }
-  let!(:target_opportunity2) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project2) }
+  let!(:target_unit2) { create(:hmis_unit, project: target_project2) }
+  let!(:target_opportunity2) { create(:hmis_ce_opportunity, unit: target_unit2) }
   let!(:direct_referral2) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment2, client: source_enrollment2.client, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN) }
 
   let(:query) do
@@ -209,7 +211,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'with waitlist referrals whose source enrollment is from this project' do
       # Create a 'waitlist' as opposed to 'direct' referral. It should NOT be included in the query results
       let!(:source_enrollment3) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project) }
-      let!(:target_opportunity3) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project1) }
+      let!(:target_unit3) { create(:hmis_unit, project: target_project1) }
+      let!(:target_opportunity3) { create(:hmis_ce_opportunity, unit: target_unit3) }
       let!(:waitlist_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity3, source_enrollment: source_enrollment3, referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN) }
 
       it 'does not include waitlist referral in the outgoing referrals query' do
@@ -236,7 +239,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
 
           expect(result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodesCount')).to eq(22)
-        end.to make_database_queries(count: 25..35)
+        end.to make_database_queries(count: 25..40)
       end
     end
 

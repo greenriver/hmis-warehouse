@@ -177,7 +177,7 @@ RSpec.describe 'BulkAssignService', type: :request do
 
     it 'fails if the only available unit has a locked opportunity (referral in progress)' do
       unit = create(:hmis_unit, project: p1)
-      create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked)
+      create(:hmis_ce_opportunity, unit: unit, status: :locked)
 
       expect do
         response, result = perform_mutation
@@ -191,7 +191,7 @@ RSpec.describe 'BulkAssignService', type: :request do
 
     it 'fails if the only available unit has an open opportunity' do
       unit = create(:hmis_unit, project: p1)
-      create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open)
+      create(:hmis_ce_opportunity, unit: unit, status: :open)
 
       expect do
         response, result = perform_mutation

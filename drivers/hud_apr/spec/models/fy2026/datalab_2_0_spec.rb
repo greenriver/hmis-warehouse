@@ -9,17 +9,17 @@
 require 'rails_helper'
 require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'datalab_apr/multiple_projects'
-require_relative 'datalab_apr/organization_i_psh'
-require_relative 'datalab_apr/organization_m_rrh'
+require_relative 'datalab_apr/organization_e_th'
+require_relative 'datalab_apr/organization_j_rrh'
 require_relative 'datalab_apr/organization_s_rrh'
+require_relative 'datalab_apr/organization_v_psh'
 require_relative 'datalab_apr/organization_y_sso'
 
-require_relative 'datalab_caper/organization_f_so'
 require_relative 'datalab_caper/organization_g_rrh'
-require_relative 'datalab_caper/organization_s_th'
+require_relative 'datalab_caper/organization_j_es'
+require_relative 'datalab_caper/organization_s_so'
 require_relative 'datalab_caper/organization_t_es'
 require_relative 'datalab_caper/organization_t_hp'
-require_relative 'datalab_caper/organization_v_es'
 
 require_relative 'datalab_ce_apr/systemwide'
 
@@ -39,24 +39,25 @@ RSpec.describe 'Datalab 2026', type: :model do
   end
 
   before(:all) do
-    setup
+    setup(cleanup_enrollment_cocs: true)
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
     include_context 'datalab multiple projects apr'
-    include_context 'datalab organization i psh apr'
-    include_context 'datalab organization m rrh apr'
+    include_context 'datalab organization e th apr'
+    include_context 'datalab organization j rrh apr'
     include_context 'datalab organization s rrh apr'
+    include_context 'datalab organization v psh apr'
     include_context 'datalab organization y sso apr'
 
-    # include_context 'datalab organization f so caper' # Looks like data issues with this organization - likely missing clients/enrollments
     include_context 'datalab organization g rrh caper'
-    include_context 'datalab organization s th caper'
-    # include_context 'datalab organization t es caper' # Looks like data issues with this organization - likely missing clients/enrollments
+    include_context 'datalab organization j es caper'
+    include_context 'datalab organization s so caper'
+    include_context 'datalab organization t es caper'
     include_context 'datalab organization t hp caper'
-    include_context 'datalab organization v es caper'
 
     # include_context 'datalab systemwide ce apr' # Looks like data issues - likely missing clients/enrollments
+
   else
     it 'Data Lab Testkit based tests are skipped, files are missing' do
       expect(true).to be false

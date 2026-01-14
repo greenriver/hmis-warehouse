@@ -47,13 +47,14 @@ module HopwaCaperHelpers
   end
 
   # Create an HIV+ enrollment with standard disability attributes
-  def create_hiv_positive_enrollment(client:, project:, entry_date:, household_id:, relationship_to_ho_h: 1, exit_date: nil, destination: nil)
+  def create_hiv_positive_enrollment(client:, project:, entry_date:, household_id:, relationship_to_ho_h: 1, exit_date: nil, destination: nil, **options)
     create_enrollment(
       client: client,
       project: project,
       entry_date: entry_date,
       household_id: household_id,
       relationship_to_ho_h: relationship_to_ho_h,
+      **options,
     ).tap do |enrollment|
       create(
         :hud_disability,
@@ -63,6 +64,7 @@ module HopwaCaperHelpers
         viral_load_available: 1,
         viral_load: 100,
         data_source: data_source,
+        disability_response: 1,
       )
       if exit_date.present?
         create(
@@ -121,6 +123,8 @@ module HopwaCaperHelpers
     enrollment.income_benefits.create!(
       Medicaid: 1,
       Earned: 1,
+      InsuranceFromAnySource: 1,
+      IncomeFromAnySource: 1,
       information_date: date,
     )
   end

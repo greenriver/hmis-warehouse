@@ -183,7 +183,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     if Rails.env.test?
       ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: owner_id)
     else
-      ::Hmis::AssessmentQuestionsJob.set(priority: 12).perform_later(custom_assessment_ids: owner_id)
+      ::Hmis::AssessmentQuestionsJob.set(priority: BaseJob::CACHE_REFRESH_PRIORITY_12).perform_later(custom_assessment_ids: owner_id)
     end
   end
 
@@ -415,7 +415,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CustomAssessment: Hmis::Hud::Processors::CustomAssessmentProcessor,
       HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
-      ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       ReferralPosting: Hmis::Hud::Processors::ReferralPostingProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,

@@ -25,48 +25,48 @@ module Filters
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    attribute :default_project_type_codes, Array, default: HudHelper.util.homeless_project_type_codes
+    attribute :default_project_type_codes, Array, default: ->(_, _) { HudHelper.util.homeless_project_type_codes }
     attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
-    attribute :veteran_statuses, Array, default: []
-    attribute :age_ranges, Array, default: []
-    attribute :genders, Array, default: []
-    attribute :races, Array, default: []
-    attribute :length_of_times, Array, default: []
-    attribute :destination_ids, Array, default: []
-    attribute :prior_living_situation_ids, Array, default: []
-    attribute :default_on, Date, default: Date.current
-    attribute :default_start, Date, default: (Date.current - 1.year).beginning_of_year
-    attribute :default_end, Date, default: (Date.current - 1.year).end_of_year
+    attribute :veteran_statuses, Array, default: [].freeze
+    attribute :age_ranges, Array, default: [].freeze
+    attribute :genders, Array, default: [].freeze
+    attribute :races, Array, default: [].freeze
+    attribute :length_of_times, Array, default: [].freeze
+    attribute :destination_ids, Array, default: [].freeze
+    attribute :prior_living_situation_ids, Array, default: [].freeze
+    attribute :default_on, Date, default: ->(_, _) { Date.current }
+    attribute :default_start, Date, default: ->(_, _) { (Date.current - 1.year).beginning_of_year }
+    attribute :default_end, Date, default: ->(_, _) { (Date.current - 1.year).end_of_year }
 
     attribute :user_id, Integer, default: nil
-    attribute :project_ids, Array, default: []
-    attribute :project_group_ids, Array, default: []
-    attribute :organization_ids, Array, default: []
-    attribute :data_source_ids, Array, default: []
-    attribute :funder_ids, Array, default: []
-    attribute :funder_others, Array, default: []
-    attribute :cohort_ids, Array, default: []
-    attribute :secondary_cohort_ids, Array, default: []
+    attribute :project_ids, Array, default: [].freeze
+    attribute :project_group_ids, Array, default: [].freeze
+    attribute :organization_ids, Array, default: [].freeze
+    attribute :data_source_ids, Array, default: [].freeze
+    attribute :funder_ids, Array, default: [].freeze
+    attribute :funder_others, Array, default: [].freeze
+    attribute :cohort_ids, Array, default: [].freeze
+    attribute :secondary_cohort_ids, Array, default: [].freeze
     attribute :cohort_column, String, default: nil
     attribute :cohort_column_housed_date, String, default: nil
     attribute :cohort_column_matched_date, String, default: nil
     attribute :cohort_column_voucher_type, String, default: nil
-    attribute :coc_codes, Array, default: []
+    attribute :coc_codes, Array, default: [].freeze
     attribute :coc_code, String, default: ->(_, _) { GrdaWarehouse::Config.get(:site_coc_codes) }
     attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
     attribute :ph, Boolean, default: false
-    attribute :disabilities, Array, default: []
-    attribute :indefinite_disabilities, Array, default: []
-    attribute :dv_status, Array, default: []
-    attribute :currently_fleeing, Array, default: []
+    attribute :disabilities, Array, default: [].freeze
+    attribute :indefinite_disabilities, Array, default: [].freeze
+    attribute :dv_status, Array, default: [].freeze
+    attribute :currently_fleeing, Array, default: [].freeze
     attribute :chronic_status, Boolean, default: nil
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
     attribute :ce_cls_as_homeless, Boolean, default: false
     attribute :limit_to_vispdat, Symbol, default: :all_clients
-    attribute :times_homeless_in_last_three_years, Array, default: []
+    attribute :times_homeless_in_last_three_years, Array, default: [].freeze
     attribute :rrh_move_in, Boolean, default: false
     attribute :psh_move_in, Boolean, default: false
     attribute :first_time_homeless, Boolean, default: false
@@ -82,20 +82,30 @@ module Filters
     attribute :days_since_contact_max, Integer, default: nil
     # destination_client_ids_for_days_since_contact_calculations is used to increase performance
     # of the CTEs used to filter for days since contact.  Set this directly if necessary
-    attribute :destination_client_ids_for_days_since_contact_calculations, Array, default: []
-    attribute :required_files, Array, default: []
-    attribute :optional_files, Array, default: []
+    attribute :destination_client_ids_for_days_since_contact_calculations, Array, default: [].freeze
+    attribute :required_files, Array, default: [].freeze
+    attribute :optional_files, Array, default: [].freeze
     attribute :active_roi, Boolean, default: false
     attribute :mask_small_populations, Boolean, default: false
-    attribute :secondary_project_ids, Array, default: []
-    attribute :secondary_project_group_ids, Array, default: []
-    attribute :ethnicities, Array, default: []
-    attribute :race_ethnicity_combinations, Array, default: []
+    attribute :secondary_project_ids, Array, default: [].freeze
+    attribute :secondary_project_group_ids, Array, default: [].freeze
+    attribute :ethnicities, Array, default: [].freeze
+    attribute :race_ethnicity_combinations, Array, default: [].freeze
 
-    attribute :excluded_project_ids, Array, default: []
-    attribute :excluded_project_type_numbers, Array, default: []
+    attribute :excluded_project_ids, Array, default: [].freeze
+    attribute :excluded_project_type_numbers, Array, default: [].freeze
 
     validates_presence_of :start, :end
+
+    def initialize(attributes = {})
+      # Extract user from attributes hash if present
+      user = attributes[:user] if attributes.respond_to?(:[])
+      attributes = attributes.except(:user) if user && attributes.respond_to?(:except)
+      super(attributes)
+      # Cache @user instance to avoid extra database lookups while still setting user_id for consistency
+      @user = user if user
+      self.user_id = user.id if user
+    end
 
     # Incorporate anything that might change the results
     def cache_key

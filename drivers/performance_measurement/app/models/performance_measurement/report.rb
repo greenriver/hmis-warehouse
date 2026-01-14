@@ -6,6 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# See @docs/features/coc-performance-measurement-dashboard.md
 require 'memery'
 
 module PerformanceMeasurement
@@ -1154,7 +1155,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['5.1', 'C4']], # TODO: confirm if we want to pivot to 5.2
+          cells: [['5.2', 'C4']],
           title: 'First Time',
           measure: :m5,
           history_source: :m5_history,

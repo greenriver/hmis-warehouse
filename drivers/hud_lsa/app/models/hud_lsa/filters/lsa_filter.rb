@@ -9,8 +9,8 @@
 module HudLsa::Filters
   class LsaFilter < ::Filters::HudFilterBase
     validates_presence_of :coc_code
-    attribute :default_project_type_codes, Array, default: [:es_nbn, :es_entry_exit, :th, :psh, :sh, :oph, :rrh]
-    attribute :coc_codes, Array, default: [GrdaWarehouse::Config.default_site_coc_codes&.first]
+    attribute :default_project_type_codes, Array, default: [:es_nbn, :es_entry_exit, :th, :psh, :sh, :oph, :rrh].freeze
+    attribute :coc_codes, Array, default: ->(_, _) { [GrdaWarehouse::Config.default_site_coc_codes&.first].freeze }
 
     # This lets parent validation pass
     def coc_codes

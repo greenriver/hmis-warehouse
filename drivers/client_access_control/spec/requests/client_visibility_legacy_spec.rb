@@ -33,7 +33,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -152,7 +152,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -275,7 +275,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -362,7 +362,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -451,7 +451,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -666,7 +666,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
       end
     end
     describe 'and the user has a role granting can view clients' do

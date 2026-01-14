@@ -34,7 +34,7 @@ module Mutations
       enrollments = assessments.map(&:enrollment)
 
       # Error: insufficient permissions
-      raise 'Insufficient permissions' unless current_user.permissions_for?(enrollments.first, :can_edit_enrollments)
+      raise 'Insufficient permissions' unless policy_for(enrollments.first, policy_type: :hmis_enrollment).can_edit?
 
       # Error: assessments do not all belong to the same household
       household_ids = enrollments.map(&:household_id).uniq

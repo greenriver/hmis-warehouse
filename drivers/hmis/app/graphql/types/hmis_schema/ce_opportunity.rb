@@ -74,6 +74,10 @@ module Types
       load_ar_scope(scope: Hmis::Ce::Referral.viewable_by(current_user), id: referral.id)
     end
 
+    def project_id
+      load_ar_association(object, :project).id
+    end
+
     def project_name
       load_ar_association(object, :project).project_name
     end

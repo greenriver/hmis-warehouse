@@ -1,0 +1,25 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th Name
+      %th Content Page
+      %th Revision
+      %th Expires After
+      %th Status
+      %th Last Updated
+      %th Actions
+  %tbody
+    - list.each do |req|
+      %tr
+        %td= link_to req.name, edit_admin_compliance_requirement_path(req)
+        %td= link_to req.content_page.title, edit_admin_content_page_path(req.content_page) if req.content_page
+        %td= req.revision
+        %td
+          - if req.expires_after_days
+            #{req.expires_after_days} days
+          - else
+            %span.text-muted Never
+        %td= req.active? ? 'Active' : 'Inactive'
+        %td= l req.updated_at, format: :table_compact
+        %td
+          = render 'action_menu', req: req

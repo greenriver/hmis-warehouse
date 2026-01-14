@@ -27,7 +27,8 @@ module ServiceHistory
       end
     end
 
-    def enqueue(job, queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
+    def enqueue(job)
+      job.priority = BaseJob::PRE_BULK_PROCESSING_PRIORITY_9
     end
 
     def max_attempts

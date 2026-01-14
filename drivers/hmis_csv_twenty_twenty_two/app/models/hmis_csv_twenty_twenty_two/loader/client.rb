@@ -8,6 +8,7 @@
 
 module HmisCsvTwentyTwentyTwo::Loader
   class Client < GrdaWarehouse::Hud::Base
+    @skip_hispanic_alias = true
     include LoaderConcern
     include ::HmisStructure::Client
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

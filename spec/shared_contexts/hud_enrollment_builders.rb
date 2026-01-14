@@ -90,7 +90,8 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
     source_client # Return the source client
   end
 
-  def create_enrollment(client:, project:, entry_date:, exit_date: nil, relationship_to_ho_h: 1, date_to_street_essh: nil, household_id: Hmis::Hud::Base.generate_uuid, living_situation: nil, destination: nil, move_in_date: nil)
+  # rubocop:disable Metrics/ParameterLists
+  def create_enrollment(client:, project:, entry_date:, exit_date: nil, relationship_to_ho_h: 1, date_to_street_essh: nil, household_id: Hmis::Hud::Base.generate_uuid, living_situation: nil, destination: nil, move_in_date: nil, **options)
     enrollment = create(
       :hud_enrollment,
       client: client,
@@ -103,6 +104,7 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       living_situation: living_situation,
       move_in_date: move_in_date,
       enrollment_coc: project.project_cocs.min_by(&:id).coc_code,
+      **options,
     )
 
     if exit_date.present?
@@ -118,14 +120,16 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
 
     enrollment
   end
+  # rubocop:enable Metrics/ParameterLists
 
   def create_bed_night_service(enrollment:, date:)
     create(
       :hud_service,
       enrollment: enrollment,
       date_provided: date,
-      data_source: data_source,
+      data_source: enrollment.data_source,
       record_type: 200, # bed night
+      personal_id: enrollment.personal_id,
     )
   end
 

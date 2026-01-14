@@ -38,6 +38,8 @@ Rails.application.routes.draw do
   end
 
   get '/user_training', to: 'user_training#index'
+  resources :content_pages, only: [:show], param: :slug, path: 'public/pages'
+  resource :compliance_agreement, only: [:show, :create], controller: 'compliance_agreements'
 
   def healthcare_routes
     namespace :health do
@@ -681,6 +683,7 @@ Rails.application.routes.draw do
     resources :team_patients, only: [:index] do
       collection do
         post :detail
+        post :render_section
 
         # Patient search queries
         resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
@@ -837,6 +840,12 @@ Rails.application.routes.draw do
       end
     end
     resources :links
+    resources :content_pages
+    resources :app_config_properties
+    resources :compliance_requirements, except: [:show] do
+      post :activate, on: :member
+      post :deactivate, on: :member
+    end
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]
@@ -904,7 +913,9 @@ Rails.application.routes.draw do
     end
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
-    resources :delayed_jobs, only: [:index, :update, :destroy]
+    resources :delayed_jobs, only: [:index, :update, :destroy] do
+      patch :cancel, on: :member
+    end
 
     resources :system_maintenance_tasks, only: [:index]
   end

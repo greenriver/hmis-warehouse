@@ -27,6 +27,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CeReferralExport, type: :mod
       client: client,
       referred_by: app_user,
       custom_status: custom_status,
+      referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN,
     ).tap do |r|
       r.update!(source_enrollment: source_enrollment, completed_at: Time.current)
     end
@@ -61,5 +62,11 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CeReferralExport, type: :mod
     expect(row['ReferredByUserID']).to eq(hud_user.id.to_s)
     expect(row['SourceEnrollmentID']).to eq(source_enrollment.id.to_s)
     expect(row['SourceProjectID']).to eq(source_project.id.to_s)
+    expect(row['SourceProjectName']).to eq(source_project.project_name)
+    expect(row['CompletedAt']).to eq(referral.completed_at.strftime('%Y-%m-%d %H:%M:%S'))
+    expect(row['CreatedAt']).to eq(referral.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+    expect(row['UpdatedAt']).to eq(referral.updated_at.strftime('%Y-%m-%d %H:%M:%S'))
+    expect(row['Origin']).to eq(referral.referral_origin)
+    expect(row['UnitMarkedAvailableAt']).to eq(referral.opportunity.created_at.strftime('%Y-%m-%d %H:%M:%S'))
   end
 end

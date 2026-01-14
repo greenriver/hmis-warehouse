@@ -62,7 +62,8 @@ module Health
         where(patient_id: patient_ids).
         in_range(@range).
         where(activity: :discharge_follow_up).
-        pluck(:patient_id).uniq
+        distinct.
+        pluck(:patient_id)
     end
 
     def with_completed_intake
@@ -106,18 +107,54 @@ module Health
         begin
           set = Set.new
           patient_ids.each_slice(100).each do |patient_id_slice|
-            set.merge(
-              ClaimsReporting::MedicalClaim.
-                annual_well_care_visits.
-                service_in(anchor - WELLCARE_WINDOW... anchor).
-                joins(:patient).
-                where(hp_t[:id].in(patient_id_slice)).
-                pluck(hp_t[:id]),
-            )
+            set.merge(wellcare_patient_ids(patient_id_slice, anchor))
           end
 
           set.to_a
         end
+    end
+
+    # The annual well-care visit filter includes a large OR:
+    #   (dx_1..dx_20 ~ regex) OR (procedure_code IN (...))
+    #
+    # Splitting into a UNION lets Postgres plan each branch independently and,
+    # critically, allows the existing (member_id, procedure_code) index to be used
+    # for the procedure-code branch instead of being blocked by the OR.
+    private def wellcare_patient_ids(patient_id_slice, anchor)
+      use_union_query = ENV.fetch('WELLCARE_USE_UNION_QUERY', '1') != '0'
+      use_union_query ? wellcare_patient_ids_union(patient_id_slice, anchor) : wellcare_patient_ids_legacy(patient_id_slice, anchor)
+    end
+
+    private def wellcare_patient_ids_legacy(patient_id_slice, anchor)
+      range = (anchor - WELLCARE_WINDOW...anchor)
+      ClaimsReporting::MedicalClaim.
+        service_in(range).
+        annual_well_care_visits.
+        joins(:patient).
+        where(hp_t[:id].in(patient_id_slice)).
+        pluck(hp_t[:id])
+    end
+
+    private def wellcare_patient_ids_union(patient_id_slice, anchor)
+      range = (anchor - WELLCARE_WINDOW...anchor)
+      regex_str = "^(#{ClaimsReporting::MedicalClaim::ANNUAL_WELLCARE_DIAGNOSIS_CODE_PREFIXES.join('|')})"
+
+      base = ClaimsReporting::MedicalClaim.
+        service_in(range).
+        joins(:patient).
+        where(hp_t[:id].in(patient_id_slice))
+
+      dx = base.
+        matching_icd10cm(regex_str).
+        select("#{hp_t.name}.id AS patient_id")
+
+      proc = base.
+        where(icd_version: 10, procedure_code: ClaimsReporting::MedicalClaim::ANNUAL_WELLCARE_PROCEDURE_CODES).
+        select("#{hp_t.name}.id AS patient_id")
+
+      ClaimsReporting::MedicalClaim.
+        from("(#{dx.to_sql} UNION #{proc.to_sql}) wellcare").
+        pluck(Arel.sql('patient_id'))
     end
   end
 end

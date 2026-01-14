@@ -22,6 +22,36 @@ module HudReports
       transform_value(col.to_s, cell_val, pii_policy)
     end
 
+    def self.search_clients(scope, search_term)
+      return scope if search_term.blank?
+      return scope unless searchable?
+
+      scope = apply_search_scope(scope)
+      columns = search_columns
+      return scope if columns.empty?
+
+      sanitized_term = sanitize_sql_like(search_term).downcase
+      lowered_columns = columns.map { |col| Arel::Nodes::NamedFunction.new('LOWER', [col]) }
+
+      conditions = lowered_columns.map do |col|
+        col.matches("%#{sanitized_term}%")
+      end
+
+      scope.where(conditions.inject(:or)).distinct
+    end
+
+    def self.searchable?
+      search_columns.any?
+    end
+
+    def self.apply_search_scope(scope)
+      scope
+    end
+
+    def self.search_columns
+      []
+    end
+
     private
 
     def fetch_cell_value(col)
@@ -42,7 +72,7 @@ module HudReports
     def format_complex_value(col, value, pii_policy, include_content_tag)
       if value.is_a?(Array)
         # For Arrays, calculate each array element's value using the column name for the array
-        value.map { |item| display_value(col, pii_policy: pii_policy, include_content_tag: include_content_tag, cell_val: item, calculate_cell: false) }
+        value = value.map { |item| display_value(col, pii_policy: pii_policy, include_content_tag: include_content_tag, cell_val: item, calculate_cell: false) }
       elsif value.is_a?(Hash)
         # For Hashes, calculate each entry's value using each entry's key as the column name
         value.each do |k, v|

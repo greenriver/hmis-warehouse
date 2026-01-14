@@ -22,6 +22,10 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
             name
             workflowTemplateIdentifier
             ceEventType
+            unitType {
+              id
+              description
+            }
           }
           #{error_fields}
         }
@@ -31,6 +35,7 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_units, :can_view_units]) }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+  let!(:unit_type) { create :hmis_unit_type, description: '1 bedroom' }
 
   before(:each) { hmis_login(user) }
 
@@ -41,6 +46,7 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
         name: 'New Unit Group',
         workflowTemplateIdentifier: workflow_template.identifier,
         ceEventType: 'REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING',
+        unitTypeId: unit_type.id,
       },
     }
   end
@@ -54,6 +60,8 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
     expect(created_group['name']).to eq('New Unit Group')
     expect(created_group['workflowTemplateIdentifier']).to eq(workflow_template.identifier)
     expect(created_group['ceEventType']).to eq('REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING')
+    expect(created_group['unitType']['id']).to eq(unit_type.id.to_s)
+    expect(created_group['unitType']['description']).to eq('1 bedroom')
 
     # Verify the unit group was actually created in the database
     unit_group = Hmis::UnitGroup.find(created_group['id'])
@@ -61,6 +69,7 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
     expect(unit_group.project_id).to eq(p1.id)
     expect(unit_group.workflow_template_identifier).to eq(workflow_template.identifier)
     expect(unit_group.ce_event_type).to eq(14)
+    expect(unit_group.unit_type).to eq(unit_type)
   end
 
   context 'validation errors' do
@@ -89,6 +98,19 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
         errors = result.dig('data', 'createUnitGroup', 'errors')
         expect(errors).not_to be_empty
         expect(errors.first['fullMessage']).to eq('Name must be unique in the project')
+      end
+    end
+
+    context 'when unit type is missing' do
+      let(:input_without_unit_type) { base_input.deep_merge(input: { unitTypeId: nil }) }
+
+      it 'returns validation error' do
+        response, result = post_graphql(input_without_unit_type) { mutation }
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'createUnitGroup', 'errors')
+        expect(errors).not_to be_empty
+        expect(errors.first['fullMessage']).to eq('Unit type must exist')
       end
     end
   end

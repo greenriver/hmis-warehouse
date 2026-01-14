@@ -9,6 +9,9 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
+#
+# Measure 6 is a placeholder in the FY2026 generator.
+#
 module HudSpmReport::Generators::Fy2026
   class MeasureSix < MeasureBase
     def self.question_number
@@ -41,6 +44,8 @@ module HudSpmReport::Generators::Fy2026
     end
 
     private def run_6a_1(table_name)
+      # NOTE: This measure is intentionally left blank/unimplemented.
+      # It prepares the table structure but does not populate it with data.
       prepare_table(
         table_name,
         {

@@ -23,11 +23,15 @@ module HudReports
 
     self.table_name = 'hud_report_instances'
 
+    # Reference to the ActiveJob instance currently processing this report
+    attr_accessor :active_job
+
     belongs_to :user, optional: true
     has_many :report_cells # , dependent: :destroy # for the moment, this is too slow
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    has_many :checkpoints, class_name: 'HudReports::ReportCheckpoint', foreign_key: 'hud_report_instance_id', dependent: :destroy
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
@@ -47,6 +51,10 @@ module HudReports
 
     def mark_snapshot_completed!
       update!(snapshot_status: HudReports::GeneratorBase::COMPLETED)
+    end
+
+    def policy_class
+      GrdaWarehouse::AuthPolicies::HudReportPolicy
     end
 
     def self.from_filter(filter, report_name, build_for_questions:)
@@ -92,7 +100,7 @@ module HudReports
         end
       when 'Completed'
         if started_at.present? && completed_at.present?
-          "#{state} in #{distance_of_time_in_words(started_at, completed_at)} <br/> #{completed_at} ".html_safe
+          "#{state} in #{total_duration_in_words} <br/> #{completed_at} ".html_safe
         else
           state
         end
@@ -121,6 +129,17 @@ module HudReports
       cells.delete_all
     end
 
+    def total_duration_in_words
+      # only report out if the job is completed
+      return unless started_at && completed_at
+
+      # if this report was created before we used checkpoints, calculate from completed_at
+      checkpoint_seconds = checkpoints.calculate_duration_seconds
+      return distance_of_time_in_words(started_at, completed_at) if checkpoint_seconds.nil?
+
+      distance_of_time_in_words(0, checkpoint_seconds)
+    end
+
     private def job_failed?
       related_job.present? && related_job.failed?
     end
@@ -143,7 +162,38 @@ module HudReports
     end
 
     def start_report
-      update!(state: 'Started', started_at: Time.current)
+      # Only set started_at on the very first run
+      self.started_at ||= Time.current
+
+      update!(state: 'Started', started_at: started_at)
+    end
+
+    def check_halt_status!
+      active_job&.check_halt_status!
+    end
+
+    def track_progress(checkpoint_name)
+      raise unless checkpoint_name.present?
+
+      check_halt_status!
+
+      # If this step has already been successfully completed, skip it (resume)
+      existing = checkpoints.find_by(name: checkpoint_name, status: 'success')
+      return existing if existing
+
+      checkpoint = checkpoints.create!(name: checkpoint_name, started_at: Time.current, status: 'running')
+      status = 'success'
+
+      begin
+        yield
+      rescue StandardError
+        status = 'error'
+        raise
+      ensure
+        checkpoint.update!(completed_at: Time.current, status: status)
+      end
+
+      checkpoint
     end
 
     # Mark a question as completed
