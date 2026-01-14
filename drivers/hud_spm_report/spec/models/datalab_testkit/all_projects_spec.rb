@@ -51,14 +51,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         file_path: result_file_prefix + results_dir,
         external_row_label: true,
         question: '1b',
-        # skip: [
-        #   'B2', # expected '5749.0000' (5749), got '5437.0000' (5437)
-        #   'D2', # expected '261.2200' (261.22), got '252.9400' (252.94)
-        #   'G2', # expected '94.0000' (94), got '90.0000' (90)
-        #   'B3', # expected '0.0000' (), got '5814.0000' (5814)
-        #   'D3', # expected '0.0000' (), got '263.0700' (263.07)
-        #   'G3', # expected '0.0000' (), got '96.0000' (96.0)
-        # ],
       )
     end
 
@@ -224,11 +216,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '7b.2',
-        skip: [
-          'C2', # expected '677.0000' (677), got '679.0000' (679)
-          'C3', # expected '636.0000' (636), got '638.0000' (638)
-          'C4', # expected '93.9400' (93.94), got '93.9600' (93.9600)
-        ],
       )
     end
   else
