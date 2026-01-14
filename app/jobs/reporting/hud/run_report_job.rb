@@ -61,8 +61,10 @@ module Reporting::Hud
           count
 
         if running_reports_count > 1
-          puts "Found #{running_reports_count} running reports, for #{generator_class_name} (#{report.report_name}), postponing run of #{report.id}"
-          requeue_job(generator_class_name)
+          requeue_at(
+            Time.current + WAIT_MINUTES.minutes,
+            "Found #{running_reports_count} running reports for #{generator_class_name} (#{report.report_name}), postponing run of #{report.id} for #{WAIT_MINUTES} minutes",
+          )
           return true
         end
       end
@@ -110,22 +112,6 @@ module Reporting::Hud
 
       report.update!(state: 'Failed') unless report.failed?
       raise
-    end
-
-    private def requeue_job(class_name)
-      # Re-queue this report before processing if another report is running for the same class
-      # This should help prevent tying up delayed job workers when someone kicks off a dozen of the same report.
-      job_object = Delayed::Job.find_by(id: provider_job_id)
-      return unless job_object
-
-      Rails.logger.info("Report: #{class_name} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
-      new_job = job_object.dup
-      new_job.update(
-        locked_at: nil,
-        locked_by: nil,
-        run_at: Time.current + WAIT_MINUTES.minutes,
-        attempts: 0,
-      )
     end
 
     private def non_idempotent_retry_message(report, generator_class)
