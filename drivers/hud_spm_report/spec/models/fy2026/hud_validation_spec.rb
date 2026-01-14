@@ -509,7 +509,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
         project: @th_project,
         entry_date: '2023-01-01'.to_date,
         exit_date: '2023-02-01'.to_date,
-        living_situation: 435 # Rental by client, no subsidy
+        living_situation: 435, # Rental by client, no subsidy
       )
 
       @report = setup_report([@th_project.id])
