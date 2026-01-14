@@ -155,9 +155,9 @@ def default_excluded_tables
 end
 
 def path_for_warehouse_sign_in
-  new_user_session_path
+  oauth2_sign_in_path
 end
 
 def regex_for_warehouse_sign_in
-  /#{Regexp.escape(new_user_session_path)}/
+  /\/oauth2\/sign_in/
 end
