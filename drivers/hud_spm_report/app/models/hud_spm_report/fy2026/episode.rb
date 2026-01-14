@@ -205,11 +205,11 @@ module HudSpmReport::Fy2026
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
       enrollments = enrollments.select do |e|
-        # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
+        # For PH and TH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
         in_project_type = e.project_type.in?(project_types)
-        # Always drop PH that wasn't literally homeless at entry or not in report range
+        # Always drop PH/TH that wasn't literally homeless at entry or not in report range
         # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
-        if include_self_reported_and_ph && e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph))
+        if include_self_reported_and_ph && e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph) + [2])
           enrollment_literally_homeless_at_entry(e) && include_ph_enrollment?(e)
         else
           in_project_type

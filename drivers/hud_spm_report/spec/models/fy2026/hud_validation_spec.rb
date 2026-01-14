@@ -421,7 +421,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
 
       # Median of [10, 20, 30] is 20
       answer = @report.answer(question: '1a', cell: 'G2')
-      expect(answer.summary.to_f).to eq(20.0)
+      expect(answer.summary).to eq('20.00')
     end
 
     it 'correctly calculates median for even number of clients' do
@@ -443,7 +443,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
 
       # Median of [10, 20, 30, 40] is (20 + 30) / 2 = 25.0
       answer = @report.answer(question: '1a', cell: 'G2')
-      expect(answer.summary.to_f).to eq(25.0)
+      expect(answer.summary).to eq('25.00')
     end
   end
 
@@ -496,6 +496,27 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode.first_date).to eq('2023-05-02'.to_date)
       # Total days homeless = 30 (pre-entry) + 14 (shelter) = 44.
       expect(episode.days_homeless).to eq(44)
+    end
+
+    it 'Measure 1b: excludes TH stays that are NOT literally homeless at entry' do
+      @th_project = create_project(project_type: 2) # TH
+      @client = create_client_with_warehouse_link
+
+      # Create TH enrollment that is NOT literally homeless at entry
+      # Entry from Rental by Client (Code 435)
+      create_enrollment(
+        client: @client,
+        project: @th_project,
+        entry_date: '2023-01-01'.to_date,
+        exit_date: '2023-02-01'.to_date,
+        living_situation: 435 # Rental by client, no subsidy
+      )
+
+      @report = setup_report([@th_project.id])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+
+      # Should be excluded from Measure 1b (Metric 2)
+      expect(@report.universe('m1b2').members.count).to eq(0)
     end
   end
 end

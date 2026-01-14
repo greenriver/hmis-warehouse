@@ -203,7 +203,7 @@ module HudSpmReport::Generators::Fy2026
     private def compute_row(universe)
       a_t = HudSpmReport::Fy2026::Episode.arel_table
       persons = universe.count
-      return [0, 0, 0] unless persons.positive?
+      return [0, format('%1.2f', 0), format('%1.2f', 0)] unless persons.positive?
 
       days_homeless = universe.pluck(a_t[:days_homeless])
       average = mean(days_homeless.sum, persons)
@@ -220,12 +220,14 @@ module HudSpmReport::Generators::Fy2026
       sorted = values.sort
       len = sorted.length
 
-      if len.even?
+      median_val = if len.even?
         # Average of position (len/2) and (len/2 + 1)
         (sorted[len / 2 - 1] + sorted[len / 2]) / 2.0
       else
         sorted[len / 2]
       end
+
+      format('%1.2f', median_val.to_f.round(2))
     end
   end
 end
