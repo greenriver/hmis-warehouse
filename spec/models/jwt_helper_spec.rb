@@ -29,7 +29,7 @@ RSpec.describe JwtHelper do
   before do
     JwtHelper.memory_cache.clear
     allow(ENV).to receive(:fetch).with('JWKS_URL').and_return(jwks_url)
-    allow(ENV).to receive(:fetch).with('IDP_AUD').and_return('test_aud')
+    allow(ENV).to receive(:fetch).with('IDP_AUD', any_args).and_return('test_aud')
     allow(ENV).to receive(:fetch).with('ISS_URL').and_return('test_iss')
     allow(ENV).to receive(:fetch).with('JWT_ALGORITHM').and_return('RS256')
 
@@ -81,7 +81,7 @@ RSpec.describe JwtHelper do
     end
 
     it 'skips audience validation if IDP_AUD is blank' do
-      allow(ENV).to receive(:fetch).with('IDP_AUD').and_return('')
+      allow(ENV).to receive(:fetch).with('IDP_AUD', any_args).and_return('')
       bad_aud_payload = payload.merge('aud' => 'wrong_aud')
       bad_aud_token = JWT.encode(bad_aud_payload, rsa_key, 'RS256', { kid: kid })
       bad_aud_helper = described_class.new(access_token: bad_aud_token)
