@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe TestEmptyJob, type: :model do
   describe 'when more than 100 jobs' do
     before do
-      221.times do
+      222.times do
         Delayed::Job.enqueue TestEmptyJob.new
       end
     end
