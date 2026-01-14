@@ -155,10 +155,10 @@ def default_excluded_tables
   HmisCsvImporter::Utility.importer_table_classes.map(&:table_name)
 end
 
-def path_for_sign_in
+def path_for_warehouse_sign_in
   new_user_session_path
 end
 
-def regex_for_sign_in
+def regex_for_warehouse_sign_in
   /#{Regexp.escape(new_user_session_path)}/
 end

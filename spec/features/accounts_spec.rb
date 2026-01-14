@@ -6,7 +6,7 @@ RSpec.describe 'Accounts', type: :feature do
   let(:user) { create(:user) }
 
   before(:each) do
-    visit path_for_sign_in
+    visit path_for_warehouse_sign_in
   end
 
   feature 'Logging In' do
