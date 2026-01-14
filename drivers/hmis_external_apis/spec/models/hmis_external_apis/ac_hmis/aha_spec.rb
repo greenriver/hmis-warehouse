@@ -86,8 +86,8 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
   context 'when client has MCI unique ID' do
     let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
 
-    before do
-      response = mock_api_response(
+    let!(:response) do
+      mock_api_response(
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
@@ -96,33 +96,27 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
           ],
         ),
       )
-      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
     end
 
     it 'calls API and returns the highest AHA score, disregarding other generators' do
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
       result = aha.fetch_score(client)
       expect(result.score).to eq(8)
       expect(result.dw_client_id).to eq(mci_unique_id.value)
     end
-  end
 
-  context 'when lookup catalyst and reason are also provided' do
-    let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
-
-    before do
-      response = mock_api_response(
-        client_data(
-          dw_client_id: mci_unique_id.value,
-          scores: [
-            score_hash(score: 8, generator: 'AHA', alt_aha_flag: 0),
-          ],
-        ),
-      )
+    it 'calls API with lookup catalyst and reason when provided' do
       setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other'])
+
+      result = aha.fetch_score(client, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other'])
+      expect(result.score).to eq(8)
     end
 
-    it 'calls API with lookup catalyst and reason' do
-      result = aha.fetch_score(client, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other'])
+    it 'ignores invalid values for lookup catalyst and reason' do
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      result = aha.fetch_score(client, lookup_catalyst: 'random text', lookup_reason: ['not a good reason'])
       expect(result.score).to eq(8)
     end
   end

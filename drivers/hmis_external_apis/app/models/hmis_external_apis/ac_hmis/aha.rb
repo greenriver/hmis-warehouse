@@ -33,6 +33,22 @@
 ###
 module HmisExternalApis::AcHmis
   class Aha
+    # Lookup catalyst and reason are optional values; if present on the form, they should be submitted when we make the fetch call.
+    # Before submitting, validate against the list of allowed values.
+    # (Validate here, instead of in the graphql schema, so we have flexibility to ignore instead of raise when receiving invalid values)
+    LOOKUP_CATALYST_ALLOWED_VALUES = [
+      'OCS Staff',
+      'OCS Admin',
+      'Non-OCS Program Admin',
+      'DHS Admin',
+    ].freeze
+    LOOKUP_REASON_ALLOWED_VALUES = [
+      'Other',
+      'Vacancy Management',
+      'Prioritization Request',
+      'DHS Housing Integration',
+    ].freeze
+
     SYSTEM_ID = 'ac_hmis_aha'
     AHA_GENERATOR = 'AHA'
     VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
@@ -51,16 +67,7 @@ module HmisExternalApis::AcHmis
 
       raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
-      base_payload = { # todo @martha - probably this should be a backend enum that validates the frontend input. or it should be validated in the graphql model
-        **(lookup_catalyst ? { "lookup_catalyst": lookup_catalyst } : {}),
-        **(lookup_reason&.any? ? { "lookup_reason": lookup_reason } : {}),
-      }
-
-      payload = if mci_uniq_ids.size > 1
-        { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(','), **base_payload }
-      else
-        { 'dw_client_id__dw_client_id__includes': mci_uniq_ids.first, **base_payload }
-      end
+      payload = create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
 
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
@@ -115,6 +122,23 @@ module HmisExternalApis::AcHmis
 
     def conn
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
+    end
+
+    def create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
+      payload = {}
+
+      if mci_uniq_ids.size > 1
+        payload[:dw_client_id__dw_client_id__overlap] = mci_uniq_ids.join(',')
+      else
+        payload[:dw_client_id__dw_client_id__includes] = mci_uniq_ids.first
+      end
+
+      payload[:lookup_catalyst] = lookup_catalyst if lookup_catalyst && LOOKUP_CATALYST_ALLOWED_VALUES.include?(lookup_catalyst)
+
+      valid_reasons = lookup_reason&.filter { |r| LOOKUP_REASON_ALLOWED_VALUES.include?(r) }
+      payload[:lookup_reason] = valid_reasons if valid_reasons&.any?
+
+      payload
     end
 
     def handle_error(result)
