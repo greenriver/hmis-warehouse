@@ -55,19 +55,12 @@ RSpec.shared_context 'RailsSystemHelper' do
   def sign_in_user(user, password: RAILS_SYSTEM_DEFAULT_PASSWORD)
     visit new_user_session_path
 
-    # Wait for the email field to be visible before filling
-    find('input[type="email"]', visible: true)
     fill_in 'Email', with: user.email
     fill_in 'Password', with: password
     click_button 'Sign In'
 
-    # Wait a bit for the form submission to process
-    sleep 0.5
-
-    # Check if sign in was successful - look for user name or absence of sign in form
-    return true if page.has_content?(user.first_name) # Success - user name appears
-
-    if page.has_content?('Sign In')
+    # Primary check: are we still on the sign in page?
+    if current_path == new_user_session_path
       # Still on sign in page - check for error messages
       if page.has_content?('Invalid') || page.has_content?('error')
         puts 'Sign in failed with error message'
@@ -77,8 +70,8 @@ RSpec.shared_context 'RailsSystemHelper' do
       puts page.body if ENV['DEBUG_TESTS']
       false
     else
-      # Signed in but user name not visible - might be in a different element
-      puts 'Signed in successfully (user name not immediately visible)'
+      # We've been redirected away from sign in page - sign in was successful
+      # (even if user name isn't immediately visible)
       true
     end
   end
