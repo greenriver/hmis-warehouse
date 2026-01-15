@@ -33,8 +33,9 @@ module WarehouseReports::Health
       file = params.dig(:report, :file)
       if file.present?
         @enrollment_reasons = Health::EnrollmentReasons.create(
-          file: file,
+          file: file.original_filename,
           content: file.read,
+          content_type: file.content_type,
         )
       end
 

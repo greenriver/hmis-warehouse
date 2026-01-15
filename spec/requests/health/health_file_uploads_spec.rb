@@ -95,21 +95,21 @@ RSpec.describe 'Health::HealthFile uploads', type: :request do
       expect(health_file.content_type).to eq('application/pdf')
     end
 
-    it 'handles JPEG files with PDF extension' do
-      patch upload_client_health_careplan_path(client_id: client.id, id: careplan.id), params: {
-        health_file: {
-          health_file_attributes: {
-            file: fixture_file_upload(invalid_jpeg_path, 'application/pdf'),
+    it 'rejects JPEG files with PDF extension' do
+      expect do
+        patch upload_client_health_careplan_path(client_id: client.id, id: careplan.id), params: {
+          health_file: {
+            health_file_attributes: {
+              file: fixture_file_upload(invalid_jpeg_path, 'application/pdf'),
+            },
           },
-        },
-      }
+        }
+      end.not_to(change { Health::HealthFile.count })
 
-      # Current CarrierWave implementation accepts the file
-      # After migration, this should be properly validated and rejected
-      health_file = Health::HealthFile.last
-      expect(health_file).to be_present
-      # File is stored, content type may be detected as image/jpeg or application/pdf
-      expect(['application/pdf', 'image/jpeg']).to include(health_file.content_type)
+      # After migration, files with invalid content are properly validated and rejected
+      # The upload should fail validation
+      careplan.reload
+      expect(careplan.health_file).to be_nil
     end
   end
 
