@@ -304,7 +304,6 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
           project: @th_project,
           entry_date: '2022-11-10'.to_date,
           exit_date: '2023-01-10'.to_date,
-          living_situation: 116, # Literally Homeless at Entry
         )
 
         # Create PH enrollment with move-in date
