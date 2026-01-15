@@ -26,10 +26,8 @@ module Health
     def validate_file_content_if_present
       return if content.blank?
 
-      # Determine file extension from content_type, original_filename, or file attribute
+      # Determine file extension from content_type, file attribute, or content
       file_extension = if content_type&.include?('spreadsheet')
-        '.xlsx'
-      elsif original_filename&.end_with?('.xlsx')
         '.xlsx'
       elsif file&.end_with?('.xlsx')
         '.xlsx'
