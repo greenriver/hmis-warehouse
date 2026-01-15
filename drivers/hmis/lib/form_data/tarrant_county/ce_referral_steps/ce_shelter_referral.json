@@ -729,7 +729,7 @@
             "enable_behavior": "ANY",
             "pick_list_options": [
               {
-                "code": "Family sleeping unsheltered (not in a car, outside on sidewalk, tent, etc.)"
+                "code": "Family sleeping uncovered without access to heat/AC (ex: in a tent, on the sidewalk)"
               },
               {
                 "code": "Family member has portable medical equipment"
