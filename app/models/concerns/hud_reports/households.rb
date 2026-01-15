@@ -98,21 +98,28 @@ module HudReports::Households
       # This will allow the entire HH to have the same chronic status
       current_member ||= hoh
 
-      result = HudReports::HouseholdLogic.calculate_chronic_status(
+      # Return a hash compatible with legacy usage where the returned object
+      # represented the member from whom the status was inherited.
+      # We calculate both to ensure that even if the caller checks the "other" key,
+      # they get a logically consistent inherited value.
+      res = HudReports::HouseholdLogic.calculate_chronic_status(
         household_members,
         current_member,
         hoh,
-        chronic_status_key: chronic_status,
+        chronic_status_key: :chronic_status,
+      )
+      pit_res = HudReports::HouseholdLogic.calculate_chronic_status(
+        household_members,
+        current_member,
+        hoh,
+        chronic_status_key: :pit_chronic_status,
       )
 
-      return false unless result
-
-      # Return a hash compatible with legacy usage
       {
-        chronic_status: result[:status],
-        chronic_detail: result[:detail],
-        pit_chronic_status: result[:status],
-        pit_chronic_detail: result[:detail],
+        chronic_status: res&.[](:status),
+        chronic_detail: res&.[](:detail),
+        pit_chronic_status: pit_res&.[](:status),
+        pit_chronic_detail: pit_res&.[](:detail),
       }.with_indifferent_access
     end
 
@@ -178,6 +185,7 @@ module HudReports::Households
               veteran_status: enrollment.enrollment.client.VeteranStatus,
               # Chronic status is calculated as of the report date, use the enrollment start date if no report date is provided
               pit_chronic_status: enrollment.enrollment.chronically_homeless_at_start?(date: report_date),
+              pit_chronic_detail: enrollment.enrollment.chronically_homeless_at_start(date: report_date),
               # Chronic status is calculated as of the enrollment start date
               chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
               chronic_detail: enrollment.enrollment.chronically_homeless_at_start,

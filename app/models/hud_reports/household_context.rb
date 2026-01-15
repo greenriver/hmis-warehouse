@@ -59,12 +59,13 @@ module HudReports
         dob: dob,
         age: age,
         veteran_status: veteran_status,
-        pit_chronic_status: pit_chronic_status,
-        chronic_status: inherited_chronic_status,
-        chronic_detail: inherited_chronic_detail,
+        pit_chronic_status: raw_pit_chronic_status,
+        pit_chronic_detail: raw_pit_chronic_detail,
+        chronic_status: raw_chronic_status,
+        chronic_detail: raw_chronic_detail,
         relationship_to_hoh: relationship_to_hoh,
-        entry_date: hoh_entry_date,
-        exit_date: hoh_exit_date,
+        entry_date: member_entry_date,
+        exit_date: member_exit_date,
         move_in_date: inherited_move_in_date,
       }.with_indifferent_access
     end
