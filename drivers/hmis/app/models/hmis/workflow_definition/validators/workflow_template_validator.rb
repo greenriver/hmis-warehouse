@@ -17,6 +17,7 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
     validate_end(record)
     validate_tasks_and_gateways(record)
     validate_nodes_reachable(record)
+    validate_decline_reasons(record)
   end
 
   private
@@ -56,5 +57,28 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
   def validate_nodes_reachable(record)
     unreachable = record.graph.unreachable_nodes
     record.errors.add(:base, "The following nodes are unreachable: #{unreachable.map(&:name).join(', ')}") if unreachable.any?
+  end
+
+  def validate_decline_reasons(record)
+    decline_reason_nodes = record.nodes.filter do |node|
+      node.trigger_config&.any? { |trigger| trigger['message'] == 'set_referral_decline_reason' } || false
+    end
+
+    link_id = Hmis::Ce::ReferralMessageHandler::DECLINE_REASON_LINK_ID
+
+    decline_reason_keys = decline_reason_nodes.map do |node|
+      form = node.form_definition
+
+      unless form.link_id_item_hash[link_id].present? && form.link_id_item_hash[link_id]['pick_list_options'].present?
+        record.errors.add(:base, "Decline reason form '#{form.identifier}' must collect decline reason on a choice item with link_id '#{link_id}'")
+        next nil
+      end
+
+      form.link_id_item_hash[link_id]['pick_list_options'].map { |option| option['code'] }
+    end.compact.flatten.to_set
+
+    decline_reasons = Hmis::Ce::ReferralDeclineReason.where(key: decline_reason_keys)
+    missing_decline_reasons = decline_reason_keys - decline_reasons.pluck(:key).to_set
+    record.errors.add(:base, "The following decline reasons are not defined: #{missing_decline_reasons.join(', ')}") if missing_decline_reasons.any?
   end
 end

@@ -8,7 +8,7 @@
 
 FactoryBot.define do
   factory :ce_referral_decline_reason, class: 'Hmis::Ce::ReferralDeclineReason' do
-    association :data_source, factory: :data_source
+    association :data_source, factory: :hmis_data_source
     sequence(:key) { |n| "decline_reason_#{n}" }
     sequence(:name) { |n| "Decline Reason #{n}" }
   end

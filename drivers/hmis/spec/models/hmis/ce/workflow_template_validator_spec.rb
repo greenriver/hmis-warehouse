@@ -156,4 +156,47 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
       expect(template.errors[:base]).to include("Gateway 'Gateway' must have at least one non-conditional (default) outflow.")
     end
   end
+
+  describe 'Workflow that collects decline reason' do
+    let!(:task) do
+      create(
+        :hmis_workflow_definition_user_task,
+        template: template,
+        name: 'Client Acceptance',
+        form_definition: step_def,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'set_referral_decline_reason',
+          },
+        ],
+      )
+    end
+
+    context 'when the form does not collect decline reason' do
+      let!(:step_def) { create(:hmis_form_definition, role: 'CE_REFERRAL_STEP') } # use another random form definition that doesn't have a decline_reason
+
+      it 'is not valid' do
+        template.validate
+        expect(template.errors[:base]).to include("Decline reason form '#{step_def.identifier}' must collect decline reason on an item with link_id '#{Hmis::Ce::ReferralMessageHandler::DECLINE_REASON_LINK_ID}'")
+      end
+    end
+
+    context 'when the form collects decline reason but the decline reason is not in the database' do
+      it 'is not valid' do
+        template.validate
+        expect(template.errors[:base]).to include('The following decline reasons are not defined: user_error, client_not_interested')
+      end
+    end
+
+    context 'when all decline reasons are in the database' do
+      let!(:user_error) { create(:ce_referral_decline_reason, key: 'user_error') }
+      let!(:client_not_interested) { create(:ce_referral_decline_reason, key: 'client_not_interested') }
+
+      it 'is valid' do
+        template.validate
+        expect(template.errors).to be_empty
+      end
+    end
+  end
 end
