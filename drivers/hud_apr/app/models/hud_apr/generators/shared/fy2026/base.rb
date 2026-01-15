@@ -120,7 +120,7 @@ module HudApr::Generators::Shared::Fy2026
 
           next unless result[:success]
 
-          # Handle duplication check here (Orchestration concern)
+          # Defensive check: skip if a source client appears twice in this batch (prevents unique constraint failures).
           if processed_source_clients.include?(result[:source_client_id])
             @notifier.ping "Duplicate source client: #{result[:source_client_id]} for destination client: #{client.id} in enrollment: #{result[:enrollment_id]}" if @send_notifications
             next
