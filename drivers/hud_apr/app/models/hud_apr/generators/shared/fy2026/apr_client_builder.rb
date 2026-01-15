@@ -16,6 +16,16 @@ module HudApr::Generators::Shared::Fy2026
       @a_t ||= HudApr::Fy2020::AprClient.arel_table
     end
 
+    # @param report [HudReports::ReportInstance] The report instance currently being generated.
+    # @param client [GrdaWarehouse::Hud::Client] The unified destination client record.
+    # @param enrollments [Array<GrdaWarehouse::ServiceHistoryEnrollment>] All enrollments for this client.
+    # @param context_map [Hash<Integer, HudReports::HouseholdContext>] A map of ServiceHistoryEnrollment IDs to
+    #   their pre-computed household-level business logic.
+    # @param hoh_enrollment_map [Hash<Integer, GrdaWarehouse::ServiceHistoryEnrollment>] A map of
+    #   ServiceHistoryEnrollment IDs for Head of Households to their raw records with preloaded associations.
+    # @param needs_ce_assessments [Boolean] Whether to process Coordinated Entry specific logic and attributes.
+    # @param households [Hash<Array(String, Integer), Array<Hash>>] A map of [household_id, data_source_id] to
+    #   legacy member hashes for all members in that household.
     def initialize(report:, client:, enrollments:, context_map:, hoh_enrollment_map:, needs_ce_assessments:, households:)
       @report = report
       @client = client # Destination client
@@ -144,6 +154,7 @@ module HudApr::Generators::Shared::Fy2026
         status.DataCollectionStage == 3 && status.InformationDate && status.InformationDate < @report.end_date
       end&.max_by(&:InformationDate)
 
+      # Household Context age is [entry_date, report_start].max per HUD rules
       age = @ctx.age
       hoh_anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
       hoh_light = @hoh_enrollment || begin
