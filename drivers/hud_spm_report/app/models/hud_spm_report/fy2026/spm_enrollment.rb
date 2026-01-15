@@ -121,7 +121,7 @@ module HudSpmReport::Fy2026
                 and(arel_table[:prior_living_situation].between(200..299)).
                 and(arel_table[:los_under_threshold].eq(true))).
               or(arel_table[:previous_street_essh].eq(true).
-                and(arel_table[:prior_living_situation].between(300..499)).
+                and(arel_table[:prior_living_situation].between(0..99).or(arel_table[:prior_living_situation].between(300..499))).
                 and(arel_table[:los_under_threshold].eq(true)))))),
       )
     end
