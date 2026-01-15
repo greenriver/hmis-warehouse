@@ -13,9 +13,6 @@ module Hmis::Ce
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-    validates :key, presence: true, uniqueness: { scope: :data_source_id }
-    validates :name, presence: true
-
     scope :viewable_by, ->(user) do
       where(data_source_id: user.hmis_data_source_id)
     end

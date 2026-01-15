@@ -97,19 +97,23 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         end.to change(Hmis::Ce::Referral, :count).from(3).to(4)
       end
     end
+  end
 
-    describe '#no_decline_reason_when_accepted' do
-      let(:decline_reason) { create(:ce_referral_decline_reason, data_source: data_source) }
+  describe 'Referral pre-save hooks' do
+    describe '#clear_decline_reason_when_accepted' do
+      let!(:decline_reason) { create(:ce_referral_decline_reason, data_source: data_source) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'in_progress', decline_reason: decline_reason) }
 
-      it 'does not allow setting a decline reason on an accepted referral' do
-        referral = build(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'accepted', decline_reason: decline_reason)
-        expect(referral.valid?).to be_falsy
-        expect(referral.errors[:decline_reason]).to include('cannot be set on an accepted referral')
+      it 'clears the decline reason when the referral is accepted' do
+        expect do
+          referral.accept!
+        end.to change(referral, :decline_reason).from(decline_reason).to(nil)
       end
 
-      it 'allows setting a decline reason on a rejected referral' do
-        referral = build(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'rejected', decline_reason: decline_reason)
-        expect(referral.valid?).to be_truthy
+      it 'does not clear decline reason when the referral is rejected' do
+        expect do
+          referral.reject!
+        end.not_to change(referral, :decline_reason)
       end
     end
   end

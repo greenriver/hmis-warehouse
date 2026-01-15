@@ -123,7 +123,8 @@ module Hmis::Ce
     validate :ce_template
     validate :consistent_data_source
     validate :consistent_project
-    validate :no_decline_reason_when_accepted
+
+    before_save :clear_decline_reason_when_accepted
 
     # When referral status changes, its CustomReferralStatus (user-facing status) should also be updated.
     # See ReferralMessageHandler for example.
@@ -262,10 +263,8 @@ module Hmis::Ce
       errors.add(:target_enrollment, 'must be in same project as referral') unless target_enrollment.project == target_project
     end
 
-    def no_decline_reason_when_accepted
-      return unless accepted? && decline_reason.present?
-
-      errors.add(:decline_reason, 'cannot be set on an accepted referral')
+    def clear_decline_reason_when_accepted
+      self.decline_reason = nil if accepted?
     end
   end
 end
