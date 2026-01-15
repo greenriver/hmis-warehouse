@@ -547,7 +547,6 @@ services:
     depends_on:
       zitadel:
         condition: service_healthy
-        restart: false
 
   # Automated Zitadel configuration for Dex integration
   # Runs once on first startup, skips if already configured
