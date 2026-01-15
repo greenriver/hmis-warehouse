@@ -43,17 +43,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     # add a labeled row, enrollments are counted by HOH
     def add_household_enrollments_row(sheet, label:, enrollments:)
-      if enrollments.nil?
-        sheet.append_row(label: label)
-        return
-      end
+      members = heads_of_household_for(enrollments)
 
-      members = @report.
-        hopwa_caper_enrollments.
-        head_of_household.
-        where(report_household_id: enrollments.select(:report_household_id)).
-        latest_by_distinct_client_id.
-        as_report_members
       sheet.append_row(label: label) do |row|
         row.append_cell_members(members: members)
       end

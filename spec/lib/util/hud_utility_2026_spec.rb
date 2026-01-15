@@ -194,7 +194,7 @@ RSpec.describe HudUtility2026 do
         # Breaking changes could affect compliance with HUD requirements
         expect(HudHelper.util('2026').path_funders).to eq([21])
         expect(HudHelper.util('2026').local_or_other_funding_source).to eq(46)
-        expect(HudHelper.util('2026').spm_coc_funders).to match_array([2, 3, 4, 5, 43, 44, 54, 55, 56])
+        expect(HudHelper.util('2026').spm_coc_funders).to match_array([2, 3, 4, 5, 6, 43, 44, 54, 55, 56])
       end
     end
   end

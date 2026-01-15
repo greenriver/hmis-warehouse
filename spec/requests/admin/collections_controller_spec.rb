@@ -25,6 +25,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
   let!(:project) { create :grda_warehouse_hud_project, organization: organization }
   let!(:report) { create :core_demographics_report }
   let!(:cohort) { create :cohort }
+  let!(:supplemental_data_set) { create :hmis_supplemental_data_set, data_source: data_source }
 
   let!(:project_collection) { create :collection }
   let!(:legacy_project_collection) { create(:collection, :skip_validate, collection_type: nil) }
@@ -34,7 +35,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     admin.legacy_roles << admin_role
   end
 
-  def run_entity_tests(collection:, coc_codes: [], data_sources: [], organizations: [], projects: [], project_groups: [], project_access_groups: [], reports: [], cohorts: [])
+  def run_entity_tests(collection:, coc_codes: [], data_sources: [], organizations: [], projects: [], project_groups: [], project_access_groups: [], reports: [], cohorts: [], supplemental_data_sets: [])
     collection.reload
     expect(collection.coc_code_ids.map(&:to_s)).to eq(coc_codes.map(&:to_s))
     expect(collection.data_source_ids.map(&:to_s)).to eq(data_sources.map(&:to_s))
@@ -44,6 +45,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     expect(collection.project_access_group_ids.map(&:to_s)).to eq(project_access_groups.map(&:to_s))
     expect(collection.report_ids.map(&:to_s)).to eq(reports.map(&:to_s))
     expect(collection.cohort_ids.map(&:to_s)).to eq(cohorts.map(&:to_s))
+    expect(collection.supplemental_data_sets.map(&:id).map(&:to_s)).to eq(supplemental_data_sets.map(&:to_s))
   end
 
   # Creating current collection #create
@@ -77,6 +79,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
           reports: [report.id],
           cohorts: [cohort.id],
           project_groups: [project_group_2.id],
+          supplemental_data_sets: [supplemental_data_set.id],
         },
       }
     end
@@ -93,6 +96,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
           project_access_groups: [project_group.id],
           reports: [report.id],
           cohorts: [cohort.id],
+          supplemental_data_sets: [supplemental_data_set.id],
         },
       )
       project_collection.save!
@@ -107,6 +111,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
         project_access_groups: [project_group.id],
         reports: [report.id],
         cohorts: [cohort.id],
+        supplemental_data_sets: [supplemental_data_set.id],
       )
 
       patch admin_collection_path(project_collection), params: {
@@ -129,6 +134,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
         project_access_groups: [project_group.id],
         reports: [report.id],
         cohorts: [cohort.id],
+        supplemental_data_sets: [supplemental_data_set.id],
       )
     end
 
@@ -155,7 +161,23 @@ RSpec.describe Admin::CollectionsController, type: :request do
         project_access_groups: viewable_params[:collection][:project_access_groups],
         reports: viewable_params[:collection][:reports],
         cohorts: viewable_params[:collection][:cohorts],
+        supplemental_data_sets: viewable_params[:collection][:supplemental_data_sets],
       )
+    end
+  end
+
+  describe 'GET #entities' do
+    it 'renders successfully for valid entity types' do
+      Admin::Collections::CONFIG.keys.each do |entity_type|
+        get entities_admin_collection_path(project_collection, entities: entity_type)
+        expect(response).to be_successful
+      end
+    end
+
+    it 'raises ArgumentError for invalid entity type' do
+      expect do
+        get entities_admin_collection_path(project_collection, entities: :invalid_type)
+      end.to raise_error(ArgumentError, /Unknown entity type/)
     end
   end
 
@@ -207,6 +229,11 @@ RSpec.describe Admin::CollectionsController, type: :request do
         order(:report_group, :name).
         map { |r| [r.id.to_s, '0'] }.to_h
     end
+    let!(:supplemental_data_sets) do
+      HmisSupplemental::DataSet.
+        order(:name, :id).
+        map { |ds| [ds.id.to_s, '0'] }.to_h
+    end
     let!(:bulk_entities_params) do
       {
         collection: {
@@ -218,6 +245,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
           reports: reports,
           cohorts: cohorts,
           project_groups: project_groups,
+          supplemental_data_sets: supplemental_data_sets,
         },
       }
     end
@@ -233,9 +261,10 @@ RSpec.describe Admin::CollectionsController, type: :request do
       project_access_groups[project_group.id.to_s] = '1'
       reports[report.id.to_s] = '1'
       cohorts[cohort.id.to_s] = '1'
+      supplemental_data_sets[supplemental_data_set.id.to_s] = '1'
 
       # Each entity should only be updating their corresponding viewable on the collection and should not be changing the values of the other entities
-      ['coc_codes', 'data_sources', 'organizations', 'projects', 'project_groups', 'project_access_groups', 'reports', 'cohorts'].each do |entity|
+      ['coc_codes', 'data_sources', 'organizations', 'projects', 'project_groups', 'project_access_groups', 'reports', 'cohorts', 'supplemental_data_sets'].each do |entity|
         # Set the expected value for this specific entity. Any entity that had previously been set will remain, but all future entities in the loop will still be expected to have a [] value.
         # This will help ensure that only the expected entity is being updated.
         expected[entity.to_sym] = bulk_entities_params[:collection][entity.to_sym].keys.select { |k| bulk_entities_params[:collection][entity.to_sym][k] == '1' }
@@ -253,6 +282,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
             project_access_groups: expected[:project_access_groups] || [],
             reports: expected[:reports] || [],
             cohorts: expected[:cohorts] || [],
+            supplemental_data_sets: expected[:supplemental_data_sets] || [],
           )
         end
       end
@@ -266,8 +296,9 @@ RSpec.describe Admin::CollectionsController, type: :request do
       project_access_groups[project_group.id.to_s] = '0'
       reports[report.id.to_s] = '0'
       cohorts[cohort.id.to_s] = '0'
+      supplemental_data_sets[supplemental_data_set.id.to_s] = '0'
 
-      ['coc_codes', 'data_sources', 'organizations', 'projects', 'project_groups', 'project_access_groups', 'reports', 'cohorts'].each do |entity|
+      ['coc_codes', 'data_sources', 'organizations', 'projects', 'project_groups', 'project_access_groups', 'reports', 'cohorts', 'supplemental_data_sets'].each do |entity|
         # Set the expected value for this specific entity to []. Any entity that had previously been set will also be an empty array, but all future entities in the
         # loop will still be expected to have a previously set value. This will help ensure that only the expected entity is being updated.
         expected[entity.to_sym] = []
@@ -285,6 +316,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
             project_access_groups: expected[:project_access_groups] || [],
             reports: expected[:reports] || [],
             cohorts: expected[:cohorts] || [],
+            supplemental_data_sets: expected[:supplemental_data_sets] || [],
           )
         end
       end

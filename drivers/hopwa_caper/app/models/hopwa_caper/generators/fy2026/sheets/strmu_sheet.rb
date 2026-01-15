@@ -27,15 +27,28 @@ module HopwaCaper::Generators::Fy2026::Sheets
       HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
     end
 
-    def relevant_enrollments
+    def base_enrollments
       overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+    end
+
+    def relevant_enrollments
+      # Resolve HOH client IDs that received STRMU services
+      hoh_client_ids = @report.hopwa_caper_enrollments.
+        head_of_household.
+        where(report_household_id: relevant_services.select(:report_household_id)).
+        select(:destination_client_id)
+
+      @report.hopwa_caper_enrollments.
+        head_of_household.
+        where(destination_client_id: hoh_client_ids).
+        latest_by_distinct_client_id
     end
 
     def relevant_services
       service_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
       service_filter.apply(@report.hopwa_caper_services).
         where(date_provided: @report.start_date..@report.end_date).
-        joins(:enrollment).merge(relevant_enrollments)
+        joins(:enrollment).merge(base_enrollments)
     end
 
     def service_type_filters
@@ -43,13 +56,20 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def households_served_sheet(sheet)
-      seen_household_ids = []
+      # Find HOH client IDs for services of each type.
+      # Note: services_with_hoh joins services to the HOH via report_household_id,
+      # ensuring that services provided to ANY household member are attributed to the household's HOH.
       service_type_filters.all.each do |filter|
-        filtered_scope = filter.having_exclusive_type(relevant_services.group(:report_household_id))
-        cell_scope = HopwaCaper::Enrollment.where(
-          report_household_id: filtered_scope.select(:report_household_id),
-        )
-        seen_household_ids += cell_scope.to_a.map(&:report_household_id)
+        # Households with ONLY this type of STRMU service, aggregated by HOH client ID
+        exclusive_hoh_client_ids = filter.
+          having_exclusive_type(services_with_hoh(relevant_services).group('hoh.destination_client_id')).
+          select('hoh.destination_client_id')
+
+        cell_scope = @report.hopwa_caper_enrollments.
+          head_of_household.
+          where(destination_client_id: exclusive_hoh_client_ids).
+          latest_by_distinct_client_id
+
         add_household_enrollments_row(
           sheet,
           label: "How many households were served with STRMU #{filter.label} only?",
@@ -57,19 +77,25 @@ module HopwaCaper::Generators::Fy2026::Sheets
         )
       end
 
-      # Only include households that have services in the reporting period
-      households_with_services = relevant_services.distinct.pluck(:report_household_id).sort
-      multi_type_household_ids = (households_with_services - seen_household_ids.uniq).sort
+      # Multi-type: households with more than one distinct service type, aggregated by HOH client ID
+      multi_type_hoh_client_ids = services_with_hoh(relevant_services).
+        group('hoh.destination_client_id').
+        having('COUNT(DISTINCT type_provided) > 1').
+        select('hoh.destination_client_id')
 
       add_household_enrollments_row(
         sheet,
         label: 'How many households received more than one type of STRMU assistance?',
-        enrollments: relevant_enrollments.where(report_household_id: multi_type_household_ids),
+        enrollments: @report.hopwa_caper_enrollments.
+          head_of_household.
+          where(destination_client_id: multi_type_hoh_client_ids).
+          latest_by_distinct_client_id,
       )
+
       add_household_enrollments_row(
         sheet,
         label: 'STRMU Households Total',
-        enrollments: relevant_enrollments.where(report_household_id: households_with_services),
+        enrollments: relevant_enrollments,
       )
     end
 

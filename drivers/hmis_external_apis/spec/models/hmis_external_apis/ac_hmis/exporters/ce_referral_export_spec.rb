@@ -67,5 +67,6 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CeReferralExport, type: :mod
     expect(row['CreatedAt']).to eq(referral.created_at.strftime('%Y-%m-%d %H:%M:%S'))
     expect(row['UpdatedAt']).to eq(referral.updated_at.strftime('%Y-%m-%d %H:%M:%S'))
     expect(row['Origin']).to eq(referral.referral_origin)
+    expect(row['UnitMarkedAvailableAt']).to eq(referral.opportunity.created_at.strftime('%Y-%m-%d %H:%M:%S'))
   end
 end
