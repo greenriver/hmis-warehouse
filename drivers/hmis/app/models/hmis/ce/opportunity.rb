@@ -24,6 +24,7 @@ module Hmis::Ce
     has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
+    belongs_to :created_by, class_name: 'Hmis::User', optional: true
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit

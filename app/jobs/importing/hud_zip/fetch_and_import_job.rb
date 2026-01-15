@@ -17,9 +17,9 @@ module Importing::HudZip
       end
     end
 
-    # When you call jobs with .perform_later, they are executed in the ActiveJob world, which doesn't
-    # obey they max_attempts for Delayed Job.  We'll adjust the attempts to give us what we want
-    after_enqueue :enforce_max_attempts
+    def supports_idempotent_retry?
+      false
+    end
 
     def _perform(klass:, options:)
       safe_klass = known_classes.detect { |m| klass == m }
@@ -46,16 +46,6 @@ module Importing::HudZip
 
     private def advisory_lock_name(data_source_id)
       GrdaWarehouse::DataSource.import_advisory_lock_name(data_source_id)
-    end
-
-    def enforce_max_attempts
-      delayed_job.update!(attempts: calculated_attempts)
-    end
-
-    def calculated_attempts
-      # How many times should we allow this job to fail before we fail permanently
-      max_attempts = 1
-      [0, Delayed::Worker.max_attempts - max_attempts].max
     end
   end
 end
