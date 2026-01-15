@@ -13,10 +13,15 @@ BostonHmis::Application.routes.draw do
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'apr/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'apr/cells'
+      scope module: :apr do
+        resources :questions, only: [:show, :create] do
+          get :result, on: :member
+          get :running, on: :member
+          resources :cells, only: [:show] do
+            get :search, on: :member
+            resources :search_queries, only: [:create], module: :cells
+          end
+        end
       end
     end
 
@@ -25,10 +30,15 @@ BostonHmis::Application.routes.draw do
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'caper/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'caper/cells'
+      scope module: :caper do
+        resources :questions, only: [:show, :create] do
+          get :result, on: :member
+          get :running, on: :member
+          resources :cells, only: [:show] do
+            get :search, on: :member
+            resources :search_queries, only: [:create], module: :cells
+          end
+        end
       end
     end
 
@@ -37,10 +47,15 @@ BostonHmis::Application.routes.draw do
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'ce_apr/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'ce_apr/cells'
+      scope module: :ce_apr do
+        resources :questions, only: [:show, :create] do
+          get :result, on: :member
+          get :running, on: :member
+          resources :cells, only: [:show] do
+            get :search, on: :member
+            resources :search_queries, only: [:create], module: :cells
+          end
+        end
       end
     end
 
@@ -49,10 +64,15 @@ BostonHmis::Application.routes.draw do
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'dq/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'dq/cells'
+      scope module: :dq do
+        resources :questions, only: [:show, :create] do
+          get :result, on: :member
+          get :running, on: :member
+          resources :cells, only: [:show] do
+            get :search, on: :member
+            resources :search_queries, only: [:create], module: :cells
+          end
+        end
       end
     end
   end

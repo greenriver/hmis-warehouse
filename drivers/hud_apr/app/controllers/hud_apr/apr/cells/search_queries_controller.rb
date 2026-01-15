@@ -6,19 +6,19 @@
 
 # frozen_string_literal: true
 
-module HudSpmReport::Cells
-  # This controller is responsible for securely storing SPM cell search parameters
-  class SearchQueriesController < HudSpmReport::BaseController
+module HudApr::Apr::Cells
+  class SearchQueriesController < ::HudApr::BaseController
+    include ::HudApr::Apr::AprConcern
     include ::HudReports::Cells::SearchQueriesBehavior
 
     private def report_param_name
-      :spm_id
+      :apr_id
     end
 
     private def build_search_path(query_id)
-      search_hud_reports_spm_measure_cell_path(
-        spm_id: @report.id,
-        measure_id: @question,
+      search_hud_reports_apr_question_cell_path(
+        apr_id: @report.id,
+        question_id: @question,
         id: @cell,
         query_id: query_id,
         table: @table,
@@ -26,9 +26,9 @@ module HudSpmReport::Cells
     end
 
     private def build_cell_path
-      hud_reports_spm_measure_cell_path(
-        spm_id: @report.id,
-        measure_id: @question,
+      hud_reports_apr_question_cell_path(
+        apr_id: @report.id,
+        question_id: @question,
         id: @cell,
         table: @table,
       )

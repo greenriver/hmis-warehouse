@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright 2016 - 2026 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,17 @@
 
 module HudApr::Dq::DqConcern
   extend ActiveSupport::Concern
+
+  def self.possible_generator_classes
+    {
+      fy2024: HudApr::Generators::Dq::Fy2024::Generator,
+      fy2026: HudApr::Generators::Dq::Fy2026::Generator,
+    }
+  end
+
+  def possible_generator_classes
+    HudApr::Dq::DqConcern.possible_generator_classes
+  end
 
   included do
     private def path_for_question(question, report: nil, args: {})
@@ -84,13 +95,6 @@ module HudApr::Dq::DqConcern
 
     private def set_question
       @question = generator.valid_question_number(params[:question] || params[:id])
-    end
-
-    def possible_generator_classes
-      {
-        fy2024: HudApr::Generators::Dq::Fy2024::Generator,
-        fy2026: HudApr::Generators::Dq::Fy2026::Generator,
-      }
     end
 
     private def past_report_versions

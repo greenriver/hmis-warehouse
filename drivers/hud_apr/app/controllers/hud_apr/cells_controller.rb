@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright 2016 - 2026 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,26 +8,67 @@
 
 module HudApr
   class CellsController < HudApr::QuestionsController
+    include ::HudReports::CellDrilldownConcern
     include ApplicationHelper
     include ActionView::Helpers::TagHelper
+
+    helper_method :export_class_name, :export_query_params,
+                  :path_for_search_queries, :path_for_cell_without_search
+
     private def set_question
       @question = generator.valid_question_number(params[:question] || params[:question_id])
     end
 
-    def show
+    private def set_cell_variables
+      set_question
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      @clients = HudApr::Fy2020::AprClient.
+      @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
+      @headers = HudApr::Fy2020::AprClient.detail_headers
+    end
+
+    private def base_scope
+      HudApr::Fy2020::AprClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))
-      @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
-        end
-      end
+    end
+
+    private def preload_associations(scope)
+      scope.preload(:data_source, source_enrollment: :client)
+    end
+
+    private def export_class_name
+      'HudApr::DocumentExports::CellDetailExport'
+    end
+
+    private def export_job_class
+      HudApr::CellDetailExportJob
+    end
+
+    private def export_query_params
+      {
+        report_id: @report.id,
+        report_type: report_type_param,
+        question: @question,
+        cell_id: @cell,
+        table: @table,
+      }
+    end
+
+    private def report_type_param
+      # Subclasses must override (e.g., 'apr', 'caper', 'ce_apr', 'dq')
+      raise NotImplementedError
+    end
+
+    private def fallback_path
+      # Subclasses must override with specific report path
+      raise NotImplementedError
+    end
+
+    private def path_for_cell_without_search
+      # Subclasses must override with specific cell path
+      raise NotImplementedError
     end
   end
 end
