@@ -131,7 +131,6 @@ module Hmis::WorkflowExecution
           params: trigger.params,
           step: step,
           user: user,
-          all_submitted_values: all_submitted_values,
         )
 
         # Log audit event only if the message was successfully sent

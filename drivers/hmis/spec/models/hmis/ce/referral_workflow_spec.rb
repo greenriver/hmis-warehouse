@@ -200,7 +200,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     let(:enrollment_task) do
-      create(:hmis_workflow_definition_user_task, template: template, name: 'enrollment task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'income check task')
     end
 
     before do
@@ -253,7 +253,6 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end
 
       it 'the first step can not be rolled back' do
-        instance.steps.reset
         first_task_step = instance.steps.where(node: client_acceptance_task).sole
         second_task_step = instance.steps.where(node: provider_acceptance_task).sole
         expect(first_task_step).to be_completed
