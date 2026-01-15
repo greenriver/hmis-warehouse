@@ -913,7 +913,9 @@ Rails.application.routes.draw do
     end
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
-    resources :delayed_jobs, only: [:index, :update, :destroy]
+    resources :delayed_jobs, only: [:index, :update, :destroy] do
+      patch :cancel, on: :member
+    end
 
     resources :system_maintenance_tasks, only: [:index]
   end

@@ -98,44 +98,25 @@ module PerformanceMeasurement
       else
         primary_unit
       end
-      columns = if report.using_static_spm_for_comparison?
+      columns = [
         [
-          [
-            'x',
-            report_year,
-          ],
-          [
-            unit,
-            primary_value,
-          ],
-        ]
-      else
+          'x',
+          comparison_year,
+          report_year,
+        ],
         [
-          [
-            'x',
-            comparison_year,
-            report_year,
-          ],
-          [
-            unit,
-            comparison_primary_value,
-            primary_value,
-          ],
-        ]
-      end
+          unit,
+          comparison_primary_value,
+          primary_value,
+        ],
+      ]
+
       if average_metric
-        columns << if report.using_static_spm_for_comparison?
-          [
-            'median days',
-            related_median.primary_value,
-          ]
-        else
-          [
-            'median days',
-            related_median.comparison_primary_value,
-            related_median.primary_value,
-          ]
-        end
+        columns << [
+          'median days',
+          related_median.comparison_primary_value,
+          related_median.primary_value,
+        ]
       end
       {
         x: 'x',

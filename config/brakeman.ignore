@@ -58,6 +58,29 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "06eff86f0a73fd1a0cc90cc176d98e66603033413a90c5fc3d116a14faaea079",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `safe_constantize` called on model attribute",
+      "file": "app/jobs/base_job.rb",
+      "line": 163,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "JobDetail.new(delayed_job).job_class.safe_constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "BaseJob",
+        "method": "supports_idempotent_retry?"
+      },
+      "user_input": "JobDetail.new(delayed_job).job_class",
+      "confidence": "Medium",
+      "cwe_id": [
+        470
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "File Access",
       "warning_code": 16,
       "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",

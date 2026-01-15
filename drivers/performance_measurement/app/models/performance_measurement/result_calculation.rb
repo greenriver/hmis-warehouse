@@ -211,8 +211,9 @@ module PerformanceMeasurement::ResultCalculation
       # Don't create result if project didn't operate in either period
       return unless project_operated_in_period?(:reporting, project&.project_id)
       return unless project_operated_in_period?(:comparison, project&.project_id)
+
       # Don't calculate project-level metrics for this if we are using a static SPM
-      return if existing_static_comparison_spm.present? && project&.project_id.present?
+      # return if existing_static_comparison_spm.present? && project&.project_id.present?
 
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
@@ -250,8 +251,9 @@ module PerformanceMeasurement::ResultCalculation
       # Don't create result if project didn't operate in either period
       return unless project_operated_in_period?(:reporting, project&.project_id)
       return unless project_operated_in_period?(:comparison, project&.project_id)
+
       # Don't calculate project-level metrics for this if we are using a static SPM
-      return if existing_static_comparison_spm.present? && project&.project_id.present?
+      # return if existing_static_comparison_spm.present? && project&.project_id.present?
 
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
@@ -367,7 +369,7 @@ module PerformanceMeasurement::ResultCalculation
 
     def first_time_homeless_clients(detail, project: nil)
       # Don't calculate project-level metrics for this if we are using a static SPM
-      return if existing_static_comparison_spm.present? && project&.project_id.present?
+      # return if existing_static_comparison_spm.present? && project&.project_id.present?
 
       # People count metrics require year-over-year comparison for goal calculation
       # Don't create result if project didn't operate in either period
@@ -1171,8 +1173,9 @@ module PerformanceMeasurement::ResultCalculation
       # Don't create result if project didn't operate in either period
       return unless project_operated_in_period?(:reporting, project&.project_id)
       return unless project_operated_in_period?(:comparison, project&.project_id)
+
       # Don't calculate project-level metrics for this if we are using a static SPM
-      return if existing_static_comparison_spm.present? && project&.project_id.present?
+      # return if existing_static_comparison_spm.present? && project&.project_id.present?
 
       income_field = detail[:calculation_column]
       reporting_denominator = client_count(status_field, :reporting, project_id: project&.project_id)
