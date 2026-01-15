@@ -148,5 +148,6 @@ module BostonHmis
     config.help_links = []
     config.location_processors = []
     config.queued_tasks = {}
+    config.report_archival_types = []
   end
 end
