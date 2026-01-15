@@ -133,7 +133,10 @@ module PerformanceMeasurement
       @filter ||= begin
         f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
         f.default_project_type_codes = self.class.default_project_type_codes
-        f.update((options || {}).with_indifferent_access)
+        opts = (options || {}).with_indifferent_access
+        f.update(opts)
+        # Force project type codes to what we chose, they really want to use the defaults if we told the report not to use any
+        f.project_type_codes = opts[:project_type_codes] if opts.key?(:project_type_codes)
         f.update(start: f.end - 1.years + 1.days)
         f
       end
@@ -239,12 +242,20 @@ module PerformanceMeasurement
       processed_filter = filter
       # report uses only one coc_code, need to adjust for the HUD filter that needs coc_codes
       processed_filter.coc_codes = [processed_filter.coc_code]
-      processed_filter.project_ids = processed_filter.effective_project_ids
+      # If we end up with no active projects (e.g., explicit project selection outside operating dates),
+      # an empty array behaves like "no filter" in criteria application. Use a sentinel id to ensure
+      # the scope is empty instead of unintentionally widening to all projects in the CoC.
+      processed_filter.project_ids = active_project_ids(processed_filter.effective_project_ids).presence || [0]
       scope = processed_filter.apply(report_scope_source)
       scope = filter_for_range(scope)
 
       reset_filter
       scope
+    end
+
+    # Limit project_ids ton only those operating during the report range
+    private def active_project_ids(project_ids)
+      GrdaWarehouse::Hud::Project.where(id: project_ids).active_during(filter.range).pluck(:id)
     end
 
     def report_scope_source
