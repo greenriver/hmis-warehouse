@@ -78,17 +78,6 @@ module CeWorkflows::Shared
       end
     end
 
-    def self.ensure_decline_reasons_from_form_item(form_item, data_source)
-      form_item.pick_list_options.each do |option|
-        Hmis::Ce::ReferralDeclineReason.find_or_create_by!(
-          key: option.code,
-          data_source: data_source,
-        ) do |reason|
-          reason.name = option.label
-        end
-      end
-    end
-
     def self.delete_template_and_associated_data(template_identifier)
       raise 'This method destroys data and should not be run in production' if Rails.env.production?
 

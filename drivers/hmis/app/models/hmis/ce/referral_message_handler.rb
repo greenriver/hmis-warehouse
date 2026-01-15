@@ -12,6 +12,7 @@ module Hmis::Ce
   class ReferralMessageHandler
     ACCEPT_REFERRAL_MESSAGE = 'accept_referral'
     REJECT_REFERRAL_MESSAGE = 'reject_referral'
+    DECLINE_REASON_LINK_ID = 'decline_reason'
 
     # In general, when accessing `submitted_values` from the message handler, use safe accessor because:
     # - `step` could be nil, when the message is triggered by an event that doesn't involve a step, such as `start_workflow`, `end_workflow`, or `pass_gateway`.
@@ -131,15 +132,17 @@ module Hmis::Ce
     end
 
     def set_referral_decline_reason(message) # rubocop:disable Naming/AccessorMethodName
-      decline_reason_field = message.params['decline_reason_field'] || 'decline_reason'
-      decline_reason_key = message.all_submitted_values[decline_reason_field]
-      return if decline_reason_key.blank?
+      form_definition = message.step.form_definition
+      raise "Trying to set decline reason for referral #{referral.id}, step #{message.step.id}, but form definition '#{form_definition.identifier}' doesn't collect it. This probably indicates a mistake in the workflow configuration. The form must collect decline reason on an item with link_id '#{DECLINE_REASON_LINK_ID}'" unless form_definition.link_id_item_hash[DECLINE_REASON_LINK_ID].present?
 
-      reason = Hmis::Ce::ReferralDeclineReason.find_by!(
+      decline_reason_key = message.step&.submitted_values&.fetch(DECLINE_REASON_LINK_ID, nil)
+      return unless decline_reason_key.present?
+
+      decline_reason = Hmis::Ce::ReferralDeclineReason.find_by!(
         key: decline_reason_key,
         data_source: referral.data_source,
       )
-      referral.update!(decline_reason: reason)
+      referral.update!(decline_reason: decline_reason)
     end
 
     def clear_referral_decline_reason

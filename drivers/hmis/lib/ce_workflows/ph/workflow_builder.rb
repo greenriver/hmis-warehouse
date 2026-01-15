@@ -25,13 +25,24 @@ module CeWorkflows::Ph
     end
 
     def ensure_decline_reasons
-      form_definition = Hmis::Form::Definition.find_by!(
-        identifier: FORMS.fetch(:provider_decision),
-        role: 'CE_REFERRAL_STEP',
-      )
-      decline_reason_item = form_definition.link_id_item_hash['decline_reason']
-
-      CeWorkflows::Shared::CeBuilderUtils.ensure_decline_reasons_from_form_item(decline_reason_item, @data_source)
+      [
+        { "code": 'ineligible', "label": 'Does not meet eligibility criteria' },
+        { "code": 'enrolled_declined_hmis_data_entry', "label": 'Enrolled, but declined HMIS data entry' },
+        { "code": 'referral_sent_in_error', "label": 'Referral sent in error' },
+        { "code": 'hmis_user_error_client_enrolled_without_accepting_referral', "label": 'HMIS User Error - Client enrolled without accepting referral' },
+        { "code": 'not_experiencing_homelessness', "label": 'No longer experiencing homelessness' },
+        { "code": 'enrolled_in_equivalent_service', "label": 'Enrolled in equivalent service with another provider' },
+        { "code": 'unable_to_locate_client', "label": 'Unable to contact/locate' },
+        { "code": 'client_not_interested', "label": 'No longer interested in the program' },
+        { "code": 'other', "label": 'Other (detail in notes section)' },
+      ].each do |option|
+        Hmis::Ce::ReferralDeclineReason.find_or_create_by!(
+          key: option[:code],
+          data_source: @data_source,
+        ) do |reason|
+          reason.name = option[:label]
+        end
+      end
     end
 
     def build_benefits_referral_workflow
@@ -92,12 +103,19 @@ module CeWorkflows::Ph
       send_referral_task.save!
 
       # Step 2: Provider decision (accept/deny with note)
-      provider_decision_task = Hmis::WorkflowDefinition::UserTask.find_or_create_by!(
+      provider_decision_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
         name: 'Provider Decision',
         form_definition_identifier: FORMS.fetch(:provider_decision),
         template: template,
         swimlane: provider_swimlane,
       )
+      provider_decision_task.trigger_config = [
+        {
+          event: 'complete_step',
+          message: 'set_referral_decline_reason',
+        },
+      ]
+      provider_decision_task.save!
 
       # Script task: create enrollment if referral is accepted
       create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.find_or_initialize_by(
@@ -112,20 +130,6 @@ module CeWorkflows::Ph
       ]
       create_enrollment_task.save!
 
-      # 3. Script task: set decline reason if referral is declined
-      set_decline_reason_task = Hmis::WorkflowDefinition::ScriptTask.find_or_initialize_by(
-        name: 'Set Decline Reason',
-        template: template,
-      )
-      set_decline_reason_task.trigger_config = [
-        {
-          event: 'complete_step',
-          message: 'set_referral_decline_reason',
-          params: { 'decline_reason_field' => 'decline_reason' },
-        },
-      ]
-      set_decline_reason_task.save!
-
       # Exclusive gateway for decision routing
       decision_gateway = CeWorkflows::Shared::CeBuilderUtils.find_or_create_gateway(template, 'provider_decision')
 
@@ -135,8 +139,7 @@ module CeWorkflows::Ph
       provider_decision_task.connect_to!(decision_gateway) unless provider_decision_task.outflows.exists?(target_node: decision_gateway)
       decision_gateway.connect_to!(create_enrollment_task, condition: 'decision = 1') unless decision_gateway.outflows.exists?(target_node: create_enrollment_task)
       create_enrollment_task.connect_to!(accept_event) unless create_enrollment_task.outflows.exists?(target_node: accept_event)
-      decision_gateway.connect_to!(set_decline_reason_task) unless decision_gateway.outflows.exists?(target_node: set_decline_reason_task)
-      set_decline_reason_task.connect_to!(decline_event) unless set_decline_reason_task.outflows.exists?(target_node: decline_event)
+      decision_gateway.connect_to!(decline_event) unless decision_gateway.outflows.exists?(target_node: decline_event)
 
       template.validate!
       template
