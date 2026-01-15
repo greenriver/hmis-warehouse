@@ -50,9 +50,25 @@ module Health
         file_extension,
       )
 
-      return if result[:valid]
+      unless result[:valid]
+        errors.add(:file, result[:error])
+        return
+      end
 
-      errors.add(:file, result[:error])
+      # Additional CSV structure validation for text/CSV files
+      return unless file_extension == '.csv'
+
+      # Ensure content has CSV structure (commas and newlines)
+      unless content.include?(',') && content.include?("\n")
+        errors.add(:file, 'must be a valid CSV file with comma-separated values')
+        return
+      end
+
+      # Check for obvious non-CSV content like HTML tags
+      return unless content.include?('<html>') || content.include?('<!DOCTYPE')
+
+      errors.add(:file, 'appears to be HTML, not a CSV file')
+      return
     end
 
     # Alias name to file attribute for compatibility

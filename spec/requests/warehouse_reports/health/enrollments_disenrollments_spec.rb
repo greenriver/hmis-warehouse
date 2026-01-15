@@ -101,19 +101,26 @@ RSpec.describe 'Enrollment Reasons file uploads', type: :request do
       expect(enrollment_reasons.content[0..1]).to eq('PK')
     end
 
-    it 'handles invalid file content' do
-      expect do
-        # Upload HTML file
-        post warehouse_reports_health_enrollments_disenrollments_path, params: {
-          report: {
-            file: fixture_file_upload(invalid_html_path, 'text/csv'),
-            acos: [aco.id],
-            start_month: Date.current.month,
-            end_month: Date.current.month,
-            effective_date: Date.current,
-          },
-        }
-      end.to raise_error(Zip::Error)
+    it 'rejects invalid file content' do
+      # With the new validation, invalid files are caught early with validation errors
+      # and not saved to the database (which is better!)
+      initial_count = Health::EnrollmentReasons.count
+
+      post warehouse_reports_health_enrollments_disenrollments_path, params: {
+        report: {
+          file: fixture_file_upload(invalid_html_path, 'text/csv'),
+          acos: [aco.id],
+          start_month: Date.current.month,
+          end_month: Date.current.month,
+          effective_date: Date.current,
+        },
+      }
+
+      # The upload should be rejected and no record created
+      expect(Health::EnrollmentReasons.count).to eq(initial_count)
+      expect(flash[:error]).to be_present
+      expect(flash[:error]).to include('File upload failed')
+      expect(response).to have_http_status(:success) # renders :index
     end
   end
 end

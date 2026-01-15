@@ -32,11 +32,20 @@ module WarehouseReports::Health
     def create
       file = params.dig(:report, :file)
       if file.present?
-        @enrollment_reasons = Health::EnrollmentReasons.create(
+        @enrollment_reasons = Health::EnrollmentReasons.new(
           file: file.original_filename,
           content: file.read,
           content_type: file.content_type,
         )
+
+        # Validate the file before saving
+        unless @enrollment_reasons.valid?
+          flash[:error] = "File upload failed: #{@enrollment_reasons.errors.full_messages.join(', ')}"
+          render :index
+          return
+        end
+
+        @enrollment_reasons.save!
       end
 
       if @acos.blank?
