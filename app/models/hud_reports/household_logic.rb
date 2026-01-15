@@ -2,7 +2,15 @@
 
 module HudReports
   # Shared business logic for HUD household calculations.
-  # Extracts pure logic from concerns and builders to ensure consistency across the warehouse.
+  #
+  # This class centralizes pure logic for household-level attributes required by HUD reports
+  # (APR, CAPER, SPM, PIT). It ensures consistency across the warehouse by strictly adhering
+  # to the HUD HMIS Reporting Glossary and specific APR/CAPER programming specifications.
+  #
+  # Key logic areas:
+  # - Chronic Status Inheritance: Business rules for how children and households inherit status from adults.
+  # - Housing Move-in Inheritance: Rules for cascading move-in dates from the HoH to other members.
+  # - Youth/Parenting Youth: Specific APR definitions for youth-led households (often differing from general DQ rules).
   class HouseholdLogic
     class << self
       def calculate_household_type(ages)
@@ -23,10 +31,13 @@ module HudReports
         end
       end
 
+      # Determines chronic status for a member or PIT snapshot based on household inheritance rules.
+      # Per HUD Glossary: Status is determined at the earliest project start for the household.
+      # If ANY adult or minor HoH is CH, the entire household (and children) are considered CH.
       def calculate_chronic_status(hh_members, current_member, hoh, chronic_status_key: :chronic_status)
         return nil if hh_members.empty?
 
-        # When no specific member is provided (PIT), use the HoH as the current_member
+        # When no specific member is provided (PIT), use the HoH as the anchor for calculation
         current_member ||= hoh
         return nil unless current_member
 
@@ -34,10 +45,10 @@ module HudReports
         hoh_entry_date = hoh&.[](:entry_date)
         detail_key = chronic_status_key == :pit_chronic_status ? :pit_chronic_detail : :chronic_detail
 
-        # HoH if they are chronically homeless
+        # Rule: Inheritance from HoH if they are CH and entered together
         return { status: true, detail: hoh[detail_key] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
 
-        # If the HoH is not chronically homeless, check if any other adult is
+        # Rule: If the HoH is not chronically homeless, check if any other adult is
         chronic_adult = hh_members.detect do |hm|
           next false unless hm[:age]
 
@@ -48,16 +59,17 @@ module HudReports
 
         return { status: true, detail: chronic_adult[detail_key] } if chronic_adult
 
-        # if no adults are either yes or no, use self for adults
+        # Rule: Adults use their own status if no other adult in the household is CH
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if current_member[:age] && current_member[:age] >= 18
 
-        # if the data is bad and we don't have an HoH, use our own record
+        # Fallback: Use self if HoH is missing (data quality issue)
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if hoh.blank?
 
-        # and the HoH enrollment for children if HoH status is unknown
+        # Rule: Children inherit HoH status if HoH or Child has indeterminate (DK/R/Missing) data.
+        # This ensures children aren't penalized for missing data when an HoH's status might be known or indeterminate.
         return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if hoh[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
-        # if we have an indeterminate response for the child, use the hoh
+        # Rule: if we have an indeterminate response for the child, use the hoh
         return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if current_member[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
         { status: current_member[chronic_status_key], detail: current_member[detail_key] }
@@ -114,6 +126,8 @@ module HudReports
         nil
       end
 
+      # APR Q27: Parenting Youth.
+      # A youth household (all members 0-24) where the youth (12-24) has children.
       def calculate_is_parenting_youth(member, hh_members)
         age = member[:age]
         adult = age && age >= 18
@@ -125,8 +139,9 @@ module HudReports
       end
 
       def any_youth_children?(hh_members)
-        # Per HUD legacy logic, "children" in the context of youth households include anyone up to age 24
-        # if they have RelationshipToHoH == 2.
+        # Nuance: APR Q27 considers "children" to be anyone with RelationshipToHoH == 2
+        # who is age 0-24, provided the entire household qualifies as a Youth Household.
+        # This differs from general DQ reports which strictly use age < 18.
         hh_members.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] <= 24 }
       end
     end
