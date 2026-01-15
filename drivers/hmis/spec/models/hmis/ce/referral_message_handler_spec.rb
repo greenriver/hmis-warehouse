@@ -65,28 +65,25 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
 
   describe 'workflow with side effect that sets a decline reason' do
     let!(:decline_reason) { create(:ce_referral_decline_reason, data_source: ds1, key: 'user_error') }
+    let!(:decline_reason2) { create(:ce_referral_decline_reason, data_source: ds1, key: 'client_not_interested') }
 
-    let!(:set_decline_reason_script_task) do
+    let!(:provider_acceptance_task) do
       create(
-        :hmis_workflow_definition_script_task,
+        :hmis_workflow_definition_user_task,
         template: workflow_template,
-        name: 'Set Decline Reason',
+        name: 'Provider Acceptance',
+        swimlane: provider_swimlane,
+        form_definition: ce_step_definition,
         trigger_config: [
           {
             event: 'complete_step',
             message: 'set_referral_decline_reason',
-            params: { 'decline_reason_field': 'decline_reason' },
           },
         ],
       )
     end
 
     before do
-      # Modify the workflow from ce_spec_helper to set the decline reason before rejection
-      acceptance_gateway.outflows.find_by(target_node: reject_referral).destroy!
-      acceptance_gateway.connect_to!(set_decline_reason_script_task)
-      set_decline_reason_script_task.connect_to!(reject_referral)
-
       engine.start_workflow!(user: hmis_user)
 
       # Complete the initial step to reach the Provider Acceptance step
@@ -99,6 +96,7 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
       expect do
         provider_acceptance = engine.active_steps.sole
         engine.start_step!(provider_acceptance, user: hmis_user)
+        provider_acceptance.form_definition = ce_step_definition # this is set in the mutation, not the engine complete_step!
         engine.complete_step!(provider_acceptance, user: hmis_user, submitted_values: { 'client_accepted' => '0', 'decline_reason' => 'user_error' })
         referral.reload
       end.to change(referral, :decline_reason).to(decline_reason)
@@ -108,6 +106,7 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
       expect do
         provider_acceptance = engine.active_steps.sole
         engine.start_step!(provider_acceptance, user: hmis_user)
+        provider_acceptance.form_definition = ce_step_definition # this is set in the mutation, not the engine complete_step!
         engine.complete_step!(provider_acceptance, user: hmis_user, submitted_values: { 'client_accepted' => '1' })
         referral.reload
       end.not_to change(referral, :decline_reason)

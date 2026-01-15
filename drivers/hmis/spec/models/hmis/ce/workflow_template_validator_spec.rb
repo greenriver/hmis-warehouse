@@ -178,7 +178,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
 
       it 'is not valid' do
         template.validate
-        expect(template.errors[:base]).to include("Decline reason form '#{step_def.identifier}' must collect decline reason on an item with link_id '#{Hmis::Ce::ReferralMessageHandler::DECLINE_REASON_LINK_ID}'")
+        expect(template.errors[:base]).to include("Decline reason form '#{step_def.identifier}' must collect decline reason on a choice item with link_id '#{Hmis::Ce::ReferralMessageHandler::DECLINE_REASON_LINK_ID}'")
       end
     end
 

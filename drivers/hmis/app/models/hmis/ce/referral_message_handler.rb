@@ -133,6 +133,8 @@ module Hmis::Ce
 
     def set_referral_decline_reason(message) # rubocop:disable Naming/AccessorMethodName
       form_definition = message.step.form_definition
+
+      raise "Trying to set decline reason for referral #{referral.id}, step #{message.step.id}, but form definition is nil. This probably indicates a mistake in the workflow configuration." unless form_definition.present?
       raise "Trying to set decline reason for referral #{referral.id}, step #{message.step.id}, but form definition '#{form_definition.identifier}' doesn't collect it. This probably indicates a mistake in the workflow configuration. The form must collect decline reason on an item with link_id '#{DECLINE_REASON_LINK_ID}'" unless form_definition.link_id_item_hash[DECLINE_REASON_LINK_ID].present?
 
       decline_reason_key = message.step&.submitted_values&.fetch(DECLINE_REASON_LINK_ID, nil)
