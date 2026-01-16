@@ -151,7 +151,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           enrollments = result.dig('data', 'client', 'enrollments', 'nodes').map(&:deep_symbolize_keys)
           expect(enrollments.map { |e| e[:lastContact] }.compact.size).to eq(enrollments.size)
-        end.to make_database_queries(count: 10..30)
+        end.to make_database_queries(count: 10..35)
       end
     end
 

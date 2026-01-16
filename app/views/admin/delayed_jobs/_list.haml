@@ -1,0 +1,20 @@
+.card.table-responsive
+  %table.table(style='table-layout: fixed')
+    %colgroup
+      %col(style='width: 200px')
+      %col(style='width: 130px')
+      %col(style='width: 70px')
+      %col
+      %col(style='width: 100px')
+    %thead
+      %th Job
+      %th Queue
+      %th Priority
+      - if can_manage_config?
+        %th Last error
+      %th Actions
+    %tbody
+      - user_ids = list.map { |job| JobDetail.new(job).user_id }.reject { |id| id == 'unknown' }.uniq
+      - users = User.where(id: user_ids).map { |u| [u.id, u.name_with_email] }.to_h
+      - list.each do |job|
+        = render 'row', job: job, users: users
