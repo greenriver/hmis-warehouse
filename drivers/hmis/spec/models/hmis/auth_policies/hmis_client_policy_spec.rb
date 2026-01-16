@@ -84,7 +84,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       expect(policy.can_merge_clients?).to be true
     end
 
-    it 'denies can_merge_any_clients? if user lacks can_view_clients everywhere' do
+    it 'denies can_merge_clients? if user lacks can_view_clients everywhere' do
       create_access_control(user, project, with_permission: [:can_view_clients])
       expect(policy.can_merge_clients?).to be false
     end
