@@ -15,15 +15,15 @@ RSpec.describe Hmis::AuthPolicies::CeAdminPolicy, type: :model do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
   end
 
-  describe '#can_manage_contacts?' do
+  describe '#can_manage_ce_default_contacts?' do
     it 'returns true when user has can_administrate_coordinated_entry permission' do
-      expect(policy.can_manage_contacts?).to be true
+      expect(policy.can_manage_ce_default_contacts?).to be true
     end
 
     it 'returns false when user lacks permission' do
       remove_permissions(access_control, :can_administrate_coordinated_entry)
       create_access_control(user2, data_source, with_permission: [:can_administrate_coordinated_entry])
-      expect(policy.can_manage_contacts?).to be false
+      expect(policy.can_manage_ce_default_contacts?).to be false
     end
 
     context 'in multi-hmis installation' do
@@ -32,7 +32,7 @@ RSpec.describe Hmis::AuthPolicies::CeAdminPolicy, type: :model do
       let!(:access_control) { create_access_control(user, ds2, with_permission: [:can_administrate_coordinated_entry]) }
 
       it 'returns false when user only has permission in a different data source' do
-        expect(policy.can_manage_contacts?).to be false
+        expect(policy.can_manage_ce_default_contacts?).to be false
       end
     end
 
@@ -41,7 +41,7 @@ RSpec.describe Hmis::AuthPolicies::CeAdminPolicy, type: :model do
       let!(:access_control) { create_access_control(user, project, with_permission: [:can_administrate_coordinated_entry]) }
 
       it 'returns false' do
-        expect(policy.can_manage_contacts?).to be false
+        expect(policy.can_manage_ce_default_contacts?).to be false
       end
     end
 
@@ -54,7 +54,7 @@ RSpec.describe Hmis::AuthPolicies::CeAdminPolicy, type: :model do
 
       it 'makes a reasonable number of queries' do
         expect do
-          expect(policy.can_manage_contacts?).to be true
+          expect(policy.can_manage_ce_default_contacts?).to be true
         end.to make_database_queries(count: 0..3)
       end
     end

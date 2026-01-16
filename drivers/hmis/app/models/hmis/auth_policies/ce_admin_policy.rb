@@ -9,7 +9,7 @@
 # Global Coordinated Entry administration policy (not tied to a specific project)
 class Hmis::AuthPolicies::CeAdminPolicy < Hmis::AuthPolicies::BasePolicy
   # Whether the user can manage CE default contacts in their data source.
-  def can_manage_contacts?
+  def can_manage_ce_default_contacts?
     data_source_permissions.include?(:can_administrate_coordinated_entry)
   end
 

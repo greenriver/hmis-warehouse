@@ -30,7 +30,7 @@ module Mutations
         else
           # If no project_id, it's a global assignment. Owner is the current user's HMIS data source
           owner = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
-          access_denied! unless policy_for(owner, policy_type: :ce_admin).can_manage_contacts?
+          access_denied! unless policy_for(owner, policy_type: :ce_admin).can_manage_ce_default_contacts?
 
           users = users.can_perform_own_referral_tasks.or(users.can_perform_any_referral_tasks)
         end
