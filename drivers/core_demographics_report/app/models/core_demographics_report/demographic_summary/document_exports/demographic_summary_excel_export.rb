@@ -81,6 +81,8 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
           'Age Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
           'Gender/Age' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
           'Gender Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Sex/Age' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Sex Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
           'Race by Ethnicity' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
           'Race Overall' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
           'Ethnicity Overall' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
