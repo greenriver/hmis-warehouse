@@ -96,6 +96,8 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
 
   def source_project_permissions
     project_id = context.referral_source_project_id(referral.id)
+    return [] if project_id.blank? # it's possible that the referral doesn't have a source project
+
     context.project_permissions(project_id)
   end
 
