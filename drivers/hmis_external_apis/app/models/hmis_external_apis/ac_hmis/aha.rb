@@ -63,7 +63,7 @@ module HmisExternalApis::AcHmis
       clients = [client, *client.destination_client&.source_clients&.to_a]
       mci_uniq_ids = clients.compact.uniq.filter_map do |c|
         c.ac_hmis_mci_unique_id&.value
-      end.uniq
+      end.uniq.sort
 
       raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
