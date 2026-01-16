@@ -13,15 +13,17 @@ This pattern is inspired by gems like Pundit but is custom-built for our specifi
 
 **Example Policy:**
 ```ruby
-class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
-  def can_view?
-    return true if project_permissions.include?(:can_view_referrals)
-    # Additional rules...
-  end
+class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
+  class Instance < Hmis::AuthPolicies::BasePolicy
+    def can_view?
+      return true if project_permissions.include?(:can_view_referrals)
+      # Additional rules...
+    end
 
-  def can_perform?(step:)
-    return true if project_permissions.include?(:can_perform_any_referral_tasks)
-    # Check if assigned to this specific step...
+    def can_perform?(step:)
+      return true if project_permissions.include?(:can_perform_any_referral_tasks)
+      # Check if assigned to this specific step...
+    end
   end
 end
 ```
@@ -114,14 +116,24 @@ end
 1. **Create the policy class:**
 ```ruby
 # drivers/hmis/app/models/hmis/auth_policies/my_resource_policy.rb
-class Hmis::AuthPolicies::MyResourcePolicy < Hmis::AuthPolicies::BasePolicy
-  def can_view?
-    # your logic here
+class Hmis::AuthPolicies::MyResourcePolicy < Hmis::AuthPolicies::ResourcePolicy
+  class Instance < Hmis::AuthPolicies::BasePolicy
+    def can_view?
+      # your logic here
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::MyResource)
   end
 
-  protected
+  # Optional: add a Global policy if you need class-level checks like:
+  # policy_for(Hmis::MyResource, policy_type: :my_resource).can_index?
+  class Global < Hmis::AuthPolicies::BasePolicy
+    protected
 
-  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::MyResource)
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::MyResource)
+  end
 end
 ```
 
