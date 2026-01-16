@@ -79,6 +79,6 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
 
     decline_reasons = Hmis::Ce::ReferralDeclineReason.where(key: decline_reason_keys)
     missing_decline_reasons = decline_reason_keys - decline_reasons.pluck(:key).to_set
-    record.errors.add(:base, "The following decline reasons are not defined: #{missing_decline_reasons.join(', ')}") if missing_decline_reasons.any?
+    record.errors.add(:base, "The following decline reasons are collected by the form, but not defined in the database: #{missing_decline_reasons.join(', ')}") if missing_decline_reasons.any?
   end
 end

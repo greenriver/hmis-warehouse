@@ -185,7 +185,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
     context 'when the form collects decline reason but the decline reason is not in the database' do
       it 'is not valid' do
         template.validate
-        expect(template.errors[:base]).to include('The following decline reasons are not defined: user_error, client_not_interested')
+        expect(template.errors[:base]).to include('The following decline reasons are collected by the form, but not defined in the database: user_error, client_not_interested')
       end
     end
 
