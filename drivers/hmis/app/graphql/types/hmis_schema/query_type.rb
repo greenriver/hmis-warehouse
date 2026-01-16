@@ -656,9 +656,9 @@ module Types
 
     field :global_ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Global Coordinated Entry default contacts, grouped by swimlane'
     def global_ce_default_contacts
-      access_denied! unless policy_for(GrdaWarehouse::DataSource, policy_type: :ce_admin).can_manage_contacts?
-
       data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
+      access_denied! unless policy_for(data_source, policy_type: :ce_admin).can_manage_contacts?
+
       all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
         where(owner: data_source).
         includes(:user, swimlane: :template).

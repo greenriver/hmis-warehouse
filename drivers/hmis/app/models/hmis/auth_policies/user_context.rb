@@ -39,6 +39,16 @@ class Hmis::AuthPolicies::UserContext
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
+  # Data source permissions: Permissions the user has granted on a collection that includes the whole data source.
+  def data_source_permissions
+    access_group_ids = ::Hmis::GroupViewableEntity.
+      where(entity_type: GrdaWarehouse::DataSource.sti_name).
+      where(entity_id: user.hmis_data_source_id).
+      pluck(:collection_id)
+
+    permission_loader.for_access_group_ids(access_group_ids)
+  end
+
   def preload_project_dependencies(project_ids)
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
