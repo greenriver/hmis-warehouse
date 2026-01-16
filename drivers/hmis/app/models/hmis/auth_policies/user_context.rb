@@ -38,6 +38,7 @@ class Hmis::AuthPolicies::UserContext
 
   # Project-specific permissions
   def project_permissions(project_id)
+    return EMPTY_SET if project_id.blank?
     return EMPTY_SET unless project_belongs_to_current_data_source?(project_id)
 
     access_group_ids = project_access_group_loader.get(project_id)
@@ -117,9 +118,5 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def ce_referral_source_project_loader
     Hmis::AuthPolicies::ContextLoaders::CeReferralSourceProjectLoader.new
-  end
-
-  memoize def client_project_loader
-    Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
   end
 end
