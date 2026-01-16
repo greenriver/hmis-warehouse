@@ -280,6 +280,13 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
 
     context 'for project contacts' do
       let(:input) { project_contacts_input }
+      let!(:access_control) do # even if access is granted at the project, not data source level
+        create_access_control(
+          hmis_user,
+          p1,
+          with_permission: [:can_view_clients, :can_view_project, :can_administrate_coordinated_entry],
+        )
+      end
       it_behaves_like 'requires can_administrate_coordinated_entry permission'
     end
   end
