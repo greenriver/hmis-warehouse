@@ -562,9 +562,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:ac1) { create_access_control(admin_user, project, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
     let!(:user_who_can_perform_own_tasks) { create(:hmis_user, data_source: ds1) }
     let!(:ac2) { create_access_control(user_who_can_perform_own_tasks, project, with_permission: [:can_perform_own_referral_tasks]) }
+
+    # Cruft: inactive user is not returned
     let!(:inactive_user_with_permission) { create(:hmis_user, data_source: ds1, active: false) }
     let!(:ac3) { create_access_control(inactive_user_with_permission, project, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+
+    # Cruft: user with no relevant permission is not returned
     let!(:user_without_permission) { create(:hmis_user, data_source: ds1) }
+
+    # Cruft: user with permission in another data source is not returned
+    let!(:other_ds) { create(:hmis_data_source) }
+    let!(:other_ds_user) { create(:hmis_user, data_source: other_ds) }
+    let!(:other_ds_access_control) { create_access_control(other_ds_user, other_ds, with_permission: [:can_perform_any_referral_tasks]) }
 
     before(:each) do
       allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -572,7 +581,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns eligible users and not ineligible users' do
       response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', project_id: project.id.to_s) { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       options = result.dig('data', 'pickList')
       expect(options).to contain_exactly(
         a_hash_including('code' => hmis_user.id.to_s),
@@ -582,11 +591,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns all users who can perform any tasks when no project is passed' do
       response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS') { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       options = result.dig('data', 'pickList')
       expect(options).to contain_exactly(
         a_hash_including('code' => hmis_user.id.to_s),
-        a_hash_including('code' => user_who_can_perform_own_tasks.id.to_s),
       )
     end
   end

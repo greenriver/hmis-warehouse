@@ -107,6 +107,23 @@ class Hmis::User < ApplicationRecord
     end
   end
 
+  scope :can_perform_referral_tasks_in_project, ->(project) do
+    can_perform_any_referral_tasks_for(project).or(can_perform_own_referral_tasks_for(project))
+  end
+
+  scope :can_be_global_ce_default_contact, ->(data_source_id) do
+    # todo @martha - think about whether maybe we DO know who is a CE admin, maybe we remove the "contains_any_entity_in_data_source" and just check for the permission on the data source directly?
+    data_source = GrdaWarehouse::DataSource.find(data_source_id)
+
+    user_ids = Hmis::AccessControl.joins(:role, :access_group, user_group: :users).
+      preload(user_group: :user_group_members).
+      merge(Hmis::Role.where(can_perform_any_referral_tasks: true)).
+      merge(Hmis::AccessGroup.contains_any_entity_in_data_source(data_source)). # Check for access groups that grant permission to any entity in the data source
+      select(Hmis::User.arel_table[:id]) # select ids to ensure the returned scope doesn't include complexity from the join
+
+    where(id: user_ids)
+  end
+
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
   end

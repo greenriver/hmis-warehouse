@@ -26,13 +26,14 @@ module Mutations
 
           swimlanes = swimlanes.joins(:template).
             merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user).used_in_projects([owner.id]))
-          users = users.can_perform_own_referral_tasks_for(owner).or(users.can_perform_any_referral_tasks_for(owner))
+          users = users.can_perform_referral_tasks_in_project(owner) # todo @martha - consider adding policy-based checks here?
         else
           # If no project_id, it's a global assignment. Owner is the current user's HMIS data source
           owner = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
           access_denied! unless policy_for(owner, policy_type: :ce_admin).can_manage_ce_default_contacts?
 
-          users = users.can_perform_own_referral_tasks.or(users.can_perform_any_referral_tasks)
+          # todo @martha - needs spec check
+          users = users.can_be_global_ce_default_contact(owner.id)
         end
 
         raise "Swimlane(s) not found: #{swimlane_ids.join(', ')}" unless swimlanes.size == swimlane_ids.size
