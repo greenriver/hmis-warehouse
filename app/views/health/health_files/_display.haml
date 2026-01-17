@@ -32,7 +32,9 @@
           $('.j-existing-file-form-group').fadeOut('slow', function() {
             $(this).remove();
             $('.j-existing-file__form').show()
-            $('.j-existing-file__form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
+            // Use name$= (ends with) selector to match file_cache field across different parent form names
+            // (form[health_file_attributes][file_cache], careplan[health_file_attributes][file_cache], etc.)
+            $('.j-existing-file__form').find('input[name$="[file_cache]"]').val('');
           });
         });
       });

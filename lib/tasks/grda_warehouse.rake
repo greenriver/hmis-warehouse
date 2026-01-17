@@ -408,6 +408,11 @@ namespace :grda_warehouse do
       PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
     end
 
+    # Purge unattached Active Storage blobs older than 2 days
+    safely_execute do
+      PurgeUnattachedBlobsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later if DateTime.current.hour == 5
+    end
+
     # Run CSG Engage export if ready
     MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
 
