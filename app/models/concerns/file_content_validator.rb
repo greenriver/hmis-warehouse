@@ -22,33 +22,27 @@ module FileContentValidator
       end
 
       # Write content to temporary file for Marcel to analyze
-      require 'tempfile'
       temp_file = Tempfile.new(['upload', file_extension])
       begin
         temp_file.binmode
         temp_file.write(file_content)
         temp_file.rewind
 
-        # Use Marcel to detect MIME type from the actual file content (without filename)
-        detected_type = Marcel::MimeType.for(temp_file.path)
-
-        # Marcel correctly detects XLSX files as application/zip since they are ZIP archives
-        # We should accept this and normalize it to the expected type
+        # Use Marcel to detect MIME type from content, with a filename hint.
+        # Some formats (notably XLSX) are ZIP containers, and Marcel may otherwise return application/zip.
+        detected_type = Marcel::MimeType.for(temp_file, name: "upload#{file_extension}")
         detected_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' if detected_type == 'application/zip' && file_extension.downcase == '.xlsx'
 
-        # If Marcel can't detect the type from content, it returns application/octet-stream
-        # In that case, we need to validate the magic bytes manually for security
-        if detected_type == 'application/octet-stream'
-          # Validate magic bytes based on file extension
-          unless valid_magic_bytes?(file_content, file_extension)
-            return {
-              valid: false,
-              error: "File content does not match the expected format for #{file_extension.sub('.', '').upcase} files. Please upload a valid #{file_extension.sub('.', '').upcase} file.",
-            }
-          end
-          # If magic bytes are valid, we can trust the file type
-          detected_type = infer_type_from_extension(file_extension)
+        # Marcel can be influenced by filename/extension hints; always verify the bytes match the extension.
+        unless valid_magic_bytes?(file_content, file_extension)
+          return {
+            valid: false,
+            error: "File content does not match the expected format for #{file_extension.sub('.', '').upcase} files. Please upload a valid #{file_extension.sub('.', '').upcase} file.",
+          }
         end
+
+        # If Marcel can't detect the type from content, fall back to the extension after byte validation.
+        detected_type = infer_type_from_extension(file_extension) if ['application/octet-stream', 'text/plain'].include?(detected_type)
 
         unless allowed_types.include?(detected_type)
           return {
@@ -80,12 +74,23 @@ module FileContentValidator
     def valid_magic_bytes?(file_content, file_extension)
       case file_extension.downcase
       when '.csv'
+        # CSV has no magic bytes; validate by parsing a small text sample.
+        sample = file_content.byteslice(0, 256.kilobytes)
+        # CSV files should not contain null bytes
+        return false if sample.include?("\x00")
+
+        text = sample.sub(/\A\xEF\xBB\xBF/, '').encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
         # CSV files should contain commas and newlines
-        file_content.include?(',') && file_content.include?("\n")
+        rows = CSV.new(StringIO.new(text), col_sep: ',', liberal_parsing: true).take(5)
+        # CSV files should contain at least two columns and the column widths should be consistent
+        widths = rows.map(&:length).reject(&:zero?)
+        widths.max.to_i >= 2 && widths.uniq.size <= 2
       when '.xlsx'
         # XLSX files start with PK\x03\x04 (ZIP format)
         # Use proper binary string: [80, 75, 3, 4].pack('C*')
-        file_content.start_with?([80, 75, 3, 4].pack('C*'))
+        file_content.start_with?([80, 75, 3, 4].pack('C*')) &&
+          file_content.include?('[Content_Types].xml') &&
+          file_content.include?('xl/workbook.xml')
       when '.xls'
         # XLS files have specific Excel magic bytes
         # Use proper binary string: [208, 207, 17, 224, 161, 177, 26, 225].pack('C*')
