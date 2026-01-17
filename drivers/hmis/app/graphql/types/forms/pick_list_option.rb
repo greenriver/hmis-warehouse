@@ -248,7 +248,6 @@ module Types
         # If project is not passed, return users who can be global CE default contacts.
         # This is used by the global Default Contacts dropdowns.
         user_scope = user_scope.can_be_global_ce_default_contact(user.hmis_data_source_id)
-        # todo @martha - add policy here, maybe?
       end
 
       user_scope.

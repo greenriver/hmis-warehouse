@@ -56,13 +56,6 @@ class Hmis::AccessGroup < ApplicationRecord
     where(id: collection_ids)
   end
 
-  scope :contains_any_entity_in_data_source, ->(data_source) do
-    collection_ids = Hmis::GroupViewableEntity.
-      includes_any_entity_in_data_source(data_source).
-      pluck(:collection_id)
-    where(id: collection_ids)
-  end
-
   def self.text_search(text)
     return none unless text.present?
 
