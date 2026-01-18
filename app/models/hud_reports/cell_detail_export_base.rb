@@ -18,7 +18,8 @@ module HudReports
   # - report_type_display: Short acronym for the report (e.g., 'SPM', 'APR')
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
-      (report.user_id == user_id || user.can_view_all_hud_reports?) && user.can_view_any_reports?
+      # User must have HUD report permissions AND either own the report or have view-all permission
+      user.can_view_hud_reports? && (report.user_id == user_id || user.can_view_all_hud_reports?)
     end
 
     def perform
