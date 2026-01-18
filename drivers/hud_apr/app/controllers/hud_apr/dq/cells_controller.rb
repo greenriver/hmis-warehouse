@@ -9,8 +9,6 @@
 module HudApr::Dq
   class CellsController < HudApr::CellsController
     include DqConcern
-    before_action :set_report
-    before_action :set_question
 
     def report_param_name
       :dq_id

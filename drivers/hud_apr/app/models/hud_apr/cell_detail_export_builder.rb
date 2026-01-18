@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 module HudApr
+  # Builds Excel exports for APR, CAPER, CeAPR, and DQ report cell details.
   class CellDetailExportBuilder < ::HudReports::CellDetailExportBuilderBase
     def initialize(user:, report:, question:, cell_id:, table:, report_type:)
       super(user: user, report: report, measure_id: question, cell_id: cell_id, table: table)
@@ -37,22 +38,6 @@ module HudApr
       raise ArgumentError, "Unsupported version #{options_version} for #{@report_type}" unless klass
 
       klass
-    end
-
-    def scoped_clients(generator_class, question, _cell)
-      generator_class.client_class(question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell_id)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
-    end
-
-    def normalized_headers(headers)
-      generator_class = generator_for_report
-      final_headers = generator_class.client_class(@measure_id).detail_headers.transform_keys(&:to_s)
-      return final_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-
-      final_headers.except(*generator_class.pii_columns)
     end
   end
 end

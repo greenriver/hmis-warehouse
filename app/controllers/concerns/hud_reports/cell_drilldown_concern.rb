@@ -7,23 +7,28 @@
 # frozen_string_literal: true
 
 module HudReports
-  # Subclasses must implement:
-  # - base_scope: Returns the ActiveRecord relation of clients for the cell
-  # - export_class_name (e.g., 'HudSpmReport::DocumentExports::CellDetailExport')
-  # - export_job_class
-  # - export_query_params: Hash of params for the export job
-  # - fallback_path: Redirect location after XLSX export is queued
-  # - path_for_cell_without_search: Redirect location for invalid search queries
-  # - path_for_search_queries: Helper method used in views for the search form
+  # This Concern provides standardized behavior for HUD report cell drill-down views.
+  # It handles HTML display with pagination and XLSX export coordination.
   #
-  # Subclasses must set these instance variables in `set_cell_variables`:
-  # - @report: The report instance (required for crumbs and search forms)
-  # - @generator: The report's generator instance
-  # - @question or @measure_id: The specific report question/measure being viewed
-  # - @cell: The specific cell identifier
-  # - @table: The specific table identifier
-  # - @name: The display name for the drill-down
-  # - @headers: Array of column headers for the display table
+  # Subclasses must implement:
+  # - report_param_name: The key in `params` identifying the report (e.g., `:spm_id`)
+  # - export_class_name: The string name of the DocumentExport class for this report
+  # - export_job_class: The class of the ActiveJob that runs the export
+  # - export_query_params: Hash of parameters required by the export job
+  # - fallback_path: Path to redirect to after an export is queued
+  # - path_for_cell_without_search: Path to the cell view without search parameters
+  # - preload_associations(scope): (Optional) Preload associations for the client scope
+  #
+  # The including controller must also provide or inherit:
+  # - set_report: Sets `@report`
+  # - generator: Returns the report generator instance
+  #
+  # This concern sets the following instance variables in `set_cell_variables`:
+  # - @question: The validated question/measure identifier
+  # - @cell: The validated cell identifier
+  # - @table: The validated table identifier
+  # - @name: The display name for the drill-down (via `build_drilldown_name`)
+  # - @headers: The column headers for the results table
   module CellDrilldownConcern
     extend ActiveSupport::Concern
 

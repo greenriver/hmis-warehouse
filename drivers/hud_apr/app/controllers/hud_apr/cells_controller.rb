@@ -7,6 +7,9 @@
 # frozen_string_literal: true
 
 module HudApr
+  # Base controller for APR, CAPER, CeAPR, and DQ report cell drill-down views.
+  # Subclasses specify report-specific paths and identifiers.
+  # Most behavior is inherited from HudReports::CellDrilldownConcern.
   class CellsController < HudApr::QuestionsController
     include ::HudReports::CellDrilldownConcern
     include ApplicationHelper
@@ -15,24 +18,8 @@ module HudApr
     helper_method :export_class_name, :export_query_params,
                   :path_for_search_queries, :path_for_cell_without_search
 
-    private def set_question
-      @question = generator.valid_question_number(params[:question] || params[:question_id])
-    end
-
-    private def set_cell_variables
-      set_question
-      @cell = @report.valid_cell_name(params.require(:id))
-      @table = @report.valid_table_name(params.require(:table))
-      @name = build_drilldown_name
-      @headers = generator.client_class(@question).detail_headers
-    end
-
     private def base_scope
-      generator.client_class(@question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
+      super
     end
 
     private def preload_associations(scope)

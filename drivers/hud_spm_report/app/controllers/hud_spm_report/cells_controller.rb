@@ -7,30 +7,13 @@
 # frozen_string_literal: true
 
 module HudSpmReport
+  # Controller for SPM report cell drill-down views.
+  # Most behavior is inherited from HudReports::CellDrilldownConcern.
   class CellsController < HudSpmReport::BaseController
     include ::HudReports::CellDrilldownConcern
 
     private def report_param_name
       :spm_id
-    end
-
-    private def set_cell_variables
-      params.require(report_param_name)
-      set_report
-
-      @question = generator.valid_question_number params.require(:measure_id)
-      @cell = @report.valid_cell_name params.require(:id)
-      @table = @report.valid_table_name params.require(:table)
-      @name = build_drilldown_name
-      @headers = generator.column_headings(@question)
-    end
-
-    private def base_scope
-      generator.client_scope(@question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
     end
 
     private def preload_associations(scope)

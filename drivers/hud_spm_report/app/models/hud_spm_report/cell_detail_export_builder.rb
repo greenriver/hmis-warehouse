@@ -29,21 +29,5 @@ module HudSpmReport
     def possible_generator_classes
       HudSpmReport::BaseController.new.possible_generator_classes
     end
-
-    def scoped_clients(generator_class, question, cell)
-      generator_class.client_scope(question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
-    end
-
-    def normalized_headers(headers)
-      final_headers = super
-      return final_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-
-      generator_class = generator_for_report
-      final_headers.except(*generator_class.pii_columns)
-    end
   end
 end

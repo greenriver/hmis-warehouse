@@ -7,6 +7,15 @@
 # frozen_string_literal: true
 
 module HudReports
+  # Base DocumentExport model for HUD report cell detail exports.
+  # Handles authorization, execution orchestration, and descriptive title generation.
+  #
+  # Subclasses must implement:
+  # - builder_class: The ExportBuilder class to use
+  # - builder_params: Hash of parameters for the builder
+  #
+  # Subclasses can optionally override:
+  # - report_type_display: Short acronym for the report (e.g., 'SPM', 'APR')
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
       (report.user_id == user_id || user.can_view_all_hud_reports?) && user.can_view_any_reports?

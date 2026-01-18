@@ -337,6 +337,12 @@ module HudReports
       io.string
     end
 
+    # Generates a standardized, readable name for identifying a specific report cell
+    # @param question [String] The question/measure identifier (e.g., 'Measure 1')
+    # @param table [String] The table identifier (e.g., '1a')
+    # @param cell [String] The cell label (e.g., 'B2')
+    # @param prefix [String] The report type/version prefix (e.g., 'SPM FY 2026')
+    # @return [String] A formatted string: "Prefix: Question / Table X / Cell Y"
     def drilldown_name(question:, table:, cell:, prefix:)
       name = "#{prefix}: #{question}"
       name += " / Table #{table}" if table.present?

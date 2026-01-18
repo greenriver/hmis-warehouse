@@ -11,7 +11,10 @@ module HudReports
   #
   # Subclasses must implement:
   # - generator_for_report: returns a generator class (not an instance)
+  #
+  # Subclasses can optionally override:
   # - scoped_clients: returns an ActiveRecord relation of clients for the cell
+  # - normalized_headers: modifies headers before export (e.g., for PII filtering)
   #
   # The generator class must respond to:
   # - valid_question_number(measure_id)
