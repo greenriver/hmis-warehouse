@@ -8,12 +8,22 @@
 
 module HudReports
   # Subclasses must implement:
-  # - report_param_name (e.g., :spm_id, :apr_id)
+  # - base_scope: Returns the ActiveRecord relation of clients for the cell
   # - export_class_name (e.g., 'HudSpmReport::DocumentExports::CellDetailExport')
   # - export_job_class
-  # - fallback_path
-  # - path_for_cell_without_search
-  # - path_for_search_queries
+  # - export_query_params: Hash of params for the export job
+  # - fallback_path: Redirect location after XLSX export is queued
+  # - path_for_cell_without_search: Redirect location for invalid search queries
+  # - path_for_search_queries: Helper method used in views for the search form
+  #
+  # Subclasses must set these instance variables in `set_cell_variables`:
+  # - @report: The report instance (required for crumbs and search forms)
+  # - @generator: The report's generator instance
+  # - @question or @measure_id: The specific report question/measure being viewed
+  # - @cell: The specific cell identifier
+  # - @table: The specific table identifier
+  # - @name: The display name for the drill-down
+  # - @headers: Array of column headers for the display table
   module CellDrilldownConcern
     extend ActiveSupport::Concern
 
@@ -61,12 +71,16 @@ module HudReports
       base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?
     end
 
+    def pagination_limit
+      100
+    end
+
     def render_html_response(scope, filtered: false)
       @filtered_count = scope.count
       @total_count = filtered ? base_scope.count : @filtered_count
 
       scope = preload_associations(scope)
-      @pagy, @clients = pagy(scope, items: 100)
+      @pagy, @clients = pagy(scope, items: pagination_limit)
 
       # Preload only for the current page
       project_ids = @clients.map(&:project_id).compact.uniq
