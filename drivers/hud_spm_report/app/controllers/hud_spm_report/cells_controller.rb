@@ -20,8 +20,8 @@ module HudSpmReport
 
       @question = generator.valid_question_number params.require(:measure_id)
       @cell = @report.valid_cell_name params.require(:id)
-      @table = params.require(:table)
-      @name = "#{generator.file_prefix} #{@question} #{@cell}"
+      @table = @report.valid_table_name params.require(:table)
+      @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
       @headers = generator.column_headings(@question)
     end
 
