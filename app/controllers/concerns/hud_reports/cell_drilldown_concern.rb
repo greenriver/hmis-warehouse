@@ -68,10 +68,13 @@ module HudReports
       @filtered_count = scope.count
       @total_count = filtered ? base_scope.count : @filtered_count
 
-      current_user.policy_context.preload_project_dependencies(scope.pluck_project_ids)
       scope = preload_associations(scope)
-
       @pagy, @clients = pagy(scope, items: 100)
+
+      # Preload only for the current page
+      project_ids = @clients.map(&:project_id).compact.uniq
+      current_user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
+
       render :show
     end
 

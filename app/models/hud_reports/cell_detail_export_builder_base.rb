@@ -62,20 +62,21 @@ module HudReports
           final_headers = normalized_headers(headers)
           sheet.add_row(final_headers.values, style: title)
 
-          # Preload project dependencies before loading clients
-          preload_policies(clients)
+          # Use find_in_batches to avoid loading all clients into memory and to preload policies incrementally
+          clients.find_in_batches do |batch|
+            preload_batch_policies(batch)
 
-          # Use find_each to avoid loading all clients into memory
-          clients.find_each do |client|
-            pii_policy = user.reporting_policy_for_project(
-              project_id: client.project_id,
-              mode: :download,
-            )
+            batch.each do |client|
+              pii_policy = user.reporting_policy_for_project(
+                project_id: client.project_id,
+                mode: :download,
+              )
 
-            row = final_headers.keys.map do |key|
-              client.display_value(key, pii_policy: pii_policy, include_content_tag: false)
+              row = final_headers.keys.map do |key|
+                client.display_value(key, pii_policy: pii_policy, include_content_tag: false)
+              end
+              sheet.add_row(row)
             end
-            sheet.add_row(row)
           end
         end
       end
@@ -90,10 +91,8 @@ module HudReports
       headers.transform_keys(&:to_s)
     end
 
-    def preload_policies(clients)
-      return unless clients.respond_to?(:pluck_project_ids) || clients.model.respond_to?(:pluck_project_ids)
-
-      project_ids = clients.pluck_project_ids.compact
+    def preload_batch_policies(batch)
+      project_ids = batch.map(&:project_id).compact.uniq
       user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
     end
   end
