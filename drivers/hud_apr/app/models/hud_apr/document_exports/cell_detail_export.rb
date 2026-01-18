@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,7 +31,7 @@ module HudApr
       end
 
       def download_title
-        "#{params.fetch('report_type').upcase} Cell Detail – #{params.fetch('question')} #{params.fetch('cell_id')}"
+        "#{params.fetch('report_type').upcase} Cell Detail - #{params.fetch('question')} #{params.fetch('cell_id')}"
       end
 
       private

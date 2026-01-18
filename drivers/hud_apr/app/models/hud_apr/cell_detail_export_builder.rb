@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,15 +39,17 @@ module HudApr
       klass
     end
 
-    def scoped_clients(_generator, _question, _cell)
-      HudApr::Fy2020::AprClient.
+    def scoped_clients(generator, question, _cell)
+      generator.client_class(question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell_id)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+        merge(::HudReports::ReportInstance.where(id: @report.id)).
+        distinct
     end
 
     def normalized_headers(_headers)
-      headers = HudApr::Fy2020::AprClient.detail_headers.transform_keys(&:to_s)
+      generator = generator_for_report
+      headers = generator.client_class(@measure_id).detail_headers.transform_keys(&:to_s)
       return headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       headers.except('first_name', 'last_name', 'dob', 'ssn')

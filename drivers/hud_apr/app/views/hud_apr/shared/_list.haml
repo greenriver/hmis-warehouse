@@ -22,7 +22,7 @@
                   = client[k]
                 %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                   %i.icon-info
-              - elsif k.to_s.starts_with?('hiv_aids') && !can_view_hiv_status?
+              - elsif k.to_s.starts_with?('hiv_aids') && !pii_policy.can_view_hiv_status?
                 %i.light redacted
               - elsif k.to_s == 'personal_id'
                 - value = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)

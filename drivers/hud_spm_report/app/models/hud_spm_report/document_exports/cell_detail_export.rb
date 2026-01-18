@@ -24,7 +24,7 @@ module HudSpmReport
       end
 
       def download_title
-        "SPM Cell Detail – #{params.fetch('measure_id')} #{params.fetch('cell_id')}"
+        "SPM Cell Detail - #{params.fetch('measure_id')} #{params.fetch('cell_id')}"
       end
 
       private

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,14 +24,15 @@ module HudApr
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
       @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
-      @headers = HudApr::Fy2020::AprClient.detail_headers
+      @headers = generator.client_class(@question).detail_headers
     end
 
     private def base_scope
-      HudApr::Fy2020::AprClient.
+      generator.client_class(@question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+        merge(::HudReports::ReportInstance.where(id: @report.id)).
+        distinct
     end
 
     private def preload_associations(scope)

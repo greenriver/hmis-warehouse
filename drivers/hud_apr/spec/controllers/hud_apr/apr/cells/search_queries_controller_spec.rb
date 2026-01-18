@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -79,6 +79,23 @@ RSpec.describe HudApr::Apr::Cells::SearchQueriesController, type: :request do
 
         expect(response).to redirect_to(root_url)
         expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
+      end
+
+      it 'allows access if user has can_view_all_hud_reports permission' do
+        other_user.legacy_roles << create(:role, can_view_all_hud_reports: true)
+        sign_in(other_user)
+
+        expect do
+          post hud_reports_apr_question_cell_search_queries_path(
+            apr_id: report.id,
+            question_id: 'Question 5',
+            cell_id: 'B2',
+            table: '5a',
+            q: search_term,
+          )
+        end.to change(GrdaWarehouse::ClientSearchQuery, :count).by(1)
+
+        expect(response).to be_redirect
       end
     end
   end

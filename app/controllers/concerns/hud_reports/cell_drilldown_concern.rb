@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,18 +7,15 @@
 # frozen_string_literal: true
 
 module HudReports
+  # Subclasses must implement:
+  # - report_param_name (e.g., :spm_id, :apr_id)
+  # - export_class_name (e.g., 'HudSpmReport::DocumentExports::CellDetailExport')
+  # - export_job_class
+  # - fallback_path
+  # - path_for_cell_without_search
+  # - path_for_search_queries
   module CellDrilldownConcern
     extend ActiveSupport::Concern
-
-    included do
-      # Subclasses must implement:
-      # - report_param_name (e.g., :spm_id, :apr_id)
-      # - export_class_name (e.g., 'HudSpmReport::DocumentExports::CellDetailExport')
-      # - export_job_class
-      # - fallback_path
-      # - path_for_cell_without_search
-      # - path_for_search_queries
-    end
 
     def show
       set_cell_variables

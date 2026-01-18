@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,17 +8,14 @@
 
 module HudReports
   module Cells
+    # Subclasses must implement:
+    # - report_param_name
+    # - set_report
+    # - generator (must be available via method or before_action)
+    # - build_search_path(query_id)
+    # - build_cell_path
     module SearchQueriesBehavior
       extend ActiveSupport::Concern
-
-      included do
-        # Subclasses must implement:
-        # - report_param_name
-        # - set_report
-        # - generator (must be available via method or before_action)
-        # - build_search_path(query_id)
-        # - build_cell_path
-      end
 
       def create
         set_report

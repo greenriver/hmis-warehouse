@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,6 +24,23 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
       expect(response).to be_successful
       expect(assigns(:pagy)).to be_present
       expect(assigns(:clients)).to be_a(ActiveRecord::Relation)
+    end
+
+    context 'with unauthorized user' do
+      let(:other_user) { create(:user) }
+
+      it 'denies access to another user\'s report' do
+        sign_in(other_user)
+        get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
+        expect(response).to redirect_to(root_url)
+      end
+
+      it 'allows access if user has can_view_all_hud_reports permission' do
+        other_user.legacy_roles << create(:role, can_view_all_hud_reports: true)
+        sign_in(other_user)
+        get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
+        expect(response).to be_successful
+      end
     end
   end
 
