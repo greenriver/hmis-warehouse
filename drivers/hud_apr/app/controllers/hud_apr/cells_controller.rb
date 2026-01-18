@@ -21,8 +21,8 @@ module HudApr
 
     private def set_cell_variables
       set_question
-      @cell = @report.valid_cell_name(params[:id])
-      @table = @report.valid_table_name(params[:table])
+      @cell = @report.valid_cell_name(params.require(:id))
+      @table = @report.valid_table_name(params.require(:table))
       @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
       @headers = generator.client_class(@question).detail_headers
     end

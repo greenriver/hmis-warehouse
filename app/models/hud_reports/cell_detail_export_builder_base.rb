@@ -7,6 +7,17 @@
 # frozen_string_literal: true
 
 module HudReports
+  # Base class for building Excel exports of HUD report cell details.
+  #
+  # Subclasses must implement:
+  # - generator_for_report: returns a generator class (not an instance)
+  # - scoped_clients: returns an ActiveRecord relation of clients for the cell
+  #
+  # The generator class must respond to:
+  # - valid_question_number(measure_id)
+  # - file_prefix
+  # - column_headings(question_or_measure)
+  # - pii_columns (optional, for filtering PII)
   class CellDetailExportBuilderBase
     require 'axlsx'
 
@@ -21,12 +32,12 @@ module HudReports
     end
 
     def call
-      generator = generator_for_report
-      question_or_measure = generator.valid_question_number(@measure_id)
+      generator_class = generator_for_report
+      question_or_measure = generator_class.valid_question_number(@measure_id)
       cell = @report.valid_cell_name(@cell_id)
-      name = build_name(generator, question_or_measure, cell)
-      headers = generator.column_headings(question_or_measure)
-      clients = scoped_clients(generator, question_or_measure, cell)
+      name = build_name(generator_class, question_or_measure, cell)
+      headers = generator_class.column_headings(question_or_measure)
+      clients = scoped_clients(generator_class, question_or_measure, cell)
       package = build_package(clients, headers, name)
 
       Result.new(
@@ -45,11 +56,11 @@ module HudReports
       raise NotImplementedError
     end
 
-    def build_name(generator, question_or_measure, cell)
-      "#{generator.file_prefix} #{question_or_measure} #{cell}".strip
+    def build_name(generator_class, question_or_measure, cell)
+      "#{generator_class.file_prefix} #{question_or_measure} #{cell}".strip
     end
 
-    def scoped_clients(generator, question_or_measure, cell)
+    def scoped_clients(generator_class, question_or_measure, cell)
       # Subclasses must implement - returns AR relation
       raise NotImplementedError
     end

@@ -15,6 +15,10 @@ module HudSpmReport::Cells
       :spm_id
     end
 
+    private def question_param_name
+      :measure_id
+    end
+
     private def build_search_path(query_id)
       search_hud_reports_spm_measure_cell_path(
         spm_id: @report.id,

@@ -15,6 +15,10 @@ module HudApr::Dq::Cells
       :dq_id
     end
 
+    private def question_param_name
+      :question_id
+    end
+
     private def build_search_path(query_id)
       search_hud_reports_dq_question_cell_path(
         dq_id: @report.id,

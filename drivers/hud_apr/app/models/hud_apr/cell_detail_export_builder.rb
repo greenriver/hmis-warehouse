@@ -39,20 +39,20 @@ module HudApr
       klass
     end
 
-    def scoped_clients(generator, question, _cell)
-      generator.client_class(question).
+    def scoped_clients(generator_class, question, _cell)
+      generator_class.client_class(question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell_id)).
         merge(::HudReports::ReportInstance.where(id: @report.id)).
         distinct
     end
 
-    def normalized_headers(_headers)
-      generator = generator_for_report
-      headers = generator.client_class(@measure_id).detail_headers.transform_keys(&:to_s)
-      return headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    def normalized_headers(headers)
+      generator_class = generator_for_report
+      final_headers = generator_class.client_class(@measure_id).detail_headers.transform_keys(&:to_s)
+      return final_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
-      headers.except('first_name', 'last_name', 'dob', 'ssn')
+      final_headers.except(*generator_class.pii_columns)
     end
   end
 end

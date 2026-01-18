@@ -8,12 +8,30 @@
 
 module HudReports
   module Cells
-    # Subclasses must implement:
-    # - report_param_name
-    # - set_report
-    # - generator (must be available via method or before_action)
-    # - build_search_path(query_id)
-    # - build_cell_path
+    # This Concern provides standardized behavior for creating and redirecting client search queries
+    # within the context of a HUD report cell.
+    #
+    # The including class must provide the following interface:
+    #
+    # @method report_param_name
+    #   @return [Symbol] the key in `params` identifying the report instance (e.g., `:apr_id`, `:spm_id`)
+    #
+    # @method question_param_name
+    #   @return [Symbol] the key in `params` identifying the question or measure (e.g., `:question_id`, `:measure_id`)
+    #
+    # @method set_report
+    #   Fetches and sets the `@report` instance. Usually provided by `HudReports::BaseController`.
+    #
+    # @method generator
+    #   @return [Class, Object] the report generator instance or class used for question validation.
+    #   Usually provided by `HudReports::BaseController`.
+    #
+    # @method build_search_path(query_id)
+    #   @param query_id [String, Integer] the ID of the persistent search query.
+    #   @return [String] the URL for the search results view.
+    #
+    # @method build_cell_path
+    #   @return [String] the URL for the cell details view (used for error fallbacks).
     module SearchQueriesBehavior
       extend ActiveSupport::Concern
 
@@ -35,9 +53,29 @@ module HudReports
       private
 
       def set_cell_params
-        @question = generator.valid_question_number(params[:measure_id] || params[:question_id])
+        @question = generator.valid_question_number(params.require(question_param_name))
         @cell = @report.valid_cell_name(params.require(:cell_id))
         @table = params.require(:table)
+      end
+
+      def report_param_name
+        # Subclasses must implement
+        raise NotImplementedError
+      end
+
+      def question_param_name
+        # Subclasses must implement
+        raise NotImplementedError
+      end
+
+      def set_report
+        # Subclasses must implement
+        raise NotImplementedError
+      end
+
+      def generator
+        # Subclasses must implement
+        raise NotImplementedError
       end
 
       def build_search_path(query_id)

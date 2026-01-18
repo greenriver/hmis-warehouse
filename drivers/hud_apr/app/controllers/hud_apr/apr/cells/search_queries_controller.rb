@@ -15,6 +15,10 @@ module HudApr::Apr::Cells
       :apr_id
     end
 
+    private def question_param_name
+      :question_id
+    end
+
     private def build_search_path(query_id)
       search_hud_reports_apr_question_cell_path(
         apr_id: @report.id,

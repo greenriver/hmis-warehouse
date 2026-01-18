@@ -15,6 +15,10 @@ module HudApr::Caper::Cells
       :caper_id
     end
 
+    private def question_param_name
+      :question_id
+    end
+
     private def build_search_path(query_id)
       search_hud_reports_caper_question_cell_path(
         caper_id: @report.id,

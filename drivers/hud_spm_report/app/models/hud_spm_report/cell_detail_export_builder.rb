@@ -30,8 +30,8 @@ module HudSpmReport
       HudSpmReport::BaseController.new.possible_generator_classes
     end
 
-    def scoped_clients(generator, question, cell)
-      generator.client_scope(question).
+    def scoped_clients(generator_class, question, cell)
+      generator_class.client_scope(question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id)).
@@ -42,8 +42,8 @@ module HudSpmReport
       final_headers = super
       return final_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
-      generator = generator_for_report
-      final_headers.except(*generator.pii_columns)
+      generator_class = generator_for_report
+      final_headers.except(*generator_class.pii_columns)
     end
   end
 end

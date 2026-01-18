@@ -27,6 +27,15 @@ module HudReports
   module CellDrilldownConcern
     extend ActiveSupport::Concern
 
+    included do
+      rescue_from ActionController::ParameterMissing do |_exception|
+        # the `table` param is required but can get lost when a user's session expires
+        # TODO: make table_id part of the path, not a param
+        redirect_to root_path, alert: 'The requested information could not be loaded'
+      end
+    end
+
+
     def show
       set_cell_variables
       @search_term = nil
