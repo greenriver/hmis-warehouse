@@ -65,15 +65,31 @@ module HudReports
     end
 
     private
-
     def set_cell_variables
-      # Subclasses should call super or implement themselves
-      # Expected variables: @question or @measure_id, @cell, @table, @name, @headers
+      params.require(report_param_name)
+      set_report
+
+      @question = generator.valid_question_number(params[:measure_id] || params[:question_id] || params[:question])
+      @cell = @report.valid_cell_name(params.require(:id))
+      @table = @report.valid_table_name(params.require(:table))
+      @name = build_drilldown_name
+      @headers = drilldown_headers
+    end
+
+    def drilldown_headers
+      generator.column_headings(@question)
     end
 
     def base_scope
-      # Subclasses must implement
-      raise NotImplementedError
+      client_scope_for_question.
+        joins(hud_reports_universe_members: { report_cell: :report_instance }).
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
+        merge(::HudReports::ReportInstance.where(id: @report.id)).
+        distinct
+    end
+
+    def client_scope_for_question
+      generator.client_scope(@question)
     end
 
     def model_searchable?
@@ -144,6 +160,15 @@ module HudReports
     def path_for_cell_without_search
       # Subclasses must implement
       raise NotImplementedError
+    end
+
+    def build_drilldown_name
+      @report.drilldown_name(
+        question: @question,
+        table: @table,
+        cell: @cell,
+        prefix: generator.file_prefix,
+      )
     end
   end
 end

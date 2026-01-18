@@ -3,7 +3,7 @@
     = "« #{report_short_name} #{@question} Results"
 
 - content_for :title do
-  = "#{report_short_name} #{@question} #{@cell}"
+  = @name
 .d-flex.mb-2
   %h1= content_for :title
   .ml-auto

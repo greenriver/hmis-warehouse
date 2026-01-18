@@ -31,7 +31,7 @@ module HudApr
       end
 
       def download_title
-        "#{params.fetch('report_type').upcase} Cell Detail - #{params.fetch('question')} #{params.fetch('cell_id')}"
+        "#{params.fetch('report_type').upcase} Cell Detail - #{report.id} - #{params.fetch('question')} - Table #{params.fetch('table')} - Cell #{params.fetch('cell_id')}"
       end
 
       private

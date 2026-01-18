@@ -336,5 +336,12 @@ module HudReports
 
       io.string
     end
+
+    def drilldown_name(question:, table:, cell:, prefix:)
+      name = "#{prefix}: #{question}"
+      name += " / Table #{table}" if table.present?
+      name += " / Cell #{cell}" if cell.present?
+      name.strip
+    end
   end
 end

@@ -57,12 +57,28 @@ module HudReports
     end
 
     def build_name(generator_class, question_or_measure, cell)
-      "#{generator_class.file_prefix} #{question_or_measure} #{cell}".strip
+      @report.drilldown_name(
+        question: question_or_measure,
+        table: @table,
+        cell: cell,
+        prefix: generator_class.file_prefix,
+      ).strip
     end
 
     def scoped_clients(generator_class, question_or_measure, cell)
-      # Subclasses must implement - returns AR relation
-      raise NotImplementedError
+      client_scope_for_question(generator_class, question_or_measure).
+        joins(hud_reports_universe_members: { report_cell: :report_instance }).
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(cell)).
+        merge(::HudReports::ReportInstance.where(id: @report.id)).
+        distinct
+    end
+
+    def client_scope_for_question(generator_class, question_or_measure)
+      if generator_class.respond_to?(:client_scope)
+        generator_class.client_scope(question_or_measure)
+      else
+        generator_class.client_class(question_or_measure)
+      end
     end
 
     def build_package(clients, headers, name)
@@ -98,8 +114,11 @@ module HudReports
     end
 
     def normalized_headers(headers)
-      # Subclasses can override for custom PII handling
-      headers.transform_keys(&:to_s)
+      final_headers = headers.transform_keys(&:to_s)
+      return final_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      generator_class = generator_for_report
+      final_headers.except(*generator_class.pii_columns)
     end
 
     def preload_batch_policies(batch)
