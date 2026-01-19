@@ -6,15 +6,18 @@
 
 # frozen_string_literal: true
 
-require_relative '../../../lib/hud_reports/route_concerns'
-
 BostonHmis::Application.routes.draw do
-  extend HudReports::RouteConcerns
-
   scope module: :hopwa_caper, path: :hud_reports, as: :hud_reports do
     resources :hopwa_capers, controller: :reports do
-      concerns :hud_report_actions
-      concerns :hud_drilldown_actions
+      get :running, on: :collection
+      get :running_all_questions, on: :collection
+      get :history, on: :collection
+      get :download, on: :member
+      resources :questions, only: [:show, :create] do
+        get :result, on: :member
+        get :running, on: :member
+        resources :cells, only: :show
+      end
     end
   end
 end

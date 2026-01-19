@@ -37,7 +37,11 @@ module HudReports
       generator_class = generator_for_report
       question_or_measure = generator_class.valid_question_number(@measure_id)
       cell = generator_class.valid_cell_name(@cell_id)
-      name = build_name(generator_class, question_or_measure, cell)
+      name = generator_class.drilldown_name(
+        question: question_or_measure,
+        table: @table,
+        cell: cell,
+      ).strip
       headers = generator_class.column_headings(question_or_measure)
       clients = scoped_clients(generator_class, question_or_measure, cell)
       package = build_package(clients, headers, name)
@@ -57,14 +61,6 @@ module HudReports
     private
 
     attr_reader :user
-
-    def build_name(generator_class, question_or_measure, cell)
-      generator_class.drilldown_name(
-        question: question_or_measure,
-        table: @table,
-        cell: cell,
-      ).strip
-    end
 
     def scoped_clients(generator_class, question_or_measure, cell)
       client_scope_for_question(generator_class, question_or_measure).
