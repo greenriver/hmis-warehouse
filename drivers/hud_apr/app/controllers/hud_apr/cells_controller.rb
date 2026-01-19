@@ -18,6 +18,10 @@ module HudApr
     helper_method :export_class_name, :export_query_params,
                   :path_for_search_queries, :path_for_cell_without_search
 
+    def report_param_name
+      :"#{report_type_param}_id"
+    end
+
     private def base_scope
       super
     end
@@ -50,13 +54,23 @@ module HudApr
     end
 
     private def fallback_path
-      # Subclasses must override with specific report path
-      raise NotImplementedError
+      public_send(:"hud_reports_#{report_type_param}_path", @report)
     end
 
     private def path_for_cell_without_search
-      # Subclasses must override with specific cell path
-      raise NotImplementedError
+      public_send(:"hud_reports_#{report_type_param}_question_cell_path",
+                  report_param_name => @report.id,
+                  question_id: @question,
+                  id: @cell,
+                  table: @table)
+    end
+
+    private def path_for_search_queries
+      public_send(:"hud_reports_#{report_type_param}_question_cell_search_queries_path",
+                  report_param_name => @report.id,
+                  question_id: @question,
+                  cell_id: @cell,
+                  table: @table)
     end
   end
 end
