@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,13 +54,13 @@ RSpec.describe HudReports::DrilldownContext, type: :model do
     it 'returns a hash of relevant identifiers' do
       context = described_class.new(measure: 'Q1', table: 'T1', cell: 'A1', report_type: 'apr')
       expect(context.query_params).to eq({
-        question: 'Q1',
-        measure_id: 'Q1',
-        cell_id: 'A1',
-        id: 'A1',
-        table: 'T1',
-        report_type: 'apr'
-      })
+                                           question: 'Q1',
+                                           measure_id: 'Q1',
+                                           cell_id: 'A1',
+                                           id: 'A1',
+                                           table: 'T1',
+                                           report_type: 'apr',
+                                         })
     end
   end
 

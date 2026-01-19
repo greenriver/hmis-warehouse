@@ -13,13 +13,13 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
   controller(ApplicationController) do
     include HudReports::CellDrilldownConcern
 
-    def report_param_name; :report_id; end
-    def measure_id; 'Q1'; end
-    def export_class_name; 'HudApr::DocumentExports::CellDetailExport'; end
-    def export_job_class; HudApr::CellDetailExportJob; end
-    def export_query_params; { foo: 'bar' }; end
-    def fallback_path; '/fallback'; end
-    def path_for_cell_without_search; '/cell'; end
+    def report_param_name = :report_id
+    def measure_id = 'Q1'
+    def export_class_name = 'HudApr::DocumentExports::CellDetailExport'
+    def export_job_class = HudApr::CellDetailExportJob
+    def export_query_params = { foo: 'bar' }
+    def fallback_path = '/fallback'
+    def path_for_cell_without_search = '/cell'
 
     def set_report
       @report = HudReports::ReportInstance.new(id: params[:report_id], user_id: current_user.id)
@@ -57,7 +57,7 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
       cell: 'A1',
       table: 'T1',
       generator: HudReports::GeneratorBase,
-      name: 'Test Name'
+      name: 'Test Name',
     ).tap do |ctx|
       allow(ctx).to receive(:base_scope).and_return(HudApr::Fy2020::AprClient.all)
     end
@@ -104,9 +104,9 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
 
   describe 'GET #show (XLSX)' do
     it 'creates a document export and redirects' do
-      expect {
+      expect do
         get :show, params: { report_id: 1, id: 'A1', table: 'T1' }, format: :xlsx
-      }.to change(GrdaWarehouse::DocumentExport, :count).by(1)
+      end.to change(GrdaWarehouse::DocumentExport, :count).by(1)
 
       export = GrdaWarehouse::DocumentExport.last
       expect(export.type).to eq('HudApr::DocumentExports::CellDetailExport')

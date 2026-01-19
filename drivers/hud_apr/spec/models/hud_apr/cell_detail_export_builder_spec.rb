@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2026 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,7 +22,7 @@ RSpec.describe HudApr::CellDetailExportBuilder, type: :model do
       measure_id: 'Question 5',
       cell_id: 'B2',
       table: '5a',
-      report_type: 'apr'
+      report_type: 'apr',
     )
   end
 

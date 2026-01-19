@@ -38,7 +38,7 @@ module HudReports
 
     # Sanitizes a cell name (usually alphanumeric)
     def self.valid_cell_name(cell_name)
-      cell_name&.match(/[.A-Z0-9]+/i).to_s
+      cell_name&.match(/[.A-Z0-9 -]+/i).to_s.strip
     end
 
     def self.valid_measure(measure_id, generator:)
@@ -53,7 +53,7 @@ module HudReports
 
     # Sanitizes a table name (alphanumeric and dashes)
     def self.valid_table_name(table_name)
-      table_name&.match(/[.A-Z0-9-]+/i).to_s
+      table_name&.match(/[.A-Z0-9 -]+/i).to_s.strip
     end
 
     def name
