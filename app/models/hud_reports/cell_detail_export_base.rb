@@ -29,8 +29,7 @@ module HudReports
     end
 
     def download_title
-      generator = builder.generator_for_report
-      "#{generator.drilldown_name(question: question_id, table: table_id, cell: cell_id)} Cell Detail"
+      "#{builder.drilldown.name} Cell Detail"
     end
 
     private

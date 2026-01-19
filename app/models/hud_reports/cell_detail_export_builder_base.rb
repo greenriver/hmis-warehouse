@@ -25,30 +25,22 @@ module HudReports
   class CellDetailExportBuilderBase
     Result = Struct.new(:name, :filename, :data, keyword_init: true)
 
-    def initialize(user:, report:, measure_id:, cell_id:, table:)
+    def initialize(user:, report: nil, measure_id: nil, cell_id: nil, table: nil, drilldown: nil, report_type: nil, **_kwargs)
       @user = user
-      @report = report
-      @measure_id = measure_id
-      @cell_id = cell_id
-      @table = table
+      @drilldown = drilldown
+      @report = report || drilldown&.report
+      @measure_id = measure_id || drilldown&.measure
+      @cell_id = cell_id || drilldown&.cell
+      @table = table || drilldown&.table
+      @report_type = report_type || drilldown&.report_type
     end
 
     def call
-      generator_class = generator_for_report
-      question_or_measure = generator_class.valid_question_number(@measure_id)
-      cell = generator_class.valid_cell_name(@cell_id)
-      name = generator_class.drilldown_name(
-        question: question_or_measure,
-        table: @table,
-        cell: cell,
-      ).strip
-      headers = generator_class.column_headings(question_or_measure)
-      clients = scoped_clients(generator_class, question_or_measure, cell)
-      package = build_package(clients, headers, name)
+      package = build_package(drilldown.base_scope, drilldown.export_headers, drilldown.name)
 
       Result.new(
-        name: name,
-        filename: "#{name} Cell Detail.xlsx",
+        name: drilldown.name,
+        filename: "#{drilldown.name} Cell Detail.xlsx",
         data: package.to_stream.read,
       )
     end
@@ -58,33 +50,26 @@ module HudReports
       raise NotImplementedError
     end
 
+    def drilldown
+      @drilldown ||= generator_for_report.drilldown_context(
+        report: @report,
+        measure_id: @measure_id,
+        cell_id: @cell_id,
+        table_id: @table,
+        report_type: @report_type,
+      )
+    end
+
     private
 
-    attr_reader :user
-
-    def scoped_clients(generator_class, question_or_measure, cell)
-      client_scope_for_question(generator_class, question_or_measure).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
-    end
-
-    def client_scope_for_question(generator_class, question_or_measure)
-      if generator_class.respond_to?(:client_scope)
-        generator_class.client_scope(question_or_measure)
-      else
-        generator_class.client_class(question_or_measure)
-      end
-    end
+    attr_reader :user, :report_type
 
     def build_package(clients, headers, name)
       Axlsx::Package.new do |package|
         wb = package.workbook
         wb.add_worksheet(name: worksheet_name(name)) do |sheet|
           title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-          final_headers = normalized_headers(headers)
-          sheet.add_row(final_headers.values, style: title)
+          sheet.add_row(headers.values, style: title)
 
           # Use find_in_batches to avoid loading all clients into memory and to preload policies incrementally
           clients.find_in_batches do |batch|
@@ -96,7 +81,7 @@ module HudReports
                 mode: :download,
               )
 
-              row = final_headers.keys.map do |key|
+              row = headers.keys.map do |key|
                 client.display_value(key, pii_policy: pii_policy, include_content_tag: false)
               end
               sheet.add_row(row)
@@ -108,14 +93,6 @@ module HudReports
 
     def worksheet_name(name)
       "#{name} Detail".slice(0, 30).gsub(/[:\/\?*\[\]\\]/, ' ')
-    end
-
-    def normalized_headers(headers)
-      final_headers = headers.transform_keys(&:to_s)
-      return final_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-
-      generator_class = generator_for_report
-      final_headers.except(*generator_class.pii_columns)
     end
 
     def preload_batch_policies(batch)

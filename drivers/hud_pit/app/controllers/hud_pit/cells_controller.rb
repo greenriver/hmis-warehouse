@@ -21,8 +21,9 @@ module HudPit
     end
 
     def show
-      @cell = generator.valid_cell_name(params[:id])
-      @table = generator.valid_table_name(params[:table])
+      # TBD: when we migrate to new drilldowns, use @drilldown.valid_cell_name
+      @cell = params[:id]&.match(/[A-Z0-9]+/i).to_s
+      @table = params[:table]&.match(/[A-Z0-9-]+/i).to_s
       @clients = HudPit::Fy2022::PitClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).

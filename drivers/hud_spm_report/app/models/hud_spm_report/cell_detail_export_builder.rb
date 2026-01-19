@@ -8,8 +8,8 @@
 
 module HudSpmReport
   class CellDetailExportBuilder < ::HudReports::CellDetailExportBuilderBase
-    def initialize(user:, report:, measure_id:, cell_id:, table:, generator_class: nil)
-      super(user: user, report: report, measure_id: measure_id, cell_id: cell_id, table: table)
+    def initialize(generator_class: nil, **kwargs)
+      super(**kwargs)
       @generator_class = generator_class
     end
 

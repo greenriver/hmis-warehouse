@@ -135,26 +135,18 @@ module HudReports
       ['first_name', 'last_name', 'dob', 'ssn']
     end
 
-    # Generates a standardized, readable name for identifying a specific report cell
-    # @param question [String] The question/measure identifier (e.g., 'Measure 1')
-    # @param table [String] The table identifier (e.g., '1a')
-    # @param cell [String] The cell label (e.g., 'B2')
-    # @return [String] A formatted string: "Prefix: Question / Table X / Cell Y"
-    def self.drilldown_name(question:, table: nil, cell: nil)
-      name = "#{file_prefix}: #{question}"
-      name += " / Table #{table}" if table.present?
-      name += " / Cell #{cell}" if cell.present?
-      name.strip
-    end
-
-    # Sanitizes a cell name (usually alphanumeric)
-    def self.valid_cell_name(cell_name)
-      cell_name&.match(/[A-Z0-9]+/i).to_s
-    end
-
-    # Sanitizes a table name (alphanumeric and dashes)
-    def self.valid_table_name(table)
-      table&.match(/[A-Z0-9-]+/i).to_s
+    # Builds a DrilldownContext with validated components.
+    # This centralizes validation via the context while keeping the generator
+    # as the source of business rules for measure/table validation.
+    def self.drilldown_context(report:, measure_id:, cell_id:, table_id:, report_type: nil)
+      ::HudReports::DrilldownContext.build(
+        report: report,
+        generator: self,
+        measure_id: measure_id,
+        cell_id: cell_id,
+        table_id: table_id,
+        report_type: report_type,
+      )
     end
 
     def self.allowed_options(_)

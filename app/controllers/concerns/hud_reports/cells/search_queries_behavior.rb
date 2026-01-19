@@ -53,9 +53,15 @@ module HudReports
       private
 
       def set_cell_params
-        @question = generator.valid_question_number(params.require(question_param_name))
-        @cell = generator.valid_cell_name(params.require(:cell_id))
-        @table = generator.valid_table_name(params.require(:table))
+        @drilldown = generator.drilldown_context(
+          report: @report,
+          measure_id: params.require(question_param_name),
+          cell_id: params.require(:cell_id),
+          table_id: params.require(:table),
+        )
+        @question = @drilldown.measure
+        @cell = @drilldown.cell
+        @table = @drilldown.table
       end
 
       def report_param_name

@@ -15,7 +15,7 @@ module HudApr
         @builder ||= HudApr::CellDetailExportBuilder.new(
           user: user,
           report: report,
-          question: question_id,
+          measure_id: question_id,
           cell_id: cell_id,
           table: table_id,
           report_type: params.fetch('report_type'),

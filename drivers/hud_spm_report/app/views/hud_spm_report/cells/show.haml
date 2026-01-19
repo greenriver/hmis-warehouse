@@ -1,9 +1,9 @@
 = content_for :crumbs do
-  = link_to path_for_question_result(@question, report: @report) do
-    = "« #{report_short_name} #{@question} Results"
+  = link_to path_for_question_result(@drilldown.measure, report: @drilldown.report) do
+    = @drilldown.breadcrumb_label
 
 - content_for :title do
-  = @name
+  = @drilldown.name
 .d-flex.mb-2
   %h1= content_for :title
   .ml-auto
@@ -11,10 +11,10 @@
       download_data = {
         type: 'HudSpmReport::DocumentExports::CellDetailExport',
         query_string: {
-          report_id: @report.id,
-          measure_id: @question,
-          cell_id: @cell,
-          table: @table,
+          report_id: @drilldown.report.id,
+          measure_id: @drilldown.measure,
+          cell_id: @drilldown.cell,
+          table: @drilldown.table,
         }.to_query,
         url: document_exports_path,
       }
@@ -24,12 +24,12 @@
 
 .d-flex.align-items-end.mb-4
   .w-50
-    - if @searchable
-      = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @report.id, measure_id: @question, cell_id: @cell, table: @table), method: :post, class: 'mb-0') do
+    - if @drilldown.searchable?
+      = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @drilldown.report.id, measure_id: @drilldown.measure, cell_id: @drilldown.cell, table: @drilldown.table), method: :post, class: 'mb-0') do
         .input-group
-          = text_field_tag :q, @search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @search_term.present?
+          = text_field_tag :q, @drilldown.search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @drilldown.search_term.present?
           = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
-          - if @search_term.present?
-            = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @report.id, measure_id: @question, id: @cell, table: @table), class: 'btn btn-outline-secondary'
+          - if @drilldown.search_term.present?
+            = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @drilldown.report.id, measure_id: @drilldown.measure, id: @drilldown.cell, table: @drilldown.table), class: 'btn btn-outline-secondary'
 
 = render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @clients, item_name: 'records', list_partial: 'hud_spm_report/cells/list')

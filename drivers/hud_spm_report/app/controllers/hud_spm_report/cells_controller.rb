@@ -16,6 +16,10 @@ module HudSpmReport
       :spm_id
     end
 
+    private def measure_id
+      params.require(:measure_id)
+    end
+
     private def preload_associations(scope)
       scope.preload(client: [:data_source, :source_clients])
     end
@@ -29,33 +33,28 @@ module HudSpmReport
     end
 
     private def export_query_params
-      {
-        report_id: @report.id,
-        measure_id: @question,
-        cell_id: @cell,
-        table: @table,
-      }
+      @drilldown.query_params.merge(report_id: @drilldown.report.id)
     end
 
     private def fallback_path
-      hud_reports_spm_path(@report)
+      hud_reports_spm_path(@drilldown.report)
     end
 
     private def path_for_cell_without_search
       hud_reports_spm_measure_cell_path(
-        spm_id: @report.id,
-        measure_id: @question,
-        id: @cell,
-        table: @table,
+        spm_id: @drilldown.report.id,
+        measure_id: @drilldown.measure,
+        id: @drilldown.cell,
+        table: @drilldown.table,
       )
     end
 
     private def path_for_search_queries
       hud_reports_spm_measure_cell_search_queries_path(
-        spm_id: @report.id,
-        measure_id: @question,
-        cell_id: @cell,
-        table: @table,
+        spm_id: @drilldown.report.id,
+        measure_id: @drilldown.measure,
+        cell_id: @drilldown.cell,
+        table: @drilldown.table,
       )
     end
   end

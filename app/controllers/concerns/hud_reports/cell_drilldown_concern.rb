@@ -12,23 +12,20 @@ module HudReports
   #
   # Subclasses must implement:
   # - report_param_name: The key in `params` identifying the report (e.g., `:spm_id`)
+  # - measure_id: The identifier for the question or measure being viewed
   # - export_class_name: The string name of the DocumentExport class for this report
   # - export_job_class: The class of the ActiveJob that runs the export
   # - export_query_params: Hash of parameters required by the export job
   # - fallback_path: Path to redirect to after an export is queued
   # - path_for_cell_without_search: Path to the cell view without search parameters
   # - preload_associations(scope): (Optional) Preload associations for the client scope
+  # - drilldown_report_type: (Optional) The specific type of report (e.g., 'apr')
   #
   # The including controller must also provide or inherit:
   # - set_report: Sets `@report`
   # - generator: Returns the report generator instance
   #
-  # This concern sets the following instance variables in `set_cell_variables`:
-  # - @question: The validated question/measure identifier
-  # - @cell: The validated cell identifier
-  # - @table: The validated table identifier
-  # - @name: The display name for the drill-down (via `build_drilldown_name`)
-  # - @headers: The column headers for the results table
+  # This concern sets the `@drilldown` instance variable (a HudReports::DrilldownContext).
   module CellDrilldownConcern
     extend ActiveSupport::Concern
 
@@ -41,64 +38,51 @@ module HudReports
     end
 
     def show
-      set_cell_variables
-      @search_term = nil
-      @searchable = model_searchable?
+      set_drilldown_context
+      @drilldown.search_term = nil
 
       respond_to do |format|
-        format.html { render_html_response(base_scope, filtered: false) }
+        format.html { render_html_response(@drilldown.base_scope, filtered: false) }
         format.xlsx { render_xlsx_response }
       end
     end
 
     def search
-      set_cell_variables
+      set_drilldown_context
 
       search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:query_id])
       return handle_invalid_query('Search query not found') if search_query.nil?
 
       search_query.touch
-      @search_term = search_query.query_params[:q].to_s
-
-      @searchable = model_searchable?
-      filtered_scope = @searchable ? base_scope.model.search_clients(base_scope, @search_term) : base_scope
+      @drilldown.apply_search_query!(search_query)
 
       respond_to do |format|
-        format.html { render_html_response(filtered_scope, filtered: @searchable && @search_term.present?) }
+        format.html { render_html_response(@drilldown.filtered_scope, filtered: @drilldown.filtered?) }
       end
     end
 
     private
 
-    def set_cell_variables
+    def set_drilldown_context
       params.require(report_param_name)
       set_report
 
-      @question = generator.valid_question_number(params[:measure_id] || params[:question_id] || params[:question])
-      @cell = generator.valid_cell_name(params.require(:id))
-      @table = generator.valid_table_name(params.require(:table))
-      @name = build_drilldown_name
-      @headers = drilldown_headers
+      @drilldown = generator.drilldown_context(
+        report: @report,
+        measure_id: measure_id,
+        cell_id: params.require(:id),
+        table_id: params.require(:table),
+        report_type: drilldown_report_type,
+      )
     end
 
-    def drilldown_headers
-      generator.column_headings(@question)
+    def measure_id
+      # Subclasses must implement
+      raise NotImplementedError
     end
 
-    def base_scope
-      client_scope_for_question.
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
-    end
-
-    def client_scope_for_question
-      generator.client_scope(@question)
-    end
-
-    def model_searchable?
-      base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?
+    def drilldown_report_type
+      nil # Optional - override in subclass if needed
     end
 
     def pagination_limit
@@ -106,8 +90,7 @@ module HudReports
     end
 
     def render_html_response(scope, filtered: false)
-      @filtered_count = scope.count
-      @total_count = filtered ? base_scope.count : @filtered_count
+      @drilldown.set_counts!(scope, filtered: filtered)
 
       scope = preload_associations(scope)
       @pagy, @clients = pagy(scope, items: pagination_limit)
@@ -165,14 +148,6 @@ module HudReports
     def path_for_cell_without_search
       # Subclasses must implement
       raise NotImplementedError
-    end
-
-    def build_drilldown_name
-      generator.drilldown_name(
-        question: @question,
-        table: @table,
-        cell: @cell,
-      )
     end
   end
 end

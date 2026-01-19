@@ -22,6 +22,14 @@ module HudApr
       :"#{report_type_param}_id"
     end
 
+    private def measure_id
+      params.require(:question_id)
+    end
+
+    private def drilldown_report_type
+      report_type_param
+    end
+
     private def base_scope
       super
     end
@@ -39,13 +47,7 @@ module HudApr
     end
 
     private def export_query_params
-      {
-        report_id: @report.id,
-        report_type: report_type_param,
-        question: @question,
-        cell_id: @cell,
-        table: @table,
-      }
+      @drilldown.query_params.merge(report_id: @drilldown.report.id)
     end
 
     private def report_type_param
@@ -54,23 +56,23 @@ module HudApr
     end
 
     private def fallback_path
-      public_send(:"hud_reports_#{report_type_param}_path", @report)
+      public_send(:"hud_reports_#{report_type_param}_path", @drilldown.report)
     end
 
     private def path_for_cell_without_search
       public_send(:"hud_reports_#{report_type_param}_question_cell_path",
-                  report_param_name => @report.id,
-                  question_id: @question,
-                  id: @cell,
-                  table: @table)
+                  report_param_name => @drilldown.report.id,
+                  question_id: @drilldown.measure,
+                  id: @drilldown.cell,
+                  table: @drilldown.table)
     end
 
     private def path_for_search_queries
       public_send(:"hud_reports_#{report_type_param}_question_cell_search_queries_path",
-                  report_param_name => @report.id,
-                  question_id: @question,
-                  cell_id: @cell,
-                  table: @table)
+                  report_param_name => @drilldown.report.id,
+                  question_id: @drilldown.measure,
+                  cell_id: @drilldown.cell,
+                  table: @drilldown.table)
     end
   end
 end
