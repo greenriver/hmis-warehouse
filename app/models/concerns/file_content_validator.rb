@@ -81,7 +81,11 @@ module FileContentValidator
 
         text = sample.sub(/\A\xEF\xBB\xBF/, '').encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
         # CSV files should contain commas and newlines
-        rows = CSV.new(StringIO.new(text), col_sep: ',', liberal_parsing: true).take(5)
+        begin
+          rows = CSV.new(StringIO.new(text), col_sep: ',', liberal_parsing: true).take(5)
+        rescue CSV::MalformedCSVError
+          return false
+        end
         # CSV files should contain at least two columns and the column widths should be consistent
         widths = rows.map(&:length).reject(&:zero?)
         widths.max.to_i >= 2 && widths.uniq.size <= 2

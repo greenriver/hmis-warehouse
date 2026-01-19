@@ -37,7 +37,7 @@ module WarehouseReports::Health
           content: file.read,
           content_type: file.content_type,
         )
-
+        file.rewind
         # Validate the file before saving
         unless @enrollment_reasons.valid?
           flash[:error] = "File upload failed: #{@enrollment_reasons.errors.full_messages.join(', ')}"
