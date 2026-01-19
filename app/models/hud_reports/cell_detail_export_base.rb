@@ -11,8 +11,7 @@ module HudReports
   # Handles authorization, execution orchestration, and descriptive title generation.
   #
   # Subclasses must implement:
-  # - builder_class: The ExportBuilder class to use
-  # - builder_params: Hash of parameters for the builder
+  # - builder: Returns a CellDetailExportBuilder instance
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
       # User must have HUD report permissions AND either own the report or have view-all permission
@@ -21,7 +20,7 @@ module HudReports
 
     def perform
       with_status_progression do
-        result = builder_class.new(**builder_params).call
+        result = builder.call
 
         self.filename = result.filename
         self.file_data = result.data
@@ -30,23 +29,14 @@ module HudReports
     end
 
     def download_title
-      "#{generator_class.drilldown_name(question: question_id, table: table_id, cell: cell_id)} Cell Detail"
+      generator = builder.generator_for_report
+      "#{generator.drilldown_name(question: question_id, table: table_id, cell: cell_id)} Cell Detail"
     end
 
     private
 
-    def generator_class
-      # Subclasses must implement to return the appropriate generator class
-      raise NotImplementedError
-    end
-
-    def builder_class
-      # Subclasses must implement
-      raise NotImplementedError
-    end
-
-    def builder_params
-      # Subclasses must implement
+    def builder
+      # Subclasses must implement - should return a memoized builder instance
       raise NotImplementedError
     end
 

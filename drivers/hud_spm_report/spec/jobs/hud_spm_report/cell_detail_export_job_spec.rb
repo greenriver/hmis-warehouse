@@ -18,20 +18,11 @@ RSpec.describe HudSpmReport::CellDetailExportJob, type: :job do
         }.to_query,
       )
     end
-    let(:builder) { instance_double(HudSpmReport::CellDetailExportBuilder) }
-    let(:result) do
-      HudSpmReport::CellDetailExportBuilder::Result.new(
-        name: 'SPM FY 2026 Q1 B2',
-        filename: 'SPM FY 2026 Q1 B2 Cell Detail.xlsx',
-        data: 'xlsx-bytes',
-      )
-    end
     let(:mailer) { instance_double(ActionMailer::MessageDelivery, deliver_now: true) }
 
     before do
-      allow(HudSpmReport::CellDetailExportBuilder).to receive(:new).and_return(builder)
-      allow(builder).to receive(:call).and_return(result)
       allow(NotifyUser).to receive(:report_completed).and_return(mailer)
+      # allow_any_instance_of(HudSpmReport::DocumentExports::CellDetailExport).to receive(:download_url).and_return('https://example.com/download/123')
     end
 
     it 'runs the document export and notifies the user' do
@@ -39,10 +30,17 @@ RSpec.describe HudSpmReport::CellDetailExportJob, type: :job do
 
       export.reload
 
-      expect(builder).to have_received(:call)
-      expect(export.file_data).to eq('xlsx-bytes')
+      expect(export.file_data).to be_present
+      expect(export.filename).to end_with('.xlsx')
+      expect(export.mime_type).to eq(DocumentExportBehavior::EXCEL_MIME_TYPE)
       expect(export.status).to eq(DocumentExportBehavior::COMPLETED_STATUS)
-      expect(NotifyUser).to have_received(:report_completed).with(user.id, have_attributes(title: 'SPM Cell Detail – Q1 B2', url: export.download_url))
+      expect(NotifyUser).to have_received(:report_completed).with(
+        user.id,
+        have_attributes(
+          title: 'SPM FY 2026: Q1 / Table Table 1 / Cell B2 Cell Detail',
+          url: match(/\/document_exports\/\d+\/download/),
+        ),
+      )
       expect(mailer).to have_received(:deliver_now)
     end
   end

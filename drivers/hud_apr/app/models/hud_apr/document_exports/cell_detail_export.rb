@@ -11,23 +11,15 @@ module HudApr
     class CellDetailExport < ::HudReports::CellDetailExportBase
       private
 
-      def generator_class
-        @generator_class ||= HudApr::CellDetailExportBuilder.new(builder_params).generator_for_report
-      end
-
-      def builder_class
-        HudApr::CellDetailExportBuilder
-      end
-
-      def builder_params
-        {
+      def builder
+        @builder ||= HudApr::CellDetailExportBuilder.new(
           user: user,
           report: report,
           question: question_id,
           cell_id: cell_id,
           table: table_id,
           report_type: params.fetch('report_type'),
-        }
+        )
       end
     end
   end
