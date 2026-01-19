@@ -6,73 +6,41 @@
 
 # frozen_string_literal: true
 
+require_relative '../../../lib/hud_reports/route_concerns'
+
 BostonHmis::Application.routes.draw do
+  extend HudReports::RouteConcerns
+
   scope module: :hud_apr, path: :hud_reports, as: :hud_reports do
+    # APR (Annual Performance Report)
     resources :aprs do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
+      concerns :hud_report_actions
       scope module: :apr do
-        resources :questions, only: [:show, :create] do
-          get :result, on: :member
-          get :running, on: :member
-          resources :cells, only: [:show] do
-            get :search, on: :member
-            resources :search_queries, only: [:create], module: :cells
-          end
-        end
+        concerns :hud_drilldown_actions
       end
     end
 
+    # CAPER (Consolidated Annual Performance and Evaluation Report)
     resources :capers do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
+      concerns :hud_report_actions
       scope module: :caper do
-        resources :questions, only: [:show, :create] do
-          get :result, on: :member
-          get :running, on: :member
-          resources :cells, only: [:show] do
-            get :search, on: :member
-            resources :search_queries, only: [:create], module: :cells
-          end
-        end
+        concerns :hud_drilldown_actions
       end
     end
 
+    # CE APR (Coordinated Entry Annual Performance Report)
     resources :ce_aprs do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
+      concerns :hud_report_actions
       scope module: :ce_apr do
-        resources :questions, only: [:show, :create] do
-          get :result, on: :member
-          get :running, on: :member
-          resources :cells, only: [:show] do
-            get :search, on: :member
-            resources :search_queries, only: [:create], module: :cells
-          end
-        end
+        concerns :hud_drilldown_actions
       end
     end
 
+    # DQ (Data Quality Report)
     resources :dqs do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
+      concerns :hud_report_actions
       scope module: :dq do
-        resources :questions, only: [:show, :create] do
-          get :result, on: :member
-          get :running, on: :member
-          resources :cells, only: [:show] do
-            get :search, on: :member
-            resources :search_queries, only: [:create], module: :cells
-          end
-        end
+        concerns :hud_drilldown_actions
       end
     end
   end
