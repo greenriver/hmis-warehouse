@@ -12,8 +12,8 @@ module HopwaCaper
     before_action :set_question
 
     def show
-      @cell = generator.valid_cell_name(params[:id])
-      @table = generator.valid_table_name(params[:table])
+      @cell = @report.valid_cell_name(params[:id])
+      @table = @report.valid_table_name(params[:table])
       @enrollments = @report.hopwa_caper_enrollments.
         preload(enrollment: :project).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
