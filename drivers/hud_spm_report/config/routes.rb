@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-require_relative '../../../lib/hud_reports/route_concerns'
-
 BostonHmis::Application.routes.draw do
   extend HudReports::RouteConcerns
 
