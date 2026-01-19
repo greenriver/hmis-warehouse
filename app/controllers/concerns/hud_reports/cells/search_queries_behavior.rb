@@ -37,7 +37,13 @@ module HudReports
 
       def create
         set_report
-        set_cell_params
+
+        @drilldown = generator.drilldown_context(
+          report: @report,
+          measure_id: params.require(question_param_name),
+          cell_id: params.require(:cell_id),
+          table_id: params.require(:table),
+        )
 
         safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
         query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
@@ -51,18 +57,6 @@ module HudReports
       end
 
       private
-
-      def set_cell_params
-        @drilldown = generator.drilldown_context(
-          report: @report,
-          measure_id: params.require(question_param_name),
-          cell_id: params.require(:cell_id),
-          table_id: params.require(:table),
-        )
-        @question = @drilldown.measure
-        @cell = @drilldown.cell
-        @table = @drilldown.table
-      end
 
       def report_param_name
         # Subclasses must implement

@@ -42,7 +42,7 @@ module HudReports
       @drilldown.search_term = nil
 
       respond_to do |format|
-        format.html { render_html_response(@drilldown.base_scope, filtered: false) }
+        format.html { render_html_response(@drilldown.base_scope) }
         format.xlsx { render_xlsx_response }
       end
     end
@@ -57,7 +57,7 @@ module HudReports
       @drilldown.apply_search_query!(search_query)
 
       respond_to do |format|
-        format.html { render_html_response(@drilldown.filtered_scope, filtered: @drilldown.filtered?) }
+        format.html { render_html_response(@drilldown.filtered_scope) }
       end
     end
 
@@ -89,9 +89,7 @@ module HudReports
       100
     end
 
-    def render_html_response(scope, filtered: false)
-      @drilldown.set_counts!(scope, filtered: filtered)
-
+    def render_html_response(scope)
       scope = preload_associations(scope)
       @pagy, @clients = pagy(scope, items: pagination_limit)
 

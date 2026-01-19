@@ -9,7 +9,7 @@
 module HudReports
   # Encapsulates the state and logic for a HUD report cell drill-down.
   # This avoids polluting controllers with numerous instance variables and
-  # centralizes the logic for scope building, search, and count calculation.
+  # centralizes the logic for scope building and search.
   DrilldownContext = Struct.new(
     :report,
     :generator,
@@ -18,8 +18,6 @@ module HudReports
     :table,
     :search_term,
     :searchable,
-    :filtered_count,
-    :total_count,
     :name,
     :headers,
     :report_type,
@@ -33,7 +31,7 @@ module HudReports
         generator: generator,
         measure: valid_measure(measure_id, generator: generator),
         cell: valid_cell_name(cell_id),
-        table: valid_table_name(table_id, generator: generator),
+        table: valid_table_name(table_id),
         report_type: report_type,
       )
     end
@@ -54,7 +52,7 @@ module HudReports
     end
 
     # Sanitizes a table name (alphanumeric and dashes)
-    def self.valid_table_name(table_name, generator: nil)
+    def self.valid_table_name(table_name)
       table_name&.match(/[.A-Z0-9-]+/i).to_s
     end
 
@@ -84,10 +82,6 @@ module HudReports
         table: table,
         report_type: report_type,
       }.compact
-    end
-
-    def filtered?
-      searchable? && search_term.present?
     end
 
     def base_scope
@@ -126,15 +120,10 @@ module HudReports
       end
     end
 
-    def set_counts!(scope, filtered: false)
-      self.filtered_count = scope.count
-      self.total_count = filtered ? base_scope.count : filtered_count
-    end
-
     def searchable?
       return self[:searchable] unless self[:searchable].nil?
 
-      self[:searchable] = !!(base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?)
+      self[:searchable] = base_scope.model.respond_to?(:searchable?) && base_scope.model.searchable?
     end
 
     def apply_search_query!(search_query)

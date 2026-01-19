@@ -30,10 +30,6 @@ module HudApr
       report_type_param
     end
 
-    private def base_scope
-      super
-    end
-
     private def preload_associations(scope)
       scope.preload(:data_source, source_enrollment: :client)
     end

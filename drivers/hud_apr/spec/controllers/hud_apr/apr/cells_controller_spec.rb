@@ -22,8 +22,8 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
       get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
 
       expect(response).to be_successful
-      expect(assigns(:drilldown).pagy).to be_present
-      expect(assigns(:drilldown).clients).to be_a(ActiveRecord::Relation)
+      expect(assigns(:pagy)).to be_present
+      expect(assigns(:clients)).to be_a(ActiveRecord::Relation)
     end
 
     context 'with unauthorized user' do

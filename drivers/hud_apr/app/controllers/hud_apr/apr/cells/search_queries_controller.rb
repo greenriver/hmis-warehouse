@@ -22,19 +22,19 @@ module HudApr::Apr::Cells
     private def build_search_path(query_id)
       search_hud_reports_apr_question_cell_path(
         apr_id: @report.id,
-        question_id: @question,
-        id: @cell,
+        question_id: @drilldown.measure,
+        id: @drilldown.cell,
         query_id: query_id,
-        table: @table,
+        table: @drilldown.table,
       )
     end
 
     private def build_cell_path
       hud_reports_apr_question_cell_path(
         apr_id: @report.id,
-        question_id: @question,
-        id: @cell,
-        table: @table,
+        question_id: @drilldown.measure,
+        id: @drilldown.cell,
+        table: @drilldown.table,
       )
     end
   end
