@@ -23,7 +23,6 @@ module HudReports
   # - column_headings(question_or_measure)
   # - pii_columns (optional, for filtering PII)
   class CellDetailExportBuilderBase
-
     Result = Struct.new(:name, :filename, :data, keyword_init: true)
 
     def initialize(user:, report:, measure_id:, cell_id:, table:)
@@ -63,7 +62,7 @@ module HudReports
       generator_class.drilldown_name(
         question: question_or_measure,
         table: @table,
-        cell: cell
+        cell: cell,
       ).strip
     end
 

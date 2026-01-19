@@ -40,7 +40,6 @@ module HudReports
       end
     end
 
-
     def show
       set_cell_variables
       @search_term = nil
@@ -70,6 +69,7 @@ module HudReports
     end
 
     private
+
     def set_cell_variables
       params.require(report_param_name)
       set_report
@@ -171,7 +171,7 @@ module HudReports
       generator.drilldown_name(
         question: @question,
         table: @table,
-        cell: @cell
+        cell: @cell,
       )
     end
   end

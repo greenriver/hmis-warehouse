@@ -21,7 +21,7 @@ module HudReports
 
     def perform
       with_status_progression do
-        result = builder_class.new(builder_params).call
+        result = builder_class.new(**builder_params).call
 
         self.filename = result.filename
         self.file_data = result.data

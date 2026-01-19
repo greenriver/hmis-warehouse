@@ -68,16 +68,6 @@ module HudReports
         raise NotImplementedError
       end
 
-      def set_report
-        # Subclasses must implement
-        raise NotImplementedError
-      end
-
-      def generator
-        # Subclasses must implement
-        raise NotImplementedError
-      end
-
       def build_search_path(query_id)
         # Subclasses must implement
         raise NotImplementedError
