@@ -14,8 +14,6 @@ module HudApr
       @report_type = report_type
     end
 
-    private
-
     def generator_for_report
       concern_class = case @report_type
       when 'apr' then HudApr::Apr::AprConcern

@@ -21,7 +21,7 @@ module HudPit
     end
 
     def show
-      @cell = @report.valid_cell_name(params[:id])
+      @cell = generator.valid_cell_name(params[:id])
       @table = generator.valid_table_name(params[:table])
       @clients = HudPit::Fy2022::PitClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).

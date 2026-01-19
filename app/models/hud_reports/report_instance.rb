@@ -306,16 +306,6 @@ module HudReports
       question_names.include?('HDX Upload')
     end
 
-    # only allow alpha numeric
-    def valid_cell_name(cell_name)
-      cell_name&.match(/[A-Z0-9]+/i).to_s
-    end
-
-    # only allow alpha numeric, and dashes
-    def valid_table_name(table)
-      table&.match(/[A-Z0-9-]+/i).to_s
-    end
-
     def as_markdown
       io = StringIO.new
       question_names.each do |question|
@@ -335,19 +325,6 @@ module HudReports
       end
 
       io.string
-    end
-
-    # Generates a standardized, readable name for identifying a specific report cell
-    # @param question [String] The question/measure identifier (e.g., 'Measure 1')
-    # @param table [String] The table identifier (e.g., '1a')
-    # @param cell [String] The cell label (e.g., 'B2')
-    # @param prefix [String] The report type/version prefix (e.g., 'SPM FY 2026')
-    # @return [String] A formatted string: "Prefix: Question / Table X / Cell Y"
-    def drilldown_name(question:, table:, cell:, prefix:)
-      name = "#{prefix}: #{question}"
-      name += " / Table #{table}" if table.present?
-      name += " / Cell #{cell}" if cell.present?
-      name.strip
     end
   end
 end

@@ -54,8 +54,8 @@ module HudReports
 
       def set_cell_params
         @question = generator.valid_question_number(params.require(question_param_name))
-        @cell = @report.valid_cell_name(params.require(:cell_id))
-        @table = params.require(:table)
+        @cell = generator.valid_cell_name(params.require(:cell_id))
+        @table = generator.valid_table_name(params.require(:table))
       end
 
       def report_param_name

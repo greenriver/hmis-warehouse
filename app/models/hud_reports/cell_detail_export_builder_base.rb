@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+require 'axlsx'
 module HudReports
   # Base class for building Excel exports of HUD report cell details.
   #
@@ -22,7 +23,6 @@ module HudReports
   # - column_headings(question_or_measure)
   # - pii_columns (optional, for filtering PII)
   class CellDetailExportBuilderBase
-    require 'axlsx'
 
     Result = Struct.new(:name, :filename, :data, keyword_init: true)
 
@@ -37,7 +37,7 @@ module HudReports
     def call
       generator_class = generator_for_report
       question_or_measure = generator_class.valid_question_number(@measure_id)
-      cell = @report.valid_cell_name(@cell_id)
+      cell = generator_class.valid_cell_name(@cell_id)
       name = build_name(generator_class, question_or_measure, cell)
       headers = generator_class.column_headings(question_or_measure)
       clients = scoped_clients(generator_class, question_or_measure, cell)
@@ -50,21 +50,20 @@ module HudReports
       )
     end
 
-    private
-
-    attr_reader :user
-
     def generator_for_report
       # Subclasses must implement - should return a generator class, not an instance
       raise NotImplementedError
     end
 
+    private
+
+    attr_reader :user
+
     def build_name(generator_class, question_or_measure, cell)
-      @report.drilldown_name(
+      generator_class.drilldown_name(
         question: question_or_measure,
         table: @table,
-        cell: cell,
-        prefix: generator_class.file_prefix,
+        cell: cell
       ).strip
     end
 

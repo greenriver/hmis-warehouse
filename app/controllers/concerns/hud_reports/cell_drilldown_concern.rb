@@ -75,8 +75,8 @@ module HudReports
       set_report
 
       @question = generator.valid_question_number(params[:measure_id] || params[:question_id] || params[:question])
-      @cell = @report.valid_cell_name(params.require(:id))
-      @table = @report.valid_table_name(params.require(:table))
+      @cell = generator.valid_cell_name(params.require(:id))
+      @table = generator.valid_table_name(params.require(:table))
       @name = build_drilldown_name
       @headers = drilldown_headers
     end
@@ -168,11 +168,10 @@ module HudReports
     end
 
     def build_drilldown_name
-      @report.drilldown_name(
+      generator.drilldown_name(
         question: @question,
         table: @table,
-        cell: @cell,
-        prefix: generator.file_prefix,
+        cell: @cell
       )
     end
   end

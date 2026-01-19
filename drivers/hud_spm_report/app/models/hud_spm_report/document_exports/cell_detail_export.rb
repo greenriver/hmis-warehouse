@@ -5,6 +5,10 @@ module HudSpmReport
     class CellDetailExport < ::HudReports::CellDetailExportBase
       private
 
+      def generator_class
+        @generator_class ||= HudSpmReport::CellDetailExportBuilder.new(builder_params).generator_for_report
+      end
+
       def builder_class
         HudSpmReport::CellDetailExportBuilder
       end

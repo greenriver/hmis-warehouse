@@ -13,9 +13,6 @@ module HudReports
   # Subclasses must implement:
   # - builder_class: The ExportBuilder class to use
   # - builder_params: Hash of parameters for the builder
-  #
-  # Subclasses can optionally override:
-  # - report_type_display: Short acronym for the report (e.g., 'SPM', 'APR')
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
       # User must have HUD report permissions AND either own the report or have view-all permission
@@ -33,17 +30,14 @@ module HudReports
     end
 
     def download_title
-      "#{report.drilldown_name(question: question_id, table: table_id, cell: cell_id, prefix: report_prefix)} Cell Detail"
+      "#{generator_class.drilldown_name(question: question_id, table: table_id, cell: cell_id)} Cell Detail"
     end
 
     private
 
-    def report_prefix
-      "#{report_type_display} #{report_fiscal_year}"
-    end
-
-    def report_fiscal_year
-      report.report_name.match(/FY \d{4}/).to_s
+    def generator_class
+      # Subclasses must implement to return the appropriate generator class
+      raise NotImplementedError
     end
 
     def builder_class
@@ -54,10 +48,6 @@ module HudReports
     def builder_params
       # Subclasses must implement
       raise NotImplementedError
-    end
-
-    def report_type_display
-      'SPM'
     end
 
     def question_id
