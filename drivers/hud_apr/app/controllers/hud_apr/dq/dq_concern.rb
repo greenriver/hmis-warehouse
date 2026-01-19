@@ -9,17 +9,6 @@
 module HudApr::Dq::DqConcern
   extend ActiveSupport::Concern
 
-  def self.possible_generator_classes
-    {
-      fy2024: HudApr::Generators::Dq::Fy2024::Generator,
-      fy2026: HudApr::Generators::Dq::Fy2026::Generator,
-    }
-  end
-
-  def possible_generator_classes
-    HudApr::Dq::DqConcern.possible_generator_classes
-  end
-
   included do
     private def path_for_question(question, report: nil, args: {})
       hud_reports_dq_question_path({ dq_id: report&.id || 0, id: question }.merge(args))
@@ -100,5 +89,16 @@ module HudApr::Dq::DqConcern
     private def past_report_versions
       [:fy2020, :fy2022]
     end
+  end
+
+  def self.possible_generator_classes
+    {
+      fy2024: HudApr::Generators::Dq::Fy2024::Generator,
+      fy2026: HudApr::Generators::Dq::Fy2026::Generator,
+    }
+  end
+
+  def possible_generator_classes
+    HudApr::Dq::DqConcern.possible_generator_classes
   end
 end
