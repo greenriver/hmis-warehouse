@@ -39,6 +39,12 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_administrate_coordinated_entry)
   end
 
+  # Whether the user can, in general, perform referral tasks in the project.
+  # For determining whether a user can perform a specific task, see CeReferralPolicy.can_perform?
+  def can_perform_referral_tasks?
+    project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
+  end
+
   protected
 
   memoize def project_permissions

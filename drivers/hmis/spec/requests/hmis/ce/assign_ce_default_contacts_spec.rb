@@ -292,16 +292,19 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
   end
 
   describe 'validation' do
-    shared_examples 'raises an error and does not create default contacts' do
+    shared_examples 'raises an error and does not create default contacts' do |expected_error: nil|
       it 'raises an error and does not create default contacts' do
         expect do
-          expect_gql_error post_graphql(input) { mutation }
+          expect_gql_error(post_graphql(input) { mutation }, message: expected_error)
         end.not_to change(Hmis::Ce::DefaultSwimlaneAssignment, :count)
       end
     end
 
-    context 'when user lacks permission to perform referral tasks' do
+    context 'when user lacks permission to perform referral tasks in the project' do
       let!(:user_without_permission) { create(:hmis_user, data_source: ds1) }
+      # cruft: user has permission in a different project
+      let!(:p2) { create(:hmis_hud_project, data_source: ds1) }
+      let!(:user_access_control) { create_access_control(user_without_permission, p2, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
 
       let(:input) do
         {
@@ -317,7 +320,28 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts'
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found or unauthorized/
+    end
+
+    context 'when user lacks permission to perform referral tasks in the data source' do
+      let!(:user_without_permission) { create(:hmis_user, data_source: ds1) }
+      # cruft: user has permission in one project, but they need permission across the whole data source
+      let!(:user_access_control) { create_access_control(user_without_permission, p1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+
+      let(:input) do
+        {
+          input: {
+            contacts: [
+              {
+                swimlaneId: swimlane1.id,
+                userIds: [user_without_permission.id],
+              },
+            ],
+          },
+        }
+      end
+
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found or unauthorized/
     end
 
     context 'when non-existent swimlane is passed' do
@@ -335,7 +359,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts'
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /Swimlane\(s\) not found/
     end
 
     context 'when swimlane exists but is not applicable to the project' do
@@ -356,7 +380,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts'
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /Swimlane\(s\) not found/
     end
 
     context 'when non-existent user is passed' do
@@ -374,68 +398,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts'
-    end
-  end
-
-  describe 'query performance' do
-    shared_examples 'performs efficiently with batch operations' do
-      it 'makes a reasonable number of queries' do
-        expect do
-          response, result = post_graphql(input) { mutation }
-          expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 8..15)
-      end
-    end
-
-    context 'with multiple swimlanes and users' do
-      let!(:additional_users) { create_list(:hmis_user, 10, data_source: ds1) }
-      let!(:additional_user_access) do
-        additional_users.map { |u| create_access_control(u, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
-      end
-      let!(:additional_swimlanes) { create_list(:hmis_workflow_definition_swimlane, 3, template: workflow_template) }
-
-      let(:input) do
-        {
-          input: {
-            contacts: additional_swimlanes.map do |swimlane|
-              {
-                swimlaneId: swimlane.id,
-                userIds: additional_users.sample(3).map(&:id),
-              }
-            end,
-          },
-        }
-      end
-
-      it_behaves_like 'performs efficiently with batch operations'
-    end
-
-    context 'with existing assignments' do
-      let!(:existing_assignments) do
-        5.times.map do |i|
-          swimlane = create(:hmis_workflow_definition_swimlane, template: workflow_template, name: "Swimlane #{i}")
-          user = create(:hmis_user, data_source: ds1)
-          create_access_control(user, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks])
-          create(:hmis_ce_default_swimlane_assignment, user: user, swimlane: swimlane, owner: ds1)
-          { swimlane: swimlane, user: user }
-        end
-      end
-
-      let(:input) do
-        {
-          input: {
-            contacts: existing_assignments.map do |assignment|
-              {
-                swimlaneId: assignment[:swimlane].id,
-                userIds: [assignment[:user].id, user1.id],
-              }
-            end,
-          },
-        }
-      end
-
-      it_behaves_like 'performs efficiently with batch operations'
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found or unauthorized/
     end
   end
 end

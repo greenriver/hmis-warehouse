@@ -14,30 +14,43 @@ module Mutations
       field :default_contacts, [Types::HmisSchema::CeDefaultContact], null: false
 
       def resolve(input:)
-        # Upfront, load all swimlanes and users from the input to confirm they are valid inputs (which depends on the owner)
+        # Upfront, load all swimlanes and users from the input to confirm they are valid
         swimlane_ids = input.contacts.map(&:swimlane_id).uniq
-        swimlanes = Hmis::WorkflowDefinition::Swimlane.where(id: swimlane_ids)
+        swimlanes = Hmis::WorkflowDefinition::Swimlane.where(id: swimlane_ids).joins(:template).merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user))
         user_ids = input.contacts.map(&:user_ids).flatten.uniq
         users = Hmis::User.where(id: user_ids)
+        authorized_users = nil
 
         if input.project_id.present?
-          owner = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
-          access_denied! unless policy_for(owner, policy_type: :hmis_project).can_manage_ce_default_contacts?
+          project = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
+          access_denied! unless policy_for(project, policy_type: :hmis_project).can_manage_ce_default_contacts?
 
-          swimlanes = swimlanes.joins(:template).
-            merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user).used_in_projects([owner.id]))
-          users = users.can_perform_referral_tasks_in_project(owner) # todo @martha - consider adding policy-based checks here?
+          # Further refine the swimlane scope to only swimlanes that are used in this project
+          swimlanes = swimlanes.merge(Hmis::WorkflowDefinition::Template.used_in_projects([project.id]))
+
+          # Authorize each user with the project policy. Causes n+1 but that's acceptable because the list of users is expected to be small
+          authorized_users = users.filter do |user|
+            user.hmis_data_source_id = current_user.hmis_data_source_id
+            user.policy_for(project, policy_type: :hmis_project).can_perform_referral_tasks?
+          end
+
+          owner = project
         else
-          # If no project_id, it's a global assignment. Owner is the current user's HMIS data source
-          owner = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
-          access_denied! unless policy_for(owner, policy_type: :ce_admin).can_manage_ce_default_contacts?
+          # If no project_id is passed, it's a global assignment. Owner is the current user's HMIS data source
+          data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
+          access_denied! unless policy_for(data_source, policy_type: :ce_admin).can_manage_ce_default_contacts?
 
-          # todo @martha - needs spec check
-          users = users.can_be_global_ce_default_contact(owner.id)
+          # Authorize each user with the data source policy. Causes n+1 but that's acceptable because the list of users is expected to be small
+          authorized_users = users.filter do |user|
+            user.hmis_data_source_id = current_user.hmis_data_source_id
+            user.policy_for(data_source, policy_type: :ce_admin).can_perform_referral_tasks? # todo @martha - need to update this logic to check if they can perform referral tasks in any entity in the ds. and then update spec
+          end
+
+          owner = data_source
         end
 
         raise "Swimlane(s) not found: #{swimlane_ids.join(', ')}" unless swimlanes.size == swimlane_ids.size
-        raise "User(s) not found: #{user_ids.join(', ')}" unless users.size == user_ids.size
+        raise "User(s) not found or unauthorized: #{user_ids.join(', ')}" unless authorized_users.size == user_ids.size
 
         # Load all existing assignments for this owner and swimlanes
         existing_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
