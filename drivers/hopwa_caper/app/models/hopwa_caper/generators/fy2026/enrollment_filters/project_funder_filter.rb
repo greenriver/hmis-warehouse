@@ -14,9 +14,9 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
     end
 
     def funders
-      types.map do |type|
+      @funders ||= types.map do |type|
         HudHelper.util('2026').funding_sources.invert.fetch(type)
-      end
+      end.freeze
     end
 
     def self.tbra_hopwa
@@ -45,6 +45,15 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
 
     def self.tbra_or_php_hopwa
       IncludeFilter.new(filters: [tbra_hopwa, php_hopwa])
+    end
+
+    def self.all
+      @all ||= [tbra_hopwa, strmu_hopwa, php_hopwa].freeze
+    end
+
+    def self.find_by_funder_code(code)
+      # Find the first filter that matches the combination
+      all.find { |f| f.funders.include?(code) }
     end
   end
 end

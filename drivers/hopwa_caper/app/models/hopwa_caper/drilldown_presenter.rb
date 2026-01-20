@@ -10,8 +10,10 @@ module HopwaCaper
       @user = user
       @format = format
       @services_by_client = {}
+      @funders_by_client = {}
       @field_map = enrollment_fields
       preload_services
+      preload_funders
     end
 
     def headers
@@ -24,6 +26,8 @@ module HopwaCaper
 
       value = if field.name == 'services_summary'
         services_summary(record)
+      elsif field.name == 'household_project_funders'
+        household_project_funders(record)
       elsif record.respond_to?(field.name)
         record.send(field.name)
       end
@@ -87,6 +91,11 @@ module HopwaCaper
         Field.new(name: 'atc_maintained_contact', label: 'ATC: Maintained Contact'),
         Field.new(name: 'atc_housing_plan', label: 'ATC: Housing Plan'),
         Field.new(name: 'atc_primary_health_contact', label: 'ATC: Primary Health Contact'),
+        Field.new(name: 'household_project_funders', label: 'Household Project Funder(s) (Full Period)', transform: ->(v, _poly) {
+          # Mapping logic to match ProjectFunderFilter labels.
+          HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+            find_by_funder_code(v)&.label
+        }),
         Field.new(name: 'services_summary', label: 'Services (Record Type: Type Provided)'),
       ].index_by(&:name).freeze
     end
@@ -140,6 +149,19 @@ module HopwaCaper
         where(destination_client_id: client_ids).
         where(date_provided: @report.start_date..@report.end_date).
         group_by(&:destination_client_id)
+    end
+
+    def preload_funders
+      client_ids = @records.map(&:destination_client_id).uniq
+      @funders_by_client = @report.hopwa_caper_enrollments.
+        where(destination_client_id: client_ids).
+        pluck(:destination_client_id, :project_funders).
+        group_by(&:first).
+        transform_values { |v| v.flat_map(&:second).compact.uniq.sort }
+    end
+
+    def household_project_funders(record)
+      @funders_by_client[record.destination_client_id] || []
     end
   end
 end
