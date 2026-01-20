@@ -133,10 +133,23 @@ module HmisExternalApis::AcHmis
         payload[:dw_client_id__dw_client_id__includes] = mci_uniq_ids.first
       end
 
-      payload[:lookup_catalyst] = lookup_catalyst if lookup_catalyst && LOOKUP_CATALYST_ALLOWED_VALUES.include?(lookup_catalyst)
+      # For lookup catalyst and lookup reasons, don't send unknown values to the external API,
+      # but log to Sentry if we receive unexpected values so we don't silently skip them.
+      if lookup_catalyst.present?
+        if LOOKUP_CATALYST_ALLOWED_VALUES.include?(lookup_catalyst)
+          payload[:lookup_catalyst] = lookup_catalyst
+        else
+          Sentry.capture_message("AHA received unexpected lookup catalyst: #{lookup_catalyst}")
+        end
+      end
 
-      valid_reasons = lookup_reason&.filter { |r| LOOKUP_REASON_ALLOWED_VALUES.include?(r) }
-      payload[:lookup_reason] = valid_reasons if valid_reasons&.any?
+      if lookup_reason.present?
+        valid_reasons, unknown_reasons = lookup_reason.partition { |r| LOOKUP_REASON_ALLOWED_VALUES.include?(r) }
+
+        payload[:lookup_reason] = valid_reasons if valid_reasons.any?
+
+        Sentry.capture_message("AHA received unexpected lookup reason(s): #{unknown_reasons.join(', ')}") if unknown_reasons.any?
+      end
 
       payload
     end

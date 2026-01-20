@@ -114,10 +114,14 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     end
 
     it 'ignores invalid values for lookup catalyst and reason' do
+      allow(Sentry).to receive(:capture_message)
       setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
 
       result = aha.fetch_score(client, lookup_catalyst: 'random text', lookup_reason: ['not a good reason'])
       expect(result.score).to eq(8)
+
+      expect(Sentry).to have_received(:capture_message).with('AHA received unexpected lookup catalyst: random text')
+      expect(Sentry).to have_received(:capture_message).with('AHA received unexpected lookup reason(s): not a good reason')
     end
   end
 
