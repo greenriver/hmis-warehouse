@@ -17,16 +17,15 @@ RSpec.describe HudSpmReport::DocumentExports::CellDetailExport, type: :model do
     )
   end
 
+  it_behaves_like 'a hud cell detail export'
+
   describe '#builder' do
     it 'initializes SPM builder with correct parameters' do
       builder = export.send(:builder)
 
       expect(builder).to be_a(HudSpmReport::CellDetailExportBuilder)
-      expect(builder.instance_variable_get(:@user)).to eq(user)
-      expect(builder.instance_variable_get(:@report)).to eq(report)
-      expect(builder.instance_variable_get(:@measure_id)).to eq('Q1')
-      expect(builder.instance_variable_get(:@cell_id)).to eq('B2')
-      expect(builder.instance_variable_get(:@table)).to eq('Table 1')
+      # We test behavior by checking if the builder is correctly configured for the report
+      expect(builder.generator_for_report).to eq(HudSpmReport::Generators::Fy2026::Generator)
     end
   end
 end

@@ -24,25 +24,15 @@ RSpec.describe HudApr::DocumentExports::CellDetailExport, type: :model do
     )
   end
 
+  it_behaves_like 'a hud cell detail export'
+
   describe '#builder' do
     it 'initializes APR builder with correct parameters' do
       builder = export.send(:builder)
 
       expect(builder).to be_a(HudApr::CellDetailExportBuilder)
-      expect(builder.instance_variable_get(:@user)).to eq(user)
-      expect(builder.instance_variable_get(:@report)).to eq(report)
-      expect(builder.instance_variable_get(:@measure_id)).to eq('Question 5')
-      expect(builder.instance_variable_get(:@cell_id)).to eq('B2')
-      expect(builder.instance_variable_get(:@table)).to eq('5a')
-      expect(builder.instance_variable_get(:@report_type)).to eq('apr')
-    end
-  end
-
-  describe '#download_title' do
-    it 'generates a descriptive title' do
-      user.legacy_roles << create(:role, can_view_own_hud_reports: true)
-      expect(export.download_title).to match(/Question 5/)
-      expect(export.download_title).to match(/Cell Detail/)
+      # Test that it correctly identifies the generator via the builder
+      expect(builder.generator_for_report).to eq(HudApr::Generators::Apr::Fy2026::Generator)
     end
   end
 end
