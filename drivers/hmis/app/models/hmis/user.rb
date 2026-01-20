@@ -107,22 +107,6 @@ class Hmis::User < ApplicationRecord
     end
   end
 
-  scope :can_perform_referral_tasks_in_project, ->(project) do
-    can_perform_any_referral_tasks_for(project).or(can_perform_own_referral_tasks_for(project))
-  end
-
-  scope :can_be_global_ce_default_contact, ->(data_source_id) do
-    data_source = GrdaWarehouse::DataSource.find(data_source_id)
-
-    user_ids = Hmis::AccessControl.joins(:role, :access_group, user_group: :users).
-      preload(user_group: :user_group_members).
-      merge(Hmis::Role.where(can_perform_any_referral_tasks: true)).
-      merge(Hmis::AccessGroup.contains(data_source)). # Check for access groups that grant permission to the data source as a whole
-      select(Hmis::User.arel_table[:id]) # select ids to ensure the returned scope doesn't include complexity from the join
-
-    where(id: user_ids)
-  end
-
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
   end

@@ -243,11 +243,26 @@ module Types
         return [] if Hmis::ProjectCeConfig.detect_best_config_for_project(project).blank?
 
         # Return users who can perform referral tasks in this project
-        user_scope = user_scope.can_perform_referral_tasks_in_project(project)
+        user_scope = user_scope.can_perform_any_referral_tasks_for(project).or(user_scope.can_perform_own_referral_tasks_for(project))
       else
-        # If project is not passed, return users who can be global CE default contacts.
+        # If project is not passed, return users who can perform any referral tasks in the data source.
+        # (This list is too big, but we don't have a good way to know who is a CE Admin.)
         # This is used by the global Default Contacts dropdowns.
-        user_scope = user_scope.can_be_global_ce_default_contact(user.hmis_data_source_id)
+        data_source = GrdaWarehouse::DataSource.find(user.hmis_data_source_id)
+
+        # This logic is based on the AccessGroup's contains_with_inherited scope
+        access_group_ids = Hmis::GroupViewableEntity.
+          includes_any_entity_in_data_source(data_source).
+          pluck(:collection_id)
+
+        # This logic is based on the user permission_for(entity) scopes
+        user_ids = Hmis::AccessControl.joins(:role, :access_group, user_group: :users).
+          preload(user_group: :user_group_members).
+          merge(Hmis::Role.where(can_perform_any_referral_tasks: true)).
+          merge(Hmis::AccessGroup.where(id: access_group_ids)).
+          select(Hmis::User.arel_table[:id])
+
+        user_scope = user_scope.where(id: user_ids)
       end
 
       user_scope.

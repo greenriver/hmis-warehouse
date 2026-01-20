@@ -592,13 +592,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
 
-    it 'returns users who can perform any tasks for all projects in the data source when no project is passed' do
+    it 'returns users who can perform any tasks in the data source when no project is passed' do
       response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS') { query }
       expect(response.status).to eq(200), result.inspect
       options = result.dig('data', 'pickList')
       expect(options).to contain_exactly(
         a_hash_including('code' => hmis_user.id.to_s),
+        a_hash_including('code' => user_who_can_perform_any_task_at_project.id.to_s),
       )
+    end
+
+    context 'with many permissioned users' do
+      before do
+        20.times do
+          user = create(:hmis_user, data_source: ds1)
+          project = create(:hmis_hud_project, data_source: ds1)
+          create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
+        end
+      end
+
+      it 'makes a reasonable number of queries when querying for specific project' do
+        expect do
+          response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', project_id: project.id.to_s) { query }
+          expect(response.status).to eq(200), result.inspect
+        end.to make_database_queries(count: 15..25)
+      end
+
+      it 'makes a reasonable number of queries when querying for data source' do
+        expect do
+          response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS') { query }
+          expect(response.status).to eq(200), result.inspect
+        end.to make_database_queries(count: 5..20)
+      end
     end
   end
 
