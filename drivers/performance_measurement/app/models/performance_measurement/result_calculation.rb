@@ -1054,6 +1054,10 @@ module PerformanceMeasurement::ResultCalculation
       comparison_numerator = 1 if comparison_numerator.positive? && comparison_numerator < 1
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
+
+      # Don't create the result if there was no inventory AND no client activity
+      return unless reporting_numerator.positive? || comparison_numerator.positive?
+
       PerformanceMeasurement::Result.new(
         report_id: id,
         field: meth,
