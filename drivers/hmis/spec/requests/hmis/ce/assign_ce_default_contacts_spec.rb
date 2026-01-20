@@ -50,9 +50,9 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
   let!(:user3) { create(:hmis_user, data_source: ds1) }
 
   # Grant users permission to perform referral tasks
-  let!(:user1_access) { create_access_control(user1, p1, with_permission: [:can_view_project, :can_perform_own_referral_tasks]) }
-  let!(:user2_access) { create_access_control(user2, p1, with_permission: [:can_view_project, :can_perform_own_referral_tasks]) }
-  let!(:user3_access) { create_access_control(user3, p1, with_permission: [:can_view_project, :can_perform_own_referral_tasks]) }
+  let!(:user1_access) { create_access_control(user1, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+  let!(:user2_access) { create_access_control(user2, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+  let!(:user3_access) { create_access_control(user3, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
 
   # Set up project to use the workflow template
   let!(:unit_group) { create(:hmis_unit_group, project: p1, workflow_template: workflow_template) }
@@ -391,7 +391,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
     context 'with multiple swimlanes and users' do
       let!(:additional_users) { create_list(:hmis_user, 10, data_source: ds1) }
       let!(:additional_user_access) do
-        additional_users.map { |u| create_access_control(u, p1, with_permission: [:can_view_project, :can_perform_own_referral_tasks]) }
+        additional_users.map { |u| create_access_control(u, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
       end
       let!(:additional_swimlanes) { create_list(:hmis_workflow_definition_swimlane, 3, template: workflow_template) }
 
@@ -416,7 +416,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         5.times.map do |i|
           swimlane = create(:hmis_workflow_definition_swimlane, template: workflow_template, name: "Swimlane #{i}")
           user = create(:hmis_user, data_source: ds1)
-          create_access_control(user, p1, with_permission: [:can_view_project, :can_perform_own_referral_tasks])
+          create_access_control(user, ds1, with_permission: [:can_view_project, :can_perform_any_referral_tasks])
           create(:hmis_ce_default_swimlane_assignment, user: user, swimlane: swimlane, owner: ds1)
           { swimlane: swimlane, user: user }
         end
