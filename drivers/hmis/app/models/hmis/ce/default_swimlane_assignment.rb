@@ -21,8 +21,12 @@ module Hmis::Ce
 
     # Fetch assignments for a project, including inherited assignments from org and data source
     scope :for_project, ->(project) do
+      swimlane_scope = Hmis::WorkflowDefinition::Swimlane.
+        joins(:template).
+        merge(Hmis::WorkflowDefinition::Template.ce.published.used_in_projects([project.id]))
+
       owners = [project, project.organization, project.data_source].compact
-      with_owners(owners)
+      joins(:swimlane).merge(swimlane_scope).with_owners(owners)
     end
 
     # Helper scope to fetch assignments for multiple owners at once
