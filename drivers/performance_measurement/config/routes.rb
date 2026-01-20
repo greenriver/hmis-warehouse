@@ -15,6 +15,7 @@ BostonHmis::Application.routes.draw do
         member do
           get 'equity_analysis', to: 'reports#equity_analysis', as: :equity_analysis
           get 'provider_comparisons', to: 'reports#provider_comparisons', as: :provider_comparisons
+          post 'reload_from_csv', to: 'reports#reload_from_csv', as: :reload_from_csv
         end
       end
       resources :goal_configs, except: [:show] do
