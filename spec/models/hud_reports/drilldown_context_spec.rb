@@ -9,13 +9,22 @@
 require 'rails_helper'
 
 RSpec.describe HudReports::DrilldownContext, type: :model do
-  let(:report) { instance_double('HudReports::ReportInstance', id: 123) }
-  let(:generator) do
-    double('Generator',
-           file_prefix: 'TEST',
-           column_headings: { 'client_id' => 'Client ID', 'name' => 'Name' },
-           pii_columns: ['name'])
+  # A concrete generator for testing behavior instead of mocking every method
+  class TestGenerator < HudReports::GeneratorBase
+    def self.file_prefix = 'TEST'
+    def self.column_headings(_) = { 'client_id' => 'Client ID', 'name' => 'Name' }
+    def self.pii_columns = ['name']
+    def self.client_class(_) = GrdaWarehouse::Hud::Client
+    def self.questions = { 'Q1' => Object }
   end
+
+  # A generator that implements the custom measure validation
+  class CustomValidationGenerator < TestGenerator
+    def self.valid_question_number(id) = "Validated #{id}"
+  end
+
+  let(:report) { instance_double('HudReports::ReportInstance', id: 123) }
+  let(:generator) { TestGenerator }
 
   describe '.build' do
     it 'sanitizes cell_id' do
@@ -29,12 +38,13 @@ RSpec.describe HudReports::DrilldownContext, type: :model do
     end
 
     it 'sanitizes measure_id via generator if supported' do
-      allow(generator).to receive(:respond_to?).with(:valid_question_number).and_return(true)
-      allow(generator).to receive(:method).with(:valid_question_number).and_return(double(owner: 'Other'))
-      allow(generator).to receive(:valid_question_number).with('Q1').and_return('Validated Q1')
-
-      context = described_class.build(report: report, generator: generator, measure_id: 'Q1', cell_id: 'A1', table_id: 'T1')
+      context = described_class.build(report: report, generator: CustomValidationGenerator, measure_id: 'Q1', cell_id: 'A1', table_id: 'T1')
       expect(context.measure).to eq('Validated Q1')
+    end
+
+    it 'defaults to first question if measure_id invalid and questions defined' do
+      context = described_class.build(report: report, generator: TestGenerator, measure_id: 'INVALID', cell_id: 'A1', table_id: 'T1')
+      expect(context.measure).to eq('Q1')
     end
   end
 
@@ -67,7 +77,6 @@ RSpec.describe HudReports::DrilldownContext, type: :model do
   describe '#export_headers' do
     before do
       allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(false)
-      allow(generator).to receive(:respond_to?).with(:pii_columns).and_return(true)
     end
 
     it 'filters PII columns by default' do
@@ -83,66 +92,78 @@ RSpec.describe HudReports::DrilldownContext, type: :model do
     end
   end
 
-  describe 'search logic' do
+  describe 'searching' do
     let(:model) { double('ClientModel') }
     let(:base_scope) { double('ActiveRecord::Relation', model: model) }
+    let(:context) { described_class.new(generator: generator, search_term: 'John') }
 
     before do
-      allow(generator).to receive(:respond_to?).with(:client_scope).and_return(false)
-      allow(generator).to receive(:client_class).and_return(model)
+      allow(context).to receive(:base_scope).and_return(base_scope)
     end
 
-    it 'is searchable? if model responds to searchable?' do
-      context = described_class.new(generator: generator)
-      allow(context).to receive(:base_scope).and_return(base_scope)
+    describe '#searchable?' do
+      it 'is true if model is searchable' do
+        allow(model).to receive(:respond_to?).with(:searchable?).and_return(true)
+        allow(model).to receive(:searchable?).and_return(true)
+        expect(context.searchable?).to be true
+      end
 
-      allow(model).to receive(:respond_to?).with(:searchable?).and_return(true)
-      allow(model).to receive(:searchable?).and_return(true)
-      expect(context.searchable?).to be true
+      it 'is false if model is not searchable' do
+        allow(model).to receive(:respond_to?).with(:searchable?).and_return(false)
+        expect(context.searchable?).to be false
+      end
     end
 
     describe '#filtered_scope' do
-      it 'applies search_clients to base_scope when searching' do
-        context = described_class.new(generator: generator, search_term: 'John')
-        allow(context).to receive(:base_scope).and_return(base_scope)
+      it 'applies search_clients when searching' do
         allow(context).to receive(:searchable?).and_return(true)
-
         allow(model).to receive(:respond_to?).with(:search_clients).and_return(true)
         expect(model).to receive(:search_clients).with(base_scope, 'John').and_return(:filtered)
 
         expect(context.filtered_scope).to eq(:filtered)
       end
 
-      it 'returns base_scope if not searchable' do
-        context = described_class.new(generator: generator, search_term: 'John')
-        allow(context).to receive(:base_scope).and_return(base_scope)
-        allow(context).to receive(:searchable?).and_return(false)
-
+      it 'returns base_scope if search term is blank' do
+        context.search_term = ''
         expect(context.filtered_scope).to eq(base_scope)
+      end
+
+      it 'returns base_scope if not searchable' do
+        allow(context).to receive(:searchable?).and_return(false)
+        expect(context.filtered_scope).to eq(base_scope)
+      end
+    end
+
+    describe '#apply_search_query!' do
+      it 'extracts search term from search query object' do
+        search_query = double('SearchQuery', query_params: { q: 'Jane' })
+        context.apply_search_query!(search_query)
+        expect(context.search_term).to eq('Jane')
       end
     end
   end
 
   describe '#base_scope' do
-    let(:model) { double('ClientModel') }
-    let(:scope) { double('Scope') }
+    let(:client_scope) { double('ClientScope') }
     let(:report_cell_scope) { double('ReportCellScope') }
+    let(:report_instance_scope) { double('ReportInstanceScope') }
 
-    it 'builds scope using joins and merges' do
+    it 'builds the expected ActiveRecord relation chain' do
       context = described_class.new(report: report, generator: generator, measure: 'Q1', table: 'T1', cell: 'A1')
 
-      allow(generator).to receive(:respond_to?).with(:client_scope).and_return(true)
-      allow(generator).to receive(:client_scope).with('Q1').and_return(scope)
+      # Mock the starting scope from the generator
+      allow(generator).to receive(:client_class).with('Q1').and_return(client_scope)
 
-      expect(scope).to receive(:joins).with(hud_reports_universe_members: { report_cell: :report_instance }).and_return(scope)
-      expect(scope).to receive(:merge).twice.and_return(scope)
-      expect(scope).to receive(:distinct).and_return(:final_scope)
+      # Mock the chain of ActiveRecord methods. While still using mocks, we focus on
+      # the functional requirements of the scope building.
+      expect(client_scope).to receive(:joins).with(hud_reports_universe_members: { report_cell: :report_instance }).and_return(client_scope)
+      expect(client_scope).to receive(:merge).with(report_cell_scope).and_return(client_scope)
+      expect(client_scope).to receive(:merge).with(report_instance_scope).and_return(client_scope)
+      expect(client_scope).to receive(:distinct).and_return(:final_scope)
 
-      # Mocking HudReports::ReportCell and HudReports::ReportInstance would be better but complex due to static methods
-      # For now, we trust the chain if we can't easily mock the classes
-      allow(HudReports::ReportCell).to receive(:for_table).and_return(report_cell_scope)
-      allow(report_cell_scope).to receive(:for_cell).and_return(report_cell_scope)
-      allow(HudReports::ReportInstance).to receive(:where).and_return(double(merge: scope))
+      allow(HudReports::ReportCell).to receive(:for_table).with('T1').and_return(report_cell_scope)
+      allow(report_cell_scope).to receive(:for_cell).with('A1').and_return(report_cell_scope)
+      allow(HudReports::ReportInstance).to receive(:where).with(id: 123).and_return(report_instance_scope)
 
       expect(context.base_scope).to eq(:final_scope)
     end

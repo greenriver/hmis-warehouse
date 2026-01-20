@@ -7,7 +7,9 @@
 # frozen_string_literal: true
 
 module HudApr
-  # Builds Excel exports for APR, CAPER, CeAPR, and DQ report cell details.
+  # Centralized dispatcher for building Excel exports across the APR family (APR, CAPER, CeAPR, DQ).
+  #
+  # This class consolidates the mapping logic for report types and HUD specification versions
   class CellDetailExportBuilder < ::HudReports::CellDetailExportBuilderBase
     def generator_for_report
       concern_class = case report_type
