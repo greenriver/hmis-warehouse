@@ -57,6 +57,7 @@ module HmisDataQualityTool
         hispanic_latinaeo: { title: 'Hispanic/Latina/e/o', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
         race_none: { title: 'Race None', translator: ->(v) { "#{HudHelper.util.race_none(v)} (#{v})" } },
         veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        sex: { title: 'Sex', translator: ->(v) { v.blank? ? '' : "#{HudHelper.util.sex(v)} (#{v})" } },
         ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
         ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudHelper.util.ssn_data_quality(v)} (#{v})" } },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
@@ -193,6 +194,7 @@ module HmisDataQualityTool
       report_item.hispanic_latinaeo = source_client.HispanicLatinaeo
       report_item.race_none = source_client.RaceNone
       report_item.veteran_status = source_client.VeteranStatus
+      report_item.sex = source_client.Sex
       report_item.ssn = source_client.SSN
       report_item.ssn_data_quality = source_client.SSNDataQuality
       # we need these for calculations, but don't want to store them permanently,
@@ -359,6 +361,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :am_ind_ak_native,
             :asian,
             :black_af_american,
@@ -393,6 +396,31 @@ module HmisDataQualityTool
             false
           },
         },
+        sex_issues: {
+          title: 'Sex',
+          description: 'Sex is blank, has an invalid value, or is "Data not collected" (99)',
+          required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :sex,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) {
+            valid_sex_values = HudHelper.util.sexes.keys
+            # Sex is blank
+            return true if item.sex.blank?
+            # Sex has an invalid value (not in valid set)
+            return true unless item.sex.in?(valid_sex_values)
+            # Sex is "Data not collected" (99) - flag as issue since field is required
+            return true if item.sex == 99
+
+            false
+          },
+        },
         dob_issues: {
           title: 'DOB',
           description: 'DOB is blank, before Oct. 10 1910, DOB is after an entry date, or DOB Data Quality is not collected, but DOB is present',
@@ -403,6 +431,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :dob,
             :dob_data_quality,
           ],
@@ -432,6 +461,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :ssn,
             :ssn_data_quality,
           ],
@@ -459,6 +489,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :name_data_quality,
           ],
           denominator: ->(_item) { true },
@@ -483,6 +514,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :veteran_status,
           ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
@@ -504,6 +536,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_entry_exit,
             :overlapping_entry_exit_details,
           ],
@@ -523,6 +556,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_nbn,
             :overlapping_nbn_details,
           ],
@@ -543,6 +577,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_pre_move_in,
             :overlapping_pre_move_in_details,
           ],
@@ -564,6 +599,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_post_move_in,
             :overlapping_post_move_in_details,
           ],
