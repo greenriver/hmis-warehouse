@@ -242,7 +242,9 @@ module Types
         # Confirm the project has an applicable CE config
         return [] if Hmis::ProjectCeConfig.detect_best_config_for_project(project).blank?
 
-        # Return users who can perform referral tasks in this project
+        # These user scopes performantly access a list of all users who can do referral tasks in the project.
+        # In general, these scopes should *not* be used for actually authorizing actions; use policies instead.
+        # Here, we already checked project is viewable by the current user, so we are only returning users with permissions in the current data source.
         user_scope = user_scope.can_perform_any_referral_tasks_for(project).or(user_scope.can_perform_own_referral_tasks_for(project))
       else
         # If project is not passed, return users who can perform any referral tasks in the data source.
