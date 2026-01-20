@@ -1,0 +1,3 @@
+Patient ID,Member Record Number,Admit Date,Discharge Date,Visit Type
+12345,MRN001,01/15/2024,01/20/2024,IP
+67890,MRN002,02/10/2024,02/10/2024,ED
