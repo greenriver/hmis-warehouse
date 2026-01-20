@@ -43,7 +43,7 @@ module Mutations
           # Authorize each user with the data source policy. Causes n+1 but that's acceptable because the list of users is expected to be small
           authorized_users = users.filter do |user|
             user.hmis_data_source_id = current_user.hmis_data_source_id
-            user.policy_for(data_source, policy_type: :ce_admin).can_perform_referral_tasks? # todo @martha - need to update this logic to check if they can perform referral tasks in any entity in the ds. and then update spec
+            user.policy_for(data_source, policy_type: :ce_admin).can_perform_referral_tasks?
           end
 
           owner = data_source

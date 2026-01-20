@@ -9,13 +9,14 @@ RSpec.describe Hmis::AuthPolicies::CeAdminPolicy, type: :model do
   let!(:user) { create(:hmis_user, data_source: data_source) }
   let!(:user2) { create(:hmis_user, data_source: data_source) }
   let!(:policy) { user.policy_for(data_source, policy_type: :ce_admin) }
-  let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
 
   before do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
   end
 
   describe '#can_manage_ce_default_contacts?' do
+    let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
+
     it 'returns true when user has can_administrate_coordinated_entry permission' do
       expect(policy.can_manage_ce_default_contacts?).to be true
     end
@@ -40,23 +41,54 @@ RSpec.describe Hmis::AuthPolicies::CeAdminPolicy, type: :model do
       let!(:project) { create(:hmis_hud_project, data_source: data_source) }
       let!(:access_control) { create_access_control(user, project, with_permission: [:can_administrate_coordinated_entry]) }
 
-      it 'returns false' do
-        expect(policy.can_manage_ce_default_contacts?).to be false
+      it 'returns true' do
+        expect(policy.can_manage_ce_default_contacts?).to be true
+      end
+    end
+  end
+
+  describe '#can_perform_referral_tasks?' do
+    it 'returns false when user cannot perform any referral tasks' do
+      expect(policy.can_perform_referral_tasks?).to be false
+    end
+
+    context 'when user can perform any referral tasks in the data source' do
+      let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_perform_any_referral_tasks]) }
+
+      it 'returns true' do
+        expect(policy.can_perform_referral_tasks?).to be true
       end
     end
 
-    context 'when there are many projects in the data source' do
-      before do
-        20.times do
-          create(:hmis_hud_project, data_source: data_source)
-        end
-      end
+    context 'when user can perform any referral tasks at a specific project in the data source' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source) }
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks]) }
 
-      it 'makes a reasonable number of queries' do
-        expect do
-          expect(policy.can_manage_ce_default_contacts?).to be true
-        end.to make_database_queries(count: 0..3)
+      it 'returns true' do
+        expect(policy.can_perform_referral_tasks?).to be true
       end
+    end
+  end
+
+  describe 'performance - when there are many projects in the data source' do
+    let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry, :can_perform_any_referral_tasks]) }
+
+    before do
+      20.times do
+        create(:hmis_hud_project, data_source: data_source)
+      end
+    end
+
+    it 'can_manage_ce_default_contacts? makes a reasonable number of queries' do
+      expect do
+        expect(policy.can_manage_ce_default_contacts?).to be true
+      end.to make_database_queries(count: 0..3)
+    end
+
+    it 'can_perform_referral_tasks? makes a reasonable number of queries' do
+      expect do
+        expect(policy.can_perform_referral_tasks?).to be true
+      end.to make_database_queries(count: 0..3)
     end
   end
 end

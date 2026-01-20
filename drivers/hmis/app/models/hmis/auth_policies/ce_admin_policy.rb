@@ -13,9 +13,8 @@ class Hmis::AuthPolicies::CeAdminPolicy < Hmis::AuthPolicies::BasePolicy
     data_source_permissions.include?(:can_administrate_coordinated_entry)
   end
 
-  # Whether the user can perform any referral tasks, in the whole data source.
+  # Whether the user can perform referral tasks at any entity in the data source.
   def can_perform_referral_tasks?
-    # todo @martha - fix this
     data_source_permissions.include?(:can_perform_any_referral_tasks)
   end
 

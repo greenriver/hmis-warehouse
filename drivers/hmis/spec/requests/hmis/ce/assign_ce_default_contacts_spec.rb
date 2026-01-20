@@ -325,8 +325,9 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
 
     context 'when user lacks permission to perform referral tasks in the data source' do
       let!(:user_without_permission) { create(:hmis_user, data_source: ds1) }
-      # cruft: user has permission in one project, but they need permission across the whole data source
-      let!(:user_access_control) { create_access_control(user_without_permission, p1, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+      # cruft: user has permission in a different data source
+      let!(:ds2) { create(:hmis_data_source) }
+      let!(:user_access_control) { create_access_control(user_without_permission, ds2, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
 
       let(:input) do
         {
