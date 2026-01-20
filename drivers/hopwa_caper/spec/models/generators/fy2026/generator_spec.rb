@@ -136,6 +136,61 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       # Should have looked past the newer nil and found the older 'Yes'
       expect(report_enrollment.atc_maintained_contact).to be(true)
     end
+
+    it 'ignores assessments linked to non-HOPWA enrollments, even if they are more recent' do
+      # 1. Setup Projects: 1 HOPWA, 1 Non-HOPWA (e.g. CoC)
+      coc_funder = HudHelper.util('2026').funding_sources.invert.fetch('HUD: CoC - Permanent Supportive Housing')
+      coc_project = create_hopwa_project(funder: coc_funder)
+
+      # 2. Setup Enrollments for the SAME client
+      hopwa_enrollment = create_hiv_positive_enrollment(
+        client: hoh_client_1,
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id_1,
+      )
+
+      non_hopwa_enrollment = create_enrollment(
+        client: hoh_client_1,
+        project: coc_project,
+        entry_date: report_start_date + 5.days,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+
+      # 3. Setup Assessments in HMIS mirror world
+      hopwa_hmis_enrollment = Hmis::Hud::Enrollment.find(hopwa_enrollment.id)
+      non_hopwa_hmis_enrollment = Hmis::Hud::Enrollment.find(non_hopwa_enrollment.id)
+
+      # Assessment for HOPWA enrollment: "Yes" on 10 days in
+      assessment_hopwa = create(
+        :hmis_custom_assessment,
+        data_source: data_source,
+        enrollment: hopwa_hmis_enrollment,
+        client: hopwa_hmis_enrollment.client,
+        AssessmentDate: report_start_date + 10.days,
+      )
+      create(:hmis_custom_data_element, data_element_definition: maintained_definition, owner: assessment_hopwa, value_string: 'Yes')
+
+      # Assessment for Non-HOPWA enrollment: "No" on 15 days in (More recent!)
+      assessment_non_hopwa = create(
+        :hmis_custom_assessment,
+        data_source: data_source,
+        enrollment: non_hopwa_hmis_enrollment,
+        client: non_hopwa_hmis_enrollment.client,
+        AssessmentDate: report_start_date + 15.days,
+      )
+      create(:hmis_custom_data_element, data_element_definition: maintained_definition, owner: assessment_non_hopwa, value_string: 'No')
+
+      # 4. Run report for the HOPWA project only
+      report = create_report([tbra_project])
+      run_report(report)
+
+      # 5. Verify outcome
+      report_enrollment = report.hopwa_caper_enrollments.find_by(enrollment_id: hopwa_enrollment.id)
+
+      # It should be 'true' (from 'Yes') because it ignored the 'No' assessment linked to the other enrollment
+      expect(report_enrollment.atc_maintained_contact).to be(true)
+    end
   end
 
   describe '#update_hopwa_eligibility' do
