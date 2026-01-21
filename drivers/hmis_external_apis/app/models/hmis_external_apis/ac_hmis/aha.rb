@@ -33,6 +33,22 @@
 ###
 module HmisExternalApis::AcHmis
   class Aha
+    # Lookup catalyst and reason are optional values; if present on the form, they should be submitted when we make the fetch call.
+    # Before submitting, validate against the list of allowed values.
+    # (Validate here, instead of in the graphql schema, so we have flexibility to ignore instead of raise when receiving invalid values)
+    LOOKUP_CATALYST_ALLOWED_VALUES = [
+      'OCS Staff',
+      'OCS Admin',
+      'Non-OCS Program Admin',
+      'DHS Admin',
+    ].freeze
+    LOOKUP_REASON_ALLOWED_VALUES = [
+      'Other',
+      'Vacancy Management',
+      'Prioritization Request',
+      'DHS Housing Integration',
+    ].freeze
+
     SYSTEM_ID = 'ac_hmis_aha'
     AHA_GENERATOR = 'AHA'
     VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
@@ -42,20 +58,16 @@ module HmisExternalApis::AcHmis
     # Custom error class for MciUniqueId so the mutation can catch it
     class NoMciUniqueIdError < HmisErrors::ApiError; end
 
-    def fetch_score(client)
+    def fetch_score(client, lookup_catalyst: nil, lookup_reason: nil)
       # Collect MCI unique IDs for this client and all source clients with the same destination client
       clients = [client, *client.destination_client&.source_clients&.to_a]
       mci_uniq_ids = clients.compact.uniq.filter_map do |c|
         c.ac_hmis_mci_unique_id&.value
-      end.uniq
+      end.uniq.sort
 
       raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
-      payload = if mci_uniq_ids.size > 1
-        { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(',') }
-      else
-        { 'dw_client_id__dw_client_id__includes': mci_uniq_ids.first }
-      end
+      payload = create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
 
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
@@ -110,6 +122,36 @@ module HmisExternalApis::AcHmis
 
     def conn
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
+    end
+
+    def create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
+      payload = {}
+
+      if mci_uniq_ids.size > 1
+        payload[:dw_client_id__dw_client_id__overlap] = mci_uniq_ids.join(',')
+      else
+        payload[:dw_client_id__dw_client_id__includes] = mci_uniq_ids.first
+      end
+
+      # For lookup catalyst and lookup reasons, don't send unknown values to the external API,
+      # but log to Sentry if we receive unexpected values so we don't silently skip them.
+      if lookup_catalyst.present?
+        if LOOKUP_CATALYST_ALLOWED_VALUES.include?(lookup_catalyst)
+          payload[:lookup_catalyst] = lookup_catalyst
+        else
+          Sentry.capture_message("AHA received unexpected lookup catalyst: #{lookup_catalyst}")
+        end
+      end
+
+      if lookup_reason.present?
+        valid_reasons, unknown_reasons = lookup_reason.partition { |r| LOOKUP_REASON_ALLOWED_VALUES.include?(r) }
+
+        payload[:lookup_reason] = valid_reasons if valid_reasons.any?
+
+        Sentry.capture_message("AHA received unexpected lookup reason(s): #{unknown_reasons.join(', ')}") if unknown_reasons.any?
+      end
+
+      payload
     end
 
     def handle_error(result)

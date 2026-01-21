@@ -7193,7 +7193,7 @@ type Mutation {
   """
   Return AHA score for client
   """
-  fetchAhaScore(clientId: ID!): FetchAhaScorePayload
+  fetchAhaScore(clientId: ID!, lookupCatalyst: String, lookupReason: [String!]): FetchAhaScorePayload
   joinHousehold(joiningEnrollmentInputs: [EnrollmentRelationshipInput!]!, receivingHouseholdId: ID!): JoinHouseholdPayload
   markUnitsAvailable(unitIds: [ID!]!): MarkUnitsAvailablePayload
   markUnitsUnavailable(unitIds: [ID!]!): MarkUnitsUnavailablePayload

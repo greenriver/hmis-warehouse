@@ -49,10 +49,11 @@ module PerformanceMeasurement::WarehouseReports
       )
       # If project_type_codes was explicitly passed as empty, respect that
       @filter.project_type_codes = [] if filter_params[:filters]&.key?(:project_type_codes) && filter_params[:filters][:project_type_codes].reject(&:blank?).blank?
+
       @report.filter = @filter
 
-      @report.save
       @report.update_goal_configuration!
+      @report.save!
       ::WarehouseReports::GenericReportJob.perform_later(
         user_id: current_user.id,
         report_class: @report.class.name,
