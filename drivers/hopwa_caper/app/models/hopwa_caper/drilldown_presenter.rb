@@ -148,9 +148,8 @@ module HopwaCaper
     end
 
     def preload_funders
-      client_ids = @records.map(&:destination_client_id).uniq
       @funders_by_client = @report.hopwa_caper_enrollments.
-        where(destination_client_id: client_ids).
+        where(destination_client_id: @records.map(&:destination_client_id).uniq).
         pluck(:destination_client_id, :project_funders).
         group_by(&:first).
         transform_values { |v| v.flat_map(&:second).compact.uniq.sort }
