@@ -17,7 +17,7 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
     validate_end(record)
     validate_tasks_and_gateways(record)
     validate_nodes_reachable(record)
-    validate_decline_reasons(record)
+    validate_decline_reasons(record) if record.template_type == 'ce_referral'
   end
 
   private
