@@ -145,7 +145,12 @@ module Types
 
       # This is a summary field. If the current user can view the referral, always return the client name
       # (even if the current user can't otherwise view that client)
-      return c.brief_name.presence || c.masked_name if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+      if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+        # Check that the user has *any* permission to view client names. TODO - this should be a global policy check
+        return c.brief_name if c.brief_name.present? && current_user.can_view_client_name?
+
+        return c.masked_name
+      end
 
       # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
       viewable_client = load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
