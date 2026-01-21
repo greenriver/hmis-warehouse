@@ -7,7 +7,7 @@ SELECT
   referral.completed_at,
   referral.status,
   referral.custom_referral_status_id,
-  -- todo: add decline_reason_id
+  referral.decline_reason_id,
   referral.referred_by_id,
   referral.target_enrollment_id,
   referral.source_enrollment_id,
