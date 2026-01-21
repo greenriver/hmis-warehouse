@@ -45,8 +45,11 @@ module CeWorkflows::Ph
       end
     end
 
+    # These 3 `build_` methods hard-code their version number, and are intended to be idempotent on that version number.
+    # This enables iterating on a template until it is ready to be published.
+    # See README_FOR_PH_CE_WORKFLOWS.md for more details.
     def build_benefits_referral_workflow
-      build_direct_referral_workflow(
+      find_or_create_direct_referral_draft_template(
         identifier: 'benefits_referral',
         name: 'Benefits Referral',
         outgoing_step_form_identifier: FORMS.fetch(:benefits_referral),
@@ -56,7 +59,7 @@ module CeWorkflows::Ph
     end
 
     def build_shelter_referral_workflow
-      build_direct_referral_workflow(
+      find_or_create_direct_referral_draft_template(
         identifier: 'shelter_referral',
         name: 'Shelter Referral',
         outgoing_step_form_identifier: FORMS.fetch(:shelter_referral),
@@ -66,7 +69,7 @@ module CeWorkflows::Ph
     end
 
     def build_outreach_referral_workflow
-      build_direct_referral_workflow(
+      find_or_create_direct_referral_draft_template(
         identifier: 'outreach_referral',
         name: 'Outreach Referral',
         outgoing_step_form_identifier: FORMS.fetch(:outreach_referral),
@@ -75,8 +78,8 @@ module CeWorkflows::Ph
       )
     end
 
-    def build_direct_referral_workflow(identifier:, name:, outgoing_step_form_identifier:, outgoing_step_name:, version: 0)
-      template = CeWorkflows::Shared::CeBuilderUtils.create_draft_template(
+    def find_or_create_direct_referral_draft_template(identifier:, name:, outgoing_step_form_identifier:, outgoing_step_name:, version: 0)
+      template = CeWorkflows::Shared::CeBuilderUtils.find_or_create_draft_template(
         identifier: identifier,
         name: name,
         data_source: @data_source,

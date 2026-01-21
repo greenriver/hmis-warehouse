@@ -162,7 +162,11 @@ module CeWorkflows::Shared
       )
     end
 
-    def self.create_draft_template(identifier:, name:, data_source:, version: 0)
+    # Given the template information and version, find the corresponding draft template, or create it if it doesn't exist.
+    # This method will raise an error if the template with that version already exists and isn't a draft.
+    # Used by workflow builders that initialize and iterate on an unpublished template until it is ready to be published.
+    # See for example README_FOR_PH_CE_WORKFLOWS.md
+    def self.find_or_create_draft_template(identifier:, name:, data_source:, version:)
       Hmis::WorkflowDefinition::Template.find_or_create_by!(
         identifier: identifier,
         name: name,

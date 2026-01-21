@@ -18,7 +18,15 @@ These workflows expect client-specific forms to be available. The forms can be l
 
 #### Updates
 
-See `CeWorkflows::Ph::WorkflowBuilder` and the associated Rake task `ce_define_ph_workflows.rake`.
+Updates to these workflows fall into two categories:
+
+**Form definition updates**: Updates to the form definitions, such as adding a collected field or changing the text on a form label.
+- These forms are "managed in version control", and unversioned (as opposed to the versioned forms that are published using the Form Builder tool). So updates can be made by modifying the form definitions directly in source control.
+- When the release containing those changes is deployed, referral workflows will start to use the new form definitions.
+- In the future, these forms will be moved into the Form Builder so users can manage them.
+
+**Workflow template updates**: Updates to the workflow structure itself, including adding or removing nodes or modifying side effects.
+- See `CeWorkflows::Ph::WorkflowBuilder` and the associated Rake task `ce_define_ph_workflows.rake`.
 - Currently, the code is updated when new versions of the templates are created/published.
 - The `build_` methods hard-code a version number, and are intended to be idempotent on that version number. So when run repeatedly, they don't create new templates, but continue updating the template identifier/version the code refers to.
 - When ready to publish, the rake task can be run with the `PUBLISH=true` env var. (See usage comment)
