@@ -107,7 +107,7 @@ module Hmis::Ce
     scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
 
     # Free-text search for Referral
-    scope :matching_search_term, ->(search_term) do
+    scope :matching_search_term, ->(search_term, allow_name_search: true) do
       search_term.strip!
 
       # If it's a possible PK, check if it's a Referral primary key
@@ -117,6 +117,8 @@ module Hmis::Ce
       end
 
       # Search by client name
+      return none unless allow_name_search
+
       joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
     end
 
@@ -174,8 +176,8 @@ module Hmis::Ce
       !accepted? && !rejected?
     end
 
-    def self.apply_filters(input)
-      Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
+    def self.apply_filters(input, allow_name_search: true)
+      Hmis::Filter::CeReferralFilter.new(input, allow_name_search: allow_name_search).filter_scope(self)
     end
 
     # Returns IDs of Referrals where there are completed steps assigned to
