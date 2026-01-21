@@ -30,7 +30,7 @@ module Hmis
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
     belongs_to :workflow_template,
-               -> { latest_versions }, # choose the most recent version of the template
+               -> { published.latest_versions }, # choose the most recent published version of the template
                foreign_key: :workflow_template_identifier,
                primary_key: :identifier,
                class_name: 'Hmis::WorkflowDefinition::Template',
@@ -38,7 +38,7 @@ module Hmis
 
     # The workflow template to use for direct referrals to Units belonging to this Unit Group
     belongs_to :direct_referral_workflow_template,
-               -> { latest_versions }, # choose the most recent version of the template
+               -> { published.latest_versions }, # choose the most recent published version of the template
                foreign_key: :direct_referral_workflow_template_identifier,
                primary_key: :identifier,
                class_name: 'Hmis::WorkflowDefinition::Template',
