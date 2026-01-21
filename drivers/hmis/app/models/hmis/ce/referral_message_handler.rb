@@ -138,6 +138,7 @@ module Hmis::Ce
       raise "Trying to set decline reason for referral #{referral.id}, step #{message.step.id}, but form definition '#{form_definition.identifier}' doesn't collect it. This probably indicates a mistake in the workflow configuration. The form must collect decline reason on an item with link_id '#{DECLINE_REASON_LINK_ID}'" unless form_definition.link_id_item_hash[DECLINE_REASON_LINK_ID].present?
 
       decline_reason_key = message.step.submitted_values&.fetch(DECLINE_REASON_LINK_ID, nil)
+      # Skip if no decline reason submitted. This can happen when the form only conditionally collects decline reason, or if selecting the decline reason is optional.
       return unless decline_reason_key.present?
 
       decline_reason = Hmis::Ce::ReferralDeclineReason.find_by!(
