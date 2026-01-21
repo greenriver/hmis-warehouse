@@ -38,11 +38,7 @@ module HopwaCaper
 
       if value.is_a?(Array)
         items = value.map { |v| transform_value(field, v, record, pii_policy) }
-        return items.join("\n") unless html?
-
-        return helpers.content_tag(:ul, class: 'list-unstyled mb-0') do
-          items.map { |v| helpers.content_tag(:li, v) }.join.html_safe
-        end
+        return items.join('; ')
       end
 
       return Reports::ModelApplicationHelper.new.yes_no(value, include_content_tag: html?) if value.in?([true, false])
