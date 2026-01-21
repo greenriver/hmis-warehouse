@@ -108,7 +108,7 @@ module Hmis::Ce
 
     # Free-text search for Referral
     scope :matching_search_term, ->(search_term, allow_name_search: true) do
-      search_term.strip!
+      search_term = search_term.strip
 
       # If it's a possible PK, check if it's a Referral primary key
       if possibly_pk?(search_term)
