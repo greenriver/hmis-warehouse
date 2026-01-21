@@ -34,6 +34,7 @@
         .mb-2
           - if @report.comparison_spm_id.present?
             = link_to 'Comparison Year', result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary'
+        = render 'performance_measurement/warehouse_reports/reports/static_spm_button'
 
   .p-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
     %h2.p-4 System Level

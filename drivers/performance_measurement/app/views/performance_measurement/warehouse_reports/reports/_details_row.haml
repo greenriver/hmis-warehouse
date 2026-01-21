@@ -50,24 +50,22 @@
       .ml-auto.c-chart--vertical-bar{ class: class_name, data: { chart: data.to_json }}
     - if denominator_label.present? && show_label_detail
       .card.p-3.mt-4
-        -# Hide comparisons at the project level if using static SPM
-        - unless @report.using_static_spm_for_comparison?
-          .mb-0.d-flex
-            .mr-2 #{result.comparison_year}:
-            .mb-0
-              %strong= result.comparison_numerator
-              = numerator_label
-              of
-              %strong= result.comparison_denominator
-              = denominator_label
         .mb-0.d-flex
-          .mr-2 #{result.report_year}:
+          .mr-2 #{result.comparison_year}:
           .mb-0
-            %strong= result.reporting_numerator
+            %strong= result.comparison_numerator
             = numerator_label
             of
-            %strong= result.reporting_denominator
+            %strong= result.comparison_denominator
             = denominator_label
+      .mb-0.d-flex
+        .mr-2 #{result.report_year}:
+        .mb-0
+          %strong= result.reporting_numerator
+          = numerator_label
+          of
+          %strong= result.reporting_denominator
+          = denominator_label
 
 = content_for :page_js do
   :javascript

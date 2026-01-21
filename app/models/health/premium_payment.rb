@@ -10,17 +10,40 @@
 # Risk: Attached content contains EDI serialized PHI
 # Control: PHI attributes documented
 
-require "stupidedi"
+require 'stupidedi'
 module Health
   class PremiumPayment < HealthBase
+    include FileContentValidator
     acts_as_paranoid
 
     phi_attr :id, Phi::SmallPopulation
     phi_attr :content, Phi::Bulk # contains EDI serialized PHI
+    phi_attr :original_filename, Phi::FreeText
 
-    mount_uploader :file, PremiumPaymentFileUploader
+    # Remove CarrierWave dependency
+    # mount_uploader :file, PremiumPaymentFileUploader
 
     belongs_to :user, optional: true
+
+    validate :validate_file_content_if_present
+
+    def validate_file_content_if_present
+      return if content.blank?
+
+      file_extension = '.txt'
+      allowed_types = ['text/plain', 'application/octet-stream']
+
+      result = self.class.validate_file_content(
+        content,
+        nil,
+        allowed_types,
+        file_extension,
+      )
+
+      return if result[:valid]
+
+      errors.add(:file, result[:error])
+    end
 
     scope :unprocessed, -> do
       where(started_at: nil)
@@ -32,7 +55,7 @@ module Health
 
     def process!
       update(started_at: Time.now, completed_at: nil)
-      update(converted_content: {summary: summary, details: details}, completed_at: Time.now)
+      update(converted_content: { summary: summary, details: details }, completed_at: Time.now)
     end
 
     def status
@@ -54,22 +77,21 @@ module Health
     end
 
     def summary
-
       @summary = {}
-      gs = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].first[:GS].map(&:values).flatten
-      pid_sl = gs.detect{|h| h[:name] == "Application Receiver's Code"}[:value][:raw]
+      gs = as_json[:interchanges].detect { |h| h.keys.include? :functional_groups }[:functional_groups].first[:GS].map(&:values).flatten
+      pid_sl = gs.detect { |h| h[:name] == "Application Receiver's Code" }[:value][:raw]
       @summary.merge!(Health::AccountableCareOrganization.split_pid_sl(pid_sl))
       @summary[:cp_name] = cp_name_for(@summary[:pid], @summary[:sl])
 
-      headers = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].
-        detect{|h| h.keys.include? :transactions}[:transactions].first.values.flatten
+      headers = as_json[:interchanges].detect { |h| h.keys.include? :functional_groups }[:functional_groups].
+        detect { |h| h.keys.include? :transactions }[:transactions].first.values.flatten
 
-      bpr = headers.detect{|h| h.keys.include? :BPR}[:BPR].map(&:values).flatten
+      bpr = headers.detect { |h| h.keys.include? :BPR }[:BPR].map(&:values).flatten
 
       total_amount_paid = bpr[1][:value][:raw]&.to_f
       @summary[:total_amount_paid] = total_amount_paid
 
-      dtm = headers.detect{|h| h.keys.include? :DTM}[:DTM].map(&:values).flatten
+      dtm = headers.detect { |h| h.keys.include? :DTM }[:DTM].map(&:values).flatten
       date_range = dtm[5][:value][:raw].split('-').map(&:to_date)
       @summary[:start_date] = date_range.first
       @summary[:end_date] = date_range.last
@@ -100,9 +122,9 @@ module Health
     end
 
     def as_json
-      @json ||= begin
+      @json ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         json = {}
-        parse_820.zipper.tap{ |z| Stupidedi::Writer::Json.new(z.root.node).write(json) }
+        parse_820.zipper.tap { |z| Stupidedi::Writer::Json.new(z.root.node).write(json) }
         json
       end
     end
@@ -110,30 +132,82 @@ module Health
     def details
       @details ||= begin
         details = []
-        data = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].
-          detect{|h| h.keys.include? :transactions}[:transactions].select{|h| h.keys.include? "2 - Detail"}
+        data = as_json[:interchanges].detect { |h| h.keys.include? :functional_groups }[:functional_groups].
+          detect { |h| h.keys.include? :transactions }[:transactions].select { |h| h.keys.include? '2 - Detail' }
         data.each do |h|
           patient = h.values.first
 
-          ent = patient.detect{|h| h.keys.include? :ENT}&.values&.flatten&.map(&:values)&.flatten
-          nm1 = patient.detect{|h| h.keys.include? :NM1}&.values&.flatten&.map(&:values)&.flatten
-          rmr = patient.detect{|h| h.keys.include? :RMR}&.values&.flatten&.map(&:values)&.flatten
-          dtm = patient.detect{|h| h.keys.include? :DTM}&.values&.flatten&.map(&:values)&.flatten
-          adx = patient.detect{|h| h.keys.include? :ADX}&.values&.flatten&.map(&:values)&.flatten
+          ent = patient.detect { |h| h.keys.include? :ENT }&.values&.flatten&.map(&:values)&.flatten
+          nm1 = patient.detect { |h| h.keys.include? :NM1 }&.values&.flatten&.map(&:values)&.flatten
+          rmr = patient.detect { |h| h.keys.include? :RMR }&.values&.flatten&.map(&:values)&.flatten
+          dtm = patient.detect { |h| h.keys.include? :DTM }&.values&.flatten&.map(&:values)&.flatten
+          adx = patient.detect { |h| h.keys.include? :ADX }&.values&.flatten&.map(&:values)&.flatten
 
-          mass_health_id = ent[3][:value][:raw] rescue nil
-          first_name = nm1[3][:value][:raw] rescue nil
-          last_name = nm1[2][:value][:raw] rescue nil
-          middle_name = nm1[4][:value][:raw] rescue nil
-          sender_code = rmr[1][:value][:raw] rescue nil
-          premium_payment = rmr[3][:value][:raw] rescue nil
-          premium_billed = rmr[4][:value][:raw] rescue nil
-          date_time_qualifier = dtm[0][:value][:raw] rescue nil
-          date = dtm[1][:value][:raw] rescue nil
-          time = dtm[2][:value][:raw] rescue nil
-          coverage_period = dtm[5][:value][:raw] rescue nil
-          adjustment_amount = adx[0][:value][:raw] rescue nil
-          adjustment_reason = adx[1][:value][:raw] rescue nil
+          mass_health_id = begin
+                             ent[3][:value][:raw]
+                           rescue StandardError
+                             nil
+                           end
+          first_name = begin
+                         nm1[3][:value][:raw]
+                       rescue StandardError
+                         nil
+                       end
+          last_name = begin
+                        nm1[2][:value][:raw]
+                      rescue StandardError
+                        nil
+                      end
+          middle_name = begin
+                          nm1[4][:value][:raw]
+                        rescue StandardError
+                          nil
+                        end
+          sender_code = begin
+                          rmr[1][:value][:raw]
+                        rescue StandardError
+                          nil
+                        end
+          premium_payment = begin
+                              rmr[3][:value][:raw]
+                            rescue StandardError
+                              nil
+                            end
+          premium_billed = begin
+                             rmr[4][:value][:raw]
+                           rescue StandardError
+                             nil
+                           end
+          begin
+            dtm[0][:value][:raw]
+          rescue StandardError
+            nil
+          end
+          begin
+            dtm[1][:value][:raw]
+          rescue StandardError
+            nil
+          end
+          begin
+            dtm[2][:value][:raw]
+          rescue StandardError
+            nil
+          end
+          coverage_period = begin
+                              dtm[5][:value][:raw]
+                            rescue StandardError
+                              nil
+                            end
+          adjustment_amount = begin
+                                adx[0][:value][:raw]
+                              rescue StandardError
+                                nil
+                              end
+          adjustment_reason = begin
+                                adx[1][:value][:raw]
+                              rescue StandardError
+                                nil
+                              end
           details << [
             mass_health_id,
             first_name,
@@ -172,11 +246,11 @@ module Health
     end
 
     def cps
-      @cps ||= Health::Cp.all.index_by{|m| [m.pid, m.sl]}
+      @cps ||= Health::Cp.all.index_by { |m| [m.pid, m.sl] }
     end
 
-    def cp_name_for pid, sl
-      cps[[pid,sl]]&.mmis_enrollment_name
+    def cp_name_for pid, sl # rubocop:disable Naming/MethodParameterName
+      cps[[pid, sl]]&.mmis_enrollment_name
     end
 
     def detail_headers
@@ -201,22 +275,18 @@ module Health
         parser = Stupidedi::Parser::StateMachine.build(config)
         # .gsub('~', "~\n")
         parsed, result = parser.read(Stupidedi::Reader.build(content))
-        if result.fatal?
-          result.explain{|reason| raise reason + " at #{result.position.inspect}" }
-        end
+        result.explain { |reason| raise reason + " at #{result.position.inspect}" } if result.fatal?
         parsed
       end
     end
 
-
     # Helper function: fetch an element from the current segment
-    def el(m, *ns, &block)
-      if Stupidedi::Either === m
-        m.tap{|m| el(m, *ns, &block) }
+    def el(m, *ns, &block) # rubocop:disable Naming/MethodParameterName
+      if m.is_a?(Stupidedi::Either)
+        m.tap { |m| el(m, *ns, &block) }
       else
-        yield(*ns.map{|n| m.elementn(n).map(&:value).fetch })
+        yield(*ns.map { |n| m.elementn(n).map(&:value).fetch })
       end
     end
-
   end
 end

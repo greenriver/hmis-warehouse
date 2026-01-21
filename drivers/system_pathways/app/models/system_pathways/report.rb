@@ -36,7 +36,7 @@ module SystemPathways
     end
 
     scope :ordered, -> do
-      order(created_at: :desc)
+      order(updated_at: :desc)
     end
 
     def run_and_save!
@@ -232,12 +232,8 @@ module SystemPathways
         'Veteran Status' => ->(en) {
           HudHelper.util.veteran_status(en.client.veteran_status)
         },
-        'Stay Length' => ->(en) {
-          en.stay_length
-        },
-        'Days Before Move-In' => ->(en) {
-          en.days_to_move_in
-        },
+        'Stay Length' => lambda(&:stay_length),
+        'Days Before Move-In' => lambda(&:days_to_move_in),
         'Days to Return' => ->(en) {
           en.client.days_to_return
         },

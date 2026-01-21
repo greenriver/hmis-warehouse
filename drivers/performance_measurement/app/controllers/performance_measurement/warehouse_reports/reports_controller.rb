@@ -49,10 +49,11 @@ module PerformanceMeasurement::WarehouseReports
       )
       # If project_type_codes was explicitly passed as empty, respect that
       @filter.project_type_codes = [] if filter_params[:filters]&.key?(:project_type_codes) && filter_params[:filters][:project_type_codes].reject(&:blank?).blank?
+
       @report.filter = @filter
 
-      @report.save
       @report.update_goal_configuration!
+      @report.save!
       ::WarehouseReports::GenericReportJob.perform_later(
         user_id: current_user.id,
         report_class: @report.class.name,
@@ -124,6 +125,20 @@ module PerformanceMeasurement::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def reload_from_csv
+      require_can_publish_reports!
+      service = Reports::ReloadReportFromCsvService.new(@report)
+      result = service.reload!
+
+      if result[:success]
+        flash[:notice] = "Report data reloaded successfully. #{result[:reloaded_counts].values.sum} records restored."
+      else
+        flash[:error] = "Failed to reload report data: #{result[:errors].join(', ')}"
+      end
+
+      redirect_to performance_measurement_warehouse_reports_report_path(@report)
     end
 
     def details_params
