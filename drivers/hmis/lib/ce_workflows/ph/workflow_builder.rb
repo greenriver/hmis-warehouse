@@ -90,9 +90,9 @@ module CeWorkflows::Ph
       referrer_swimlane = template.swimlanes.find_or_create_by!(name: 'Referrer')
 
       # Events
-      start_event = CeWorkflows::Shared::CeBuilderUtils.create_start_event(template)
-      accept_event = CeWorkflows::Shared::CeBuilderUtils.create_accept_event(template)
-      decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template)
+      start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
+      accept_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_accept_event(template)
+      decline_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_decline_event(template)
 
       # Step 1: Send referral
       send_referral_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(

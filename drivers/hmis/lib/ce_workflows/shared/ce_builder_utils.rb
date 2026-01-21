@@ -209,7 +209,7 @@ module CeWorkflows::Shared
       end
     end
 
-    def self.create_start_event(template)
+    def self.find_or_create_start_event(template)
       event = Hmis::WorkflowDefinition::StartEvent.find_or_initialize_by(
         name: 'Start Referral',
         template: template,
@@ -224,7 +224,7 @@ module CeWorkflows::Shared
       event
     end
 
-    def self.create_accept_event(template, name: 'Referral Accepted', update_ce_event: false)
+    def self.find_or_create_accept_event(template, name: 'Referral Accepted', update_ce_event: false)
       event = Hmis::WorkflowDefinition::EndEvent.find_or_initialize_by(
         name: name,
         template: template,
@@ -268,7 +268,7 @@ module CeWorkflows::Shared
       )
     end
 
-    def self.create_decline_event(template, name: 'Referral Declined', ce_event_result: nil)
+    def self.find_or_create_decline_event(template, name: 'Referral Declined', ce_event_result: nil)
       raise 'set_ce_event_result must be nil or a valid referral result code (2 or 3)' if ce_event_result && !['2', '3'].include?(ce_event_result.to_s)
 
       event = Hmis::WorkflowDefinition::EndEvent.find_or_initialize_by(
