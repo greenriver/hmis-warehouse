@@ -59,6 +59,10 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
     record.errors.add(:base, "The following nodes are unreachable: #{unreachable.map(&:name).join(', ')}") if unreachable.any?
   end
 
+  # Validates that nodes with decline reason triggers are properly configured:
+  # - Nodes with 'set_referral_decline_reason' triggers must be user tasks
+  # - The form on each such node must have a choice item with the decline reason link_id
+  # - All decline reason codes collected by the forms must exist in the database as ReferralDeclineReasons
   def validate_decline_reasons(record)
     decline_reason_nodes = record.nodes.filter do |node|
       node.trigger_config&.any? { |trigger| trigger['message'] == 'set_referral_decline_reason' } || false
