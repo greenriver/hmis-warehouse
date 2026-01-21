@@ -67,6 +67,10 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
     link_id = Hmis::Ce::ReferralMessageHandler::DECLINE_REASON_LINK_ID
 
     decline_reason_keys = decline_reason_nodes.map do |node|
+      unless node.user_task?
+        record.errors.add(:base, "Node '#{node.name}' is not a user task, so it cannot set a decline reason.")
+        next
+      end
       form = node.form_definition
 
       unless form.link_id_item_hash[link_id].present? && form.link_id_item_hash[link_id]['pick_list_options'].present?
