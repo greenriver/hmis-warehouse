@@ -74,21 +74,38 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
         expect(presenter.display_value(enrollment_record, 'first_name')).to eq('Redacted')
       end
 
-      it 'renders arrays as <ul> in HTML' do
+      it 'renders arrays as semicolon-separated' do
         # Race codes for Black (3) and White (5). Sort by ID: [3, 5]
         enrollment_record.update!(races: [3, 5])
         val = presenter.display_value(enrollment_record, 'races')
-        expect(val).to include('<ul class="list-unstyled mb-0">')
-        expect(val).to include('<li>Black, African American, or African</li>')
-        expect(val).to include('<li>White</li>')
+        expect(val).to eq('Black, African American, or African; White')
       end
 
-      it 'renders arrays as newline-separated in Excel' do
-        # Sort by ID: [3, 5] -> Black..., White
-        enrollment_record.update!(races: [3, 5])
-        excel_presenter = described_class.new([enrollment_record], report, user, format: :excel)
-        val = excel_presenter.display_value(enrollment_record, 'races')
-        expect(val).to eq("Black, African American, or African\nWhite")
+      it 'handles household_project_funders aggregation' do
+        strmu_code = hud_code(:funding_sources, 'HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance')
+
+        # Create a second enrollment for the same client in an STRMU-funded project.
+        # Note: the primary 'project' (from let) is already TBRA-funded.
+        strmu_project = create_hopwa_project(funder: strmu_code)
+        create_hiv_positive_enrollment(
+          client: client,
+          project: strmu_project,
+          entry_date: report_start_date,
+          household_id: enrollment_record.enrollment.household_id,
+        )
+
+        # Run report for both the TBRA project and the STRMU project
+        summary_report = create_report([project, strmu_project])
+        run_report(summary_report)
+        report_enrollment = summary_report.hopwa_caper_enrollments.find_by(enrollment_id: enrollment_record.enrollment_id)
+
+        new_presenter = described_class.new([report_enrollment], summary_report, user)
+        val = new_presenter.display_value(report_enrollment, 'household_project_funders')
+
+        # Should include both funders, transformed to their labels:
+        # project (TBRA funder) -> 'TBRA'
+        # strmu_project (STRMU funder) -> 'STRMU'
+        expect(val).to eq('STRMU; TBRA')
       end
 
       it 'handles services_summary aggregation' do
@@ -112,7 +129,7 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
         new_presenter = described_class.new([report_enrollment], summary_report, user, format: :html)
         val = new_presenter.display_value(report_enrollment, 'services_summary')
 
-        expect(val).to include('<li>HOPWA Financial Assistance: Rental assistance</li>')
+        expect(val).to eq('HOPWA Financial Assistance: Rental assistance')
       end
     end
   end

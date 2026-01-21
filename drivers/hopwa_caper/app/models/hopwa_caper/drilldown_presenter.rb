@@ -37,7 +37,7 @@ module HopwaCaper
       pii_policy = pii_policy_for(record)
 
       if value.is_a?(Array)
-        items = value.map { |v| transform_value(field, v, record, pii_policy) }
+        items = value.map { |v| transform_value(field, v, record, pii_policy) }.compact.uniq.sort
         return items.join('; ')
       end
 
