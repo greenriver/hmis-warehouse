@@ -87,7 +87,7 @@ module HopwaCaper
         Field.new(name: 'atc_maintained_contact', label: 'ATC: Maintained Contact'),
         Field.new(name: 'atc_housing_plan', label: 'ATC: Housing Plan'),
         Field.new(name: 'atc_primary_health_contact', label: 'ATC: Primary Health Contact'),
-        Field.new(name: 'household_project_funders', label: 'Household Project Funder(s) (Full Period)', transform: ->(v, _poly) {
+        Field.new(name: 'household_project_funders', label: 'Household Project Funders', transform: ->(v, _poly) {
           # Mapping logic to match ProjectFunderFilter labels.
           HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
             find_by_funder_code(v)&.label
