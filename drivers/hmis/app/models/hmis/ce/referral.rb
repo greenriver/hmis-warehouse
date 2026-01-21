@@ -106,6 +106,20 @@ module Hmis::Ce
     scope :originated_from_waitlist, -> { where(referral_origin: WAITLIST_ORIGIN) }
     scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
 
+    # Free-text search for Referral
+    scope :matching_search_term, ->(search_term) do
+      search_term.strip!
+
+      # If it's a possible PK, check if it's a Referral primary key
+      if possibly_pk?(search_term)
+        matching_referrals = where(id: search_term.to_i)
+        return matching_referrals if matching_referrals.exists?
+      end
+
+      # Search by client name
+      joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
+    end
+
     def self.sort_by_option(option)
       case option
       when :status

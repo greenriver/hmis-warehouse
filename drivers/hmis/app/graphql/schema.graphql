@@ -1161,6 +1161,7 @@ input CeReferralFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
+  searchTerm: String
   workflowTemplate: [String!]
 }
 
