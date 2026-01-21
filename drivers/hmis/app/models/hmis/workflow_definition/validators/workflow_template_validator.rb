@@ -77,7 +77,7 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
       form.link_id_item_hash[link_id]['pick_list_options'].map { |option| option['code'] }
     end.compact.flatten.to_set
 
-    decline_reasons = Hmis::Ce::ReferralDeclineReason.where(key: decline_reason_keys)
+    decline_reasons = Hmis::Ce::ReferralDeclineReason.where(key: decline_reason_keys, data_source_id: record.data_source_id)
     missing_decline_reasons = decline_reason_keys - decline_reasons.pluck(:key).to_set
     record.errors.add(:base, "The following decline reasons are collected by the form, but not defined in the database: #{missing_decline_reasons.join(', ')}") if missing_decline_reasons.any?
   end
