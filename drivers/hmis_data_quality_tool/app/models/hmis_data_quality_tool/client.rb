@@ -410,11 +410,10 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            valid_sex_values = HudHelper.util.sexes.keys
             # Sex is blank
             return true if item.sex.blank?
             # Sex has an invalid value (not in valid set)
-            return true unless item.sex.in?(valid_sex_values)
+            return true unless HudHelper.util.sexes.key?(item.sex)
             # Sex is "Data not collected" (99) - flag as issue since field is required
             return true if item.sex == 99
 
