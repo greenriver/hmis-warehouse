@@ -9979,6 +9979,7 @@ enum ProjectFilterOptionStatus {
 }
 
 input ProjectFilterOptions {
+  ceEnabled: Boolean
   funder: [FundingSource!]
   organization: [ID!]
   projectType: [ProjectType!]
@@ -10103,20 +10104,6 @@ type ProjectsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
-}
-
-input ProjectsWithCeDefaultContactsFilterOptions {
-  organization: [ID!]
-
-  """
-  Filter by project ID(s)
-  """
-  project: [ID!]
-
-  """
-  Filter by user assigned as default contact
-  """
-  user: [ID!]
 }
 
 """
@@ -10284,11 +10271,6 @@ type Query {
   projectCoc(id: ID!): ProjectCoc
   projectConfigs(filters: ProjectConfigFilterOptions, limit: Int, offset: Int): ProjectConfigsPaginated!
   projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
-
-  """
-  Projects with CE default contacts
-  """
-  projectsWithCeDefaultContacts(filters: ProjectsWithCeDefaultContactsFilterOptions, limit: Int, offset: Int): ProjectsPaginated!
 
   """
   Get the most relevant Form Definition to use for record viewing/editing

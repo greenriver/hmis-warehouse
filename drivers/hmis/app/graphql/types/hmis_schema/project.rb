@@ -49,6 +49,7 @@ module Types
       arg :funder, [HmisSchema::Enums::Hud::FundingSource]
       arg :organization, [ID]
       arg :search_term, String
+      arg :ce_enabled, Boolean
     end
 
     hud_field :id, ID, null: false

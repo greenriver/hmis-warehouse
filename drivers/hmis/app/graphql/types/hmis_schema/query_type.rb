@@ -673,15 +673,6 @@ module Types
       end
     end
 
-    field :projects_with_ce_default_contacts, HmisSchema::Project.page_type, null: false, description: 'Projects with CE default contacts' do
-      argument :filters, HmisSchema::ProjectsWithCeDefaultContactsFilterOptions, required: false
-    end
-    def projects_with_ce_default_contacts(filters: nil)
-      scope = Hmis::Hud::Project.viewable_by(current_user).open_on_date.with_ce_enabled
-      scope = Hmis::Filter::ProjectsWithCeDefaultContactsFilter.new(filters).filter_scope(scope) if filters.present?
-      scope.sort_by_option(:organization_and_name)
-    end
-
     field :unit_group, HmisSchema::UnitGroup, null: true do
       argument :id, ID, required: true
     end
