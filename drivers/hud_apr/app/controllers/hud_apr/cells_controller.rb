@@ -38,10 +38,6 @@ module HudApr
       'HudApr::DocumentExports::CellDetailExport'
     end
 
-    private def export_job_class
-      HudApr::CellDetailExportJob
-    end
-
     private def export_query_params
       @drilldown.query_params.merge(report_id: @drilldown.report.id)
     end
@@ -49,10 +45,6 @@ module HudApr
     private def report_type_param
       # Subclasses must override (e.g., 'apr', 'caper', 'ce_apr', 'dq')
       raise NotImplementedError
-    end
-
-    private def fallback_path
-      public_send(:"hud_reports_#{report_type_param}_path", @drilldown.report)
     end
 
     private def path_for_cell_without_search

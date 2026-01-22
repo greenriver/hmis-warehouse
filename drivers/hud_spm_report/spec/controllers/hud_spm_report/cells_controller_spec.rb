@@ -42,16 +42,6 @@ RSpec.describe HudSpmReport::CellsController, type: :request do
         expect(response).to be_successful
       end
     end
-
-    context 'XLSX format' do
-      it 'queues an export and redirects' do
-        get hud_reports_spm_measure_cell_path(spm_id: report.id, measure_id: 'Measure 1', id: 'B2', table: '1a', format: :xlsx)
-
-        expect(response).to redirect_to(hud_reports_spm_path(report))
-        expect(flash[:notice]).to match(/export is being generated/)
-        expect(GrdaWarehouse::DocumentExport.last.type).to eq('HudSpmReport::DocumentExports::CellDetailExport')
-      end
-    end
   end
 
   describe 'GET #search' do

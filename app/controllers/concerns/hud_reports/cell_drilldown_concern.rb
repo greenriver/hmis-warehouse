@@ -8,15 +8,13 @@
 
 module HudReports
   # This Concern provides standardized behavior for HUD report cell drill-down views.
-  # It handles HTML display with pagination and XLSX export coordination.
+  # It handles HTML display with pagination.
   #
   # Subclasses must implement:
   # - report_param_name: The key in `params` identifying the report (e.g., `:spm_id`)
   # - measure_id: The identifier for the question or measure being viewed
   # - export_class_name: The string name of the DocumentExport class for this report
-  # - export_job_class: The class of the ActiveJob that runs the export
   # - export_query_params: Hash of parameters required by the export job
-  # - fallback_path: Path to redirect to after an export is queued
   # - path_for_cell_without_search: Path to the cell view without search parameters
   # - preload_associations(scope): (Optional) Preload associations for the client scope
   # - drilldown_report_type: (Optional) The specific type of report (e.g., 'apr')
@@ -43,7 +41,6 @@ module HudReports
 
       respond_to do |format|
         format.html { render_html_response(@drilldown.base_scope) }
-        format.xlsx { render_xlsx_response }
       end
     end
 
@@ -105,35 +102,12 @@ module HudReports
       scope
     end
 
-    def render_xlsx_response
-      export = current_user.document_exports.create!(
-        type: export_class_name,
-        status: DocumentExportBehavior::PENDING_STATUS,
-        query_string: export_query_params.to_query,
-      )
-
-      export_job_class.perform_later(export_id: export.id)
-
-      flash[:notice] = 'Your cell-detail export is being generated. You will receive an email with a download link shortly.'
-      redirect_back(fallback_location: fallback_path)
-    end
-
     def export_query_params
       # Subclasses must implement
       raise NotImplementedError
     end
 
-    def export_job_class
-      # Subclasses must implement
-      raise NotImplementedError
-    end
-
     def export_class_name
-      # Subclasses must implement
-      raise NotImplementedError
-    end
-
-    def fallback_path
       # Subclasses must implement
       raise NotImplementedError
     end

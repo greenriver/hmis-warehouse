@@ -16,9 +16,7 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
     def report_param_name = :report_id
     def measure_id = 'Q1'
     def export_class_name = 'HudApr::DocumentExports::CellDetailExport'
-    def export_job_class = HudApr::CellDetailExportJob
     def export_query_params = { foo: 'bar' }
-    def fallback_path = '/fallback'
     def path_for_cell_without_search = '/cell'
 
     def set_report
@@ -33,12 +31,6 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
       # Override to avoid template lookup in tests
       @pagy, @clients = pagy(scope)
       head :ok
-    end
-
-    def render_xlsx_response
-      # Override to avoid template lookup or complex export logic if needed
-      # but concern already handles it. We just need to ensure paths are mocked.
-      super
     end
   end
 
@@ -99,21 +91,6 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
       get :search, params: { report_id: 1, id: 'A1', table: 'T1', query_id: 0 }
       expect(response).to redirect_to('/cell')
       expect(flash[:error]).to eq('Search query not found')
-    end
-  end
-
-  describe 'GET #show (XLSX)' do
-    it 'creates a document export and redirects' do
-      expect do
-        get :show, params: { report_id: 1, id: 'A1', table: 'T1' }, format: :xlsx
-      end.to change(GrdaWarehouse::DocumentExport, :count).by(1)
-
-      export = GrdaWarehouse::DocumentExport.last
-      expect(export.type).to eq('HudApr::DocumentExports::CellDetailExport')
-      expect(export.query_string).to eq('foo=bar')
-
-      expect(response).to redirect_to('/fallback')
-      expect(flash[:notice]).to match(/export is being generated/)
     end
   end
 end

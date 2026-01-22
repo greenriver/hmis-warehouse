@@ -28,16 +28,8 @@ module HudSpmReport
       'HudSpmReport::DocumentExports::CellDetailExport'
     end
 
-    private def export_job_class
-      HudSpmReport::CellDetailExportJob
-    end
-
     private def export_query_params
       @drilldown.query_params.merge(report_id: @drilldown.report.id)
-    end
-
-    private def fallback_path
-      hud_reports_spm_path(@drilldown.report)
     end
 
     private def path_for_cell_without_search
