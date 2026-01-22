@@ -145,7 +145,15 @@ module Types
       c = load_ar_association(object, :client)
 
       # This is a summary field. If the current user can view the referral, always return the client name
-      # (even if the current user can't otherwise view that client)
+      # (even if the current user can't otherwise view that client), UNLESS the user doesn't have permission to view client names in general.
+      if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+        # TODO - this should be a global policy check
+        can_view_any_client_names = current_user.can_view_client_name?
+        return c.brief_name if c.brief_name.present? && can_view_any_client_names
+
+        return c.masked_name
+      end
+
       return c.brief_name.presence || c.masked_name if current_user.policy_for(object, policy_type: :ce_referral).can_view?
 
       # Otherwise if the current user can only view the referral summary, only return the client name if permissioned

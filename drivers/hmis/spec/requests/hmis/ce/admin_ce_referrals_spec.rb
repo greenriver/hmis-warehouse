@@ -27,6 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               status
               active
               clientId
+              clientName
               client {
                 id
               }
@@ -231,6 +232,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           referrals = result.dig('data', 'ceReferrals', 'nodes')
           expect(referrals.size).to eq(1)
           expect(referrals.first['id']).to eq(referral2.id.to_s)
+          expect(referrals.first['clientName']).to eq(client2.masked_name)
         end
       end
     end
