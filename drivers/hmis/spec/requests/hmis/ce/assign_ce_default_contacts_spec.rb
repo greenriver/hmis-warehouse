@@ -26,15 +26,9 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
               id
               name
             }
-            project {
-              id
-            }
-            organization {
-              id
-            }
-            unitGroup {
-              id
-            }
+            projectId
+            organizationId
+            unitGroupId
             global
           }
         }
@@ -116,7 +110,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
 
         # Check that all contacts are marked as global
         expect(contacts.all? { |c| c['global'] == true }).to be true
-        expect(contacts.all? { |c| c['project'].nil? }).to be true
+        expect(contacts.all? { |c| c['projectId'].nil? }).to be true
 
         # Verify the assignments are returned grouped by swimlane
         swimlane1_contacts = contacts.select { |c| c['swimlane']['id'] == swimlane1.id.to_s }
@@ -208,7 +202,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         expect(contacts.size).to eq(2)
 
         expect(contacts.all? { |c| c['global'] == false }).to be true
-        expect(contacts.all? { |c| c['project']['id'] == p1.id.to_s }).to be true
+        expect(contacts.all? { |c| c['projectId'] == p1.id.to_s }).to be true
       end.to change(Hmis::Ce::DefaultSwimlaneAssignment, :count).by(2)
 
       assignments = Hmis::Ce::DefaultSwimlaneAssignment.where(owner: p1)

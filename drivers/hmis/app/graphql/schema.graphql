@@ -843,10 +843,13 @@ type CeCustomReferralStatus {
 type CeDefaultContact {
   global: Boolean!
   id: ID!
-  organization: Organization
-  project: Project
+  organizationId: ID
+  organizationName: String!
+  projectId: ID
+  projectName: String
   swimlane: CeSwimlane!
-  unitGroup: UnitGroup
+  unitGroupId: ID
+  unitGroupName: String!
   user: ApplicationUser!
 }
 

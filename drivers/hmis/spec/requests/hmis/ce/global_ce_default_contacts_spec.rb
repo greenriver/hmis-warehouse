@@ -29,15 +29,9 @@ RSpec.describe 'globalCeDefaultContacts Query', type: :request do
               id
               name
             }
-            project {
-              id
-            }
-            organization {
-              id
-            }
-            unitGroup {
-              id
-            }
+            projectId
+            organizationId
+            unitGroupId
             global
           }
         }
@@ -99,7 +93,7 @@ RSpec.describe 'globalCeDefaultContacts Query', type: :request do
       )
       expect(swimlane1_group['contacts'].size).to eq(2)
       expect(swimlane1_group['contacts']).to all(
-        include('global' => true, 'project' => nil, 'organization' => nil, 'unitGroup' => nil),
+        include('global' => true, 'projectId' => nil, 'organizationId' => nil, 'unitGroupId' => nil),
       )
       expect(swimlane1_group['contacts'].map { |c| c['user']['id'] }).to contain_exactly(user1.id.to_s, user2.id.to_s)
 

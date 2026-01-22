@@ -32,15 +32,9 @@ RSpec.describe 'Project CE Default Contacts Query', type: :request do
                 id
                 name
               }
-              project {
-                id
-              }
-              organization {
-                id
-              }
-              unitGroup {
-                id
-              }
+              projectId
+              organizationId
+              unitGroupId
               global
             }
           }
@@ -121,9 +115,9 @@ RSpec.describe 'Project CE Default Contacts Query', type: :request do
         project_contact = swimlane1_group['contacts'].find { |c| c['user']['id'] == user1.id.to_s }
         expect(project_contact).to include(
           'user' => { 'id' => user1.id.to_s, 'name' => user1.name },
-          'project' => { 'id' => project.id.to_s },
-          'organization' => nil,
-          'unitGroup' => nil,
+          'projectId' => project.id.to_s,
+          'organizationId' => nil,
+          'unitGroupId' => nil,
           'global' => false,
         )
 
@@ -131,9 +125,9 @@ RSpec.describe 'Project CE Default Contacts Query', type: :request do
         global_contact = swimlane1_group['contacts'].find { |c| c['user']['id'] == user3.id.to_s }
         expect(global_contact).to include(
           'user' => { 'id' => user3.id.to_s, 'name' => user3.name },
-          'project' => nil,
-          'organization' => nil,
-          'unitGroup' => nil,
+          'projectId' => nil,
+          'organizationId' => nil,
+          'unitGroupId' => nil,
           'global' => true,
         )
 
@@ -143,7 +137,7 @@ RSpec.describe 'Project CE Default Contacts Query', type: :request do
         expect(swimlane2_group['contacts'].size).to eq(1)
         expect(swimlane2_group['contacts'].first).to include(
           'user' => { 'id' => user2.id.to_s, 'name' => user2.name },
-          'project' => { 'id' => project.id.to_s },
+          'projectId' => project.id.to_s,
           'global' => false,
         )
       end
