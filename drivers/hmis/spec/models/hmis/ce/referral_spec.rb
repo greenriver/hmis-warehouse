@@ -99,6 +99,25 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
   end
 
+  describe 'Referral pre-save hooks' do
+    describe '#clear_decline_reason_when_accepted' do
+      let!(:decline_reason) { create(:ce_referral_decline_reason, data_source: data_source) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'in_progress', decline_reason: decline_reason) }
+
+      it 'clears the decline reason when the referral is accepted' do
+        expect do
+          referral.accept!
+        end.to change(referral, :decline_reason).from(decline_reason).to(nil)
+      end
+
+      it 'does not clear decline reason when the referral is rejected' do
+        expect do
+          referral.reject!
+        end.not_to change(referral, :decline_reason)
+      end
+    end
+  end
+
   describe '#create_default_participants!' do
     let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: data_source, template_type: 'ce_referral' }
     let!(:unit_group) { create :hmis_unit_group, project: project, workflow_template: template }

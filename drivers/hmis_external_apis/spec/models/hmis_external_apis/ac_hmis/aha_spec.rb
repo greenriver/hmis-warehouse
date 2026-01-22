@@ -46,10 +46,17 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     )
   end
 
-  def setup_api_expectation(mci_unique_ids:, response:)
-    payload_key = mci_unique_ids.is_a?(Array) ? :dw_client_id__dw_client_id__overlap : :dw_client_id__dw_client_id__includes
-    payload_value = mci_unique_ids.is_a?(Array) ? mci_unique_ids.join(',') : mci_unique_ids
-    expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', { payload_key => payload_value }).and_return(response)
+  def setup_api_expectation(mci_unique_ids:, response:, lookup_catalyst: nil, lookup_reason: nil)
+    mci_key = mci_unique_ids.is_a?(Array) ? :dw_client_id__dw_client_id__overlap : :dw_client_id__dw_client_id__includes
+    mci_value = mci_unique_ids.is_a?(Array) ? mci_unique_ids.join(',') : mci_unique_ids
+
+    expected_payload = {
+      mci_key => mci_value,
+    }
+    expected_payload[:lookup_catalyst] = lookup_catalyst if lookup_catalyst.present?
+    expected_payload[:lookup_reason] = lookup_reason if lookup_reason&.any?
+
+    expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', expected_payload).and_return(response)
   end
 
   context 'when client has no MCI unique ID' do
@@ -79,8 +86,8 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
   context 'when client has MCI unique ID' do
     let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
 
-    before do
-      response = mock_api_response(
+    let!(:response) do
+      mock_api_response(
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
@@ -89,13 +96,32 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
           ],
         ),
       )
-      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
     end
 
     it 'calls API and returns the highest AHA score, disregarding other generators' do
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
       result = aha.fetch_score(client)
       expect(result.score).to eq(8)
       expect(result.dw_client_id).to eq(mci_unique_id.value)
+    end
+
+    it 'calls API with lookup catalyst and reason when provided' do
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other'])
+
+      result = aha.fetch_score(client, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other'])
+      expect(result.score).to eq(8)
+    end
+
+    it 'ignores invalid values for lookup catalyst and reason' do
+      allow(Sentry).to receive(:capture_message)
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      result = aha.fetch_score(client, lookup_catalyst: 'random text', lookup_reason: ['not a good reason'])
+      expect(result.score).to eq(8)
+
+      expect(Sentry).to have_received(:capture_message).with('AHA received unexpected lookup catalyst: random text')
+      expect(Sentry).to have_received(:capture_message).with('AHA received unexpected lookup reason(s): not a good reason')
     end
   end
 
