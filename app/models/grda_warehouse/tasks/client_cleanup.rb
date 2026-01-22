@@ -61,7 +61,7 @@ module GrdaWarehouse::Tasks
     end
 
     # a helper method so client cleanup can be called with .delay
-    # ClientCleanupJob.set(priority: 10).perform_later(to_clean)
+    # ClientCleanupJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later(to_clean)
     def self.run_for_clients(client_ids)
       new(destination_ids: Array.wrap(client_ids)).run!
     end
