@@ -90,6 +90,7 @@ module GrdaWarehouse::Hud
       [
         'RRH-PSH Transfer',
         'RRH-PSH Transfer 2024',
+        'RRH Transfer 2024',
       ]
     end
 
@@ -108,6 +109,7 @@ module GrdaWarehouse::Hud
       return 'Pathways 2021' if pathways_2021?
       return 'RRH-PSH Transfer' if transfer_2021?
       return 'RRH-PSH Transfer 2024' if transfer_2024?
+      return 'RRH Transfer 2024' if transfer_2024_v2?
       return 'Family Pathways 2024' if family_pathways_2024?
 
       # unknown from assessment questions
@@ -140,6 +142,12 @@ module GrdaWarehouse::Hud
       return nil unless pathways_question?
 
       lookup&.response_text == 'RRH-PSH Transfer 2024'
+    end
+
+    def transfer_2024_v2?
+      return nil unless pathways_question?
+
+      lookup&.response_text == 'RRH Transfer 2024'
     end
   end
 end
