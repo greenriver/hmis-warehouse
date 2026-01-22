@@ -1,35 +1,3 @@
-= content_for :crumbs do
-  = link_to path_for_question_result(@drilldown.measure, report: @drilldown.report) do
-    = @drilldown.breadcrumb_label
-
-- content_for :title do
-  = @drilldown.name
-.d-flex.mb-2
-  %h1= content_for :title
-  .ml-auto
-    :ruby
-      download_data = {
-        type: 'HudSpmReport::DocumentExports::CellDetailExport',
-        query_string: {
-          report_id: @drilldown.report.id,
-          measure_id: @drilldown.measure,
-          cell_id: @drilldown.cell,
-          table: @drilldown.table,
-        }.to_query,
-        url: document_exports_path,
-      }
-    %a.btn.btn-secondary.j-document-exports{href: '#', data: download_data}
-      %i.icon-file-excel
-      Download
-
-.d-flex.align-items-end.mb-4
-  .w-50
-    - if @drilldown.searchable?
-      = form_tag(hud_reports_spm_measure_cell_search_queries_path(spm_id: @drilldown.report.id, measure_id: @drilldown.measure, cell_id: @drilldown.cell, table: @drilldown.table), method: :post, class: 'mb-0') do
-        .input-group
-          = text_field_tag :q, @drilldown.search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @drilldown.search_term.present?
-          = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
-          - if @drilldown.search_term.present?
-            = link_to 'Clear', hud_reports_spm_measure_cell_path(spm_id: @drilldown.report.id, measure_id: @drilldown.measure, id: @drilldown.cell, table: @drilldown.table), class: 'btn btn-outline-secondary'
+= render 'hud_reports/cell_drilldown_header'
 
 = render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @clients, item_name: 'records', list_partial: 'hud_spm_report/cells/list')

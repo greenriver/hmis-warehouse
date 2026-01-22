@@ -16,6 +16,7 @@ module HudReports
   # - export_class_name: The string name of the DocumentExport class for this report
   # - export_query_params: Hash of parameters required by the export job
   # - path_for_cell_without_search: Path to the cell view without search parameters
+  # - path_for_search_queries: Path for search query submission
   # - preload_associations(scope): (Optional) Preload associations for the client scope
   # - drilldown_report_type: (Optional) The specific type of report (e.g., 'apr')
   #
@@ -28,6 +29,9 @@ module HudReports
     extend ActiveSupport::Concern
 
     included do
+      helper_method :export_class_name, :export_query_params,
+                    :path_for_search_queries, :path_for_cell_without_search
+
       rescue_from ActionController::ParameterMissing do |_exception|
         # the `table` param is required but can get lost when a user's session expires
         # TODO: make table_id part of the path, not a param
@@ -118,6 +122,11 @@ module HudReports
     end
 
     def path_for_cell_without_search
+      # Subclasses must implement
+      raise NotImplementedError
+    end
+
+    def path_for_search_queries
       # Subclasses must implement
       raise NotImplementedError
     end

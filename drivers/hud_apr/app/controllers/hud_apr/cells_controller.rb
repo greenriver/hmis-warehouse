@@ -15,9 +15,6 @@ module HudApr
     include ApplicationHelper
     include ActionView::Helpers::TagHelper
 
-    helper_method :export_class_name, :export_query_params,
-                  :path_for_search_queries, :path_for_cell_without_search
-
     def report_param_name
       :"#{report_type_param}_id"
     end
