@@ -26,6 +26,7 @@ module Types
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCeOpportunities
     include Types::HmisSchema::HasCeReferrals
+    include Types::HmisSchema::HasCeDefaultContacts
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -90,7 +91,7 @@ module Types
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
     field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
     field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
-    field :ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Coordinated Entry default contacts grouped by swimlane'
+    ce_default_contacts_field
     field :ce_swimlanes, [HmisSchema::CeSwimlane], null: false, description: 'Coordinated Entry swimlanes that are in templates used by this project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
@@ -170,18 +171,7 @@ module Types
     end
 
     def ce_default_contacts
-      all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
-        for_project(object).
-        includes(:user, swimlane: :template).
-        joins(:swimlane).
-        order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
-
-      all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
-        OpenStruct.new(
-          swimlane: swimlane,
-          contacts: assignments,
-        )
-      end
+      resolve_ce_default_contacts(Hmis::Ce::DefaultSwimlaneAssignment.for_project(object))
     end
 
     def ce_swimlanes

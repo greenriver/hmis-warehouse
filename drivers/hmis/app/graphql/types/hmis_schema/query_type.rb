@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCeOpportunities
     include Types::HmisSchema::HasCeReferrals
+    include Types::HmisSchema::HasCeDefaultContacts
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -654,23 +655,12 @@ module Types
         distinct
     end
 
-    field :global_ce_default_contacts, [HmisSchema::CeDefaultContactsBySwimlane], null: false, description: 'Global Coordinated Entry default contacts, grouped by swimlane'
+    ce_default_contacts_field(:global_ce_default_contacts, description: 'Global Coordinated Entry default contacts, grouped by swimlane')
     def global_ce_default_contacts
       data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
       access_denied! unless policy_for(data_source, policy_type: :ce_admin).can_manage_ce_default_contacts?
 
-      all_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
-        where(owner: data_source).
-        includes(:user, swimlane: :template).
-        joins(:swimlane).
-        order(Hmis::WorkflowDefinition::Swimlane.arel_table[:id])
-
-      all_assignments.group_by(&:swimlane).map do |swimlane, assignments|
-        OpenStruct.new(
-          swimlane: swimlane,
-          contacts: assignments,
-        )
-      end
+      resolve_ce_default_contacts(data_source.ce_default_swimlane_assignments)
     end
 
     field :unit_group, HmisSchema::UnitGroup, null: true do

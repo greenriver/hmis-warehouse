@@ -51,6 +51,10 @@ RSpec.describe 'globalCeDefaultContacts Query', type: :request do
     hmis_login(user)
   end
 
+  before do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+  end
+
   context 'with global default contacts' do
     let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, status: 'published', template_type: 'ce_referral', name: 'CE Workflow', identifier: 'ce_workflow') }
     let!(:swimlane1) { create(:hmis_workflow_definition_swimlane, template: workflow_template, name: 'Case Managers') }

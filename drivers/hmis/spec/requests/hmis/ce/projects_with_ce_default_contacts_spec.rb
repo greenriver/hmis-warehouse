@@ -80,6 +80,10 @@ RSpec.describe 'Project CE Default Contacts Query', type: :request do
     hmis_login(user)
   end
 
+  before do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+  end
+
   describe 'ceDefaultContacts field' do
     context 'with project-level and global assignments' do
       let!(:user1) { create(:hmis_user, data_source: ds1) }
