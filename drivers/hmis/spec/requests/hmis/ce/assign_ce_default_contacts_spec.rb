@@ -320,7 +320,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found or unauthorized/
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /not authorized/
     end
 
     context 'when user lacks permission to perform referral tasks in the data source' do
@@ -342,7 +342,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found or unauthorized/
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /not authorized/
     end
 
     context 'when non-existent swimlane is passed' do
@@ -399,7 +399,7 @@ RSpec.describe 'AssignCeDefaultContacts Mutation', type: :request do
         }
       end
 
-      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found or unauthorized/
+      it_behaves_like 'raises an error and does not create default contacts', expected_error: /User\(s\) not found/
     end
   end
 end

@@ -16,10 +16,14 @@ module Mutations
       def resolve(input:)
         # Upfront, load all swimlanes and users from the input to confirm they are valid
         swimlane_ids = input.contacts.map(&:swimlane_id).uniq
-        swimlanes = Hmis::WorkflowDefinition::Swimlane.where(id: swimlane_ids).joins(:template).merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user))
+        swimlanes = Hmis::WorkflowDefinition::Swimlane.
+          where(id: swimlane_ids).
+          joins(:template).
+          merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user))
+
         user_ids = input.contacts.map(&:user_ids).flatten.uniq
         users = Hmis::User.where(id: user_ids)
-        authorized_users = nil
+        raise "User(s) not found: #{user_ids.join(', ')}" unless users.size == user_ids.size
 
         if input.project_id.present?
           project = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
@@ -29,9 +33,9 @@ module Mutations
           swimlanes = swimlanes.merge(Hmis::WorkflowDefinition::Template.used_in_projects([project.id]))
 
           # Authorize each user with the project policy. Causes n+1 but that's acceptable because the list of users is expected to be small
-          authorized_users = users.filter do |user|
+          users.each do |user|
             user.hmis_data_source_id = current_user.hmis_data_source_id
-            user.policy_for(project, policy_type: :hmis_project).can_perform_referral_tasks?
+            raise "User #{user.id} not authorized to be default contact for Project #{project.id}" unless user.policy_for(project, policy_type: :hmis_project).can_perform_referral_tasks?
           end
 
           owner = project
@@ -41,16 +45,15 @@ module Mutations
           access_denied! unless policy_for(data_source, policy_type: :ce_admin).can_manage_ce_default_contacts?
 
           # Authorize each user with the data source policy. Causes n+1 but that's acceptable because the list of users is expected to be small
-          authorized_users = users.filter do |user|
+          users.each do |user|
             user.hmis_data_source_id = current_user.hmis_data_source_id
-            user.policy_for(data_source, policy_type: :ce_admin).can_perform_referral_tasks?
+            raise "User #{user.id} not authorized to be global default contact" unless user.policy_for(data_source, policy_type: :ce_admin).can_perform_referral_tasks?
           end
 
           owner = data_source
         end
 
         raise "Swimlane(s) not found: #{swimlane_ids.join(', ')}" unless swimlanes.size == swimlane_ids.size
-        raise "User(s) not found or unauthorized: #{user_ids.join(', ')}" unless authorized_users.size == user_ids.size
 
         # Load all existing assignments for this owner and swimlanes
         existing_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
