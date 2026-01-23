@@ -972,6 +972,7 @@ type CeOpportunity {
 
 input CeOpportunityCandidatesFilterOptions {
   excludeDeclinedClients: Boolean = false
+  searchTerm: String
 }
 
 input CeOpportunityFilterOptions {

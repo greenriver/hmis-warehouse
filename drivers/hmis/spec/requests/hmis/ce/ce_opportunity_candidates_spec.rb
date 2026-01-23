@@ -286,5 +286,109 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
     end
+
+    describe 'filtering by search_term' do
+      let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'Anderson') }
+      let!(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Bob', last_name: 'Brown') }
+      let!(:client3) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Charlie', last_name: 'Chaplin') }
+
+      let!(:candidate1) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client1.destination_client,
+          priority_score: 90,
+        )
+      end
+
+      let!(:candidate2) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client2.destination_client,
+          priority_score: 85,
+        )
+      end
+
+      let!(:candidate3) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client3.destination_client,
+          priority_score: 80,
+        )
+      end
+
+      context 'when searching by candidate ID' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: candidate1.id.to_s },
+          }
+        end
+
+        it 'returns only the matching candidate' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(1)
+          expect(candidates[0]['id']).to eq(candidate1.id.to_s)
+        end
+      end
+
+      context 'when searching by client name' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: 'Alice' },
+          }
+        end
+
+        it 'returns candidates matching the client name' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(1)
+          expect(candidates[0]['id']).to eq(candidate1.id.to_s)
+        end
+      end
+
+      context 'when search term matches no candidates' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: 'Nonexistent' },
+          }
+        end
+
+        it 'returns empty results' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates).to be_empty
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(0)
+        end
+      end
+
+      context 'when search term is empty string' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: '' },
+          }
+        end
+
+        it 'returns all candidates' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(3)
+        end
+      end
+    end
   end
 end
