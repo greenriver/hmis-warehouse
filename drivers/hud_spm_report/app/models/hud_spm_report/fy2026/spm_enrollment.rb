@@ -155,9 +155,7 @@ module HudSpmReport::Fy2026
           pluck(:enrollment_group_id, :data_source_id, :record_type, :id).
           each_with_object({}) do |(eg_id, ds_id, r_type, she_id), hash|
             # Prefer entry records, but take what we can get
-            if r_type == 'entry' || !hash[[eg_id, ds_id]]
-              hash[[eg_id, ds_id]] = she_id
-            end
+            hash[[eg_id, ds_id]] = she_id if r_type == 'entry' || !hash[[eg_id, ds_id]]
           end
 
         contexts_by_she_id = HudReports::HouseholdContext.
