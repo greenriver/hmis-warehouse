@@ -43,7 +43,7 @@ module HudSpmReport::Generators::Fy2026
 
       # Map HUD Enrollments to ServiceHistoryEnrollments via scale-safe subquery
       # Join on both EnrollmentID and data_source_id for safety
-      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
         where(
           "(enrollment_group_id, data_source_id) IN (SELECT \"EnrollmentID\", data_source_id FROM (#{hud_enrollments.reselect(:EnrollmentID, :data_source_id).to_sql}) AS subquery)",
         )

@@ -150,11 +150,14 @@ module HudSpmReport::Fy2026
           "(#{GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)}, #{e.data_source_id})"
         end.join(',')
 
-        she_mapping = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        she_mapping = GrdaWarehouse::ServiceHistoryEnrollment.
           where("(enrollment_group_id, data_source_id) IN (#{identity_tuples})").
-          pluck(:enrollment_group_id, :data_source_id, :id).
-          each_with_object({}) do |(eg_id, ds_id, she_id), hash|
-            hash[[eg_id, ds_id]] = she_id
+          pluck(:enrollment_group_id, :data_source_id, :record_type, :id).
+          each_with_object({}) do |(eg_id, ds_id, r_type, she_id), hash|
+            # Prefer entry records, but take what we can get
+            if r_type == 'entry' || !hash[[eg_id, ds_id]]
+              hash[[eg_id, ds_id]] = she_id
+            end
           end
 
         contexts_by_she_id = HudReports::HouseholdContext.
@@ -170,7 +173,7 @@ module HudSpmReport::Fy2026
           # Find pre-computed context using paired identity
           she_id = she_mapping[[enrollment.EnrollmentID, enrollment.data_source_id]]
           context = contexts_by_she_id[she_id]
-          next unless context # Skip if no context (shouldn't happen in normal flow)
+          raise "No HouseholdContext found for enrollment #{enrollment.id} (SHE ID: #{she_id.inspect})" unless context
 
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)

@@ -149,7 +149,7 @@ module HudReports
 
         lookback_start = @report.start_date - @lookback_years.years
 
-        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.
           where(data_source_id: ds_id).
           open_between(start_date: lookback_start, end_date: @report.end_date).
           preload(enrollment: [:client, :disabilities_at_entry, :project])
