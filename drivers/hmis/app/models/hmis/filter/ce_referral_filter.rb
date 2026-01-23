@@ -9,13 +9,6 @@
 class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   include ::Hmis::Concerns::HmisArelHelper
 
-  attr_accessor :allow_name_search
-
-  def initialize(input, allow_name_search: true)
-    super(input)
-    self.allow_name_search = allow_name_search
-  end
-
   def filter_scope(scope)
     scope = ensure_scope(scope)
     scope.
@@ -82,7 +75,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   def with_search_term(scope)
     with_filter(scope, :search_term) do
-      scope.matching_search_term(input.search_term, allow_name_search: allow_name_search)
+      scope.matching_search_term(input.search_term)
     end
   end
 end

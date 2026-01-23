@@ -140,38 +140,24 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     context 'when searching by client name' do
-      context 'with allow_name_search: true' do
-        it 'returns referrals for clients with matching first name' do
-          scope = Hmis::Ce::Referral.matching_search_term('Alice', allow_name_search: true)
-          expect(scope.pluck(:id)).to eq([referral1.id])
-        end
-
-        it 'returns referrals for clients with matching last name' do
-          scope = Hmis::Ce::Referral.matching_search_term('Johnson', allow_name_search: true)
-          expect(scope.pluck(:id)).to contain_exactly(referral1.id, referral3.id)
-        end
-
-        it 'returns referrals for clients with matching full name' do
-          scope = Hmis::Ce::Referral.matching_search_term('Bob Smith', allow_name_search: true)
-          expect(scope.pluck(:id)).to eq([referral2.id])
-        end
-
-        it 'returns nothing if name does not match' do
-          scope = Hmis::Ce::Referral.matching_search_term('Nonexistent', allow_name_search: true)
-          expect(scope.pluck(:id)).to eq([])
-        end
+      it 'returns referrals for clients with matching first name' do
+        scope = Hmis::Ce::Referral.matching_search_term('Alice')
+        expect(scope.pluck(:id)).to eq([referral1.id])
       end
 
-      context 'with allow_name_search: false' do
-        it 'returns nothing when searching by name' do
-          scope = Hmis::Ce::Referral.matching_search_term('Alice', allow_name_search: false)
-          expect(scope.pluck(:id)).to eq([])
-        end
+      it 'returns referrals for clients with matching last name' do
+        scope = Hmis::Ce::Referral.matching_search_term('Johnson')
+        expect(scope.pluck(:id)).to contain_exactly(referral1.id, referral3.id)
+      end
 
-        it 'still returns referrals when searching by ID' do
-          scope = Hmis::Ce::Referral.matching_search_term(referral1.id.to_s, allow_name_search: false)
-          expect(scope.pluck(:id)).to eq([referral1.id])
-        end
+      it 'returns referrals for clients with matching full name' do
+        scope = Hmis::Ce::Referral.matching_search_term('Bob Smith')
+        expect(scope.pluck(:id)).to eq([referral2.id])
+      end
+
+      it 'returns nothing if name does not match' do
+        scope = Hmis::Ce::Referral.matching_search_term('Nonexistent')
+        expect(scope.pluck(:id)).to eq([])
       end
     end
   end
