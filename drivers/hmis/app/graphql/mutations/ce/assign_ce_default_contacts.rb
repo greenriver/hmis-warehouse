@@ -50,13 +50,16 @@ module Mutations
             owner: owner,
           )
         end
-        Hmis::Ce::DefaultSwimlaneAssignment.import!(to_create)
-
-        # Delete assignments that aren't included in the input
         to_remove = existing_assignments.reject { |key, _| desired_keys.include?(key) }.values
-        Hmis::Ce::DefaultSwimlaneAssignment.
-          where(id: to_remove.map(&:id)).
-          each(&:destroy!)
+
+        Hmis::Ce::DefaultSwimlaneAssignment.transaction do
+          Hmis::Ce::DefaultSwimlaneAssignment.import!(to_create)
+
+          # Delete assignments that aren't included in the input
+          Hmis::Ce::DefaultSwimlaneAssignment.
+            where(id: to_remove.map(&:id)).
+            each(&:destroy!)
+        end
 
         # Return all current assignments for this owner and the provided swimlanes
         { default_contacts: Hmis::Ce::DefaultSwimlaneAssignment.where(owner: owner, swimlane_id: swimlane_ids) }
