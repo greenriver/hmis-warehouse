@@ -30,7 +30,7 @@ module Types
       private
 
       def scoped_ce_default_contacts(scope)
-        raise unless Hmis::Ce.configuration.enabled?
+        return Hmis::Ce::DefaultSwimlaneAssignment.none unless Hmis::Ce.configuration.enabled?
 
         scope = scope.includes(:user, swimlane: :template).
           joins(:swimlane).
