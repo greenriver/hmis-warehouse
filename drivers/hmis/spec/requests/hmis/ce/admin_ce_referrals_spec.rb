@@ -27,6 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               status
               active
               clientId
+              clientName
               client {
                 id
               }
@@ -177,6 +178,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = result.dig('data', 'ceReferrals', 'nodes')
         expect(referrals.size).to eq(1)
         expect(referrals.dig(0, 'id')).to eq(referral.id.to_s) # referral2 is excluded
+      end
+    end
+
+    context 'when searching referrals by client name' do
+      let!(:client1) { create(:hmis_hud_client, data_source: ds1, FirstName: 'Alice', LastName: 'Wonderland') }
+      let!(:client2) { create(:hmis_hud_client, data_source: ds1, FirstName: 'Bob', LastName: 'Builder') }
+      let!(:referral1) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client1) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client2) }
+
+      it 'can search by client name' do
+        variables = { filters: { searchTerm: 'Wonderland' } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral1.id.to_s)
+      end
+
+      it 'can search by referral ID' do
+        variables = { filters: { searchTerm: referral2.id.to_s } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral2.id.to_s)
       end
     end
 
