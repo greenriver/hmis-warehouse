@@ -77,31 +77,37 @@ module HudReports
 
       # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
       def calculate_move_in_date(member, hoh, report_end_date: nil)
-        # If the move-in-date is valid, just use it
-        return member[:move_in_date] if member[:move_in_date].present? && member[:move_in_date] >= member[:entry_date]
-
-        # HoH does not exist or does not have a move-in date - cannot do further calculations
-        return nil unless hoh && hoh[:move_in_date].present?
-
-        # Heads of household with move-in dates prior to their project start dates should have them disregarded
-        return nil unless hoh[:entry_date] <= hoh[:move_in_date]
-
-        # When a household member was already in the household when they became housed
-        # For stayers, we use a date far in the future to ensure the move-in date is covered if report_end_date is provided
-        exit_date = member[:exit_date] || (report_end_date ? report_end_date + 1.year : nil)
-
-        # If we don't have an exit date and no report end date, we can't safely use .cover? with a Range
-        # but the business rule is: "If the household member exited before the household moved into housing,
-        # they do not inherit this [housing move-in date]."
-        # If exit_date is nil, they are still in the program, so they cover the move-in date if it's >= entry_date.
-        if exit_date
-          return hoh[:move_in_date] if (member[:entry_date]..exit_date).cover?(hoh[:move_in_date])
-        elsif hoh[:move_in_date] >= member[:entry_date]
-          return hoh[:move_in_date]
+        # Rule: Disregard move-in dates outside of enrollment bounds or after report end
+        # "Individuals with [housing move-in dates] prior to their [project start dates] or [after]
+        # [project exit dates] should have the [housing move-in dates] disregarded entirely."
+        valid_move_in = lambda do |date, m|
+          date.present? &&
+            date >= m[:entry_date] &&
+            (m[:exit_date].nil? || date <= m[:exit_date]) &&
+            (report_end_date.nil? || date <= report_end_date)
         end
 
-        # When a household member joins the household after they are already housed
-        return member[:entry_date] if member[:entry_date] > hoh[:move_in_date]
+        # 1. If the member has their own valid move-in date, use it
+        return member[:move_in_date] if valid_move_in.call(member[:move_in_date], member)
+
+        # 2. Check if HoH has a valid move-in date to propagate
+        return nil unless hoh && valid_move_in.call(hoh[:move_in_date], hoh)
+
+        # 3. Inheritance Logic for "Standard" household members (in the household when housed)
+        # Rule: "If the household member exited before the household moved into housing,
+        # they do not inherit this date."
+        if member[:entry_date] <= hoh[:move_in_date]
+          # Member was present at time of housing; check if they stayed until the move-in date
+          return hoh[:move_in_date] if member[:exit_date].nil? || member[:exit_date] >= hoh[:move_in_date]
+        end
+
+        # 4. Inheritance Logic for "Late Joiners"
+        # Rule: "If member joins after the household is housed, the member's move-in date = their own project start date"
+        if member[:entry_date] > hoh[:move_in_date]
+          # Ensure this "inherited" entry date is also valid (not after exit or report end)
+          return member[:entry_date] if (member[:exit_date].nil? || member[:entry_date] <= member[:exit_date]) &&
+                                       (report_end_date.nil? || member[:entry_date] <= report_end_date)
+        end
 
         nil
       end
