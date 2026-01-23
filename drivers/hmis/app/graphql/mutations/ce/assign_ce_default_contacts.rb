@@ -50,15 +50,14 @@ module Mutations
             owner: owner,
           )
         end
+        # Build list of assignments for removal: those that exist but aren't in the input
         to_remove = existing_assignments.reject { |key, _| desired_keys.include?(key) }.values
 
+        # In a transaction, create and destroy assignments
         Hmis::Ce::DefaultSwimlaneAssignment.transaction do
           Hmis::Ce::DefaultSwimlaneAssignment.import!(to_create)
 
-          # Delete assignments that aren't included in the input
-          Hmis::Ce::DefaultSwimlaneAssignment.
-            where(id: to_remove.map(&:id)).
-            each(&:destroy!)
+          Hmis::Ce::DefaultSwimlaneAssignment.where(id: to_remove.map(&:id)).each(&:destroy!)
         end
 
         # Return all current assignments for this owner and the provided swimlanes
@@ -84,6 +83,8 @@ module Mutations
       def validate_swimlanes(input, project: nil)
         swimlane_ids = input.contacts.map(&:swimlane_id).uniq
         template_scope = Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user)
+
+        # If project ID is provided, only include swimlanes that are referenced by templates used in that project
         template_scope = template_scope.used_in_projects([project.id]) if project.present?
 
         swimlanes = Hmis::WorkflowDefinition::Swimlane.
@@ -104,6 +105,7 @@ module Mutations
         owner = project || data_source
         policy_type = project.present? ? :hmis_project : :ce_admin
 
+        # Validate that all users have permission to perform referral tasks in the project or data source
         users.each do |user|
           user.hmis_data_source_id = current_user.hmis_data_source_id
           raise "User #{user.id} not authorized" unless user.policy_for(owner, policy_type: policy_type).can_perform_referral_tasks?

@@ -24,37 +24,6 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
   let!(:unit_group) { create :hmis_unit_group, project: p1, workflow_template: template }
 
   describe 'scopes' do
-    describe '.with_owners' do
-      let!(:assignment_p1) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane1, owner: p1 }
-      let!(:assignment_p2) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane1, owner: p2 }
-      let!(:assignment_o1) { create :hmis_ce_default_swimlane_assignment, user: user2, swimlane: swimlane2, owner: o1 }
-      let!(:assignment_ds1) { create :hmis_ce_default_swimlane_assignment, :for_data_source, user: user2, swimlane: swimlane2, owner: ds1 }
-
-      it 'returns empty when owners is empty array' do
-        expect(described_class.with_owners([])).to be_empty
-      end
-
-      it 'returns assignments for a single owner' do
-        result = described_class.with_owners([p1])
-        expect(result).to contain_exactly(assignment_p1)
-      end
-
-      it 'returns assignments for multiple owners of the same type' do
-        result = described_class.with_owners([p1, p2])
-        expect(result).to contain_exactly(assignment_p1, assignment_p2)
-      end
-
-      it 'returns assignments for multiple owners of different types' do
-        result = described_class.with_owners([p1, o1, ds1])
-        expect(result).to contain_exactly(assignment_p1, assignment_o1, assignment_ds1)
-      end
-
-      it 'does not return assignments for owners not in the list' do
-        result = described_class.with_owners([p1])
-        expect(result).not_to include(assignment_p2, assignment_o1, assignment_ds1)
-      end
-    end
-
     describe '.for_project' do
       context 'with only project-level assignments' do
         let!(:assignment) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane1, owner: p1 }

@@ -10,6 +10,7 @@
 class Hmis::AuthPolicies::CeAdminPolicy < Hmis::AuthPolicies::BasePolicy
   # Whether the user can manage CE default contacts in their data source.
   def can_manage_ce_default_contacts?
+    # This is a global permission, so the policy returns true if the user has this permission at any entity in the data source.
     data_source_permissions.include?(:can_administrate_coordinated_entry)
   end
 

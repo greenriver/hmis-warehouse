@@ -165,6 +165,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
+  # Helper scope to fetch projects matching the given `Hmis::ProjectConfig`s
   scope :with_configs, ->(configs) do
     conditions = [
       arel_table[:project_type].in(configs.map(&:project_type)),

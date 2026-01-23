@@ -14,7 +14,8 @@ module Types
     field :user, Application::User, null: false
     field :swimlane, HmisSchema::CeSwimlane, null: false
 
-    # Polymorphic owner - only one will be non-null. If all are null, this is a global default (owned by data source)
+    # Polymorphic owner - at most one of project, organization, or unit group is non-null.
+    # If all are null, this is a global default (owned by data source)
     field :project_id, ID, null: true
     field :project_name, String, null: true
     field :organization_id, ID, null: true
