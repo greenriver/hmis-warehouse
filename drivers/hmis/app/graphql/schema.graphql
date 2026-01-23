@@ -9743,6 +9743,7 @@ input ProjectCeOpportunityFilterOptions {
 input ProjectCeReferralFilterOptions {
   origin: [CeReferralOrigin!]
   referralStatus: [String!]
+  searchTerm: String
 }
 
 type ProjectCoc {
@@ -9917,6 +9918,7 @@ input ProjectOutgoingCeReferralFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
+  searchTerm: String
 }
 
 """

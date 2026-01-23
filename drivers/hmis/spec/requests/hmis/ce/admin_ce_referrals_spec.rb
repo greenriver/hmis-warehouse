@@ -187,53 +187,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:referral1) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client1) }
       let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client2) }
 
-      context 'when user has permission to view client names' do
-        it 'can search by client name' do
-          variables = { filters: { searchTerm: 'Wonderland' } }
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
+      it 'can search by client name' do
+        variables = { filters: { searchTerm: 'Wonderland' } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
 
-          referrals = result.dig('data', 'ceReferrals', 'nodes')
-          expect(referrals.size).to eq(1)
-          expect(referrals.first['id']).to eq(referral1.id.to_s)
-        end
-
-        it 'can search by referral ID' do
-          variables = { filters: { searchTerm: referral2.id.to_s } }
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
-
-          referrals = result.dig('data', 'ceReferrals', 'nodes')
-          expect(referrals.size).to eq(1)
-          expect(referrals.first['id']).to eq(referral2.id.to_s)
-        end
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral1.id.to_s)
       end
 
-      context 'when user does not have permission to view client names' do
-        before do
-          remove_permissions(access_control, :can_view_client_name)
-          remove_permissions(ds_access_control, :can_view_client_name)
-        end
+      it 'can search by referral ID' do
+        variables = { filters: { searchTerm: referral2.id.to_s } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
 
-        it 'cannot search by client name' do
-          variables = { filters: { searchTerm: 'Wonderland' } }
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
-
-          referrals = result.dig('data', 'ceReferrals', 'nodes')
-          expect(referrals).to be_empty
-        end
-
-        it 'can still search by referral ID' do
-          variables = { filters: { searchTerm: referral2.id.to_s } }
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
-
-          referrals = result.dig('data', 'ceReferrals', 'nodes')
-          expect(referrals.size).to eq(1)
-          expect(referrals.first['id']).to eq(referral2.id.to_s)
-          expect(referrals.first['clientName']).to eq(client2.masked_name)
-        end
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral2.id.to_s)
       end
     end
 

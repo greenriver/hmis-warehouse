@@ -41,12 +41,7 @@ module Types
         raise unless Hmis::Ce.configuration.enabled?
 
         scope = scope.viewable_by(user) unless dangerous_skip_permission_check
-        if filters.present?
-          # If user has permission to view any client names globally, allow them to search referrals (that they can view) by client name.
-          # This is because referral exposes the client name as a summary field to anyone who can view the referral.
-          allow_name_search = user.can_view_client_name? # TODO: this should use a global policy check
-          scope = scope.apply_filters(filters, allow_name_search: allow_name_search)
-        end
+        scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
 
         scope
