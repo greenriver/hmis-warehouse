@@ -117,4 +117,48 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end
     end
   end
+
+  describe 'matching_search_term scope' do
+    let!(:client1) { create(:hmis_hud_client, data_source: data_source, FirstName: 'Alice', LastName: 'Johnson') }
+    let!(:client2) { create(:hmis_hud_client, data_source: data_source, FirstName: 'Bob', LastName: 'Smith') }
+    let!(:client3) { create(:hmis_hud_client, data_source: data_source, FirstName: 'Charlie', LastName: 'Johnson') }
+
+    let!(:referral1) { create(:hmis_ce_referral, data_source: data_source, client: client1) }
+    let!(:referral2) { create(:hmis_ce_referral, data_source: data_source, client: client2) }
+    let!(:referral3) { create(:hmis_ce_referral, data_source: data_source, client: client3) }
+
+    context 'when searching by referral ID' do
+      it 'returns the referral with matching ID' do
+        scope = Hmis::Ce::Referral.matching_search_term(referral1.id.to_s)
+        expect(scope.pluck(:id)).to eq([referral1.id])
+      end
+
+      it 'returns nothing if ID does not match' do
+        scope = Hmis::Ce::Referral.matching_search_term('999999')
+        expect(scope.pluck(:id)).to eq([])
+      end
+    end
+
+    context 'when searching by client name' do
+      it 'returns referrals for clients with matching first name' do
+        scope = Hmis::Ce::Referral.matching_search_term('Alice')
+        expect(scope.pluck(:id)).to eq([referral1.id])
+      end
+
+      it 'returns referrals for clients with matching last name' do
+        scope = Hmis::Ce::Referral.matching_search_term('Johnson')
+        expect(scope.pluck(:id)).to contain_exactly(referral1.id, referral3.id)
+      end
+
+      it 'returns referrals for clients with matching full name' do
+        scope = Hmis::Ce::Referral.matching_search_term('Bob Smith')
+        expect(scope.pluck(:id)).to eq([referral2.id])
+      end
+
+      it 'returns nothing if name does not match' do
+        scope = Hmis::Ce::Referral.matching_search_term('Nonexistent')
+        expect(scope.pluck(:id)).to eq([])
+      end
+    end
+  end
 end
