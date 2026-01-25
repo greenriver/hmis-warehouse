@@ -119,12 +119,12 @@ module HudApr::Generators::Shared::Fy2026
     # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     def map_standard_attributes
       exit_date = @last_service_history_enrollment.last_date_in_program
-      exit_record = @last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
+      exited_enrollment = @last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
       income_at_start = @enrollment.income_benefits_at_entry
       hoh_entry_date = @ctx.hoh_entry_date || @hoh_enrollment&.first_date_in_program || @last_service_history_enrollment.first_date_in_program
       income_at_annual_assessment = annual_assessment(@enrollment, hoh_entry_date)
-      income_at_exit = exit_record&.income_benefits_at_exit
+      income_at_exit = exited_enrollment&.income_benefits_at_exit
 
       disabilities = @enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
       disabilities_at_entry = @enrollment.disabilities.select { |d| d.DataCollectionStage == 1 }
@@ -154,7 +154,7 @@ module HudApr::Generators::Shared::Fy2026
         status.DataCollectionStage == 3 && status.InformationDate && status.InformationDate < @report.end_date
       end&.max_by(&:InformationDate)
 
-      # Household Context age is [entry_date, report_start].max per HUD rules
+      # Age is pre-computed in HouseholdContext as of [entry_date, report_start].max per HUD rules.
       age = @ctx.age
       hoh_anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
       hoh_light = @hoh_enrollment || begin
@@ -179,7 +179,7 @@ module HudApr::Generators::Shared::Fy2026
       end
 
       destination = @last_service_history_enrollment.destination
-      destination_subsidy_type = exit_record&.exit&.DestinationSubsidyType
+      destination_subsidy_type = exited_enrollment&.exit&.DestinationSubsidyType
       destination = 99 if destination == 435 && !destination_subsidy_type.in?(HudHelper.util('2026').rental_subsidy_types.keys)
       destination = 99 unless HudHelper.util('2026').valid_destinations.key?(destination)
 
@@ -238,7 +238,7 @@ module HudApr::Generators::Shared::Fy2026
         drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
         enrollment_coc: @calculated_enrollment_coc,
         enrollment_created: @enrollment.DateCreated || @enrollment.DateUpdated || DateTime.current,
-        exit_created: exit_record&.exit&.DateCreated,
+        exit_created: exited_enrollment&.exit&.DateCreated,
         exit_destination_subsidy_type: destination_subsidy_type,
         first_date_in_program: @last_service_history_enrollment.first_date_in_program,
         first_name: @source_client.FirstName,

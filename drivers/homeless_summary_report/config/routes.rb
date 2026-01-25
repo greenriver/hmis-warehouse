@@ -11,6 +11,7 @@ BostonHmis::Application.routes.draw do
     namespace :warehouse_reports do
       resources :reports, only: [:index, :create, :show, :destroy] do
         get :details, on: :member
+        post 'reload_from_csv', to: 'reports#reload_from_csv', as: :reload_from_csv, on: :member
       end
     end
   end

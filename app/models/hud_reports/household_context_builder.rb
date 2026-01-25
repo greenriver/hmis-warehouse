@@ -61,12 +61,12 @@ module HudReports
       universe_ids = universe_she_ids
       each_household_batch do |batch|
         # batch is array of [hh_id, data_source_id]
-        all_members = load_unfiltered_members(batch)
-        all_members_by_hh = all_members.group_by { |she| [get_hh_id(she), she.data_source_id] }
+        all_service_history_enrollments = load_unfiltered_service_history_enrollments(batch)
+        all_she_by_hh = all_service_history_enrollments.group_by { |she| [get_hh_id(she), she.data_source_id] }
 
-        all_members_by_hh.each do |(hh_id, data_source_id), members|
-          household_contexts = build_contexts_for_household(hh_id, data_source_id, members)
-          # Only keep contexts for members that are part of the report universe
+        all_she_by_hh.each do |(hh_id, data_source_id), service_history_enrollments|
+          household_contexts = build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
+          # Only keep contexts for SHEs that are part of the report universe
           contexts.concat(household_contexts.select { |c| universe_ids.include?(c.service_history_enrollment_id) })
         end
 
@@ -138,10 +138,10 @@ module HudReports
       end
     end
 
-    def load_unfiltered_members(batch)
+    def load_unfiltered_service_history_enrollments(batch)
       # batch is array of [hh_id, data_source_id]
       # We group by data_source_id to make queries more efficient (fewer IN clauses)
-      members = []
+      service_history_enrollments = []
       batch.group_by(&:last).each do |ds_id, pairs|
         hh_ids = pairs.map(&:first)
         real_hh_ids = hh_ids.reject { |id| id.end_with?('*HH') }
@@ -162,14 +162,14 @@ module HudReports
           scope.where(enrollment_group_id: synthetic_eg_ids, household_id: nil)
         end
 
-        members.concat(query.to_a.select { |m| m.enrollment.present? })
+        service_history_enrollments.concat(query.to_a.select { |m| m.enrollment.present? })
       end
-      members
+      service_history_enrollments
     end
 
-    def build_contexts_for_household(hh_id, data_source_id, members)
+    def build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
       # Pre-calculate common HH values
-      hh_member_hashes = members.map do |m|
+      hh_member_hashes = service_history_enrollments.map do |m|
         enrollment = m.enrollment
         source_client = enrollment&.client
         date = [m.first_date_in_program, @report.start_date].max
@@ -179,6 +179,7 @@ module HudReports
         report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
 
         chronic_at_start = enrollment&.chronically_homeless_at_start
+        # Performance: Re-use entry-date calculation if PIT date is the same (avoiding expensive HUD logic tree)
         if report_date.blank? || report_date == enrollment&.EntryDate
           pit_chronic_at_start = chronic_at_start
         else
@@ -208,9 +209,9 @@ module HudReports
       end
 
       # HH Level Stats
-      # For household composition and veteran stats, only consider members active during the report period.
-      # Historical members (from lookback) are used for inheritance but should not affect the current report's household type.
-      active_hh_member_hashes = hh_member_hashes.select do |mh|
+      # For household composition and veteran stats, only consider SHEs active during the report period.
+      # Historical SHEs (from lookback) are used for inheritance but should not affect the current report's household type.
+      active_hh_she_hashes = hh_member_hashes.select do |mh|
         (mh[:exit_date].nil? || mh[:exit_date] >= @report.start_date) && mh[:entry_date] <= @report.end_date
       end
 
@@ -224,17 +225,17 @@ module HudReports
         0
       end
 
-      hh_all_ages = active_hh_member_hashes.map { |m| m[:age] }
+      hh_all_ages = active_hh_she_hashes.map { |m| m[:age] }
       hh_type = HudReports::HouseholdLogic.calculate_household_type(hh_all_ages)
 
       hh_ages = hh_all_ages.compact
       hh_max_age = hh_ages.max || 0
-      hh_member_count = active_hh_member_hashes.size
-      hh_has_minor_children = active_hh_member_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
-      hh_max_age_of_parents = active_hh_member_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
+      hh_member_count = active_hh_she_hashes.size
+      hh_has_minor_children = active_hh_she_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 }
+      hh_max_age_of_parents = active_hh_she_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0
 
-      # Veteran Stats (active members only)
-      hh_adults = active_hh_member_hashes.select { |m| m[:age] && m[:age] >= 18 }
+      # Veteran Stats (active SHEs only)
+      hh_adults = active_hh_she_hashes.select { |m| m[:age] && m[:age] >= 18 }
       hh_veterans = hh_adults.select { |m| m[:veteran_status] == 1 }
 
       hh_any_veteran_chronic = hh_veterans.any? { |m| m[:chronic_status] == true }
@@ -243,7 +244,7 @@ module HudReports
       hh_any_adult_refused_veteran = hh_adults.any? { |m| [8, 9].include?(m[:veteran_status]) }
       hh_any_adult_missing_veteran = hh_adults.any? { |m| m[:veteran_status] == 99 }
 
-      members.map do |m|
+      service_history_enrollments.map do |m|
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
 
         # Inherited values
@@ -257,9 +258,9 @@ module HudReports
           hoh_data,
         )
 
-        # Parenting youth logic (active members only)
-        is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, active_hh_member_hashes)
-        has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(active_hh_member_hashes)
+        # Parenting youth logic (active SHEs only)
+        is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, active_hh_she_hashes)
+        has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(active_hh_she_hashes)
 
         HudReports::HouseholdContext.new(
           report_instance_id: @report.id,
@@ -285,6 +286,10 @@ module HudReports
           hoh_veteran: hoh_data&.[](:veteran_status) == 1,
           is_hoh: m.enrollment&.RelationshipToHoH == 1,
           relationship_to_hoh: member_hash[:relationship_to_hoh],
+          raw_chronic_status: member_hash[:chronic_status],
+          raw_chronic_detail: member_hash[:chronic_detail],
+          raw_pit_chronic_status: member_hash[:pit_chronic_status],
+          raw_pit_chronic_detail: member_hash[:pit_chronic_detail],
           pit_chronic_status: member_hash[:pit_chronic_status],
           household_type: hh_type,
           is_parenting_youth: is_parenting_youth,
@@ -295,6 +300,7 @@ module HudReports
           inherited_pit_chronic_detail: pit_chronic_source&.[](:detail),
           inherited_move_in_date: inherited_move_in_date,
           member_entry_date: member_hash[:entry_date],
+          member_exit_date: member_hash[:exit_date],
           member_date_to_street: member_hash[:date_to_street],
           inherited_date_to_street: inherited_date_to_street,
           member_count: hh_member_count,

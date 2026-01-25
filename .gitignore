@@ -183,3 +183,7 @@ lib/data/*.xlsx
 assets.tar
 prometheus-metrics/**
 etc-localtime
+
+# Zitadel authentication files
+docker/auth/*.pat
+docker/auth/zitadel-credentials.env

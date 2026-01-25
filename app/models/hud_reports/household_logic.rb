@@ -2,7 +2,15 @@
 
 module HudReports
   # Shared business logic for HUD household calculations.
-  # Extracts pure logic from concerns and builders to ensure consistency across the warehouse.
+  #
+  # This class centralizes pure logic for household-level attributes required by HUD reports
+  # (APR, CAPER, SPM, PIT). It ensures consistency across the warehouse by strictly adhering
+  # to the HUD HMIS Reporting Glossary and specific APR/CAPER programming specifications.
+  #
+  # Key logic areas:
+  # - Chronic Status Inheritance: Business rules for how children and households inherit status from adults.
+  # - Housing Move-in Inheritance: Rules for cascading move-in dates from the HoH to other members.
+  # - Youth/Parenting Youth: Specific APR definitions for youth-led households (often differing from general DQ rules).
   class HouseholdLogic
     class << self
       def calculate_household_type(ages)
@@ -23,10 +31,13 @@ module HudReports
         end
       end
 
+      # Determines chronic status for a member or PIT snapshot based on household inheritance rules.
+      # Per HUD Glossary: Status is determined at the earliest project start for the household.
+      # If ANY adult or minor HoH is CH, the entire household (and children) are considered CH.
       def calculate_chronic_status(hh_members, current_member, hoh, chronic_status_key: :chronic_status)
         return nil if hh_members.empty?
 
-        # When no specific member is provided (PIT), use the HoH as the current_member
+        # When no specific member is provided (PIT), use the HoH as the anchor for calculation
         current_member ||= hoh
         return nil unless current_member
 
@@ -34,10 +45,10 @@ module HudReports
         hoh_entry_date = hoh&.[](:entry_date)
         detail_key = chronic_status_key == :pit_chronic_status ? :pit_chronic_detail : :chronic_detail
 
-        # HoH if they are chronically homeless
+        # Rule: Inheritance from HoH if they are CH and entered together
         return { status: true, detail: hoh[detail_key] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
 
-        # If the HoH is not chronically homeless, check if any other adult is
+        # Rule: If the HoH is not chronically homeless, check if any other adult is
         chronic_adult = hh_members.detect do |hm|
           next false unless hm[:age]
 
@@ -48,16 +59,17 @@ module HudReports
 
         return { status: true, detail: chronic_adult[detail_key] } if chronic_adult
 
-        # if no adults are either yes or no, use self for adults
+        # Rule: Adults use their own status if no other adult in the household is CH
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if current_member[:age] && current_member[:age] >= 18
 
-        # if the data is bad and we don't have an HoH, use our own record
+        # Fallback: Use self if HoH is missing (data quality issue)
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if hoh.blank?
 
-        # and the HoH enrollment for children if HoH status is unknown
+        # Rule: Children inherit HoH status if HoH or Child has indeterminate (DK/R/Missing) data.
+        # This ensures children aren't penalized for missing data when an HoH's status might be known or indeterminate.
         return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if hoh[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
-        # if we have an indeterminate response for the child, use the hoh
+        # Rule: if we have an indeterminate response for the child, use the hoh
         return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if current_member[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
         { status: current_member[chronic_status_key], detail: current_member[detail_key] }
@@ -65,31 +77,37 @@ module HudReports
 
       # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
       def calculate_move_in_date(member, hoh, report_end_date: nil)
-        # If the move-in-date is valid, just use it
-        return member[:move_in_date] if member[:move_in_date].present? && member[:move_in_date] >= member[:entry_date]
-
-        # HoH does not exist or does not have a move-in date - cannot do further calculations
-        return nil unless hoh && hoh[:move_in_date].present?
-
-        # Heads of household with move-in dates prior to their project start dates should have them disregarded
-        return nil unless hoh[:entry_date] <= hoh[:move_in_date]
-
-        # When a household member was already in the household when they became housed
-        # For stayers, we use a date far in the future to ensure the move-in date is covered if report_end_date is provided
-        exit_date = member[:exit_date] || (report_end_date ? report_end_date + 1.year : nil)
-
-        # If we don't have an exit date and no report end date, we can't safely use .cover? with a Range
-        # but the business rule is: "If the household member exited before the household moved into housing,
-        # they do not inherit this [housing move-in date]."
-        # If exit_date is nil, they are still in the program, so they cover the move-in date if it's >= entry_date.
-        if exit_date
-          return hoh[:move_in_date] if (member[:entry_date]..exit_date).cover?(hoh[:move_in_date])
-        elsif hoh[:move_in_date] >= member[:entry_date]
-          return hoh[:move_in_date]
+        # Rule: Disregard move-in dates outside of enrollment bounds or after report end
+        # "Individuals with [housing move-in dates] prior to their [project start dates] or [after]
+        # [project exit dates] should have the [housing move-in dates] disregarded entirely."
+        valid_move_in = lambda do |date, m|
+          date.present? &&
+            date >= m[:entry_date] &&
+            (m[:exit_date].nil? || date <= m[:exit_date]) &&
+            (report_end_date.nil? || date <= report_end_date)
         end
 
-        # When a household member joins the household after they are already housed
-        return member[:entry_date] if member[:entry_date] > hoh[:move_in_date]
+        # 1. If the member has their own valid move-in date, use it
+        return member[:move_in_date] if valid_move_in.call(member[:move_in_date], member)
+
+        # 2. Check if HoH has a valid move-in date to propagate
+        return nil unless hoh && valid_move_in.call(hoh[:move_in_date], hoh)
+
+        # 3. Inheritance Logic for "Standard" household members (in the household when housed)
+        # Rule: "If the household member exited before the household moved into housing,
+        # they do not inherit this date."
+        if member[:entry_date] <= hoh[:move_in_date]
+          # Member was present at time of housing; check if they stayed until the move-in date
+          return hoh[:move_in_date] if member[:exit_date].nil? || member[:exit_date] >= hoh[:move_in_date]
+        end
+
+        # 4. Inheritance Logic for "Late Joiners"
+        # Rule: "If member joins after the household is housed, the member's move-in date = their own project start date"
+        if member[:entry_date] > hoh[:move_in_date]
+          # Ensure this "inherited" entry date is also valid (not after exit or report end)
+          return member[:entry_date] if (member[:exit_date].nil? || member[:entry_date] <= member[:exit_date]) &&
+                                       (report_end_date.nil? || member[:entry_date] <= report_end_date)
+        end
 
         nil
       end
@@ -114,6 +132,8 @@ module HudReports
         nil
       end
 
+      # APR Q27: Parenting Youth.
+      # A youth household (all members 0-24) where the youth (12-24) has children.
       def calculate_is_parenting_youth(member, hh_members)
         age = member[:age]
         adult = age && age >= 18
@@ -125,8 +145,9 @@ module HudReports
       end
 
       def any_youth_children?(hh_members)
-        # Per HUD legacy logic, "children" in the context of youth households include anyone up to age 24
-        # if they have RelationshipToHoH == 2.
+        # Nuance: APR Q27 considers "children" to be anyone with RelationshipToHoH == 2
+        # who is age 0-24, provided the entire household qualifies as a Youth Household.
+        # This differs from general DQ reports which strictly use age < 18.
         hh_members.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] <= 24 }
       end
     end

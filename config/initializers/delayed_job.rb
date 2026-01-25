@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5
 Delayed::Worker.max_attempts = 3
@@ -51,6 +53,30 @@ module Delayed
 
         def self.running
           where(failed_at: nil).where.not(locked_at: nil)
+        end
+
+        def cancellable?
+          return false if cancellation_requested_at.present? || failed_at.present?
+
+          # If it hasn't started, it can always be cancelled via before_perform
+          return true if locked_at.nil?
+
+          # If it is running, it can only be cancelled if we've instrumented it
+          interruptible?
+        end
+
+        def interruptible?
+          JobDetail.new(self).interruptible?
+        rescue StandardError
+          false
+        end
+
+        # Allow re-queueing if the job has failed or if a cancellation is currently requested.
+        # (lets us "revive" a job that was previously cancelled).
+        def requeueable?
+          return false if locked_at
+
+          failed_at.present? || cancellation_requested_at.present?
         end
       end
     end

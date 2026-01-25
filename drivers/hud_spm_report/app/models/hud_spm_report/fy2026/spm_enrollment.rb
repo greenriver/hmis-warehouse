@@ -141,6 +141,8 @@ module HudSpmReport::Fy2026
       GrdaWarehouse::ServiceHistoryEnrollment.arel_table
 
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
+        report_instance.check_halt_status!
+
         # Load contexts for THIS batch to minimize memory footprint
         # Identity is paired: [EnrollmentID, data_source_id]
         # Use raw SQL for composite IN clause as it's more reliable across different DB adapters
