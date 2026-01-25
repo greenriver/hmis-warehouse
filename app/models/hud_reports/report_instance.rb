@@ -307,11 +307,13 @@ module HudReports
       question_names.include?('HDX Upload')
     end
 
+    # TODO: replace with equivalent method on drilldownContext
     # only allow alpha numeric
     def valid_cell_name(cell_name)
       cell_name&.match(/[A-Z0-9]+/i).to_s
     end
 
+    # TODO: replace with equivalent method on drilldownContext
     # only allow alpha numeric, and dashes
     def valid_table_name(table)
       table&.match(/[A-Z0-9-]+/i).to_s
