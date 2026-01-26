@@ -7,17 +7,17 @@
 # frozen_string_literal: true
 
 module PerformanceMeasurement::EquityAnalysis
-  class AgeData < PerformanceMeasurement::EquityAnalysis::Data
+  class SexData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
-      return AGES unless age_params.any?
+      return SEXES unless sex_params.any?
 
-      AGES.select { |_, v| age_params.include?(v) }
+      SEXES.select { |k, _| sex_params.include?(sex_value_to_scope(k)) }
     end
 
     def data
-      x = [['x'] + data_groups.keys]
+      x = [['x'] + data_groups.values]
       columns = x + bars.map do |bar|
-        [bar] + data_groups.values.map do |group|
+        [bar] + data_groups.keys.map do |group|
           bar_data(universe: bar, investigate_by: group)
         end
       end
@@ -25,14 +25,8 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def client_scope(period, investigate_by)
-      age_range = census_age_range_to_range(investigate_by.to_sym)
-      age_column = case period
-      when 'reporting'
-        :reporting_age
-      else
-        :comparison_age
-      end
-      metric_scope(period).where(age_column => age_range)
+      sex_scope = sex_value_to_scope(investigate_by)
+      metric_scope(period).send(sex_scope)
     end
   end
 end
