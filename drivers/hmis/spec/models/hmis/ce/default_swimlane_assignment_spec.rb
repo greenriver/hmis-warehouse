@@ -66,17 +66,6 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
           expect(result).to contain_exactly(assignment_p1, assignment_o1, assignment_ds1)
         end
       end
-
-      context 'with a global default contact for a swimlane not used by this project' do
-        let!(:other_template) { create :hmis_workflow_definition_template, data_source: ds1 }
-        let!(:swimlane3) { create :hmis_workflow_definition_swimlane, template: other_template, name: 'CE Staff' }
-        let!(:assignment) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane3, owner: ds1 }
-
-        it 'does not return the irrelevant assignment' do
-          result = described_class.for_project_including_inherited(p1)
-          expect(result).not_to include(assignment)
-        end
-      end
     end
   end
 end

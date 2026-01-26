@@ -171,18 +171,20 @@ module Types
     end
 
     def ce_default_contacts
-      resolve_ce_default_contacts(Hmis::Ce::DefaultSwimlaneAssignment.for_project_including_inherited(object))
+      project_default_assignments = Hmis::Ce::DefaultSwimlaneAssignment.for_project_including_inherited(object)
+
+      # Merge swimlane scope in order to filter out irrelevant assignments from higher levels.
+      # For example: if there is a default data source assignment for swimlane XYZ, but swimlane XYZ is not used in project X.
+      project_swimlanes = Hmis::WorkflowDefinition::Swimlane.used_in_project(object)
+      project_assignments_for_project_swimlanes = project_default_assignments.joins(:swimlane).merge(project_swimlanes)
+
+      resolve_ce_default_contacts(project_assignments_for_project_swimlanes)
     end
 
     def ce_swimlanes
-      template_scope = Hmis::WorkflowDefinition::Template.
-        ce.published.
+      Hmis::WorkflowDefinition::Swimlane.ce.
         viewable_by(current_user).
-        used_in_projects([object.id])
-
-      Hmis::WorkflowDefinition::Swimlane.
-        joins(:template).
-        merge(template_scope).
+        used_in_project(object).
         order(:name, :id).
         distinct
     end
