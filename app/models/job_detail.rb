@@ -153,9 +153,10 @@ class JobDetail
     elsif arguments.is_a?(Hash)
       arguments.try(:[], 'report_class')
     else
-      return arguments.first.to_s if arguments.first.is_a?(String) || arguments.first.is_a?(Numeric)
+      first_arg = arguments.first
+      return first_arg.to_s if first_arg.is_a?(String) || first_arg.is_a?(Numeric)
 
-      arguments.first.try(:[], 'report_class')
+      first_arg.try(:[], 'report_class') if first_arg.is_a?(Hash)
     end
   end
 end
