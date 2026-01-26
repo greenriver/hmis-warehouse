@@ -171,7 +171,7 @@ module Types
     end
 
     def ce_default_contacts
-      resolve_ce_default_contacts(Hmis::Ce::DefaultSwimlaneAssignment.for_project(object))
+      resolve_ce_default_contacts(Hmis::Ce::DefaultSwimlaneAssignment.for_project_including_inherited(object))
     end
 
     def ce_swimlanes

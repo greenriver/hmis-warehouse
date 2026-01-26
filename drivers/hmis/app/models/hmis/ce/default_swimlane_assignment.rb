@@ -19,13 +19,20 @@ module Hmis::Ce
     validates :user_id, uniqueness: { scope: [:owner_type, :owner_id, :swimlane_id] }, if: -> { deleted_at.nil? }
 
     # Fetch assignments for a project, including inherited assignments from org and data source
-    scope :for_project, ->(project) do
+    scope :for_project_including_inherited, ->(project) do
       swimlane_scope = Hmis::WorkflowDefinition::Swimlane.
         joins(:template).
         merge(Hmis::WorkflowDefinition::Template.ce.published.used_in_projects([project.id]))
 
       owners = [project, project.organization, project.data_source].compact
       joins(:swimlane).merge(swimlane_scope).where(owner: owners)
+    end
+
+    # Fetch assignments for a unit group, including inherited assignments from project, organization, and data source.
+    scope :for_unit_group_including_inherited, ->(unit_group) do
+      project = unit_group.project
+      owners = [unit_group, project, project.organization, project.data_source].compact
+      where(owner: owners)
     end
   end
 end

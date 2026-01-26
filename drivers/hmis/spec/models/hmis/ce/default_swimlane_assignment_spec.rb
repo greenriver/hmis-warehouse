@@ -24,13 +24,13 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
   let!(:unit_group) { create :hmis_unit_group, project: p1, workflow_template: template }
 
   describe 'scopes' do
-    describe '.for_project' do
+    describe '.for_project_including_inherited' do
       context 'with only project-level assignments' do
         let!(:assignment) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane1, owner: p1 }
         let!(:other_assignment) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane1, owner: p2 }
 
         it 'returns only assignments owned by the project' do
-          result = described_class.for_project(p1)
+          result = described_class.for_project_including_inherited(p1)
           expect(result).to contain_exactly(assignment)
           expect(result).not_to include(other_assignment)
         end
@@ -43,7 +43,7 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
         let!(:assignment_p2) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane1, owner: p2 }
 
         it 'returns all assignments from project, organization, and data source' do
-          result = described_class.for_project(p1)
+          result = described_class.for_project_including_inherited(p1)
           expect(result).to contain_exactly(assignment_p1, assignment_o1, assignment_ds1)
           expect(result).not_to include(assignment_p2)
         end
@@ -51,7 +51,7 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
 
       context 'with no assignments at any level' do
         it 'returns empty' do
-          result = described_class.for_project(p1)
+          result = described_class.for_project_including_inherited(p1)
           expect(result).to be_empty
         end
       end
@@ -62,7 +62,7 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
         let!(:assignment_ds1) { create :hmis_ce_default_swimlane_assignment, :for_data_source, user: user1, swimlane: swimlane1, owner: ds1 }
 
         it 'returns all assignments' do
-          result = described_class.for_project(p1)
+          result = described_class.for_project_including_inherited(p1)
           expect(result).to contain_exactly(assignment_p1, assignment_o1, assignment_ds1)
         end
       end
@@ -73,7 +73,7 @@ RSpec.describe Hmis::Ce::DefaultSwimlaneAssignment, type: :model do
         let!(:assignment) { create :hmis_ce_default_swimlane_assignment, user: user1, swimlane: swimlane3, owner: ds1 }
 
         it 'does not return the irrelevant assignment' do
-          result = described_class.for_project(p1)
+          result = described_class.for_project_including_inherited(p1)
           expect(result).not_to include(assignment)
         end
       end
