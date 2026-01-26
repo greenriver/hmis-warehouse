@@ -319,21 +319,40 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         )
       end
 
-      context 'when searching by candidate ID' do
+      context 'when searching by destination client ID' do
         let(:variables) do
           {
             opportunityId: opportunity.id,
-            filters: { searchTerm: candidate1.id.to_s },
+            filters: { searchTerm: client1.destination_client.id.to_s },
           }
         end
 
-        it 'returns only the matching candidate' do
+        it 'returns the matching candidate' do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
 
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
           expect(candidates.size).to eq(1)
           expect(candidates[0]['id']).to eq(candidate1.id.to_s)
+        end
+      end
+
+      context 'when searching by source client ID' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: client2.id.to_s },
+          }
+        end
+
+        # todo @martha - will this wokr?
+        it 'returns the matching candidate' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(1)
+          expect(candidates[0]['id']).to eq(candidate2.id.to_s)
         end
       end
 

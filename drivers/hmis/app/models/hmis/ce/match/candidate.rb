@@ -27,20 +27,8 @@ module Hmis::Ce::Match
 
     # Free-text search for Candidate
     scope :matching_search_term, ->(search_term) do
-      search_term = search_term.strip
-
-      # If it's a possible PK, check if it's a Candidate primary key
-      if possibly_pk?(search_term)
-        matching_candidates = where(id: search_term.to_i)
-        return matching_candidates if matching_candidates.exists?
-      end
-
-      # Search by client through client_proxy -> destination_client -> hmis_source_clients
-      candidate_ids = joins(client_proxy: { destination_client: :hmis_source_clients }).
-        merge(Hmis::Hud::Client.matching_search_term(search_term)).
-        pluck(:id).uniq
-
-      where(id: candidate_ids)
+      joins(:client_proxy).
+        merge(Hmis::Ce::ClientProxy.matching_search_term(search_term))
     end
   end
 end
