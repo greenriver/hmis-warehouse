@@ -35,9 +35,9 @@ end
 
 **What it provides:**
 ```ruby
-context.project_permissions(project_id)  # => Set of permissions for a project
-context.assigned_referral_step_ids           # => Set of step IDs user is assigned to
-context.potential_permissions                # => All permissions user could have
+context.project_permissions(project_id)   # => Set of permissions for a project
+context.assigned_referral_step_ids        # => Set of step IDs user is assigned to
+context.global_permissions                # => All permissions user could have in the current data source
 ```
 
 **Authorization is scoped to the user's current HMIS data source:**

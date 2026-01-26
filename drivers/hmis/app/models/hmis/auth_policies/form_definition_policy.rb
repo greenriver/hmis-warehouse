@@ -61,12 +61,6 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       form_definition.role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
     end
 
-    # Form management permissions are currently global. In the future they should be tied to data source (#6612, #6691),
-    # to support multi-CoC HMIS installations where each CoC manages their own set of forms.
-    def global_permissions
-      context.global_permissions
-    end
-
     def form_definition = resource
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Form::Definition)

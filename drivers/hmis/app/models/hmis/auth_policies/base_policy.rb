@@ -28,7 +28,7 @@ class Hmis::AuthPolicies::BasePolicy
   # convenience
   def user = context.user
 
-  # Get global permissions for the user (across all projects)
+  # Set of permissions that the user has in the current data source (across all projects)
   def global_permissions = context.global_permissions
 
   # sanity check, is the resource what we expect. must be implemented by child policy

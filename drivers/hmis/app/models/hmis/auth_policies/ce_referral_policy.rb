@@ -98,8 +98,8 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
       return false unless Hmis::Ce.configuration.enabled?
 
       # require that a user could both view referrals and act on them
-      return false unless (context.potential_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
-      return false unless (context.potential_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
+      return false unless (context.global_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
+      return false unless (context.global_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
 
       true
     end

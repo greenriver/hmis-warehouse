@@ -24,19 +24,22 @@ class Hmis::AuthPolicies::UserContext
     raise ArgumentError, 'Must be tied to an HMIS data source' unless user.hmis_data_source_id.present?
 
     @user = user
+    # Current data source (set by the controller based on which HMIS the request is coming from)
+    @data_source_id = user.hmis_data_source_id
   end
 
-  # Global user permissions (across all projects/entities)
-  memoize def potential_permissions
-    user.roles.flat_map(&:granted_permissions).to_set.freeze
-  end
-
+  # Set of permissions that the user has for any entity in the current data source
   memoize def global_permissions
-    permissions = user.roles.flat_map(&:granted_permissions).to_set
-    permission_loader.apply_permission_requirements(permissions).freeze
+    data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+
+    # All access groups that grant any permission on any entity in the data source
+    access_group_ids = ::Hmis::GroupViewableEntity.
+      includes_any_entity_in_data_source(data_source).
+      pluck(:collection_id)
+    permission_loader.for_access_group_ids(access_group_ids)
   end
 
-  # Project-specific permissions
+  # Set of permissions that the user has for the given project
   def project_permissions(project_id)
     return EMPTY_SET if project_id.blank?
     return EMPTY_SET unless project_belongs_to_current_data_source?(project_id)
