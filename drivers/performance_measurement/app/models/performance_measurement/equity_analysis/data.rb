@@ -234,13 +234,14 @@ module PerformanceMeasurement::EquityAnalysis
     def apply_params(scope, period)
       if age_params.any?
         age_ranges = age_params.map { |d| census_age_range_to_range(d) }
+        ages = age_ranges.flat_map(&:to_a).uniq
         age_column = case period
         when 'reporting'
           :reporting_age
         else
           :comparison_age
         end
-        scope = scope.where(age_column => age_ranges)
+        scope = scope.where(age_column => ages)
       end
 
       if gender_params.any?
