@@ -25,11 +25,10 @@ module Hmis::Ce
       @unit_group_id = opportunity.unit_group.id
       @exclude_declined_clients = exclude_declined_clients
       @search_term = search_term
-      @base_candidate_scope = Hmis::Ce::Match::Candidate.for_opportunity(opportunity).prioritized
     end
 
     def resolve
-      scope = @base_candidate_scope
+      scope = Hmis::Ce::Match::Candidate.for_opportunity(@opportunity).prioritized
       scope = scope.matching_search_term(@search_term) if @search_term.present?
       return scope unless @exclude_declined_clients
 
