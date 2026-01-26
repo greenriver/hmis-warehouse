@@ -22,7 +22,7 @@ module Types
       end
 
       included do
-        def resolve_ce_default_contacts(scope = Hmis::Ce::DefaultSwimlaneAssignment, **args)
+        def resolve_ce_default_contacts(scope = object.ce_default_swimlane_assignments, **args)
           scoped_ce_default_contacts(scope, **args)
         end
       end
