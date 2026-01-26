@@ -1161,6 +1161,7 @@ input CeReferralFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
+  searchTerm: String
   workflowTemplate: [String!]
 }
 
@@ -7193,7 +7194,7 @@ type Mutation {
   """
   Return AHA score for client
   """
-  fetchAhaScore(clientId: ID!): FetchAhaScorePayload
+  fetchAhaScore(clientId: ID!, lookupCatalyst: String, lookupReason: [String!]): FetchAhaScorePayload
   joinHousehold(joiningEnrollmentInputs: [EnrollmentRelationshipInput!]!, receivingHouseholdId: ID!): JoinHouseholdPayload
   markUnitsAvailable(unitIds: [ID!]!): MarkUnitsAvailablePayload
   markUnitsUnavailable(unitIds: [ID!]!): MarkUnitsUnavailablePayload
@@ -9741,6 +9742,7 @@ input ProjectCeOpportunityFilterOptions {
 input ProjectCeReferralFilterOptions {
   origin: [CeReferralOrigin!]
   referralStatus: [String!]
+  searchTerm: String
 }
 
 type ProjectCoc {
@@ -9915,6 +9917,7 @@ input ProjectOutgoingCeReferralFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
+  searchTerm: String
 }
 
 """

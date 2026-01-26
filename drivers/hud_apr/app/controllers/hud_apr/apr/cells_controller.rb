@@ -9,11 +9,9 @@
 module HudApr::Apr
   class CellsController < HudApr::CellsController
     include AprConcern
-    before_action :set_report
-    before_action :set_question
 
-    def report_param_name
-      :apr_id
+    private def report_type_param
+      'apr'
     end
   end
 end

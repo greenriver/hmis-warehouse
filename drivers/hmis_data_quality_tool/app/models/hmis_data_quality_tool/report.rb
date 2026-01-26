@@ -40,7 +40,7 @@ module HmisDataQualityTool
     end
 
     scope :ordered, -> do
-      order(created_at: :desc)
+      order(updated_at: :desc)
     end
 
     def run_and_save!
@@ -555,6 +555,7 @@ module HmisDataQualityTool
           ssn_issues: Client,
           dob_issues: Client,
           race_issues: Client,
+          sex_issues: Client,
           veteran_issues: Client,
           afghanistan_oef: Enrollment,
           iraq_oif: Enrollment,

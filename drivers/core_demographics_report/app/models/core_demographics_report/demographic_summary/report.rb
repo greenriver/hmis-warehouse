@@ -15,6 +15,7 @@ module CoreDemographicsReport::DemographicSummary
     include ArelHelper
     include CoreDemographicsReport::AgeCalculations
     include CoreDemographicsReport::GenderCalculations
+    include CoreDemographicsReport::SexCalculations
     include CoreDemographicsReport::RaceCalculations
     include CoreDemographicsReport::EthnicityCalculations
     # RaceEthnicityCalculations relies on Race and Ethnicity Calculations, and must come after them
@@ -54,6 +55,8 @@ module CoreDemographicsReport::DemographicSummary
         'ages',
         'genders',
         'gender_ages',
+        'sexes',
+        'sex_ages',
         'races_ethnicities',
         'races',
         'ethnicities',
@@ -143,6 +146,7 @@ module CoreDemographicsReport::DemographicSummary
 
           rows = report.age_data_for_export(rows)
           rows = report.gender_data_for_export(rows)
+          rows = report.sex_data_for_export(rows)
           rows = report.race_combination_data_for_export(rows)
           rows = report.race_data_for_export(rows)
           rows = report.ethnicity_data_for_export(rows)
