@@ -21,6 +21,7 @@ module Hmis::WorkflowDefinition
     validates :name, presence: true
     validates :status, presence: true
     validates :version, presence: true
+    validates :version, uniqueness: { scope: :identifier }
     validate :unique_status_per_identifier
 
     state_machine_config column: 'status' do
