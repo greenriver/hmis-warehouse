@@ -28,7 +28,10 @@ class Hmis::AuthPolicies::UserContext
     @data_source_id = user.hmis_data_source_id
   end
 
-  # Set of permissions that the user has for any entity in the current data source
+  # Set of permissions that the user has for some entity in the current data source
+  # Examples:
+  # - User has can_view_project for a Project in this data source => global_permissions includes can_view_project
+  # - User has can_view_project for a Project in another data source => global_permissions does not include can_view_project
   memoize def global_permissions
     data_source = GrdaWarehouse::DataSource.find(@data_source_id)
 
