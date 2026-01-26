@@ -14,6 +14,10 @@ module HudApr::CellDetailsConcern
       HudApr::Fy2020::AprClient
     end
 
+    def self.client_scope(question)
+      client_class(question).all
+    end
+
     def self.extra_fields
       {
         'Question 5' => age_fields + parenting_fields + veteran_fields + homeless_fields,
