@@ -15,6 +15,8 @@ module Mutations
     end
 
     argument :client_id, ID, required: true
+    argument :lookup_catalyst, String, required: false
+    argument :lookup_reason, [String], required: false
 
     field :score, Integer, null: true
     field :mci_quality_indicator, Integer, null: true
@@ -22,7 +24,7 @@ module Mutations
     field :generator, String, null: true
     field :aha_failed_reason, AhaFailedReason, null: true
 
-    def resolve(client_id:)
+    def resolve(client_id:, lookup_catalyst: nil, lookup_reason: nil)
       errors = HmisErrors::Errors.new
       errors.add :base, :server_error, full_message: 'AHA connection is not configured' unless HmisExternalApis::AcHmis::Aha.enabled?
       return { errors: errors } if errors.any?
@@ -33,7 +35,7 @@ module Mutations
 
       aha = HmisExternalApis::AcHmis::Aha.new
       begin
-        result = aha.fetch_score(client)
+        result = aha.fetch_score(client, lookup_catalyst: lookup_catalyst, lookup_reason: lookup_reason)
       rescue HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError => _e
         return { score: -1, aha_failed_reason: 'NO_MCI_UNIQUE_ID' }
       end

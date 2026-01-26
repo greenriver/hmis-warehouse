@@ -101,6 +101,10 @@ module
       @genders ||= self.class.genders
     end
 
+    def sexes
+      @sexes ||= HudHelper.util.sexes
+    end
+
     private def hoh_scope
       report_scope.where(she_t[:head_of_household].eq(true))
     end
