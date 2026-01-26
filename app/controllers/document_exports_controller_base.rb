@@ -122,6 +122,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HopwaCaper::DocumentExports::HopwaCaperExport',
       'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
       'HudSpmReport::DocumentExports::CellDetailExport',
+      'HudApr::DocumentExports::CellDetailExport',
     ]
   end
 end
