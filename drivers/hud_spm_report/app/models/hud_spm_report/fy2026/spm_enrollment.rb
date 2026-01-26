@@ -136,41 +136,27 @@ module HudSpmReport::Fy2026
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
-      enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
+      adapter = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance)
 
-      GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
+      # Iterate over ServiceHistoryEnrollment records directly to avoid re-mapping
+      # for the HouseholdContext.
+      adapter.service_history_enrollment_scope.entry.
+        preload(enrollment: [:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders]).
+        find_in_batches(batch_size: 500) do |batch|
         report_instance.check_halt_status!
 
-        # Load contexts for THIS batch to minimize memory footprint
-        # Identity is paired: [EnrollmentID, data_source_id]
-        # Use raw SQL for composite IN clause as it's more reliable across different DB adapters
-        identity_tuples = batch.map do |e|
-          "(#{GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)}, #{e.data_source_id})"
-        end.join(',')
-
-        she_mapping = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          where("(enrollment_group_id, data_source_id) IN (#{identity_tuples})").
-          pluck(:enrollment_group_id, :data_source_id, :id).
-          each_with_object({}) do |(eg_id, ds_id, she_id), hash|
-            hash[[eg_id, ds_id]] = she_id
-          end
-
         contexts_by_she_id = HudReports::HouseholdContext.
-          where(report_instance_id: report_instance.id, service_history_enrollment_id: she_mapping.values).
+          where(report_instance_id: report_instance.id, service_history_enrollment_id: batch.map(&:id)).
           index_by(&:service_history_enrollment_id)
 
         members = []
 
-        batch.each do |enrollment|
-          client = enrollment.client
-          next if client.blank?
+        batch.each do |she|
+          enrollment = she.enrollment
+          next if enrollment&.client.blank?
 
-          # Find pre-computed context using paired identity
-          she_id = she_mapping[[enrollment.EnrollmentID, enrollment.data_source_id]]
-          context = contexts_by_she_id[she_id]
-          next unless context # Skip if no context (shouldn't happen in normal flow)
+          context = contexts_by_she_id[she.id]
+          next unless context
 
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
