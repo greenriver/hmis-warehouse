@@ -16,6 +16,7 @@ module PerformanceMeasurement::EquityAnalysis
     RACE_ETHNICITY_COMBINATIONS = HudHelper.util('2026').race_ethnicity_combinations
     AGES = Filters::FilterBase.available_census_age_ranges
     GENDERS = HudHelper.util('2026').genders
+    SEXES = HudHelper.util('2026').sexes
 
     GENDER_ID_TO_SCOPE = {
       0 => :gender_woman,
@@ -25,9 +26,17 @@ module PerformanceMeasurement::EquityAnalysis
       5 => :gender_transgender,
       6 => :gender_questioning,
       3 => :gender_different_identity,
-      8 => :gender_unknown,
-      9 => :gender_unknown,
-      99 => :gender_unknown,
+      8 => :gender_doesnt_know,
+      9 => :gender_refused,
+      99 => :gender_not_collected,
+    }.freeze
+
+    SEX_ID_TO_SCOPE = {
+      0 => :sex_female,
+      1 => :sex_male,
+      8 => :sex_doesnt_know,
+      9 => :sex_refused,
+      99 => :sex_not_collected,
     }.freeze
 
     HOUSEHOLD_TYPES = HudHelper.util('2026').household_types.merge(nil => 'Unknown household type')
@@ -38,6 +47,7 @@ module PerformanceMeasurement::EquityAnalysis
       race_ethnicity: RACE_ETHNICITY_COMBINATIONS,
       age: AGES,
       gender: GENDERS,
+      sex: SEXES,
       household_type: HOUSEHOLD_TYPES,
     }.freeze
 
@@ -88,6 +98,14 @@ module PerformanceMeasurement::EquityAnalysis
 
     def gender_value_to_scope(value)
       GENDER_ID_TO_SCOPE[value]
+    end
+
+    def sex_params
+      (@builder.sex || []).map(&:to_i).map { |id| sex_value_to_scope(id) }.reject(&:nil?)
+    end
+
+    def sex_value_to_scope(value)
+      SEX_ID_TO_SCOPE[value]
     end
 
     def race_params
@@ -215,8 +233,15 @@ module PerformanceMeasurement::EquityAnalysis
 
     def apply_params(scope, period)
       if age_params.any?
-        age_ranges = age_params.map { |d| Filters::FilterBase.age_range(d) }
-        scope = scope.where("#{period}_age" => age_ranges)
+        age_ranges = age_params.map { |d| census_age_range_to_range(d) }
+        ages = age_ranges.flat_map(&:to_a).uniq
+        age_column = case period
+        when 'reporting'
+          :reporting_age
+        else
+          :comparison_age
+        end
+        scope = scope.where(age_column => ages)
       end
 
       if gender_params.any?
@@ -238,6 +263,14 @@ module PerformanceMeasurement::EquityAnalysis
       if ethnicity_params.any?
         chosen_scope = PerformanceMeasurement::Client.send(ethnicity_params[0])
         ethnicity_params[1..].each do |chosen|
+          chosen_scope = chosen_scope.or(PerformanceMeasurement::Client.send(chosen))
+        end
+        scope = scope.where(id: chosen_scope.select(:id))
+      end
+
+      if sex_params.any?
+        chosen_scope = PerformanceMeasurement::Client.send(sex_params[0])
+        sex_params[1..].each do |chosen|
           chosen_scope = chosen_scope.or(PerformanceMeasurement::Client.send(chosen))
         end
         scope = scope.where(id: chosen_scope.select(:id))
@@ -295,6 +328,26 @@ module PerformanceMeasurement::EquityAnalysis
       case code
       when :gender_man then 'MALE'
       when :gender_woman then 'FEMALE'
+      end
+    end
+
+    private def census_age_range_to_range(key)
+      census_ranges = Filters::FilterBase.available_census_age_ranges.invert
+      range_string = census_ranges[key]
+      return range_string_to_range(range_string) if range_string
+
+      raise ArgumentError, "Unknown census age range key: #{key}"
+    end
+
+    private def range_string_to_range(range_string)
+      if range_string.end_with?('+')
+        start = range_string.gsub('+', '').to_i
+        start..Float::INFINITY
+      elsif range_string.include?(' - ')
+        start, finish = range_string.split(' - ').map(&:to_i)
+        start..finish
+      else
+        raise ArgumentError, "Unknown census age range string format: #{range_string}"
       end
     end
 

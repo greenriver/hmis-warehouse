@@ -44,12 +44,53 @@ module PerformanceMeasurement
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_unknown)
     end
 
+    scope :gender_doesnt_know, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_doesnt_know)
+    end
+
+    scope :gender_refused, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_refused)
+    end
+
+    scope :gender_not_collected, -> do
+      joins(:source_client).
+        merge(
+          GrdaWarehouse::Hud::Client.gender_not_collected.
+            or(GrdaWarehouse::Hud::Client.gender_data_missing),
+        )
+    end
+
     scope :gender_culturally_specific, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_culturally_specific)
     end
 
     scope :gender_different_identity, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_different_identity)
+    end
+
+    # Sex scopes
+    scope :sex_female, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.sex_female)
+    end
+
+    scope :sex_male, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.sex_male)
+    end
+
+    scope :sex_doesnt_know, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.sex_doesnt_know)
+    end
+
+    scope :sex_refused, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.sex_refused)
+    end
+
+    scope :sex_not_collected, -> do
+      joins(:source_client).
+        merge(
+          GrdaWarehouse::Hud::Client.sex_not_collected.
+            or(GrdaWarehouse::Hud::Client.sex_data_missing),
+        )
     end
 
     # Race scopes
