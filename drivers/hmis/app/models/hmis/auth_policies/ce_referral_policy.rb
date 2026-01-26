@@ -79,7 +79,7 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
     # convenience
     def referral = resource
 
-    # *target* project
+    # Permissions for the *target* project
     def project_permissions
       project_id = context.referral_project_id(referral.id)
       context.project_permissions(project_id)
