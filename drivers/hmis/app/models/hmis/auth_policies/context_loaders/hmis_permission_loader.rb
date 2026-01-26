@@ -27,8 +27,6 @@ module Hmis::AuthPolicies::ContextLoaders
       apply_permission_requirements(raw_permissions).freeze
     end
 
-    protected
-
     def apply_permission_requirements(permissions)
       # support cycle detection for requirement chains
       visited = Set.new
@@ -37,6 +35,8 @@ module Hmis::AuthPolicies::ContextLoaders
         !requirements_met?(permission, permissions, visited)
       end
     end
+
+    protected
 
     # Recursively checks that a permission and all its transitive requirements are satisfied
     def requirements_met?(permission, permissions, visited)
