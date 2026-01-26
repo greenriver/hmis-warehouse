@@ -20,7 +20,7 @@ module HudApr::DocumentExports
     end
 
     private def possible_generator_classes
-      HudApr::DqsController.new.possible_generator_classes.values
+      HudApr::Dq::DqConcern.possible_generator_classes.values
     end
   end
 end
