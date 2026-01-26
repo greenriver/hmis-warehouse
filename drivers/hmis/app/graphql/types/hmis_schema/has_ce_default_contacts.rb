@@ -39,7 +39,7 @@ module Types
         scope.group_by(&:swimlane).map do |swimlane, assignments|
           OpenStruct.new(
             swimlane: swimlane,
-            contacts: assignments,
+            contacts: assignments.sort_by(&:id),
           )
         end
       end
