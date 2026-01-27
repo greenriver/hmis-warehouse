@@ -235,7 +235,6 @@ module HudReports
 
           # Has move-in date first
           res = (a[:move_in_date] ? 0 : 1) <=> (b[:move_in_date] ? 0 : 1)
-          byebug if unless res.zero?
           next res unless res.zero?
 
           # Deterministic tie-break (lowest ID first)
