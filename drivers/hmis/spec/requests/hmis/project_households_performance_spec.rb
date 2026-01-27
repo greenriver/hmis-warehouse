@@ -44,7 +44,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # This should be updated periodically to ensure it reflects the current query. The below query and variables are copied from browser dev tools network tab.
     let(:query) do
       <<~GRAPHQL
-        query GetProjectHouseholds($id: ID!, $filters: HouseholdFilterOptions, $sortOrder: HouseholdSortOption, $limit: Int = 10, $offset: Int = 0, $includeStaffAssignment: Boolean = false, $includeMoveInDate: Boolean = false, $includeLastContact: Boolean = false) {
+          query GetProjectHouseholds($id: ID!, $filters: HouseholdFilterOptions, $sortOrder: HouseholdSortOption, $limit: Int = 10, $offset: Int = 0, $includeStaffAssignment: Boolean = false, $includeMoveInDate: Boolean = false, $includeLastContact: Boolean = false) {
           project(id: $id) {
             id
             households(

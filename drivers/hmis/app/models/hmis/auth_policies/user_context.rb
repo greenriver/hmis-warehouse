@@ -58,9 +58,7 @@ class Hmis::AuthPolicies::UserContext
 
   def preload_client_dependencies(client_ids)
     client_project_loader.preload(client_ids)
-    project_ids = client_project_loader.cached_project_ids
-    project_data_source_loader.preload(project_ids)
-    project_access_group_loader.preload(project_ids)
+    project_access_group_loader.preload(client_project_loader.cached_project_ids)
   end
 
   # Client permissions are based on the user's permissions at projects they are enrolled in.
@@ -73,7 +71,6 @@ class Hmis::AuthPolicies::UserContext
       global_permissions
     else
       # Client has enrollments - union permissions from all enrolled projects
-      project_data_source_loader.preload(project_ids)
       project_access_group_loader.preload(project_ids)
       project_ids.flat_map { |id| project_permissions(id).to_a }.to_set.freeze
     end
