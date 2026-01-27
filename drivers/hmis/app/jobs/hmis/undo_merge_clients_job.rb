@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 module Hmis
+  # intentionally doesn't restore attributes on retained client from pre_merge_state because
+  # the retained client may have been updated since the merge, and we don't want to overwrite those changes.
   class UndoMergeClientsJob < BaseJob
     attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history
 
@@ -22,10 +24,11 @@ module Hmis
 
       Hmis::Hud::Client.transaction do
         restore_deleted_client
-        restore_client_attributes
         restore_enrollments
         restore_associated_records
       end
+      # queue identify duplicates to run in the background. should we also run match_existing here?
+      Hmis::Hud::Client.warehouse_identify_duplicate_clients
     end
 
     private
@@ -48,23 +51,8 @@ module Hmis
 
     def restore_deleted_client
       Rails.logger.info "Restoring deleted client #{deleted_client.id}"
-      deleted_client.restore
+      deleted_client.update_column(:DateDeleted, nil)
       deleted_client.reload
-    end
-
-    def restore_client_attributes
-      Rails.logger.info "Restoring attributes for client #{deleted_client.id}"
-
-      # Find the pre-merge state for the deleted client
-      pre_merge_state = merge_audit.pre_merge_state&.find { |state| state['id'] == deleted_client.id }
-      return unless pre_merge_state
-
-      # Restore attributes (excluding id, timestamps, and deleted_at)
-      excluded_attrs = %w[id created_at updated_at deleted_at]
-      attrs_to_restore = pre_merge_state.except(*excluded_attrs)
-
-      deleted_client.assign_attributes(attrs_to_restore)
-      deleted_client.save!(validate: false)
     end
 
     def restore_enrollments
@@ -84,10 +72,10 @@ module Hmis
         next unless enrollment.personal_id == retained_client.personal_id
         next unless original_personal_id == deleted_client.personal_id
 
-        Hmis::Util::TransferEnrollment.new(
-          enrollment: enrollment,
-          to_client: deleted_client,
-        ).transfer!
+        TransferEnrollmentClientJob.new(
+          enrollment_id: enrollment.id,
+          to_client_id: deleted_client.id,
+        ).perform_now
       end
     end
 
@@ -279,4 +267,3 @@ module Hmis
     end
   end
 end
-
