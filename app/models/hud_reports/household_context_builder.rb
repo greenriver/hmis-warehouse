@@ -215,7 +215,32 @@ module HudReports
         (mh[:exit_date].nil? || mh[:exit_date] >= @report.start_date) && mh[:entry_date] <= @report.end_date
       end
 
-      hoh_data = hh_member_hashes.detect { |m| m[:relationship_to_hoh] == 1 }
+      # Select the "Anchor" HoH for inheritance:
+      # 1. Prefer HoH records active during the report period.
+      # 2. Prefer the most recent enrollment (latest entry date).
+      # 3. Prefer records with a move-in date.
+      # 4. Deterministic tie-break via ID.
+      hoh_data = hh_member_hashes.
+        select { |m| m[:relationship_to_hoh] == 1 }.
+        min do |a, b|
+          # Active first
+          a_active = (a[:exit_date].nil? || a[:exit_date] >= @report.start_date) && a[:entry_date] <= @report.end_date
+          b_active = (b[:exit_date].nil? || b[:exit_date] >= @report.start_date) && b[:entry_date] <= @report.end_date
+          res = (a_active ? 0 : 1) <=> (b_active ? 0 : 1)
+          next res unless res.zero?
+
+          # Latest entry date first
+          res = (b[:entry_date] || Date.new(0)) <=> (a[:entry_date] || Date.new(0))
+          next res unless res.zero?
+
+          # Has move-in date first
+          res = (a[:move_in_date] ? 0 : 1) <=> (b[:move_in_date] ? 0 : 1)
+          byebug if unless res.zero?
+          next res unless res.zero?
+
+          # Deterministic tie-break (lowest ID first)
+          (a[:she_id] || 0) <=> (b[:she_id] || 0)
+        end
       hoh_adjusted_move_in_date = (HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
 
       hoh_stayer_end_date = [hoh_data&.[](:exit_date), @report.end_date + 1.day].compact.min

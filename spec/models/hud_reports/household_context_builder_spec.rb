@@ -301,6 +301,41 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
     end
 
+    context 'with date_to_street inheritance' do
+      before do
+        hud_enrollment_hoh.update!(DateToStreetESSH: '2019-12-01')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_hoh.id).create_service_history!(true)
+      end
+
+      it 'inherits HoH date_to_street for children with same entry date' do
+        builder.call
+        child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
+        expect(child_context.inherited_date_to_street).to eq(Date.parse('2019-12-01'))
+      end
+
+      it 'does not inherit HoH date_to_street for children with different entry date' do
+        # Child joins a day later
+        hud_enrollment_child.update!(EntryDate: '2020-01-02')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_child.id).create_service_history!(true)
+
+        builder.call
+        child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
+        expect(child_context.inherited_date_to_street).to be_nil
+      end
+
+      it 'caps inherited date_to_street at child DOB' do
+        # Child born AFTER the homelessness started
+        hud_enrollment_child.update!(EntryDate: '2020-01-01')
+        client_child.update!(DOB: '2019-12-15')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_child.id).create_service_history!(true)
+
+        builder.call
+        child_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_child.id)
+        # Should be capped at DOB
+        expect(child_context.inherited_date_to_street).to eq(Date.parse('2019-12-15'))
+      end
+    end
+
     context 'with hoh_date_to_street' do
       before do
         hud_enrollment_hoh.update!(DateToStreetESSH: '2019-12-01')
@@ -480,6 +515,105 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         builder.call
 
         expect(target_report.household_contexts.count).to eq(0)
+      end
+    end
+
+    context 'with multiple HoH enrollments (Anchor HoH selection)' do
+      let(:hoh_client) { create_client_with_warehouse_link(dob: 40.years.ago) }
+      let(:child_client) { create_client_with_warehouse_link(dob: 10.years.ago) }
+
+      # Create multiple HoH enrollments for the same household
+      # Enrollment 1: Historical (2018), has move-in
+      let!(:hud_hoh_1) do
+        e = create(:hud_enrollment,
+                   PersonalID: hoh_client.PersonalID,
+                   ProjectID: project.ProjectID,
+                   HouseholdID: 'HH-MULTI',
+                   RelationshipToHoH: 1,
+                   EntryDate: '2018-01-01',
+                   MoveInDate: '2018-02-01',
+                   data_source_id: data_source.id)
+        create(:hud_exit, data_source: data_source, EnrollmentID: e.EnrollmentID, PersonalID: e.PersonalID, ExitDate: '2018-12-31')
+        e
+      end
+
+      # Enrollment 2: More recent (2019), no move-in
+      let!(:hud_hoh_2) do
+        e = create(:hud_enrollment,
+                   PersonalID: hoh_client.PersonalID,
+                   ProjectID: project.ProjectID,
+                   HouseholdID: 'HH-MULTI',
+                   RelationshipToHoH: 1,
+                   EntryDate: '2019-01-01',
+                   data_source_id: data_source.id)
+        create(:hud_exit, data_source: data_source, EnrollmentID: e.EnrollmentID, PersonalID: e.PersonalID, ExitDate: '2019-12-31')
+        e
+      end
+
+      # Enrollment 3: Active in report (2020), no move-in
+      let!(:hud_hoh_3) do
+        create(:hud_enrollment,
+               PersonalID: hoh_client.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH-MULTI',
+               RelationshipToHoH: 1,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+      end
+
+      # Current Child enrollment
+      let!(:hud_child_multi) do
+        create(:hud_enrollment,
+               PersonalID: child_client.PersonalID,
+               ProjectID: project.ProjectID,
+               HouseholdID: 'HH-MULTI',
+               RelationshipToHoH: 2,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+      end
+
+      it 'prioritizes the active HoH enrollment even if historical ones have more data' do
+        # hud_hoh_1 has a move-in date, but hud_hoh_3 is active.
+        # Inheritance should come from hud_hoh_3.
+        builder.call
+        child_ctx = HudReports::HouseholdContext.find_by(source_enrollment_id: hud_child_multi.id)
+        expect(child_ctx.hoh_service_history_enrollment_id).to eq(GrdaWarehouse::ServiceHistoryEnrollment.find_by(enrollment_group_id: hud_hoh_3.EnrollmentID).id)
+      end
+
+      it 'prioritizes the most recent HoH if none are active' do
+        # Change report date to 2021 so none are active
+        report.update!(start_date: '2021-01-01', end_date: '2021-12-31')
+        # We need to include these historical enrollments in the scope for the builder to process them,
+        # but the builder's lookback (2 years by default in specs, but 7 years in SPM) will find them.
+        # The enrollment_scope provided to builder defines which SHEs get a Context record.
+        # Let's ensure our test SHE is in the scope.
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: hud_child_multi.EnrollmentID)
+        described_class.new(generator, report, enrollment_scope: scope).call
+
+        child_ctx = HudReports::HouseholdContext.find_by(source_enrollment_id: hud_child_multi.id)
+        # Should pick hud_hoh_3 as it has the latest entry date (2020-01-01) among the three.
+        expect(child_ctx.hoh_entry_date).to eq(Date.parse('2020-01-01'))
+      end
+
+      it 'prioritizes HoH with move-in date if entry dates are the same' do
+        # Make hoh_2 and hoh_3 have same entry date, but hoh_2 has move-in
+        # and ensure both are exited before 2021
+        hud_hoh_3.update!(EntryDate: hud_hoh_2.EntryDate)
+        create(:hud_exit, data_source: data_source, EnrollmentID: hud_hoh_3.EnrollmentID, PersonalID: hud_hoh_3.PersonalID, ExitDate: '2019-12-31')
+        hud_hoh_2.update!(MoveInDate: '2019-02-01')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+        # Make none active
+        report.update!(start_date: '2021-01-01', end_date: '2021-12-31')
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.where(enrollment_group_id: hud_child_multi.EnrollmentID)
+        described_class.new(generator, report, enrollment_scope: scope).call
+
+        child_ctx = HudReports::HouseholdContext.find_by(source_enrollment_id: hud_child_multi.id)
+        expect(child_ctx.hoh_service_history_enrollment_id).to eq(GrdaWarehouse::ServiceHistoryEnrollment.find_by(enrollment_group_id: hud_hoh_2.EnrollmentID).id)
       end
     end
 
