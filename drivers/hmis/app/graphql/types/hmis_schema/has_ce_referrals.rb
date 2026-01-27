@@ -19,6 +19,7 @@ module Types
             description: description,
             after_paginate: ->(nodes, ctx) {
               ctx[:current_user].policy_context.preload_referral_dependencies(nodes.map(&:id))
+              ctx[:current_user].policy_context.preload_client_dependencies(nodes.map(&:client_id))
             },
           }
           field_options = default_field_options.merge(override_options)

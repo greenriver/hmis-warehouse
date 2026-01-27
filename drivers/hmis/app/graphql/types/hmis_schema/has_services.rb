@@ -13,7 +13,18 @@ module Types
 
       class_methods do
         def services_field(name = :services, description = nil, filter_args: {}, **override_options, &block)
-          default_field_options = { type: HmisSchema::Service.page_type, null: false, description: description }
+          default_field_options = {
+            type: HmisSchema::Service.page_type,
+            null: false,
+            description: description,
+            after_paginate: ->(nodes, ctx) {
+              personal_ids = nodes.map(&:PersonalID)
+              data_source_id = ctx[:current_user].hmis_data_source_id # rely on assumption that *enrollment* authorization guard prevents graphql from returning enrollments not in the current data source
+              client_ids = Hmis::Hud::Client.where(data_source_id: data_source_id, PersonalID: personal_ids).pluck(:id)
+
+              ctx[:current_user].policy_context.preload_client_dependencies(client_ids) unless client_ids.empty?
+            },
+          }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::ServiceSortOption, required: false
