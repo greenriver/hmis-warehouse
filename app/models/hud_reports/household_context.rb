@@ -6,16 +6,13 @@ module HudReports
   # ## Role & Responsibility
   # This model stores pre-computed, household-level business logic that is shared across
   # multiple HUD reports. It sits between the global Service History (raw data) and
-  # report-specific snapshots like AprClient (presentation data).
+  # report-specific snapshots like AprClient or SpmEnrollment.
   #
   # Its primary goal is to resolve complex inheritance and composition rules once per report run,
-  # allowing Question classes to use simple SQL joins instead of expensive Ruby runtime loops.
-  #
-  # ## Key Attributes
-  # - Chronic Status Inheritance: Resolves if a member is chronic based on HoH or other adults.
-  # - PIT Chronic Status Inheritance: Resolves if a member is chronic on PIT date based on HoH or other adults.
-  # - Move-in Date Inheritance: Derives move-in dates when missing based on HoH and entry dates.
-  # - Household Composition: Categorizes the household (e.g., adults_only, children_only).
+  # allowing Question classes to use simple SQL joins instead of expensive Ruby runtime loops. The
+  # context records maybe shared between reports and sub-reports, for example the SPM uses APR DQ
+  # reports internally, both reports can share these records to avoid duplicate or work and
+  # inconsistent results.
   #
   # ## Lifecycle
   # - Ephemeral: Records are created during the 'Preparation' phase of a report job.
@@ -36,7 +33,7 @@ module HudReports
     end
 
     # Efficiently copies contexts from a source report for a specific set of enrollments
-    # Used when sharing logic between reports (e.g. SPM -> DQ) to ensure consistency
+    # Used when sharing logic between reports (e.g. SPM -> DQ)
     # NOTE: this could be done more efficiently in SQL, room for future optimization
     def self.copy_subset!(source_report_id:, target_report_id:, service_history_enrollment_ids:)
       source_contexts = where(
@@ -52,6 +49,9 @@ module HudReports
       end
     end
 
+    # Returns a hash compatible with the legacy hash-based household logic.
+    # Used to pass pre-computed context into older logic modules (e.g. HudReports::Households)
+    # that expect a hash representation of a member rather than a database record.
     def to_legacy_member_hash
       {
         client_id: destination_client_id,
