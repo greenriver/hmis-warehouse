@@ -104,6 +104,16 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
       true
     end
 
+    def can_perform_referral_tasks?
+      context.global_permissions.include?(:can_perform_any_referral_tasks)
+    end
+
+    # Whether the user can manage CE default contacts in the data source.
+    # If we end up with a lot of default-contact-related permission checks, it might make sense to create a separate DefaultContactPolicy.
+    def can_manage_ce_default_contacts?
+      context.global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
     protected
 
     def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Ce::Referral)

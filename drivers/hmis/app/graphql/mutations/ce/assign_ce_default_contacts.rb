@@ -75,7 +75,7 @@ module Mutations
 
       def validate_data_source
         data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
-        access_denied! unless policy_for(data_source, policy_type: :ce_admin).can_manage_ce_default_contacts?
+        access_denied! unless policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_manage_ce_default_contacts?
 
         data_source
       end
@@ -102,13 +102,16 @@ module Mutations
         users = Hmis::User.where(id: user_ids)
         raise "User(s) not found: #{user_ids.join(', ')}" unless users.size == user_ids.size
 
-        owner = project || data_source
-        policy_type = project.present? ? :hmis_project : :ce_admin
-
-        # Validate that all users have permission to perform referral tasks in the project or data source
-        users.each do |user|
-          user.hmis_data_source_id = current_user.hmis_data_source_id
-          raise "User #{user.id} not authorized" unless user.policy_for(owner, policy_type: policy_type).can_perform_referral_tasks?
+        if project.present?
+          users.each do |user|
+            user.hmis_data_source_id = project.data_source_id
+            raise "User #{user.id} not authorized" unless user.policy_for(project, policy_type: :hmis_project).can_perform_referral_tasks?
+          end
+        else
+          users.each do |user|
+            user.hmis_data_source_id = data_source.id
+            raise "User #{user.id} not authorized" unless user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_perform_referral_tasks?
+          end
         end
       end
     end
