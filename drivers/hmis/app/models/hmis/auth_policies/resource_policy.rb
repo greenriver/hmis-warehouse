@@ -17,7 +17,19 @@
 # end
 class Hmis::AuthPolicies::ResourcePolicy
   def self.for_resource(context:, resource:)
-    policy_class = resource.is_a?(Class) ? const_get(:Global) : const_get(:Instance)
+    policy_class = resource.is_a?(Class) ? global_policy_class : instance_policy_class
     policy_class.new(context: context, resource: resource)
+  end
+
+  def self.global_policy_class
+    const_get(:Global, false)
+  rescue NameError
+    raise NotImplementedError, "#{name} does not have a 'Global' nested class"
+  end
+
+  def self.instance_policy_class
+    const_get(:Instance, false)
+  rescue NameError
+    raise NotImplementedError, "#{name} does not have an 'Instance' nested class"
   end
 end

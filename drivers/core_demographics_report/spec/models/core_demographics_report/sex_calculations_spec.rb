@@ -261,34 +261,91 @@ RSpec.describe CoreDemographicsReport::SexCalculations, type: :model do
     end
   end
 
-  # The Demographic Summary report uses the same sex calculations as the Core Demographics Report,
-  # so we are just doing smoke tests here to ensure the sex sections are included in the report.
-  # The tests above cover the core sex calculations functionality that is shared across these two reports.
-  describe 'DemographicSummary integration' do
-    let(:demographic_summary_report) { CoreDemographicsReport::DemographicSummary::Report.new(filter) }
+  # Both reports use the same sex calculations. These tests verify the detail_hash integration
+  # works correctly for both report types.
+  [
+    ['Core Demographics', CoreDemographicsReport::Core],
+    ['Demographic Summary', CoreDemographicsReport::DemographicSummary::Report],
+  ].each do |report_name, report_class|
+    describe "#{report_name} integration" do
+      let(:test_report) { report_class.new(filter) }
 
-    it 'includes sex sections in overall_section_types' do
-      section_types = CoreDemographicsReport::DemographicSummary::Report.overall_section_types
+      it 'includes sex sections in section types' do
+        section_types = report_class.available_section_types
+        expect(section_types).to include('sexes')
+        expect(section_types).to include('sex_ages')
+      end
 
-      expect(section_types).to include('sexes')
-      expect(section_types).to include('sex_ages')
-    end
+      it 'includes sex data in export' do
+        # Create a minimal client to ensure export methods can be called
+        client = create_client_with_warehouse_link
+        client.warehouse_client_source.destination.update(Sex: 0)
+        enrollment = create_enrollment(client: client, project: project, entry_date: report_date)
+        create_bed_night_service(enrollment: enrollment, date: report_date)
 
-    it 'includes sex data in export' do
-      # Create a minimal client to ensure export methods can be called
-      client = create_client_with_warehouse_link
-      client.warehouse_client_source.destination.update(Sex: 0)
-      enrollment = create_enrollment(client: client, project: project, entry_date: report_date)
-      create_bed_night_service(enrollment: enrollment, date: report_date)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        Rails.cache.clear
 
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-      Rails.cache.clear
+        # Verify sex_data_for_export can be called without errors
+        rows = {}
+        expect { test_report.sex_data_for_export(rows) }.not_to raise_error
+        expect(rows).to have_key('*Sex Breakdowns')
+        expect(rows).to have_key('*Sex/Age Breakdowns')
+      end
 
-      # Verify sex_data_for_export can be called without errors
-      rows = {}
-      expect { demographic_summary_report.sex_data_for_export(rows) }.not_to raise_error
-      expect(rows).to have_key('*Sex Breakdowns')
-      expect(rows).to have_key('*Sex/Age Breakdowns')
+      it 'includes sex detail hash in detail_hash' do
+        detail_hash = test_report.detail_hash
+
+        # Verify sex detail keys are present
+        expect(detail_hash).to have_key('sex_0')
+        expect(detail_hash).to have_key('sex_1')
+
+        # Verify sex detail entries have correct structure
+        sex_detail = detail_hash['sex_0']
+        expect(sex_detail).to be_a(Hash)
+        expect(sex_detail).to have_key(:title)
+        expect(sex_detail).to have_key(:headers)
+        expect(sex_detail).to have_key(:columns)
+        expect(sex_detail).to have_key(:scope)
+        expect(sex_detail[:title]).to include('Sex')
+        expect(sex_detail[:scope]).to be_a(Proc)
+      end
+
+      it 'can retrieve detail scope for sex keys' do
+        # Create test clients
+        client_female = create_client_with_warehouse_link
+        client_male = create_client_with_warehouse_link
+        client_female.warehouse_client_source.destination.update(Sex: 0)
+        client_male.warehouse_client_source.destination.update(Sex: 1)
+
+        enrollment_female = create_enrollment(client: client_female, project: project, entry_date: report_date)
+        enrollment_male = create_enrollment(client: client_male, project: project, entry_date: report_date)
+
+        create_bed_night_service(enrollment: enrollment_female, date: report_date)
+        create_bed_night_service(enrollment: enrollment_male, date: report_date)
+
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        Rails.cache.clear
+
+        # Verify detail_scope_from_key works for sex keys
+        female_scope = test_report.detail_scope_from_key('sex_0')
+        male_scope = test_report.detail_scope_from_key('sex_1')
+
+        expect(female_scope).to be_a(ActiveRecord::Relation)
+        expect(male_scope).to be_a(ActiveRecord::Relation)
+
+        # Verify the scopes return the correct clients
+        female_client_ids = female_scope.pluck(:client_id)
+        male_client_ids = male_scope.pluck(:client_id)
+
+        destination_female_id = client_female.warehouse_client_source.destination_id
+        destination_male_id = client_male.warehouse_client_source.destination_id
+
+        expect(female_client_ids).to include(destination_female_id)
+        expect(female_client_ids).not_to include(destination_male_id)
+        expect(male_client_ids).to include(destination_male_id)
+        expect(male_client_ids).not_to include(destination_female_id)
+      end
     end
   end
 end

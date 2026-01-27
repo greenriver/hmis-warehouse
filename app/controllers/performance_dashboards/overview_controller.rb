@@ -43,6 +43,7 @@ module PerformanceDashboards
           :sub_key,
           :age,
           :gender,
+          :sex,
           :household,
           :veteran,
           :sub_population,
