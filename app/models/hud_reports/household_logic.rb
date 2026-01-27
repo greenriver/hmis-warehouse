@@ -118,10 +118,11 @@ module HudReports
         return [member[:date_to_street], member[:dob]].compact.max if member[:date_to_street].present?
 
         # Inherit from HoH if:
-        # 1. Member is age <= 17 (child)
+        # 1. Member is age <= 17 (child) at project entry
         # 2. Member entered on same date as HoH
-        if member[:age].present? &&
-           member[:age] <= 17 &&
+        age = member[:age_at_entry] || member[:age]
+        if age.present? &&
+           age <= 17 &&
            member[:entry_date] == hoh&.[](:entry_date)
           date_to_street = hoh&.[](:date_to_street)
           # Cap at DOB if present

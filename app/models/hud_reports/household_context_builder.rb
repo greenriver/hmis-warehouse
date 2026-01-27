@@ -174,6 +174,7 @@ module HudReports
         source_client = enrollment&.client
         date = [m.first_date_in_program, @report.start_date].max
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: source_client&.DOB)
+        age_at_entry = GrdaWarehouse::Hud::Client.age(date: m.first_date_in_program, dob: source_client&.DOB)
 
         # Determine report_date for chronic calculation
         report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
@@ -195,6 +196,7 @@ module HudReports
           entry_date: m.first_date_in_program,
           exit_date: m.last_date_in_program,
           age: age,
+          age_at_entry: age_at_entry,
           dob: source_client&.DOB,
           chronic_status: chronic_at_start == :yes,
           pit_chronic_status: pit_chronic_at_start == :yes,
@@ -307,6 +309,7 @@ module HudReports
           hoh_date_to_street: hoh_data&.[](:date_to_street),
           hoh_move_in_date: hoh_adjusted_move_in_date,
           hoh_age: hoh_data&.[](:age),
+          hoh_age_at_entry: hoh_data&.[](:age_at_entry),
           hoh_veteran: hoh_data&.[](:veteran_status) == 1,
           is_hoh: m.enrollment&.RelationshipToHoH == 1,
           relationship_to_hoh: member_hash[:relationship_to_hoh],
@@ -326,6 +329,8 @@ module HudReports
           member_entry_date: member_hash[:entry_date],
           member_exit_date: member_hash[:exit_date],
           member_date_to_street: member_hash[:date_to_street],
+          age_at_entry: member_hash[:age_at_entry],
+          hoh_age_at_entry: member_hash[:hoh_age_at_entry],
           inherited_date_to_street: inherited_date_to_street,
           member_count: hh_member_count,
           hh_max_age: hh_max_age,

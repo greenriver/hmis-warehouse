@@ -250,11 +250,13 @@ module HudSpmReport::Fy2026
         # Only consider relevant project types
         next false unless e.project_type.in?(relevant_project_types)
 
-        # For PH and TH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
-        if e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph) + [2])
+        # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
+        # For Measure 1b, TH projects are included in the universe regardless of literal homelessness at entry.
+        # Literal homelessness at entry is only required for PH projects to be included in the universe.
+        if e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph))
           enrollment_literally_homeless_at_entry(e)
         else
-          true # ES/SH are always included if they are in relevant_project_types
+          true # ES, SH, and TH are always included if they are in relevant_project_types
         end
       end
       enrollments.each do |enrollment|
@@ -402,11 +404,9 @@ module HudSpmReport::Fy2026
 
       # Step 4b: A [client start date] will usually be prior to the [report start date]...
       # Step 6.2: ...going back until you hit the Lookback Stop Date or a gap in homelessness.
-      # Keep bed nights that are:
-      # - on or after the lookback date
-      # - OR associated with an enrollment that started on or after the lookback date (Measure 1b exception)
-      calculated_bed_nights = calculated_bed_nights.select do |enrollment, _, date|
-        date >= lookback_date || enrollment.entry_date >= lookback_date
+      # Keep bed nights that are on or after the lookback date.
+      calculated_bed_nights = calculated_bed_nights.select do |_, _, date|
+        date >= lookback_date
       end
 
       # If we've filtered out all bed nights, return nil
@@ -432,12 +432,11 @@ module HudSpmReport::Fy2026
       index = 0
       index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last < client_start_date
 
-      # Work backward, allowing dates with no more than a one-day gap (<= 1 day difference between recorded nights)
-      # NOTE: The spec (Step 6b) says: "Include contiguous nights going back to [lookback stop date] OR a gap of 1+ days"
-      # and "Contiguous = date is no more than 1 day earlier than another date in dataset".
-      # This means if we have Jan 5 and Jan 4, they are contiguous (diff = 1).
-      # If we have Jan 5 and Jan 3, that's a 1-day gap (diff = 2), so it's NOT contiguous.
-      index -= 1 while index.positive? && index < calculated_bed_nights.length && (calculated_bed_nights[index].last - calculated_bed_nights[index - 1].last) <= 1
+      # Work backward to include contiguous nights before the client_start_date.
+      # Per Step 6b of the spec: "Include contiguous nights going back to [lookback stop date] OR a gap of 1+ days.
+      # Contiguous = date is no more than 1 day earlier than another date in dataset."
+      # This means the difference between consecutive bed nights must be exactly 1 day.
+      index -= 1 while index.positive? && index < calculated_bed_nights.length && (calculated_bed_nights[index].last - calculated_bed_nights[index - 1].last) == 1
 
       # Finally, return the selected dates
       calculated_bed_nights[index..]
