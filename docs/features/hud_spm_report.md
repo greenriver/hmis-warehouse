@@ -23,7 +23,7 @@
 - **Enrollment set**: `SpmEnrollment.create_enrollment_set` uses the adapter to load enrollments, augments them with household context, income history, and eligibility data, and bulk imports into the SPM enrollment table. The method batches work to avoid loading entire universes in memory.
 - **Measure execution**: Each measure inherits from `MeasureBase`, which ensures the enrollment set exists, prepares table metadata, and provides helper methods such as `percent`. Measures create universes, add members, and update HUD report answers with counts or derived statistics.
 - **Episodes and returns**: Measure 1 builds `Episode` records through `EpisodeBatch`, while Measure 2 uses `Return.compute_returns` to pair exits with subsequent enrollments and calculate days to return.
-- **Answer persistence**: Measures add members to HUD report universes and update cell summaries. Additional detail exports (e.g., drill-down CSV) use the shared `Detail` concern to populate header metadata.
+- **Answer persistence**: Measures add members to HUD report universes and update cell summaries. Cell drill-downs use `HudReports::DrilldownContext` to build scopes and `CellDetailExportBuilder` to generate Excel exports.
 
 ### Seven Measures (FY2026)
 - **Measure 1** (`MeasureOne`): Calculates days homeless for ES/SH/TH/PH households using episode timelines, producing average and median values for universes 1a and 1b.
@@ -34,3 +34,6 @@
 - **Measure 6** (`MeasureSix`): Measures successful placements and returns for TH/SH projects (part a/b) and Category 3 homelessness (part c).
 - **Measure 7** (`MeasureSeven`): Evaluates exits to permanent housing for Street Outreach and mixed project types, and retention for RRH/PH move-ins.
 - **HDX Upload**: Generates the HDX 2.0 CSV submission by mapping SPM cell values to HDX columns through strongly typed metadata definitions. This measure generates multiple sub-reports (HUD Data Quality (DQ))
+
+### Cell Drilldowns
+SPM reports support drilldowns using the shared HUD report framework. Users can click cells to view paginated lists of underlying `SpmEnrollment`, `Episode`, or `Return` records. Optional client search filters results by name or ID. Excel exports are generated asynchronously and respect PII settings.

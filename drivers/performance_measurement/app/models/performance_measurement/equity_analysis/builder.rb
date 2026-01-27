@@ -22,10 +22,11 @@ module PerformanceMeasurement::EquityAnalysis
       raceand_ethnicity_combinations: PerformanceMeasurement::EquityAnalysis::RaceEthnicityData,
       age: PerformanceMeasurement::EquityAnalysis::AgeData,
       gender: PerformanceMeasurement::EquityAnalysis::GenderData,
+      sex: PerformanceMeasurement::EquityAnalysis::SexData,
       household_type: PerformanceMeasurement::EquityAnalysis::HouseholdTypeData,
     }.freeze
 
-    VIEW_BY_DEFAULT = 'percentage'.freeze
+    VIEW_BY_DEFAULT = 'percentage'
 
     def initialize(params, report, user)
       @user = user
@@ -143,6 +144,19 @@ module PerformanceMeasurement::EquityAnalysis
       "Gender: #{names}"
     end
 
+    def sex
+      @params[:sex]&.reject(&:blank?) || []
+    end
+
+    def describe_sex
+      names = sex.map do |id|
+        PerformanceMeasurement::EquityAnalysis::Data::SEXES[id.to_i]
+      end.reject(&:blank?).join(', ')
+      return unless sex.any?
+
+      "Sex: #{names}"
+    end
+
     def household_type
       @params[:household_type]&.reject(&:blank?) || []
     end
@@ -220,6 +234,7 @@ module PerformanceMeasurement::EquityAnalysis
         'Race and Ethnicity Combinations',
         'Age',
         'Gender',
+        'Sex',
         'Household Type',
       ].sort.freeze
     end
@@ -238,6 +253,10 @@ module PerformanceMeasurement::EquityAnalysis
 
     def gender_options
       PerformanceMeasurement::EquityAnalysis::Data::GENDERS.to_a
+    end
+
+    def sex_options
+      PerformanceMeasurement::EquityAnalysis::Data::SEXES.to_a
     end
 
     def household_type_options

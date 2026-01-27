@@ -7,32 +7,12 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::StaffAssignmentPolicy < Hmis::AuthPolicies::ResourcePolicy
-  module Shared
+  class Global < Hmis::AuthPolicies::BasePolicy
     def can_index?
       return false unless Hmis::ProjectStaffAssignmentConfig.exists?
 
       project_scope = Hmis::Hud::Project.with_access(user, :can_edit_enrollments).preload(:organization)
       Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
-    end
-  end
-
-  class Instance < Hmis::AuthPolicies::BasePolicy
-    include Shared
-
-    memoize def can_index?
-      super
-    end
-
-    protected
-
-    def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::StaffAssignment)
-  end
-
-  class Global < Hmis::AuthPolicies::BasePolicy
-    include Shared
-
-    memoize def can_index?
-      super
     end
 
     protected
