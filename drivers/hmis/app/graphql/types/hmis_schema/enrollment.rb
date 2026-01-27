@@ -313,7 +313,7 @@ module Types
       # assumption is this is called on a single record; we aren't solving n+1 queries
       project = object.project
       enrollments = project.enrollments.where(household_id: object.HouseholdID)
-      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments, current_user: current_user)
     end
 
     def last_service_date(service_type_id:)

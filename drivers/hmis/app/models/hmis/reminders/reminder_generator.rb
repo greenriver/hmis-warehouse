@@ -11,15 +11,22 @@ module Hmis
     class ReminderGenerator
       attr_accessor :enrollments, :project
 
-      def self.perform(...)
-        new(...).perform
+      def self.perform(project:, enrollments:, current_user: nil)
+        new(project: project, enrollments: enrollments, current_user: current_user).perform
       end
 
       # @param project [Hmis::Hud::Project]
       # @param enrollments [ActiveRecord::Collection<Hmis::Hud::Enrollment>]
-      def initialize(project:, enrollments:)
+      # @param current_user [User, nil] current user for preloading client dependencies
+      def initialize(project:, enrollments:, current_user: nil)
         self.project = project
         self.enrollments = enrollments.preload(:client, :current_living_situations).to_a
+
+        return unless current_user && self.enrollments.any?
+
+        # Preload client dependencies for authorization checks to avoid n+1
+        client_ids = self.enrollments.map(&:client).compact.map(&:id).uniq
+        current_user.policy_context.preload_client_dependencies(client_ids)
       end
 
       def perform
