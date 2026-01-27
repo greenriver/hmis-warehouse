@@ -229,6 +229,12 @@ module HmisDataCleanup
           end
         end
       end
+
+      if dry_run
+        Rails.logger.info 'Dry run complete'
+      else
+        Rails.logger.info 'Finished fixing incorrect PersonalID references'
+      end
     end
 
     def self.delete_duplicate_bed_nights!
