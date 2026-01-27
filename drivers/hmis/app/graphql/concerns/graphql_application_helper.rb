@@ -45,7 +45,7 @@ module GraphqlApplicationHelper
     # if we already have preloaded association, just return it
     return object.public_send(association_name) if object.association(association_name).loaded?
 
-    dataloader.with(Sources::ActiveRecordAssociation, association_name).load(object)
+    dataloader.with(Sources::ActiveRecordAssociation, association_name, context: context).load(object)
   end
 
   def load_ar_scope(scope:, id:)
