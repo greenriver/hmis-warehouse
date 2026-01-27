@@ -10,6 +10,7 @@ module PerformanceDashboard::Overview::Exiting
   extend ActiveSupport::Concern
   include PerformanceDashboard::Overview::Exiting::Age
   include PerformanceDashboard::Overview::Exiting::Gender
+  include PerformanceDashboard::Overview::Exiting::Sex
   include PerformanceDashboard::Overview::Exiting::Household
   include PerformanceDashboard::Overview::Exiting::Veteran
   include PerformanceDashboard::Overview::Exiting::RaceAndEthnicity
@@ -35,6 +36,8 @@ module PerformanceDashboard::Overview::Exiting
       exiting_by_age_details(options)
     elsif options[:gender]
       exiting_by_gender_details(options)
+    elsif options[:sex]
+      exiting_by_sex_details(options)
     elsif options[:household]
       exiting_by_household_details(options)
     elsif options[:veteran]
