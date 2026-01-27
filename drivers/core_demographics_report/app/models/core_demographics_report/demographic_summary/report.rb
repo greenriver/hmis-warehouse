@@ -88,6 +88,7 @@ module CoreDemographicsReport::DemographicSummary
     def detail_hash
       {}.merge(age_detail_hash).
         merge(gender_detail_hash).
+        merge(sex_detail_hash).
         merge(race_detail_hash).
         merge(ethnicity_detail_hash).
         merge(race_ethnicity_detail_hash).

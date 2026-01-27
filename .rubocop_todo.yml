@@ -700,7 +700,6 @@ Lint/DeprecatedClassMethods:
 # Offense count: 2
 Lint/DuplicateCaseCondition:
   Exclude:
-    - 'app/models/concerns/performance_dashboard/overview/detail.rb'
 
 # Offense count: 2
 Lint/DuplicateMethods:
