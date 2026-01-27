@@ -112,8 +112,29 @@ module HudSpmReport::Fy2026
     end
 
     scope :literally_homeless_at_entry_in_range, ->(range) do
+      # PH Active criteria for 1b:
+      # Meets Literal Homelessness criteria
+      # AND (
+      #     ([project start date] >= [report start date] AND [project start date] <= [report end date])
+      #     OR ([housing move-in date] >= [report start date] AND [housing move-in date] <= [report end date])
+      #     OR ([housing move-in date] IS NULL AND [project exit date] >= [report start date] AND [project exit date] <= [report end date])
+      # )
+      # Note: ES/SH/TH projects use Method 5 "open during range"
+      ph_active_cond = arel_table[:project_type].in([3, 9, 10, 13]).and(
+        arel_table[:entry_date].between(range).or(
+          arel_table[:move_in_date].between(range).or(
+            arel_table[:move_in_date].eq(nil).and(arel_table[:exit_date].between(range))
+          )
+        )
+      )
+
+      # For other projects (ES, SH, TH), they are considered "active" if they overlap the range
+      non_ph_active_cond = arel_table[:project_type].not_in([3, 9, 10, 13]).and(
+        dates_overlaps_arel(range, arel_table[:entry_date], arel_table[:exit_date], exit_date_included: false)
+      )
+
       where(
-        dates_overlaps_arel(range, arel_table[:entry_date], arel_table[:exit_date], exit_date_included: false).
+        (ph_active_cond.or(non_ph_active_cond)).
         and(arel_table[:project_type].in([0, 1, 4, 8]).
           or(arel_table[:project_type].in([2, 3, 9, 10, 13]).
             and(arel_table[:prior_living_situation].between(100..199).

@@ -92,37 +92,43 @@ module HudSpmReport::Fy2026
       # Or
       # ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
+      # 1b additionally checks time before entry for PH projects (Step 1)
       pre_entry_inclusion_dates = if include_self_reported_and_ph
         # Only relevant PH enrollments (lit-hom + start/move-in/exit filter) contribute pre-entry nights in Step 1
+        ph_project_types = HudHelper.util('2026').project_type_number_from_code(:ph).to_set
         relevant_ph_enrollments = enrollments.select do |e|
-          e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph)) &&
+          e.project_type.in?(ph_project_types) &&
             enrollment_literally_homeless_at_entry(e) &&
-            include_ph_enrollment?(e)
+            ph_active_in_report_range?(e)
         end
         add_self_reported([], relevant_ph_enrollments).reject { |_, _, date| date.in?(excluded_dates) }
       else
-        # when not including 3.917
         []
       end
-      @debugger&.log_timeline('pre_entry_inclusion_dates', pre_entry_inclusion_dates)
-      # To be included, in both 1a and 1b you need a homeless enrollment overlapping the range
+      # Step 1: Select Active Clients
+      # Determine which nights in the report range contribute to Step 1 activity
+      active_bed_nights = allowed_bed_nights.select do |enrollment, _, date|
+        date.between?(report_start_date, report_end_date) && (
+          # ES/SH are always active if they have a bed night in range
+          enrollment.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:es) + HudHelper.util('2026').project_type_number_from_code(:sh)) ||
+          # TH is active if it's an included project type
+          (enrollment.project_type == 2 && included_project_types.include?(2)) ||
+          # PH is active if it meets the PH Active criteria (1b only)
+          (include_self_reported_and_ph && enrollment.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph)) && ph_active_in_report_range?(enrollment))
+        )
+      end
 
-      # Step 1
-      inclusion_dates = allowed_bed_nights
-      # 1b additionally checks time before entry for PH projects
-      inclusion_dates += pre_entry_inclusion_dates
-      # Step 2 D
-      # note, inclusion dates are only used to check if these enrollments should be used, this variable is not used below
-      @debugger&.log_timeline('inclusion_dates', inclusion_dates)
-      return unless inclusion_dates.present?
+      active_inclusion_dates = active_bed_nights + pre_entry_inclusion_dates.select { |_, _, date| date.between?(report_start_date, report_end_date) }
+      @debugger&.log_timeline('active_inclusion_dates', active_inclusion_dates)
 
-      # Steps 3 and 4
-      # We don't filter the episode yet, as Step 5 (adding self-reported history)
-      # should be done before Step 6 (identifying contiguous nights).
-      # However, we still need to establish the client's latest bed night in range.
-      # Step 3
-      end_index = allowed_bed_nights.sort_by(&:last).rindex { |_, _, date| date.between?(report_start_date, report_end_date) }
-      return unless end_index.present?
+      # If no active homeless nights in the report range, the client is not in the universe
+      return unless active_inclusion_dates.present?
+
+      # Step 3: Determine Client End Date
+      # Latest homeless bed night in the report range
+      # NOTE: pre_entry_inclusion_dates are considered bed nights for this purpose
+      client_end_date = active_inclusion_dates.map(&:last).max
+      return unless client_end_date.present?
 
       # step 5
       # 5.	Measure 1b:  For each relevant project stay the client's response to Data Standards element 3.917.3 –  Approximate date this episode of homelessness started – also represents time the client has experienced homelessness.
@@ -137,7 +143,7 @@ module HudSpmReport::Fy2026
           # PH is relevant if it's lit-hom at entry AND meets the 1b filter
           is_ph = e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph))
           if is_ph
-            next enrollment_literally_homeless_at_entry(e) && include_ph_enrollment?(e)
+            next enrollment_literally_homeless_at_entry(e) && ph_active_in_report_range?(e)
           end
 
           # TH is relevant if it's an included project type AND lit-hom at entry
@@ -233,15 +239,22 @@ module HudSpmReport::Fy2026
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
+
+      # Determine the set of "relevant" project types for this universe
+      relevant_project_types = project_types.to_set
+      if include_self_reported_and_ph
+        relevant_project_types += HudHelper.util('2026').project_type_number_from_code(:ph)
+      end
+
       enrollments = enrollments.select do |e|
+        # Only consider relevant project types
+        next false unless e.project_type.in?(relevant_project_types)
+
         # For PH and TH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
-        in_project_type = e.project_type.in?(project_types)
-        # Always drop PH/TH that wasn't literally homeless at entry or not in report range
-        # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
-        if include_self_reported_and_ph && e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph) + [2])
-          enrollment_literally_homeless_at_entry(e) && include_ph_enrollment?(e)
+        if e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph) + [2])
+          enrollment_literally_homeless_at_entry(e)
         else
-          in_project_type
+          true # ES/SH are always included if they are in relevant_project_types
         end
       end
       enrollments.each do |enrollment|
@@ -408,8 +421,8 @@ module HudSpmReport::Fy2026
       # Truncate the dataset at the client's end date (Step 3a/b/c/d)
       calculated_bed_nights = calculated_bed_nights[0..end_index]
 
-      # Step 4: Establish [client start date] (clamped to lookback_date)
-      client_start_date = [client_end_date - 365.days, lookback_date].max
+      # Step 4: Establish [client start date] (clamped to lookback_date and DOB)
+      client_start_date = [client_end_date - 365.days, lookback_date, client.DOB].compact.max
 
       @debugger&.log("client_start_date: #{client_start_date.to_fs(:db)}")
       @debugger&.log("client_end_date: #{client_end_date.to_fs(:db)}")
@@ -419,12 +432,12 @@ module HudSpmReport::Fy2026
       index = 0
       index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last < client_start_date
 
-      # Work backward, allowing dates "no more than one day earlier" (≤ 2 days difference between recorded nights)
-      # OR dates that are part of the same project stay (homeless situation bridges the gap)
-      index -= 1 while index.positive? && (
-        (calculated_bed_nights[index].last - calculated_bed_nights[index - 1].last) <= 2 ||
-        calculated_bed_nights[index].first == calculated_bed_nights[index - 1].first
-      )
+      # Work backward, allowing dates with no more than a one-day gap (<= 1 day difference between recorded nights)
+      # NOTE: The spec (Step 6b) says: "Include contiguous nights going back to [lookback stop date] OR a gap of 1+ days"
+      # and "Contiguous = date is no more than 1 day earlier than another date in dataset".
+      # This means if we have Jan 5 and Jan 4, they are contiguous (diff = 1).
+      # If we have Jan 5 and Jan 3, that's a 1-day gap (diff = 2), so it's NOT contiguous.
+      index -= 1 while index.positive? && index < calculated_bed_nights.length && (calculated_bed_nights[index].last - calculated_bed_nights[index - 1].last) <= 1
 
       # Finally, return the selected dates
       calculated_bed_nights[index..]
@@ -440,12 +453,13 @@ module HudSpmReport::Fy2026
             (enrollment.previous_street_essh? && (enrollment.prior_living_situation.in?(0..99) || enrollment.prior_living_situation.in?(300..499)) && enrollment.los_under_threshold?))
     end
 
-    private def include_ph_enrollment?(enrollment)
-      # See Identifying Clients Experiencing Literal Homelessness at Project Entry
-      return false unless enrollment.project_type.in?([2, 3, 9, 10, 13])
-
-      # TH projects are considered homeless projects in Metric 2 and don't require the special PH universe filter
-      return true if enrollment.project_type == 2
+    private def ph_active_in_report_range?(enrollment)
+      # PH Active criteria for 1b:
+      # ( [project start date] >= [report start date] and [project start date] <= [report end date] )
+      # Or
+      # ( [housing move-in date] >= [report start date] and [housing move-in date] <= [report end date] )
+      # Or
+      # ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
       enrollment.entry_date.between?(report_start_date, report_end_date) ||
         (enrollment.move_in_date.present? && enrollment.move_in_date.between?(report_start_date, report_end_date)) ||
