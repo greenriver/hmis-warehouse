@@ -22,10 +22,13 @@ Bundler.require(*Rails.groups)
 require_relative '../lib/util/id_protector'
 require_relative '../lib/util/rails_trusted_proxies_config'
 
+# common route concerns, included here to avoid class loader issues due to "drivers" load order in dev mode
+require_relative '../lib/hud_reports/route_concerns'
+
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -126,6 +129,10 @@ module BostonHmis
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
 
+    # Maintain Rails 7.0 behavior for specific settings
+    config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
+    config.active_record.default_column_serializer = YAML # Keep historic behavior
+
     # Extension points
     config.sub_populations = {}
     config.census = {}
@@ -144,5 +151,6 @@ module BostonHmis
     config.help_links = []
     config.location_processors = []
     config.queued_tasks = {}
+    config.report_archival_types = []
   end
 end

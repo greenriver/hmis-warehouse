@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe SourceClientsController, type: :request do
@@ -8,22 +10,22 @@ RSpec.describe SourceClientsController, type: :request do
   describe 'logged out' do
     it 'doesn\'t allow edit' do
       get edit_source_client_path(client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_warehouse_sign_in)
     end
 
     it 'doesn\'t allow update' do
       patch source_client_path(client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_warehouse_sign_in)
     end
 
     it 'doesn\'t allow image' do
       get image_source_client_path(client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_warehouse_sign_in)
     end
 
     it 'doesn\'t allow destination' do
       get destination_source_client_path(client)
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to(regex_for_warehouse_sign_in)
     end
   end
 

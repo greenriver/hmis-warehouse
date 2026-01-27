@@ -18,9 +18,26 @@ module HudSpmReport::Fy2026
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
+    def self.apply_search_scope(scope)
+      scope.left_outer_joins(:exit_enrollment, :return_enrollment)
+    end
+
+    def self.search_columns
+      HudSpmReport::Fy2026::SpmEnrollment.search_columns
+    end
+
     # duck-types to enrollment
     def project_id
       [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id
+    end
+
+    def self.pluck_project_ids
+      project_table = GrdaWarehouse::Hud::Project.arel_table
+
+      exit_project_ids = joins(exit_enrollment: { enrollment: :project }).distinct.pluck(project_table[:id])
+      return_project_ids = joins(return_enrollment: { enrollment: :project }).distinct.pluck(project_table[:id])
+
+      (exit_project_ids + return_project_ids).compact.uniq
     end
 
     def data_source_id

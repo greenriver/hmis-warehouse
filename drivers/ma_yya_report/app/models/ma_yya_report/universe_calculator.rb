@@ -72,20 +72,23 @@ module MaYyaReport
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
 
           all_cls_in_range = ongoing_enrollments.flat_map do |en|
+            next unless en.enrollment.present?
+
             en.enrollment.current_living_situations.select do |cls|
               cls.InformationDate.between?(filter.start_date, filter.end_date)
             end
-          end.sort_by(&:InformationDate)
+          end.compact.sort_by(&:InformationDate)
 
           homeless_cls_in_range = all_cls_in_range.select { |cls| homeless_cls?(cls) }
           non_homeless_cls_in_range = all_cls_in_range.reject { |cls| homeless_cls?(cls) }
 
           latest_homeless_cls = all_cls_in_range.select { |cls| homeless_cls?(cls) }.max_by(&:InformationDate)
 
-          homeless_enrollment_started_during_range = ongoing_enrollments.any? do |en|
+          homeless_enrollment_started_during_enrollment = ongoing_enrollments.detect do |en|
             en.project_type.in?(HudHelper.util.homeless_project_types) &&
             en.entry_date.between?(filter.start_date, filter.end_date)
           end
+          homeless_enrollment_started_during_range = homeless_enrollment_started_during_enrollment.present?
 
           homeless_enrollment_started_prior_to_range = ongoing_enrollments.any? do |en|
             en.project_type.in?(HudHelper.util.homeless_project_types) &&
@@ -94,6 +97,11 @@ module MaYyaReport
 
           enrollments_two_years_prior = all_enrollments.select { |en| en.entry_date.between?(filter.start_date - 2.years, filter.start_date) }
           enrollments_one_year_prior = all_enrollments.select { |en| en.entry_date.between?(filter.start_date - 1.year, filter.start_date) }
+
+          homeless_project_enrollment = first_homeless_project_enrollment(ongoing_enrollments)
+          entry_cls = cls_at_entry(enrollment)
+          previous_universe_enrollment = previous_universe_enrollment_record(all_enrollments)
+          latest_homeless_cls_in_range_entry = homeless_cls_in_range.last
 
           clients[client] = ::MaYyaReport::Client.new(
             report_id: @report.id,
@@ -105,9 +113,13 @@ module MaYyaReport
             referral_source: enrollment.enrollment.ReferralSource,
             currently_homeless: currently_homeless?(ongoing_enrollments), # represents YYA experiencing homelessness
             at_risk_of_homelessness: at_risk_of_homelessness?(ongoing_enrollments), # represents YYA considered "at-risk" of homelessness
+            homelessness_basis: homelessness_basis(ongoing_enrollments),
+            homeless_enrollment_project_type: homeless_project_enrollment&.project_type,
 
             enrolled_in_street_outreach: enrolled_in_street_outreach?(ongoing_enrollments),
             initial_contact: initial_contact?(all_enrollments),
+            previous_universe_entry_date: previous_universe_enrollment&.entry_date,
+            previous_universe_project_type: previous_universe_enrollment&.project_type,
 
             first_prevention_date: first_prevention_date(enrollments_two_years_prior),
             first_prevention_date_in_last_year: first_prevention_date(enrollments_one_year_prior),
@@ -117,14 +129,16 @@ module MaYyaReport
 
             latest_homeless_entry_date: latest_homeless_entry_date(all_enrollments),
 
-            earliest_homeless_cls_in_range: homeless_cls_in_range.first&.InformationDate,
-            latest_homeless_cls_in_range: homeless_cls_in_range.last&.InformationDate,
-            earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first&.InformationDate,
+            # earliest_homeless_cls_in_range: homeless_cls_in_range.first&.InformationDate, # Legacy column no longer in use
+            latest_homeless_cls_in_range: latest_homeless_cls_in_range_entry&.InformationDate,
+            latest_homeless_cls_in_range_code: latest_homeless_cls_in_range_entry&.CurrentLivingSituation,
+            # earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first&.InformationDate, # Legacy column no longer in use
             latest_non_homeless_cls_in_range: non_homeless_cls_in_range.last&.InformationDate,
 
             latest_homeless_cls: latest_homeless_cls&.InformationDate,
+            latest_homeless_cls_code: latest_homeless_cls&.CurrentLivingSituation,
 
-            direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]),
+            # direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]), # Legacy column no longer in use
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
@@ -138,15 +152,15 @@ module MaYyaReport
             developmental_disability: disability?(enrollment.enrollment, 6),
             pregnant: health_and_dv&.PregnancyStatus,
             due_date: health_and_dv&.DueDate,
-            head_of_household: enrollment.head_of_household?,
+            # head_of_household: enrollment.head_of_household?, # Legacy column no longer in use
             household_ages: household_ages(enrollment),
             sexual_orientation: enrollment.enrollment.SexualOrientation,
             most_recent_education_status: education_status&.MostRecentEdStatus,
             health_insurance: enrollment.enrollment.income_benefits_at_entry&.InsuranceFromAnySource == 1,
-            rehoused_on: rehoused_on(enrollment.enrollment),
+            # rehoused_on: rehoused_on(enrollment.enrollment), # Legacy column no longer in use
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
-            flex_funds: flex_funds(enrollments_by_client_id[client_id]),
+            # flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Legacy column no longer in use
             language: language(enrollment.enrollment),
             employed: employment_status&.Employed == 1,
             former_foster_ward: enrollment.enrollment.FormerWardChildWelfare == 1,
@@ -160,6 +174,9 @@ module MaYyaReport
 
             homeless_enrollment_started_during_range: homeless_enrollment_started_during_range,
             homeless_enrollment_started_prior_to_range: homeless_enrollment_started_prior_to_range,
+            entry_current_living_situation_code: entry_cls&.CurrentLivingSituation,
+            project_type_at_entry: enrollment.project_type,
+            homeless_enrollment_project_type_during_range: homeless_enrollment_started_during_enrollment&.project_type,
           )
         end
       end
@@ -426,8 +443,21 @@ module MaYyaReport
       enrollment.project_type.in?(HudHelper.util.homeless_project_types)
     end
 
-    private def cls_at_entry(enrollment)
+    memoize private def cls_at_entry(enrollment)
       enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.entry_date }
+    end
+
+    private def homelessness_basis(enrollments)
+      return 'homeless_project' if enrollments.any? { |en| homeless_enrollment?(en) }
+      return 'homeless_cls_at_entry' if enrollments.any? { |en| homeless_cls?(cls_at_entry(en)) }
+    end
+
+    private def first_homeless_project_enrollment(enrollments)
+      enrollments.detect { |en| homeless_enrollment?(en) }
+    end
+
+    private def previous_universe_enrollment_record(enrollments)
+      enrollments.select { |en| en.entry_date < filter.start_date }.max_by(&:entry_date)
     end
 
     # Initial contact:

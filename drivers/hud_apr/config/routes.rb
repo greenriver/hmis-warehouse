@@ -4,53 +4,41 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 BostonHmis::Application.routes.draw do
+  extend HudReports::RouteConcerns
+
   scope module: :hud_apr, path: :hud_reports, as: :hud_reports do
+    # APR (Annual Performance Report)
     resources :aprs do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'apr/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'apr/cells'
+      concerns :hud_report_actions
+      scope module: :apr do
+        concerns :hud_drilldown_actions
       end
     end
 
+    # CAPER (Consolidated Annual Performance and Evaluation Report)
     resources :capers do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'caper/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'caper/cells'
+      concerns :hud_report_actions
+      scope module: :caper do
+        concerns :hud_drilldown_actions
       end
     end
 
+    # CE APR (Coordinated Entry Annual Performance Report)
     resources :ce_aprs do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'ce_apr/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'ce_apr/cells'
+      concerns :hud_report_actions
+      scope module: :ce_apr do
+        concerns :hud_drilldown_actions
       end
     end
 
+    # DQ (Data Quality Report)
     resources :dqs do
-      get :running, on: :collection
-      get :running_all_questions, on: :collection
-      get :history, on: :collection
-      get :download, on: :member
-      resources :questions, only: [:show, :create], controller: 'dq/questions' do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show, controller: 'dq/cells'
+      concerns :hud_report_actions
+      scope module: :dq do
+        concerns :hud_drilldown_actions
       end
     end
   end

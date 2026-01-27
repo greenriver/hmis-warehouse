@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :scheduled_e_d_document, class: 'Health::ScheduledDocuments::EnrollmentDisenrollment' do
     name { 'ED' }

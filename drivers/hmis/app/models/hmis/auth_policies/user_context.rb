@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'memery'
 
@@ -21,29 +21,49 @@ class Hmis::AuthPolicies::UserContext
 
   def initialize(user)
     raise ArgumentError, 'Must be an HMIS user' unless user.is_a?(Hmis::User)
+    raise ArgumentError, 'Must be tied to an HMIS data source' unless user.hmis_data_source_id.present?
 
     @user = user
+    # Current data source (set by the controller based on which HMIS the request is coming from)
+    @data_source_id = user.hmis_data_source_id
   end
 
-  # Global user permissions (across all projects/entities)
-  memoize def potential_permissions
-    user.roles.flat_map(&:granted_permissions).to_set.freeze
+  # Set of permissions that the user has for some entity in the current data source
+  # Examples:
+  # - User has can_view_project for a Project in this data source => global_permissions includes can_view_project
+  # - User has can_view_project for a Project in another data source => global_permissions does not include can_view_project
+  memoize def global_permissions
+    data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+
+    # All access groups that grant any permission on any entity in the data source
+    access_group_ids = ::Hmis::GroupViewableEntity.
+      includes_any_entity_in_data_source(data_source).
+      pluck(:collection_id)
+    permission_loader.for_access_group_ids(access_group_ids)
   end
 
-  # Project-specific permissions
+  # Set of permissions that the user has for the given project
   def project_permissions(project_id)
+    return EMPTY_SET if project_id.blank?
+    return EMPTY_SET unless project_belongs_to_current_data_source?(project_id)
+
     access_group_ids = project_access_group_loader.get(project_id)
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
   def preload_project_dependencies(project_ids)
+    project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
   end
 
   def preload_referral_dependencies(referral_ids)
     ce_referral_project_loader.preload(referral_ids)
     ce_referral_source_project_loader.preload(referral_ids)
-    project_access_group_loader.preload(ce_referral_project_loader.cached_project_ids + ce_referral_source_project_loader.cached_project_ids)
+
+    # preload project ids associated with the referrals (including both source and target projects)
+    project_ids = (ce_referral_project_loader.cached_project_ids + ce_referral_source_project_loader.cached_project_ids).uniq
+    project_data_source_loader.preload(project_ids)
+    project_access_group_loader.preload(project_ids)
   end
 
   # CE Referral assignment data
@@ -70,7 +90,22 @@ class Hmis::AuthPolicies::UserContext
 
   protected
 
+  def project_belongs_to_current_data_source?(project_id)
+    project_data_source_id = project_data_source_loader.get(project_id)
+    return true if project_data_source_id == user.hmis_data_source_id
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Project #{project_id} (DS: #{project_data_source_id})",
+    )
+    false
+  end
+
   # Context loaders (memoized for request-level caching)
+  memoize def project_data_source_loader
+    Hmis::AuthPolicies::ContextLoaders::ProjectDataSourceLoader.new
+  end
+
   memoize def permission_loader
     Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader.new(user)
   end

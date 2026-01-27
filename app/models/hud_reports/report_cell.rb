@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # A HUD report cell, identified by a question and cell name (e.g., question: 'Q1', cell_name: 'b2')
 # * the cell value appears to be stored in the "summary" field
 # * sometimes a cell is a question group (q6) with sub-questions (6a, 6b, etc.,)
@@ -97,13 +99,16 @@ module HudReports
     def write_detail(path:, generator:, question_name:)
       return unless path.present?
 
-      q = generator.valid_question_number(question_name)
-      name = "#{generator.file_prefix} #{q} #{cell_name}"
-      headers = generator.column_headings(q)
-      clients = generator.client_class(q).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(question).for_cell(cell_name)).
-        merge(::HudReports::ReportInstance.where(id: report_instance.id))
+      drilldown = generator.drilldown_context(
+        report: report_instance,
+        measure_id: question_name,
+        cell_id: cell_name,
+        table_id: question,
+      )
+
+      name = drilldown.name
+      headers = drilldown.headers
+      clients = drilldown.base_scope
 
       template = generator.detail_template
       xlsx_data = ApplicationController.render(
@@ -111,9 +116,11 @@ module HudReports
         formats: [:xlsx],
         assigns: {
           report: report_instance,
-          question: q,
-          table: question,
-          cell: cell_name,
+          drilldown: drilldown,
+          # Legacy assigns for existing templates
+          question: drilldown.measure,
+          table: drilldown.table,
+          cell: drilldown.cell,
           name: name,
           headers: headers,
           clients: clients,

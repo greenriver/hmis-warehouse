@@ -7,36 +7,47 @@
 # frozen_string_literal: true
 
 module HudSpmReport
+  # Controller for SPM report cell drill-down views.
+  # Most behavior is inherited from HudReports::CellDrilldownConcern.
   class CellsController < HudSpmReport::BaseController
+    include ::HudReports::CellDrilldownConcern
+
     private def report_param_name
       :spm_id
     end
 
-    def show
-      params.require(report_param_name)
+    private def measure_id
+      params.require(:measure_id)
+    end
 
-      set_report
+    private def preload_associations(scope)
+      scope.preload(client: [:data_source, :source_clients])
+    end
 
-      @question = generator.valid_question_number params.require(:measure_id)
-      @cell = @report.valid_cell_name params.require(:id)
-      @table = params.require(:table) # valid_table_name is too strict for the SPM table names
-      @name = "#{generator.file_prefix} #{@question} #{@cell}"
+    private def export_class_name
+      'HudSpmReport::DocumentExports::CellDetailExport'
+    end
 
-      @headers = generator.column_headings(@question)
+    private def export_query_params
+      @drilldown.query_params.merge(report_id: @drilldown.report.id)
+    end
 
-      @clients = generator.client_scope(@question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
+    private def path_for_cell_without_search
+      hud_reports_spm_measure_cell_path(
+        spm_id: @drilldown.report.id,
+        measure_id: @drilldown.measure,
+        id: @drilldown.cell,
+        table: @drilldown.table,
+      )
+    end
 
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-          headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
-        end
-      end
+    private def path_for_search_queries
+      hud_reports_spm_measure_cell_search_queries_path(
+        spm_id: @drilldown.report.id,
+        measure_id: @drilldown.measure,
+        cell_id: @drilldown.cell,
+        table: @drilldown.table,
+      )
     end
   end
 end

@@ -1,8 +1,3 @@
--- \restrict MjcG1RJIpQWm6lAEaIkOlVbbndht0bVybWjmu9DaWafuEWEDmcvpcBjPJtJQ4Dm
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -629,7 +624,8 @@ CREATE TABLE public.delayed_jobs (
     locked_by character varying,
     queue character varying,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    cancellation_requested_at timestamp(6) without time zone
 );
 
 
@@ -984,7 +980,8 @@ CREATE TABLE public.hmis_roles (
     can_administrate_coordinated_entry boolean DEFAULT false,
     can_assign_referral_tasks boolean DEFAULT false,
     can_print_client_case_notes boolean DEFAULT false,
-    can_update_unit_availability boolean DEFAULT false
+    can_update_unit_availability boolean DEFAULT false,
+    can_view_outgoing_referral_details boolean DEFAULT false
 );
 
 
@@ -4234,11 +4231,12 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict MjcG1RJIpQWm6lAEaIkOlVbbndht0bVybWjmu9DaWafuEWEDmcvpcBjPJtJQ4Dm
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251215205826'),
+('20251120143000'),
+('20251106020333'),
 ('20251016194806'),
 ('20251001174258'),
 ('20250918155525'),
@@ -4579,6 +4577,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20160701172807'),
 ('20160628182622'),
 ('20160616140826'),
-('20160615125048'),
-('20251106020333');
+('20160615125048');
 

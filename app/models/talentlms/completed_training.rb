@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Talentlms
   class CompletedTraining < GrdaWarehouseBase
     self.table_name = :talentlms_completed_trainings

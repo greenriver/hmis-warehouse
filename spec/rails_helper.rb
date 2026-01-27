@@ -68,21 +68,32 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
   config.include AccessControlSetup
+  config.include DelayedJobHelpers
 
   require_relative 'support/s3_utils'
   config.include S3Utils
 
   config.before(:suite) do
-    # disable paper trail for test performance
+    # disable paper trail to improve test performance
     PaperTrail.enabled = false
 
     # disable rack attack unless we are testing it explicitly
     Rack::Attack.enabled = false
 
     GrdaWarehouse::Utility.clear!
-    example_file_paths = RSpec.world.filtered_examples.values.flatten.map { |e| e.metadata[:file_path] }.uniq
-    # load fixpoints if we're running tests that may need them
-    if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any? # rubocop:disable Style/RegexpLiteral
+    examples = RSpec.world.filtered_examples.values.flatten
+    example_file_paths = examples.map { |e| e.metadata[:file_path] }.uniq
+
+    # Check if any examples are from HUD report drivers
+    hud_report_examples = example_file_paths.grep(/\/drivers\/(hud_path_report|hud_spm_report|hud_data_quality_report)\//).any?
+
+    # Check if all examples explicitly exclude fixpoints via metadata
+    # To exclude fixpoints, add `exclude_fixpoints: true` to your RSpec.describe block:
+    #   RSpec.describe MyClass, type: :model, exclude_fixpoints: true do
+    all_exclude_fixpoints = examples.all? { |e| e.metadata[:exclude_fixpoints] }
+
+    # Load fixpoints if we're running tests that may need them
+    if hud_report_examples && !all_exclude_fixpoints
       Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
         FileUtils.rm(filename)
       end
@@ -143,4 +154,12 @@ def default_excluded_tables
   ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs', 'delayed_jobs', 'translations', 'schema_migrations'] +
   HmisCsvImporter::Utility.loader_table_classes.map(&:table_name) +
   HmisCsvImporter::Utility.importer_table_classes.map(&:table_name)
+end
+
+def path_for_warehouse_sign_in
+  new_user_session_path
+end
+
+def regex_for_warehouse_sign_in
+  /#{Regexp.escape(new_user_session_path)}/
 end

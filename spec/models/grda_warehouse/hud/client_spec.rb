@@ -11,6 +11,25 @@ include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   let(:client) { build :grda_warehouse_hud_client }
+
+  it 'has HispanicLatina* aliases' do
+    # HispanicLatinaeo exists in the warehouse Client table
+    expect(described_class.attribute_names).to include('HispanicLatinaeo')
+
+    # CamelCase alias
+    client.HispanicLatinaeo = 1
+    expect(client.HispanicLatinao).to eq(1)
+    client.HispanicLatinao = 2
+    expect(client.HispanicLatinaeo).to eq(2)
+
+    # snake_case aliases
+    expect(client.hispanic_latinao).to eq(2)
+    expect(client.hispanic_latinaeo).to eq(2)
+    client.hispanic_latinao = 0
+    expect(client.HispanicLatinaeo).to eq(0)
+    expect(client.HispanicLatinao).to eq(0)
+  end
+
   let(:client_signed_yesterday) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday }
   let(:client_signed_2_years_ago) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }
   let(:client_signed_2_years_ago_short_consent) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }
@@ -42,13 +61,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     # call the factory outside of expect block to isolate version side effects
     let!(:client) { create :grda_warehouse_hud_client }
 
-    before(:all) do
-      PaperTrail.enabled = true
-      PaperTrail.request.enabled = true
-    end
-    after(:all) do
-      PaperTrail.enabled = false
-      PaperTrail.request.enabled = false
+    around(:example) do |ex|
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        ex.run
+      ensure
+        PaperTrail.request.enabled = false
+      end
     end
 
     it 'tracks versions for committed changes to the correct table' do

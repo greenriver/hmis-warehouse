@@ -22,11 +22,11 @@ module Types
           end
 
           define_method(:can_duplicate_form) do
-            policy_for(object, policy_type: :form_definition).can_duplicate_form?
+            policy_for(object, policy_type: :form_definition).can_duplicate?
           end
 
           define_method(:can_publish_form) do
-            policy_for(object, policy_type: :form_definition).can_publish_form?
+            policy_for(object, policy_type: :form_definition).can_publish?
           end
         end
       end

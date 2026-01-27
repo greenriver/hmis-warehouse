@@ -54,10 +54,8 @@ runs:
         . /etc/os-release
         sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
-        # Install NodeJS and Yarn repositories
+        # Install NodeJS repository
         retry curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
-        retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
         retry apt-get update
 
@@ -82,6 +80,8 @@ runs:
           libxml2-dev \
           libxslt1-dev \
           libyaml-dev \
+          libproj-dev \
+          proj-bin \
           nodejs \
           poppler-utils \
           postgresql-client-16 \
@@ -118,7 +118,7 @@ runs:
       run: |
         # Install pg gem with correct configuration
         # gem install pg -- --with-pg-config=/usr/bin/pg_config
-        gem install bundler --version=2.6.3
+        gem install bundler --version=2.7.2
         bundle config set --local without 'production staging'
         bundle install --jobs 10 --retry 3
 

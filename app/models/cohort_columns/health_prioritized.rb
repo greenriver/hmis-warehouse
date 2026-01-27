@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class HealthPrioritized < ReadOnly
     attribute :column, String, lazy: true, default: :health_prioritized

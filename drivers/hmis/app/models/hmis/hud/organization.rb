@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Organization < Hmis::Hud::Base
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -18,6 +20,8 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
+
+  has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
 

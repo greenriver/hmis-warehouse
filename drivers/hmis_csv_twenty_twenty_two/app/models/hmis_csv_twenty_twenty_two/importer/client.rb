@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyTwo::Importer
   class Client < GrdaWarehouse::Hud::Base
+    @skip_hispanic_alias = true
     include ::HmisStructure::Client
     include ImportConcern
 

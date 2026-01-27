@@ -1,0 +1,338 @@
+# frozen_string_literal: true
+
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+require 'rails_helper'
+
+require_relative 'hopwa_caper_shared_context'
+RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model do
+  include_context('HOPWA CAPER shared context')
+
+  let(:funder) do
+    HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+  end
+
+  let(:project) do
+    create_hopwa_project(funder: funder)
+  end
+
+  context 'With one multi-member household served with rental assistance' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:hoh_client) { create(:hud_client, data_source: data_source, DOB: '1970-01-01') }
+    let(:beneficiary_client) { create(:hud_client, data_source: data_source, DOB: '1980-01-01') }
+
+    let!(:hoh_enrollment) do
+      create_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+    end
+
+    let!(:beneficiary_enrollment) do
+      create_enrollment(
+        client: beneficiary_client,
+        project: project,
+        entry_date: report_start_date,
+        household_id: household_id,
+        relationship_to_ho_h: 99,
+      )
+    end
+
+    let(:household_enrollments) { [hoh_enrollment, beneficiary_enrollment] }
+
+    before do
+      create(
+        :hud_disability,
+        disability_type: hiv_positive,
+        enrollment: hoh_enrollment,
+        anti_retroviral: 1,
+        viral_load_available: 1,
+        viral_load: 100,
+        data_source: data_source,
+        disability_response: 1,
+      )
+    end
+
+    let!(:services) do
+      household_enrollments.map do |member|
+        create(
+          :hud_service,
+          enrollment: member,
+          record_type: hopwa_financial_assistance,
+          type_provided: rental_assistance,
+          fa_amount: 101,
+          date_provided: member.entry_date,
+          data_source: data_source,
+        )
+      end
+    end
+
+    it 'reports household count, medical insurance, income sources, and health outcomes' do
+      create_standard_income_benefits(hoh_enrollment)
+      _, rows = run_and_extract_rows([project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+      expect(rows.fetch('Earned Income from Employment')).to eq(1)
+      expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
+      expect(rows.fetch('How many HOPWA-eligible individuals served with TBRA this year have ever been prescribed Anti-Retroviral Therapy?')).to eq(1)
+      expect(rows.fetch('How many HOPWA-eligible persons served with TBRA have shown an improved viral load or achieved viral suppression?')).to eq(1)
+      expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(1)
+    end
+
+    context 'with income sources on non-HoH member' do
+      it 'counts household income based on any household member' do
+        # Only the beneficiary (non-HoH) has income sources
+        create(
+          :hud_income_benefit,
+          enrollment: beneficiary_enrollment,
+          SNAP: 1,
+          Unemployment: 1,
+          information_date: report_start_date + 5.days,
+          data_source: data_source,
+          personal_id: beneficiary_client.PersonalID,
+        )
+
+        _, rows = run_and_extract_rows([project], 'Q2')
+
+        # Household should be counted as having income sources
+        expect(rows.fetch('Other Welfare Assistance (Supplemental Nutrition Assistance Program, WIC, TANF, etc.)')).to eq(1)
+        expect(rows.fetch('Unemployment Insurance')).to eq(1)
+        # Household should NOT be counted as having no income
+        expect(rows.fetch('How many households maintained no sources of income?')).to eq(0)
+      end
+
+      it 'counts as no income only when all household members have no income' do
+        # Neither HoH nor beneficiary has income sources
+        # Create income_benefit records with no income sources (all fields = 0)
+        [hoh_enrollment, beneficiary_enrollment].each do |enrollment|
+          create(
+            :hud_income_benefit,
+            enrollment: enrollment,
+            IncomeFromAnySource: 0,
+            InsuranceFromAnySource: 0,
+            information_date: report_start_date + 5.days,
+            data_source: data_source,
+            personal_id: enrollment.personal_id,
+          )
+        end
+
+        _, rows = run_and_extract_rows([project], 'Q2')
+
+        # Household should be counted as having no income
+        expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
+        # Household should NOT be counted as having any specific income sources
+        expect(rows.fetch('Earned Income from Employment')).to eq(0)
+        expect(rows.fetch('Unemployment Insurance')).to eq(0)
+      end
+    end
+
+    context 'with child members (age < 18)' do
+      let(:child_client) { create(:hud_client, data_source: data_source, DOB: today - 10.years) }
+      let!(:child_enrollment) do
+        create_enrollment(
+          client: child_client,
+          project: project,
+          entry_date: report_start_date,
+          household_id: household_id,
+          relationship_to_ho_h: 99,
+        )
+      end
+
+      it 'ignores child income but counts child insurance' do
+        # Child has both income and insurance
+        create(
+          :hud_income_benefit,
+          enrollment: child_enrollment,
+          Earned: 1, # Should be ignored
+          Medicaid: 1, # Should be counted
+          IncomeFromAnySource: 1,
+          InsuranceFromAnySource: 1,
+          information_date: report_start_date + 5.days,
+          data_source: data_source,
+          personal_id: child_client.PersonalID,
+        )
+
+        _, rows = run_and_extract_rows([project], 'Q2')
+
+        # Child income should be ignored for the household
+        expect(rows.fetch('Earned Income from Employment')).to eq(0)
+        # Child insurance should be counted for the household
+        expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
+      end
+    end
+
+    context 'with aggregated household income and medical insurance arrays' do
+      it 'aggregates medical insurance across any household member' do
+        create(
+          :hud_income_benefit,
+          enrollment: beneficiary_enrollment,
+          Medicaid: 1,
+          InsuranceFromAnySource: 1,
+          information_date: report_start_date + 2.days,
+          data_source: data_source,
+          personal_id: beneficiary_client.PersonalID,
+        )
+
+        report, rows = run_and_extract_rows([project], 'Q2')
+
+        expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
+        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).flatten.uniq).to include('Medicaid', 'InsuranceFromAnySource')
+      end
+
+      it 'sets household income and medical insurance arrays to markers when explicit No is present' do
+        [hoh_enrollment, beneficiary_enrollment].each do |enrollment|
+          create(
+            :hud_income_benefit,
+            enrollment: enrollment,
+            IncomeFromAnySource: 0,
+            InsuranceFromAnySource: 0,
+            information_date: report_start_date + 3.days,
+            data_source: data_source,
+            personal_id: enrollment.personal_id,
+          )
+        end
+
+        report, rows = run_and_extract_rows([project], 'Q2')
+
+        expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
+        expect(report.hopwa_caper_enrollments.pluck(:household_income_benefit_source_types).uniq).to eq([['NoIncomeSource']])
+        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([['NoInsuranceSource']])
+      end
+    end
+
+    context 'with a prior enrollments' do
+      before do
+        previous_enrollment = create_enrollment(
+          client: hoh_client,
+          project: project,
+          entry_date: report_start_date - 1.year,
+          household_id: Hmis::Hud::Base.generate_uuid,
+          relationship_to_ho_h: 1,
+        )
+        create(
+          :hud_exit,
+          enrollment: previous_enrollment,
+          exit_date: previous_enrollment.entry_date,
+          data_source: data_source,
+        )
+      end
+
+      it 'counts longevity' do
+        _, rows = run_and_extract_rows([project], 'Q2')
+        expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(0)
+        expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
+      end
+    end
+  end
+
+  context 'with same household re-enrolling in different projects' do
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:project_a) do
+      create_hopwa_project(funder: funder)
+    end
+    let(:project_b) do
+      create_hopwa_project(funder: funder)
+    end
+
+    let!(:first_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project_a,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    let!(:second_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project_b,
+        entry_date: report_start_date + 6.months,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    it 'counts the household only once by HoH destination_client_id' do
+      _, rows = run_and_extract_rows([project_a, project_b], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+    end
+  end
+
+  context 'with various exit scenarios for continued assistance' do
+    let!(:no_exit_enrollment) do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        exit_date: nil,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    let!(:exit_after_report_enrollment) do
+      enrollment = create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_exit,
+        enrollment: enrollment,
+        exit_date: report_end_date + 30.days, # Exits AFTER report period
+        data_source: data_source,
+      )
+      enrollment
+    end
+
+    let!(:exit_on_last_day_enrollment) do
+      enrollment = create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_exit,
+        enrollment: enrollment,
+        exit_date: report_end_date, # Exits ON last day of report
+        data_source: data_source,
+      )
+      enrollment
+    end
+
+    let!(:exit_before_end_enrollment) do
+      enrollment = create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(
+        :hud_exit,
+        enrollment: enrollment,
+        exit_date: report_end_date - 10.days, # Exits BEFORE end of report
+        data_source: data_source,
+      )
+      enrollment
+    end
+
+    it 'counts households with no exit or exit after report period as continuing' do
+      _, rows = run_and_extract_rows([project], 'Q2')
+
+      # Should count:
+      # - no_exit_enrollment (exit_date IS NULL)
+      # - exit_after_report_enrollment (exit_date > report.end_date)
+      # Should NOT count:
+      # - exit_on_last_day_enrollment (exit_date = report.end_date)
+      # - exit_before_end_enrollment (exit_date < report.end_date)
+      expect(rows.fetch('How many households continued receiving this type of HOPWA assistance into the next year?')).to eq(2)
+    end
+  end
+end

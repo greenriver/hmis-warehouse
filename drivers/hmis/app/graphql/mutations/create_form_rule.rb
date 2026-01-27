@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class CreateFormRule < BaseMutation
     argument :definition_id, ID, required: true
@@ -13,7 +15,7 @@ module Mutations
 
     def resolve(definition_id:, input:)
       definition = Hmis::Form::Definition.exclude_definition_from_select.find(definition_id)
-      access_denied! unless current_user.can_configure_data_collection_for_role?(definition.role)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_add_form_rule?
 
       instance = Hmis::Form::Instance.new(definition_identifier: definition.identifier)
       instance.assign_attributes(input.to_attributes)

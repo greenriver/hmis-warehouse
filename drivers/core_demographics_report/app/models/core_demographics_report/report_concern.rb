@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::ReportConcern
   extend ActiveSupport::Concern
@@ -97,6 +99,10 @@ module
 
     def genders
       @genders ||= self.class.genders
+    end
+
+    def sexes
+      @sexes ||= HudHelper.util.sexes
     end
 
     private def hoh_scope

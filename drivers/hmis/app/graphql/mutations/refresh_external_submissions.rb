@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class RefreshExternalSubmissions < CleanBaseMutation
     field :success, Boolean, null: false
@@ -13,7 +15,7 @@ module Mutations
       return { success: true } if Delayed::Job.queued?(handlers) || Delayed::Job.running?(handlers)
 
       queue = ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.set(priority: -5, queue: queue).perform_later
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.set(priority: BaseJob::UI_IMMEDIATE_PRIORITY_NEG5, queue: queue).perform_later
 
       { success: true }
     end

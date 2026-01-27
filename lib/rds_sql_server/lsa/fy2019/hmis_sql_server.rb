@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 module HmisSqlServer
   # a Hash mapping hud filenames to GrdaWarehouse::Hud models
@@ -30,6 +32,8 @@ module HmisSqlServer
   end
 
   class LsaBase < SqlServerBase
+    self.abstract_class = true
+
     include TsqlImport
 
     def clean_row_for_import(row:, headers:) # rubocop:disable Lint/UnusedMethodArgument

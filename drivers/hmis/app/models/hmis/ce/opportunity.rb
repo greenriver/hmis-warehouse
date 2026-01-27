@@ -1,30 +1,33 @@
 # frozen_string_literal: true
 
 # An opportunity is the availability of a unit (housing or other services)
+#
+# @see docs/features/hmis_units.md For detailed documentation on CE opportunities and the unit occupancy workflow
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
-    self.ignored_columns += ['workflow_template_identifier'] # TODO - remove after migration 20251002192540 is run
+    self.ignored_columns += [
+      'project_id', # Stop using direct association to project, go through unit instead
+    ]
 
     acts_as_paranoid
     has_paper_trail
     include SimpleStateMachine
 
-    belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
-    has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
-
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
     has_many :categories, through: :categorizations
     belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
+    has_one :project, through: :unit, class_name: 'Hmis::Hud::Project'
+    has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
+    belongs_to :created_by, class_name: 'Hmis::User', optional: true
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit
-    validate :validate_consistent_project
     validate :validate_candidate_pool_is_stable, on: :update
 
     state_machine_config column: 'status' do
@@ -147,12 +150,6 @@ module Hmis::Ce
       return unless conflicting_opportunity_exists
 
       errors.add(:unit, 'can only have one open or locked opportunity')
-    end
-
-    def validate_consistent_project
-      return if project == unit.project
-
-      errors.add(:project, "must be same as unit's project")
     end
   end
 end

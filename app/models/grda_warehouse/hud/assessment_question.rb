@@ -33,10 +33,10 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
-    belongs_to :assessment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Assessment', primary_key: [:AssessmentID, :PersonalID, :data_source_id], query_constraints: [:AssessmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :assessment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Assessment', primary_key: [:AssessmentID, :PersonalID, :data_source_id], foreign_key: [:AssessmentID, :PersonalID, :data_source_id], optional: true
 
-    has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], query_constraints: [:assessment_question, :response_code]
+    has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], foreign_key: [:assessment_question, :response_code]
 
     scope :pathways_or_rrh, -> do
       where(AssessmentQuestion: :c_housing_assessment_name)
@@ -90,6 +90,7 @@ module GrdaWarehouse::Hud
       [
         'RRH-PSH Transfer',
         'RRH-PSH Transfer 2024',
+        'RRH Transfer 2024',
       ]
     end
 
@@ -104,15 +105,21 @@ module GrdaWarehouse::Hud
     end
 
     def assessment_name
+      # Assessment names are all based on the lookup response text,
+      # return early if this doesn't exist to avoid unnecessary checks.
+      return nil unless lookup&.response_text
+
       return 'Pathways 2024' if pathways_2024?
       return 'Pathways 2021' if pathways_2021?
       return 'RRH-PSH Transfer' if transfer_2021?
-      return 'RRH-PSH Transfer 2024' if transfer_2024?
+      return lookup.response_text if transfer_2024?
       return 'Family Pathways 2024' if family_pathways_2024?
 
       # unknown from assessment questions
       nil
     end
+
+    private
 
     def family_pathways_2024?
       lookup&.response_text == 'Family Pathways 2024'
@@ -139,7 +146,7 @@ module GrdaWarehouse::Hud
     def transfer_2024?
       return nil unless pathways_question?
 
-      lookup&.response_text == 'RRH-PSH Transfer 2024'
+      lookup&.response_text.in?(['RRH-PSH Transfer 2024', 'RRH Transfer 2024'])
     end
   end
 end

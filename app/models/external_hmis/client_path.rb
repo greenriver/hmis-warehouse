@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ExternalHmis::ClientPath
   ##
   # Generates a url path for linking to a client in an external HMIS.  This should be used

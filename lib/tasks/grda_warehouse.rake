@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 namespace :grda_warehouse do
   def self.safely_execute(&block)
@@ -405,7 +405,7 @@ namespace :grda_warehouse do
     # Purge old soft-deleted records
     safely_execute do
       enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
-      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
+      PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
     end
 
     # Run CSG Engage export if ready
@@ -524,7 +524,7 @@ namespace :grda_warehouse do
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
     # Queue the cohort analytics generation job if it's not already queued
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: BaseJob::CACHE_REFRESH_PRIORITY_12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'
@@ -606,5 +606,29 @@ namespace :grda_warehouse do
   task :remove_water_from_shapes, [] => [:environment] do
     installer = GrdaWarehouse::Shape::Installer.new
     installer.remove_all_water!
+  end
+
+  desc 'Clean up orphaned contacts (contacts whose entities have been deleted)'
+  task :clean_orphaned_contacts, [] => [:environment, 'log:info_to_stdout'] do
+    project_contact_ids = GrdaWarehouse::Contact::Project.
+      where.not(entity_id: GrdaWarehouse::Hud::Project.select(:id)).
+      pluck(:id)
+
+    organization_contact_ids = GrdaWarehouse::Contact::Organization.
+      where.not(entity_id: GrdaWarehouse::Hud::Organization.select(:id)).
+      pluck(:id)
+
+    total = project_contact_ids.count + organization_contact_ids.count
+
+    if total.zero?
+      puts 'No orphaned contacts found.'
+    else
+      puts "Found #{total} orphaned contacts (#{project_contact_ids.count} project, #{organization_contact_ids.count} organization)"
+      puts 'Destroying orphaned project contacts...'
+      GrdaWarehouse::Contact::Project.where(id: project_contact_ids).destroy_all
+      puts 'Destroying orphaned organization contacts...'
+      GrdaWarehouse::Contact::Organization.where(id: organization_contact_ids).destroy_all
+      puts 'Done.'
+    end
   end
 end

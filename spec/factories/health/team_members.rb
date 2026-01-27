@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :provider, class: 'Health::Team::Provider' do
     first_name { 'Dr' }

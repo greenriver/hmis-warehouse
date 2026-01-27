@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class TestJob < BaseJob
   SLEEP_TIME = 5
 
@@ -11,6 +13,10 @@ class TestJob < BaseJob
     60.times do
       TestJob.perform_later(length_in_seconds: Random.rand(60), simulate_failure: Random.rand < 0.2)
     end
+  end
+
+  def self.interruptible?
+    true
   end
 
   def perform(length_in_seconds: 10, memory_bloat_per_second: 10_000_000, simulate_failure: false)
@@ -32,6 +38,7 @@ class TestJob < BaseJob
     bloater = {}
 
     while (Time.now - a) < length_in_seconds
+      check_halt_status!
       Rails.logger.info 'Simulating processing.'
       bloater[Random.rand.to_s] = Array.new(memory_bloat_per_second * SLEEP_TIME) if memory_bloat_per_second
       sleep SLEEP_TIME

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -212,6 +214,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should error if form definition is draft' do
       draft = create(:hmis_form_definition, version: 2, status: Hmis::Form::Definition::DRAFT, identifier: fd1.identifier)
       expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
+    end
+
+    it 'should error if the user lacks permission to edit the enrollment' do
+      remove_permissions(access_control, :can_edit_enrollments)
+      expect_gql_error post_graphql(input: { input: test_input }) { mutation }
     end
 
     [

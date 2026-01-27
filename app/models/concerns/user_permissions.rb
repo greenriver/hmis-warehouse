@@ -53,8 +53,6 @@ module UserPermissions
         :can_manage_some_ad_hoc_ds,
         :can_view_some_vprs,
         :can_edit_some_project_groups,
-        :can_manage_forms_for_role,
-        :can_configure_data_collection_for_role,
       ].freeze
     end
 
@@ -167,15 +165,15 @@ module UserPermissions
       can_view_own_hud_reports? || can_view_all_hud_reports?
     end
 
-    def has_administrative_access_to_health # rubocop:disable Naming/PredicateName
+    def has_administrative_access_to_health # rubocop:disable Naming/PredicatePrefix
       can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
     end
 
-    def has_patient_referral_review_access # rubocop:disable Naming/PredicateName
+    def has_patient_referral_review_access # rubocop:disable Naming/PredicatePrefix
       can_approve_patient_assignments? || can_manage_patients_for_own_agency?
     end
 
-    def has_some_patient_access # rubocop:disable Naming/PredicateName
+    def has_some_patient_access # rubocop:disable Naming/PredicatePrefix
       can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
     end
 
@@ -193,7 +191,7 @@ module UserPermissions
       can_view_full_client_dashboard? || can_view_limited_client_dashboard?
     end
 
-    def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName
+    def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicatePrefix
       can_edit_youth_intake? || can_edit_own_agency_youth_intake?
     end
 
@@ -224,14 +222,6 @@ module UserPermissions
 
     def can_edit_some_project_groups
       can_edit_assigned_project_groups? || can_edit_project_groups?
-    end
-
-    def can_manage_forms_for_role(role)
-      can_manage_forms? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role.to_s) || can_administrate_config?)
-    end
-
-    def can_configure_data_collection_for_role(role)
-      can_configure_data_collection? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role.to_s) || can_administrate_config?)
     end
 
     # Allow all methods above to respond with or without a ?

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :cha, class: 'Health::ComprehensiveHealthAssessment' do
     completed_at { Date.current }

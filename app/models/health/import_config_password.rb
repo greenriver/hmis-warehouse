@@ -4,18 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'net/sftp'
+# frozen_string_literal: true
 
 module Health
   class ImportConfigPassword < ImportConfig
     def connect
-      Net::SFTP.start(
+      Sftp::Cli.start(
         host_name,
         username,
         password: password,
-        # verbose: :debug,
         port: port_number,
-        auth_methods: ['publickey', 'password'],
+        skip_verify_host_key: true,
       ) do |connection|
         yield connection
       end

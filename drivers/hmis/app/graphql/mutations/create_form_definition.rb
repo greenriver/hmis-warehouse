@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class CreateFormDefinition < CleanBaseMutation
     argument :input, Types::Admin::FormDefinitionInput, required: true
@@ -21,7 +23,7 @@ module Mutations
 
       # Check permission after validation; otherwise the error message may be confusing to a user who does have
       # permission, but filled out the form wrong and didn't provide input.role
-      access_denied! unless current_user.can_manage_forms_for_role?(input.role)
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_create?(role: input.role)
 
       attrs = input.to_attributes
       attrs[:definition] = attrs[:definition] || { item: initial_form_definition_items(attrs[:role]) }

@@ -1,100 +1,177 @@
 name: Rails Tests
 
+# @see docs/features/ci-test-bucketing.md
+
 on:
   push:
     branches:
+      - stable
+      - "release-*"
+  pull_request:
+    branches:
       - "*"
       - "**/*"
+  workflow_dispatch:
+    inputs:
+      test_path:
+        description: 'Spec file or directory (e.g., spec/models/user_spec.rb)'
+        required: false
+        type: string
+      with_okta:
+        description: 'Run Okta integration tests'
+        required: false
+        type: boolean
+        default: false
+      with_logging:
+        description: 'Run logging configuration tests'
+        required: false
+        type: boolean
+        default: false
+      with_profiling:
+        description: 'Enable RSpec profiling'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.ref }}-tests
   cancel-in-progress: true
 
+env:
+  # Common environment variables shared across all test jobs
+  CLIENT: test
+  ENABLE_HMIS_API: "true"
+  DATABASE_ADAPTER: postgresql
+  DATABASE_APP_DB_TEST: warehouse_app_test
+  DATABASE_DB_TEST: warehouse_test
+  DATABASE_APP_DB: warehouse_app_test
+  DATABASE_HOST: postgres
+  DATABASE_PASS: postgres
+  DATABASE_USER: postgres
+  DATABASE_WAREHOUSE_DB_TEST: warehouse_test
+  DEFAULT_FROM: greenriver.testing@mailinator.com
+  DISABLE_SPRING: 1
+  ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+  FQDN: openpath.host
+  HEALTH_DATABASE_ADAPTER: postgresql
+  HEALTH_DATABASE_DB_TEST: health_test
+  HEALTH_DATABASE_HOST: postgres
+  HEALTH_DATABASE_PASS: postgres
+  HEALTH_DATABASE_USER: postgres
+  HEALTH_FROM: greenriver.testing@mailinator.com
+  HOSTNAME: openpath.host
+  MINIO_ENDPOINT: http://minio:9000
+  USE_MINIO_ENDPOINT: true
+  PORT: 80
+  RAILS_ENV: test
+  CACHE_HOST: redis
+  CACHE_PORT: 6379
+  CACHE_DB: 1
+  REPORTING_DATABASE_ADAPTER: postgresql
+  REPORTING_DATABASE_DB_TEST: reporting_test
+  REPORTING_DATABASE_HOST: postgres
+  REPORTING_DATABASE_PASS: postgres
+  REPORTING_DATABASE_USER: postgres
+  WAREHOUSE_DATABASE_ADAPTER: postgis
+  WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+  WAREHOUSE_DATABASE_HOST: postgres
+  WAREHOUSE_DATABASE_PASS: postgres
+  WAREHOUSE_DATABASE_USER: postgres
+  WAREHOUSE_DATABASE_DB: warehouse_test
+  HEALTH_DATABASE_DB: health_test
+  REPORTING_DATABASE_DB: reporting_test
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+  PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+  FERRUM_PROCESS_TIMEOUT: 45
+  FERRUM_DEFAULT_TIMEOUT: 45
+  # Minio and test configuration
+  GROVER_NO_SANDBOX: true
+  CHROMIUM_PATH: /usr/bin/chromium
+  LOG_LEVEL: INFO
+  TODO_OR_DIE_LOG_ONLY: true
+
 jobs:
   determine_matrix:
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-slim-bookworm
+    container: ruby:3.4.5-slim-bookworm
 
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      unit_matrix: ${{ steps.set-matrix.outputs.unit_matrix }}
+      run_unit: ${{ steps.set-matrix.outputs.run_unit }}
+      run_hmis: ${{ steps.set-matrix.outputs.run_hmis }}
+      run_warehouse: ${{ steps.set-matrix.outputs.run_warehouse }}
+      focused_path: ${{ steps.set-matrix.outputs.focused_path }}
+      okta: ${{ steps.set-matrix.outputs.okta }}
+      logging: ${{ steps.set-matrix.outputs.logging }}
+      profiling: ${{ steps.set-matrix.outputs.profiling }}
+
     steps:
+      - name: Install git
+        run: |
+          apt-get update
+          apt-get install -y git
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
       - id: set-matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TEST_PATH: ${{ github.event.inputs.test_path }}
+          INPUT_WITH_OKTA: ${{ github.event.inputs.with_okta }}
+          INPUT_WITH_LOGGING: ${{ github.event.inputs.with_logging }}
+          INPUT_WITH_PROFILING: ${{ github.event.inputs.with_profiling }}
         run: |
-          ruby -rjson -e '
-            buckets_file = ".github/rspec_buckets.json"
-            test_groups = []
-            if File.exist?(buckets_file)
-              buckets = JSON.parse(File.read(buckets_file))
-              buckets.each do |bucket|
-                bucket_id = bucket["id"]
-                matrix_id = "ci_#{bucket_id.tr("-", "_")}"
-                matrix_tag = "ci_bucket:#{bucket_id}"
-                test_groups << { id: matrix_id, tag: matrix_tag }
-              end
-            end
-            test_groups << {
-              id: "ci_bucket_default",
-              tag: "~ci_bucket",
-              logging_tests: true,
-              okta_tests: true
-            }
-            matrix = { test_group: test_groups }
-            File.open(ENV["GITHUB_OUTPUT"], "a") { |f| f.puts "matrix=#{matrix.to_json}" }
-          '
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          ruby bin/ci_matrix_router.rb
 
-  # Label of the container job
-  tests:
+  unit_tests:
     needs: determine_matrix
+    if: needs.determine_matrix.outputs.run_unit == 'true'
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
+      matrix: ${{fromJson(needs.determine_matrix.outputs.unit_matrix)}}
 
     permissions:
       contents: read
       packages: read
       pull-requests: read
+      id-token: write
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-slim-bookworm
+    container: ruby:3.4.5-slim-bookworm
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
 
     # Service containers to run with job
     services:
-      postgres:
+      postgres: &postgres
         image: index.docker.io/postgis/postgis@sha256:1d7869b7f4dc799835cc8106061f10bcde94377da4704cd508511b78b9005c02 # 17-3.5-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
-          POSTGRES_PASS: postgres
-          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
-        # Set health checks to wait until postgres has started
         options: >-
+          --name pg_container
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
           - 5432:5432
-
-      redis:
+      redis: &redis
         image: index.docker.io/library/redis@sha256:02419de7eddf55aa5bcf49efb74e88fa8d931b4d77c07eff8a6b2144472b6952 # alpine
         ports:
           - 6379:6379
-
-      hmis-warehouse-sftp:
+      hmis-warehouse-sftp: &sftp
         image: ghcr.io/greenriver/openpath-sftp:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         ports:
           - "2222:22"
-
-      minio:
+      minio: &minio
         image: ghcr.io/greenriver/openpath-minio:1.0
         credentials:
           username: ${{ github.actor }}
@@ -104,54 +181,6 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
-
-    env:
-      CLIENT: test
-      ENABLE_HMIS_API: "true"
-      DATABASE_ADAPTER: postgresql
-      DATABASE_APP_DB_TEST: warehouse_app_test
-      DATABASE_DB_TEST: warehouse_test
-      DATABASE_APP_DB: warehouse_app_test
-      DATABASE_HOST: postgres
-      DATABASE_PASS: postgres
-      DATABASE_USER: postgres
-      DATABASE_WAREHOUSE_DB_TEST: warehouse_test
-      DEFAULT_FROM: greenriver.testing@mailinator.com
-      DISABLE_SPRING: 1
-      ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
-      FQDN: openpath.host
-      HEALTH_DATABASE_ADAPTER: postgresql
-      HEALTH_DATABASE_DB_TEST: health_test
-      HEALTH_DATABASE_HOST: postgres
-      HEALTH_DATABASE_PASS: postgres
-      HEALTH_DATABASE_USER: postgres
-      HEALTH_FROM: greenriver.testing@mailinator.com
-      HOSTNAME: openpath.host
-      MINIO_ENDPOINT: http://minio:9000
-      USE_MINIO_ENDPOINT: true
-      PORT: 80
-      RAILS_ENV: test
-      CACHE_HOST: redis
-      CACHE_PORT: 6379
-      CACHE_DB: 1
-      REPORTING_DATABASE_ADAPTER: postgresql
-      REPORTING_DATABASE_DB_TEST: reporting_test
-      REPORTING_DATABASE_HOST: postgres
-      REPORTING_DATABASE_PASS: postgres
-      REPORTING_DATABASE_USER: postgres
-      WAREHOUSE_DATABASE_ADAPTER: postgis
-      WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-      WAREHOUSE_DATABASE_HOST: postgres
-      WAREHOUSE_DATABASE_PASS: postgres
-      WAREHOUSE_DATABASE_USER: postgres
-      WAREHOUSE_DATABASE_DB: warehouse_test
-      HEALTH_DATABASE_DB: health_test
-      REPORTING_DATABASE_DB: reporting_test
-      # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
-      FERRUM_PROCESS_TIMEOUT: 45
-      FERRUM_DEFAULT_TIMEOUT: 45
 
     steps:
       - name: Checkout
@@ -166,7 +195,7 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir app/assets/stylesheets/theme/styles
+          mkdir -p app/assets/stylesheets/theme/styles
           touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
@@ -176,11 +205,10 @@ jobs:
           TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
-          bin/db_prep
-
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
+          bin/db_prep
 
       - name: Precompile assets
         env:
@@ -198,6 +226,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
+
       # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
       # data changes.  To update:
       # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
@@ -238,44 +267,43 @@ jobs:
           flags: --recursive
 
       - name: Run tests
-        if: matrix.test_group.tag
         env:
+          MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
           TODO_OR_DIE_LOG_ONLY: true
+          FOCUS_PATH: ${{ matrix.test_group.test_path }}
         run: |
-          bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
+          if [ -n "$FOCUS_PATH" ]; then
+            echo "Running focused tests: $FOCUS_PATH"
+            bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color "$FOCUS_PATH"
+          else
+            bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
-          # capture rspec profiling information
-          # see lib/tasks/ci.rake for more details
-          # mkdir -p tmp/rspec_profiles
-          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
-
-          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
+            if [ "${{ needs.determine_matrix.outputs.profiling }}" = "true" ]; then
+              # see lib/tasks/ci.rake for more details
+              echo "Running tests with profiling..."
+              mkdir -p tmp/rspec_profiles
+              bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
+            else
+              bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
+            fi
+          fi
 
       - name: Run okta tests
-        if: matrix.test_group.okta_tests
+        if: matrix.test_group.okta || needs.determine_matrix.outputs.okta == 'true'
         env:
+          MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          TODO_OR_DIE_LOG_ONLY: true
         run: |
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
+          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb
 
       - name: Run logging tests
-        if: matrix.test_group.logging_tests
+        if: matrix.test_group.logging || needs.determine_matrix.outputs.logging == 'true'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
-          LOG_LEVEL: INFO
           TODO_OR_DIE_LOG_ONLY: true
         run: |
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color -fd spec/models/logging_spec.rb
@@ -289,8 +317,155 @@ jobs:
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           if-no-files-found: ignore
-          name: artifacts-${{ matrix.test_group.id}}
+          name: artifacts-unit-${{ matrix.test_group.id }}
           path: |
             tmp/rspec_profiles/
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml
+
+  hmis_system_tests:
+    needs: determine_matrix
+    if: needs.determine_matrix.outputs.run_hmis == 'true'
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+      pull-requests: read
+    runs-on: ubuntu-24.04
+    container: ruby:3.4.5-slim-bookworm
+
+    services:
+      postgres: *postgres
+      redis: *redis
+      hmis-warehouse-sftp: *sftp
+      minio: *minio
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: "Container Setup"
+        uses: ./.github/workflows/container_setup
+        with:
+          additional_packages: libpq-dev chromium chromium-common
+
+      - name: "App setup"
+        run: |
+          cp config/secrets.yml.sample config/secrets.yml
+          mkdir -p app/assets/stylesheets/theme/styles
+          touch app/assets/stylesheets/theme/styles/_variables.scss
+          cp .rspec.sample .rspec
+          cp config/database.yml.ci config/database.yml
+
+      - name: Prepare test db
+        run: |
+          pg_isready -h postgres -U postgres
+          echo "Setting up .pgpass"
+          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
+          bin/db_prep
+
+      - name: Precompile assets
+        run: bundle exec rails assets:precompile
+
+      - name: "Check HMIS GraphQL schema"
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          TODO_OR_DIE_LOG_ONLY: true
+        run: bundle exec rake driver:hmis:dump_graphql_schema
+
+      - name: Build front end and run tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+          RUN_SYSTEM_TESTS: true
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          CHROMIUM_PATH: /usr/bin/chromium
+          TARGET_SPECS: ${{ needs.determine_matrix.outputs.focused_path }}
+          TODO_OR_DIE_LOG_ONLY: true
+        run: bash ./bin/run_hmis_system_tests.sh
+
+      - name: Archive artifacts
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          if-no-files-found: ignore
+          name: artifacts-hmis-system
+          path: |
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml
+
+  warehouse_system_tests:
+    needs: determine_matrix
+    if: needs.determine_matrix.outputs.run_warehouse == 'true'
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+      pull-requests: read
+    runs-on: ubuntu-24.04
+    container: ruby:3.4.5-slim-bookworm
+
+    services:
+      postgres: *postgres
+      redis: *redis
+      hmis-warehouse-sftp: *sftp
+      minio: *minio
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: "Container Setup"
+        uses: ./.github/workflows/container_setup
+        with:
+          additional_packages: libpq-dev chromium chromium-common
+
+      - name: "App setup"
+        run: |
+          cp config/secrets.yml.sample config/secrets.yml
+          mkdir -p app/assets/stylesheets/theme/styles
+          touch app/assets/stylesheets/theme/styles/_variables.scss
+          cp .rspec.sample .rspec
+          cp config/database.yml.ci config/database.yml
+
+      - name: Prepare test db
+        run: |
+          pg_isready -h postgres -U postgres
+          echo "Setting up .pgpass"
+          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
+          bin/db_prep
+
+      - name: Precompile assets
+        run: bundle exec rails assets:precompile
+
+      - name: Run warehouse system tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+          CHROMIUM_PATH: /usr/bin/chromium
+          RUN_RAILS_SYSTEM_TESTS: true
+          TODO_OR_DIE_LOG_ONLY: true
+        run: |
+          FOCUS_PATH="${{ needs.determine_matrix.outputs.focused_path }}"
+          if [ -n "$FOCUS_PATH" ]; then
+            bundle exec rspec "$FOCUS_PATH" -fd --fail-fast=$MAX_FAILURES --color
+          else
+            bundle exec rspec spec/system/rails --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
+          fi
+
+      - name: Archive artifacts
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          if-no-files-found: ignore
+          name: artifacts-warehouse-system
+          path: |
             tmp/capybara/screenshots/
             var/deprecations/*.yml

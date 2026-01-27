@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyTwo::Loader
   class Client < GrdaWarehouse::Hud::Base
+    @skip_hispanic_alias = true
     include LoaderConcern
     include ::HmisStructure::Client
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Reporting::Status
   extend ActiveSupport::Concern
   include ActionView::Helpers::DateHelper
@@ -11,6 +13,7 @@ module Reporting::Status
     def status
       return "Queued at #{created_at}" if started_at.blank?
       return 'Failed' if failed?
+      return 'Archived' if respond_to?(:purged?) && purged?
       return "Completed in #{run_time}" if completed?
       return 'Failed' if started_at.present? && started_at < 24.hours.ago
 

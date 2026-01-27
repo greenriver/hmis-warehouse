@@ -176,7 +176,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'returns grouped service type pick list' do
     response, result = post_graphql(pick_list_type: 'ALL_SERVICE_TYPES') { query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
     opt = Hmis::Hud::CustomServiceType.first.to_pick_list_option
@@ -192,7 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'returns service category pick list' do
     response, result = post_graphql(pick_list_type: 'ALL_SERVICE_CATEGORIES') { query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
     opt = Hmis::Hud::CustomServiceCategory.first.to_pick_list_option
@@ -204,19 +204,94 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
 
-  describe 'when there are both HUD and custom service categories' do
-    let!(:hud_category) { create :hmis_custom_service_category, data_source: ds1, name: 'HUD category' }
-    let!(:custom_category) { create :hmis_custom_service_category, data_source: ds1, name: 'Custom category' }
-    let!(:hud_type) { create :hmis_custom_service_type, custom_service_category: hud_category, data_source: ds1, name: 'HUD type', hud_record_type: 141, hud_type_provided: 1 }
-    let!(:custom_type) { create :hmis_custom_service_type, custom_service_category: custom_category, data_source: ds1, name: 'Custom type' }
+  describe 'service type and category pick lists' do
+    include_context 'hmis service setup'
 
-    it 'returns custom-only service category pick list' do
-      response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_CATEGORIES') { query }
-      expect(response.status).to eq 200
-      options = result.dig('data', 'pickList')
-      expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.non_hud.count)
-      expect(options.pluck('code')).to include(custom_category.id.to_s)
-      expect(options.pluck('code')).not_to include(hud_category.id.to_s)
+    let(:hud_only_category) { Hmis::Hud::CustomServiceCategory.hud_only.first }
+    let(:hud_type) { Hmis::Hud::CustomServiceType.hud.first }
+    let!(:custom_only_category) { create :hmis_custom_service_category, data_source: ds1, user: u1, name: 'Custom Only Category' }
+    let!(:custom_type_1) { create :hmis_custom_service_type, custom_service_category: custom_only_category, data_source: ds1, user: u1, name: 'Custom Type 1' }
+    let!(:custom_type_2) { create :hmis_custom_service_type, custom_service_category: custom_only_category, data_source: ds1, user: u1, name: 'Custom Type 2' }
+
+    describe 'ALL_SERVICE_TYPES' do
+      it 'returns all service types' do
+        response, result = post_graphql(pick_list_type: 'ALL_SERVICE_TYPES') { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
+        expect(options.pluck('code')).to include(custom_type_1.id.to_s, hud_type.id.to_s)
+
+        # Verify structure includes group label
+        custom_option = options.find { |o| o['code'] == custom_type_1.id.to_s }
+        expect(custom_option['label']).to eq('Custom Type 1')
+        expect(custom_option['groupLabel']).to eq('Custom Only Category')
+      end
+    end
+
+    describe 'CUSTOM_SERVICE_TYPES' do
+      it 'returns only custom service types' do
+        response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_TYPES') { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.length).to eq(Hmis::Hud::CustomServiceType.custom.count)
+        expect(options.pluck('code')).to include(custom_type_1.id.to_s, custom_type_2.id.to_s)
+        expect(options.pluck('code')).not_to include(hud_type.id.to_s)
+      end
+    end
+
+    describe 'HUD_SERVICE_TYPES' do
+      it 'returns only HUD service types' do
+        response, result = post_graphql(pick_list_type: 'HUD_SERVICE_TYPES') { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.length).to eq(Hmis::Hud::CustomServiceType.hud.count)
+        expect(options.pluck('code')).to include(hud_type.id.to_s)
+        expect(options.pluck('code')).not_to include(custom_type_1.id.to_s, custom_type_2.id.to_s)
+      end
+    end
+
+    describe 'ALL_SERVICE_CATEGORIES' do
+      it 'returns all service categories' do
+        response, result = post_graphql(pick_list_type: 'ALL_SERVICE_CATEGORIES') { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
+        expect(options.pluck('code')).to include(hud_only_category.id.to_s, custom_only_category.id.to_s)
+
+        custom_option = options.find { |o| o['code'] == custom_only_category.id.to_s }
+        expect(custom_option['label']).to eq('Custom Only Category')
+      end
+    end
+
+    describe 'CUSTOM_SERVICE_CATEGORIES' do
+      it 'returns only custom-only service categories' do
+        response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_CATEGORIES') { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.custom_only.count)
+        expect(options.pluck('code')).to include(custom_only_category.id.to_s)
+        expect(options.pluck('code')).not_to include(hud_only_category.id.to_s)
+      end
+    end
+
+    describe 'HUD_SERVICE_CATEGORIES' do
+      it 'returns only HUD-only service categories' do
+        response, result = post_graphql(pick_list_type: 'HUD_SERVICE_CATEGORIES') { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.hud_only.count)
+        expect(options.pluck('code')).to include(hud_only_category.id.to_s)
+        expect(options.pluck('code')).not_to include(custom_only_category.id.to_s)
+
+        expect(options.length).to eq(HudHelper.util.record_types.size)
+        expect(options.map { |o| o['label'] }).to match_array(HudHelper.util.record_types.values)
+      end
     end
   end
 
@@ -371,9 +446,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         let!(:unit_with_locked_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
         let!(:unit_with_closed_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
 
-        let!(:open_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_open_opportunity, project: project, data_source: ds1, status: :open) }
-        let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, project: project, data_source: ds1, status: :locked) }
-        let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, project: project, data_source: ds1, status: :closed) }
+        let!(:open_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_open_opportunity, status: :open) }
+        let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, status: :locked) }
+        let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, status: :closed) }
 
         it 'does not include unit with open or locked opportunities' do
           available_units = picklist_option_codes(project)
@@ -595,18 +670,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, receives_direct_referrals: true) }
     let!(:access_control) { create_access_control(hmis_user, ce_project.organization, with_permission: [:can_manage_outgoing_referrals]) }
 
-    let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
-    let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template) }
+    let!(:workflow_template) { create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: ds1, template_type: 'ce_referral', status: 'published') }
 
     let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template) }
     let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template) }
     let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group', workflow_template: workflow_template) }
 
+    # Unit group in the project that doesn't point to a workflow template. (Cruft, not included in picklist)
+    let!(:unit_group_with_no_template) { create(:hmis_unit_group, project: ce_project, name: 'No Template Group', workflow_template: nil) }
+
     # Unit group with available units
     let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
-    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, project: ce_project, data_source: ce_project.data_source, status: :open) }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, status: :open) }
     let!(:available_unit2) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
-    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, project: ce_project, data_source: ce_project.data_source, status: :open) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, status: :open) }
 
     # Unit group with occupied units
     let!(:occupied_unit) { create(:hmis_unit, project: ce_project, unit_group: unit_group_occupied) }
@@ -658,6 +735,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ce_project.data_source, template_type: 'ce_referral', status: 'published') }
 
       it_behaves_like 'returns empty pick list'
+    end
+  end
+
+  describe 'CE_REFERRAL_STATUSES' do
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+    end
+    let!(:custom_status) { create(:hmis_ce_custom_referral_status, data_source: ds1, name: 'Assigned Pending Review', key: 'assigned_pending_review') }
+
+    it 'returns all custom referral statuses' do
+      response, result = post_graphql(pick_list_type: 'CE_REFERRAL_STATUSES') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.count).to eq(4)
+      expect(options).to contain_exactly(
+        a_hash_including('code' => 'accepted', 'label' => 'Accepted'),
+        a_hash_including('code' => 'rejected', 'label' => 'Declined'),
+        a_hash_including('code' => 'in_progress', 'label' => 'In Progress'),
+        a_hash_including('code' => 'assigned_pending_review', 'label' => 'Assigned Pending Review'),
+      )
     end
   end
 end

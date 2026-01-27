@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Hud
   # look up a model class from HUD csv filenames (e.g. 'Client.csv')
   # raises KeyError if filename is not in the hud standard

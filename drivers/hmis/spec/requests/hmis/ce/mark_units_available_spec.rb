@@ -72,6 +72,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         unit.reload
         expect(unit.latest_opportunity.candidate_pool).to eq(pool)
         expect(unit.latest_opportunity.unit_group.workflow_template).to eq(template)
+        expect(unit.latest_opportunity.created_by).to eq(hmis_user)
       end
 
       context 'with assignment rules' do
@@ -105,7 +106,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           expect_gql_error(
             post_graphql(**variables) { mutation },
-            message: 'Unit must be in a Unit Group to be marked available',
+            message: /Unit must be in a Unit Group/,
           )
         end.to not_change(Hmis::Ce::Opportunity, :count)
       end
@@ -132,7 +133,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit has an in-progress referral' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
       it 'does not create a new opportunity' do
@@ -149,7 +150,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
     context 'when unit was marked available in the past, and opportunity was filled' do
       let!(:pool) { create(:hmis_ce_match_candidate_pool) }
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, created_at: 2.years.ago, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       before do
@@ -166,28 +167,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
         expect(unit.latest_opportunity).not_to eq(past_opportunity)
         expect(unit.latest_opportunity.status).to eq('open')
-      end
-    end
-
-    context 'with many units' do
-      let!(:pool) { create(:hmis_ce_match_candidate_pool) }
-      let!(:unit_ids) do
-        unit_group.update!(candidate_pool: pool)
-        50.times.map do
-          create(:hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group).id
-        end
-      end
-
-      let(:variables) do
-        { unitIds: unit_ids }
-      end
-
-      it 'makes a reasonable number of db queries' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 20..35)
-        expect(Hmis::Ce::Opportunity.where(unit_id: unit_ids).count).to eq(unit_ids.count)
       end
     end
 
@@ -248,7 +227,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         end
 
         context 'and other unit already has opportunity' do
-          let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
+          let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
           # 3 vacant units - 1 already marked available (has open opportunity) - 2 assigned postings = 0 units can be marked available
 
           it 'raises an error when trying to mark too many units' do

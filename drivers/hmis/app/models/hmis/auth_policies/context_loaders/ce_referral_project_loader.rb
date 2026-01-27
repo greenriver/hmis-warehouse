@@ -27,11 +27,11 @@ module Hmis::AuthPolicies::ContextLoaders
       new_referral_ids = referral_ids.uniq - @cache.keys
       return if new_referral_ids.empty?
 
-      o_t = Hmis::Ce::Opportunity.arel_table
+      u_t = Hmis::Unit.arel_table
       results = Hmis::Ce::Referral.
         where(id: new_referral_ids).
-        joins(:opportunity).
-        pluck(:id, o_t[:project_id]).
+        joins(:unit).
+        pluck(:id, u_t[:project_id]).
         to_h
       @cache.merge!(results)
     end

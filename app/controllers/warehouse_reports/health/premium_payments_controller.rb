@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports::Health
   class PremiumPaymentsController < ApplicationController
     include WarehouseReportAuthorization
@@ -32,8 +34,12 @@ module WarehouseReports::Health
         content: premium_params[:content].read,
         original_filename: premium_params[:content].original_filename,
       )
-      Health::ConvertPaymentPremiumFileJob.perform_later
-      respond_with(@file, location: warehouse_reports_health_premium_payments_path)
+      if @file.persisted?
+        Health::ConvertPaymentPremiumFileJob.perform_later
+        redirect_to warehouse_reports_health_premium_payments_path, notice: 'Premium Payment File (820) was successfully created.'
+      else
+        redirect_to warehouse_reports_health_premium_payments_path, alert: @file.errors.full_messages.join(', ')
+      end
     end
 
     def premium_source

@@ -48,14 +48,6 @@ module HmisDataQualityTool
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
         dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudHelper.util.dob_data_quality(v)} (#{v})" } },
-        man: { title: 'Man', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        woman: { title: 'Woman', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        culturally_specific: { title: 'Culturally Specific', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        different_identity: { title: 'DifferentIdentity', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        transgender: { title: 'Transgender', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        questioning: { title: 'Questioning', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
-        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudHelper.util.gender_none(v)} (#{v})" } },
         am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
         asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
         black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
@@ -65,6 +57,7 @@ module HmisDataQualityTool
         hispanic_latinaeo: { title: 'Hispanic/Latina/e/o', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
         race_none: { title: 'Race None', translator: ->(v) { "#{HudHelper.util.race_none(v)} (#{v})" } },
         veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        sex: { title: 'Sex', translator: ->(v) { v.blank? ? '' : "#{HudHelper.util.sex(v)} (#{v})" } },
         ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
         ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudHelper.util.ssn_data_quality(v)} (#{v})" } },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
@@ -192,14 +185,6 @@ module HmisDataQualityTool
       report_item.reporting_age = source_client.age_on(report.filter.end)
       report_item.personal_id = source_client.PersonalID
       report_item.data_source_id = source_client.data_source_id
-      report_item.man = source_client.Man
-      report_item.woman = source_client.Woman
-      report_item.culturally_specific = source_client.CulturallySpecific
-      report_item.different_identity = source_client.DifferentIdentity
-      report_item.non_binary = source_client.NonBinary
-      report_item.transgender = source_client.Transgender
-      report_item.questioning = source_client.Questioning
-      report_item.gender_none = source_client.GenderNone
       report_item.am_ind_ak_native = source_client.AmIndAKNative
       report_item.asian = source_client.Asian
       report_item.black_af_american = source_client.BlackAfAmerican
@@ -209,6 +194,7 @@ module HmisDataQualityTool
       report_item.hispanic_latinaeo = source_client.HispanicLatinaeo
       report_item.race_none = source_client.RaceNone
       report_item.veteran_status = source_client.VeteranStatus
+      report_item.sex = source_client.Sex
       report_item.ssn = source_client.SSN
       report_item.ssn_data_quality = source_client.SSNDataQuality
       # we need these for calculations, but don't want to store them permanently,
@@ -249,7 +235,8 @@ module HmisDataQualityTool
     # check for overlapping PH post-move-in
     def self.overlapping_post_move_in(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        en.project&.ph? && ! en.project&.rrh_sso_only?
+        (en.project&.ph? && ! en.project&.rrh_sso_only?) ||
+          (en.project&.other? && en.project.pay_for_success?)
       end
 
       return [] if involved_enrollments.blank? || involved_enrollments.count == 1
@@ -280,7 +267,8 @@ module HmisDataQualityTool
             en_services = en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
             nbn_en.services.where(RecordType: 200, DateProvided: en_services).pluck(:DateProvided)
           else
-            nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+            # The en enrollment is not a NBN enrollment, so we need to check for the NBN services overlapping the en enrollment date range
+            nbn_en.services.where(RecordType: 200, DateProvided: en.EntryDate..end_date).pluck(:DateProvided)
           end
           overlaps << [simple_enrollment(nbn_en), simple_enrollment(en)].sort_by { |m| m[:id] } if services_in_range.any?
         end
@@ -294,9 +282,11 @@ module HmisDataQualityTool
       end
       return [] if homeless_enrollments.blank?
 
-      # moved-in PH enrollments
+      # moved-in PH enrollments and Pay for Success projects
       involved_enrollments = enrollments.select do |en|
-        en.project&.ph? && ! en.project&.rrh_sso_only? && en.MoveInDate.present?
+        ((en.project&.ph? && ! en.project&.rrh_sso_only?) ||
+         (en.project&.other? && en.project.pay_for_success?)) &&
+          en.MoveInDate.present?
       end
       return [] if involved_enrollments.blank?
 
@@ -335,7 +325,7 @@ module HmisDataQualityTool
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
             # three dots because starting on the end date is allowed, sorted by id so we can distinct later
-            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?((start_date2...end_date2))
+            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?(start_date2...end_date2)
           end
         end
       end
@@ -361,50 +351,6 @@ module HmisDataQualityTool
 
     def self.sections(_)
       {
-        gender_issues: {
-          title: 'Gender',
-          description: 'Gender fields and Gender None are incompatible, or invalid gender response was recorded, or the responses are compatible, but Gender None is "Data not collected" (99)',
-          required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :personal_id,
-            :first_name,
-            :last_name,
-            :reporting_age,
-            :man,
-            :woman,
-            :culturally_specific,
-            :different_identity,
-            :non_binary,
-            :transgender,
-            :questioning,
-            :gender_none,
-          ],
-          denominator: ->(_item) { true },
-          limiter: ->(item) {
-            # any fall outside accepted options
-            values = [
-              item.man,
-              item.woman,
-              item.culturally_specific,
-              item.different_identity,
-              item.non_binary,
-              item.transgender,
-              item.questioning,
-            ]
-            return true if (values - HudHelper.util.no_yes_options.keys).any?
-
-            # any are yes and GenderNone is present and not 99
-            return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
-
-            # all are no and GenderNone is not in 8, 9
-            # note: GenderNone 99 will trigger an error even though all 0s and a 99 is a valid respons
-            # because gender is required to be asked
-            return true if values.all? { |m| m.in?([0]) } && ! item.gender_none.in?([8, 9])
-
-            false
-          },
-        },
         race_issues: {
           title: 'Race',
           description: 'Race fields and Race None are incompatible, or invalid race response was recorded, or the responses are compatible, but Race None is "Data not collected" (99)',
@@ -415,6 +361,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :am_ind_ak_native,
             :asian,
             :black_af_american,
@@ -449,6 +396,30 @@ module HmisDataQualityTool
             false
           },
         },
+        sex_issues: {
+          title: 'Sex',
+          description: 'Sex is blank, has an invalid value, or is "Data not collected" (99)',
+          required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :sex,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) {
+            # Sex is blank
+            return true if item.sex.blank?
+            # Sex has an invalid value (not in valid set)
+            return true unless HudHelper.util.sexes.key?(item.sex)
+            # Sex is "Data not collected" (99) - flag as issue since field is required
+            return true if item.sex == 99
+
+            false
+          },
+        },
         dob_issues: {
           title: 'DOB',
           description: 'DOB is blank, before Oct. 10 1910, DOB is after an entry date, or DOB Data Quality is not collected, but DOB is present',
@@ -459,6 +430,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :dob,
             :dob_data_quality,
           ],
@@ -488,6 +460,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :ssn,
             :ssn_data_quality,
           ],
@@ -515,6 +488,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :name_data_quality,
           ],
           denominator: ->(_item) { true },
@@ -539,6 +513,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :veteran_status,
           ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
@@ -560,6 +535,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_entry_exit,
             :overlapping_entry_exit_details,
           ],
@@ -579,6 +555,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_nbn,
             :overlapping_nbn_details,
           ],
@@ -599,6 +576,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_pre_move_in,
             :overlapping_pre_move_in_details,
           ],
@@ -620,6 +598,7 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
+            :sex,
             :overlapping_post_move_in,
             :overlapping_post_move_in_details,
           ],

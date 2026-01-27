@@ -71,11 +71,11 @@ end
 
 RSpec.shared_context 'with paper trail', shared_context: :metadata do
   before(:all) do
-    @paper_trail_was = PaperTrail.enabled?
-    PaperTrail.enabled = true
+    @previous_paper_trail_state = PaperTrailHelper.enable
   end
+
   after(:all) do
-    PaperTrail.enabled = @paper_trail_was
+    PaperTrailHelper.restore(@previous_paper_trail_state)
   end
 end
 

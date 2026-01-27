@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'memery'
+# @see docs/features/hud-report-framework.md
 module HudReports
   class GeneratorBase
     include ArelHelper
@@ -39,6 +40,13 @@ module HudReports
 
     def self.report_year_slug
       fiscal_year.downcase.delete(' ').to_sym
+    end
+
+    # Override in subclass to enable idempotent retry behavior.
+    # When true, partial runs can be safely retried by resetting incomplete questions.
+    # When false, retries will fail-fast
+    def self.supports_idempotent_retry?
+      false
     end
 
     def queue
@@ -125,6 +133,20 @@ module HudReports
 
     def self.pii_columns
       ['first_name', 'last_name', 'dob', 'ssn']
+    end
+
+    # Builds a DrilldownContext with validated components.
+    # This centralizes validation via the context while keeping the generator
+    # as the source of business rules for measure/table validation.
+    def self.drilldown_context(report:, measure_id:, cell_id:, table_id:, report_type: nil)
+      ::HudReports::DrilldownContext.build(
+        report: report,
+        generator: self,
+        measure_id: measure_id,
+        cell_id: cell_id,
+        table_id: table_id,
+        report_type: report_type,
+      )
     end
 
     def self.allowed_options(_)

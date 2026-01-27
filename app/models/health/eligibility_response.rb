@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
@@ -11,14 +13,37 @@
 require 'stupidedi'
 module Health
   class EligibilityResponse < HealthBase
+    include FileContentValidator
     acts_as_paranoid
 
     phi_attr :response, Phi::Bulk, 'Description of eligibility inquiry response' # contains EDI serialized PHI
+    phi_attr :original_filename, Phi::FreeText
 
-    mount_uploader :file, EligibilityResponseFileUploader
+    # Remove CarrierWave dependency
+    # mount_uploader :file, EligibilityResponseFileUploader
 
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry', optional: true
     belongs_to :user, optional: true
+
+    validate :validate_file_content_if_present
+
+    def validate_file_content_if_present
+      return if response.blank?
+
+      file_extension = '.txt'
+      allowed_types = ['text/plain', 'application/octet-stream']
+
+      result = self.class.validate_file_content(
+        response,
+        nil,
+        allowed_types,
+        file_extension,
+      )
+
+      return if result[:valid]
+
+      errors.add(:file, result[:error])
+    end
 
     def summary_headers
       [

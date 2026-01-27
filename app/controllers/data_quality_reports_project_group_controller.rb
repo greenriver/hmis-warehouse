@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DataQualityReportsProjectGroupController < DataQualityReportsController
   include AjaxModalRails::Controller
   # Authorize by either access to projects OR access by token

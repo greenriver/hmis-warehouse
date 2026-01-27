@@ -4,6 +4,7 @@ require 'rails_helper'
 require_relative '../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::UnitGroup, type: :model do
+  include_context 'hmis base setup'
   let!(:project) { create(:hmis_hud_project) }
   let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: nil, direct_referral_workflow_template: nil) }
 
@@ -47,6 +48,15 @@ RSpec.describe Hmis::UnitGroup, type: :model do
       unit_group.direct_referral_workflow_template = workflow_template
       expect(unit_group).not_to be_valid
       expect(unit_group.errors[:direct_referral_workflow_template_identifier]).to include('must be published')
+    end
+
+    it 'accepts when template has both published and draft version' do
+      published_template = create(:hmis_workflow_definition_template, :with_basic_tasks, identifier: 'my_template', version: 0, data_source: project.data_source)
+      create(:hmis_workflow_definition_template, :with_basic_tasks, identifier: 'my_template', version: 1, status: 'draft', data_source: project.data_source)
+
+      unit_group.workflow_template_identifier = 'my_template'
+      expect(unit_group).to be_valid
+      expect(unit_group.workflow_template).to eq(published_template)
     end
 
     it 'validates direct referral workflow template structure' do

@@ -21,6 +21,7 @@ module Hmis::Ce
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
+    has_one :unit, class_name: 'Hmis::Unit', through: :opportunity
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :destroy
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote', dependent: :destroy
@@ -29,11 +30,13 @@ module Hmis::Ce
     belongs_to :referred_by, class_name: 'Hmis::User'
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     belongs_to :source_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
-    has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
+    has_one :source_project, class_name: 'Hmis::Hud::Project', through: :source_enrollment, source: :project
+    has_one :target_project, class_name: 'Hmis::Hud::Project', through: :unit, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
     belongs_to :custom_status, class_name: 'Hmis::Ce::CustomReferralStatus', foreign_key: :custom_referral_status_id, optional: true
+    belongs_to :decline_reason, class_name: 'Hmis::Ce::ReferralDeclineReason', optional: true
     has_one :ce_event, class_name: 'Hmis::Hud::Event', foreign_key: :ce_referral_id, dependent: :nullify
 
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
@@ -42,7 +45,8 @@ module Hmis::Ce
       # What makes a referral viewable by a user?
       # - If they have can_view_referrals at the target project, OR
       # - If they have can_view_own_referrals, AND are assigned a step in the referral, OR
-      # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral
+      # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral, OR
+      # - If they have can_view_outgoing_referral_details at the *source* project
 
       base_scope = joins(:target_project)
 
@@ -62,7 +66,19 @@ module Hmis::Ce
       own_referrals = base_scope.where(id: own_referral_ids).or(own_referrals_via_swimlane).
         merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals))
 
-      access_through_project.or(own_referrals)
+      # Referrals that the user can view because they have can_view_outgoing_referral_details in the source project
+      viewable_source_project_ids = Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_outgoing_referral_details).pluck(:id)
+
+      access_through_source_ids = base_scope.
+        joins(:source_enrollment).
+        merge(Hmis::Hud::Enrollment.where(project_pk: viewable_source_project_ids)).pluck(:id)
+
+      # Query referral IDs first so the relation passed to #or is structurally compatible.
+      access_through_source = Hmis::Ce::Referral.where(id: access_through_source_ids)
+
+      access_through_project.
+        or(own_referrals).
+        or(access_through_source)
     end
 
     # Referrals that have a step assigned to the specified user. Excludes referrals if the assigned step(s) are unavailable.
@@ -90,6 +106,20 @@ module Hmis::Ce
     scope :originated_from_waitlist, -> { where(referral_origin: WAITLIST_ORIGIN) }
     scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
 
+    # Free-text search for Referral
+    scope :matching_search_term, ->(search_term) do
+      search_term = search_term.strip
+
+      # If it's a possible PK, check if it's a Referral primary key
+      if possibly_pk?(search_term)
+        matching_referrals = where(id: search_term.to_i)
+        return matching_referrals if matching_referrals.exists?
+      end
+
+      # Search by client name
+      joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
+    end
+
     def self.sort_by_option(option)
       case option
       when :status
@@ -106,6 +136,9 @@ module Hmis::Ce
     validate :unique_referral_per_opportunity
     validate :ce_template
     validate :consistent_data_source
+    validate :consistent_project
+
+    before_save :clear_decline_reason_when_accepted
 
     # When referral status changes, its CustomReferralStatus (user-facing status) should also be updated.
     # See ReferralMessageHandler for example.
@@ -236,6 +269,16 @@ module Hmis::Ce
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity
 
       errors.add(:custom_status, msg) if custom_status && data_source != custom_status.data_source
+    end
+
+    def consistent_project
+      return unless target_enrollment
+
+      errors.add(:target_enrollment, 'must be in same project as referral') unless target_enrollment.project == target_project
+    end
+
+    def clear_decline_reason_when_accepted
+      self.decline_reason = nil if accepted?
     end
   end
 end

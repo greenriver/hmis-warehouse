@@ -1,0 +1,10 @@
+:ruby
+  items = [{ link_to: { path: edit_admin_compliance_requirement_path(req) }, icon: :pencil, label: 'Edit' }]
+  if req.active?
+    items << { link_to: { path: deactivate_admin_compliance_requirement_path(req), method: :post, data: { confirm: "Deactivate '#{req.name}'? Users will no longer be required to agree." } }, icon: :pause, label: 'Deactivate' }
+  else
+    items << { link_to: { path: activate_admin_compliance_requirement_path(req), method: :post }, icon: :checkmark, label: 'Activate' }
+  end
+  items << { link_to: { path: admin_compliance_requirement_path(req), method: :delete, data: { confirm: "Delete '#{req.name}'?" } }, icon: :cross, label: 'Delete' }
+
+= action_menu_or_button(items: items)

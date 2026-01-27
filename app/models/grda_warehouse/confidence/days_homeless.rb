@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Confidence
   class DaysHomeless < Base
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :resource_id
@@ -36,7 +38,7 @@ module GrdaWarehouse::Confidence
         Delayed::Job.enqueue(
           ::Confidence::DaysHomelessJob.new(client_ids: batch),
           queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
-          priority: 10,
+          priority: BaseJob::BULK_PROCESSING_PRIORITY_10,
         )
       end
     end

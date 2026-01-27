@@ -4,11 +4,35 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class BaseJob < ApplicationJob
   include NotifierConfig
   include MaintenanceTaskInstrumentation
+
+  # Priority constants for job scheduling
+  # Lower numbers = higher priority (processed first)
+
+  # 1. User Interaction Tier
+  UI_IMMEDIATE_PRIORITY_NEG5 = -5 # User is actively waiting for results in the UI
+
+  # 2. Critical System Tier
+  HIGH_IMPORTANCE_PRIORITY_0 = 0 # Critical tasks needed to maintain system integrity
+
+  # 3. Standard Operations Tier
+  DEFAULT_BACKGROUND_PRIORITY_5 = 5 # Standard async tasks (default choice for most work)
+  CLEANUP_BACKGROUND_PRIORITY_6 = 6 # Non-urgent cleanup following standard operations
+
+  # 4. Batch & Bulk Tier
+  PRE_BULK_PROCESSING_PRIORITY_9 = 9 # High-priority batch work that should lead the bulk queue
+  BULK_PROCESSING_PRIORITY_10 = 10 # Standard bulk processing and large data exports
+
+  # 5. Consistency & Cache Tier
+  CACHE_REFRESH_PRIORITY_12 = 12 # Standard warming or rebuilding of data caches
+  CLEANUP_CACHE_REFRESH_PRIORITY_13 = 13 # Non-urgent cache updates (e.g. external ID lookups)
+
+  # 6. Maintenance Tier
+  MAINTENANCE_PRIORITY_15 = 15 # Background housekeeping and eventual consistency
 
   attr_accessor :start_time
 
@@ -77,12 +101,32 @@ class BaseJob < ApplicationJob
   # This is somewhat brittle at this time and expects to be operating on
   # an ActiveJob instance (something like an instance of Importing::HudZip::HmisAutoMigrateJob).
   # Additionally, this expects the rails job backend to be Delayed::Job
+  #
+  # Postpones the current job when a "collision" is detected.
+  # A collision occurs when an advisory lock cannot be acquired because another worker
+  # is already processing the same data. Instead of blocking the worker or failing,
+  # we clone the job and schedule it for a future time, allowing the current worker
+  # to move on to other tasks.
+  #
+  # This creates a new Delayed::Job record that is a copy of the current one, but
+  # with cleared failure metadata (failed_at, last_error) and reset attempt count,
+  # ensuring it starts as a fresh attempt.
   def requeue_at(timestamp, message)
+    job = delayed_job
+    # It is possible for the delayed_job record to be missing (e.g. if a user deleted it
+    # from the UI while the job was running). Return if we can't find the job
+    unless job.present?
+      Sentry.capture_message("Unable to find delayed_job for requeue_at in #{self.class.name} (AJ ID: #{job_id}, Provider ID: #{provider_job_id})")
+      return
+    end
+
     Rails.logger.info(message) if message.present?
-    new_job = delayed_job.dup
+    new_job = job.dup
     new_job.update(
       locked_at: nil,
       locked_by: nil,
+      failed_at: nil,
+      last_error: nil,
       run_at: timestamp,
       attempts: calculated_attempts,
     )
@@ -90,15 +134,50 @@ class BaseJob < ApplicationJob
 
   # Attempt to find the associated delayed job so we can use it
   def delayed_job
-    job = Delayed::Job.jobs_for_class(job_id).first
-    # NOTE: job_id will probably be a UUID in the handler of the row
-    raise "Unable to find a related delayed job (ID: #{job_id})" unless job.present?
+    # provider_job_id is the numeric ID of the Delayed::Job row
+    return Delayed::Job.find_by(id: provider_job_id) if provider_job_id.present?
 
-    job
+    # fallback to using handler with ActiveJob ID
+    Delayed::Job.jobs_for_class(job_id).first
   end
 
   # Override as necessary to limit the number of times a job is tried
   def calculated_attempts
-    0
+    return 0 if supports_idempotent_retry?
+
+    # For non-idempotent jobs, we want to limit retries.
+    # By default, we'll allow only 1 attempt.
+    max_attempts = 1
+    [0, Delayed::Worker.max_attempts - max_attempts].max
+  end
+
+  # Returns true if this job can be safely retried after a partial failure.
+  # Most jobs should be idempotent by default.
+  def supports_idempotent_retry?
+    dj = delayed_job
+    return true unless dj
+
+    # Use JobDetail to extract the domain-specific class being processed
+    # (e.g. the Generator for HUD reports, or the Export class for generic reports)
+    klass_name = JobDetail.new(dj).job_class
+    klass = klass_name&.safe_constantize
+
+    if klass.respond_to?(:supports_idempotent_retry?)
+      klass.supports_idempotent_retry?
+    else
+      true
+    end
+  end
+
+  # When you call jobs with .perform_later, they are executed in the ActiveJob world, which doesn't
+  # obey they max_attempts for Delayed Job. We'll adjust the attempts to give us what we want
+  #
+  # Note: after_enqueue only runs when the job is first created. Requeuing via requeue_at
+  # uses manual Delayed::Job manipulation and handles attempts there.
+  after_enqueue :enforce_max_attempts
+
+  def enforce_max_attempts
+    dj = delayed_job
+    dj&.update_column(:attempts, calculated_attempts)
   end
 end

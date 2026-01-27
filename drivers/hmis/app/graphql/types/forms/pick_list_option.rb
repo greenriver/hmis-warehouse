@@ -107,11 +107,17 @@ module Types
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
-        service_types_picklist
+        all_service_types_picklist
+      when 'CUSTOM_SERVICE_TYPES'
+        custom_service_types_picklist
+      when 'HUD_SERVICE_TYPES'
+        hud_service_types_picklist
       when 'ALL_SERVICE_CATEGORIES'
-        service_categories_picklist
+        all_service_categories_picklist
       when 'CUSTOM_SERVICE_CATEGORIES'
-        service_categories_picklist(custom_only: true)
+        custom_service_categories_picklist
+      when 'HUD_SERVICE_CATEGORIES'
+        hud_service_categories_picklist
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -189,26 +195,34 @@ module Types
           { code: identifier, label: description }
         end
       when 'PROJECT_CONFIG_TYPES'
-        # Project config types for selection on the Admin Project Config page.
-        # Hide Coordinated Entry options if CE is not enabled in the installation.
-        Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
-          next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
-
-          {
-            code: key,
-            label: enum.description,
-          }
-        end.compact
+        project_config_types_picklist
       when 'CE_REFERRAL_STATUSES'
-        # To avoid key collisions, we display only custom statuses in the picklist.
-        # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
-        # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
-        Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
-          next if status.key.to_s == 'initialized' # skip initialized, user-facing display for this state is just 'in progress'
-
-          { code: status.key, label: status.name }
-        end.compact
+        ce_referral_statuses_picklist(user: user)
       end
+    end
+
+    def self.project_config_types_picklist
+      # Project config types for selection on the Admin Project Config page.
+      # Hide Coordinated Entry options if CE is not enabled in the installation.
+      Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
+        next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
+
+        {
+          code: key,
+          label: enum.description,
+        }
+      end.compact
+    end
+
+    def self.ce_referral_statuses_picklist(user:)
+      # To avoid key collisions, we display only custom statuses in the picklist.
+      # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
+      # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
+      Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
+        next if status.key.to_s == 'initialized' # skip initialized, user-facing display for this state is just 'in progress'
+
+        { code: status.key, label: status.name }
+      end.compact
     end
 
     def self.eligible_staff_assignment_user_picklist(project)
@@ -351,8 +365,23 @@ module Types
       end
     end
 
-    def self.service_types_picklist
-      options = Hmis::Hud::CustomServiceType.
+    def self.hud_service_types_picklist
+      scope = Hmis::Hud::CustomServiceType.hud
+      service_types_picklist(scope: scope)
+    end
+
+    def self.custom_service_types_picklist
+      scope = Hmis::Hud::CustomServiceType.custom
+      service_types_picklist(scope: scope)
+    end
+
+    def self.all_service_types_picklist
+      scope = Hmis::Hud::CustomServiceType.all
+      service_types_picklist(scope: scope)
+    end
+
+    def self.service_types_picklist(scope:)
+      options = scope.
         preload(:custom_service_category).to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:group_label] + obj[:label] }
@@ -361,10 +390,24 @@ module Types
 
       options
     end
+    private_class_method :service_types_picklist
 
-    def self.service_categories_picklist(custom_only: false)
-      scope = custom_only ? Hmis::Hud::CustomServiceCategory.non_hud : Hmis::Hud::CustomServiceCategory.all
+    def self.hud_service_categories_picklist
+      scope = Hmis::Hud::CustomServiceCategory.hud_only
+      service_categories_picklist(scope: scope)
+    end
 
+    def self.custom_service_categories_picklist
+      scope = Hmis::Hud::CustomServiceCategory.custom_only
+      service_categories_picklist(scope: scope)
+    end
+
+    def self.all_service_categories_picklist
+      scope = Hmis::Hud::CustomServiceCategory.all
+      service_categories_picklist(scope: scope)
+    end
+
+    def self.service_categories_picklist(scope:)
       options = scope.to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:label] }
@@ -373,6 +416,7 @@ module Types
 
       options
     end
+    private_class_method :service_categories_picklist
 
     def self.available_service_types_picklist(project, bulk_only: false)
       return [] unless project.present?
@@ -635,6 +679,9 @@ module Types
       project.unit_groups.filter_map do |unit_group|
         # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
         available_count = unit_group.available_unit_count
+
+        # don't return this unit group if it can't accept direct referrals
+        next nil unless unit_group.direct_referral_form_definition.present?
 
         {
           code: unit_group.id,

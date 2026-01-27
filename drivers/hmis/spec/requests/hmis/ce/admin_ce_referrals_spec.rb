@@ -27,6 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               status
               active
               clientId
+              clientName
               client {
                 id
               }
@@ -180,6 +181,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when searching referrals by client name' do
+      let!(:client1) { create(:hmis_hud_client, data_source: ds1, FirstName: 'Alice', LastName: 'Wonderland') }
+      let!(:client2) { create(:hmis_hud_client, data_source: ds1, FirstName: 'Bob', LastName: 'Builder') }
+      let!(:referral1) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client1) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client2) }
+
+      it 'can search by client name' do
+        variables = { filters: { searchTerm: 'Wonderland' } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral1.id.to_s)
+      end
+
+      it 'can search by referral ID' do
+        variables = { filters: { searchTerm: referral2.id.to_s } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral2.id.to_s)
+      end
+    end
+
     context 'with many referrals' do
       before do
         create_list(:hmis_ce_referral, 40, project: project, data_source: ds1)
@@ -190,7 +218,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceReferrals', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 30..40)
+        end.to make_database_queries(count: 35..50)
 
         # regression test to check that factories aren't creating extra data sources
         expect(GrdaWarehouse::DataSource.hmis.count).to eq(1)

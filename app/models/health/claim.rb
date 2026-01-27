@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Attached claims_file contains EDI serialized PHI
 # Control: PHI attributes documented
@@ -188,7 +190,7 @@ module Health
           repetition: repetition_separator,
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
-        file = w.write.upcase
+        file = w.write(String.new).upcase
       end
       return file
     end

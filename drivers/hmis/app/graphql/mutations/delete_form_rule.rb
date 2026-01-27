@@ -17,7 +17,7 @@ module Mutations
       raise 'not found' unless instance
       raise 'cannot delete system rule' if instance.system
 
-      access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
+      access_denied! unless policy_for(instance.definition, policy_type: :form_definition).can_delete_form_rule?
 
       instance.active = false
       instance.save!(validate: false) # skip validation to support removing an invalid instance

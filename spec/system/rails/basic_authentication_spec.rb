@@ -40,11 +40,11 @@ RSpec.feature 'Basic Authentication Flow', type: :rails_system do
       page.click_link('Account')
       # Should be signed in and see user's name
       expect(page).to have_content(user.first_name)
-      expect(current_path).not_to eq(new_user_session_path)
+      expect(current_path).not_to eq(path_for_warehouse_sign_in)
     end
 
     it 'shows error with invalid credentials' do
-      visit new_user_session_path
+      visit path_for_warehouse_sign_in
 
       fill_in 'Email', with: user.email
       fill_in 'Password', with: 'wrongpassword'
@@ -52,7 +52,7 @@ RSpec.feature 'Basic Authentication Flow', type: :rails_system do
 
       # Should see error message and stay on sign in page
       expect(page).to have_content('Invalid')
-      expect(current_path).to eq(new_user_session_path)
+      expect(current_path).to eq(path_for_warehouse_sign_in)
     end
   end
 

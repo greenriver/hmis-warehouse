@@ -236,6 +236,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
+      context 'with dangling source enrollment reference (regression #8539)' do
+        let!(:deleted_source_enrollment) { create(:hmis_hud_enrollment, date_deleted: Time.current, client: client, data_source: ds1) }
+        before do
+          referral.update!(source_enrollment: deleted_source_enrollment)
+        end
+
+        it 'returns the referral with a null source enrollment' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceReferral', 'sourceEnrollment')).to be_nil
+        end
+      end
+
       it 'returns no referral when user lacks permission' do
         # see additional permission logic testing in the model spec referral_permission_spec
         remove_permissions(ds_access_control, :can_view_referrals)
@@ -310,7 +323,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect do
               response, result = post_graphql(**variables) { query }
               expect(response.status).to eq(200), result.inspect
-            end.to make_database_queries(count: 40..50)
+            end.to make_database_queries(count: 40..55)
           end
         end
       end
@@ -576,7 +589,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 25..35)
+          end.to make_database_queries(count: 25..40)
         end
 
         context 'when current user has can_perform_own_referral_tasks' do

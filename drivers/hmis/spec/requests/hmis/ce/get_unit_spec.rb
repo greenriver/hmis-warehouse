@@ -15,8 +15,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # Basic setup
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 1 }
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
-  let!(:unit) { create(:hmis_unit_in_group, project: project) }
-  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit }
+  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: create(:hmis_workflow_definition_template, data_source: ds1)) }
+  let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+  let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: candidate_pool, unit: unit }
 
   let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
@@ -38,6 +39,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               name
               status
+              stale
               referral {
                 id
                 status
@@ -77,7 +79,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the unit has rules' do
-      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: nil, unit: unit }
+      let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: nil, unit: unit }
       let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit.unit_group) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
@@ -121,9 +123,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    describe 'querying for staleness' do
+      context 'when the opportunity is not stale' do
+        let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: nil, unit: unit }
+
+        it 'returns opportunity with stale = false' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          opportunity = result.dig('data', 'unit', 'latestOpportunity')
+          expect(opportunity['stale']).to eq(false)
+        end
+      end
+
+      context 'when the opportunity is stale' do
+        let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: nil, unit: unit, stale: true }
+
+        it 'returns opportunity with stale = true' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          opportunity = result.dig('data', 'unit', 'latestOpportunity')
+          expect(opportunity['stale']).to eq(true)
+        end
+      end
+    end
+
     describe 'when the opportunity has several referrals' do
-      let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
-      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit, workflow_template: workflow_template }
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
       let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
       let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }

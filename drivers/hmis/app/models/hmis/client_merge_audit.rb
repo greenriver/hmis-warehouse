@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See docs/features/hmis_client_merges.md
+
 class Hmis::ClientMergeAudit < Hmis::HmisBase
   belongs_to :actor, class_name: 'Hmis::User'
   has_many :client_merge_histories, class_name: 'Hmis::ClientMergeHistory', inverse_of: :client_merge_audit
@@ -27,7 +29,7 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   # @param record_type [String] The key in pre_merge_mappings (e.g., 'enrollments', 'names')
   # @return [Hash] Mapping of record_id => { attribute_name => original_value }
   def mappings_for(record_type)
-    ((pre_merge_mappings || {})[record_type.to_s] || {}).transform_keys(&:to_i)
+    (pre_merge_mappings[record_type.to_s] || {}).transform_keys(&:to_i)
   end
 
   # Get all enrollment IDs that were moved during this merge
@@ -41,7 +43,7 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
   # @return [String, nil] The original PersonalID, or nil if not found
   def original_personal_id_for_enrollment(enrollment_id)
     mapping_data = mappings_for('enrollments')[enrollment_id]
-    mapping_data&.dig('PersonalID') || mapping_data&.dig('personal_id')
+    mapping_data&.dig('PersonalID')
   end
 
   # Get the original client_id for a specific record (for client_id-based records like files)
@@ -60,19 +62,44 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
     mappings_for(record_type)[record_id]&.dig('source_id')&.to_i
   end
 
-  # Get IDs of records that were destroyed during merge
-  # @param record_type [String] The record type (e.g., 'custom_data_elements', 'referral_household_members')
-  # @return [Array<String>] Array of destroyed record IDs as strings
-  def destroyed_record_ids(record_type)
-    key = "destroyed_#{record_type}"
-    (pre_merge_mappings || {})[key] || []
+  # Get the original warehouse destination_id for a merged source client
+  # @param client_id [Integer] The source client ID
+  # @return [Integer, nil] The original warehouse destination client ID, or nil if not found
+  def original_warehouse_destination_id(client_id)
+    mappings_for('source_clients')[client_id]&.dig('destination_id')&.to_i
   end
 
-  # Check if a specific record was destroyed during merge
-  # @param record_type [String] The record type
-  # @param record_id [Integer] The record ID
-  # @return [Boolean] True if the record was destroyed
-  def record_destroyed?(record_type, record_id)
-    destroyed_record_ids(record_type).include?(record_id.to_s)
+  private
+
+  PRE_MERGE_MAPPING_EXPECTED_FIELDS = {
+    'enrollments' => 'PersonalID',
+    'names' => 'PersonalID',
+    'addresses' => 'PersonalID',
+    'contact_points' => 'PersonalID',
+    'custom_data_elements' => 'owner_id',
+    'files' => 'client_id',
+    'mci_ids' => 'source_id',
+    'mci_unique_ids' => 'source_id',
+    'scan_cards' => 'client_id',
+    'client_locations' => 'client_id',
+    'source_clients' => 'destination_id',
+  }.freeze
+
+  def validate_pre_merge_mappings_structure
+    return unless pre_merge_mappings.keys.any?
+
+    unexpected_keys = pre_merge_mappings.keys - PRE_MERGE_MAPPING_EXPECTED_FIELDS.keys
+    errors.add(:pre_merge_mappings, "mapping keys #{unexpected_keys.join(', ')} are unexpected") if unexpected_keys.any?
+
+    # Validate that all mapping values contain only the expected field
+    pre_merge_mappings.each do |key, mappings|
+      mappings.each do |record_id, attributes|
+        expected_field = PRE_MERGE_MAPPING_EXPECTED_FIELDS[key]
+        unless attributes.is_a?(Hash) && attributes.keys == [expected_field]
+          message = "Invalid mapping structure for #{key}: record #{record_id} must contain only '#{expected_field}'. Got: #{attributes.inspect}"
+          errors.add(:pre_merge_mappings, message)
+        end
+      end
+    end
   end
 end

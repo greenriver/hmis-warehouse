@@ -22,7 +22,7 @@ module Mutations
 
     def resolve(enrollment_id:, form_definition_id:, values_by_link_id:)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
-      access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
+      access_denied! unless policy_for(enrollment, policy_type: :hmis_enrollment).can_edit?
 
       # The match engine expects destination clients
       client = enrollment.client.destination_client
@@ -75,8 +75,7 @@ module Mutations
       eligible_pools = []
       clients = GrdaWarehouse::Hud::Client.where(id: client.id)
 
-      # Evaluate client against active candidate pools
-      Hmis::Ce::Match::CandidatePool.active.find_each do |pool|
+      Hmis::Ce::Match::CandidatePool.active_for_current_eligibility.find_each do |pool|
         evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, pool, field_map)
         result = evaluator.call(client, field_value_overrides: field_value_overrides)
 

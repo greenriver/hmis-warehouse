@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # GrdaWarehouse::EnrollmentChangeHistory
 #
 # Audit system that tracks changes to enrollment data over time to support data quality monitoring and troubleshooting.
@@ -29,7 +31,7 @@ module GrdaWarehouse
     }
 
     def self.generate_for_date!(date: Date.current)
-      priority = 12
+      priority = BaseJob::CACHE_REFRESH_PRIORITY_12
       range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
       GrdaWarehouse::Hud::Client.destination.distinct.
         joins(:source_enrollments).

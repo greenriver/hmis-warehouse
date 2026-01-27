@@ -43,9 +43,10 @@ module Types
     summary_field :custom_status, HmisSchema::CeCustomReferralStatus, null: true
     summary_field :client_id, ID, null: false
     summary_field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the full referral, even without full client record access.'
-    # Special case: Client is a "summary field" because it doesn't require referral visibility, but resolving it does require permission to view the client record.
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
-    summary_field :source_enrollment_id, ID, null: false
+    summary_field :source_enrollment_id, ID, null: true
+    # source_project_name is resolved separately from source_enrollment as a summary field to minimize data exposure
+    summary_field :source_project_name, String, null: true
     # Resolve project fields separately, instead of on the project schema object, in case user can't view the project
     summary_field :target_project_id, ID, null: false
     summary_field :target_project_name, String, null: false
@@ -89,6 +90,7 @@ module Types
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
       arg :origin, [HmisSchema::Enums::CeReferralOrigin]
+      arg :search_term, String
     end
 
     def current_match_values
@@ -143,8 +145,14 @@ module Types
       c = load_ar_association(object, :client)
 
       # This is a summary field. If the current user can view the referral, always return the client name
-      # (even if the current user can't otherwise view that client)
-      return c.brief_name.presence || c.masked_name if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+      # (even if the current user can't otherwise view that client), UNLESS the user doesn't have permission to view client names in general.
+      if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+        # TODO - this should be a global policy check
+        can_view_any_client_names = current_user.can_view_client_name?
+        return c.brief_name if c.brief_name.present? && can_view_any_client_names
+
+        return c.masked_name
+      end
 
       # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
       viewable_client = load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
@@ -189,20 +197,19 @@ module Types
     end
 
     def target_project_id
-      load_ar_association(object, :opportunity).project_id
+      target_project.id
     end
 
     def target_project_name
-      load_ar_association(object, :target_project).project_name
+      target_project.project_name
     end
 
     def target_project_type
-      load_ar_association(object, :target_project).project_type
+      target_project.project_type
     end
 
     def target_organization_name
-      project = load_ar_association(object, :target_project)
-      load_ar_association(project, :organization).name
+      load_ar_association(target_project, :organization).name
     end
 
     def target_enrollment
@@ -216,9 +223,20 @@ module Types
 
       # Resolve source Enrollment without checking viewable_by.This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment
       enrollment = load_ar_association(object, :source_enrollment)
+      return unless enrollment # May be missing if source enrollment was deleted and reference was not cleaned up
 
       # Not passing definition_identifiers because we don't need to resolve assessment data in this context (for now)
       OpenStruct.new(enrollment: enrollment, definition_identifiers: [])
+    end
+
+    def source_project_name
+      return unless object.source_enrollment_id
+
+      enrollment = load_ar_association(object, :source_enrollment)
+      return unless enrollment
+
+      project = load_ar_association(enrollment, :project)
+      project&.name
     end
 
     def referred_by
@@ -249,7 +267,7 @@ module Types
     end
 
     def access
-      project_id = load_ar_association(object, :opportunity).project_id
+      project_id = target_project.id
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
       source_enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
       referral_policy = policy_for(object, policy_type: :ce_referral)
@@ -278,6 +296,10 @@ module Types
     end
 
     private
+
+    def target_project
+      load_ar_association(object, :target_project)
+    end
 
     def participants_by_swimlane_id
       @participants_by_swimlane_id ||= object.participants.group_by(&:swimlane_id)

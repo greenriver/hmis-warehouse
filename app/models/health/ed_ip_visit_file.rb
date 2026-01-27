@@ -4,11 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
   class EdIpVisitFile < HealthBase
+    include FileContentValidator
     acts_as_paranoid
     require 'csv'
 
@@ -17,9 +20,35 @@ module Health
 
     belongs_to :user, optional: true
 
-    mount_uploader :file, EdIpVisitFileUploader
+    # Remove CarrierWave dependency
+    # mount_uploader :file, EdIpVisitFileUploader
 
     has_many :loaded_ed_ip_visits, dependent: :destroy
+
+    validate :validate_file_content_if_present
+
+    def validate_file_content_if_present
+      return if content.blank?
+
+      file_extension = '.csv'
+      allowed_types = ['text/plain', 'text/csv', 'application/csv', 'application/vnd.ms-excel']
+
+      result = self.class.validate_file_content(
+        content,
+        nil,
+        allowed_types,
+        file_extension,
+      )
+
+      return if result[:valid]
+
+      errors.add(:file, result[:error])
+    end
+
+    # Helper method for controllers to get filename
+    def file_identifier
+      file
+    end
 
     def label
       'ED & IP Visits'

@@ -15,6 +15,6 @@ module Types
     argument :ce_event_type, HmisSchema::Enums::Hud::EventType, required: false
     # argument :count, Integer, 'Number of units to create', required: false
     # argument :prefix, String, 'Prefix for unit names', required: false
-    # argument :unit_type_id, ID, required: false
+    argument :unit_type_id, ID, required: false
   end
 end

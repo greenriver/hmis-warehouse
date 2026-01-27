@@ -4,7 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DeleteItemJob < BaseJob
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
   KNOWN_CLASSES = {
     'GrdaWarehouse::Hud::Project' => GrdaWarehouse::Hud::Project,
     'GrdaWarehouse::Hud::Organization' => GrdaWarehouse::Hud::Organization,

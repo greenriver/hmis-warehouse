@@ -4,10 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::Enrolled
   extend ActiveSupport::Concern
   include PerformanceDashboard::Overview::Enrolled::Age
   include PerformanceDashboard::Overview::Enrolled::Gender
+  include PerformanceDashboard::Overview::Enrolled::Sex
   include PerformanceDashboard::Overview::Enrolled::Household
   include PerformanceDashboard::Overview::Enrolled::Veteran
   include PerformanceDashboard::Overview::Enrolled::RaceAndEthnicity
@@ -33,6 +36,8 @@ module PerformanceDashboard::Overview::Enrolled
       enrolled_by_age_details(options)
     elsif options[:gender]
       enrolled_by_gender_details(options)
+    elsif options[:sex]
+      enrolled_by_sex_details(options)
     elsif options[:household]
       enrolled_by_household_details(options)
     elsif options[:veteran]

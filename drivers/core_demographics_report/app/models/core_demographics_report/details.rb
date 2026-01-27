@@ -26,6 +26,7 @@ module
     def detail_hash
       {}.merge(age_detail_hash).
         merge(gender_detail_hash).
+        merge(sex_detail_hash).
         merge(disability_detail_hash).
         merge(race_detail_hash).
         merge(ethnicity_detail_hash).
@@ -116,6 +117,8 @@ module
         HudHelper.util.coc_name(column)
       when *gender_headers
         HudHelper.util.no_yes_reasons_for_missing_data(column)
+      when 'Sex'
+        HudHelper.util.sex(column)
       when 'Relationship To HoH'
         HudHelper.util.relationship_to_hoh(column)
       when 'Destination'
@@ -136,6 +139,7 @@ module
         'Reporting Age',
         'Relationship To HoH',
         *gender_headers,
+        'Sex',
         'Entry Date',
         'Exit Date',
         'Destination',
@@ -169,6 +173,7 @@ module
         age_calculation,
         e_t[:RelationshipToHoH],
         *gender_columns,
+        c_t[:Sex],
         e_t[:EntryDate],
         she_t[:exit_date],
         she_t[:destination],

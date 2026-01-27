@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Describes patient enrollments and contains PHI
 # Control: PHI attributes documented
@@ -11,16 +13,40 @@
 require 'stupidedi'
 module Health
   class Enrollment < HealthBase
-    phi_attr :content, Phi::Bulk, 'Description of content of enrollment file' # contains EDI serialized PHI
+    include FileContentValidator
 
-    mount_uploader :file, EnrollmentFileUploader
+    phi_attr :content, Phi::Bulk, 'Description of content of enrollment file' # contains EDI serialized PHI
+    phi_attr :original_filename, Phi::FreeText
+
+    # Remove CarrierWave dependency
+    # mount_uploader :file, EnrollmentFileUploader
 
     belongs_to :user, optional: true
 
-    ENROLLMENT = '021'.freeze
-    DISENROLLMENT = '024'.freeze
-    CHANGE = '001'.freeze
-    AUDIT = '030'.freeze
+    validate :validate_file_content_if_present
+
+    def validate_file_content_if_present
+      return if content.blank?
+
+      file_extension = '.txt'
+      allowed_types = ['text/plain', 'application/octet-stream']
+
+      result = self.class.validate_file_content(
+        content,
+        nil,
+        allowed_types,
+        file_extension,
+      )
+
+      return if result[:valid]
+
+      errors.add(:file, result[:error])
+    end
+
+    ENROLLMENT = '021'
+    DISENROLLMENT = '024'
+    CHANGE = '001'
+    AUDIT = '030'
 
     def self.maintenance_code_to_string(code)
       @maintenance_types ||= {

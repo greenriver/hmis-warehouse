@@ -33,31 +33,50 @@
 ###
 module HmisExternalApis::AcHmis
   class Aha
+    # Lookup catalyst and reason are optional values; if present on the form, they should be submitted when we make the fetch call.
+    # Before submitting, validate against the list of allowed values.
+    # (Validate here, instead of in the graphql schema, so we have flexibility to ignore instead of raise when receiving invalid values)
+    LOOKUP_CATALYST_ALLOWED_VALUES = [
+      'OCS Staff',
+      'OCS Admin',
+      'Non-OCS Program Admin',
+      'DHS Admin',
+    ].freeze
+    LOOKUP_REASON_ALLOWED_VALUES = [
+      'Other',
+      'Vacancy Management',
+      'Prioritization Request',
+      'DHS Housing Integration',
+    ].freeze
+
     SYSTEM_ID = 'ac_hmis_aha'
     AHA_GENERATOR = 'AHA'
     VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
-    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
+    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 15 : 10
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
-    NoMciUniqueIdError = HmisErrors::ApiError.new(display_message: 'Client does not have an MCI unique ID')
+    # Custom error class for MciUniqueId so the mutation can catch it
+    class NoMciUniqueIdError < HmisErrors::ApiError; end
 
-    def fetch_score(client)
+    def fetch_score(client, lookup_catalyst: nil, lookup_reason: nil)
       # Collect MCI unique IDs for this client and all source clients with the same destination client
       clients = [client, *client.destination_client&.source_clients&.to_a]
       mci_uniq_ids = clients.compact.uniq.filter_map do |c|
         c.ac_hmis_mci_unique_id&.value
-      end.uniq
+      end.uniq.sort
 
       raise NoMciUniqueIdError if mci_uniq_ids.empty?
 
-      payload = if mci_uniq_ids.size > 1
-        { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(',') }
-      else
-        { 'dw_client_id__dw_client_id__includes': mci_uniq_ids.first }
-      end
+      payload = create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
 
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
+
+      # If the API returns "No client found" error, the external system was unable to find the MCI Unique ID.
+      # Raise the same error as if the client had no MCI Unique ID, so the mutation/frontend handle it in the same way.
+      # Note: this is a hotfix for a bug introduced in release-188. IF we need to differentiate between the two cases,
+      # we can add a new error class and adjust end-user messaging.
+      raise NoMciUniqueIdError if client_not_found_response?(result)
 
       data = result.parsed_body&.dig('data')
       raise(Error, "AHA response missing `data` key. Response body: `#{result.parsed_body}`") unless data
@@ -105,6 +124,36 @@ module HmisExternalApis::AcHmis
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
+    def create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
+      payload = {}
+
+      if mci_uniq_ids.size > 1
+        payload[:dw_client_id__dw_client_id__overlap] = mci_uniq_ids.join(',')
+      else
+        payload[:dw_client_id__dw_client_id__includes] = mci_uniq_ids.first
+      end
+
+      # For lookup catalyst and lookup reasons, don't send unknown values to the external API,
+      # but log to Sentry if we receive unexpected values so we don't silently skip them.
+      if lookup_catalyst.present?
+        if LOOKUP_CATALYST_ALLOWED_VALUES.include?(lookup_catalyst)
+          payload[:lookup_catalyst] = lookup_catalyst
+        else
+          Sentry.capture_message("AHA received unexpected lookup catalyst: #{lookup_catalyst}")
+        end
+      end
+
+      if lookup_reason.present?
+        valid_reasons, unknown_reasons = lookup_reason.partition { |r| LOOKUP_REASON_ALLOWED_VALUES.include?(r) }
+
+        payload[:lookup_reason] = valid_reasons if valid_reasons.any?
+
+        Sentry.capture_message("AHA received unexpected lookup reason(s): #{unknown_reasons.join(', ')}") if unknown_reasons.any?
+      end
+
+      payload
+    end
+
     def handle_error(result)
       if result.error
         Rails.logger.error "AHA API Error: #{result.error}"
@@ -114,9 +163,6 @@ module HmisExternalApis::AcHmis
       # Check if HTTP status indicates success (200-299 range)
       return result if http_status_successful?(result.http_status)
 
-      # Handle specific case: 404 with "No client found" shouldn't raise, just return no ID
-      return result if client_not_found_response?(result)
-
       raise(Error, "AHA HTTP error: Received non-200 HTTP status: #{result.http_status}")
     end
 
@@ -125,7 +171,7 @@ module HmisExternalApis::AcHmis
     end
 
     def client_not_found_response?(result)
-      result.http_status == 404 && result.parsed_body&.dig('message') == 'No client found.'
+      result.parsed_body&.dig('message')&.match?(/no client found/i)
     end
   end
 end

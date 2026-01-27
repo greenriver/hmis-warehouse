@@ -38,6 +38,8 @@ class User < ApplicationRecord
   has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
   has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
 
+  has_many :compliance_agreements, class_name: 'GrdaWarehouse::Compliance::Agreement', dependent: :destroy
+
   accepts_nested_attributes_for :system_contact
 
   # Ensure system_contact has proper entity attributes before validation
@@ -336,5 +338,9 @@ class User < ApplicationRecord
   # Subscribe to a system alert (creates system contact if needed)
   def subscribe_to_system_alert!(alert_code)
     system_contact!.subscribe_to!(alert_code)
+  end
+
+  def pending_compliance_requirements
+    GrdaWarehouse::Compliance::Requirement.pending_for_user(self)
   end
 end

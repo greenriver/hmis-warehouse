@@ -7,14 +7,19 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
+require_relative '../../../../../spec/shared_contexts/hud_report_performance_helpers'
 
 # Shared context for SPM testing
-RSpec.shared_context 'SPM test setup', shared_context: :metadata do
-  include_context 'HUD enrollment builders'
+RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
+  include_context 'HUD report performance helpers'
+
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
+
   let(:default_filter) do
     Filters::HudFilterBase.new(
-      user_id: user.id,
+      user: user,
       start: '2022-10-01'.to_date,
       end: '2023-09-30'.to_date,
       coc_codes: ['MA-500'],

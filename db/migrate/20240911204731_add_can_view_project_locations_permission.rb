@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddCanViewProjectLocationsPermission < ActiveRecord::Migration[7.0]
   def up
     Role.ensure_permissions_exist

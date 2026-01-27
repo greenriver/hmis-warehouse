@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SimpleReports
   class ReportInstance < GrdaWarehouseBase
     acts_as_paranoid
@@ -17,6 +19,23 @@ module SimpleReports
       return where(user_id: user.id) if user.can_view_assigned_reports?
 
       none
+    end
+
+    scope :of_types, ->(types) { where(type: types) }
+
+    scope :completed, -> { where.not(completed_at: nil) }
+
+    scope :purge_eligible, ->(grace_period_days, now = Time.current) do
+      # Sanitize grace_period_days to prevent SQL injection
+      sanitized_days = grace_period_days.to_i
+      where(Arel.sql("archival_metadata->>'purged_at' IS NULL")).
+        where(
+          Arel.sql(
+            "((archival_metadata->>'purge_eligible_at' IS NOT NULL AND (archival_metadata->>'purge_eligible_at')::timestamp <= ?) OR " \
+            "(archival_metadata->>'purge_eligible_at' IS NULL AND completed_at + INTERVAL '#{sanitized_days} days' <= ?))",
+            now, now
+          ),
+        )
     end
 
     def universe

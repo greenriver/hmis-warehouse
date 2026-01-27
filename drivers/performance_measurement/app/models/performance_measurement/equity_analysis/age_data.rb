@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement::EquityAnalysis
   class AgeData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
@@ -23,14 +25,15 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def client_scope(period, investigate_by)
-      age_range = Filters::FilterBase.age_range(investigate_by.to_sym)
+      age_range = census_age_range_to_range(investigate_by.to_sym)
+      ages = age_range.to_a
       age_column = case period
       when 'reporting'
         :reporting_age
       else
         :comparison_age
       end
-      metric_scope(period).where(age_column => age_range)
+      metric_scope(period).where(age_column => ages)
     end
   end
 end

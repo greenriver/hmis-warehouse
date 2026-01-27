@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::ImpersonationsController < Hmis::BaseController
   before_action :attach_data_source_id
   before_action :authorize_action

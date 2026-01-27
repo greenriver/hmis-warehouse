@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_income_benefit, class: 'Hmis::Hud::IncomeBenefit', parent: :hmis_base_factory do
     client { association :hmis_hud_client, data_source: data_source }

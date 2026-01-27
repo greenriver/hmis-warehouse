@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::ClientExternalIdentifierCollection
   attr_accessor :client, :ac_hmis_mci_ids, :warehouse_client_source
 

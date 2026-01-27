@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::Hud::Concerns::ServiceHistoryQueuer
   extend ActiveSupport::Concern
 
@@ -20,7 +22,7 @@ module Hmis::Hud::Concerns::ServiceHistoryQueuer
       currently_running = Delayed::Job.running?(handlers)
       run_at = currently_running ? 5.minutes.from_now : nil
       queue = ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(priority: 12, run_at: run_at, queue: queue).batch_process_unprocessed!
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(priority: BaseJob::CACHE_REFRESH_PRIORITY_12, run_at: run_at, queue: queue).batch_process_unprocessed!
     end
 
     def queue_service_history_processing!

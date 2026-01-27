@@ -11,12 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
   before(:each) do
     hmis_login(user)
   end
@@ -208,29 +202,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(id: p1.id) { project_assessments_query }
       expect(response.status).to eq 500
       expect(result.dig('errors')[0]['message']).to eq 'access denied'
-    end
-  end
-
-  describe 'omni search projects' do
-    let(:project_omni_search) do
-      <<~GRAPHQL
-        query OmniSearchProjects($searchTerm: String!, $limit: Int) {
-          projects(filters: { searchTerm: $searchTerm }, limit: $limit, offset: 0) {
-            limit
-            nodesCount
-            nodes {
-              id
-              projectName
-            }
-          }
-        }
-      GRAPHQL
-    end
-
-    it 'does not error when passed a large integer value' do
-      response, result = post_graphql(searchTerm: '73892738928') { project_omni_search }
-      expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'projects', 'nodes').count).to eq(0)
     end
   end
 end

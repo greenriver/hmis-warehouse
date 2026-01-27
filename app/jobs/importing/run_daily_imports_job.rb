@@ -73,6 +73,9 @@ module Importing
       end
 
       run_maintenance_task('Generate service history and related records') do
+        # Purge service history for deleted data sources before generating new records
+        GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources.call
+
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments
@@ -161,7 +164,7 @@ module Importing
       end
 
       run_maintenance_task('Legacy reporting setup') do
-        ReportingSetupJob.set(priority: 15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
+        ReportingSetupJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
 
         @notifier.ping('Rebuilding reporting tables...')
         GrdaWarehouse::Report::Base.update_fake_materialized_views
@@ -170,7 +173,7 @@ module Importing
         # Pre-calculate the dashboards (unless already queued)
         unless Delayed::Job.queued?('Reporting::PopulationDashboardPopulateJob')
           @notifier.ping('Updating dashboards')
-          Reporting::PopulationDashboardPopulateJob.set(priority: 10).perform_later(sub_population: 'all')
+          Reporting::PopulationDashboardPopulateJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later(sub_population: 'all')
         end
       end
 
@@ -179,8 +182,8 @@ module Importing
         PruneDocumentExportsJob.perform_later
         Health::PruneDocumentExportsJob.perform_later
 
-        YouthFollowUpsJob.set(priority: 10).perform_later
-        SystemCohortsJob.set(priority: 10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
+        YouthFollowUpsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later
+        SystemCohortsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
         AccessGroup.delayed_system_group_maintenance
         Collection.delayed_system_group_maintenance
         GrdaWarehouse::Cohort.delay.maintain_auto_maintained!
@@ -188,6 +191,7 @@ module Importing
 
         create_statistical_matches
         generate_logging_info
+        shs_debugging_counts
       end
     end
 
@@ -302,6 +306,23 @@ module Importing
 
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
       @notifier.ping('Pushed Clients to CAS')
+    end
+
+    def shs_debugging_counts
+      counts = GrdaWarehouse::ServiceHistoryService.
+        where(project_type: 0, date: 10.days.ago.to_date..).
+        order(:date).
+        group(:date).
+        count
+
+      message = [
+        'Service History Service counts for the last 10 days (ES Entry/Exit only):',
+        '```',
+        'Date                 Count',
+        *counts.map { |date, count| format('%-20s %s', date.to_fs(:db), count) },
+        '```',
+      ].join("\n")
+      @notifier.ping(message)
     end
   end
 end

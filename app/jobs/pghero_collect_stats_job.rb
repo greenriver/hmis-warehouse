@@ -4,7 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class PgheroCollectStatsJob < ::BaseJob
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
   def perform(clean: false)
     # seems to break on pg12
     return unless postgres_version >= 13

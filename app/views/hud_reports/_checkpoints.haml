@@ -1,0 +1,23 @@
+.mb-2
+%button(class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails")
+  %span.icon-list
+  Show Checkpoints
+#collapseDetails.collapse
+  %table.table.table-sm
+    %thead
+      %tr
+        %th Checkpoint
+        %th Status
+        %th Run Time
+        %th Start Time
+        %th Completion Time
+    - @report.checkpoints.order(:started_at).each do |cp|
+      %tbody
+        %tr
+          %td= cp.name
+          %td= cp.status
+          %td
+            - if cp.started_at && cp.completed_at
+              = distance_of_time_in_words(cp.started_at, cp.completed_at)
+          %td= cp.started_at
+          %td= cp.completed_at

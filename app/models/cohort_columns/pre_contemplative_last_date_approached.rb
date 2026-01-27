@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class PreContemplativeLastDateApproached < CohortDate
     attribute :column, String, lazy: true, default: :pre_contemplative_last_date_approached
