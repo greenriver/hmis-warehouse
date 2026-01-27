@@ -27,7 +27,7 @@ module HudApr
     end
 
     private def set_question
-      @question = generator.valid_question_number(params[:question] || params[:id])
+      @question = ::HudReports::DrilldownContext.valid_measure(params[:question] || params[:id], generator: generator)
     end
   end
 end

@@ -29,7 +29,9 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   end
   let(:policy) { user.policy_for(referral, policy_type: :ce_referral) }
 
-  describe '#can_index?' do
+  describe 'Global#can_index?' do
+    let(:policy) { user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral) }
+
     it 'returns true if user has both view and perform permissions' do
       create_access_control(user, project, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks])
       expect(policy.can_index?).to be true
@@ -50,7 +52,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_view?' do
+  describe 'Instance#can_view?' do
     context 'with can_view_referrals permission' do
       it 'returns true if user also has can_view_project' do
         create_access_control(user, project, with_permission: [:can_view_referrals, :can_view_project])
@@ -219,7 +221,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_perform?' do
+  describe 'Instance#can_perform?' do
     let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
 
@@ -250,7 +252,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_view_summary?' do
+  describe 'Instance#can_view_summary?' do
     let(:source_project) { create :hmis_hud_project, data_source: data_source }
     let(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, data_source: data_source }
     let(:referral) do
@@ -306,7 +308,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_create_note?' do
+  describe 'Instance#can_create_note?' do
     let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
 

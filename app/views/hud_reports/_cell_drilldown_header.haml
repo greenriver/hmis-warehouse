@@ -1,0 +1,21 @@
+= content_for :crumbs do
+  = link_to path_for_question_result(@drilldown.measure, report: @drilldown.report) do
+    = @drilldown.breadcrumb_label
+
+- content_for :title do
+  = @drilldown.name
+
+.d-flex.mb-2
+  %h1= content_for :title
+  .ml-auto
+    = render 'hud_reports/cell_drilldown_download_button'
+
+.d-flex.align-items-end.mb-4
+  .w-50
+    - if @drilldown.searchable?
+      = form_tag(path_for_search_queries, method: :post, class: 'mb-0') do
+        .input-group
+          = text_field_tag :q, @drilldown.search_term, class: 'form-control', placeholder: 'Search by name, ID, or Personal ID...', autofocus: @drilldown.search_term.present?
+          = button_tag 'Search', type: 'submit', class: 'btn btn-secondary'
+          - if @drilldown.search_term.present?
+            = link_to 'Clear', path_for_cell_without_search, class: 'btn btn-outline-secondary'

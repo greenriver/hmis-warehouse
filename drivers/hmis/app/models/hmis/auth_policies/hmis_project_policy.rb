@@ -6,50 +6,52 @@
 
 # frozen_string_literal: true
 
-class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
-  def can_view?
-    project_permissions.include?(:can_view_project)
+class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
+  class Instance < Hmis::AuthPolicies::BasePolicy
+    def can_view?
+      project_permissions.include?(:can_view_project)
+    end
+
+    def can_edit?
+      project_permissions.include?(:can_edit_project_details)
+    end
+
+    def can_destroy?
+      project_permissions.include?(:can_delete_project)
+    end
+
+    def can_manage_units?
+      project_permissions.include?(:can_manage_units)
+    end
+
+    def can_update_unit_availability?
+      project_permissions.include?(:can_update_unit_availability)
+    end
+
+    def can_send_out_direct_referral?
+      project_permissions.include?(:can_manage_outgoing_referrals)
+    end
+
+    def can_view_outgoing_referral_summaries?
+      project_permissions.include?(:can_view_outgoing_referral_details) || project_permissions.include?(:can_manage_outgoing_referrals)
+    end
+
+    def can_manage_ce_default_contacts?
+      project_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    # Whether the user can, in general, perform referral tasks in the project.
+    # For determining whether a user can perform a specific task, see CeReferralPolicy.can_perform?
+    def can_perform_referral_tasks?
+      project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
+    end
+
+    protected
+
+    memoize def project_permissions
+      context.project_permissions(resource.id)
+    end
+
+    def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Project)
   end
-
-  def can_edit?
-    project_permissions.include?(:can_edit_project_details)
-  end
-
-  def can_destroy?
-    project_permissions.include?(:can_delete_project)
-  end
-
-  def can_manage_units?
-    project_permissions.include?(:can_manage_units)
-  end
-
-  def can_update_unit_availability?
-    project_permissions.include?(:can_update_unit_availability)
-  end
-
-  def can_send_out_direct_referral?
-    project_permissions.include?(:can_manage_outgoing_referrals)
-  end
-
-  def can_view_outgoing_referral_summaries?
-    project_permissions.include?(:can_view_outgoing_referral_details) || project_permissions.include?(:can_manage_outgoing_referrals)
-  end
-
-  def can_manage_ce_default_contacts?
-    project_permissions.include?(:can_administrate_coordinated_entry)
-  end
-
-  # Whether the user can, in general, perform referral tasks in the project.
-  # For determining whether a user can perform a specific task, see CeReferralPolicy.can_perform?
-  def can_perform_referral_tasks?
-    project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
-  end
-
-  protected
-
-  memoize def project_permissions
-    context.project_permissions(resource.id)
-  end
-
-  def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Project)
 end
