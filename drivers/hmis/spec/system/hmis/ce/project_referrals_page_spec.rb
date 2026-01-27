@@ -107,7 +107,7 @@ RSpec.feature 'CE Project Referrals Page', type: :system do
     end
 
     context 'user can manage outgoing referrals, but not view referrals in the target project' do
-      let!(:access_control) { create_access_control(admin, ds1, with_permission: [:can_view_project, :can_manage_outgoing_referrals]) }
+      let!(:access_control) { create_access_control(admin, ds1, without_permission: [:can_view_referrals]) }
 
       it 'shows the CE referrals page and allows sending direct referrals' do
         visit "/projects/#{project.id}/referrals"
