@@ -157,7 +157,11 @@ module HmisDataCleanup
     end
 
     # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
-    def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
+    # @param classes [Array<Class>, nil] Optional array of classes to process. If nil, processes all enrollment-related classes.
+    # @param enrollment_scope [ActiveRecord::Relation, nil] Optional scope of enrollments to limit the fix to.
+    #   When provided, only records associated with enrollments in this scope will be fixed.
+    # @param dry_run [Boolean] If true, only reports what would be fixed without making changes.
+    def self.fix_incorrect_personal_id_references!(classes: nil, enrollment_scope: nil, dry_run: false)
       classes&.each do |klass|
         raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
       end
@@ -165,12 +169,23 @@ module HmisDataCleanup
       classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
       data_source_id = GrdaWarehouse::DataSource.hmis.first.id
 
+      # Extract EnrollmentIDs from the scope if provided, otherwise use all enrollments
+      enrollment_ids = enrollment_scope.pluck(:EnrollmentID) if enrollment_scope
+
+      # Base scope for looking up enrollments (always use GrdaWarehouse for consistency)
+      enrollment_lookup_scope = GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id)
+      enrollment_lookup_scope = enrollment_lookup_scope.where(EnrollmentID: enrollment_ids) if enrollment_ids
+
       Hmis::Hud::Base.transaction do
         classes.each do |klass|
           Rails.logger.info "[#{klass.name}] Processing"
 
+          # Build the base scope for records
+          base_scope = klass.where(data_source_id: data_source_id)
+          base_scope = base_scope.where(EnrollmentID: enrollment_ids) if enrollment_ids
+
           if dry_run
-            records_needing_update = klass.where(data_source_id: data_source_id).
+            records_needing_update = base_scope.
               left_outer_joins(:enrollment).
               where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
               count
@@ -179,16 +194,14 @@ module HmisDataCleanup
             next
           end
 
-          klass.where(data_source_id: data_source_id).left_outer_joins(:enrollment).
+          base_scope.left_outer_joins(:enrollment).
             where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
             find_in_batches do |batch|
             Rails.logger.info "[#{klass.name}] Processing batch"
 
             # map {EnrollmentID=>PersonalID} for each enrollment referenced by this batch of records
-            eid_to_pid = GrdaWarehouse::Hud::Enrollment.where(
-              data_source_id: data_source_id,
-              EnrollmentID: batch.map(&:EnrollmentID),
-            ).pluck(:EnrollmentID, :PersonalID).to_h
+            eid_to_pid = enrollment_lookup_scope.where(EnrollmentID: batch.map(&:EnrollmentID)).
+              pluck(:EnrollmentID, :PersonalID).to_h
 
             values = []
             batch.each do |record|

@@ -42,6 +42,10 @@ module Hmis::Hud::Concerns::Shared
         'AssessmentResult',
         'Event',
         'YouthEducationStatus',
+        # custom but use EnrollmentID and PersonalID like other enrollment-related records
+        'CustomAssessment',
+        'CustomCaseNote',
+        'CustomService',
       ].freeze
     end
 
