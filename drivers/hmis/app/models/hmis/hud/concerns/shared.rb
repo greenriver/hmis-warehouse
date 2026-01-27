@@ -52,7 +52,7 @@ module Hmis::Hud::Concerns::Shared
 
     def self.hud_class_names
       [
-        *enrollment_personal_id_keyed_class_names,
+        *enrollment_personal_id_keyed_class_names.filter { |name| !name.start_with?('Custom') },
         'Export',
         'Organization',
         'Project',
