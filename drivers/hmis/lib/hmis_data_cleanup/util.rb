@@ -178,25 +178,24 @@ module HmisDataCleanup
 
       Hmis::Hud::Base.transaction do
         classes.each do |klass|
-          Rails.logger.info "[#{klass.name}] Processing"
-
           # Build the base scope for records
           base_scope = klass.where(data_source_id: data_source_id)
           base_scope = base_scope.where(EnrollmentID: enrollment_ids) if enrollment_ids
 
-          if dry_run
-            records_needing_update = base_scope.
-              left_outer_joins(:enrollment).
-              where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
-              count
+          # Outer join to enrollment and select records where the enrollment is null,
+          # indicating the record's PersonalID may be incorrect (the EnrollmentID and
+          # PersonalID columns don't point to the same enrollment).
+          records_needing_update = base_scope.
+            left_outer_joins(:enrollment).
+            where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil))
 
-            Rails.logger.info "[#{klass.name}] #{records_needing_update} records with bad PersonalID"
-            next
-          end
+          ids = records_needing_update.limit(15).pluck(:id)
+          num_records = records_needing_update.count
+          Rails.logger.info "[#{klass.name}] Found #{num_records} records with potentially bad PersonalID: #{ids.inspect}#{'...' if num_records > 15}"
 
-          base_scope.left_outer_joins(:enrollment).
-            where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
-            find_in_batches do |batch|
+          next if dry_run
+
+          records_needing_update.find_in_batches do |batch|
             Rails.logger.info "[#{klass.name}] Processing batch"
 
             # map {EnrollmentID=>PersonalID} for each enrollment referenced by this batch of records
