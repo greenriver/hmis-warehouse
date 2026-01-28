@@ -39,7 +39,17 @@ module PerformanceDashboard::Overview::Detail
     case header
     when 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
       HudHelper.util.no_yes_reasons_for_missing_data(column)
-    when HudHelper.util.race('AmIndAKNative'), HudHelper.util.race('Asian'), HudHelper.util.race('BlackAfAmerican'), HudHelper.util.race('NativeHIPacific'), HudHelper.util.race('White'), HudHelper.util.race('RaceNone'), HudHelper.util.race('HispanicLatinaeo'), HudHelper.util.race('MidEastNAfrican'), HudHelper.util.ethnicity(:unknown), HudHelper.util.ethnicity(:hispanic_latinaeo), HudHelper.util.ethnicity(:non_hispanic_latinaeo), HudHelper.util.ethnicity(:hispanic_latinaeo), HudHelper.util.ethnicity(:non_hispanic_latinaeo)
+    when HudHelper.util.race('AmIndAKNative'),
+         HudHelper.util.race('Asian'),
+         HudHelper.util.race('BlackAfAmerican'),
+         HudHelper.util.race('NativeHIPacific'),
+         HudHelper.util.race('White'),
+         HudHelper.util.race('RaceNone'),
+         HudHelper.util.race('HispanicLatinaeo'),
+         HudHelper.util.race('MidEastNAfrican'),
+         HudHelper.util.ethnicity(:unknown),
+         HudHelper.util.ethnicity(:hispanic_latinaeo),
+         HudHelper.util.ethnicity(:non_hispanic_latinaeo)
       HudHelper.util.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
       HudHelper.util.veteran_status(column)
@@ -49,6 +59,8 @@ module PerformanceDashboard::Overview::Detail
       HudHelper.util.project_type(column)
     when 'CoC'
       HudHelper.util.coc_name(column)
+    when 'Sex'
+      HudHelper.util.sex(column)
     else
       column
     end
@@ -64,6 +76,8 @@ module PerformanceDashboard::Overview::Detail
         title += " #{age_bucket_titles[sub_key.to_sym]}"
       elsif options[:gender].present?
         title += " #{gender_bucket_titles[sub_key.to_i]}"
+      elsif options[:sex].present?
+        title += " #{sex_bucket_titles[sub_key.to_i]}"
       elsif options[:household].present?
         title += " #{household_bucket_titles[sub_key.to_i]}"
       elsif options[:veteran].present?
@@ -113,6 +127,7 @@ module PerformanceDashboard::Overview::Detail
       columns['Questioning'] = c_t[:Questioning]
       columns['Unknown Gender'] = c_t[:GenderNone]
     end
+    columns['Sex'] = c_t[:Sex] if options[:sex]
     if options[:household]
       columns['Reporting Age'] = age_calculation
       columns['DOB'] = c_t[:DOB] unless exclude_pii

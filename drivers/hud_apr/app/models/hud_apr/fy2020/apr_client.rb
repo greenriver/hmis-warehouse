@@ -24,6 +24,8 @@ module HudApr::Fy2020
     has_many :hud_report_ce_events, class_name: 'HudApr::Fy2020::CeEvent', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
     belongs_to :source_enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
+    # Optional for backward compatibility; in practice, accessed via joins in scoped queries
+    belongs_to :report_instance, class_name: 'HudReports::ReportInstance', optional: true
 
     # Hide ID, move destination_client_id, and name to the front
     def self.detail_headers
@@ -49,6 +51,22 @@ module HudApr::Fy2020
       return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       detail_headers.except('first_name', 'last_name', 'dob', 'ssn')
+    end
+
+    def self.search_columns
+      table = arel_table
+      [
+        table[:first_name],
+        table[:last_name],
+        table[:personal_id],
+        table[:ssn],
+        Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
+        Arel::Nodes::NamedFunction.new('CAST', [table[:destination_client_id].as('TEXT')]),
+      ]
+    end
+
+    def self.pluck_project_ids
+      distinct.pluck(:project_id)
     end
   end
 end
