@@ -20,12 +20,12 @@ module Hmis
       # @param current_user [User, nil] current user for preloading client dependencies
       def initialize(project:, enrollments:, current_user: nil)
         self.project = project
-        self.enrollments = enrollments.preload(:client, :current_living_situations).to_a
+        self.enrollments = enrollments.preload(:client, :current_living_situations, :exit).to_a
 
         return unless current_user && self.enrollments.any?
 
         # Preload client dependencies for authorization checks to avoid n+1
-        client_ids = self.enrollments.map(&:client).compact.map(&:id).uniq
+        client_ids = self.enrollments.map(&:client).compact.map(&:id).uniq # client is preloaded above
         current_user.policy_context.preload_client_dependencies(client_ids)
       end
 
