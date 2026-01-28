@@ -11,8 +11,7 @@ require 'rails_helper'
 # Tests what tabs are available on the CE referrals page, depending on a combo of user permissions + project config.
 # In the future, coverage could be expanded to test actual referral fields shown.
 RSpec.feature 'CE Project Referrals Page', type: :system do
-  # Use find_or_create_by since some tests create the data source in a before(:all) block for performance reasons.
-  let!(:ds1) { GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true) }
+  let!(:ds1) { create :hmis_primary_data_source, hmis: 'localhost' }
   let!(:project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3, with_coc: true) }
 
   let!(:admin) { create(:hmis_user, data_source: ds1, first_name: 'Alexandra', last_name: 'Admin') }
