@@ -330,7 +330,6 @@ module HudReports
           member_exit_date: member_hash[:exit_date],
           member_date_to_street: member_hash[:date_to_street],
           age_at_entry: member_hash[:age_at_entry],
-          hoh_age_at_entry: member_hash[:hoh_age_at_entry],
           inherited_date_to_street: inherited_date_to_street,
           member_count: hh_member_count,
           hh_max_age: hh_max_age,

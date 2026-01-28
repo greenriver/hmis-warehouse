@@ -83,7 +83,7 @@ module HudSpmReport::Fy2026
       client_enrollments = enrollments.where(client_id: client_id)
       self.exit_enrollment = client_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
         where(destination: HudHelper.util('2026').permanent_destinations).
-        order(exit_date: :asc, entry_date: :asc).
+        order(exit_date: :asc, entry_date: :asc, id: :asc).
         first
       return unless exit_enrollment.present? # If no exit, no return
 
@@ -91,7 +91,7 @@ module HudSpmReport::Fy2026
       self.exit_destination = exit_enrollment.destination
       self.project_type = exit_enrollment.project_type
 
-      candidate_returns = client_enrollments.where(entry_date: exit_date..).order(entry_date: :asc)
+      candidate_returns = client_enrollments.where(entry_date: exit_date..).order(entry_date: :asc, id: :asc)
       self.return_enrollment = candidate_returns.detect do |enrollment|
         # Can't match yourself
         next false if enrollment.id == exit_enrollment.id

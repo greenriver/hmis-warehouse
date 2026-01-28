@@ -53,7 +53,7 @@ module HudSpmReport::Fy2026
     end
 
     def enrollment
-      enrollments.first
+      enrollments.sort_by { |e| e.enrollment_id }.first
     end
 
     # TODO: convert include_self_reported_and_ph to include_self_report_from_project_types so we can be explicit about which types we want to use when looking for time prior to entry
@@ -400,7 +400,8 @@ module HudSpmReport::Fy2026
       return unless calculated_bed_nights.present?
 
       # Sort by date to ensure chronological order and remove duplicates
-      calculated_bed_nights = calculated_bed_nights.sort_by(&:last).uniq(&:last)
+      # Tie-break with enrollment_id and id for determinism
+      calculated_bed_nights = calculated_bed_nights.sort_by { |e, _, d| [d, e.enrollment_id, e.id] }.uniq(&:last)
 
       # Step 4b: A [client start date] will usually be prior to the [report start date]...
       # Step 6.2: ...going back until you hit the Lookback Stop Date or a gap in homelessness.
