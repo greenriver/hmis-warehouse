@@ -146,14 +146,5 @@ module GrdaWarehouse
 
       Integer(value, exception: false)
     end
-
-    def candidate_preferred?(existing, candidate)
-      return true unless existing
-
-      # Compare the new candidate against the current best using the primary data
-      # quality followed by our tie-breaker ordering (date, then id). We only
-      # take the new candidate when it sorts ahead of the existing one.
-      (candidate.tie_breakers <=> existing.tie_breakers).negative?
-    end
   end
 end
