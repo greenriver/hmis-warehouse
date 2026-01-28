@@ -195,6 +195,10 @@ module HudSpmReport::Fy2026
         end
         import!(members)
       end
+
+      # Explicitly clear and nullify household_infos to allow GC to reclaim memory
+      household_infos&.clear
+      household_infos = nil
     end
 
     def self.detail_headers

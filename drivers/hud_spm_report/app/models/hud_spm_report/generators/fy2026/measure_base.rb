@@ -71,5 +71,15 @@ module HudSpmReport::Generators::Fy2026
         question_name: self.class.question_number,
       )
     end
+
+    def run!
+      super
+    ensure
+      # Explicitly clear memoized members on all report cells once the question is finished.
+      # This prevents large arrays of objects from staying in memory for the duration of the entire report run.
+      @report.report_cells.each do |cell|
+        cell.instance_variable_set(:@members, nil)
+      end
+    end
   end
 end

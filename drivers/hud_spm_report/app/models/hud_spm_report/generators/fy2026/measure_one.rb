@@ -197,6 +197,10 @@ module HudSpmReport::Generators::Fy2026
         end.to_h
         @universe.add_universe_members(members)
       end
+
+      # Explicitly nullify batch_calculator to allow GC to reclaim memory
+      batch_calculator = nil
+
       @universe.members
     end
 
