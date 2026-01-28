@@ -187,6 +187,17 @@ module HudReports
           pit_chronic_at_start = enrollment&.chronically_homeless_at_start(date: report_date)
         end
 
+        # parenting youth logic Cap at DOB if present
+        date_to_street = enrollment&.DateToStreetESSH
+        date_to_street = [date_to_street, source_client&.DOB].compact.max if date_to_street.present?
+
+        # Enrollment CoC with fallback to project if project has only one CoC
+        enrollment_coc = enrollment&.EnrollmentCoC
+        if enrollment_coc.blank? && enrollment&.project
+          project_cocs = enrollment.project.project_cocs.map(&:CoCCode).compact_blank.uniq
+          enrollment_coc = project_cocs.first if project_cocs.size == 1
+        end
+
         {
           she_id: m.id,
           enrollment_id: enrollment&.id,
@@ -205,8 +216,8 @@ module HudReports
           relationship_to_hoh: enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
           veteran_status: source_client&.VeteranStatus,
-          enrollment_coc: enrollment&.EnrollmentCoC,
-          date_to_street: enrollment&.DateToStreetESSH,
+          enrollment_coc: enrollment_coc,
+          date_to_street: date_to_street,
         }
       end
 

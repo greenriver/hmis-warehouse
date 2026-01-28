@@ -179,6 +179,13 @@ module HudSpmReport::Fy2026
           context = contexts_by_she_id[she.id]
           next unless context
 
+          # SPM reports must filter by CoC, respecting inheritance from HoH and fallback to Project CoC
+          # (See HUD HMIS Reporting Glossary 2024, "Enrollment CoC Null Handling")
+          effective_coc = context.hoh_coc || enrollment.EnrollmentCoC
+          if filter.coc_codes.present? && effective_coc.present? && !filter.coc_codes.include?(effective_coc)
+            next
+          end
+
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
 
