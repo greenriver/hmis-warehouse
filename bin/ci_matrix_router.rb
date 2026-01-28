@@ -12,6 +12,7 @@ class CiMatrixRouter
     @event_name = ENV['EVENT_NAME']
     @input_test_path = ENV['INPUT_TEST_PATH']
     @input_with_okta = ENV['INPUT_WITH_OKTA'] == 'true'
+    @input_testkit_check_all_table_results = ENV['INPUT_TESTKIT_CHECK_ALL_TABLE_RESULTS'] == 'true'
     @input_with_logging = ENV['INPUT_WITH_LOGGING'] == 'true'
     @input_with_profiling = ENV['INPUT_WITH_PROFILING'] == 'true'
     @buckets_file = ENV['BUCKETS_FILE'] || '.github/rspec_buckets.json'
@@ -30,6 +31,7 @@ class CiMatrixRouter
       run_warehouse: routing[:run_warehouse],
       focused_path: focus_path,
       okta: @input_with_okta || @commit_msg.include?('with-okta'),
+      testkit_check_all_table_results: @input_testkit_check_all_table_results || @commit_msg.include?('testkit-check-all-results'),
       logging: @input_with_logging || @commit_msg.include?('with-logging'),
       profiling: @input_with_profiling || @commit_msg.include?('ci-profile'),
     }

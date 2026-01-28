@@ -95,7 +95,7 @@ module DatalabTestkit
         (results_metadata['first_row'] .. results_metadata['last_row']).each do |row_number|
           (results_metadata['first_column'] .. results_metadata['last_column']).each do |column_name|
             cell_name = column_name + row_number.to_s
-            next if cell_name.in?(skip)
+            next if cell_name.in?(skip) && ENV['TESTKIT_CHECK_ALL_TABLE_RESULTS'] != 'true'
 
             column_index = COLUMN_LABELS.find_index(column_name)
             column_index += 1 if external_row_label # Shift column index if the label is outside the table, but included in the goals
