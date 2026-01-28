@@ -62,6 +62,7 @@ module Types
       Hmis::Ce::FilteredCandidatesQuery.new(
         opportunity: object,
         exclude_declined_clients: filters&.exclude_declined_clients,
+        search_term: filters&.search_term,
       ).resolve
     end
 
