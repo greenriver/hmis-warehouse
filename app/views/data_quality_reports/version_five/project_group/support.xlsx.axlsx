@@ -2,7 +2,12 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: @method.humanize.slice(0,30)) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(@data[:headers], :style => title)
+  sex_index = @data[:headers].find_index('Sex')
   @data[:counts].each do |row|
-    sheet.add_row(row)
+    formatted_row = row.dup
+    if sex_index && formatted_row[sex_index].present?
+      formatted_row[sex_index] = HudHelper.util.sex(formatted_row[sex_index])
+    end
+    sheet.add_row(formatted_row)
   end
 end

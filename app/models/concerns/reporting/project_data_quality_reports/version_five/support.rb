@@ -332,6 +332,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Support
         'DOB' => :dob,
         'SSN' => :ssn,
         'Gender' => :gender_multi,
+        'Sex' => :sex,
         'Entry Date' => :entry_date,
         'Project' => :project_name,
         'Project ID' => :project_id,
@@ -339,7 +340,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Support
     end
 
     def completeness_support_columns(column)
-      @completeness_support_columns ||= client_support_columns
+      @completeness_support_columns ||= client_support_columns.dup
       case column
       when :veteran
         @completeness_support_columns['Veteran Status'] = :veteran_status

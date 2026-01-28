@@ -17,6 +17,7 @@
           %th= t
     %tbody
       - project_id_index = @data[:headers].find_index('Project ID')
+      - sex_index = @data[:headers].find_index('Sex')
       - @data[:counts].each do |row|
         %tr
           - row.each_with_index do |v, index|
@@ -24,6 +25,8 @@
             %td
               - if @data[:headers].first == 'Client ID' && index == 0
                 = link_to(v, polymorphic_path(@client_path, {id: v}), target: '_blank')
+              - elsif index == sex_index && v.present?
+                = HudHelper.util.sex(v)
               - else
                 = v
 - else

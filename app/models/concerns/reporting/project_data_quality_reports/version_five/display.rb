@@ -417,6 +417,15 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
           denominator: :enrolled_clients,
           label: 'Gender',
         },
+        sex: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_clients,
+          label: 'Sex',
+        },
         veteran: {
           measures: [
             :missing,
