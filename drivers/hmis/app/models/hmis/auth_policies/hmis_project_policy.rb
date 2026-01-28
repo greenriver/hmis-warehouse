@@ -37,7 +37,11 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_manage_ce_default_contacts?
-      project_permissions.include?(:can_administrate_coordinated_entry)
+      # Currently CE contact management is authorized using the global permission
+      # "can_administrate_coordinated_entry", which grants access to manage default contacts at all projects.
+      # In the future if/when we allow project-level admins to manage their own contacts,
+      # this may be replaced with a check for a new non-admin permission like `project_permissions.include?(:can_manage_ce_default_contacts)`
+      global_permissions.include?(:can_administrate_coordinated_entry)
     end
 
     # Whether the user can, in general, perform referral tasks in the project.
