@@ -21,7 +21,7 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
     results = records.map { |record| record.public_send(@association_name) }
 
     # Preload client dependencies when loading client association
-    preload_client_dependencies(results) if @association_name == :client && @context && results.any?
+    GraphqlApplicationHelper.preload_client_dependencies(context: @context, results: results) if @association_name == :client && @context
 
     # Rails.logger.info("preloading complete #{records.first.class.name}.#{@association_name}") if records.any?
     results
@@ -29,18 +29,5 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
 
   def self.batch_key_for(*batch_args, **batch_kwargs)
     [*batch_args.map { |arg| arg.try(:to_sql) || arg }, **batch_kwargs]
-  end
-
-  private
-
-  def preload_client_dependencies(results)
-    # Remove nils (for optional associations)
-    clients = results.compact
-    return if clients.empty?
-
-    # Extract client IDs and preload dependencies
-    client_ids = clients.map(&:id).uniq
-    current_user = @context[:current_user]
-    current_user.policy_context.preload_client_dependencies(client_ids)
   end
 end

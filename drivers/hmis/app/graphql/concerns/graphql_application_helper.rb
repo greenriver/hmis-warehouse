@@ -49,7 +49,7 @@ module GraphqlApplicationHelper
   end
 
   def load_ar_scope(scope:, id:)
-    dataloader.with(Sources::ActiveRecordScope, scope).load(id)
+    dataloader.with(Sources::ActiveRecordScope, scope, context: context).load(id)
   end
 
   # Helper to resolve the active enrollment for this client at the specified project on the specified date.
@@ -81,5 +81,23 @@ module GraphqlApplicationHelper
 
   def arel
     Hmis::ArelHelper.instance
+  end
+
+  # Preload client dependencies when loading clients via associations or scopes.
+  # This ensures that policy checks for clients are efficient by preloading
+  # related project and access group data.
+  #
+  # @param context [Hash] GraphQL context containing :current_user
+  # @param results [Array] Array of client records (may include nils)
+  def self.preload_client_dependencies(context:, results:)
+    # Remove nils (for optional associations)
+    clients = results.compact
+    return if clients.empty?
+
+    # Extract client IDs and preload dependencies
+    client_ids = clients.map(&:id).uniq
+    current_user = context[:current_user]
+
+    current_user.policy_context.preload_client_dependencies(client_ids)
   end
 end
