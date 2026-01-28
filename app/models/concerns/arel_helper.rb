@@ -213,6 +213,9 @@ module ArelHelper
       group_columns = Array.wrap(group_on).map { |c| group_table[c] }
       order_columns = Array.wrap(column).map { |c| source_arel_table[c].send(direction) }
 
+      # Tie-break with id to ensure determinism when there are ties in the specified column(s)
+      order_columns << source_arel_table[:id].send(direction)
+
       max_by_group = source.distinct_on(group_columns).
         order(*group_columns, *order_columns)
 
