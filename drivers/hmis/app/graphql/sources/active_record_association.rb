@@ -21,7 +21,7 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
     results = records.map { |record| record.public_send(@association_name) }
 
     # Preload client dependencies when loading client association
-    GraphqlApplicationHelper.preload_client_dependencies(context: @context, results: results) if @association_name == :client && @context
+    GraphqlApplicationHelper.preload_client_dependencies(context: @context, clients: results) if @association_name == :client && @context
 
     # Rails.logger.info("preloading complete #{records.first.class.name}.#{@association_name}") if records.any?
     results

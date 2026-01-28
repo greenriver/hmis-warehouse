@@ -19,7 +19,7 @@ class Sources::ActiveRecordScope < ::GraphQL::Dataloader::Source
     results = @scope.where(id: ids).index_by(&:id).values_at(*ids)
 
     # Preload client dependencies when loading clients
-    GraphqlApplicationHelper.preload_client_dependencies(context: @context, results: results) if @scope.model == Hmis::Hud::Client && @context
+    GraphqlApplicationHelper.preload_client_dependencies(context: @context, clients: results) if @scope.model == Hmis::Hud::Client && @context
 
     results
   end

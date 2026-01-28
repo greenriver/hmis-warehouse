@@ -89,9 +89,9 @@ module GraphqlApplicationHelper
   #
   # @param context [Hash] GraphQL context containing :current_user
   # @param results [Array] Array of client records (may include nils)
-  def self.preload_client_dependencies(context:, results:)
+  def self.preload_client_dependencies(context:, clients:)
     # Remove nils (for optional associations)
-    clients = results.compact
+    clients = clients.compact
     return if clients.empty?
 
     # Extract client IDs and preload dependencies
