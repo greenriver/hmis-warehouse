@@ -11,7 +11,7 @@ module Mutations
     graphql_name 'UpdateServiceType'
 
     argument :id, ID, required: true
-    argument :input, Types::HmisSchema::ServiceTypeInput, required: false # TODO(#8767) Require in next release
+    argument :input, Types::HmisSchema::ServiceTypeInput, required: true
 
     field :service_type, Types::HmisSchema::ServiceType, null: true
 
