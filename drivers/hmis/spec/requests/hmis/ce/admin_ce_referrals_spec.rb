@@ -32,10 +32,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
               createdAt
-              currentSteps {
-                id
-                name
-              }
               referredBy {
                 id
                 name
@@ -205,6 +201,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = result.dig('data', 'ceReferrals', 'nodes')
         expect(referrals.size).to eq(1)
         expect(referrals.first['id']).to eq(referral2.id.to_s)
+      end
+    end
+
+    context 'when referral has available script task' do
+      # Regression test: Ensures ScriptTasks don't appear in currentSteps (only User tasks should be resolved).
+      # This came up after a manual support fix left a dangling available script task. Also future-proofing for other task types.
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
+      let!(:script_task) { create(:hmis_workflow_definition_script_task, template: workflow_template_1, name: 'Script Task') }
+      let!(:start_event) { create(:hmis_workflow_definition_start_event, template: workflow_template_1) }
+      let!(:script_step) do
+        # Manually create an available script task step to simulate a dangling step from a manual support fix
+        referral.workflow_instance.steps.create!(
+          node: script_task,
+          status: 'available',
+          available_at: Time.current,
+        )
+      end
+
+      before do
+        referral.workflow_engine.start_workflow!(user: hmis_user) # start workflow to make user task available
+      end
+
+      it 'does not include ScriptTask in currentSteps, only UserTask' do
+        response, result = post_graphql { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals).to contain_exactly(a_hash_including('currentSteps' => [a_hash_including('name' => 'Client Acceptance')]))
       end
     end
 
