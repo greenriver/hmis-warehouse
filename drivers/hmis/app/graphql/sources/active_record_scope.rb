@@ -18,8 +18,10 @@ class Sources::ActiveRecordScope < ::GraphQL::Dataloader::Source
     # Load records by the provided IDs and return them in the same order
     results = @scope.where(id: ids).index_by(&:id).values_at(*ids)
 
+    # Check if @scope is a relation (has .model) or a class (compare directly)
+    model_class = @scope.is_a?(ActiveRecord::Relation) ? @scope.model : @scope
     # Preload client dependencies when loading clients
-    GraphqlApplicationHelper.preload_client_dependencies(context: @context, clients: results) if @scope.model == Hmis::Hud::Client && @context
+    GraphqlApplicationHelper.preload_client_dependencies(context: @context, clients: results) if model_class == Hmis::Hud::Client && @context
 
     results
   end
