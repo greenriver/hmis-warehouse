@@ -1,5 +1,4 @@
 SELECT id,
-  name,
   created_at,
   updated_at,
   deleted_at, -- Unlike many other CE analytics views, we still export deleted units because we expect users will need to report on historical occupancy and availability over time
