@@ -87,7 +87,6 @@ module Types
     field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
     field :auto_exit_enabled, Boolean, null: false, description: 'Whether auto-exit is enabled in this project', method: :auto_exit_enabled?
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
-    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
     field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field

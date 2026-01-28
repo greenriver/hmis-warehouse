@@ -11,14 +11,11 @@ module Mutations
     graphql_name 'UpdateServiceType'
 
     argument :id, ID, required: true
-    argument :name, String, required: false, deprecation_reason: 'Deprecated in favor of input object'
-    argument :supports_bulk_assignment, Boolean, required: false, deprecation_reason: 'Deprecated in favor of input object'
-
-    argument :input, Types::HmisSchema::ServiceTypeInput, required: false # TODO(#5737) Make required
+    argument :input, Types::HmisSchema::ServiceTypeInput, required: false # TODO(#8767) Require in next release
 
     field :service_type, Types::HmisSchema::ServiceType, null: true
 
-    def resolve(id:, name: nil, supports_bulk_assignment: nil, input: nil)
+    def resolve(id:, input:)
       access_denied! unless current_user.can_configure_data_collection?
 
       service_type = Hmis::Hud::CustomServiceType.find(id)
@@ -27,15 +24,10 @@ module Mutations
       # while the service continues to collect HUD records for the original type.
       raise "Can't update HUD service type: #{service_type.id} #{service_type.name}" if service_type.hud_service?
 
-      if input.present?
-        service_type.assign_attributes(**input.to_params) unless input.to_params.empty?
+      service_type.assign_attributes(**input.to_params) unless input.to_params.empty?
 
-        service_category = input.find_or_initialize_service_category(hud_user.user_id, current_user.hmis_data_source_id)
-        service_type.custom_service_category = service_category if service_category.present?
-      else
-        service_type.name = name
-        service_type.supports_bulk_assignment = supports_bulk_assignment
-      end
+      service_category = input.find_or_initialize_service_category(hud_user.user_id, current_user.hmis_data_source_id)
+      service_type.custom_service_category = service_category if service_category.present?
 
       if service_type.valid?
         service_type.save!

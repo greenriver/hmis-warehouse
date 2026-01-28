@@ -27,7 +27,6 @@ module Types
     field :organization_name, String, null: false
 
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
     field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
@@ -107,11 +106,6 @@ module Types
 
     def priority_schemes
       Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
-    end
-
-    # TODO(#7957) - remove after deprecation period
-    def priority_scheme
-      priority_schemes&.first
     end
 
     def revivified_rules

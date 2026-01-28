@@ -955,7 +955,6 @@ type CeOpportunity {
   id: ID!
   name: String!
   organizationName: String!
-  priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
   projectId: ID!
   projectName: String!
@@ -5076,11 +5075,6 @@ type FormItem {
   rule: JSON
 
   """
-  Whether to apply this field to all clients or a single client when bulk creating
-  """
-  serviceDetailType: ServiceDetailType @deprecated(reason: "from old bulk services implementation, no longer supported")
-
-  """
   Size of the input element
   """
   size: InputSize
@@ -5194,11 +5188,6 @@ enum FormRole {
   EXTERNAL_FORM
 
   """
-  External form submission review
-  """
-  EXTERNAL_FORM_SUBMISSION_REVIEW
-
-  """
   File
   """
   FILE
@@ -5303,7 +5292,6 @@ type FormRule {
   organization: Organization
   organizationId: ID
   otherFunder: String
-  project: Project @deprecated(reason: "Use projectName instead")
   projectId: ID
   projectName: String
   projectType: ProjectType
@@ -5323,7 +5311,6 @@ input FormRuleFilterOptions {
 }
 
 input FormRuleInput {
-  activeStatus: ActiveStatus @deprecated(reason: "Rules are always active when created. This type is no longer used for updating a form rule. To deactivate, use DeleteFormRule mutation.")
   dataCollectedAbout: DataCollectedAbout
   funder: FundingSource
   organizationId: ID
@@ -7272,7 +7259,7 @@ type Mutation {
     """
     input: UpdateRelationshipToHoHInput!
   ): UpdateRelationshipToHoHPayload
-  updateServiceType(id: ID!, input: ServiceTypeInput, name: String @deprecated(reason: "Deprecated in favor of input object"), supportsBulkAssignment: Boolean @deprecated(reason: "Deprecated in favor of input object")): UpdateServiceTypePayload
+  updateServiceType(id: ID!, input: ServiceTypeInput): UpdateServiceTypePayload
   updateUnitGroup(id: ID!, input: UnitGroupInput!): UpdateUnitGroupPayload
   updateUnits(
     """
@@ -9638,11 +9625,6 @@ type Project {
   continuumProject: NoYes
 
   """
-  Whether Coordinated Entry is enabled in this project
-  """
-  coordinatedEntryEnabled: Boolean! @deprecated(reason: "Use coordinatedEntryFeatures")
-
-  """
   Coordinated Entry features that are enabled for this Project
   """
   coordinatedEntryFeatures: ProjectCoordinatedEntryFeatures
@@ -10290,7 +10272,6 @@ type QueryAccess {
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewClients: Boolean!
-  canViewCoordinatedEntry: Boolean! @deprecated(reason: "Replaced with Project-level coordinatedEntryEnabled field and global feature flag")
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewEnrollmentLocationMap: Boolean!
@@ -11473,16 +11454,10 @@ type ServiceCategory {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
-  hud: Boolean! @deprecated(reason: "No longer used")
   id: ID!
   name: String!
   serviceTypes(limit: Int, offset: Int): ServiceTypesPaginated!
   user: ApplicationUser
-}
-
-enum ServiceDetailType {
-  BULK
-  CLIENT
 }
 
 input ServiceFilterOptions {
@@ -12423,11 +12398,6 @@ enum StaticFormRole {
   CLIENT_ALERT
 
   """
-  External form submission review
-  """
-  EXTERNAL_FORM_SUBMISSION_REVIEW @deprecated(reason: "External forms are moving to a directly configured react form, rather than a static form.")
-
-  """
   Form definition
   """
   FORM_DEFINITION
@@ -12871,21 +12841,8 @@ type Unit {
   user: ApplicationUser
 }
 
-enum UnitFilterOptionStatus {
-  """
-  Available
-  """
-  AVAILABLE
-
-  """
-  Filled
-  """
-  FILLED
-}
-
 input UnitFilterOptions {
   occupancyStatus: UnitOccupancyStatus
-  status: [UnitFilterOptionStatus!] @deprecated(reason: "Use `occupancyStatus` instead")
   unitGroup: [ID!]
   unitType: [ID!]
 }
@@ -12906,7 +12863,6 @@ type UnitGroup {
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!
-  priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
   unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
