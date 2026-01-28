@@ -331,7 +331,6 @@ module Reporting::ProjectDataQualityReports::VersionFive::Support
         'Last Name' => :last_name,
         'DOB' => :dob,
         'SSN' => :ssn,
-        'Gender' => :gender_multi,
         'Sex' => :sex,
         'Entry Date' => :entry_date,
         'Project' => :project_name,

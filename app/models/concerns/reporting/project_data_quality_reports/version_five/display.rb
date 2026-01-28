@@ -408,15 +408,6 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
           denominator: :enrolled_clients,
           label: 'DOB',
         },
-        gender: {
-          measures: [
-            :missing,
-            :refused,
-            :not_collected,
-          ],
-          denominator: :enrolled_clients,
-          label: 'Gender',
-        },
         sex: {
           measures: [
             :missing,
