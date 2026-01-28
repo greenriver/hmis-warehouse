@@ -345,7 +345,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         end
 
-        # todo @martha - will this wokr?
         it 'returns the matching candidate' do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
