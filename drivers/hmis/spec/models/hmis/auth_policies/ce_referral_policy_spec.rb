@@ -161,6 +161,32 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       end
     end
 
+    context 'when referral has no source project' do
+      let!(:referral) do
+        create(
+          :hmis_ce_referral,
+          client: client,
+          opportunity: opportunity,
+          workflow_instance: workflow_instance,
+          source_enrollment: nil,
+        )
+      end
+
+      it 'returns false' do
+        expect(policy.can_view?).to be false
+      end
+
+      it 'does not report to sentry (regression test)' do
+        allow(Sentry).to receive(:capture_message)
+        expect(policy.can_view?).to be false
+        expect(Sentry).not_to have_received(:capture_message) # regression test
+      end
+      it 'returns true if user can view referrals in target project' do
+        create_access_control(user, project, with_permission: [:can_view_referrals, :can_view_project])
+        expect(policy.can_view?).to be true
+      end
+    end
+
     it 'returns false if user has no relevant permissions' do
       expect(policy.can_view?).to be false
     end
