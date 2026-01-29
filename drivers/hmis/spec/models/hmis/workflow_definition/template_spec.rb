@@ -53,4 +53,34 @@ RSpec.describe Hmis::WorkflowDefinition::Template, type: :model do
       expect(unit_group.workflow_template).to eq(v1)
     end
   end
+
+  describe '.used_in_projects' do
+    let!(:project1) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:project2) { create(:hmis_hud_project, data_source: ds1) }
+
+    let!(:template1) { create(:hmis_workflow_definition_template, data_source: ds1, identifier: 'template-1') }
+    let!(:template2) { create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: ds1, identifier: 'template-2') }
+    let!(:unused_template) { create(:hmis_workflow_definition_template, data_source: ds1, identifier: 'unused-template') }
+
+    let!(:unit_group1) { create(:hmis_unit_group, project: project1, workflow_template_identifier: template1.identifier) }
+    let!(:unit_group2) { create(:hmis_unit_group, project: project2, workflow_template_identifier: nil, direct_referral_workflow_template_identifier: template2.identifier) }
+
+    it 'returns templates used by workflow_template_identifier in given projects' do
+      result = described_class.used_in_projects([project1.id])
+      expect(result).to contain_exactly(template1)
+    end
+
+    it 'returns templates used by direct_referral_workflow_template_identifier in given projects' do
+      result = described_class.used_in_projects([project2.id])
+      expect(result).to contain_exactly(template2)
+    end
+
+    it 'does not return duplicate templates when used in multiple unit groups' do
+      # Create another unit group in project1 also using template1
+      create(:hmis_unit_group, project: project1, workflow_template_identifier: template1.identifier)
+
+      result = described_class.used_in_projects([project1.id])
+      expect(result).to contain_exactly(template1)
+    end
+  end
 end

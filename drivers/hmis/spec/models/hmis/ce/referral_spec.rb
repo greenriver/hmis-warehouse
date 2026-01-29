@@ -118,6 +118,134 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
   end
 
+  describe '#create_default_participants!' do
+    let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: data_source, template_type: 'ce_referral' }
+    let!(:unit_group) { create :hmis_unit_group, project: project, workflow_template: template }
+    let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+    let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
+    let!(:case_manager_1) { create :hmis_user }
+    let!(:case_manager_2) { create :hmis_user }
+    let!(:provider) { create :hmis_user }
+    let!(:case_manager_swimlane) { template.swimlanes.create!(name: 'Case Managers') }
+    let!(:provider_swimlane) { template.swimlanes.create!(name: 'Providers') }
+    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, workflow_template: template) }
+
+    context 'with assignments at the project level' do
+      let!(:default_assignment_1) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: project)
+      end
+      let!(:default_assignment_2) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_2, swimlane: case_manager_swimlane, owner: project)
+      end
+      let!(:default_assignment_provider) do
+        create(:hmis_ce_default_swimlane_assignment, user: provider, swimlane: provider_swimlane, owner: project)
+      end
+
+      it 'creates referral participants from project-level defaults' do
+        expect do
+          referral.create_default_participants!
+        end.to change(Hmis::Ce::ReferralParticipant, :count).by(3)
+
+        expect(referral.participants.pluck(:user_id, :swimlane_id)).to contain_exactly(
+          [case_manager_1.id, case_manager_swimlane.id],
+          [case_manager_2.id, case_manager_swimlane.id],
+          [provider.id, provider_swimlane.id],
+        )
+      end
+    end
+
+    shared_examples 'creates participant from single assignment' do |owner_description|
+      it "creates referral participant from #{owner_description}-level default" do
+        expect do
+          referral.create_default_participants!
+        end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
+
+        participant = referral.participants.first
+        expect(participant.user).to eq(case_manager_1)
+        expect(participant.swimlane).to eq(case_manager_swimlane)
+      end
+    end
+
+    context 'with assignment at the unit group level' do
+      let!(:default_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: unit_group)
+      end
+
+      include_examples 'creates participant from single assignment', 'unit group'
+    end
+
+    context 'with assignment at the organization level' do
+      let!(:default_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: project.organization)
+      end
+
+      include_examples 'creates participant from single assignment', 'organization'
+    end
+
+    context 'with assignment at the data source level' do
+      let!(:default_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: data_source)
+      end
+
+      include_examples 'creates participant from single assignment', 'data source'
+    end
+
+    context 'with assignments at multiple levels' do
+      let!(:project_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: project)
+      end
+      let!(:unit_group_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: unit_group)
+      end
+      let!(:org_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_2, swimlane: case_manager_swimlane, owner: project.organization)
+      end
+      let!(:ds_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: provider, swimlane: provider_swimlane, owner: data_source)
+      end
+
+      it 'creates participants additively from all levels, deduplicating by user and swimlane' do
+        expect do
+          referral.create_default_participants!
+        end.to change(Hmis::Ce::ReferralParticipant, :count).by(3)
+
+        # case_manager_1 assigned from project/unit_group (deduplicated to one participant)
+        # case_manager_2 assigned from organization
+        # provider assigned from data source with different swimlane
+        expect(referral.participants.pluck(:user_id, :swimlane_id)).to contain_exactly(
+          [case_manager_1.id, case_manager_swimlane.id],
+          [case_manager_2.id, case_manager_swimlane.id],
+          [provider.id, provider_swimlane.id],
+        )
+      end
+    end
+
+    context 'with default assignment for an unrelated project' do
+      let!(:other_project) { create :hmis_hud_project, data_source: data_source }
+      let!(:unrelated_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: other_project)
+      end
+
+      it 'does not create participants for unrelated projects' do
+        expect do
+          referral.create_default_participants!
+        end.not_to change(Hmis::Ce::ReferralParticipant, :count)
+      end
+    end
+
+    context 'with soft-deleted default assignments' do
+      let!(:default_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager_1, swimlane: case_manager_swimlane, owner: project, deleted_at: Time.current)
+      end
+
+      it 'does not create participants for soft-deleted assignments' do
+        expect do
+          referral.create_default_participants!
+        end.not_to change(Hmis::Ce::ReferralParticipant, :count)
+      end
+    end
+  end
+
   describe 'matching_search_term scope' do
     let!(:client1) { create(:hmis_hud_client, data_source: data_source, FirstName: 'Alice', LastName: 'Johnson') }
     let!(:client2) { create(:hmis_hud_client, data_source: data_source, FirstName: 'Bob', LastName: 'Smith') }

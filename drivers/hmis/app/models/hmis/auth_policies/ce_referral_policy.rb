@@ -98,10 +98,20 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
       return false unless Hmis::Ce.configuration.enabled?
 
       # require that a user could both view referrals and act on them
-      return false unless (context.global_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
-      return false unless (context.global_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
+      return false unless (global_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
+      return false unless (global_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
 
       true
+    end
+
+    def can_perform_referral_tasks?
+      global_permissions.include?(:can_perform_any_referral_tasks)
+    end
+
+    # Whether the user can manage CE default contacts in the data source.
+    # If we end up with a lot of default-contact-related permission checks, it might make sense to create a separate DefaultContactPolicy.
+    def can_manage_ce_default_contacts?
+      global_permissions.include?(:can_administrate_coordinated_entry)
     end
 
     protected

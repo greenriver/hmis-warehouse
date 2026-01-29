@@ -15,6 +15,7 @@ class Hmis::Filter::ProjectFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_search_term)).
       yield_self(&method(:with_organizations)).
+      yield_self(&method(:with_ce_enabled)).
       yield_self(&method(:clean_scope))
   end
 
@@ -38,5 +39,9 @@ class Hmis::Filter::ProjectFilter < Hmis::Filter::BaseFilter
 
   def with_organizations(scope)
     with_filter(scope, :organization) { scope.with_organization_ids(input.organization) }
+  end
+
+  def with_ce_enabled(scope)
+    with_filter(scope, :ce_enabled) { input.ce_enabled == true ? scope.with_ce_enabled : scope }
   end
 end
