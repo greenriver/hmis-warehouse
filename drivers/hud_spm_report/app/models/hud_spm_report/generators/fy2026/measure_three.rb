@@ -138,12 +138,8 @@ module HudSpmReport::Generators::Fy2026
         )
         members = uniq_members.preload(:client).map do |enrollment|
           [enrollment.client, enrollment]
-        end.to_h
-        universe.add_universe_members(members)
-
-        # Explicitly clear and nullify members hash to allow GC to reclaim memory
-        members.clear
-        members = nil
+        end
+        universe.add_universe_members(members.to_h)
       end
 
       # add universe to cell

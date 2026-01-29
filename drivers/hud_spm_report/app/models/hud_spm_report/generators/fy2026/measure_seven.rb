@@ -186,10 +186,6 @@ module HudSpmReport::Generators::Fy2026
       end.to_h
       universe.add_universe_members(members)
 
-      # Explicitly clear and nullify members hash to allow GC to reclaim memory
-      members.clear
-      members = nil
-
       universe.members
     end
 
@@ -211,10 +207,6 @@ module HudSpmReport::Generators::Fy2026
         [enrollment.client, enrollment]
       end.to_h
       universe.add_universe_members(members)
-
-      # Explicitly clear and nullify members hash to allow GC to reclaim memory
-      members.clear
-      members = nil
 
       universe.members
     end
@@ -243,11 +235,6 @@ module HudSpmReport::Generators::Fy2026
 
       universe = @report.universe(:m7b2)
       universe.add_universe_members(members)
-
-      # Explicitly clear and nullify members hash to allow GC to reclaim memory
-      members.clear
-      members = nil
-
       universe.members
     end
 

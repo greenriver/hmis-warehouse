@@ -261,6 +261,17 @@ module HudSpmReport::Generators::Fy2026
       end
     end
 
+    def run!
+      super
+    ensure
+      # The sub-reports generated for DQ are only needed for the CSV generation.
+      # Clear them explicitly to free up memory
+      @reports&.each_value do |sub_report|
+        sub_report.report_cells.each(&:clear_memoization!)
+      end
+      @reports = nil
+    end
+
     def metadata(column)
       case column
       when 'CocCode'
