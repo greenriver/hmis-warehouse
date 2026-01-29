@@ -320,12 +320,12 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         episode = @report.universe('m1b2').members.first.universe_membership
 
         # Expected homeless days:
-        # Sept 15 (date to street) to Nov 15 (ES exit) = 62 days
+        # Sept 15 (date to street) to Nov 15 (ES exit) = 61 days
         # Nov 10 (TH entry) to Jan 10 (TH exit) = 62 days
         # Jan 15 (PH entry) to Feb 1 (PH move-in) = 17 days
-        # Total = 141 days
-        # But, TH overrides ES for Nov 10-15 (6 days overlap), so 135 days total
-        expect(episode.days_homeless).to be_within(5).of(135)
+        # Total = 140 days
+        # But, TH overrides ES for Nov 10-15 (6 days overlap), so 134 days total
+        expect(episode.days_homeless).to eq(134)
       end
     end
 
