@@ -495,7 +495,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       )
 
       # Client 2: First-time homeless in PH
-      # - not counted as first-time
       create_enrollment(
         client: @client2,
         project: @ph_project,
@@ -516,19 +515,19 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'has the same first-time homeless count in both reports for ES, SH, TH' do
       # SPM report first-time homeless in ES, SH, TH
-      spm_count = @spm_report.answer(question: '5.1', cell: 'C4').summary # TODO: confirm if we want to pivot to 5.2
+      spm_count = @spm_report.answer(question: '5.2', cell: 'C4').summary
 
       # PM report first-time homeless
       pm_result = @pm_report.result_for(:first_time_homeless_clients)
       pm_count = pm_result.primary_value
 
-      # 2 first-time homeless clients, client1 and client 3
-      compare_spm_and_pm_values(spm_count, pm_count, 2)
+      # 3 first-time homeless clients, client 1, 2 and 3 (all project types are included in 5.2)
+      compare_spm_and_pm_values(spm_count, pm_count, 3)
     end
 
     it 'counts the same total entries in the reporting period' do
       # SPM report total universe
-      spm_count = @spm_report.answer(question: '5.1', cell: 'C2').summary # TODO: confirm if we want to pivot to 5.2
+      spm_count = @spm_report.answer(question: '5.2', cell: 'C2').summary
 
       # Count from PM report
       # This may need adjustment depending on exactly how PM tracks this
@@ -536,8 +535,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
       expect(pm_count).to be > 0
       expect(pm_count).to eq(spm_count.to_i)
-      # Should be 2 clients (clients 1 and 3 in ES/TH)
-      expect(pm_count).to eq(2)
+      # Should be 2 clients (clients 1, 2, and 3 in ES/SH/TH/PH)
+      expect(pm_count).to eq(3)
     end
   end
 

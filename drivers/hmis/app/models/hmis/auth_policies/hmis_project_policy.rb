@@ -11,12 +11,10 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_view_project)
   end
 
-  # not used yet
   def can_edit?
     project_permissions.include?(:can_edit_project_details)
   end
 
-  # not used yet
   def can_destroy?
     project_permissions.include?(:can_delete_project)
   end

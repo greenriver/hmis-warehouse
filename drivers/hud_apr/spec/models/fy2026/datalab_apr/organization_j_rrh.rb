@@ -36,7 +36,7 @@ RSpec.shared_context 'datalab organization j rrh apr', shared_context: :metadata
           apr_validations.each do |question, table_validations|
             table_validations.each do |validation|
               next if validation_skips[question]&.include?(validation[:total])
-              next unless validation[:source][:relevant_project_types]&.include?(3)
+              next unless validation[:source][:relevant_project_types]&.include?(13)
 
               check_sum(validation: validation, question: question)
             end
