@@ -78,7 +78,7 @@ RSpec.describe 'BulkMergeClients', type: :request do
     end
 
     it 'fails if a client is not viewable by the user' do
-      other_ds = create(:hmis_primary_data_source)
+      other_ds = create(:hmis_data_source)
       other_client = create(:hmis_hud_client, data_source: other_ds)
 
       input = { input: [{ client_ids: [c1.id, other_client.id] }] }
