@@ -258,7 +258,7 @@ module HudSpmReport::Fy2026
           end_date -= 1.day if end_date.present?
           # Don't include days after the end of the reporting period
           end_date = [end_date, report_end_date].compact.min
-          (start_date .. end_date).map do |date|
+          (start_date .. end_date).each do |date|
             bed_nights[date] = [enrollment, nil, date]
           end
         end
@@ -279,7 +279,7 @@ module HudSpmReport::Fy2026
           else
             report_end_date
           end
-          bed_nights += (enrollment.entry_date .. end_date).to_a
+          (enrollment.entry_date .. end_date).each { |date| bed_nights.add(date) }
         elsif enrollment.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph))
           # PH bed nights on or after move in are not considered homeless
           next unless enrollment.move_in_date.present?
@@ -290,7 +290,7 @@ module HudSpmReport::Fy2026
           else
             report_end_date
           end
-          bed_nights += (enrollment.move_in_date .. end_date).to_a
+          (enrollment.move_in_date .. end_date).each { |date| bed_nights.add(date) }
         else
           raise 'Unexpected project type, no exclusion rules'
         end
@@ -325,7 +325,7 @@ module HudSpmReport::Fy2026
           # b.	For night-by-night based shelter stays, determine the client's [earliest bed night] dated >= [project start date] and <= [project exit date].  If [earliest bed night] >= [lookback stop date], then every night from [approximate date this episode of homelessness started] up to and including [earliest bed night] should also be considered nights experiencing homelessness. For example, a response of "9/16/2022" with the client's earliest bed night of 11/15/2022 would effectively include bed nights for 9/16/2022, 9/17/2022, 9/18/2022… up to and including 11/15/2022.  Naturally this does not mean the client was physically present at this specific shelter on these nights, but these dates are nonetheless included in the client's total time experiencing homelessness.
           next unless earliest_bed_night >= lookback_date && start_date < enrollment.entry_date
 
-          (start_date .. earliest_bed_night).map do |date|
+          (start_date .. earliest_bed_night).each do |date|
             bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
           end
         else
@@ -334,7 +334,7 @@ module HudSpmReport::Fy2026
           # a.	For entry-exit based project stays, if the [project start date] is >= [lookback stop date], then every night from [approximate date this episode of homelessness started] up to and including [project start date] should also be considered nights experiencing homelessness, even if response in [approximate date this episode of homelessness started] extends prior to [lookback stop date].  For example, a response in [approximate date this episode of homelessness started] of "2/14/2022" with a [project start date] of 5/15/2022 would cause every night from 2/14/2022 through and including 5/15/2022 to be included in the client's dataset of nights experiencing homelessness.
           next unless enrollment.entry_date >= lookback_date && start_date < enrollment.entry_date
 
-          (start_date .. enrollment.entry_date).map do |date|
+          (start_date .. enrollment.entry_date).each do |date|
             bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
           end
         end
