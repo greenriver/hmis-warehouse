@@ -267,7 +267,7 @@ module HudSpmReport::Generators::Fy2026
       # The sub-reports generated for DQ are only needed for the CSV generation.
       # Clear them explicitly to free up memory
       @reports&.each_value do |sub_report|
-        sub_report.report_cells.each(&:clear_memoization!)
+        sub_report&.report_cells&.each(&:clear_memoization!)
       end
       @reports = nil
     end
@@ -348,6 +348,7 @@ module HudSpmReport::Generators::Fy2026
       report = ::HudReports::ReportInstance.from_filter(dq_filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
       generator.new(report).run!(email: false, manual: false)
 
+      @report.check_halt_status!
       report
     end
 
