@@ -354,13 +354,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     config&.length_of_absence_days
   end
 
-  def coordinated_entry_enabled?
-    # Override to false if the system-wide AppConfigProperty is disabled
-    return false unless Hmis::Ce.configuration.enabled?
-
-    Hmis::ProjectCeConfig.detect_best_config_for_project(self).present?
-  end
-
   # Service types that are collected in this project. They are collected if they have an active form definition and instance.
   def available_service_types
     # Find form rules for services that are applicable to this project

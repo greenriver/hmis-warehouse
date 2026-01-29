@@ -307,13 +307,11 @@ module Types
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-      field :can_view_coordinated_entry, Boolean, null: false, deprecation_reason: 'Replaced with Project-level coordinatedEntryEnabled field and global feature flag'
     end
 
     def access
       {
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?, # TODO(#7409) once we have project-level configuration, remove this
       }
     end
 
