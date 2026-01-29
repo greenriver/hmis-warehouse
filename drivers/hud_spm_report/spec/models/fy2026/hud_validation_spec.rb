@@ -10,10 +10,14 @@ require 'rails_helper'
 require_relative './shared_context'
 
 RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpoints: true do
+  # This spec file specifically captures the "Additional Test Cases" and "Programming Instructions"
+  # from the HUD System Performance Measures (SPM) specifications (Measure 1).
+  # These scenarios are used to validate the temporal logic of the Length of Time Homeless calculations,
+  # particularly the complex negation and contiguity rules between project types.
   include_context '2026 SPM test setup'
 
   describe 'Measure 1a HUD Test Cases' do
-    # 1. Total Negation
+    # A client with shelter bed nights in the report date range, all of which are negated by that client's residence in permanent housing as indicated by [housing move-in date]. The client should be completely excluded from the report.
     it 'Total Negation: excludes client when all shelter nights are negated by PH Housing Move-In Date' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -42,7 +46,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(@report.universe('m1a1').members.count).to eq(0)
     end
 
-    # 2. Exit vs. Move-In (Same Day)
+    # A client with a [project exit date] in shelter which falls on the same date as that client's [housing move-in date] in PH. The client's shelter bed nights should be unaffected -- the [project exit date] never counts as a bed night.
     it 'Exit vs. Move-In (Same Day): shelter bed nights are unaffected when exit date equals move-in date' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -73,7 +77,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode.last_date).to eq('2022-11-09'.to_date)
     end
 
-    # 3. Overlap (1 Day)
+    # A client with a [project exit date] in shelter which falls one day after that client's [housing move-in date] into permanent housing. The [project exit date] from shelter is effectively back-dated one day such that the first day residing in PH does not count as a night experiencing homelessness.
     it 'Overlap (1 Day): shelter exit date is effectively back-dated by one day when it is after move-in date' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -105,7 +109,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode.last_date).to eq('2022-11-09'.to_date)
     end
 
-    # 4. Start vs. PH Exit (1 Day Gap)
+    # A client with a shelter [project start date] which falls in the report date range and one day prior to the client's [project exit date] from PH, with the client's [housing move-in date] set prior to that PH exit. The shelter [project start date] is effectively bumped forward one day to equal the permanent housing [project exit date], reducing the client's count of nights experiencing homelessness by one.
     it 'Start vs. PH Exit (1 Day Gap): shelter start date is bumped forward when it is before PH exit while housed' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -139,7 +143,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode.days_homeless).to eq(10)
     end
 
-    # 5. Start vs. PH Exit (Same Day)
+    # A client with a shelter [project start date] which falls in the report date range and also on the same day as the client's [project exit date] from permanent housing. The shelter [project start date] should be unaffected.
     it 'Start vs. PH Exit (Same Day): shelter start date remains unaffected when it equals PH exit date' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -172,7 +176,25 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode.days_homeless).to eq(10)
     end
 
-    # 10. PH move-in date before project start (Discarded)
+    # A shelter stay where the [project start date] and [project exit date] are equal. This means the client did not spend a night experiencing homelessness at the shelter, so that date is not included in the client's dataset.
+    it 'Zero-night stay: project start date equals project exit date' do
+      @es_project = create_project(project_type: 0) # ES-EE
+      @client = create_client_with_warehouse_link
+
+      create_enrollment(
+        client: @client,
+        project: @es_project,
+        entry_date: '2023-01-01'.to_date,
+        exit_date: '2023-01-01'.to_date,
+      )
+
+      @report = setup_report([@es_project.id])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+
+      expect(@report.universe('m1a1').members.count).to eq(0)
+    end
+
+    # PH move-in date before project start (Discarded per Glossary rules)
     it 'Discard move-in date before project start' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -204,6 +226,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(episode.days_homeless).to eq(14)
     end
 
+    # To be contiguous, a date must be no more than one day earlier than another date already in the client's dataset or the [client start date].
     it 'Contiguous nights: expansion stops at a gap of 1 or more days when before client start date' do
       @es_project = create_project(project_type: 0) # ES-EE
       @client = create_client_with_warehouse_link
@@ -306,7 +329,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
   end
 
   describe 'Measure 1b HUD Test Cases' do
-    # Scenario: Back-dating with 3.917.3 and PH Breaks
+    # A client whose [project start date] is 6/1/2022 and response to element [approximate date this episode of homelessness started] is 3/1/2022, effectively back-dating their [project start date] in shelter by 92 days. But 30 days before [project start date] the client has a [project exit date] from PH, with the client's [housing move-in date] set prior to that PH exit. The additional nights experiencing homelessness for that client is 30 instead of 90. This also creates a break in homelessness when working backwards to include contiguous bed nights.
     it 'Measure 1b: PH stay creates a break in homelessness, stopping backward expansion' do
       @es_project = create_project(project_type: 0) # ES-EE
       @ph_project = create_project(project_type: 3) # PSH
@@ -355,7 +378,10 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       # Total days homeless = 30 (pre-entry) + 14 (shelter) = 44.
       expect(episode.days_homeless).to eq(44)
     end
+  end
 
+  describe 'Identifying Clients Experiencing Literal Homelessness at Project Entry' do
+    # PH clients who are not literally homeless at entry should be excluded from Measure 1b
     it 'Measure 1b: excludes PH stays that are NOT literally homeless at entry' do
       @ph_project = create_project(project_type: 3) # PH-PSH
       @client = create_client_with_warehouse_link
@@ -380,6 +406,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(@report.universe('m1b2').members.count).to eq(0)
     end
 
+    # PH clients who are literally homeless at entry should be included in Measure 1b
     it 'Measure 1b: includes PH stays that ARE literally homeless at entry' do
       @ph_project = create_project(project_type: 3) # PH-PSH
       @client = create_client_with_warehouse_link
@@ -403,6 +430,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(@report.universe('m1b2').members.count).to eq(1)
     end
 
+    # TH clients are included in Measure 1b regardless of prior living situation
     it 'Measure 1b: includes TH stays regardless of living situation at entry' do
       @th_project = create_project(project_type: 2) # TH
       @client = create_client_with_warehouse_link
@@ -426,6 +454,7 @@ RSpec.describe 'SPM Measure 1 HUD Validation Cases', type: :model, exclude_fixpo
       expect(@report.universe('m1b2').members.count).to eq(1) # m1b2 includes TH
     end
 
+    # TH stayers who were literally homeless at entry should be included in Metric 2
     it 'Measure 1b Metric 2: includes TH stayers who were literally homeless at entry' do
       @th_project = create_project(project_type: 2) # TH
       @client = create_client_with_warehouse_link
