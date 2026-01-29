@@ -24,5 +24,11 @@ module Hmis::Ce::Match
 
       opportunity.candidate_pool.candidates
     end
+
+    # Free-text search for Candidate
+    scope :matching_search_term, ->(search_term) do
+      joins(:client_proxy).
+        merge(Hmis::Ce::ClientProxy.matching_search_term(search_term))
+    end
   end
 end

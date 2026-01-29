@@ -91,6 +91,7 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
 
     let!(:client) { create(:hmis_hud_client, data_source: ds1) }
     let!(:code1) { create(:hmis_scan_card_code, client: client) }
+    let!(:code2) { create(:hmis_scan_card_code, client: client, deleted_at: Time.current) }
 
     before(:each) do
       add_permissions(access_control, :can_manage_scan_cards)
@@ -99,9 +100,9 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
     it 'requires permission for all mutations' do
       remove_permissions(access_control, :can_manage_scan_cards)
 
-      expect_gql_error post_graphql(id: client.id) { create_code }
-      expect_gql_error post_graphql(id: code1.id) { delete_code }
-      expect_gql_error post_graphql(id: code1.id) { restore_code }
+      expect_access_denied post_graphql(id: client.id) { create_code }
+      expect_access_denied post_graphql(id: code1.id) { delete_code }
+      expect_access_denied post_graphql(id: code2.id) { restore_code }
     end
 
     it 'creates codes' do

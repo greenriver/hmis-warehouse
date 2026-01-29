@@ -36,6 +36,20 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_view_outgoing_referral_details) || project_permissions.include?(:can_manage_outgoing_referrals)
     end
 
+    def can_manage_ce_default_contacts?
+      # Currently CE contact management is authorized using the global permission
+      # "can_administrate_coordinated_entry", which grants access to manage default contacts at all projects.
+      # In the future if/when we allow project-level admins to manage their own contacts,
+      # this may be replaced with a check for a new non-admin permission like `project_permissions.include?(:can_manage_ce_default_contacts)`
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    # Whether the user can, in general, perform referral tasks in the project.
+    # For determining whether a user can perform a specific task, see CeReferralPolicy.can_perform?
+    def can_perform_referral_tasks?
+      project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
+    end
+
     protected
 
     memoize def project_permissions

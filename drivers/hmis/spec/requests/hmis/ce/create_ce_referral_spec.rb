@@ -167,6 +167,26 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
           end.not_to change(Hmis::Ce::Referral, :count)
         end
       end
+
+      # More comprehensive specs for default participant assignment are in the model spec
+      # (see spec/models/hmis/ce/referral_spec.rb #create_default_participants!)
+      context 'with default swimlane assignments' do
+        let!(:case_manager) { create :hmis_user }
+        let!(:default_assignment) do
+          create(:hmis_ce_default_swimlane_assignment, user: case_manager, swimlane: swimlane, owner: project)
+        end
+
+        it 'creates referral participants from default assignments' do
+          expect do
+            post_graphql(**variables) { mutation }
+          end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
+
+          referral = Hmis::Ce::Referral.last
+          participant = referral.participants.first
+          expect(participant.user).to eq(case_manager)
+          expect(participant.swimlane).to eq(swimlane)
+        end
+      end
     end
   end
 end
