@@ -22,6 +22,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
   has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
+  has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
 

@@ -60,6 +60,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :ce_opportunities, through: :units, class_name: 'Hmis::Ce::Opportunity', source: :opportunities
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
   has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
+  has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
 
   # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
@@ -164,16 +165,24 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
-  # Projects that are open and have CE waitlist referrals enabled
-  scope :with_ce_waitlists_enabled, -> do
-    configs = Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?)
-
+  # Helper scope to fetch projects matching the given `Hmis::ProjectConfig`s
+  scope :with_configs, ->(configs) do
     conditions = [
       arel_table[:project_type].in(configs.map(&:project_type)),
       arel_table[:id].in(configs.map(&:project_id)),
       Hmis::Hud::Organization.arel_table[:id].in(configs.map(&:organization_id)),
     ]
-    open_on_date.joins(:organization).where(conditions.inject(&:or))
+    joins(:organization).where(conditions.inject(&:or))
+  end
+
+  # Projects that are open and have CE waitlist referrals enabled
+  scope :with_ce_waitlists_enabled, -> do
+    open_on_date.with_configs(Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?))
+  end
+
+  # Projects that are open and have CE enabled
+  scope :with_ce_enabled, -> do
+    open_on_date.with_configs(Hmis::ProjectCeConfig.active)
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
