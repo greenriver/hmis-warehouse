@@ -303,8 +303,8 @@ module HudSpmReport::Fy2026
       bed_nights = existing_bed_nights.index_by(&:last)
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:es_nbn))
-          # NbN only gets service nights within the enrollment period
-          first_night = enrollment.entry_date
+          # NbN only gets service nights in the report range and within the enrollment period
+          first_night = [report_start_date, enrollment.entry_date].max
           last_night = if enrollment.exit_date.present?
             [enrollment.exit_date - 1.day, report_end_date].min # Cannot have an bed night on the exit date
           else
@@ -371,20 +371,16 @@ module HudSpmReport::Fy2026
       return if calculated_bed_nights.empty?
 
       # Now find the client's end date based on the remaining bed nights
-      # Step 3: Latest bed night in report range
-      client_end_night = calculated_bed_nights.select { |_, _, date| date.between?(report_start_date, report_end_date) }.last
-      return if client_end_night.nil?
-
-      client_end_date = client_end_night.last
+      client_end_date = calculated_bed_nights.last.last
       client_start_date = client_end_date - 365.days
 
       @debugger&.log("client_start_date: #{client_start_date.to_fs(:db)}")
       @debugger&.log("client_end_date: #{client_end_date.to_fs(:db)}")
 
       # Include contiguous dates before the calculated client start date:
-      # First, find the first bed night on or after the client start date
+      # First, find as close to the start date as possible in the array
       index = 0
-      index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last < client_start_date
+      index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last <= client_start_date
 
       # Then walk back until there is a break
       index -= 1 while index.positive? && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
