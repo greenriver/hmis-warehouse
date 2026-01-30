@@ -351,7 +351,8 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
 
         completeness_metrics.each do |key, options|
           measure = :complete
-          counts = send(options[:denominator]).group(:project_id).where("#{key}_#{measure}" => true).select("#{key}_#{measure}").count
+          column_name = "#{key}_#{measure}".to_sym
+          counts = send(options[:denominator]).group(:project_id).where(column_name => true).select(column_name).count
           denominators = send(options[:denominator]).group(:project_id).count
           denominators.each do |id, denominator|
             next if denominator.zero?
@@ -1183,7 +1184,8 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
         data['Target'] = Array.new(completeness_metrics.keys.count, completeness_goal)
         completeness_metrics.each_with_index do |(key, options), index|
           ([:complete] + options[:measures]).each do |measure|
-            count = send(options[:denominator]).where("#{key}_#{measure}" => true).count
+            column_name = "#{key}_#{measure}".to_sym
+            count = send(options[:denominator]).where(column_name => true).count
             denominator = send(options[:denominator]).count
             if denominator.zero? && measure == :complete
               percentage = 100
@@ -1215,7 +1217,8 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
         data['Target'] = Array.new(completeness_metrics.keys.count, completeness_goal)
         completeness_metrics.each_with_index do |(key, options), index|
           ([:complete] + options[:measures]).each do |measure|
-            count = send(options[:denominator]).where(project_id: hud_project.id, "#{key}_#{measure}" => true).count
+            column_name = "#{key}_#{measure}".to_sym
+            count = send(options[:denominator]).where(project_id: hud_project.id, column_name => true).count
             denominator = send(options[:denominator]).where(project_id: hud_project.id).count
             if denominator.zero? && measure == :complete
               percentage = 100

@@ -168,7 +168,8 @@ module Reporting::ProjectDataQualityReports::VersionFive::Support
       measure = options[:metric].to_sym
       title = "#{metric[:label]} #{options[:metric].humanize}"
       denominator = metric[:denominator]
-      count_scope = send(denominator).where("#{key}_#{measure}" => true)
+      column_name = "#{key}_#{measure}".to_sym
+      count_scope = send(denominator).where(column_name => true)
       count_scope = count_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       support = {
         headers: completeness_support_columns(key).keys,
