@@ -11,11 +11,12 @@ FactoryBot.define do
     definition { association :hmis_form_definition }
   end
 
-  factory :hmis_custom_assessment, class: 'Hmis::Hud::CustomAssessment' do
+  factory :hmis_custom_assessment, class: 'Hmis::Hud::CustomAssessment', parent: :hmis_base_factory do
     data_source { association :hmis_data_source }
     user { association :hmis_hud_user, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source, client: client }
+    sequence(:CustomAssessmentID, 100)
     wip { false }
     AssessmentDate { Date.yesterday }
     DataCollectionStage { 1 }
@@ -37,7 +38,7 @@ FactoryBot.define do
       assessment.build_form_processor(values: evaluator.values, hud_values: evaluator.hud_values, definition: evaluator.definition)
       assessment.form_processor.definition ||= build(:hmis_form_definition)
       assessment.data_collection_stage = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[evaluator.definition.role.to_sym] if evaluator.definition
-      assessment.save!
+      assessment.save!(validate: false)
     end
   end
 

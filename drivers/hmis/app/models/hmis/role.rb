@@ -330,6 +330,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_clients: {
         administrative: true,
+        requirements: [:can_view_clients],
         access: [:editable],
         category: 'Client Access',
         sub_category: 'Access',
@@ -459,6 +460,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_any_nonconfidential_client_files: {
         description: 'Access to view non-confidential client files uploaded by anyone',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Files',
@@ -466,6 +468,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_any_confidential_client_files: {
         description: 'Access to view confidential client files uploaded by anyone',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Files',
@@ -480,6 +483,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_merge_clients: {
         description: 'Ability to merge and split client records',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:editable],
         category: 'Administration',
@@ -522,6 +526,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:editable],
         category: 'Administration',
@@ -536,6 +541,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_manage_client_alerts: {
         description: 'Ability to create, edit, and delete Client Alerts',
+        requirements: [:can_view_client_alerts],
         administrative: false,
         access: [:editable],
         category: 'Client Access',

@@ -7,11 +7,6 @@
         {
           "variable": "projectOtherFunders",
           "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Permanent Housing"
-        },
-        {
-          "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
           "value": "Non-contracted Case Management"
         },
         {

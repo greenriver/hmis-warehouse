@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   before(:each) do
     hmis_login(user)
   end
@@ -41,7 +34,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:update_service_type) do
     <<~GRAPHQL
-      mutation UpdateServiceType($id: ID!, $input: ServiceTypeInput) {
+      mutation UpdateServiceType($id: ID!, $input: ServiceTypeInput!) {
         updateServiceType(id: $id, input: $input) {
           serviceType {
             id,
@@ -163,7 +156,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:hud_type) { create :hmis_custom_service_type, custom_service_category: hud_category, data_source: ds1, name: 'A HUD type', hud_record_type: 141, hud_type_provided: 1 }
 
       it 'should not allow editing' do
-        expect_gql_error(post_graphql(name: 'foo', id: hud_type.id, supportsBulkAssignment: true) { update_service_type })
+        mutation_input = { name: 'foo', supportsBulkAssignment: true }
+        expect_gql_error(post_graphql(id: hud_type.id, input: mutation_input) { update_service_type })
       end
 
       it 'should not allow deleting' do

@@ -86,7 +86,7 @@ module Types
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
-        eligible_referral_step_assignment_user_picklist(project)
+        eligible_referral_step_assignment_user_picklist(project, user: user)
       when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
         projects_receiving_direct_ce_referrals(from_project: project)
       when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
@@ -233,14 +233,41 @@ module Types
         map(&:to_pick_list_option)
     end
 
-    def self.eligible_referral_step_assignment_user_picklist(project)
+    def self.eligible_referral_step_assignment_user_picklist(project, user:)
       return [] unless Hmis::Ce.configuration.enabled?
-      return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
 
       user_scope = Hmis::User.active
 
-      user_scope.can_perform_any_referral_tasks_for(project).
-        or(user_scope.can_perform_own_referral_tasks_for(project)).
+      if project.present?
+        # Confirm the project has an applicable CE config
+        return [] if Hmis::ProjectCeConfig.detect_best_config_for_project(project).blank?
+
+        # These user scopes performantly access a list of all users who can do referral tasks in the project.
+        # In general, these scopes should *not* be used for actually authorizing actions; use policies instead.
+        # Here, we already checked project is viewable by the current user, so we are only returning users with permissions in the current data source.
+        user_scope = user_scope.can_perform_any_referral_tasks_for(project).or(user_scope.can_perform_own_referral_tasks_for(project))
+      else
+        # If project is not passed, return users who can perform any referral tasks in the data source.
+        # (This list is too big, but we don't have a good way to know who is a CE Admin.)
+        # This is used by the global Default Contacts dropdowns.
+        data_source = GrdaWarehouse::DataSource.find(user.hmis_data_source_id)
+
+        # This logic is based on the AccessGroup's contains_with_inherited scope
+        access_group_ids = Hmis::GroupViewableEntity.
+          includes_any_entity_in_data_source(data_source).
+          pluck(:collection_id)
+
+        # This logic is based on the user permission_for(entity) scopes
+        user_ids = Hmis::AccessControl.joins(:role, :access_group, user_group: :users).
+          preload(user_group: :user_group_members).
+          merge(Hmis::Role.where(can_perform_any_referral_tasks: true)).
+          merge(Hmis::AccessGroup.where(id: access_group_ids)).
+          select(Hmis::User.arel_table[:id])
+
+        user_scope = user_scope.where(id: user_ids)
+      end
+
+      user_scope.
         order(:last_name, :first_name, :id).
         map(&:to_pick_list_option).uniq
     end

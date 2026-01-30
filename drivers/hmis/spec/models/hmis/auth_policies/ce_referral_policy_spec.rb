@@ -29,28 +29,69 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   end
   let(:policy) { user.policy_for(referral, policy_type: :ce_referral) }
 
-  describe '#can_index?' do
-    it 'returns true if user has both view and perform permissions' do
-      create_access_control(user, project, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks])
-      expect(policy.can_index?).to be true
+  describe 'Global' do
+    let(:policy) { user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral) }
+
+    describe '#can_index?' do
+      it 'returns true if user has both view and perform permissions' do
+        create_access_control(user, project, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks])
+        expect(policy.can_index?).to be true
+      end
+
+      it 'returns false if user only has view permission' do
+        create_access_control(user, project, with_permission: [:can_view_referrals])
+        expect(policy.can_index?).to be false
+      end
+
+      it 'returns false if user only has perform permission' do
+        create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
+        expect(policy.can_index?).to be false
+      end
+
+      it 'returns false if user has no permissions' do
+        expect(policy.can_index?).to be false
+      end
     end
 
-    it 'returns false if user only has view permission' do
-      create_access_control(user, project, with_permission: [:can_view_referrals])
-      expect(policy.can_index?).to be false
+    describe '#can_perform_referral_tasks?' do
+      it 'returns false when user cannot perform any referral tasks' do
+        expect(policy.can_perform_referral_tasks?).to be false
+      end
+
+      context 'when user can perform any referral tasks in the data source' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_perform_any_referral_tasks]) }
+
+        it 'returns true' do
+          expect(policy.can_perform_referral_tasks?).to be true
+        end
+      end
+
+      context 'when user can perform any referral tasks at a specific project in the data source' do
+        let!(:project) { create(:hmis_hud_project, data_source: data_source) }
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks]) }
+
+        it 'returns true' do
+          expect(policy.can_perform_referral_tasks?).to be true
+        end
+      end
     end
 
-    it 'returns false if user only has perform permission' do
-      create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
-      expect(policy.can_index?).to be false
-    end
+    describe '#can_manage_ce_default_contacts?' do
+      it 'returns false when user does not have can_administrate_coordinated_entry permission' do
+        expect(policy.can_manage_ce_default_contacts?).to be false
+      end
 
-    it 'returns false if user has no permissions' do
-      expect(policy.can_index?).to be false
+      context 'when user has can_administrate_coordinated_entry permission' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
+
+        it 'returns true' do
+          expect(policy.can_manage_ce_default_contacts?).to be true
+        end
+      end
     end
   end
 
-  describe '#can_view?' do
+  describe 'Instance#can_view?' do
     context 'with can_view_referrals permission' do
       it 'returns true if user also has can_view_project' do
         create_access_control(user, project, with_permission: [:can_view_referrals, :can_view_project])
@@ -219,7 +260,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_perform?' do
+  describe 'Instance#can_perform?' do
     let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
 
@@ -250,7 +291,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_view_summary?' do
+  describe 'Instance#can_view_summary?' do
     let(:source_project) { create :hmis_hud_project, data_source: data_source }
     let(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, data_source: data_source }
     let(:referral) do
@@ -306,7 +347,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
-  describe '#can_create_note?' do
+  describe 'Instance#can_create_note?' do
     let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
 

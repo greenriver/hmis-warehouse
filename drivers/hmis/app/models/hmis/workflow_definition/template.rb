@@ -42,6 +42,15 @@ module Hmis::WorkflowDefinition
     scope :ce, -> { where(template_type: 'ce_referral') }
     scope :published, -> { where(status: 'published') }
 
+    scope :used_in_projects, ->(project_ids) do
+      identifiers = Hmis::UnitGroup.
+        where(project_id: project_ids).
+        pluck(:workflow_template_identifier, :direct_referral_workflow_template_identifier).
+        flatten.compact.uniq
+
+      where(identifier: identifiers)
+    end
+
     scope :latest_versions, -> do
       # Returns the most recent Template version per identifier
       one_for_column([:version], source_arel_table: arel_table, group_on: :identifier)
