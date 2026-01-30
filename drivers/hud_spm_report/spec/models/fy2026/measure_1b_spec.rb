@@ -598,6 +598,77 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
       end
     end
 
+    context 'when client is not literally homeless at project entry' do
+      before do
+        @th_project = create_project(project_type: 2) # TH
+        @client = create_client_with_warehouse_link
+
+        # Client is entering from a non-homeless situation (e.g., Living with friends - 300)
+        # Even if they provide a 3.917.3 date, it should be ignored per spec step 5
+        create_enrollment(
+          client: @client,
+          project: @th_project,
+          date_to_street_essh: '2022-01-01'.to_date,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          living_situation: 300, # Living in a friend's room (not literally homeless)
+        )
+
+        @report = setup_report([@th_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'does not include DateToStreetESSH time' do
+        # TH is included in Metric 2 (m1b2), but not Metric 1 (m1b1)
+        expect(@report.universe('m1b2').members.count).to eq(1)
+        episode = @report.universe('m1b2').members.first.universe_membership
+
+        # The first_date should be the entry_date, not the date_to_street_essh
+        expect(episode.first_date).to eq('2022-11-01'.to_date)
+        expect(episode.first_date).not_to eq('2022-01-01'.to_date)
+      end
+    end
+
+    context 'when self-reported data bridges a gap to a historical enrollment' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link
+
+        # Enrollment 1: Historical documented nights (Jan 1 - Jan 10)
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-01-01'.to_date,
+          exit_date: '2022-01-11'.to_date
+        )
+
+        # Enrollment 2: Active documented nights (Nov 1 - Dec 1)
+        # with a self-reported date that bridges back to Jan 5
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2022-12-02'.to_date,
+          date_to_street_essh: '2022-01-05'.to_date # The "Bridge"
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'includes the historical nights that are now contiguous via the self-reported bridge' do
+        expect(@report.universe('m1b1').members.count).to eq(1)
+        episode = @report.universe('m1b1').members.first.universe_membership
+
+        # The episode should now start at Jan 1 (the start of the historical enrollment)
+        # because the self-reported date (Jan 5) made it contiguous.
+        expect(episode.first_date).to eq('2022-01-01'.to_date)
+
+        # Total days should be Jan 1 to Dec 1 (inclusive) = 335 days
+        expect(episode.days_homeless).to eq(335)
+      end
+    end
+
     context 'with DateToStreetESSH before lookback stop date AND project entry before lookback stop date' do
       before do
         # Create an ES project
