@@ -14,11 +14,23 @@ module
       {}.tap do |hashes|
         project_ids = report_scope.distinct.pluck(p_t[:id])
         GrdaWarehouse::Hud::Project.joins(:organization).preload(:organization).where(id: project_ids).find_each do |project|
+          # Store composite key to filter on service_history_enrollments columns. These will allow us to filter
+          # on the project table without running the expensive viewable_by scopes which are already applied
+          # in the report_scope.
+          ds_id = project.data_source_id
+          proj_id = project.ProjectID
+          org_id = project.OrganizationID
+
           hashes["project_#{project.id}"] = {
             title: project.organization_and_name(@filter.user),
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment, :project).merge(GrdaWarehouse::Hud::Project.where(id: project.id)).distinct },
+            scope: -> {
+              report_scope.
+                joins(:client, :enrollment).
+                where(data_source_id: ds_id, project_id: proj_id, organization_id: org_id).
+                distinct
+            },
           }
         end
       end
