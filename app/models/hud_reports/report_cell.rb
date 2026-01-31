@@ -54,11 +54,6 @@ module HudReports
       report_instance.user
     end
 
-    def clear_memoization!
-      @members = nil
-      @count = nil
-    end
-
     def members
       @members ||= join_universe
     end
