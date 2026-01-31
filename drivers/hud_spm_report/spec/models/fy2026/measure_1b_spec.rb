@@ -1130,6 +1130,45 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
     end
   end
 
+  context 'with Literal Homelessness at Entry for PH projects (0..99 living situation)' do
+    before do
+      # Create a PH project (PSH)
+      @ph_project = create_project(project_type: 3)
+
+      # Create a client
+      @client = create_client_with_warehouse_link
+
+      # Create PH enrollment with living situation 0-99 (Other/Unknown)
+      # PLUS previous_street_essh: true and los_under_threshold: true
+      # This SHOULD qualify as literally homeless at entry
+      @enrollment = create_enrollment(
+        client: @client,
+        project: @ph_project,
+        entry_date: '2023-01-01'.to_date,
+        exit_date: '2023-03-01'.to_date,
+        living_situation: 99, # Other
+        previous_street_essh: 1,
+        los_under_threshold: 1,
+        date_to_street_essh: '2022-12-01'.to_date,
+      )
+
+      # Setup and run the report
+      @report = setup_report([@ph_project.id])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+    end
+
+    it 'correctly identifies PH stays with 0-99 living situation as literally homeless' do
+      # Verify that the universe was created for measure 1b
+      expect(@report.universe('m1b1').members.count).to eq(1)
+
+      episode = @report.universe('m1b1').members.first.universe_membership
+
+      # Should include self-reported time
+      expect(episode.first_date).to eq('2022-12-01'.to_date)
+      expect(episode.days_homeless).to eq(90) # 2022-12-01 to 2023-02-28
+    end
+  end
+
   context 'with propagation of date to street from HoH to child household members' do
     before do
       # Create an ES project
