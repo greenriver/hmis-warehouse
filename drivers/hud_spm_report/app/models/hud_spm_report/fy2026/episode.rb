@@ -360,13 +360,17 @@ module HudSpmReport::Fy2026
       bed_nights = bed_nights.sort.uniq(&:date)
 
       # Keep bed nights that are:
-      # - on or after the lookback date
-      # - OR associated with an enrollment that started on or after the lookback date
+      # - on or after the client's date of birth
+      # - AND (on or after the lookback date
+      #   OR associated with an enrollment that started on or after the lookback date)
       #
       # Per spec (Step 5): "include additional nights experiencing homelessness based on
       # [approximate date this episode of homelessness started] up to and including
       # [project start date]... even if response extends prior to [lookback stop date]"
+      client_dob = client&.dob
       bed_nights = bed_nights.select do |bn|
+        next false if client_dob && bn.date < client_dob
+
         bn.date >= lookback_date || bn.enrollment.entry_date >= lookback_date
       end
 
@@ -380,8 +384,8 @@ module HudSpmReport::Fy2026
       return if client_end_date.nil?
 
       # Step 4: Client start date is 365 days prior to end date
-      # (lookback_date constraint already applied in filter above)
-      client_start_date = client_end_date - 365.days
+      # going back no further than the [lookback stop date] or client DOB.
+      client_start_date = [client_end_date - 365.days, lookback_date, client_dob].compact.max
 
       @debugger&.log("client_start_date: #{client_start_date.to_fs(:db)}")
       @debugger&.log("client_end_date: #{client_end_date.to_fs(:db)}")

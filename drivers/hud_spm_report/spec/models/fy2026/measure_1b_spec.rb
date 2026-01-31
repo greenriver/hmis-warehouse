@@ -815,6 +815,70 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
       end
     end
 
+    context 'with enrollment entry date before DOB (erroneous data)' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link(dob: '2020-01-01'.to_date)
+
+        # Erroneous enrollment starting before DOB
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2019-01-01'.to_date, # Before DOB
+          exit_date: '2023-02-01'.to_date,  # Active in report
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'caps homelessness at Date of Birth' do
+        expect(@report.universe('m1a1').members.count).to eq(1)
+        episode = @report.universe('m1a1').members.first.universe_membership
+
+        # First date should be capped at DOB
+        expect(episode.first_date).to eq('2020-01-01'.to_date)
+
+        # Days homeless should be from 2020-01-01 to 2023-01-31 (day before exit)
+        expected_days = ('2023-01-31'.to_date - '2020-01-01'.to_date).to_i + 1
+        expect(episode.days_homeless).to eq(expected_days)
+      end
+    end
+
+    context 'with contiguous walk-back reaching before DOB' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link(dob: '2022-11-01'.to_date)
+
+        # Enrollment 1: Active in report
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-12-01'.to_date,
+          exit_date: '2023-02-01'.to_date,
+        )
+
+        # Enrollment 2: Contiguous but before DOB (erroneous)
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-10-15'.to_date,
+          exit_date: '2022-11-02'.to_date, # Overlaps DOB
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'prevents walking back contiguity before DOB' do
+        expect(@report.universe('m1a1').members.count).to eq(1)
+        episode = @report.universe('m1a1').members.first.universe_membership
+
+        # Should start at DOB
+        expect(episode.first_date).to eq('2022-11-01'.to_date)
+      end
+    end
+
     context 'with very old DateToStreetESSH (decades ago)' do
       before do
         # Create an ES project
