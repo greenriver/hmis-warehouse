@@ -956,18 +956,30 @@ module GrdaWarehouse::Hud
 
         project_scope.
           joins(:organization, :data_source).
-          eager_load(:organization, :data_source).
-          order(o_t[:OrganizationName].asc, ProjectName: :asc).
-          each do |project|
-            org_name = project.organization.OrganizationName
-            org_name += " at #{project.data_source.short_name}" if Rails.env.development?
-            options[org_name] ||= []
-            text = project.name(user, include_project_type: true)
-            # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
-            options[org_name] << [
-              text,
-              project.id,
-            ]
+          order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
+          pluck(
+            o_t[:OrganizationName],
+            p_t[:ProjectName],
+            p_t[:ProjectType],
+            p_t[:RRHSubType],
+            p_t[:confidential],
+            o_t[:confidential],
+            p_t[:id],
+            ds_t[:short_name],
+          ).each do |org_name, proj_name, proj_type, rrh_sub_type, proj_confidential, org_confidential, proj_id, ds_name|
+            org_key = org_name
+            org_key += " at #{ds_name}" if Rails.env.development?
+            options[org_key] ||= []
+
+            # Handle confidentiality using the class method
+            confidential = proj_confidential || org_confidential
+            display_name = confidentialize_name(user, proj_name, confidential)
+
+            # Add project type
+            type_string = HudHelper.util.brief_project_type_with_sub_type(proj_type, rrh_sub_type)
+            text = "#{display_name} (#{type_string})"
+
+            options[org_key] << [text, proj_id]
           end
         options
       end
