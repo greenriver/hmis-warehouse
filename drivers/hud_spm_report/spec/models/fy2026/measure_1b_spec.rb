@@ -598,20 +598,22 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
       end
     end
 
-    context 'when client is not literally homeless at project entry' do
+    context 'when TH client does not meet literal homelessness criteria (3.917.3 should be ignored)' do
       before do
         @th_project = create_project(project_type: 2) # TH
         @client = create_client_with_warehouse_link
 
-        # Client is entering from a non-homeless situation (e.g., Living with friends - 300)
-        # Even if they provide a 3.917.3 date, it should be ignored per spec step 5
+        # Client is entering from living situation 336 (Living with friends)
+        # WITHOUT los_under_threshold or previous_street_essh
+        # Therefore does NOT meet literal homelessness criteria
+        # So 3.917.3 date should be ignored per spec step 5
         create_enrollment(
           client: @client,
           project: @th_project,
           date_to_street_essh: '2022-01-01'.to_date,
           entry_date: '2022-11-01'.to_date,
           exit_date: '2023-01-15'.to_date,
-          living_situation: 300, # Living in a friend's room (not literally homeless)
+          living_situation: 336,
         )
 
         @report = setup_report([@th_project.id])
@@ -620,6 +622,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
 
       it 'does not include DateToStreetESSH time' do
         # TH is included in Metric 2 (m1b2), but not Metric 1 (m1b1)
+        expect(@report.universe('m1b1').members.count).to eq(0)
         expect(@report.universe('m1b2').members.count).to eq(1)
         episode = @report.universe('m1b2').members.first.universe_membership
 
