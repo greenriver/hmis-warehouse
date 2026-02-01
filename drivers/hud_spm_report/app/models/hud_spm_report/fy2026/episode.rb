@@ -405,18 +405,15 @@ module HudSpmReport::Fy2026
 
         (forward_start_index - 1).downto(0) do |i|
           bn = bed_nights[i]
-          night_date = bn.date
-
-          break if night_date < lookback_date && bn.enrollment.entry_date < lookback_date
-
-          break unless (contiguity_edge - night_date).to_i <= 1
+          # stop if we've exceeded the lookback_date
+          break if bn.date < lookback_date && bn.enrollment.entry_date < lookback_date
+          # Gap > 1 day found - "the period of at least one day when a client
+          # is not experiencing homelessness" - stop here
+          break if (contiguity_edge - bn.date).to_i > 1
 
           # Contiguous - include this night and continue walking back
           backward_start_index = i
-          contiguity_edge = night_date
-
-          # Gap > 1 day found - "the period of at least one day when a client
-          # is not experiencing homelessness" - stop here
+          contiguity_edge = bn.date
         end
       end
 
