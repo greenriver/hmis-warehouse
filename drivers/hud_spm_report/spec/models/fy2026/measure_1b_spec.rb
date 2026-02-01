@@ -634,22 +634,24 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         @es_project = create_project(project_type: 0)
         @client = create_client_with_warehouse_link
 
-        # Enrollment 1: Historical documented nights (Jan 1 - Jan 10)
+        # Enrollment A: Historical documented nights (Nov 20 - Nov 25, 2021)
+        # This ends before the Client Start Date (Dec 1, 2021)
         create_enrollment(
           client: @client,
           project: @es_project,
-          entry_date: '2022-01-01'.to_date,
-          exit_date: '2022-01-11'.to_date,
+          entry_date: '2021-11-20'.to_date,
+          exit_date: '2021-11-26'.to_date, # Last bed night is 25th
         )
 
-        # Enrollment 2: Active documented nights (Nov 1 - Dec 1)
-        # with a self-reported date that bridges back to Jan 5
+        # Enrollment B: Active documented nights (Nov 1 - Dec 1, 2022)
+        # Client End Date: 2022-12-01
+        # Client Start Date: 2021-12-01
         create_enrollment(
           client: @client,
           project: @es_project,
           entry_date: '2022-11-01'.to_date,
-          exit_date: '2022-12-02'.to_date,
-          date_to_street_essh: '2022-01-05'.to_date, # The "Bridge"
+          exit_date: '2022-12-02'.to_date, # Last bed night is Dec 1st
+          date_to_street_essh: '2021-11-22'.to_date, # The "Bridge"
         )
 
         @report = setup_report([@es_project.id])
@@ -660,12 +662,14 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         expect(@report.universe('m1b1').members.count).to eq(1)
         episode = @report.universe('m1b1').members.first.universe_membership
 
-        # The episode should now start at Jan 1 (the start of the historical enrollment)
-        # because the self-reported date (Jan 5) made it contiguous.
-        expect(episode.first_date).to eq('2022-01-01'.to_date)
+        # The episode should start at Nov 20 (the start of the historical enrollment)
+        # because the self-reported bridge (starting Nov 22) overlaps the historical
+        # enrollment and connects it to the current episode.
+        expect(episode.first_date).to eq('2021-11-20'.to_date)
 
-        # Total days should be Jan 1 to Dec 1 (inclusive) = 335 days
-        expect(episode.days_homeless).to eq(335)
+        # Total days: Nov 20, 2021 to Dec 1, 2022
+        # (2022-12-01 - 2021-11-20) = 376 days + 1 for inclusive = 377
+        expect(episode.days_homeless).to eq(377)
       end
     end
 
