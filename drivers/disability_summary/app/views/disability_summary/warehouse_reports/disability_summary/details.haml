@@ -12,10 +12,12 @@
         %tr
           - HudHelper.util.sexes.values.each do |sex|
             %th= sex
+          %th Missing
       %tbody
         %tr
           - HudHelper.util.sexes.keys.each do |sex|
             %td= data.count { |row| row[:sex] == sex }
+          %td= data.count { |row| row[:sex].nil? }
   %h3 Age
   .card.mb-6
     %table.table.table-striped
