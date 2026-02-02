@@ -38,18 +38,38 @@ module GraphqlApplicationHelper
     GraphqlPermissionChecker.current_permission_for_context?(context, permission: permission, entity: entity)
   end
 
+  def data_source_client_preloader
+    # memoize into context; data source relies on stable object identity
+    context[:data_source_client_preloader] ||= ->(clients) {
+      client_ids = clients.compact.map(&:id)
+      current_user.policy_context.preload_client_dependencies(client_ids)
+    }
+  end
+
+  # Helper that should be used in place of `load_ar_association(object, :client)`.
+  # Preloads client authorization dependencies to avoid n+1s
+  def load_ar_client_association(object, association_name: :client)
+    load_ar_association(object, association_name, onload: data_source_client_preloader)
+  end
+
+  # Helper that should be used in place of `load_ar_scope(scope: Hmis::Hud::Client.all, id: x)` (or similar).
+  # Preloads client authorization dependencies to avoid n+1s
+  def load_ar_client_scope(scope:, id:)
+    load_ar_scope(scope: scope, id: id, onload: data_source_client_preloader)
+  end
+
   # Use data loader to load an ActiveRecord association.
-  def load_ar_association(object, association_name)
+  def load_ar_association(object, association_name, onload: nil)
     raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(ActiveRecord::Base)
 
     # if we already have preloaded association, just return it
-    return object.public_send(association_name) if object.association(association_name).loaded?
+    return object.public_send(association_name) if object.association(association_name).loaded? && onload.blank?
 
-    dataloader.with(Sources::ActiveRecordAssociation, association_name, context: context).load(object)
+    dataloader.with(Sources::ActiveRecordAssociation, association_name, onload: onload).load(object)
   end
 
-  def load_ar_scope(scope:, id:)
-    dataloader.with(Sources::ActiveRecordScope, scope, context: context).load(id)
+  def load_ar_scope(scope:, id:, onload: nil)
+    dataloader.with(Sources::ActiveRecordScope, scope, onload: onload).load(id)
   end
 
   # Helper to resolve the active enrollment for this client at the specified project on the specified date.
@@ -81,23 +101,5 @@ module GraphqlApplicationHelper
 
   def arel
     Hmis::ArelHelper.instance
-  end
-
-  # Preload client dependencies when loading clients via associations or scopes.
-  # This ensures that policy checks for clients are efficient by preloading
-  # related project and access group data.
-  #
-  # @param context [Hash] GraphQL context containing :current_user
-  # @param results [Array] Array of client records (may include nils)
-  def self.preload_client_dependencies(context:, clients:)
-    # Remove nils (for optional associations)
-    clients = clients.compact
-    return if clients.empty?
-
-    # Extract client IDs and preload dependencies
-    client_ids = clients.map(&:id).uniq
-    current_user = context[:current_user]
-
-    current_user.policy_context.preload_client_dependencies(client_ids)
   end
 end

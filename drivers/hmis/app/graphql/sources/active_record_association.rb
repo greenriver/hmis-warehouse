@@ -9,19 +9,17 @@
 # https://gist.github.com/itkrt2y/1e1a947c71772044f5d67f358b4772fc
 
 class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
-  def initialize(association_name, context: nil)
+  def initialize(association_name, onload: nil)
     raise "association must be symbol #{association_name.inspect}" unless association_name.is_a?(Symbol)
 
     @association_name = association_name
-    @context = context
+    @onload = onload
   end
 
   def fetch(records)
     ::ActiveRecord::Associations::Preloader.new(records: records, associations: [@association_name]).call
     results = records.map { |record| record.public_send(@association_name) }
-
-    # Preload client dependencies when loading client association
-    GraphqlApplicationHelper.preload_client_dependencies(context: @context, clients: results) if @association_name == :client && @context
+    @onload&.call(results)
 
     # Rails.logger.info("preloading complete #{records.first.class.name}.#{@association_name}") if records.any?
     results
