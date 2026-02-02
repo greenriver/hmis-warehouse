@@ -15,6 +15,17 @@
         %tr
           - HudHelper.util.gender_id_to_field_name.each_value do |field|
             %td= data.count { |row| row[field] == 1 }
+  %h3 Sex
+  .card.mb-6
+    %table.table.table-striped
+      %thead
+        %tr
+          - HudHelper.util.sexes.values.each do |sex|
+            %th= sex
+      %tbody
+        %tr
+          - HudHelper.util.sexes.keys.each do |sex|
+            %td= data.count { |row| row[:sex] == sex }
   %h3 Age
   .card.mb-6
     %table.table.table-striped

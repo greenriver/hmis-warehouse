@@ -130,6 +130,7 @@ module DisabilitySummary
           dob: c_t[:DOB],
           reporting_age: age_calculation,
           entry_date: she_t[:first_date_in_program],
+          sex: c_t[:Sex],
         }
         HudHelper.util.gender_fields.each do |field|
           columns[field] = c_t[field]
@@ -177,6 +178,7 @@ module DisabilitySummary
               veteran_status: row[:veteran_status],
               dob: row[:dob],
               reporting_age: row[:reporting_age],
+              sex: row[:sex],
               id: client_id,
             }
             HudHelper.util.gender_fields.each do |field|
