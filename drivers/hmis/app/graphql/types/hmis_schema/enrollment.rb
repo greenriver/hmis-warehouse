@@ -299,7 +299,7 @@ module Types
     def open_enrollment_summary
       return [] unless current_permission?(permission: :can_view_open_enrollment_summary, entity: object)
 
-      client = load_ar_association(object, :client)
+      client = load_ar_client_association(object)
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
@@ -379,7 +379,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client)
+      load_ar_client_association(object)
     end
 
     def household_short_id
