@@ -551,10 +551,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def self.options_for_select(user:)
+  def self.options_for_select(user:, ids: nil)
     # don't cache this, it's a class method
-    viewable_by(user).
-      distinct.
+    scope = viewable_by(user)
+    scope = scope.where(id: ids) if ids.present?
+    scope.distinct.
       order(name: :asc).
       pluck(:name, :short_name, :id).
       map do |name, short_name, id|

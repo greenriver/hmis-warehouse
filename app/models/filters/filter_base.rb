@@ -834,20 +834,20 @@ module Filters
       HudHelper.util.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.invert.freeze
     end
 
-    def project_options_for_select(user:)
-      all_project_scope.options_for_select(user: user)
+    def project_options_for_select(user:, ids: nil)
+      all_project_scope.options_for_select(user: user, ids: ids)
     end
 
-    def organization_options_for_select(user:)
-      all_organizations_scope.distinct.options_for_select(user: user)
+    def organization_options_for_select(user:, ids: nil)
+      all_organizations_scope.distinct.options_for_select(user: user, ids: ids)
     end
 
-    def data_source_options_for_select(user:)
-      all_data_sources_scope.options_for_select(user: user)
+    def data_source_options_for_select(user:, ids: nil)
+      all_data_sources_scope.options_for_select(user: user, ids: ids)
     end
 
-    def funder_options_for_select(user:)
-      all_funders_scope.options_for_select(user: user)
+    def funder_options_for_select(user:, ids: nil)
+      all_funders_scope.options_for_select(user: user, ids: ids)
     end
 
     def funder_other_options_for_select(user:)
@@ -858,12 +858,14 @@ module Filters
       GrdaWarehouse::Lookups::CocCode.options_for_select(user: user, permission: permission)
     end
 
-    def project_groups_options_for_select(user:)
-      all_project_group_scope.options_for_select(user: user)
+    def project_groups_options_for_select(user:, ids: nil)
+      all_project_group_scope.options_for_select(user: user, ids: ids)
     end
 
-    def cohorts_for_select(user:)
-      GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
+    def cohorts_for_select(user:, ids: nil)
+      scope = GrdaWarehouse::Cohort.viewable_by(user)
+      scope = scope.where(id: ids) if ids.present?
+      scope.distinct.order(name: :asc).pluck(:name, :id)
     end
 
     # A list of select/drop-down type cohort columns where there is at least one choice.
@@ -1510,73 +1512,56 @@ module Filters
     def data_source_names
       return [] if data_source_ids.blank?
 
-      all_data_sources_scope.distinct.where(id: data_source_ids).
-        order(name: :asc).
-        pluck(:name, :short_name).
-        map { |name, short_name| "#{name} (#{short_name})" }
+      data_source_options_for_select(user: user, ids: data_source_ids).
+        select do |_, id|
+          data_source_ids.include?(id)
+        end&.map(&:first)
     end
 
     def organization_names
       return [] if organization_ids.blank?
 
-      all_organizations_scope.distinct.where(id: organization_ids).
-        order(OrganizationName: :asc).
-        map { |org| org.name(user) }
+      organization_options_for_select(user: user, ids: organization_ids).
+        values.
+        flatten(1).
+        select do |_, id|
+          organization_ids.include?(id)
+        end&.map(&:first)
     end
 
     def project_names(ids = project_ids)
       return [] if ids.blank?
 
-      all_project_scope.distinct.where(id: ids).
-        joins(:organization).
-        order(p_t[:ProjectName].asc).
-        pluck(
-          p_t[:ProjectName],
-          p_t[:confidential],
-          o_t[:confidential],
-        ).map do |proj_name, proj_confidential, org_confidential|
-          # Use same confidentiality logic as Project.options_for_select
-          confidential = proj_confidential || org_confidential
-          GrdaWarehouse::Hud::Project.confidentialize_name(user, proj_name, confidential)
-        end
+      project_options_for_select(user: user, ids: ids).
+        values.
+        flatten(1).
+        select do |_, id|
+          ids.include?(id)
+        end&.map(&:first)
     end
 
     def project_groups
       return [] if project_group_ids.blank?
 
-      GrdaWarehouse::ProjectGroup.viewable_by(user).
-        where(id: project_group_ids).
-        order(name: :asc).
-        pluck(:name)
+      project_groups_options_for_select(user: user, ids: project_group_ids).select { |_, id| project_group_ids.include?(id) }&.map(&:first)
     end
 
     def funder_names
       return [] if funder_ids.blank?
 
-      funder_ids_as_int = funder_ids.map(&:to_i)
-      all_funders_scope.distinct.where(Funder: funder_ids_as_int).
-        distinct.
-        order(Funder: :asc).
-        pluck(:Funder).
-        map { |code| "#{HudHelper.util.funding_source(code&.to_i)} (#{code})" }
+      funder_options_for_select(user: user, ids: funder_ids).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def cohorts
       return [] if cohort_ids.blank?
 
-      GrdaWarehouse::Cohort.viewable_by(user).
-        where(id: cohort_ids).
-        order(name: :asc).
-        pluck(:name)
+      cohorts_for_select(user: user, ids: cohort_ids).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def secondary_cohorts
       return [] if secondary_cohort_ids.blank?
 
-      GrdaWarehouse::Cohort.viewable_by(user).
-        where(id: secondary_cohort_ids).
-        order(name: :asc).
-        pluck(:name)
+      cohorts_for_select(user: user, ids: secondary_cohort_ids).select { |_, id| secondary_cohort_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def chosen_secondary_cohorts
