@@ -110,17 +110,6 @@ module Types
       household_members.map(&:personal_id).uniq.size
     end
 
-    def other_household_member_names
-      # Only resolve household member names if this user has permission to view full enrollment details.
-      return [] unless can_view_enrollment_details
-
-      household_members.filter do |enrollment|
-        enrollment.id != object.enrollment.id
-      end.map do |enrollment|
-        current_permission?(permission: :can_view_client_name, entity: object.enrollment) ? enrollment.client.brief_name : enrollment.client.masked_name
-      end
-    end
-
     def assessments
       # Returns the most recent assessments relevant to the opportunity, grouped by form definition.
       # Even though definition_identifiers could refer to any form type, we are hard-coding the assumption that only custom assessments will be used.
