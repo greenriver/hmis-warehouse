@@ -23,7 +23,7 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
   end
   let(:report) do
     create(
-      :data_quality_report_version_four,
+      :data_quality_report_version_five,
       project: project,
       start: 30.days.ago,
       end: Date.current,
@@ -99,7 +99,7 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       let(:project_group) { create :project_group, name: 'Test Group', projects: [project, project2] }
       let(:report) do
         create(
-          :data_quality_report_version_four,
+          :data_quality_report_version_five,
           project: nil,
           project_group: project_group,
           start: 30.days.ago,
@@ -270,7 +270,7 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
     context 'when notify_contacts is false' do
       let(:report) do
         create(
-          :data_quality_report_version_four,
+          :data_quality_report_version_five,
           project: project,
           start: 30.days.ago,
           end: Date.current,

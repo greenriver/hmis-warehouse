@@ -402,6 +402,36 @@ module Reporting::DataQualityReports
       gender_none == 99
     end
 
+    def set_sex_completeness(sex:)
+      if calculate_sex_refused(sex: sex)
+        self.sex_refused = true
+        return
+      end
+      if calculate_sex_not_collected(sex: sex)
+        self.sex_not_collected = true
+        return
+      end
+      if calculate_sex_missing(sex: sex)
+        self.sex_missing = true
+        return
+      end
+      self.sex_complete = true
+    end
+
+    def calculate_sex_refused(sex:)
+      return false if sex.nil?
+
+      sex.in?(REFUSED)
+    end
+
+    def calculate_sex_missing(sex:)
+      sex.nil?
+    end
+
+    def calculate_sex_not_collected(sex:)
+      sex == 99
+    end
+
     def set_veteran_completeness veteran:, entry_date:
       if calculate_veteran_refused(veteran: veteran, entry_date: entry_date)
         self.veteran_refused = true
