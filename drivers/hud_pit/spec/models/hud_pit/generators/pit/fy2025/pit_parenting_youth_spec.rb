@@ -680,5 +680,95 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
     end
   end
 
-  # Tests for parenting youth counts
+  describe 'Unknown Ages' do
+    context 'when HoH age is unknown' do
+      # Household:
+      # - HoH: age unknown (missing DOB)
+      # - Spouse: age 20 (youth)
+      # - Child: age 5
+      # Expected: 2 Parenting Youth (HoH and Spouse are parents, both < 25)
+
+      before do
+        household_id = 'py_hoh_age_unknown'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_unknown', dob: nil)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+
+        spouse_client = create_client_with_warehouse_link(uid: 'py_spouse_20', dob: pit_date - 20.years)
+        create_enrollment(client: spouse_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_spouse, household_id: household_id)
+
+        child_client = create_client_with_warehouse_link(uid: 'py_child_5', dob: dob_child_5)
+        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
+      end
+
+      it 'counts parenting youth even when HoH age is unknown' do
+        report = run_report(questions: [question])
+        parent_count = report_value(report, question: question, row: :total_parents)
+        expect(parent_count).to eq(2)
+      end
+    end
+
+    context 'when child age is unknown' do
+      # Household:
+      # - HoH: age 20 (youth)
+      # - Child: age unknown (missing DOB)
+      # Expected: 0 Parenting Youth (child age must be known < 18)
+
+      before do
+        household_id = 'py_child_age_unknown'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_20', dob: pit_date - 20.years)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+
+        child_client = create_client_with_warehouse_link(uid: 'py_child_unknown', dob: nil)
+        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
+      end
+
+      it 'does not count as parenting youth when child age is unknown' do
+        report = run_report(questions: [question])
+        parent_count = report_value(report, question: question, row: :total_parents)
+        expect(parent_count).to eq(0)
+      end
+    end
+
+    context 'Scenario A: HOH (unknown age) + Child age 5 (relationship = 2)' do
+      # - Youth Household: No — requires at least one member *known* to be 12–24; the 5-year-old is too young and the HOH's age is unknown
+      # - Parenting Youth: No — not a youth household
+      # - Household Type: Unknown
+
+      before do
+        household_id = 'py_scenario_a'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_unknown_a', dob: nil)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+        child_client = create_client_with_warehouse_link(uid: 'py_child_5_a', dob: dob_child_5)
+        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
+      end
+
+      it 'is not counted as a youth household or parenting youth' do
+        report = run_report(questions: [question])
+        hh_count = report_value(report, question: question, row: :households)
+        expect(hh_count).to eq(0)
+      end
+    end
+
+    context 'Scenario B: HOH (unknown age) + Child age 12 (relationship = 2)' do
+      # - Youth Household: Yes — the 12-year-old satisfies the "known to be >= 12 and <= 24" requirement; unknown-age HOH doesn't disqualify
+      # - Parenting Youth: No — the 12-year-old is a youth but is the child, not the parent; the HOH is the parent but their age is unknown so they can't be confirmed as a youth
+      # - Household Type: Unknown
+
+      before do
+        household_id = 'py_scenario_b'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_unknown_b', dob: nil)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+        child_client = create_client_with_warehouse_link(uid: 'py_child_12_b', dob: pit_date - 12.years)
+        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
+      end
+
+      it 'is counted as a youth household but has 0 parenting youth' do
+        report = run_report(questions: [question])
+        hh_count = report_value(report, question: question, row: :households)
+        parent_count = report_value(report, question: question, row: :total_parents)
+        expect(hh_count).to eq(1)
+        expect(parent_count).to eq(0)
+      end
+    end
+  end
 end

@@ -12,9 +12,15 @@ module HudPit::Generators::Pit::Fy2025
 
     def self.filter_pending_associations(pending_associations)
       pending_associations.filter do |_, row|
-        row[:hoh_age]&.between?(12, 24) && # HoH is between 12 and 24
-        row[:max_age]&.<(25) && # No one over the age of 24
-        row[:household_has_minor_children] # a minor has a child relationship to the HoH
+        # Youth Household criteria:
+        # 1. At least one member is known to be 12-24.
+        next false unless row[:max_age].present? && row[:max_age].between?(12, 24)
+
+        # 2. No member is known to be 25 or older.
+        # (Already covered by max_age.between?(12, 24))
+
+        # 3. Must have child household members (confirmed age < 18 and relationship 2)
+        row[:household_has_minor_children]
       end
     end
 
