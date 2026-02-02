@@ -4,17 +4,7 @@
 - data = @report.detail_data(params)
 - if data
   %p Showing data for #{pluralize(data.count, 'unique client')}.
-  %h3 Gender
-  .card.mb-6
-    %table.table.table-striped
-      %thead
-        %tr
-          - HudHelper.util.gender_id_to_field_name.each_key do |id|
-            %th= HudHelper.util.gender(id)
-      %tbody
-        %tr
-          - HudHelper.util.gender_id_to_field_name.each_value do |field|
-            %td= data.count { |row| row[field] == 1 }
+
   %h3 Sex
   .card.mb-6
     %table.table.table-striped
