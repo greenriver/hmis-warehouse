@@ -8,6 +8,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud-pit-report.md
 # PIT Notes
 #   CoCs should report on people based on where they are sleeping on the night of the count, as opposed to the program they are enrolled in.
 #    RRH + PH (don't count)

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud-pit-report.md
 module  HudPit::Generators::Pit::Fy2025
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path
