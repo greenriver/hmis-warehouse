@@ -84,7 +84,8 @@ Rails.application.config.content_security_policy do |policy|
 
     # Data Visualization & Analytics
     'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
-    'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js library for system dashboards, health analytics, public reports, and HMIS data quality visualization
+    'https://cdn.jsdelivr.net/npm/billboard.js@3.18.0/dist/billboard.min.js', # Billboard.js library (patched version)
+    'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # deprecated
     'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
     'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library - newer version used in external forms
 
@@ -112,7 +113,8 @@ Rails.application.config.content_security_policy do |policy|
       public_s3_url, # S3 bucket for uploaded assets (if configured)
 
       # Data Visualization & Analytics
-      'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
+      'https://cdn.jsdelivr.net/npm/billboard.js@3.18.0/dist/billboard.min.css', # Billboard.js chart styling
+      'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # deprecated
       'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library styles
       'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library styles - newer version
 

@@ -37,6 +37,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 nodesCount
                 nodes {
                   #{scalar_fields(Types::HmisSchema::CeReferralSourceEnrollment)}
+                  householdMembers {
+                    id
+                    clientId
+                    clientName
+                  }
                   assessments {
                     id
                     assessmentName
@@ -81,13 +86,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         enrollments = result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodes')
-        expect(enrollments).to contain_exactly(
+        expect(enrollments).to include(
           a_hash_including(
             'id' => enrollment.id.to_s,
             'projectName' => enrollment.project.project_name,
             'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
             'householdSize' => 1,
-            'otherHouseholdMemberNames' => [],
+            'householdMembers' => [
+              a_hash_including('clientName' => client.brief_name),
+            ],
             'entryDate' => enrollment.entry_date.iso8601,
             'exitDate' => nil,
             'projectType' => 'ES_NBN',
@@ -97,7 +104,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'projectName' => enrollment_with_household.project.project_name,
             'relationshipToHoH' => 'SPOUSE_OR_PARTNER',
             'householdSize' => 2,
-            'otherHouseholdMemberNames' => [other_hhm.brief_name],
+            'householdMembers' => [
+              a_hash_including('clientName' => other_hhm.brief_name),
+              a_hash_including('clientName' => client.brief_name),
+            ],
             'entryDate' => enrollment_with_household.entry_date.iso8601,
             'exitDate' => nil,
             'projectType' => 'ES_NBN',
@@ -107,7 +117,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'projectName' => exited_enrollment.project.project_name,
             'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
             'householdSize' => 1,
-            'otherHouseholdMemberNames' => [],
+            'householdMembers' => [
+              a_hash_including('clientName' => client.brief_name),
+            ],
             'entryDate' => exited_enrollment.entry_date.iso8601,
             'exitDate' => exited_enrollment.exit_date.iso8601,
             'projectType' => 'ES_NBN',

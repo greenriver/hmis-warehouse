@@ -174,6 +174,21 @@ module Hmis::Ce
       !accepted? && !rejected?
     end
 
+    # Create ReferralParticipant records based on DefaultSwimlaneAssignment records
+    # for this referral's target project, unit group, organization, and data source.
+    # Assignments are additive - if multiple levels define default contacts, they all get assigned.
+    # This method is intended to be called within a transaction when the referral is created.
+    def create_default_participants!
+      default_swimlane_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
+        for_unit_group_including_inherited(unit.unit_group).
+        where(swimlane_id: swimlanes.pluck(:id)).
+        includes(:user, :swimlane)
+
+      default_swimlane_assignments.each do |assignment|
+        participants.find_or_create_by!(user: assignment.user, swimlane: assignment.swimlane)
+      end
+    end
+
     def self.apply_filters(input)
       Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
     end
