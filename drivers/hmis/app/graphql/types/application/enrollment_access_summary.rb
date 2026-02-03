@@ -57,7 +57,7 @@ module Types
     end
 
     def client
-      load_ar_association(enrollment, :client_including_deleted) if enrollment
+      load_ar_client_association(enrollment, association_name: :client_including_deleted) if enrollment
     end
   end
 end

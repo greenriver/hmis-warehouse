@@ -299,7 +299,7 @@ module Types
     def open_enrollment_summary
       return [] unless current_permission?(permission: :can_view_open_enrollment_summary, entity: object)
 
-      client = load_ar_association(object, :client)
+      client = load_ar_client_association(object)
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
@@ -313,7 +313,7 @@ module Types
       # assumption is this is called on a single record; we aren't solving n+1 queries
       project = object.project
       enrollments = project.enrollments.where(household_id: object.HouseholdID)
-      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments, current_user: current_user)
     end
 
     def last_service_date(service_type_id:)
@@ -379,7 +379,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client)
+      load_ar_client_association(object)
     end
 
     def household_short_id
