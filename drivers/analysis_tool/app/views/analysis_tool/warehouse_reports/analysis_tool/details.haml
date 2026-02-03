@@ -15,6 +15,7 @@
         %th Last Name
         %th DOB
         %th Gender
+        %th Sex
         %th Veteran Status
         %th Race
     %tbody
@@ -25,5 +26,6 @@
           %td= client.LastName
           %td= client.DOB
           %td= client.gender
+          %td= HudHelper.util.sex(client.Sex)
           %td= HudHelper.util.no_yes_missing(client.VeteranStatus)
           %td= client.race_description
