@@ -33,7 +33,7 @@ module Hmis::Ce::Match
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
     has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: :candidate_pool_id, dependent: :restrict_with_exception
-    has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
+    has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :nullify
 
     attr_readonly :requirement_expression, :priority_expression
 
