@@ -82,6 +82,24 @@
           }
         }
       ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "hmis_participation_group",
+      "text": "HMIS Participation",
+      "item": [
+        {
+          "type": "CHOICE",
+          "component": "DROPDOWN",
+          "required": true,
+          "link_id": "q_2_08_1",
+          "text": "HMIS Participation Type",
+          "pick_list_reference": "HMISParticipationType",
+          "mapping": {
+            "field_name": "initialHmisParticipationType"
+          }
+        }
+      ]
     }
   ]
 }

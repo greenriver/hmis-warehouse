@@ -25,8 +25,9 @@ module Hmis::Hud::Processors
         project.new_record? && project.project_cocs.none? ? process_initial_coc_fields : {}
       when 'initial_funder', 'initial_other_funder', 'initial_funder_grant_id'
         project.new_record? && project.funders.none? ? process_initial_funder_fields : {}
-      # when 'initial_hmis_participation_type'
-      #   process_initial_hmis_participation_fields(value)
+      when 'initial_hmis_participation_type'
+        # Only one value related to HMIS participation type is collected, so no need to check for duplicates
+        process_initial_hmis_participation_fields(value)
       else
         { attribute_name => attribute_value }
       end
@@ -115,6 +116,17 @@ module Hmis::Hud::Processors
             other_funder: other_funder,
             grant_id: grant_id,
             start_date: start_date,
+          ),
+        ],
+      }
+    end
+
+    def process_initial_hmis_participation_fields(value)
+      {
+        hmis_participations_attributes: [
+          related_record_attributes.merge(
+            hmis_participation_type: value,
+            hmis_participation_status_start_date: @hud_values['operatingStartDate'],
           ),
         ],
       }
