@@ -71,8 +71,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   accepts_nested_attributes_for :project_cocs
   accepts_nested_attributes_for :funders
   accepts_nested_attributes_for :hmis_participations
-  # todo @martha
-  # accepts_nested_attributes_for :ce_participations
+  accepts_nested_attributes_for :ce_participations
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'Hmis::ProjectGroup',

@@ -448,6 +448,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(project.hmis_participations.first.hmis_participation_type).to eq(1)
         expect(project.hmis_participations.first.hmis_participation_status_start_date).to eq(project.operating_start_date)
       end
+
+      it 'should accept initial CE participation' do
+        form_values = mock_form_values_for_definition(definition)
+        form_values[:hud_values]['initialCeAccessPoint'] = 1
+        form_values[:hud_values]['initialCePreventionAssessment'] = 1
+        form_values[:hud_values]['initialCeCrisisAssessment'] = 0
+        form_values[:hud_values]['initialCeHousingAssessment'] = 1
+        form_values[:hud_values]['initialCeDirectServices'] = 0
+        form_values[:hud_values]['initialCeReceivesReferrals'] = 1
+
+        response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        project_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
+        project = Hmis::Hud::Project.find(project_id)
+        expect(project.ce_participations.count).to eq(1)
+        expect(project.ce_participations.first.access_point).to eq(1)
+        expect(project.ce_participations.first.prevention_assessment).to eq(1)
+        expect(project.ce_participations.first.crisis_assessment).to eq(0)
+        expect(project.ce_participations.first.housing_assessment).to eq(1)
+        expect(project.ce_participations.first.direct_services).to eq(0)
+        expect(project.ce_participations.first.receives_referrals).to eq(1)
+        expect(project.ce_participations.first.ce_participation_status_start_date).to eq(project.operating_start_date)
+      end
     end
 
     it 'should NOT warn if the operating end date was not changed' do

@@ -25,9 +25,11 @@ module Hmis::Hud::Processors
         project.new_record? && project.project_cocs.none? ? process_initial_coc_fields : {}
       when 'initial_funder', 'initial_other_funder', 'initial_funder_grant_id'
         project.new_record? && project.funders.none? ? process_initial_funder_fields : {}
+      when 'initial_ce_access_point', 'initial_ce_prevention_assessment', 'initial_ce_crisis_assessment', 'initial_ce_housing_assessment', 'initial_ce_direct_services', 'initial_ce_receives_referrals'
+        project.new_record? && project.ce_participations.none? ? process_initial_ce_participation_fields : {}
       when 'initial_hmis_participation_type'
         # Only one value related to HMIS participation type is collected, so no need to check for duplicates
-        process_initial_hmis_participation_fields(value)
+        project.new_record? ? process_initial_hmis_participation_fields(value) : {}
       else
         { attribute_name => attribute_value }
       end
@@ -122,11 +124,38 @@ module Hmis::Hud::Processors
     end
 
     def process_initial_hmis_participation_fields(value)
+      return {} unless value.present?
+
       {
         hmis_participations_attributes: [
           related_record_attributes.merge(
             hmis_participation_type: value,
             hmis_participation_status_start_date: @hud_values['operatingStartDate'],
+          ),
+        ],
+      }
+    end
+
+    def process_initial_ce_participation_fields
+      # 'initial_ce_access_point', 'initial_ce_prevention_assessment', 'initial_ce_crisis_assessment', 'initial_ce_housing_assessment', 'initial_ce_direct_services', 'initial_ce_receives_referrals'
+      access_point = @hud_values['initialCeAccessPoint']
+      prevention_assessment = @hud_values['initialCePreventionAssessment']
+      crisis_assessment = @hud_values['initialCeCrisisAssessment']
+      housing_assessment = @hud_values['initialCeHousingAssessment']
+      direct_services = @hud_values['initialCeDirectServices']
+      receives_referrals = @hud_values['initialCeReceivesReferrals']
+      return {} unless access_point || prevention_assessment || crisis_assessment || housing_assessment || direct_services || receives_referrals
+
+      {
+        ce_participations_attributes: [
+          related_record_attributes.merge(
+            access_point: access_point,
+            prevention_assessment: prevention_assessment,
+            crisis_assessment: crisis_assessment,
+            housing_assessment: housing_assessment,
+            direct_services: direct_services,
+            receives_referrals: receives_referrals,
+            ce_participation_status_start_date: @hud_values['operatingStartDate'],
           ),
         ],
       }
