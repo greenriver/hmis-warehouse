@@ -44,7 +44,7 @@ module HudPit::Generators::Pit::Fy2025
       @universe ||= @report.universe(self.class.question_number)
     end
 
-    private def add # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    private def add
       pit_date = @generator.filter.on
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
@@ -115,14 +115,12 @@ module HudPit::Generators::Pit::Fy2025
             # age related hh calculations
             member_relationship_to_hoh = member['relationship_to_hoh']
             member_age = GrdaWarehouse::Hud::Client.age(date: pit_date, dob: member['dob'])
+            next unless member_age
 
             # Record max age for the household to determine if it's a youth household
-            if member_age.present?
-              hh_max_age = member_age if member_age > hh_max_age
-              hh_max_age_of_parents = member_age if member_relationship_to_hoh.in?([1, 3]) && member_age > hh_max_age_of_parents
-            end
-
-            hh_has_minor_children = true if member_relationship_to_hoh == 2 && member_age.present? && member_age < 18
+            hh_max_age = member_age if member_age > hh_max_age
+            hh_has_minor_children = true if member_relationship_to_hoh == 2 && member_age < 18
+            hh_max_age_of_parents = member_age if member_relationship_to_hoh.in?([1, 3]) && member_age > hh_max_age_of_parents
           end
 
           options = {

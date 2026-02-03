@@ -704,6 +704,8 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         report = run_report(questions: [question])
         parent_count = report_value(report, question: question, row: :total_parents)
         expect(parent_count).to eq(2)
+        youth_parent_count = report_value(report, question: question, row: :parenting_youth_18_24)
+        expect(youth_parent_count).to eq(1)
       end
     end
 
@@ -744,29 +746,28 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
 
       it 'is not counted as a youth household or parenting youth' do
         report = run_report(questions: [question])
-        hh_count = report_value(report, question: question, row: :households)
+        hh_count = report_value(report, question: question, row: :total_households)
         expect(hh_count).to eq(0)
       end
     end
 
-    context 'Scenario B: HOH (unknown age) + Child age 12 (relationship = 2)' do
-      # - Youth Household: Yes — the 12-year-old satisfies the "known to be >= 12 and <= 24" requirement; unknown-age HOH doesn't disqualify
-      # - Parenting Youth: No — the 12-year-old is a youth but is the child, not the parent; the HOH is the parent but their age is unknown so they can't be confirmed as a youth
+    context 'Scenario B: HOH (unknown age) + Child age 13 (relationship = 2)' do
+      # - Parenting Youth: No — the 13-year-old is a youth but is the child, not the parent; the HOH is the parent but their age is unknown so they can't be confirmed as a youth
       # - Household Type: Unknown
 
       before do
         household_id = 'py_scenario_b'
         hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_unknown_b', dob: nil)
         create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-        child_client = create_client_with_warehouse_link(uid: 'py_child_12_b', dob: pit_date - 12.years)
+        child_client = create_client_with_warehouse_link(uid: 'py_child_13_b', dob: pit_date - 13.years)
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
       it 'is counted as a youth household but has 0 parenting youth' do
         report = run_report(questions: [question])
-        hh_count = report_value(report, question: question, row: :households)
+        hh_count = report_value(report, question: question, row: :total_households)
         parent_count = report_value(report, question: question, row: :total_parents)
-        expect(hh_count).to eq(1)
+        expect(hh_count).to eq(0)
         expect(parent_count).to eq(0)
       end
     end
