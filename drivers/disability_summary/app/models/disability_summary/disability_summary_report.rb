@@ -130,10 +130,8 @@ module DisabilitySummary
           dob: c_t[:DOB],
           reporting_age: age_calculation,
           entry_date: she_t[:first_date_in_program],
+          sex: c_t[:Sex],
         }
-        HudHelper.util.gender_fields.each do |field|
-          columns[field] = c_t[field]
-        end
         # race_cache_client = GrdaWarehouse::Hud::Client.new
         data = {}
         # binding.pry
@@ -177,11 +175,9 @@ module DisabilitySummary
               veteran_status: row[:veteran_status],
               dob: row[:dob],
               reporting_age: row[:reporting_age],
+              sex: row[:sex],
               id: client_id,
             }
-            HudHelper.util.gender_fields.each do |field|
-              client_data[field] = row[field]
-            end
 
             data[:clients] ||= {}
             data[:clients][client_id] ||= client_data
