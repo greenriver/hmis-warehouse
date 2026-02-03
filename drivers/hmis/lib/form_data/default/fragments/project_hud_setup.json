@@ -1,0 +1,87 @@
+{
+  "type": "GROUP",
+  "link_id": "project_hud_setup_group",
+  "text": "HUD Setup",
+  "enable_behavior": "ALL",
+  "enable_when": [
+    {
+      "local_constant": "$projectId",
+      "operator": "EXISTS",
+      "answer_boolean": false,
+      "_comment": "Only show this group if creating a new project"
+    }
+  ],
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "coc_group",
+      "text": "Project CoC",
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "coc",
+          "text": "CoC Code",
+          "pick_list_reference": "COC",
+          "mapping": {
+            "field_name": "initialCocCode"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "geocode",
+          "text": "Geocode",
+          "pick_list_reference": "GEOCODE",
+          "mapping": {
+            "field_name": "initialGeocode"
+          }
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "funder_group",
+      "text": "Funder",
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "funder",
+          "text": "Funding Source",
+          "pick_list_reference": "FundingSource",
+          "mapping": {
+            "field_name": "initialFunder"
+          }
+        },
+        {
+          "type": "OPEN_CHOICE",
+          "required": true,
+          "link_id": "other",
+          "text": "Other Funder",
+          "mapping": {
+            "field_name": "initialOtherFunder"
+          },
+          "pick_list_reference": "OTHER_FUNDERS",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "funder",
+              "operator": "EQUAL",
+              "answer_code": "LOCAL_OR_OTHER_FUNDING_SOURCE"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "grant_id",
+          "text": "Grant Identifier",
+          "mapping": {
+            "field_name": "initialFunderGrantId"
+          }
+        }
+      ]
+    }
+  ]
+}

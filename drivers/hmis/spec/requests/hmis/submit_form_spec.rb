@@ -390,6 +390,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should accept initial CoC code' do
+      form_values = mock_form_values_for_definition(definition)
+      form_values[:hud_values]['initialCocCode'] = 'MA-504'
+      form_values[:hud_values]['initialGeocode'] = '250354'
+      input = {
+        form_definition_id: definition.id,
+        organization_id: o1.id,
+        **form_values,
+        confirmed: false,
+      }
+      _, result = post_graphql(input: { input: input }) { mutation }
+      project_id = result.dig('data', 'submitForm', 'record', 'id')
+      errors = result.dig('data', 'submitForm', 'errors')
+      expect(errors).to be_empty
+      project = Hmis::Hud::Project.find(project_id)
+      expect(project.project_cocs.count).to eq(1)
+      expect(project.project_cocs.first.coc_code).to eq('MA-504')
+      expect(project.project_cocs.first.geocode).to eq('250354')
+    end
+
     it 'should NOT warn if the operating end date was not changed' do
       p1.update!(operating_end_date: '2030-01-01')
       input = merge_hud_values(

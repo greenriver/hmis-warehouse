@@ -161,7 +161,15 @@ module Mutations
         # 'nil' because there is no permission base for organization creation; the permission is checked globally.
         [nil, klass.new(ds)]
       when 'Hmis::Hud::Project'
-        [organization, klass.new({ organization_id: organization&.organization_id, **ds })]
+        project = klass.new(
+          {
+            organization_id: organization&.organization_id,
+            **ds,
+            # Generate project ID upfront, so that related records created using nested attributes will be valid
+            project_id: klass.generate_uuid,
+          },
+        )
+        [organization, project]
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory', 'Hmis::Hud::CeParticipation', 'Hmis::Hud::HmisParticipation'
         [project, klass.new({ project_id: project&.project_id, **ds })]
       when 'Hmis::Hud::Enrollment'

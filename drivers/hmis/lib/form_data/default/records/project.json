@@ -8,6 +8,9 @@
     },
     {
       "fragment": "#project_details"
+    },
+    {
+      "fragment": "#project_hud_setup"
     }
   ]
 }

@@ -68,6 +68,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
+  accepts_nested_attributes_for :project_cocs
+  # todo @martha
+  # accepts_nested_attributes_for :funders
+  # accepts_nested_attributes_for :hmis_participations
+  # accepts_nested_attributes_for :ce_participations
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'Hmis::ProjectGroup',
