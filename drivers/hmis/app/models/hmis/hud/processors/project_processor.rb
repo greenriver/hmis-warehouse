@@ -17,13 +17,14 @@ module Hmis::Hud::Processors
       attributes = case attribute_name
       when 'residential_affiliation_project_ids'
         process_residential_affiliations(value)
+
+      # Process 'initial' fields -- CoC, funder, etc. -- if this is a new project.
+      # These process_initial_ methods read the values needed from @hud_values,
+      # so skip processing if there's already a record (to prevent creating duplicates)
       when 'initial_coc_code', 'initial_geocode'
-        # Process 'initial' fields if this is a new project.
-        # process_initial_coc_fields reads the values needed for the initial CoC record from @hud_values,
-        # so skip processing if there's already a CoC record on the project (to prevent creating duplicates)
         project.new_record? && project.project_cocs.none? ? process_initial_coc_fields : {}
-      # when 'funder', 'other_funder', 'grant_id'
-      #   project.new_record? ? process_funder_fields : {}
+      when 'initial_funder', 'initial_other_funder', 'initial_funder_grant_id'
+        project.new_record? && project.funders.none? ? process_initial_funder_fields : {}
       else
         { attribute_name => attribute_value }
       end
@@ -44,6 +45,14 @@ module Hmis::Hud::Processors
 
     private
 
+    def related_record_attributes
+      project = @processor.send(factory_name)
+      {
+        user: @processor.hud_user,
+        **project.slice(:project_id, :data_source_id),
+      }
+    end
+
     def process_initial_coc_fields
       coc_code = @hud_values['initialCocCode']
       geocode = @hud_values['initialGeocode']
@@ -59,31 +68,22 @@ module Hmis::Hud::Processors
       }
     end
 
-    # def process_funder_fields
-    #   project = @processor.send(factory_name)
-    #   nested_attrs = {}
+    def process_initial_funder_fields
+      funder = @hud_values['initialFunder']
+      other_funder = @hud_values['initialOtherFunder']
+      grant_id = @hud_values['initialFunderGrantId']
+      start_date = @hud_values['operatingStartDate']
+      return unless funder || other_funder || grant_id
 
-    #   # Funder (optional)
-    #   funder = @hud_values['funder']
-    #   other_funder = @hud_values['otherFunder']
-    #   if funder.present?
-    #     nested_attrs[:funders_attributes] = [
-    #       related_record_attributes.merge(
-    #         funder: funder,
-    #         other_funder: other_funder,
-    #         start_date: project.operating_start_date,
-    #       ),
-    #     ]
-    #   end
-
-    #   nested_attrs
-    # end
-
-    def related_record_attributes
-      project = @processor.send(factory_name)
       {
-        user: @processor.hud_user,
-        **project.slice(:project_id, :data_source_id),
+        funders_attributes: [
+          related_record_attributes.merge(
+            funder: funder,
+            other_funder: other_funder,
+            grant_id: grant_id,
+            start_date: start_date,
+          ),
+        ],
       }
     end
 

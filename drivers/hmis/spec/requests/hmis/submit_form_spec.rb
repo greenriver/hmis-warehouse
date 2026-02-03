@@ -14,11 +14,11 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
-    cleanup_test_environment
-    ::HmisUtil::JsonForms.seed_all
+    # cleanup_test_environment
+    # ::HmisUtil::JsonForms.seed_all
   end
   after(:all) do
-    cleanup_test_environment
+    # cleanup_test_environment
   end
 
   include_context 'hmis base setup'
@@ -400,7 +400,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         **form_values,
         confirmed: false,
       }
-      _, result = post_graphql(input: { input: input }) { mutation }
+      response, result = post_graphql(input: { input: input }) { mutation }
+      expect(response.status).to eq(200), result.inspect
       project_id = result.dig('data', 'submitForm', 'record', 'id')
       errors = result.dig('data', 'submitForm', 'errors')
       expect(errors).to be_empty
@@ -408,6 +409,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(project.project_cocs.count).to eq(1)
       expect(project.project_cocs.first.coc_code).to eq('MA-504')
       expect(project.project_cocs.first.geocode).to eq('250354')
+    end
+
+    it 'should accept initial funder' do
+      form_values = mock_form_values_for_definition(definition)
+      form_values[:hud_values]['initialFunder'] = 'LOCAL_OR_OTHER_FUNDING_SOURCE'
+      form_values[:hud_values]['initialOtherFunder'] = 'Xyz Funder'
+      form_values[:hud_values]['initialFunderGrantId'] = '12345'
+      input = {
+        form_definition_id: definition.id,
+        organization_id: o1.id,
+        **form_values,
+        confirmed: false,
+      }
+      response, result = post_graphql(input: { input: input }) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      project_id = result.dig('data', 'submitForm', 'record', 'id')
+      errors = result.dig('data', 'submitForm', 'errors')
+      expect(errors).to be_empty
+      project = Hmis::Hud::Project.find(project_id)
+      expect(project.funders.count).to eq(1)
+      expect(project.funders.first.funder).to eq(0) # Local or other funding source
+      expect(project.funders.first.other_funder).to eq('Xyz Funder')
+      expect(project.funders.first.grant_id).to eq('12345')
     end
 
     it 'should NOT warn if the operating end date was not changed' do

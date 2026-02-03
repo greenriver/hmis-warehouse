@@ -69,8 +69,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
   accepts_nested_attributes_for :project_cocs
+  accepts_nested_attributes_for :funders
   # todo @martha
-  # accepts_nested_attributes_for :funders
   # accepts_nested_attributes_for :hmis_participations
   # accepts_nested_attributes_for :ce_participations
 
