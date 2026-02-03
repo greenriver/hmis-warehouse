@@ -846,8 +846,8 @@ module Filters
       all_data_sources_scope.options_for_select(user: user, ids: ids)
     end
 
-    def funder_options_for_select(user:, ids: nil)
-      all_funders_scope.options_for_select(user: user, ids: ids)
+    def funder_options_for_select(user:, funder_codes: nil)
+      all_funders_scope.options_for_select(user: user, funder_codes: funder_codes)
     end
 
     def funder_other_options_for_select(user:)
@@ -1543,25 +1543,25 @@ module Filters
     def project_groups
       return [] if project_group_ids.blank?
 
-      project_groups_options_for_select(user: user, ids: project_group_ids).select { |_, id| project_group_ids.include?(id) }&.map(&:first)
+      project_groups_options_for_select(user: user, ids: project_group_ids)&.map(&:first)
     end
 
     def funder_names
       return [] if funder_ids.blank?
 
-      funder_options_for_select(user: user, ids: funder_ids).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
+      funder_options_for_select(user: user, funder_codes: funder_ids)&.map(&:first)
     end
 
     def cohorts
       return [] if cohort_ids.blank?
 
-      cohorts_for_select(user: user, ids: cohort_ids).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
+      cohorts_for_select(user: user, ids: cohort_ids)&.map(&:first)
     end
 
     def secondary_cohorts
       return [] if secondary_cohort_ids.blank?
 
-      cohorts_for_select(user: user, ids: secondary_cohort_ids).select { |_, id| secondary_cohort_ids.include?(id.to_i) }&.map(&:first)
+      cohorts_for_select(user: user, ids: secondary_cohort_ids)&.map(&:first)
     end
 
     def chosen_secondary_cohorts

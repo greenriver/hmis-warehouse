@@ -79,9 +79,9 @@ module GrdaWarehouse::Hud
       "#{self.StartDate} - #{self.EndDate}"
     end
 
-    def self.options_for_select(user:, ids: nil)
+    def self.options_for_select(user:, funder_codes: nil)
       scope = viewable_by(user)
-      scope = scope.where(Funder: ids) if ids.present?
+      scope = scope.where(Funder: funder_codes) if funder_codes.present?
       scope.distinct.
         order(Funder: :asc).
         pluck(:Funder).
