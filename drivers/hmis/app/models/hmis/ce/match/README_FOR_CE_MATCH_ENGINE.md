@@ -11,8 +11,8 @@ The classes within this module are organized into several subdirectories to grou
   - Contains the public-facing API classes that orchestrate the matching process (`Engine`, `CandidatePoolBuilder`, `UnitGroupRuleResolver`, `CandidatePoolRepository`, `MatchApplicability`). These are the primary entry points for interacting with the match engine.
 
 - **`internal/` (Internal Components)**
-  - Houses the service objects that are used internally by the `Engine`. These classes are considered implementation details and should not be called directly from outside the `Hmis::Ce::Match` module.
-  - Examples: `CandidateRepository`, `CandidateEventWriter`, `ClientPoolEvaluator`, `SqlPrefilter`.
+  - Houses the service objects that are used internally by the `Engine` or other entry points. These classes are considered implementation details and should not be called directly from outside the `Hmis::Ce::Match` module.
+  - Examples: `CandidateRepository`, `CandidateEventWriter`, `ClientPoolEvaluator`, `SqlPrefilter`, `UnitGroupPoolChange`
 
 - **`expression/` (Expression Handling Subsystem)**
   - A self-contained subsystem for parsing, translating, and evaluating the custom expressions used in eligibility and prioritization rules.
