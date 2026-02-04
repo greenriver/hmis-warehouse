@@ -102,7 +102,7 @@ module Hmis::Ce::Match
         next if old_pool&.id == new_pool&.id
 
         # Track pool changes for event generation
-        pool_changes << Hmis::Ce::Match::UnitGroupPoolChange.new(unit_group: unit_group, old_pool: old_pool, new_pool: new_pool)
+        pool_changes << Hmis::Ce::Match::Internal::UnitGroupPoolChange.new(unit_group: unit_group, old_pool: old_pool, new_pool: new_pool)
 
         # Pass all attributes to satisfy validations
         unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: new_pool&.id)

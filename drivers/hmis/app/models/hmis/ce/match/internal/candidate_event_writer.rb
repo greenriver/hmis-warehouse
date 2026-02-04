@@ -15,7 +15,7 @@ module Hmis::Ce::Match::Internal
   # This class is used by the Match Engine to create events based on changes to the client's eligibility
   # or the pool's requirements. (Separately, events are also created from the CandidatePoolBuilder
   # when unit group pool assignments change, which this class isn't responsible for;
-  # see Hmis::Ce::Match::UnitGroupPoolChange.)
+  # see Hmis::Ce::Match::Internal::UnitGroupPoolChange.)
   class CandidateEventWriter
     def initialize(pool)
       @pool = pool

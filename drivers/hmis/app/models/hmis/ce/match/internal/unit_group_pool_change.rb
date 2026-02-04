@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Internal
   # Provides a PORO describing a UnitGroup's candidate pool assignment change,
   # for use by the CandidatePoolBuilder.
   # Provides a helper to generates candidate events for the change it describes,
