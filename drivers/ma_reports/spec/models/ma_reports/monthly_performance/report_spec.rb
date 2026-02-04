@@ -35,17 +35,34 @@ RSpec.describe MaReports::MonthlyPerformance::Report, type: :model do
   end
 
   describe '#show_gender?' do
-    context 'when version is not set (defaults to 2024)' do
-      it 'returns true' do
+    after do
+      AppConfigProperty.find_by(key: 'show_gender_in_reports')&.destroy
+    end
+
+    context 'when version is prior to 2026' do
+      it 'returns true regardless of app config' do
         report.options = {}
         expect(report.show_gender?).to be true
       end
     end
 
-    context 'when version is 2026' do
-      it 'returns false' do
-        report.options = { 'version' => 2026 }
-        expect(report.show_gender?).to be false
+    context 'when version is 2026 or later' do
+      context 'when show_gender_in_reports property is not set' do
+        it 'returns false (default)' do
+          report.options = { 'version' => 2026 }
+          expect(report.show_gender?).to be false
+        end
+      end
+
+      context 'when show_gender_in_reports property is true' do
+        before do
+          AppConfigProperty.create!(key: 'show_gender_in_reports', value: true)
+        end
+
+        it 'returns true' do
+          report.options = { 'version' => 2026 }
+          expect(report.show_gender?).to be true
+        end
       end
     end
   end

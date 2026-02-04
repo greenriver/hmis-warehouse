@@ -95,7 +95,9 @@ module MaReports::MonthlyPerformance
     end
 
     def show_gender?
-      report_version < 2026
+      return true if report_version < 2026
+
+      HudHelper.show_gender_in_reports?
     end
 
     def show_sex?
