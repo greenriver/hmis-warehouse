@@ -97,6 +97,129 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
+    describe 'creating candidate events' do
+      # Set up existing unit group with candidate pool
+      let!(:existing_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'a = 1', priority_expression: '{score_1}') }
+      let!(:rule_a) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'a = 1') }
+      let!(:rule_score_1) { create(:hmis_ce_priority_scheme, owner: project, expression: 'score_1') }
+      let!(:existing_unit_group) { create(:hmis_unit_group, project: project, candidate_pool: existing_pool) }
+
+      # Create some existing candidates in the pool
+      let!(:client_proxy_1) { create(:hmis_ce_client_proxy) }
+      let!(:client_proxy_2) { create(:hmis_ce_client_proxy) }
+      let!(:existing_candidate_1) { create(:hmis_ce_match_candidate, client_proxy: client_proxy_1, candidate_pool: existing_pool) }
+      let!(:existing_candidate_2) { create(:hmis_ce_match_candidate, client_proxy: client_proxy_2, candidate_pool: existing_pool) }
+
+      # Create existing events for the candidates. The CandidatePoolBuilder uses these to get the client snapshots
+      let!(:existing_event_1) do
+        create(
+          :hmis_ce_match_candidate_event,
+          client_proxy: client_proxy_1,
+          candidate_pool: existing_pool,
+          unit_group: existing_unit_group,
+          event_name: 'add',
+          snapshot: { 'a' => '1', 'score_1' => 1 },
+        )
+      end
+      let!(:existing_event_2) do
+        create(
+          :hmis_ce_match_candidate_event,
+          client_proxy: client_proxy_2,
+          candidate_pool: existing_pool,
+          unit_group: existing_unit_group,
+          event_name: 'add',
+          snapshot: { 'a' => '1', 'score_1' => 2 },
+        )
+      end
+
+      let!(:cruft_previous_event) do
+        create(
+          :hmis_ce_match_candidate_event,
+          client_proxy: client_proxy_2,
+          candidate_pool: existing_pool,
+          unit_group: existing_unit_group,
+          event_name: 'remove',
+          snapshot: { 'a' => '999', 'score_1' => 999 },
+          created_at: 2.days.ago, # older snapshot should be ignored; the most recent one per client is used
+        )
+      end
+
+      context 'when unit group gets assigned to an existing pool' do
+        let!(:unit_group) { create(:hmis_unit_group, project: project) }
+
+        it 'creates add events for candidates to the unit group' do
+          expect do
+            described_class.call
+            unit_group.reload
+          end.to change(unit_group, :candidate_pool_id).from(nil).to(existing_pool.id).
+            and change(Hmis::Ce::Match::CandidateEvent, :count).by(2)
+
+          events = Hmis::Ce::Match::CandidateEvent.last(2).sort_by(&:client_proxy_id)
+          expect(events.map(&:event_name).uniq).to eq(['add'])
+          expect(events.map(&:unit_group_id).uniq).to eq([unit_group.id])
+          expect(events.map(&:candidate_pool_id).uniq).to eq([existing_pool.id])
+          expect(events.map(&:client_proxy_id).uniq).to eq([client_proxy_1.id, client_proxy_2.id])
+
+          expect(events.first.snapshot['a']).to eq('1')
+          expect(events.first.snapshot['score_1']).to eq(1)
+          expect(events.second.snapshot['a']).to eq('1')
+          expect(events.second.snapshot['score_1']).to eq(2)
+        end
+      end
+
+      context 'when unit group gets unassigned from a pool' do
+        # Null out the existing rules
+        let!(:rule_a) { nil }
+        let!(:rule_score_1) { nil }
+
+        it 'creates remove events for candidates from the unit group' do
+          expect do
+            described_class.call
+            existing_unit_group.reload
+          end.to change(existing_unit_group, :candidate_pool_id).from(existing_pool.id).to(nil).
+            and change(Hmis::Ce::Match::CandidateEvent, :count).by(2)
+
+          events = Hmis::Ce::Match::CandidateEvent.last(2).sort_by(&:client_proxy_id)
+          expect(events.map(&:event_name).uniq).to eq(['remove'])
+          expect(events.map(&:unit_group_id).uniq).to eq([existing_unit_group.id])
+          expect(events.map(&:candidate_pool_id).uniq).to eq([existing_pool.id])
+          expect(events.map(&:client_proxy_id).uniq).to eq([client_proxy_1.id, client_proxy_2.id])
+        end
+      end
+
+      context 'when unit group pool changes' do
+        let!(:new_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'b = 1', priority_expression: '{score_1}') }
+
+        let!(:rule_a) { nil }
+        let!(:rule_b) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'b = 1') }
+
+        # Create existing candidates in the new pool
+        let!(:client_proxy_3) { create(:hmis_ce_client_proxy) }
+        let!(:new_pool_candidate_3) { create(:hmis_ce_match_candidate, client_proxy: client_proxy_3, candidate_pool: new_pool) }
+        let!(:new_pool_candidate_2) { create(:hmis_ce_match_candidate, client_proxy: client_proxy_2, candidate_pool: new_pool) }
+
+        it 'creates add and remove events for candidates to the unit group' do
+          expect do
+            described_class.call
+            existing_unit_group.reload
+          end.to change(existing_unit_group, :candidate_pool_id).from(existing_pool.id).to(new_pool.id).
+            and change(Hmis::Ce::Match::CandidateEvent, :count).by(2)
+
+          # client 1 should have been removed
+          client_1_event = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxy_1.id).last
+          expect(client_1_event.event_name).to eq('remove')
+          expect(client_1_event.candidate_pool_id).to eq(existing_pool.id)
+          expect(client_1_event.unit_group_id).to eq(existing_unit_group.id)
+
+          # client 3 should have been added
+          client_3_event = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxy_3.id).last
+          expect(client_3_event.event_name).to eq('add')
+          expect(client_3_event.candidate_pool_id).to eq(new_pool.id)
+          expect(client_3_event.unit_group_id).to eq(existing_unit_group.id)
+        end
+      end
+    end
+
     context 'with opportunity backfilling' do
       let!(:unit) { create(:hmis_unit, project: project) }
       let!(:opportunity_without_pool) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: nil) }

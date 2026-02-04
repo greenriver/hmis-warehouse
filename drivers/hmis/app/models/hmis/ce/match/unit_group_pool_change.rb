@@ -64,12 +64,15 @@ module Hmis::Ce::Match
       # don't bother trying to recreate the snapshot of the client's attributes.
       # Instead, grab the snapshot from the most recent existing event for that client proxy.
       # There should be at least one, since the client was previously eligible for at least one pool (either the old or the new one).
+      candidate_client_proxy_ids = candidates.map(&:client_proxy_id).uniq
+
+      # Select the most recent event for each client proxy
       snapshot_by_client_proxy_id = Hmis::Ce::Match::CandidateEvent.
-        joins(:client_proxy).
-        where(client_proxy_id: candidates.map(&:client_proxy_id).uniq).
-        select('DISTINCT ON (client_proxies.id) client_proxies.id, ce_match_candidate_events.snapshot').
-        order('client_proxies.id, ce_match_candidate_events.created_at DESC').
-        pluck('client_proxies.id', 'ce_match_candidate_events.snapshot').
+        where(client_proxy_id: candidate_client_proxy_ids).
+        select('DISTINCT ON (ce_match_candidate_events.client_proxy_id) ce_match_candidate_events.client_proxy_id, ce_match_candidate_events.snapshot').
+        order('ce_match_candidate_events.client_proxy_id, ce_match_candidate_events.created_at DESC, ce_match_candidate_events.id DESC').
+        to_a. # to_a because plucking directly from the result would drop the DISTINCT ON clause
+        pluck(:client_proxy_id, :snapshot).
         to_h
 
       candidates.map do |candidate|
