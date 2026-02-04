@@ -93,11 +93,11 @@ module Hmis::Ce::Match
       unit_group_updates = []
       pool_changes = [] # Track changes: { unit_group_id:, old_pool_id:, new_pool_id: }
       pools_by_key = @pool_repository.all_by_key
-      unit_group_scope.where(id: keys_by_unit_group_id.keys).find_each do |unit_group|
+
+      unit_group_scope.includes(:candidate_pool).find_each do |unit_group|
         computed_key = keys_by_unit_group_id[unit_group.id]
-        old_pool_id = unit_group.candidate_pool_i
+        old_pool_id = unit_group.candidate_pool_id
         # If the key is nil, the unit group should not be asssociated with a pool. If it has an existing one, it should be removed
-        # todo @martha - bring in the test that checked for this, and the spec updates needed.
         new_pool_id = computed_key ? pools_by_key[computed_key]&.id : nil
 
         next if old_pool_id == new_pool_id

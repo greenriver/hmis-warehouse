@@ -63,6 +63,18 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         # unit_group_2 should not have been processed/associated
         expect(unit_group_2.reload.candidate_pool).to be_nil
       end
+
+      it 'removes the unit groups candidate pool when no longer applicable' do
+        described_class.call
+        expect(unit_group_1.reload.candidate_pool).to be_present
+
+        Hmis::Ce::Match::Rule.where(owner: unit_group_1).destroy_all
+
+        expect do
+          described_class.call
+          unit_group_1.reload
+        end.to change(unit_group_1, :candidate_pool_id).to(nil)
+      end
     end
 
     context 'when unit group rules change' do
