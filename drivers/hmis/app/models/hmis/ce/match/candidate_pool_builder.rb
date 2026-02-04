@@ -93,10 +93,11 @@ module Hmis::Ce::Match
       pool_changes = []
       pools_by_key = @pool_repository.all_by_key
 
-      unit_group_scope.where(id: keys_by_unit_group_id.keys).includes(:candidate_pool).find_each do |unit_group|
+      unit_group_scope.includes(:candidate_pool).find_each do |unit_group|
         computed_key = keys_by_unit_group_id[unit_group.id]
         old_pool = unit_group.candidate_pool
-        new_pool = pools_by_key[computed_key]
+        # If the key is nil, the unit group should not be asssociated with a pool. If it has an existing one, it should be removed
+        new_pool = computed_key ? pools_by_key[computed_key] : nil
 
         next if old_pool&.id == new_pool&.id
 
