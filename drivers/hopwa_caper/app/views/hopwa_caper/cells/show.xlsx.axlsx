@@ -4,14 +4,22 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: @name.slice(0, 30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
 
-  project_ids = @enrollments.map(&:project_id).uniq
+  if @enrollments.any?
+    list = @enrollments
+    presenter_class = HopwaCaper::DrilldownPresenter
+  elsif @services.any?
+    list = @services
+    presenter_class = HopwaCaper::ServiceDrilldownPresenter
+  end
+
+  project_ids = list.map(&:project_id).uniq
   current_user.policy_context.preload_project_dependencies(project_ids)
 
-  presenter = HopwaCaper::DrilldownPresenter.new(@enrollments, @report, current_user, format: :excel)
+  presenter = presenter_class.new(list, @report, current_user, format: :excel)
   headers = presenter.headers
   sheet.add_row(headers.values, style: title)
 
-  @enrollments.each do |record|
+  list.each do |record|
     row = headers.keys.map { |k| presenter.display_value(record, k) }
     sheet.add_row(row)
   end
