@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match
-  # PORO describing a UnitGroup's candidate pool assignment change,
-  # plus functionality to generate candidate events for the change.
+  # Provides a PORO describing a UnitGroup's candidate pool assignment change,
+  # for use by the CandidatePoolBuilder.
+  # Provides a helper to generates candidate events for the change it describes,
+  # but does not save the events; expects the caller to bulk-save.
   class UnitGroupPoolChange
     attr_reader :unit_group, :old_pool, :new_pool
 
@@ -12,10 +14,10 @@ module Hmis::Ce::Match
       @new_pool = new_pool
     end
 
-    # Generate candidate events when this unit group's pool assignment changes.
+    # Generate candidate events for the change described by this instance.
     # Only generates events for clients whose eligibility status actually changes.
-    # (If the client was in both the old pool and the new pool, no events are generated.)
-    # Creates and does not save events; expect the caller to bulk-save
+    # (Does not generate an event for a client who is in both the old pool and the new pool.)
+    # Creates and does not save events; expects the caller to bulk-save
     def generate_candidate_events(timestamp: Time.current)
       if old_pool.nil? && new_pool.present?
         # Unit group didn't have a pool before, now it has one. Generate "add" events for candidates in the new pool
