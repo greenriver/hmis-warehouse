@@ -22,11 +22,6 @@ module Mutations
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
       access_denied! unless client && policy_for(client, policy_type: :hmis_client).can_destroy?
 
-      # While this is redundant with the above, this check caches the authorization result so that
-      # the client object-level authorization check will succeed even after the client has been deleted
-      # TODO(#8328) - remove
-      access_denied! unless current_permission?(permission: :can_view_clients, entity: client)
-
       client.lock_version = client_lock_version if client_lock_version
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)
 

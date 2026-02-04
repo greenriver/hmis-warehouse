@@ -7,15 +7,19 @@
 # frozen_string_literal: true
 
 class Sources::ActiveRecordScope < ::GraphQL::Dataloader::Source
-  def initialize(scope)
+  def initialize(scope, onload: nil)
     @scope = scope
+    @onload = onload
   end
 
   def fetch(ids)
     ids = ids.map { |i| i&.to_i } # ensure ids are integers so we can use the short-hand below
 
     # Load records by the provided IDs and return them in the same order
-    @scope.where(id: ids).index_by(&:id).values_at(*ids)
+    results = @scope.where(id: ids).index_by(&:id).values_at(*ids)
+    @onload&.call(results)
+
+    results
   end
 
   def self.batch_key_for(*batch_args, **batch_kwargs)
