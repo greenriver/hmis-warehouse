@@ -10,7 +10,8 @@
 # 3. Marks newly created or all pools as "dirty" to trigger reprocessing.
 # 4. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
 # 5. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
-
+# 6. Generates candidate events when unit group pool assignments change.
+#
 # Semantics and concurrency notes:
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
 # - A `nil` key represents the default case where no specific rules apply; do not create a pool for this key.
@@ -79,6 +80,7 @@ module Hmis::Ce::Match
     # - Compute effective key for each unit group
     # - Create pools for non-default keys
     # - Assign unit_groups.candidate_pool_id accordingly (NULL if default key)
+    # - Generate events when pool assignments change
     # Returns newly created pool IDs for dirty marking
     def upsert_unit_group_pools!(unit_group_scope)
       keys_by_unit_group_id = @rule_resolver.keys_for_all_unit_groups(unit_group_scope)
@@ -86,17 +88,23 @@ module Hmis::Ce::Match
       # Create pools for unique keys
       created_ids = @pool_repository.create_for_keys(keys_by_unit_group_id.values.uniq.compact)
 
-      # Prepare bulk updates for unit groups
+      # Prepare bulk updates for unit groups and track pool changes
       unit_group_updates = []
+      pool_changes = []
       pools_by_key = @pool_repository.all_by_key
-      unit_group_scope.where(id: keys_by_unit_group_id.keys).find_each do |unit_group|
-        computed_key = keys_by_unit_group_id[unit_group.id]
-        candidate_pool_id = pools_by_key[computed_key]&.id
 
-        next if unit_group.candidate_pool_id == candidate_pool_id
+      unit_group_scope.where(id: keys_by_unit_group_id.keys).includes(:candidate_pool).find_each do |unit_group|
+        computed_key = keys_by_unit_group_id[unit_group.id]
+        old_pool = unit_group.candidate_pool
+        new_pool = pools_by_key[computed_key]
+
+        next if old_pool&.id == new_pool&.id
+
+        # Track pool changes for event generation
+        pool_changes << Hmis::Ce::Match::UnitGroupPoolChange.new(unit_group: unit_group, old_pool: old_pool, new_pool: new_pool)
 
         # Pass all attributes to satisfy validations
-        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: candidate_pool_id)
+        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: new_pool&.id)
       end
 
       updated_count = 0
@@ -111,6 +119,14 @@ module Hmis::Ce::Match
         raise "Failed to update Unit Groups with candidate pool assignments: #{result.inspect}" if result.failed_instances.present?
 
         updated_count = unit_group_updates.size
+
+        # Generate events for each unit group whose candidate pool assignment changed
+        timestamp = Time.current
+        events = pool_changes.flat_map { |change| change.generate_candidate_events(timestamp: timestamp) }
+        if events.any?
+          result = Hmis::Ce::Match::CandidateEvent.import!(events)
+          raise "failed to import Events: #{result.inspect}" if result.failed_instances.present?
+        end
       end
 
       [created_ids, updated_count]
