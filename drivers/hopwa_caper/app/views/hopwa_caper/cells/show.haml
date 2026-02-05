@@ -12,7 +12,11 @@
 
 - if @enrollments.any?
   %h3 Enrollments
-  = render_paginated_list(scope: @enrollments, item_name: 'enrollment', list_partial: 'list')
+  = render_paginated_list(scope: @enrollments, item_name: 'enrollment', list_partial: 'list', list_locals: {presenter_class: HopwaCaper::DrilldownPresenter})
 
-- if @enrollments.empty?
+- elsif @services.any?
+  %h3 Services
+  = render_paginated_list(scope: @services, item_name: 'service', list_partial: 'list', list_locals: {presenter_class: HopwaCaper::ServiceDrilldownPresenter})
+
+- else
   .none-found No records found.
