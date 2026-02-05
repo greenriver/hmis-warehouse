@@ -338,12 +338,13 @@ module GrdaWarehouse::Hud
       confidential_organization_ids.include?([organization_id, data_source_id])
     end
 
-    def self.options_for_select user:
+    def self.options_for_select(user:, ids: nil)
       # don't cache this, it's a class method
       @options = begin
         options = {}
         scope = viewable_by(user)
         scope = scope.where(confidential: false) unless user.can_view_confidential_project_names?
+        scope = scope.where(id: ids) if ids.present?
         scope.joins(:data_source).
           order(ds_t[:name].asc, OrganizationName: :asc).
           pluck(ds_t[:name].as('ds_name'), :OrganizationName, :id).each do |ds, org_name, id|
