@@ -38,6 +38,7 @@ module Hmis::AuthPolicies::ContextLoaders
 
       # Load all enrollments for these clients and group by client_id
       enrollments = Hmis::Hud::Enrollment.joins(:client).
+        joins(:project). # filter out enrollments in deleted projects (regression #6641)
         merge(Hmis::Hud::Client.where(id: new_client_ids)).
         pluck(c_t[:id], e_t[:project_pk])
 

@@ -33,7 +33,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client)
+      load_ar_client_association(object)
     end
   end
 end

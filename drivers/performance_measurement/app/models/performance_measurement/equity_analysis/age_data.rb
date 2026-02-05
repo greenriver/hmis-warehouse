@@ -26,14 +26,19 @@ module PerformanceMeasurement::EquityAnalysis
 
     def client_scope(period, investigate_by)
       age_range = census_age_range_to_range(investigate_by.to_sym)
-      ages = age_range.to_a
       age_column = case period
       when 'reporting'
         :reporting_age
       else
         :comparison_age
       end
-      metric_scope(period).where(age_column => ages)
+
+      # Handle infinity ranges for 85+ age group
+      if age_range.end == Float::INFINITY
+        metric_scope(period).where(age_column => age_range.begin..)
+      else
+        metric_scope(period).where(age_column => age_range)
+      end
     end
   end
 end

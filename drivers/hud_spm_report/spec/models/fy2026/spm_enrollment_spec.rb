@@ -72,4 +72,36 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
       expect(child_spm.move_in_date).to eq(@head[:enrollment].move_in_date)
     end
   end
+
+  describe '.create_enrollment_set data isolation' do
+    it 'correctly isolates contexts by data_source_id when EnrollmentIDs collide' do
+      ds1 = create(:source_data_source)
+      ds2 = create(:source_data_source)
+      shared_id = 'ENR-COLLISION-123'
+
+      project1 = create(:hud_project, data_source: ds1, ProjectType: 0)
+      create(:hud_project_coc, project: project1, data_source: ds1, CoCCode: 'MA-500')
+
+      project2 = create(:hud_project, data_source: ds2, ProjectType: 0)
+      create(:hud_project_coc, project: project2, data_source: ds2, CoCCode: 'MA-500')
+
+      client1 = create(:hud_client, data_source: ds1, dob: Date.parse('1990-01-01'))
+      create(:warehouse_client, source: client1)
+      create(:hud_enrollment, data_source: ds1, EnrollmentID: shared_id, PersonalID: client1.PersonalID, ProjectID: project1.ProjectID, EntryDate: '2022-01-01')
+
+      client2 = create(:hud_client, data_source: ds2, dob: Date.parse('1970-01-01'))
+      create(:warehouse_client, source: client2)
+      create(:hud_enrollment, data_source: ds2, EnrollmentID: shared_id, PersonalID: client2.PersonalID, ProjectID: project2.ProjectID, EntryDate: '2022-01-01')
+
+      report = setup_report([project1.id, project2.id])
+
+      spm_enrollments = HudSpmReport::Fy2026::SpmEnrollment.where(report_instance: report).index_by(&:data_source_id)
+
+      expect(spm_enrollments.count).to eq(2)
+
+      # We expect this to fail if the bug exists (one will have the wrong age due to collision)
+      expect(spm_enrollments[ds1.id].age).to eq(32)
+      expect(spm_enrollments[ds2.id].age).to eq(52)
+    end
+  end
 end
