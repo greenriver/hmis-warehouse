@@ -500,11 +500,13 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:requirement_expression) { 'current_age > 18' }
     let(:priority_expression) { '{current_age}' }
     let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
+    let!(:unit_group) { create(:hmis_unit_group, candidate_pool: pool) }
+    let!(:project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: unit_group.project) }
 
     def find_events_for_client(client_id)
       proxy = Hmis::Ce::ClientProxy.for_warehouse_clients.find_by!(client_id: client_id)
 
-      Hmis::Ce::Match::CandidateEvent.where(candidate_pool: pool, client_proxy: proxy).order(:created_at)
+      Hmis::Ce::Match::CandidateEvent.where(unit_group: unit_group, client_proxy: proxy).order(:created_at)
     end
 
     context 'when updating existing candidates' do
@@ -521,6 +523,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         expect(events.last).to have_attributes(
           event_name: 'update',
           candidate_pool: pool,
+          unit_group: unit_group,
         )
         expect(events.last.snapshot).to include('current_age' => 30)
         expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([30])
@@ -546,6 +549,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         expect(events.last).to have_attributes(
           event_name: 'remove',
           candidate_pool: pool,
+          unit_group: unit_group,
         )
         expect(events.last.snapshot).to include('current_age' => 10)
       end
@@ -572,10 +576,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         expect(events.first).to have_attributes(
           event_name: 'add',
           candidate_pool: pool,
+          unit_group: unit_group,
         )
         expect(events.last).to have_attributes(
           event_name: 'remove',
           candidate_pool: pool,
+          unit_group: unit_group,
         )
       end
     end
@@ -594,6 +600,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           expect(event).to have_attributes(
             event_name: 'add',
             candidate_pool: pool,
+            unit_group: unit_group,
           )
           expect(event.snapshot).to include('current_age' => client.age)
         end
