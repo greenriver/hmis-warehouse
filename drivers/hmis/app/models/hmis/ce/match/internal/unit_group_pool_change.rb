@@ -21,11 +21,11 @@ module Hmis::Ce::Match::Internal
     def generate_candidate_events(timestamp: Time.current)
       if old_pool.nil? && new_pool.present?
         # Unit group didn't have a pool before, now it has one. Generate "add" events for candidates in the new pool
-        create_events_for_pool(new_pool, new_pool.candidates, 'add', timestamp)
+        create_events_for_pool(candidates_scope: new_pool.candidates, event_name: 'add', pool: new_pool, timestamp: timestamp)
 
       elsif old_pool.present? && new_pool.nil?
         # Unit group previously had a pool, now it does not. Generate "remove" events for candidates in the old pool
-        create_events_for_pool(old_pool, old_pool.candidates, 'remove', timestamp)
+        create_events_for_pool(candidates_scope: old_pool.candidates, event_name: 'remove', pool: old_pool, timestamp: timestamp)
 
       elsif old_pool.present? && new_pool.present?
         # Unit group is moving from one pool to another: only generate events for clients whose status changes
@@ -37,14 +37,14 @@ module Hmis::Ce::Match::Internal
         removed_client_proxy_ids = old_client_proxy_ids - new_client_proxy_ids
         if removed_client_proxy_ids.any?
           removed_candidates = old_pool.candidates.where(client_proxy_id: removed_client_proxy_ids)
-          events.concat(create_events_for_pool(old_pool, removed_candidates, 'remove', timestamp))
+          events.concat(create_events_for_pool(candidates_scope: removed_candidates, event_name: 'remove', pool: old_pool, timestamp: timestamp))
         end
 
         # Candidates in new pool but NOT in old pool: Generate "add" events
         added_client_proxy_ids = new_client_proxy_ids - old_client_proxy_ids
         if added_client_proxy_ids.any?
           added_candidates = new_pool.candidates.where(client_proxy_id: added_client_proxy_ids)
-          events.concat(create_events_for_pool(new_pool, added_candidates, 'add', timestamp))
+          events.concat(create_events_for_pool(candidates_scope: added_candidates, event_name: 'add', pool: new_pool, timestamp: timestamp))
         end
 
         events
@@ -57,20 +57,18 @@ module Hmis::Ce::Match::Internal
     private
 
     # Create events for this unit group for a set of candidates in a pool.
-    def create_events_for_pool(pool, candidates_scope, event_name, timestamp)
+    def create_events_for_pool(candidates_scope:, event_name:, pool:, timestamp:)
       candidates = candidates_scope.includes(:client_proxy).to_a
       return [] if candidates.empty?
 
       # Since this event is generated based on a *unit group* changing its pool,
       # not based on the client's attributes changing or the pool's requirements changing,
-      # don't bother trying to recreate the snapshot of the client's attributes.
-      # Instead, grab the snapshot from the most recent existing event for that client proxy.
-      # There should be at least one, since the client was previously eligible for at least one pool (either the old or the new one).
+      # don't bother asking the engine to re-create the snapshot of the client's attributes.
+      # We should already have it in a previous event snapshot from the same pool.
+      # Select the most recent event for each client proxy and organize in a hash by client proxy ID.
       candidate_client_proxy_ids = candidates.map(&:client_proxy_id).uniq
-
-      # Select the most recent event for each client proxy
       snapshot_by_client_proxy_id = Hmis::Ce::Match::CandidateEvent.
-        where(client_proxy_id: candidate_client_proxy_ids).
+        where(client_proxy_id: candidate_client_proxy_ids, candidate_pool_id: pool.id).
         select('DISTINCT ON (ce_match_candidate_events.client_proxy_id) ce_match_candidate_events.client_proxy_id, ce_match_candidate_events.snapshot').
         order('ce_match_candidate_events.client_proxy_id, ce_match_candidate_events.created_at DESC, ce_match_candidate_events.id DESC').
         to_a. # to_a because plucking directly from the result would drop the DISTINCT ON clause

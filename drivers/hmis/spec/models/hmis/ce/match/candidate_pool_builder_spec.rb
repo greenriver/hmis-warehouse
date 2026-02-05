@@ -129,6 +129,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           unit_group: existing_unit_group,
           event_name: 'add',
           snapshot: { 'a' => '1', 'score_1' => 2 },
+          created_at: 1.day.ago,
         )
       end
 
@@ -141,6 +142,15 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           event_name: 'remove',
           snapshot: { 'a' => '999', 'score_1' => 999 },
           created_at: 2.days.ago, # older snapshot should be ignored; the most recent one per client is used
+        )
+      end
+
+      let!(:cruft_event_in_other_pool) do
+        create(
+          :hmis_ce_match_candidate_event,
+          client_proxy: client_proxy_2,
+          event_name: 'add',
+          snapshot: { 'a' => '999', 'score_1' => 999 },
         )
       end
 
