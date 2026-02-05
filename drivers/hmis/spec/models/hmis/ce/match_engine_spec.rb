@@ -771,4 +771,27 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       end
     end
   end
+
+  describe 'performance' do
+    # The Engine necessarily evaluates each client against the requirements, so the query count is high.
+    # This test is included as a tool for making changes to the engine to help ensure that the query count doesn't balloon
+    before do
+      create_list(:hmis_hud_client, 50, data_source: data_source)
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      # Stub candidate pool builder to prevent it from overwriting the unit groups' pools in after_create callbacks
+      allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
+    end
+
+    let(:requirement_expression) { '1=1' } # matches all clients
+    let!(:project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
+    let!(:unit_group) { create(:hmis_unit_group, project: project, candidate_pool: pool) }
+
+    it 'makes a reasonable number of database queries' do
+      expect do
+        results = generate_candidates(pool)
+        expect(results.count).to eq(50)
+      end.to change { Hmis::Ce::Match::CandidateEvent.count }.by(50).
+        and make_database_queries(count: 170..185)
+    end
+  end
 end
