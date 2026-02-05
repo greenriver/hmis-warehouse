@@ -1,16 +1,10 @@
 # frozen_string_literal: true
 
 class AddUnitGroupToCandidateEvents < ActiveRecord::Migration[7.2]
-  disable_ddl_transaction!
-
   def change
-    # Add unit_group_id column (nullable initially for existing records)
     safety_assured do
       add_reference :ce_match_candidate_events, :unit_group, null: true, foreign_key: { to_table: :hmis_unit_groups }
     end
-
-    # Add composite index for common query patterns
-    add_index :ce_match_candidate_events, [:unit_group_id, :client_proxy_id, :created_at], name: 'index_ce_match_candidate_events_on_unit_group_client_created', algorithm: :concurrently
   end
 end
 
