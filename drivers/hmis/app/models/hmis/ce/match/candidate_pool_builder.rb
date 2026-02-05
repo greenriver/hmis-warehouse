@@ -102,7 +102,7 @@ module Hmis::Ce::Match
         next if old_pool&.id == new_pool&.id
 
         # Track pool changes for event generation
-        pool_changes << Hmis::Ce::Match::Internal::UnitGroupPoolChange.new(unit_group: unit_group, old_pool: old_pool, new_pool: new_pool)
+        pool_changes << Hmis::Ce::Match::Internal::PoolChange.new(unit_group: unit_group, old_pool: old_pool, new_pool: new_pool)
 
         # Pass all attributes to satisfy validations
         unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: new_pool&.id)
@@ -121,13 +121,9 @@ module Hmis::Ce::Match
 
         updated_count = unit_group_updates.size
 
-        # Generate events for each unit group whose candidate pool assignment changed
+        # Generate and bulk-insert events for all unit groups whose candidate pool assignment changed
         timestamp = Time.current
-        events = pool_changes.flat_map { |change| change.generate_candidate_events(timestamp: timestamp) }
-        if events.any?
-          result = Hmis::Ce::Match::CandidateEvent.import!(events)
-          raise "failed to import Events: #{result.inspect}" if result.failed_instances.present?
-        end
+        Hmis::Ce::Match::Internal::UnitGroupPoolChangeEventWriter.new.call(pool_changes, timestamp: timestamp)
       end
 
       [created_ids, updated_count]

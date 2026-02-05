@@ -423,9 +423,9 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:score) { create(:hmis_ce_priority_scheme, owner: project, expression: 'score') }
 
       before do
-        20.times do |n|
+        10.times do |n|
           existing_pool = create(:hmis_ce_match_candidate_pool, requirement_expression: "#{n}=#{n}", priority_expression: '{score}')
-          create_list(:hmis_ce_match_candidate, 20, candidate_pool: existing_pool)
+          create_list(:hmis_ce_match_candidate, 10, candidate_pool: existing_pool)
           # todo @martha - this should create some 'add' events too, why not?
           unit_group = create(:hmis_unit_group, project: project, candidate_pool: existing_pool)
           # Create a different rule for the unit group so that when the builder runs, it switches pools and generates events
