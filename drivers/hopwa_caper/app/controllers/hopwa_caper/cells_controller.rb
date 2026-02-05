@@ -18,6 +18,10 @@ module HopwaCaper
         preload(enrollment: :project).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
+      @services = @report.hopwa_caper_services.
+        preload(enrollment: { enrollment: :project }).
+        joins(hud_reports_universe_members: { report_cell: :report_instance }).
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
       respond_to do |format|
         format.html {}
