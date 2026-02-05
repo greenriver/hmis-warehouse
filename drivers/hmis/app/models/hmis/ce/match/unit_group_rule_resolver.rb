@@ -22,7 +22,7 @@ module Hmis::Ce::Match
     # Compute keys for all unit groups in the system.
     # Returns a Hash: { unit_group_id => [priority_expression, requirement_expression] }
     def keys_for_all_unit_groups(unit_group_scope = Hmis::UnitGroup.all)
-      unit_group_scope.find_each.to_h do |unit_group|
+      unit_group_scope.includes(project: [:organization, :data_source]).find_each.to_h do |unit_group|
         [
           unit_group.id,
           key_for_unit_group(unit_group),
