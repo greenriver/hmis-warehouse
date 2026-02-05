@@ -9,11 +9,9 @@
 module HudApr::CeApr
   class CellsController < HudApr::CellsController
     include CeAprConcern
-    before_action :set_report
-    before_action :set_question
 
-    def report_param_name
-      :ce_apr_id
+    private def report_type_param
+      'ce_apr'
     end
   end
 end
