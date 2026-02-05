@@ -418,5 +418,24 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         expect(requirements).to contain_exactly('ds_eligible = 1', 'proj_eligible = 1')
       end
     end
+
+    describe 'performance' do
+      let!(:score) { create(:hmis_ce_priority_scheme, owner: project, expression: 'score') }
+
+      before do
+        20.times do |n|
+          existing_pool = create(:hmis_ce_match_candidate_pool, requirement_expression: "#{n}=#{n}", priority_expression: '{score}')
+          create_list(:hmis_ce_match_candidate, 20, candidate_pool: existing_pool)
+          # todo @martha - this should create some 'add' events too, why not?
+          unit_group = create(:hmis_unit_group, project: project, candidate_pool: existing_pool)
+          # Create a different rule for the unit group so that when the builder runs, it switches pools and generates events
+          create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: "#{n + 1}=#{n + 1}")
+        end
+      end
+
+      it 'makes a reasonable number of database queries' do
+        expect { described_class.call }.to make_database_queries(count: 50..100) # todo @martha - this will fail, need to further discuss
+      end
+    end
   end
 end
