@@ -12,15 +12,17 @@ wb.add_worksheet(name: @name.slice(0, 30).gsub(':', ' ')) do |sheet|
     presenter_class = HopwaCaper::ServiceDrilldownPresenter
   end
 
-  project_ids = list.map(&:project_id).uniq
-  current_user.policy_context.preload_project_dependencies(project_ids)
+  if list
+    project_ids = list.map(&:project_id).uniq
+    current_user.policy_context.preload_project_dependencies(project_ids)
 
-  presenter = presenter_class.new(list, @report, current_user, format: :excel)
-  headers = presenter.headers
-  sheet.add_row(headers.values, style: title)
+    presenter = presenter_class.new(list, @report, current_user, format: :excel)
+    headers = presenter.headers
+    sheet.add_row(headers.values, style: title)
 
-  list.each do |record|
-    row = headers.keys.map { |k| presenter.display_value(record, k) }
-    sheet.add_row(row)
+    list.each do |record|
+      row = headers.keys.map { |k| presenter.display_value(record, k) }
+      sheet.add_row(row)
+    end
   end
 end

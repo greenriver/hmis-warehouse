@@ -18,5 +18,5 @@
   %h3 Services
   = render_paginated_list(scope: @services, item_name: 'service', list_partial: 'list', list_locals: {presenter_class: HopwaCaper::ServiceDrilldownPresenter})
 
-- else @enrollments.empty?
+- else
   .none-found No records found.
