@@ -234,14 +234,28 @@ module PerformanceMeasurement::EquityAnalysis
     def apply_params(scope, period)
       if age_params.any?
         age_ranges = age_params.map { |d| census_age_range_to_range(d) }
-        ages = age_ranges.flat_map(&:to_a).uniq
         age_column = case period
         when 'reporting'
           :reporting_age
         else
           :comparison_age
         end
-        scope = scope.where(age_column => ages)
+
+        # Separate finite and infinite ranges (only 85+ is infinite)
+        finite_ranges = age_ranges.reject { |r| r.end == Float::INFINITY }
+        infinite_range = age_ranges.find { |r| r.end == Float::INFINITY }
+
+        # Process finite ranges
+        if finite_ranges.any?
+          ages = finite_ranges.flat_map(&:to_a).uniq
+          scope = scope.where(age_column => ages)
+        end
+
+        # Add infinite range (85+) if present
+        if infinite_range
+          infinite_where = scope.where(age_column => infinite_range.begin..)
+          scope = finite_ranges.any? ? scope.or(infinite_where) : infinite_where
+        end
       end
 
       if gender_params.any?

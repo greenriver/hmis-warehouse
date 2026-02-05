@@ -101,10 +101,19 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def expenditures_sheet(sheet)
       sheet.append_row(label: 'What were the HOPWA funds expended for the following budget line items?')
+      total_expenditures = 0
       service_type_filters.all.each do |filter|
-        sheet.append_row(label: "STRMU #{filter.label}")
+        sheet.append_row(label: "STRMU #{filter.label}") do |row|
+          services = filter.apply(relevant_services)
+          value = services.sum(&:fa_amount)
+          total_expenditures += value
+          row.append_cell_members(value: value, members: services.as_report_members)
+        end
       end
-      sheet.append_row(label: 'Total STRMU Expenditures')
+
+      sheet.append_row(label: 'Total STRMU Expenditures') do |row|
+        row.append_cell_value(value: total_expenditures)
+      end
     end
 
     def longevity_sheet(sheet)
