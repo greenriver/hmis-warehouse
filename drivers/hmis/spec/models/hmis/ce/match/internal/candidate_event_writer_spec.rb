@@ -3,6 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Internal::CandidateEventWriter, type: :model do
+  before(:each) do
+    # Stub CandidatePoolBuilder to prevent it from overwriting the unit groups' pools in after_create callbacks
+    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
+  end
+
   let!(:destination_data_source) { create :destination_data_source }
 
   let(:pool) { create(:hmis_ce_match_candidate_pool) }
