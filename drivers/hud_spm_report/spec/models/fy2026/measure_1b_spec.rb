@@ -304,6 +304,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
           project: @th_project,
           entry_date: '2022-11-10'.to_date,
           exit_date: '2023-01-10'.to_date,
+          living_situation: 116, # Literally Homeless at Entry
         )
 
         # Create PH enrollment with move-in date
@@ -328,12 +329,12 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         episode = @report.universe('m1b2').members.first.universe_membership
 
         # Expected homeless days:
-        # Sept 15 (date to street) to Nov 15 (ES exit) = 62 days
+        # Sept 15 (date to street) to Nov 15 (ES exit) = 61 days
         # Nov 10 (TH entry) to Jan 10 (TH exit) = 62 days
         # Jan 15 (PH entry) to Feb 1 (PH move-in) = 17 days
-        # Total = 141 days
-        # But, TH overrides ES for Nov 10-15 (6 days overlap), so 135 days total
-        expect(episode.days_homeless).to be_within(5).of(135)
+        # Total = 140 days
+        # But, TH overrides ES for Nov 10-15 (6 days overlap), so 134 days total
+        expect(episode.days_homeless).to eq(134)
       end
     end
 
@@ -428,9 +429,9 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         @es_project = create_project(project_type: 0) # ES-EE
 
         # Create household members
-        @head_of_household = create_client_with_warehouse_link
-        @child = create_client_with_warehouse_link(dob: '2020-06-01')
-        @adult_member = create_client_with_warehouse_link
+        @head_of_household = create_client_with_warehouse_link(dob: '1980-01-01')
+        @child = create_client_with_warehouse_link(dob: '2015-01-01')
+        @adult_member = create_client_with_warehouse_link(dob: '1990-01-01')
 
         # Create household ID
         household_id = 'test_household_123'
@@ -513,7 +514,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         expect(answer_b2.summary.to_i).to eq(3)
 
         # Average should be (106 + 106 + 87) / 3 = 99.67 days
-        expect(answer_d2.summary.to_f).to be_within(1).of(99.67)
+        expect(answer_d2.summary.to_f).to eq(99.67)
 
         # Median should be 106 days
         expect(answer_g2.summary.to_i).to eq(106)
@@ -560,10 +561,118 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         # is after the lookback stop date
         expect(episode.first_date).to eq('2014-10-15'.to_date)
 
-        # Expected days homeless should include the time from date_to_street_essh to project exit
-        # (minus one day since exit date doesn't count as a bed night)
-        expected_days = ('2023-01-15'.to_date - '2014-10-15'.to_date).to_i - 1
-        expect(episode.days_homeless).to be_within(5).of(expected_days)
+        # Expected days homeless should include the time from date_to_street_essh to project exit.
+        # Note: (exit_date - first_date) gives the number of nights, excluding the exit date.
+        expected_days = ('2023-01-15'.to_date - '2014-10-15'.to_date).to_i
+        expect(episode.days_homeless).to eq(expected_days)
+      end
+    end
+
+    context 'with project entry before lookback stop date' do
+      before do
+        @es_project = create_project(project_type: 0) # ES-EE
+        @client = create_client_with_warehouse_link
+
+        # When project start date is BEFORE lookback stop date,
+        # the 3.917 data should NOT be used (per step 5a condition)
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          date_to_street_essh: '2014-01-01'.to_date,
+          entry_date: '2015-06-01'.to_date, # BEFORE lookback stop date (2015-10-01)
+          exit_date: '2023-01-15'.to_date,
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'does not include DateToStreetESSH time when project start is before lookback stop date' do
+        expect(@report.universe('m1b1').members.count).to eq(1)
+        episode = @report.universe('m1b1').members.first.universe_membership
+
+        # Since project start date (2015-06-01) is before lookback stop date (2015-10-01),
+        # the condition in step 5a is not met, so DateToStreetESSH should not be prepended
+        # The first_date should be based on the actual enrollment, not the 3.917 data
+        expect(episode.first_date).not_to eq('2014-01-01'.to_date)
+      end
+    end
+
+    context 'when TH client does not meet literal homelessness criteria (3.917.3 should be ignored)' do
+      before do
+        @th_project = create_project(project_type: 2) # TH
+        @client = create_client_with_warehouse_link
+
+        # Client is entering from living situation 336 (Living with friends)
+        # WITHOUT los_under_threshold or previous_street_essh
+        # Therefore does NOT meet literal homelessness criteria
+        # So 3.917.3 date should be ignored per spec step 5
+        create_enrollment(
+          client: @client,
+          project: @th_project,
+          date_to_street_essh: '2022-01-01'.to_date,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          living_situation: 336,
+        )
+
+        @report = setup_report([@th_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'does not include DateToStreetESSH time' do
+        # TH is included in Metric 2 (m1b2), but not Metric 1 (m1b1)
+        expect(@report.universe('m1b1').members.count).to eq(0)
+        expect(@report.universe('m1b2').members.count).to eq(1)
+        episode = @report.universe('m1b2').members.first.universe_membership
+
+        # The first_date should be the entry_date, not the date_to_street_essh
+        expect(episode.first_date).to eq('2022-11-01'.to_date)
+        expect(episode.first_date).not_to eq('2022-01-01'.to_date)
+      end
+    end
+
+    context 'when self-reported data bridges a gap to a historical enrollment' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link
+
+        # Enrollment A: Historical documented nights (Nov 20 - Nov 25, 2021)
+        # This ends before the Client Start Date (Dec 1, 2021)
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2021-11-20'.to_date,
+          exit_date: '2021-11-26'.to_date, # Last bed night is 25th
+        )
+
+        # Enrollment B: Active documented nights (Nov 1 - Dec 1, 2022)
+        # Client End Date: 2022-12-01
+        # Client Start Date: 2021-12-01
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2022-12-02'.to_date, # Last bed night is Dec 1st
+          date_to_street_essh: '2021-11-22'.to_date, # The "Bridge"
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'includes the historical nights that are now contiguous via the self-reported bridge' do
+        expect(@report.universe('m1b1').members.count).to eq(1)
+        episode = @report.universe('m1b1').members.first.universe_membership
+
+        # The episode should start at Nov 20 (the start of the historical enrollment)
+        # because the self-reported bridge (starting Nov 22) overlaps the historical
+        # enrollment and connects it to the current episode.
+        expect(episode.first_date).to eq('2021-11-20'.to_date)
+
+        # Total days: Nov 20, 2021 to Dec 1, 2022
+        # (2022-12-01 - 2021-11-20) = 376 days + 1 for inclusive = 377
+        expect(episode.days_homeless).to eq(377)
       end
     end
 
@@ -622,35 +731,34 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
           date_to_street_essh: '2014-10-01'.to_date, # Before lookback stop date
         )
 
-        # Add bed night services after lookback stop date
-        create_bed_night_service(enrollment: enrollment, date: '2016-11-05'.to_date)
-        create_bed_night_service(enrollment: enrollment, date: '2016-11-10'.to_date)
-        create_bed_night_service(enrollment: enrollment, date: '2016-11-15'.to_date)
+        # Bed nights - earliest is 2022-12-01
         create_bed_night_service(enrollment: enrollment, date: '2022-12-01'.to_date)
-        create_bed_night_service(enrollment: enrollment, date: '2022-12-15'.to_date)
+        create_bed_night_service(enrollment: enrollment, date: '2022-12-02'.to_date)
+        create_bed_night_service(enrollment: enrollment, date: '2022-12-03'.to_date)
 
         # Setup and run the report
         @report = setup_report([@nbn_project.id])
         run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
       end
 
-      it 'includes time from DateToStreetESSH to first bed night after lookback stop date' do
+      it 'includes time from DateToStreetESSH even when before lookback stop date' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
 
         # For night-by-night shelters, we should include all nights from date_to_street_essh
         # up to and including the earliest bed night, plus all actual bed nights
-        # The earliest bed night is 2016-11-05
 
         # First date should be date_to_street_essh
         expect(episode.first_date).to eq('2014-10-01'.to_date)
 
-        # Expected homeless days should include:
-        # 2014-10-01 to 2016-11-05 = 767 days
-        # Plus 5 actual bed nights = 772 days total
-        # We allow some flexibility in the exact count since the implementation may handle edge cases differently
-        expect(episode.days_homeless).to be > 700
+        # Prepended days (2014-10-01 through 2022-12-01 inclusive): 2984 days
+        # Additional bed nights after earliest (2022-12-02, 2022-12-03): 2 days
+        # Total: 2986 days
+        prepended_days = ('2022-12-01'.to_date - '2014-10-01'.to_date).to_i + 1 # inclusive
+        additional_bed_nights = 2 # 12/02 and 12/03
+
+        expect(episode.days_homeless).to eq(prepended_days + additional_bed_nights)
       end
     end
 
@@ -691,6 +799,93 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
       end
     end
 
+    context 'with DateToStreetESSH before date of birth' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link(dob: '2010-01-01'.to_date)
+
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2018-01-15'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          date_to_street_essh: '2008-06-15'.to_date,
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'does not count homelessness before date of birth' do
+        episode = @report.universe('m1b1').members.first.universe_membership
+        expect(episode.first_date).to be >= '2010-01-01'.to_date
+      end
+    end
+
+    context 'with enrollment entry date before DOB (erroneous data)' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link(dob: '2020-01-01'.to_date)
+
+        # Erroneous enrollment starting before DOB
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2019-01-01'.to_date, # Before DOB
+          exit_date: '2023-02-01'.to_date,  # Active in report
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'caps homelessness at Date of Birth' do
+        expect(@report.universe('m1a1').members.count).to eq(1)
+        episode = @report.universe('m1a1').members.first.universe_membership
+
+        # First date should be capped at DOB
+        expect(episode.first_date).to eq('2020-01-01'.to_date)
+
+        # Days homeless should be from 2020-01-01 to 2023-01-31 (day before exit)
+        expected_days = ('2023-01-31'.to_date - '2020-01-01'.to_date).to_i + 1
+        expect(episode.days_homeless).to eq(expected_days)
+      end
+    end
+
+    context 'with contiguous walk-back reaching before DOB' do
+      before do
+        @es_project = create_project(project_type: 0)
+        @client = create_client_with_warehouse_link(dob: '2022-11-01'.to_date)
+
+        # Enrollment 1: Active in report
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-12-01'.to_date,
+          exit_date: '2023-02-01'.to_date,
+        )
+
+        # Enrollment 2: Contiguous but before DOB (erroneous)
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-10-15'.to_date,
+          exit_date: '2022-11-02'.to_date, # Overlaps DOB
+        )
+
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'prevents walking back contiguity before DOB' do
+        expect(@report.universe('m1a1').members.count).to eq(1)
+        episode = @report.universe('m1a1').members.first.universe_membership
+
+        # Should start at DOB
+        expect(episode.first_date).to eq('2022-11-01'.to_date)
+      end
+    end
+
     context 'with very old DateToStreetESSH (decades ago)' do
       before do
         # Create an ES project
@@ -721,9 +916,9 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         # First date should be the old date_to_street_essh per the spec
         expect(episode.first_date).to eq('1990-10-15'.to_date)
 
-        # Expected days homeless should be from date_to_street_essh to exit date (minus one day)
-        expected_days = ('2023-01-15'.to_date - '1990-10-15'.to_date).to_i - 1
-        expect(episode.days_homeless).to be_within(5).of(expected_days)
+        # Expected days homeless should be from date_to_street_essh to exit date
+        expected_days = ('2023-01-15'.to_date - '1990-10-15'.to_date).to_i
+        expect(episode.days_homeless).to eq(expected_days)
       end
     end
 
@@ -855,7 +1050,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
       end
 
-      it 'correctly calculates homelessness period' do
+      it 'correctly calculates homelessness period including time before lookback stop date' do
         expect(@report.universe('m1b1').members.count).to eq(1)
 
         episode = @report.universe('m1b1').members.first.universe_membership
@@ -868,8 +1063,11 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         # Expected days homeless calculation:
         # - Time from date_to_street_essh (2014-06-01) to PSH move-in (2022-10-03)
         # - Plus time from NBN date_to_street_essh (2023-01-01) to the bed night (2023-08-15)
-        expected_days = 3273 # how many days?
+        psh_days = ('2022-10-02'.to_date - '2014-06-01'.to_date).to_i + 1
+        nbn_days = ('2023-08-15'.to_date - '2023-01-01'.to_date).to_i + 1
+        expected_days = psh_days + nbn_days
         expect(episode.days_homeless).to eq(expected_days)
+
         answer = @report.answer(question: '1b', cell: 'D2')
         expect(answer.summary.to_f).to eq(expected_days)
       end
@@ -936,6 +1134,45 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         answer = @report.answer(question: '1b', cell: 'D2')
         expect(answer.summary.to_f).to eq(expected_days)
       end
+    end
+  end
+
+  context 'with Literal Homelessness at Entry for PH projects (0..99 living situation)' do
+    before do
+      # Create a PH project (PSH)
+      @ph_project = create_project(project_type: 3)
+
+      # Create a client
+      @client = create_client_with_warehouse_link
+
+      # Create PH enrollment with living situation 0-99 (Other/Unknown)
+      # PLUS previous_street_essh: true and los_under_threshold: true
+      # This SHOULD qualify as literally homeless at entry
+      @enrollment = create_enrollment(
+        client: @client,
+        project: @ph_project,
+        entry_date: '2023-01-01'.to_date,
+        exit_date: '2023-03-01'.to_date,
+        living_situation: 99, # Other
+        previous_street_essh: 1,
+        los_under_threshold: 1,
+        date_to_street_essh: '2022-12-01'.to_date,
+      )
+
+      # Setup and run the report
+      @report = setup_report([@ph_project.id])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+    end
+
+    it 'correctly identifies PH stays with 0-99 living situation as literally homeless' do
+      # Verify that the universe was created for measure 1b
+      expect(@report.universe('m1b1').members.count).to eq(1)
+
+      episode = @report.universe('m1b1').members.first.universe_membership
+
+      # Should include self-reported time
+      expect(episode.first_date).to eq('2022-12-01'.to_date)
+      expect(episode.days_homeless).to eq(90) # 2022-12-01 to 2023-02-28
     end
   end
 
