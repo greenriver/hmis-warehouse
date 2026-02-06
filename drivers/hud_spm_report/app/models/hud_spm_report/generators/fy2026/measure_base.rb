@@ -71,5 +71,12 @@ module HudSpmReport::Generators::Fy2026
         question_name: self.class.question_number,
       )
     end
+
+    def run!
+      super
+    ensure
+      HudReports::ReportInstance.connection.clear_query_cache
+      GC.start
+    end
   end
 end

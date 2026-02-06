@@ -148,8 +148,10 @@ module GrdaWarehouse
       end
     end
 
-    def self.options_for_select(user:)
-      viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
+    def self.options_for_select(user:, ids: nil)
+      scope = viewable_by(user)
+      scope = scope.where(id: ids) if ids.present?
+      scope.distinct.order(name: :asc).pluck(:name, :id)
     end
 
     private def maintain_system_group

@@ -160,7 +160,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
         data_source: data_source,
       )
 
-      # Household 2: receives only utilities assistance (single type)
+      # Household 2: receives only utility assistance (single type)
       create(
         :hud_service,
         enrollment: household2_enrollment,
@@ -176,8 +176,17 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       _, rows = run_and_extract_rows([project], 'Q3')
 
       expect(rows.fetch('STRMU Households Total')).to eq(2)
-      expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
+      expect(rows.fetch('How many households were served with STRMU utility assistance only?')).to eq(1)
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(1)
+    end
+
+    it 'correctly reports expenditures' do
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      expect(rows.fetch('STRMU mortgage assistance').to_f).to eq(0)
+      expect(rows.fetch('STRMU rental assistance').to_f).to eq(500)
+      expect(rows.fetch('STRMU utility assistance').to_f).to eq(250)
+      expect(rows.fetch('Total STRMU Expenditures').to_f).to eq(750)
     end
 
     it 'correctly categorizes a client with multiple enrollments and different service types' do
@@ -226,10 +235,23 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       # This client should be in "more than one type" (total 2: household1 and this client)
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(2)
 
-      # They should NOT be in "mortgage assistance only" or "utilities assistance only"
+      # They should NOT be in "mortgage assistance only" or "utility assistance only"
       expect(rows.fetch('How many households were served with STRMU mortgage assistance only?')).to eq(0)
-      # (household2 is still utilities only)
-      expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
+      # (household2 is still utility only)
+      expect(rows.fetch('How many households were served with STRMU utility assistance only?')).to eq(1)
+
+      # Expenditures check for all 3 households:
+      # Household 1: Rental (500), Utility (150)
+      # Household 2: Utility (100)
+      # Client (Household 3/4): Mortgage (500), Utility (100)
+      # Total Mortgage: 500
+      # Total Rental: 500
+      # Total Utility: 150 + 100 + 100 = 350
+      # Grand Total: 500 + 500 + 350 = 1350
+      expect(rows.fetch('STRMU mortgage assistance').to_f).to eq(500)
+      expect(rows.fetch('STRMU rental assistance').to_f).to eq(500)
+      expect(rows.fetch('STRMU utility assistance').to_f).to eq(350)
+      expect(rows.fetch('Total STRMU Expenditures').to_f).to eq(1350)
     end
   end
 
