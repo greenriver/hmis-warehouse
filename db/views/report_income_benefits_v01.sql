@@ -1,3 +1,4 @@
+
  SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."EnrollmentID" AS "ProjectEntryID",
     "IncomeBenefits"."PersonalID",
@@ -47,3 +48,48 @@
     "IncomeBenefits"."OtherBenefitsSourceIdentify",
     "IncomeBenefits"."InsuranceFromAnySource",
     "IncomeBenefits"."Medicaid",
+    "IncomeBenefits"."NoMedicaidReason",
+    "IncomeBenefits"."Medicare",
+    "IncomeBenefits"."NoMedicareReason",
+    "IncomeBenefits"."SCHIP",
+    "IncomeBenefits"."NoSCHIPReason",
+    "IncomeBenefits"."VAMedicalServices",
+    "IncomeBenefits"."NoVAMedReason",
+    "IncomeBenefits"."EmployerProvided",
+    "IncomeBenefits"."NoEmployerProvidedReason",
+    "IncomeBenefits"."COBRA",
+    "IncomeBenefits"."NoCOBRAReason",
+    "IncomeBenefits"."PrivatePay",
+    "IncomeBenefits"."NoPrivatePayReason",
+    "IncomeBenefits"."StateHealthIns",
+    "IncomeBenefits"."NoStateHealthInsReason",
+    "IncomeBenefits"."HIVAIDSAssistance",
+    "IncomeBenefits"."NoHIVAIDSAssistanceReason",
+    "IncomeBenefits"."ADAP",
+    "IncomeBenefits"."NoADAPReason",
+    "IncomeBenefits"."DataCollectionStage",
+    "IncomeBenefits"."DateCreated",
+    "IncomeBenefits"."DateUpdated",
+    "IncomeBenefits"."UserID",
+    "IncomeBenefits"."DateDeleted",
+    "IncomeBenefits"."ExportID",
+    "IncomeBenefits".data_source_id,
+    "IncomeBenefits".id,
+    "IncomeBenefits"."IndianHealthServices",
+    "IncomeBenefits"."NoIndianHealthServicesReason",
+    "IncomeBenefits"."OtherInsurance",
+    "IncomeBenefits"."OtherInsuranceIdentify",
+    "IncomeBenefits"."ConnectionWithSOAR",
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM ((((public."IncomeBenefits"
+     JOIN public."Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN public."Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+  WHERE ("IncomeBenefits"."DateDeleted" IS NULL);
+
+
+
+

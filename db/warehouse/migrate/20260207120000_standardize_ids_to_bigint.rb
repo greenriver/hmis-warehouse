@@ -7,8 +7,12 @@
 # frozen_string_literal: true
 
 class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
+  disable_ddl_transaction!
   def up
+    return unless Rails.env.development? || Rails.env.test?
+
     views = [
+      ['service_history', 1],
       ['client_searchable_names', 1],
       ['hmis_destination_client_latest_assessments', 1],
       ['report_disabilities', 1],
@@ -207,6 +211,7 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
     SQL
 
     results = GrdaWarehouseBase.connection.execute(query)
+
     results.each do |row|
       schema = row['table_schema']
       table = row['table_name']
@@ -216,9 +221,5 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
       # use CamelCase (e.g. "AssessmentQuestions")
       GrdaWarehouseBase.connection.execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
     end
-  end
-
-  def down
-    # No-op: we don't want to revert bigints to integers.
   end
 end
