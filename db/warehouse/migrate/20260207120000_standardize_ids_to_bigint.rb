@@ -213,13 +213,20 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
     results = GrdaWarehouseBase.connection.execute(query)
 
     results.each do |row|
+
       schema = row['table_schema']
       table = row['table_name']
       column = row['column_name']
+      next if partitioned?(table: table, schema: schema)
 
       # We need to quote table and column names because some warehouse tables
       # use CamelCase (e.g. "AssessmentQuestions")
       GrdaWarehouseBase.connection.execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
     end
+  end
+
+  private def partitioned?(table:, schema: 'public')
+    result = execute("SELECT c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '#{schema}' AND c.relname = '#{table}'")
+    result && result[0]['relkind'] == 'p'
   end
 end
