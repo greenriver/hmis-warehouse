@@ -160,6 +160,24 @@ module Hmis::Ce::Match
       )
     end
 
+    # Acquire a shared maintenance lock (readers/workers).
+    #
+    # Intended for processing jobs: allow concurrent job processing on different pools, but prevent jobs from running
+    # while the CandidatePoolBuilder is holding the exclusive `candidate-pool-maintenance` lock.
+    #
+    # Uses a session-scoped lock (`transaction: false`) so callers do not need to open an explicit
+    # DB transaction just to keep the lock for the duration of the Ruby block.
+    def self.with_shared_maintenance_lock(timeout_seconds: 0, &block)
+      lock_name = 'candidate-pool-maintenance'
+      GrdaWarehouseBase.with_advisory_lock(
+        lock_name,
+        timeout_seconds: timeout_seconds,
+        transaction: false,
+        shared: true,
+        &block
+      )
+    end
+
     # Executes a block with an advisory lock on this specific pool.
     # The lock can be blocking (with a timeout) or non-blocking (timeout_seconds: 0).
     #

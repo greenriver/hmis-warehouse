@@ -58,7 +58,16 @@ module Hmis::Ce
           log_info("Found #{dirty_pool_markers.count} dirty pool markers to process")
 
           # process dirty pools
-          next_pool_id = process_dirty_pools(dirty_pool_markers)
+          pool_processing_result = Hmis::Ce::Match::CandidatePool.with_shared_maintenance_lock(timeout_seconds: 0) do
+            process_dirty_pools(dirty_pool_markers)
+          end
+
+          if pool_processing_result == false
+            log_info('Candidate pool maintenance in progress; skipping pool processing for this run')
+          else
+            next_pool_id = pool_processing_result
+          end
+
           log_info('Completed processing dirty pools')
           run.complete!
 

@@ -58,7 +58,16 @@ module Hmis::Ce
           dirty_client_markers = reconcile_dangling_markers(dirty_client_markers)
 
           # process dirty clients against all available pools
-          next_client_id = process_dirty_clients(dirty_client_markers)
+          client_processing_result = Hmis::Ce::Match::CandidatePool.with_shared_maintenance_lock(timeout_seconds: 0) do
+            process_dirty_clients(dirty_client_markers)
+          end
+
+          if client_processing_result == false
+            log_info('Candidate pool maintenance in progress; skipping client processing for this run')
+          else
+            next_client_id = client_processing_result
+          end
+
           log_info('Completed processing dirty clients')
           run.complete!
 
