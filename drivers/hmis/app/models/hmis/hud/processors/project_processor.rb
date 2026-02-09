@@ -94,14 +94,14 @@ module Hmis::Hud::Processors
       geocode = @hud_values['initialGeocode']
       return unless coc_code || geocode
 
-      construct_nested_attributes(
-        'projectCocs',
-        {
-          'cocCode' => coc_code,
-          'geocode' => geocode,
-        },
-        additional_attributes: related_record_attributes,
-      )
+      {
+        project_cocs_attributes: [
+          related_record_attributes.merge(
+            coc_code: coc_code,
+            geocode: geocode,
+          ),
+        ],
+      }
     end
 
     def process_initial_funder_fields
@@ -109,31 +109,31 @@ module Hmis::Hud::Processors
       other_funder = @hud_values['initialOtherFunder']
       grant_id = @hud_values['initialFunderGrantId']
       start_date = @hud_values['operatingStartDate']
-      return unless funder
+      return unless funder || other_funder || grant_id
 
-      construct_nested_attributes(
-        'funders',
-        {
-          'funder' => funder,
-          'otherFunder' => other_funder,
-          'grantId' => grant_id,
-          'startDate' => start_date,
-        },
-        additional_attributes: related_record_attributes,
-      )
+      {
+        funders_attributes: [
+          related_record_attributes.merge(
+            funder: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::FundingSource, funder),
+            other_funder: attribute_value_for_enum(nil, other_funder), # _HIDDEN => nil
+            grant_id: grant_id,
+            start_date: start_date,
+          ),
+        ],
+      }
     end
 
     def process_initial_hmis_participation_fields(value)
       return {} unless value.present?
 
-      construct_nested_attributes(
-        'hmisParticipations',
-        {
-          'hmisParticipationType' => value,
-          'hmisParticipationStatusStartDate' => @hud_values['operatingStartDate'],
-        },
-        additional_attributes: related_record_attributes,
-      )
+      {
+        hmis_participations_attributes: [
+          related_record_attributes.merge(
+            hmis_participation_type: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::HMISParticipationType, value),
+            hmis_participation_status_start_date: @hud_values['operatingStartDate'],
+          ),
+        ],
+      }
     end
 
     def process_initial_ce_participation_fields
