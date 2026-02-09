@@ -149,12 +149,12 @@ module Hmis::Hud::Processors
       {
         ce_participations_attributes: [
           related_record_attributes.merge(
-            access_point: access_point,
-            prevention_assessment: prevention_assessment,
-            crisis_assessment: crisis_assessment,
-            housing_assessment: housing_assessment,
-            direct_services: direct_services,
-            receives_referrals: receives_referrals,
+            access_point: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, access_point),
+            prevention_assessment: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, prevention_assessment),
+            crisis_assessment: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, crisis_assessment),
+            housing_assessment: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, housing_assessment),
+            direct_services: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, direct_services),
+            receives_referrals: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, receives_referrals),
             ce_participation_status_start_date: @hud_values['operatingStartDate'],
           ),
         ],
