@@ -18,6 +18,9 @@
           }
         }
       ]
+    },
+    {
+      "fragment": "#project_hud_setup"
     }
   ]
 }
