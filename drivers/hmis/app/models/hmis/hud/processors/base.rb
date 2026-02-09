@@ -69,7 +69,18 @@ class Hmis::Hud::Processors::Base
     return nil unless schema.fields[field].present?
 
     type = schema.fields[field].type
+
+    # Dig past lists and non-null wrappers to get the actual type of the field
     (type = type&.of_type) while type.non_null? || type.list?
+
+    # Special case: If type is paginated, get the nodes' type
+    if type.is_a?(GraphQL::Schema::Object) && type.fields.key?('nodes')
+      type = type.fields['nodes'].type
+
+      # Repeat this line to again dig past the paginated list wrapper for the actual type
+      (type = type&.of_type) while type.non_null? || type.list?
+    end
+
     type
   end
 

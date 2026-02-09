@@ -19,7 +19,6 @@
       "item": [
         {
           "type": "CHOICE",
-          "required": true,
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
@@ -29,7 +28,6 @@
         },
         {
           "type": "CHOICE",
-          "required": true,
           "link_id": "geocode",
           "text": "Geocode",
           "pick_list_reference": "GEOCODE",
@@ -46,7 +44,6 @@
       "item": [
         {
           "type": "CHOICE",
-          "required": false,
           "link_id": "funder",
           "text": "Funding Source",
           "pick_list_reference": "FundingSource",
@@ -79,7 +76,15 @@
           "text": "Grant Identifier",
           "mapping": {
             "field_name": "initialFunderGrantId"
-          }
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "funder",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
         }
       ]
     },
@@ -91,93 +96,11 @@
         {
           "type": "CHOICE",
           "component": "DROPDOWN",
-          "required": true,
           "link_id": "q_2_08_1",
           "text": "HMIS Participation Type",
           "pick_list_reference": "HMISParticipationType",
           "mapping": {
             "field_name": "initialHmisParticipationType"
-          }
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "hmis_ce_participation_group",
-      "text": "HMIS CE Participation",
-      "item": [
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "q_2_09_1",
-          "text": "Access Point",
-          "pick_list_reference": "NoYes",
-          "mapping": {
-            "field_name": "initialCeAccessPoint"
-          }
-        },
-        {
-          "type": "GROUP",
-          "link_id": "q_2_09_A_conditionals",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "q_2_09_1",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ],
-          "item": [
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_prevention",
-              "text": "Prevention Assessment",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCePreventionAssessment"
-              }
-            },
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_crisis",
-              "text": "Crisis Assessment",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCeCrisisAssessment"
-              }
-            },
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_housing",
-              "text": "Housing Assessment",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCeHousingAssessment"
-              }
-            },
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_services",
-              "text": "Direct Services",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCeDirectServices"
-              }
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "q_2_09_2",
-          "text": "Receives Referrals",
-          "pick_list_reference": "NoYes",
-          "mapping": {
-            "field_name": "initialCeReceivesReferrals"
           }
         }
       ]
