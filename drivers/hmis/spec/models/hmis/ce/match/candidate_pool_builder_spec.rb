@@ -99,60 +99,18 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
     describe 'creating candidate events' do
       # Set up existing unit group with candidate pool
-      let!(:existing_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'a = 1', priority_expression: '{score_1}') }
-      let!(:rule_a) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'a = 1') }
-      let!(:rule_score_1) { create(:hmis_ce_priority_scheme, owner: project, expression: 'score_1') }
+      let!(:existing_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'veteran_status = true', priority_expression: '{current_age}') }
+      let!(:rule_a) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'veteran_status = true') }
+      let!(:rule_score_1) { create(:hmis_ce_priority_scheme, owner: project, expression: 'current_age') }
       let!(:existing_unit_group) { create(:hmis_unit_group, project: project, candidate_pool: existing_pool) }
 
       # Create some existing candidates in the pool
-      let!(:client_proxy_1) { create(:hmis_ce_client_proxy) }
-      let!(:client_proxy_2) { create(:hmis_ce_client_proxy) }
+      let!(:client1) { create(:hmis_hud_client_with_warehouse_client, DOB: Date.current - 55.years, veteran_status: 1) }
+      let!(:client2) { create(:hmis_hud_client_with_warehouse_client, DOB: Date.current - 20.years, veteran_status: 1) }
+      let!(:client_proxy_1) { create(:hmis_ce_client_proxy, client: client1.destination_client) }
+      let!(:client_proxy_2) { create(:hmis_ce_client_proxy, client: client2.destination_client) }
       let!(:existing_candidate_1) { create(:hmis_ce_match_candidate, client_proxy: client_proxy_1, candidate_pool: existing_pool) }
       let!(:existing_candidate_2) { create(:hmis_ce_match_candidate, client_proxy: client_proxy_2, candidate_pool: existing_pool) }
-
-      # Create existing events for the candidates. The CandidatePoolBuilder uses these to get the client snapshots
-      let!(:existing_event_1) do
-        create(
-          :hmis_ce_match_candidate_event,
-          client_proxy: client_proxy_1,
-          candidate_pool: existing_pool,
-          unit_group: existing_unit_group,
-          event_name: 'add',
-          snapshot: { 'a' => '1', 'score_1' => 1 },
-        )
-      end
-      let!(:existing_event_2) do
-        create(
-          :hmis_ce_match_candidate_event,
-          client_proxy: client_proxy_2,
-          candidate_pool: existing_pool,
-          unit_group: existing_unit_group,
-          event_name: 'add',
-          snapshot: { 'a' => '1', 'score_1' => 2 },
-          created_at: 1.day.ago,
-        )
-      end
-
-      let!(:cruft_previous_event) do
-        create(
-          :hmis_ce_match_candidate_event,
-          client_proxy: client_proxy_2,
-          candidate_pool: existing_pool,
-          unit_group: existing_unit_group,
-          event_name: 'remove',
-          snapshot: { 'a' => '999', 'score_1' => 999 },
-          created_at: 2.days.ago, # older snapshot should be ignored; the most recent one per client is used
-        )
-      end
-
-      let!(:cruft_event_in_other_pool) do
-        create(
-          :hmis_ce_match_candidate_event,
-          client_proxy: client_proxy_2,
-          event_name: 'add',
-          snapshot: { 'a' => '999', 'score_1' => 999 },
-        )
-      end
 
       context 'when unit group gets assigned to an existing pool' do
         let!(:unit_group) { create(:hmis_unit_group, project: project) }
@@ -170,10 +128,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           expect(events.map(&:candidate_pool_id).uniq).to eq([existing_pool.id])
           expect(events.map(&:client_proxy_id).uniq).to eq([client_proxy_1.id, client_proxy_2.id])
 
-          expect(events.first.snapshot['a']).to eq('1')
-          expect(events.first.snapshot['score_1']).to eq(1)
-          expect(events.second.snapshot['a']).to eq('1')
-          expect(events.second.snapshot['score_1']).to eq(2)
+          expect(events.map { |e| e.snapshot['veteran_status'] }).to eq([1, 1])
+          expect(events.map { |e| e.snapshot['current_age'] }).to contain_exactly(20, 55)
         end
       end
 
@@ -198,10 +154,10 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
 
       context 'when unit group pool changes' do
-        let!(:new_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'b = 1', priority_expression: '{score_1}') }
+        let!(:new_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'days_since_last_exit = 1', priority_expression: '{current_age}') }
 
         let!(:rule_a) { nil }
-        let!(:rule_b) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'b = 1') }
+        let!(:rule_b) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'days_since_last_exit = 1') }
 
         # Create existing candidates in the new pool
         let!(:client_proxy_3) { create(:hmis_ce_client_proxy) }

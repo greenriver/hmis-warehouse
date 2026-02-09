@@ -144,6 +144,30 @@ module Hmis::Ce::Match
       log_info { "Finished for pool_id=#{@pool.id}" }
     end
 
+    # Given a GrdaWarehouse::Hud::Client scope, return a hash of client_id to client_values for the pool.
+    # Used by the CandidatePoolBuilder to generate snapshots for candidate events.
+    # Note that this disregards client eligibility, clients are assumed to be eligible.
+    # This assumption may lead to some inconsistencies in the event log, such as the following scenario:
+    # - Client is in Pool A used by Unit Group X, and Pool B.
+    # - Client attribute changes, making them no longer eligible for Pool A or Pool B.
+    # - Simultaneously, Unit Group X has a requirement change causing it to use Pool B instead.
+    # - Before the Engine has a chance to run, the CandidatePoolBuilder runs.
+    # - Client has an "update" event logged for Pool B, but the snapshot of values shows they shouldn't be eligible for Pool B.
+    # - When the Engine finally runs, client has a "remove" event logged for Pool B.
+    #
+    # We chose this tradeoff because:
+    # - The snapshot will be correct as of the timestamp of the event.
+    # - The event log will be eventually consistent.
+    def get_client_values(clients)
+      values_by_client_id = {}
+      evaluator = new_evaluator(clients)
+      clients.each do |client|
+        evaluation = evaluator.call(client)
+        values_by_client_id[client.id] = evaluation.client_values
+      end
+      values_by_client_id
+    end
+
     # helper for managing client values for event logging
     Snapshot = Struct.new(:client_id, :values, :event_name, keyword_init: true)
     # private_constant :Snapshot # keep public for tests
