@@ -326,6 +326,33 @@ class Hmis::Hud::Processors::Base
     raise "unexpected value for date \"#{string}\""
   end
 
+  # Converts a multi-select form value (e.g. aftercare_methods, counseling_methods) into
+  # a hash of 0/1 attributes for the record. Example:
+  #
+  # attributes_from_multi_select(
+  #     "aftercare_methods",                                    # Field name in the form
+  #     ["TELEPHONE", "IN_PERSON_GROUP"],                       # Array of selected enum values
+  #     enum: Types::HmisSchema::Enums::CounselingMethod,       # GraphQL Enum for transforming Enum => numeric value
+  #     attribute_map: HudHelper.util.counseling_method_fields  # Hash of attribute name => numeric value
+  # )
+  #
+  # => { email_social_media: 0, telephone: 1, in_person_individual: 0, in_person_group: 1 }
+  def attributes_from_multi_select(field, value, enum:, attribute_map:)
+    # If hidden, set all fields to nil
+    return attribute_map.transform_values { |_| nil } if value == HIDDEN_FIELD_VALUE
+
+    # Transform enum values to their integer IDs
+    attribute_value = attribute_value_for_enum(enum, value)
+    # If all empty, set all fields to 99
+    values = Array.wrap(attribute_value).compact
+    return attribute_map.transform_values { |_| 99 } if values.empty?
+
+    # Map each attribute to 1 (if selected) or 0 (if not selected)
+    attribute_map.map do |field_name, id|
+      [field_name, values.include?(id) ? 1 : 0]
+    end.to_h
+  end
+
   private def process_files(cded, value, existing_cdes)
     if cded.repeats?
       Array.wrap(value).map do |val|

@@ -10,15 +10,15 @@ module Hmis::Hud::Processors
   class ExitProcessor < Base
     def process(field, value)
       attribute_name = ar_attribute_name(field)
-      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
+      enum = graphql_enum(field)
 
       attributes = case attribute_name
       when 'aftercare_methods'
-        multi_select_attributes(value, attribute_value, enum_map: HudHelper.util.aftercare_method_fields)
+        attributes_from_multi_select(attribute_name, value, enum: enum, attribute_map: HudHelper.util.aftercare_method_fields)
       when 'counseling_methods'
-        multi_select_attributes(value, attribute_value, enum_map: HudHelper.util.counseling_method_fields)
+        attributes_from_multi_select(attribute_name, value, enum: enum, attribute_map: HudHelper.util.counseling_method_fields)
       else
-        { attribute_name => attribute_value }
+        { attribute_name => attribute_value_for_enum(enum, value) }
       end
       @processor.send(factory_name).assign_attributes(attributes)
     end
@@ -37,19 +37,6 @@ module Hmis::Hud::Processors
 
     def information_date(_)
       # Exits don't have an information date to be set
-    end
-
-    def multi_select_attributes(raw_value, attribute_value, enum_map:)
-      # If hidden, set all fields to nil
-      return enum_map.transform_values { |_| nil } if raw_value == Base::HIDDEN_FIELD_VALUE
-
-      # If all empty, set all fields to 99
-      values = Array.wrap(attribute_value).compact
-      return enum_map.transform_values { |_| 99 } if values.empty?
-
-      enum_map.map do |field_name, id|
-        [field_name, values.include?(id) ? 1 : 0]
-      end.to_h
     end
   end
 end

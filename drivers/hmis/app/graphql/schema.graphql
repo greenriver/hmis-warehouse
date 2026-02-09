@@ -1062,19 +1062,42 @@ enum CeOpportunityStatus {
 
 type CeParticipation {
   accessPoint: NoYes
+  ceParticipationServices: [CeParticipationServices!]!
   ceParticipationStatusEndDate: ISO8601Date
   ceParticipationStatusStartDate: ISO8601Date
   createdBy: ApplicationUser
-  crisisAssessment: NoYes
+  crisisAssessment: NoYes @deprecated(reason: "Use ceParticipationServices instead")
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  directServices: NoYes
-  housingAssessment: NoYes
+  directServices: NoYes @deprecated(reason: "Use ceParticipationServices instead")
+  housingAssessment: NoYes @deprecated(reason: "Use ceParticipationServices instead")
   id: ID!
-  preventionAssessment: NoYes
+  preventionAssessment: NoYes @deprecated(reason: "Use ceParticipationServices instead")
   receivesReferrals: NoYes
   user: ApplicationUser
+}
+
+enum CeParticipationServices {
+  """
+  Shelter Assessment, Screening, and/or Referral
+  """
+  CRISIS_ASSESSMENT
+
+  """
+  Direct Services (search and/or placement support)
+  """
+  DIRECT_SERVICES
+
+  """
+  Housing Assessment, Screening, and/or Referral
+  """
+  HOUSING_ASSESSMENT
+
+  """
+  Homelessness Prevention Assessment, Screening, and/or Referral
+  """
+  PREVENTION_ASSESSMENT
 }
 
 type CeParticipationsPaginated {
