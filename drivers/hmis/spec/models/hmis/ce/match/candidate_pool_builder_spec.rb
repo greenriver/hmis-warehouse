@@ -169,13 +169,19 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
             described_class.call
             existing_unit_group.reload
           end.to change(existing_unit_group, :candidate_pool_id).from(existing_pool.id).to(new_pool.id).
-            and change(Hmis::Ce::Match::CandidateEvent, :count).by(2)
+            and change(Hmis::Ce::Match::CandidateEvent, :count).by(3)
 
           # client 1 should have been removed
           client_1_event = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxy_1.id).last
           expect(client_1_event.event_name).to eq('remove')
           expect(client_1_event.candidate_pool_id).to eq(existing_pool.id)
           expect(client_1_event.unit_group_id).to eq(existing_unit_group.id)
+
+          # client 2 should have been updated
+          client_2_event = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxy_2.id).last
+          expect(client_2_event.event_name).to eq('update')
+          expect(client_2_event.candidate_pool_id).to eq(new_pool.id)
+          expect(client_2_event.unit_group_id).to eq(existing_unit_group.id)
 
           # client 3 should have been added
           client_3_event = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxy_3.id).last

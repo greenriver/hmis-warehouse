@@ -11,7 +11,7 @@ module Hmis::Ce::Match::Internal
   # - When a unit group is moved from one pool to another:
   #   - Candidates who were in the old pool and not the new pool get a 'remove' event, since they are no longer eligible for the unit group
   #   - Candidates who were in the new pool and not the old pool get an 'add' event, since they are newly eligible for the unit group
-  #   - Candidates in both do not get events generated. Their eligibility hasn't changed
+  #   - Candidates in both pools get an 'update' event because their snapshot of attributes relevant to unit group eligibility has changed.
   class UnitGroupPoolChangeEventWriter
     include Memery
 
@@ -96,11 +96,21 @@ module Hmis::Ce::Match::Internal
           )
         end
 
+        # Candidates in both pools: Generate "update" events
+        remaining_client_proxies = old_client_proxies & new_client_proxies
+        if remaining_client_proxies.any?
+          events.concat(
+            create_events_for_client_proxies(
+              unit_group: unit_group,
+              pool: new_pool,
+              client_proxies: remaining_client_proxies,
+              event_name: 'update',
+              timestamp: timestamp,
+            ),
+          )
+        end
+
         events
-      else
-        # For candidates in both pools, do not generate events. Clients remain eligible for the unit group
-        # todo @martha
-        []
       end
     end
 
