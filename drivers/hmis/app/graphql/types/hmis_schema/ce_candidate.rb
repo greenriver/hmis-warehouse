@@ -26,6 +26,9 @@ module Types
 
     # Find most recent snapshot of this candidate's eligibility/prioritization attributes from Candidate Events table.
     # Efficiency could be improved here, maybe by creating a Candidate Event resolver or adding a multi key relation from Candidate to CandidateEvent
+    # Also note that events are now primarily keyed by Unit Group ID (not Candidate Pool ID),
+    # but for this purpose we just want the most recent event for the candidate pool.
+    # A future improvement could be to store the snapshot on the candidate record.
     def client_attributes
       client_proxy = load_ar_scope(scope: Hmis::Ce::ClientProxy, id: object.client_proxy_id)
       load_ar_association(client_proxy, :ce_match_candidate_events).

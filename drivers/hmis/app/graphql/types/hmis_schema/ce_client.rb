@@ -65,6 +65,9 @@ module Types
     # Aggregate the most recent eligibility/prioritization attributes across all candidate pools the client is in.
     # Sort by event date before merging, so that the most recently calculated attributes are favored
     def client_attributes
+      # Note that events are now primarily keyed by Unit Group ID (not Candidate Pool ID),
+      # but for this purpose we just want the most recent event per candidate pool the client is eligible for.
+      # A future improvement could be to store the snapshot on the candidate record.
       events = load_ar_association(object, :ce_match_candidate_events)
       current_candidate_pool_ids = load_ar_association(object, :ce_match_candidates).map(&:candidate_pool_id).uniq
       events.group_by(&:candidate_pool_id).
