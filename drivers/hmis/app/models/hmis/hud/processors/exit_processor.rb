@@ -14,9 +14,9 @@ module Hmis::Hud::Processors
 
       attributes = case attribute_name
       when 'aftercare_methods'
-        attributes_from_multi_select(attribute_name, value, enum: enum, attribute_map: HudHelper.util.aftercare_method_fields)
+        attributes_from_multi_select(value, enum: enum, attribute_map: HudHelper.util.aftercare_method_fields)
       when 'counseling_methods'
-        attributes_from_multi_select(attribute_name, value, enum: enum, attribute_map: HudHelper.util.counseling_method_fields)
+        attributes_from_multi_select(value, enum: enum, attribute_map: HudHelper.util.counseling_method_fields)
       else
         { attribute_name => attribute_value_for_enum(enum, value) }
       end

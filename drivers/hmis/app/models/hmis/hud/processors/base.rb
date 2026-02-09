@@ -330,14 +330,13 @@ class Hmis::Hud::Processors::Base
   # a hash of 0/1 attributes for the record. Example:
   #
   # attributes_from_multi_select(
-  #     "aftercare_methods",                                    # Field name in the form
   #     ["TELEPHONE", "IN_PERSON_GROUP"],                       # Array of selected enum values
   #     enum: Types::HmisSchema::Enums::CounselingMethod,       # GraphQL Enum for transforming Enum => numeric value
   #     attribute_map: HudHelper.util.counseling_method_fields  # Hash of attribute name => numeric value
   # )
   #
   # => { email_social_media: 0, telephone: 1, in_person_individual: 0, in_person_group: 1 }
-  def attributes_from_multi_select(field, value, enum:, attribute_map:)
+  def attributes_from_multi_select(value, enum:, attribute_map:)
     # If hidden, set all fields to nil
     return attribute_map.transform_values { |_| nil } if value == HIDDEN_FIELD_VALUE
 

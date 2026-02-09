@@ -14,7 +14,7 @@ module Hmis::Hud::Processors
 
       attributes = case attribute_name
       when 'ce_participation_services'
-        attributes_from_multi_select(attribute_name, value, enum: enum, attribute_map: HudHelper.util.ce_participation_services_fields)
+        attributes_from_multi_select(value, enum: enum, attribute_map: HudHelper.util.ce_participation_services_fields)
       else
         { attribute_name => attribute_value_for_enum(enum, value) }
       end
