@@ -14,11 +14,11 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
-    # cleanup_test_environment
-    # ::HmisUtil::JsonForms.seed_all
+    cleanup_test_environment
+    ::HmisUtil::JsonForms.seed_all
   end
   after(:all) do
-    # cleanup_test_environment
+    cleanup_test_environment
   end
 
   include_context 'hmis base setup'
@@ -428,7 +428,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         project = Hmis::Hud::Project.find(project_id)
         expect(project.funders.count).to eq(1)
-        expect(project.funders.first.funder).to eq(0) # Local or other funding source
+        expect(project.funders.first.funder).to eq(46) # Local or other funding source
         expect(project.funders.first.other_funder).to eq('Xyz Funder')
         expect(project.funders.first.grant_id).to eq('12345')
         expect(project.funders.first.start_date).to eq(project.operating_start_date)
@@ -436,7 +436,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'should accept initial HMIS participation type' do
         form_values = mock_form_values_for_definition(definition)
-        form_values[:hud_values]['initialHmisParticipationType'] = 1
+        form_values[:hud_values]['initialHmisParticipationType'] = 'HMIS_PARTICIPATING'
 
         response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
         expect(response.status).to eq(200), result.inspect
@@ -451,12 +451,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'should accept initial CE participation' do
         form_values = mock_form_values_for_definition(definition)
-        form_values[:hud_values]['initialCeAccessPoint'] = 1
-        form_values[:hud_values]['initialCePreventionAssessment'] = 1
-        form_values[:hud_values]['initialCeCrisisAssessment'] = 0
-        form_values[:hud_values]['initialCeHousingAssessment'] = 1
-        form_values[:hud_values]['initialCeDirectServices'] = 0
-        form_values[:hud_values]['initialCeReceivesReferrals'] = 1
+        form_values[:hud_values]['initialCeAccessPoint'] = 'YES'
+        form_values[:hud_values]['initialCePreventionAssessment'] = 'YES'
+        form_values[:hud_values]['initialCeCrisisAssessment'] = 'NO'
+        form_values[:hud_values]['initialCeHousingAssessment'] = 'YES'
+        form_values[:hud_values]['initialCeDirectServices'] = 'NO'
+        form_values[:hud_values]['initialCeReceivesReferrals'] = 'YES'
 
         response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
         expect(response.status).to eq(200), result.inspect
