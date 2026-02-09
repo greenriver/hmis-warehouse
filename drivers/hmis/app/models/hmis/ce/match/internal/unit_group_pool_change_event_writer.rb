@@ -18,14 +18,10 @@ module Hmis::Ce::Match::Internal
     def call(pool_changes, timestamp: Time.current)
       return if pool_changes.empty?
 
-      # Expect 100s of changes, but each change can generate 1000s of events,
+      # Expect at most 100s of changes, but each change can generate 1000s of events,
       # so import them per-pool instead of saving them in memory and bulk-importing.
       pool_changes.each do |change|
-        events = generate_events_for_change(
-          change: change,
-          timestamp: timestamp,
-        )
-
+        events = generate_events_for_change(change: change, timestamp: timestamp)
         next unless events.any?
 
         result = Hmis::Ce::Match::CandidateEvent.import!(events)
@@ -44,25 +40,25 @@ module Hmis::Ce::Match::Internal
       if old_pool.nil? && new_pool.present?
         # Unit group didn't have a pool before, now it has one. Generate "add" events for all clients in the new pool
         create_events_for_client_proxies(
+          event_name: 'add',
+          client_proxies: client_proxies_for_pool(new_pool.id),
           unit_group: unit_group,
           pool: new_pool,
-          client_proxies: client_proxies_for_pool(new_pool.id),
-          event_name: 'add',
           timestamp: timestamp,
         )
 
       elsif old_pool.present? && new_pool.nil?
         # Unit group previously had a pool, now it does not. Generate "remove" events for all clients in the old pool
         create_events_for_client_proxies(
+          event_name: 'remove',
+          client_proxies: client_proxies_for_pool(old_pool.id),
           unit_group: unit_group,
           pool: old_pool,
-          client_proxies: client_proxies_for_pool(old_pool.id),
-          event_name: 'remove',
           timestamp: timestamp,
         )
 
       elsif old_pool.present? && new_pool.present?
-        # Unit group is moving from one pool to another: only generate events for clients whose status changes
+        # Unit group is moving from one pool to another
         old_client_proxies = client_proxies_for_pool(old_pool.id)
         new_client_proxies = client_proxies_for_pool(new_pool.id)
 
@@ -73,10 +69,10 @@ module Hmis::Ce::Match::Internal
         if removed_client_proxies.any?
           events.concat(
             create_events_for_client_proxies(
+              event_name: 'remove',
+              client_proxies: removed_client_proxies,
               unit_group: unit_group,
               pool: old_pool,
-              client_proxies: removed_client_proxies,
-              event_name: 'remove',
               timestamp: timestamp,
             ),
           )
@@ -87,10 +83,10 @@ module Hmis::Ce::Match::Internal
         if added_client_proxies.any?
           events.concat(
             create_events_for_client_proxies(
+              event_name: 'add',
+              client_proxies: added_client_proxies,
               unit_group: unit_group,
               pool: new_pool,
-              client_proxies: added_client_proxies,
-              event_name: 'add',
               timestamp: timestamp,
             ),
           )
@@ -101,10 +97,10 @@ module Hmis::Ce::Match::Internal
         if remaining_client_proxies.any?
           events.concat(
             create_events_for_client_proxies(
+              event_name: 'update',
+              client_proxies: remaining_client_proxies,
               unit_group: unit_group,
               pool: new_pool,
-              client_proxies: remaining_client_proxies,
-              event_name: 'update',
               timestamp: timestamp,
             ),
           )
@@ -114,8 +110,8 @@ module Hmis::Ce::Match::Internal
       end
     end
 
-    # Create the given event for these client proxies in this unit group
-    def create_events_for_client_proxies(unit_group:, pool:, client_proxies:, event_name:, timestamp:)
+    # Create the given event (add, remove, or update) for these client proxies in this unit group
+    def create_events_for_client_proxies(event_name:, client_proxies:, unit_group:, pool:, timestamp:)
       return [] if client_proxies.nil? || client_proxies.empty?
 
       warehouse_clients = GrdaWarehouse::Hud::Client.
