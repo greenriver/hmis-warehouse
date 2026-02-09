@@ -20,6 +20,8 @@ module HmisExternalApis::AcHmis::Exporters
       Rails.logger.info "There are #{total} waitlist events to export"
 
       # Precompute mapping from candidate_pool_id to associated unit groups (scoped to data_source)
+      # This could be simplified in the future now that events are primarily keyed by Unit Group ID,
+      # but we are leaving this unchanged for now since we are not backfilling existing events.
       groups_by_pool_id = unit_groups_by_pool_id
 
       events.find_each.with_index do |event, i|
