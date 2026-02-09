@@ -31,6 +31,15 @@
           "link_id": "geocode",
           "text": "Geocode",
           "pick_list_reference": "GEOCODE",
+          "required": true,
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "coc",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ],
           "mapping": {
             "field_name": "initialGeocode"
           }
@@ -176,6 +185,14 @@
         {
           "type": "CHOICE",
           "required": true,
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "q_2_09_1",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ],
           "link_id": "q_2_09_2",
           "text": "Receives Referrals",
           "pick_list_reference": "NoYes",
