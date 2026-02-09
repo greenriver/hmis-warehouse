@@ -237,6 +237,14 @@ module HudApr::Generators::Shared::Fy2026
           destination = 99 if destination == 435 && ! destination_subsidy_type.in?(HudHelper.util('2026').rental_subsidy_types.keys)
           destination = 99 unless HudHelper.util('2026').valid_destinations.key?(destination)
 
+          # Calculate appropriate length of stay based Glossary's "Length of Stay in Project" section
+          # ES Night-by-Night (project_type 1) uses bed_nights, all others use continuous days
+          length_of_stay = if last_service_history_enrollment.project_type == 1
+            bed_nights(last_service_history_enrollment)
+          else
+            stay_length(last_service_history_enrollment)
+          end
+
           ce_hash = {}
           options = {
             client_id: source_client.id,
@@ -339,8 +347,7 @@ module HudApr::Generators::Shared::Fy2026
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
             last_date_in_program: last_service_history_enrollment.last_date_in_program,
             last_name: source_client.LastName,
-            length_of_stay: stay_length(last_service_history_enrollment),
-            bed_nights: bed_nights(last_service_history_enrollment),
+            length_of_stay: length_of_stay,
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,

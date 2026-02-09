@@ -124,7 +124,7 @@ module HudReports::LengthOfStays
       enrollment.first_date_in_program
     end
 
-    private def lengths(field: a_t[:bed_nights])
+    private def lengths(field: a_t[:length_of_stay])
       {
         '7 days or less' => field.between(0..7),
         '0 to 7 days' => field.between(0..7),

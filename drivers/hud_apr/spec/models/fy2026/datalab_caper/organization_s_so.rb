@@ -52,6 +52,7 @@ RSpec.shared_context 'datalab organization s so caper', shared_context: :metadat
       )
     end
 
+    # pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=EEE88B5C-17B7-4C2E-B6D667BF7F53A48D
     it 'Q5a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
