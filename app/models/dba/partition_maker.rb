@@ -228,12 +228,7 @@ class Dba::PartitionMaker
     elsif table_has_column?(table_name, 'loader_id')
       'loader_id'
     else
-      case table_name
-      when 'service_history_services'
-        'date'
-      else
-        raise "could not figure out default partitioning column in #{table_name}"
-      end
+      raise 'could not figure out default partitioning column'
     end
   end
 end

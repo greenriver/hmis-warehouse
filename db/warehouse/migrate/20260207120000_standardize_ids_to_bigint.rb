@@ -148,7 +148,7 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
         AND data_type = 'integer'
         AND col.table_schema != 'pg_catalog'
         AND col.table_schema != 'information_schema'
-        AND (column_name ~ 'id' or column_name ~ 'from' or column_name ~ 'into')
+        AND (column_name ~ '(^|_)id$' or column_name ~ '(^|_)from$' or column_name ~ '(^|_)into$')
         AND SUBSTRING(column_name FROM 1 FOR 1) = LOWER(SUBSTRING(column_name FROM 1 FOR 1))
         AND column_name !~ 'override'
         AND tab.table_type != 'VIEW'

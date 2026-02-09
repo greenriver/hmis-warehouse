@@ -1,1 +1,22 @@
-SELECT * FROM "CustomClientAddress" WHERE "DateDeleted" is NULL
+SELECT id,
+    use,
+    address_type,
+    line1,
+    line2,
+    city,
+    state,
+    district,
+    country,
+    postal_code,
+    notes,
+    "AddressID",
+    "PersonalID",
+    "UserID",
+    data_source_id,
+    "DateCreated",
+    "DateUpdated",
+    "DateDeleted",
+    "EnrollmentID",
+    enrollment_address_type
+   FROM "CustomClientAddress"
+  WHERE ("DateDeleted" IS NULL)

@@ -8,6 +8,8 @@
 
 class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
   def up
+    return unless Rails.env.development? || Rails.env.test?
+
     views = [
       'puma_scaling_login_demand',
     ]
@@ -19,8 +21,6 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
   def _up
     # This query identifies integer columns that should be bigints,
     # based on naming conventions and common sense exclusions.
-    # It is derived from issue.sql and handles cases where the type
-    # might already have been changed in some environments.
     query = <<~SQL
       SELECT
         col.table_schema,
@@ -36,7 +36,7 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
         AND data_type = 'integer'
         AND col.table_schema != 'pg_catalog'
         AND col.table_schema != 'information_schema'
-        AND (column_name ~ 'id' or column_name ~ 'from' or column_name ~ 'into')
+        AND (column_name ~ '(^|_)id$' or column_name ~ '(^|_)from$' or column_name ~ '(^|_)into$')
         AND SUBSTRING(column_name FROM 1 FOR 1) = LOWER(SUBSTRING(column_name FROM 1 FOR 1))
         AND column_name !~ 'override'
         AND tab.table_type != 'VIEW'
@@ -108,9 +108,5 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
       # may use CamelCase or other non-standard naming.
       execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
     end
-  end
-
-  def down
-    # No-op: we don't want to revert bigints to integers.
   end
 end

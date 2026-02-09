@@ -1,1 +1,4 @@
-SELECT * FROM "lookups_funding_sources"
+SELECT id,
+    value,
+    text
+   FROM lookups_funding_sources
