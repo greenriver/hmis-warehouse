@@ -70,11 +70,7 @@ module Hmis::Hud::Processors
       {
         affiliations_attributes: [
           *res_projects_to_add.map do |res_project_id|
-            {
-              res_project_id: res_project_id,
-              user: @processor.hud_user,
-              **project.slice(:project_id, :data_source_id),
-            }
+            related_record_attributes.merge(res_project_id: res_project_id)
           end,
           *affiliations_to_remove.map { |id| { id: id, _destroy: 1 } },
         ],
