@@ -35,12 +35,27 @@ module HudReports::LengthOfStays
     # Heads of households and adult stayers in the project 365 days or more (Row 16)
     # should include any adult stayer present when the head of household’s stay is 365 days or more,
     # even if that adult has not been in the household that long.
+    # Per HMIS Glossary, ES-NBN (project_type 1) uses bed_nights, all others use length_of_stay
     private def hoh_lts_stayer_ids
-      @hoh_lts_stayer_ids ||= universe.members.where(
-        hoh_clause.
-          and(a_t[:length_of_stay].gteq(365)).
-          and(stayers_clause),
-      ).pluck(:head_of_household_id)
+      @hoh_lts_stayer_ids ||= begin
+        # ES-NBN projects (project_type 1) use bed_nights
+        nbn_ids = universe.members.where(
+          hoh_clause.
+            and(a_t[:project_type].eq(1)).
+            and(a_t[:bed_nights].gteq(365)).
+            and(stayers_clause),
+        ).pluck(:head_of_household_id)
+
+        # All other project types use length_of_stay
+        other_ids = universe.members.where(
+          hoh_clause.
+            and(a_t[:project_type].not_eq(1)).
+            and(a_t[:length_of_stay].gteq(365)).
+            and(stayers_clause),
+        ).pluck(:head_of_household_id)
+
+        (nbn_ids + other_ids).uniq
+      end
     end
 
     private def hoh_entry_dates
@@ -124,7 +139,31 @@ module HudReports::LengthOfStays
       enrollment.first_date_in_program
     end
 
-    private def lengths(field: a_t[:length_of_stay])
+    # Generate length of stay clauses
+    # - When field is provided: returns simple clauses using that field
+    # - When field is nil: returns combined clauses that use bed_nights for ES-NBN (project_type 1)
+    #   and length_of_stay for all other project types (per HMIS Glossary "Length of Stay in Project")
+    private def lengths(field: nil)
+      if field.present?
+        # Simple case: use the provided field directly
+        generate_length_clauses(field)
+      else
+        # Combined case: project-type aware (ES-NBN uses bed_nights, others use length_of_stay)
+        bed_night_clauses = generate_length_clauses(a_t[:bed_nights])
+        length_of_stay_clauses = generate_length_clauses(a_t[:length_of_stay])
+
+        {}.tap do |combined|
+          bed_night_clauses.keys.each do |key|
+            nbn_clause = a_t[:project_type].eq(1).and(bed_night_clauses[key])
+            other_clause = a_t[:project_type].not_eq(1).and(length_of_stay_clauses[key])
+            combined[key] = nbn_clause.or(other_clause)
+          end
+        end.freeze
+      end
+    end
+
+    # Generate the actual Arel clauses for length ranges
+    private def generate_length_clauses(field)
       {
         '7 days or less' => field.between(0..7),
         '0 to 7 days' => field.between(0..7),
