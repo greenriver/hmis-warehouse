@@ -27,9 +27,5 @@ module Types
     hud_field :housing_assessment, HmisSchema::Enums::Hud::NoYes, deprecation_reason: 'Use ceParticipationServices instead'
     hud_field :prevention_assessment, HmisSchema::Enums::Hud::NoYes, deprecation_reason: 'Use ceParticipationServices instead'
     hud_field :receives_referrals, HmisSchema::Enums::Hud::NoYes
-
-    def ce_participation_services
-      HudHelper.util.ce_participation_services_fields.select { |k| object.send(k) == 1 }.values
-    end
   end
 end
