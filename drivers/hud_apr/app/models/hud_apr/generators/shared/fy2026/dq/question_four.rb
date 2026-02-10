@@ -158,9 +158,12 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       answer.update(summary: members.count)
 
       # HMIS Reporting Glossary Reference: Data Quality - Q1-17: Heads of households and adult stayers in the project 365 days or more
+      # Per HMIS Glossary, ES-NBN (project_type 1) uses bed_nights, all others use length_of_stay
       stayers_over_365_days = adults_and_hohs.where(
-        a_t[:length_of_stay].gteq(365).
-          and(stayers_clause),
+        stayers_clause.and(
+          a_t[:project_type].eq(1).and(a_t[:bed_nights].gteq(365)).
+            or(a_t[:project_type].not_eq(1).and(a_t[:length_of_stay].gteq(365))),
+        ),
       )
 
       answer = @report.answer(question: table_name, cell: 'F4')
