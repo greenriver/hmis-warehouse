@@ -21,6 +21,7 @@
           "type": "CHOICE",
           "link_id": "coc",
           "text": "CoC Code",
+          "required": true,
           "pick_list_reference": "COC",
           "mapping": {
             "field_name": "initialCocCode"
@@ -32,14 +33,6 @@
           "text": "Geocode",
           "pick_list_reference": "GEOCODE",
           "required": true,
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "coc",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ],
           "mapping": {
             "field_name": "initialGeocode"
           }
