@@ -116,5 +116,3 @@
      JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
   WHERE ("Enrollment"."DateDeleted" IS NULL);
-
-

@@ -6,10 +6,14 @@
 
 # frozen_string_literal: true
 
+# Note, only pks in the dev/test env are updated. The assumption is that production instances are
+# already corrected and we are aligning our dev dbs.
+#
+# Note, we skip partitioned tables and will handle those in dedicated migrations later
 class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
   def up
     views = ['puma_scaling_login_demand']
-    views.each { |view| drop_view view }
+    views.reverse_each { |view| drop_view view }
     alter_tables
     views.each { |view| create_view view }
   end
