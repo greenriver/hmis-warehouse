@@ -17,4 +17,8 @@ class Hmis::Hud::CeParticipation < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects, optional: true
+
+  def ce_participation_services
+    HudHelper.util.ce_participation_services_fields.select { |k| send(k) == 1 }.values
+  end
 end
