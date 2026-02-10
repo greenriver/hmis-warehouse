@@ -105,7 +105,7 @@ module Hmis::Hud::Processors
       other_funder = @hud_values['initialOtherFunder']
       grant_id = @hud_values['initialFunderGrantId']
       start_date = @hud_values['operatingStartDate']
-      return unless funder || other_funder || grant_id
+      return unless funder
 
       {
         funders_attributes: [
