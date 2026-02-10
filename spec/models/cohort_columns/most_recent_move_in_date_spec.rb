@@ -98,7 +98,7 @@ RSpec.describe CohortColumns::MostRecentMoveInDate, type: :model do
     end
 
     it 'has correct title' do
-      expect(column.title).to eq('Most-Recent Move-In Date')
+      expect(column.title).to eq('Most Recent Move-In Date')
     end
 
     it 'has correct column name' do
