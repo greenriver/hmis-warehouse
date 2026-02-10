@@ -1738,6 +1738,34 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
+  describe 'Form processing for CeParticipations' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION) }
+    let!(:existing_record) { create :hmis_hud_ce_participation, data_source: ds1, project: p1, crisis_assessment: 1, receives_referrals: 1 }
+    let(:complete_hud_values) do
+      {
+        'CeParticipation.accessPoint' => 'YES',
+        'CeParticipation.ceParticipationServices' => ['PREVENTION_ASSESSMENT', 'HOUSING_ASSESSMENT'],
+        'CeParticipation.receivesReferrals' => 'NO',
+        'CeParticipation.ceParticipationStatusStartDate' => '2020-01-01',
+      }
+    end
+
+    it 'creates and updates all fields' do
+      new_record = Hmis::Hud::CeParticipation.new(data_source: ds1, user: u1, project: p1)
+      [existing_record, new_record].each do |record|
+        process_record(record: record, hud_values: complete_hud_values, user: hmis_user, definition: definition)
+
+        expect(record.access_point).to eq(1)
+        expect(record.prevention_assessment).to eq(1)
+        expect(record.crisis_assessment).to eq(0)
+        expect(record.housing_assessment).to eq(1)
+        expect(record.direct_services).to eq(0)
+        expect(record.receives_referrals).to eq(0)
+        expect(record.ce_participation_status_start_date).to eq(Date.parse('2020-01-01'))
+      end
+    end
+  end
+
   describe 'Form processing for Inventory' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :INVENTORY) }
     let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500', user: u1 }
