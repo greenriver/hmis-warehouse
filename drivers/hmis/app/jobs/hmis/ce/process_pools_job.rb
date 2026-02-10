@@ -57,11 +57,17 @@ module Hmis::Ce
           ).to_a
           log_info("Found #{dirty_pool_markers.count} dirty pool markers to process")
 
-          # process dirty pools
+          # Attempt to acquire the shared CandidatePool maintenance lock.
+          # Note that this lock is *shared* among pool processing jobs,
+          # which are allowed to run concurrently with each other (thanks to the per-pool locks they use internally),
+          # but should not attempt to run concurrently with pool maintenance (CandidatePoolBuilder).
           pool_processing_result = Hmis::Ce::Match::CandidatePool.with_shared_maintenance_lock(timeout_seconds: 0) do
+            # If we acquired the lock, process all dirty pools.
             process_dirty_pools(dirty_pool_markers)
           end
 
+          # It's fine to skip processing if we can't acquire the lock, because this job self-schedules on medium intervals
+          # (every 10m as long as there are any outstanding dirty pools).
           if pool_processing_result == false
             log_info('Candidate pool maintenance in progress; skipping pool processing for this run')
           else

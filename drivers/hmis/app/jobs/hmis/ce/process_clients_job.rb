@@ -57,11 +57,17 @@ module Hmis::Ce
           log_info("Found #{dirty_client_markers.count} dirty client markers to process")
           dirty_client_markers = reconcile_dangling_markers(dirty_client_markers)
 
-          # process dirty clients against all available pools
+          # Attempt to acquire the shared CandidatePool maintenance lock.
+          # Note that this lock is *shared* among pool processing jobs,
+          # which are allowed to run concurrently with each other (thanks to the per-pool locks they use internally),
+          # but should not attempt to run concurrently with pool maintenance (CandidatePoolBuilder).
           client_processing_result = Hmis::Ce::Match::CandidatePool.with_shared_maintenance_lock(timeout_seconds: 0) do
+            # If we acquired the lock, process dirty clients against all available pools.
             process_dirty_clients(dirty_client_markers)
           end
 
+          # It's fine to skip processing if we can't acquire the lock, because this job self-schedules on short intervals,
+          # and any unprocessed clients are still marked dirty, so they will be processed on the next run.
           if client_processing_result == false
             log_info('Candidate pool maintenance in progress; skipping client processing for this run')
           else

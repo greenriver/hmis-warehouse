@@ -94,7 +94,15 @@ A record is considered **dirty** if its `current_version` is greater than its `p
 
 This ensures that any changes made while a job is running will be picked up in the next processing cycle.
 
-#### 2. Concurrent Processing via Specialized Self-Scheduling Jobs
+#### 2. CandidatePool Maintenance
+
+The `CandidatePoolBuilder` is responsible for ensuring that the right `CandidatePools` exist and are associated with the right `UnitGroups`. It's triggered by callbacks to `UnitGroup` and `Rule` changes, as well as a nightly rake task that forces full reprocessing.
+
+**Synchronization**
+- These call sites all acquire an *exclusive* maintenance lock on the `CandidatePool` class (not per-pool)
+- This prevents the `CandidatePoolBuilder` from running simultaneously with itself, even when multiple callbacks are triggered at the same time, such as a `UnitGroup` getting created simultaneously with a `Rule` changing.
+
+#### 3. Concurrent Processing via Specialized Self-Scheduling Jobs
 
 The CE system uses two specialized jobs that run concurrently for optimal performance:
 
@@ -117,7 +125,20 @@ The CE system uses two specialized jobs that run concurrently for optimal perfor
 - Self-scheduling: jobs re-enqueue themselves with configurable delays after batch completion
 - Cron calls `enqueue_if_not_already_running` periodically to ensure jobs remain active
 
-#### 3. Integration with Application Models
+**Synchronization with CandidatePool Maintenance**
+- `ProcessClientsJob` and `ProcessPoolsJob` also respect the overall `CandidatePool` maintenance lock (described above).
+- This is needed now tha all 3 processes -- `ProcessClientsJob`, `ProcessPoolsJob`, and `CandidatePoolBuilder` -- write to the `CandidateEvent` table. Without protective locking, the Event table could wind up in an inconsistent state, such as in the following scenario:
+  - The `ProcessClientsJob` runs, finding a client whose eligibility has changed and is now ineligible for a pool they were previously in
+  - It writes one "remove" event per unit group for that client
+  - Simultaneously, the `CandidatePoolBuilder` runs, finding that the unit group moved pools and all previously eligible clients aren't in the new pool
+  - It writes one "remove" event per client for that unit group
+  - The client ended up with a double-remove event for the unit group, forming an inconsistent timeline.
+- We chose the approach of having the processing jobs skip if they can't acquire the maintenance lock, over the alternative of implementing granular per-pool locks in the maintenance job, because:
+  - the maintenance job is run infrequently, driven by admin changes to rules and configs
+  - whereas the processing jobs run almost constantly, as clients are added and updated, and they are self-scheduling.
+- `ProcessClientsJob` and `ProcessPoolsJob` can still run concurrently with each other, because they acquire the lock as *shared*. They will respect the lock's *exclusivity* when it is held by the `CandidatePoolBuilder` callers.
+
+#### 4. Integration with Application Models
 
 The `Hmis::MarkClientAsDirtyBehavior` concern is the primary mechanism for flagging client changes. It is included in HUD models that, when updated, should trigger a re-evaluation of the client's eligibility
 
@@ -125,11 +146,11 @@ When a record with this concern is saved, an `after_save` callback triggers `Hmi
 
 `Hmis::Ce::Match::Rule`, `Hmis::UnitGroup` and `Hmis::ProjectCeConfig` models use `after_*` callbacks to synchronously run the `CandidatePoolBuilder` to ensure pool data is always consistent with the latest rules and configuration.
 
-#### 4. Client Deduplication & Cleanup Integration
+#### 5. Client Deduplication & Cleanup Integration
 
 The `GrdaWarehouse::Tasks::ClientCleanup` and `IdentifyDuplicates` tasks are responsible for consolidating source client records into a single destination client. After this consolidation, they mark the affected destination client as dirty. This is a critical step, as the CE matching process runs against these unified destination client records, not the original source HMIS clients.
 
-#### 5. Relationship with Daily Full Refresh
+#### 6. Relationship with Daily Full Refresh
 
 The incremental change tracking system works alongside the existing daily full refresh mechanism:
 

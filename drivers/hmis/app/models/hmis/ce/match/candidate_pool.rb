@@ -148,29 +148,43 @@ module Hmis::Ce::Match
       cdeds.pluck(:form_definition_identifier).uniq
     end
 
-    # Acquire a transactional advisory lock for CE Candidate Pool processing.
-    # The lock is held for the duration of a DB transaction.
+    MAINTENANCE_LOCK_NAME = 'candidate-pool-maintenance'
+
+    # Acquire a transactional advisory lock for maintaning CE Candidate Pools.
+    # Used to wrap calls to the CandidatePoolBuilder, which processes all CE rules to determine what pools should exist.
+    #
+    # - By default, wait 10 seconds to acquire the lock.
+    #   ! indicates that if the lock is not acquired within the timeout, `WithAdvisoryLock::FailedToAcquireLock` is raised
+    #   (as opposed to the non-! behavior which is to return false without executing the block code).
+    # - By default, use a transaction-scoped lock.
+    #   This keeps the lock active until the transaction is committed or rolled back, EVEN AFTER the block has returned.
+    #   It's desirable here because this lock is often acquired from within a callback (like after_create or after_update),
+    #   so for maximum safety we don't release the lock until those changes are fully committed to the DB.
     def self.lock_for_maintenance!(transaction: true, timeout_seconds: 10, &block)
-      lock_name = 'candidate-pool-maintenance'
       GrdaWarehouseBase.with_advisory_lock!(
-        lock_name,
+        MAINTENANCE_LOCK_NAME,
         timeout_seconds: timeout_seconds,
         transaction: transaction,
         &block
       )
     end
 
-    # Acquire a shared maintenance lock (readers/workers).
+    # Acquire the same maintenance lock as above, but with some key differences.
+    # Used by the processing jobs (ProcessPoolsJob, ProcessClientsJob) to ensure they don't run
+    # concurrently with the CandidatePoolBuilder.
     #
-    # Intended for processing jobs: allow concurrent job processing on different pools, but prevent jobs from running
-    # while the CandidatePoolBuilder is holding the exclusive `candidate-pool-maintenance` lock.
-    #
-    # Uses a session-scoped lock (`transaction: false`) so callers do not need to open an explicit
-    # DB transaction just to keep the lock for the duration of the Ruby block.
+    # - Use a session-scoped lock (transaction: false), unlike lock_for_maintenance! above.
+    #   This lock is released as soon as the block ends, because the processing jobs
+    #   commit transactions *within* the lock block code.
+    # - By default, use timeout_seconds: 0, aka a non-blocking lock.
+    #   If unable to acquire the lock, the block doesn't run. Since ! is not used, no error is thrown.
+    #   This is desirable because the processing jobs re-queue themselves continuously,
+    #   so it's fine if they skip; they'll re-queue and process when the lock frees up.
+    # - Use a shared lock, to allow the processing jobs to still run concurrently with each other.
+    #   They will not overlap with any code wrapped in lock_for_maintenance! above, because that is an *exclusive* lock.
     def self.with_shared_maintenance_lock(timeout_seconds: 0, &block)
-      lock_name = 'candidate-pool-maintenance'
       GrdaWarehouseBase.with_advisory_lock(
-        lock_name,
+        MAINTENANCE_LOCK_NAME,
         timeout_seconds: timeout_seconds,
         transaction: false,
         shared: true,
@@ -180,7 +194,8 @@ module Hmis::Ce::Match
 
     # Executes a block with an advisory lock on this specific pool.
     # The lock can be blocking (with a timeout) or non-blocking (timeout_seconds: 0).
-    #
+    # Used by the processing jobs (ProcessPoolsJob, ProcessClientsJob)
+    # to ensure they don't both try to process the same pool at the same time.
     def lock_for_processing(timeout_seconds:, &block)
       lock_name = "hmis-ce_pool-#{id}"
       ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds, &block)
