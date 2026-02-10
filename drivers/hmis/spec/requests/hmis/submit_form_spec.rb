@@ -452,10 +452,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'should accept initial CE participation' do
         form_values = mock_form_values_for_definition(definition)
         form_values[:hud_values]['initialCeAccessPoint'] = 'YES'
-        form_values[:hud_values]['initialCePreventionAssessment'] = 'YES'
-        form_values[:hud_values]['initialCeCrisisAssessment'] = 'NO'
-        form_values[:hud_values]['initialCeHousingAssessment'] = 'YES'
-        form_values[:hud_values]['initialCeDirectServices'] = 'NO'
+        form_values[:hud_values]['initialCeParticipationServices'] = ['PREVENTION_ASSESSMENT', 'HOUSING_ASSESSMENT']
         form_values[:hud_values]['initialCeReceivesReferrals'] = 'YES'
 
         response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }

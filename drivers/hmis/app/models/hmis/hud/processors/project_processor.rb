@@ -25,7 +25,7 @@ module Hmis::Hud::Processors
         project.new_record? && project.project_cocs.none? ? process_initial_coc_fields : {}
       when 'initial_funder', 'initial_other_funder', 'initial_funder_grant_id'
         project.new_record? && project.funders.none? ? process_initial_funder_fields : {}
-      when 'initial_ce_access_point', 'initial_ce_prevention_assessment', 'initial_ce_crisis_assessment', 'initial_ce_housing_assessment', 'initial_ce_direct_services', 'initial_ce_receives_referrals'
+      when 'initial_ce_access_point', 'initial_ce_participation_services', 'initial_ce_receives_referrals'
         project.new_record? && project.ce_participations.none? ? process_initial_ce_participation_fields : {}
       when 'initial_hmis_participation_type'
         # Only one value related to HMIS participation type is collected, so no need to check for duplicates
@@ -133,24 +133,21 @@ module Hmis::Hud::Processors
     end
 
     def process_initial_ce_participation_fields
-      # 'initial_ce_access_point', 'initial_ce_prevention_assessment', 'initial_ce_crisis_assessment', 'initial_ce_housing_assessment', 'initial_ce_direct_services', 'initial_ce_receives_referrals'
       access_point = @hud_values['initialCeAccessPoint']
-      prevention_assessment = @hud_values['initialCePreventionAssessment']
-      crisis_assessment = @hud_values['initialCeCrisisAssessment']
-      housing_assessment = @hud_values['initialCeHousingAssessment']
-      direct_services = @hud_values['initialCeDirectServices']
+      services = @hud_values['initialCeParticipationServices']
       receives_referrals = @hud_values['initialCeReceivesReferrals']
-      return {} unless access_point || prevention_assessment || crisis_assessment || housing_assessment || direct_services || receives_referrals
+      return {} unless access_point || services || receives_referrals
 
       {
         ce_participations_attributes: [
           related_record_attributes.merge(
-            access_point: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, access_point),
-            prevention_assessment: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, prevention_assessment),
-            crisis_assessment: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, crisis_assessment),
-            housing_assessment: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, housing_assessment),
-            direct_services: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, direct_services),
-            receives_referrals: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::AdHocYesNo, receives_referrals),
+            access_point: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::NoYes, access_point),
+            **attributes_from_multi_select(
+              services,
+              enum: Types::HmisSchema::Enums::CeParticipationServices,
+              attribute_map: HudHelper.util.ce_participation_services_fields,
+            ),
+            receives_referrals: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::NoYes, receives_referrals),
             ce_participation_status_start_date: @hud_values['operatingStartDate'],
           ),
         ],

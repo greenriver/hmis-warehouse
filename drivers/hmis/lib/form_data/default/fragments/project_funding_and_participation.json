@@ -121,7 +121,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "q_2_09_1",
+          "link_id": "access_point",
           "text": "Project is a Coordinated Entry Access Point",
           "pick_list_reference": "NoYes",
           "mapping": {
@@ -129,72 +129,28 @@
           }
         },
         {
-          "type": "GROUP",
-          "link_id": "q_2_09_A_conditionals",
-          "text": "Provided by project",
+          "type": "CHOICE",
+          "link_id": "ce_participation_services",
+          "repeats": true,
+          "text": "Provided by CE Project",
+          "required": true,
+          "pick_list_reference": "CeParticipationServices",
+          "mapping": {
+            "field_name": "initialCeParticipationServices"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "q_2_09_1",
+              "question": "access_point",
               "operator": "EQUAL",
               "answer_code": "YES"
-            }
-          ],
-          "item": [
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_prevention",
-              "text": "Homelessness Prevention Assessment, Screening, and/or Referral",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCePreventionAssessment"
-              }
-            },
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_crisis",
-              "text": "Shelter Assessment, Screening, and/or Referral",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCeCrisisAssessment"
-              }
-            },
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_housing",
-              "text": "Housing Assessment, Screening, and/or Referral",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCeHousingAssessment"
-              }
-            },
-            {
-              "type": "CHOICE",
-              "required": true,
-              "link_id": "q_2_09_A_services",
-              "text": "Direct Services (search and/or placement support)",
-              "pick_list_reference": "NoYes",
-              "mapping": {
-                "field_name": "initialCeDirectServices"
-              }
             }
           ]
         },
         {
           "type": "CHOICE",
           "required": true,
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "q_2_09_1",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ],
-          "link_id": "q_2_09_2",
+          "link_id": "receives_referrals",
           "text": "Project Receives CE Referrals",
           "pick_list_reference": "NoYes",
           "mapping": {
