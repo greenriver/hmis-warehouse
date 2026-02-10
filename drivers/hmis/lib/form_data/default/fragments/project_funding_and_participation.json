@@ -1,7 +1,7 @@
 {
   "type": "GROUP",
-  "link_id": "project_hud_setup_group",
-  "text": "HUD Setup",
+  "link_id": "project_funding_and_participation_group",
+  "text": "Funding and Participation",
   "enable_behavior": "ALL",
   "enable_when": [
     {
@@ -13,9 +13,14 @@
   ],
   "item": [
     {
+      "type": "DISPLAY",
+      "link_id": "project_hud_setup_display",
+      "text": "This section collects the initial HUD records for the project. After the project is created, these can be managed under project configuration."
+    },
+    {
       "type": "GROUP",
       "link_id": "coc_group",
-      "text": "Project CoC",
+      "text": "Continuum of Care Information",
       "item": [
         {
           "type": "CHOICE",
@@ -25,7 +30,8 @@
           "pick_list_reference": "COC",
           "mapping": {
             "field_name": "initialCocCode"
-          }
+          },
+          "helper_text": "Additional CoC Codes can be added later"
         },
         {
           "type": "CHOICE",
@@ -42,7 +48,7 @@
     {
       "type": "GROUP",
       "link_id": "funder_group",
-      "text": "Funder",
+      "text": "Funding Sources",
       "item": [
         {
           "type": "CHOICE",
@@ -51,7 +57,8 @@
           "pick_list_reference": "FundingSource",
           "mapping": {
             "field_name": "initialFunder"
-          }
+          },
+          "helper_text": "Additional funding sources can be added later"
         },
         {
           "type": "OPEN_CHOICE",
@@ -93,13 +100,13 @@
     {
       "type": "GROUP",
       "link_id": "hmis_participation_group",
-      "text": "HMIS Participation",
+      "text": "HMIS Participation Status",
       "item": [
         {
           "type": "CHOICE",
           "component": "DROPDOWN",
           "link_id": "q_2_08_1",
-          "text": "HMIS Participation Type",
+          "text": "HMIS Participation Status",
           "pick_list_reference": "HMISParticipationType",
           "mapping": {
             "field_name": "initialHmisParticipationType"
@@ -110,12 +117,12 @@
     {
       "type": "GROUP",
       "link_id": "hmis_ce_participation_group",
-      "text": "HMIS CE Participation",
+      "text": "Coordinated Entry Participation Status",
       "item": [
         {
           "type": "CHOICE",
           "link_id": "q_2_09_1",
-          "text": "Access Point",
+          "text": "Project is a Coordinated Entry Access Point",
           "pick_list_reference": "NoYes",
           "mapping": {
             "field_name": "initialCeAccessPoint"
@@ -124,6 +131,7 @@
         {
           "type": "GROUP",
           "link_id": "q_2_09_A_conditionals",
+          "text": "Provided by project",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -137,7 +145,7 @@
               "type": "CHOICE",
               "required": true,
               "link_id": "q_2_09_A_prevention",
-              "text": "Prevention Assessment",
+              "text": "Homelessness Prevention Assessment, Screening, and/or Referral",
               "pick_list_reference": "NoYes",
               "mapping": {
                 "field_name": "initialCePreventionAssessment"
@@ -147,7 +155,7 @@
               "type": "CHOICE",
               "required": true,
               "link_id": "q_2_09_A_crisis",
-              "text": "Crisis Assessment",
+              "text": "Shelter Assessment, Screening, and/or Referral",
               "pick_list_reference": "NoYes",
               "mapping": {
                 "field_name": "initialCeCrisisAssessment"
@@ -157,7 +165,7 @@
               "type": "CHOICE",
               "required": true,
               "link_id": "q_2_09_A_housing",
-              "text": "Housing Assessment",
+              "text": "Housing Assessment, Screening, and/or Referral",
               "pick_list_reference": "NoYes",
               "mapping": {
                 "field_name": "initialCeHousingAssessment"
@@ -167,7 +175,7 @@
               "type": "CHOICE",
               "required": true,
               "link_id": "q_2_09_A_services",
-              "text": "Direct Services",
+              "text": "Direct Services (search and/or placement support)",
               "pick_list_reference": "NoYes",
               "mapping": {
                 "field_name": "initialCeDirectServices"
@@ -187,7 +195,7 @@
             }
           ],
           "link_id": "q_2_09_2",
-          "text": "Receives Referrals",
+          "text": "Project Receives CE Referrals",
           "pick_list_reference": "NoYes",
           "mapping": {
             "field_name": "initialCeReceivesReferrals"

@@ -10,7 +10,7 @@
       "fragment": "#project_details"
     },
     {
-      "fragment": "#project_hud_setup"
+      "fragment": "#project_funding_and_participation"
     }
   ]
 }
