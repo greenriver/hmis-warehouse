@@ -9,9 +9,21 @@
 class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
   disable_ddl_transaction!
   def up
-    return unless Rails.env.development? || Rails.env.test?
+    views.each { |view, _| drop_view view }
+    alter_tables
+    views.each do |view, version|
+      create_view(view, version: version)
 
-    views = [
+      next if view =~ /\Aanalytics\./
+
+      # protect view from active record trying to modify them
+      statement = "CREATE TRIGGER no_modify_#{view.downcase} INSTEAD OF UPDATE OR DELETE ON public.\"#{view}\" FOR EACH ROW EXECUTE FUNCTION prevent_modification()"
+      safely_execute(statement)
+    end
+  end
+
+  private def views
+    [
       ['service_history', 1],
       ['client_searchable_names', 1],
       ['hmis_destination_client_latest_assessments', 1],
@@ -122,17 +134,9 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
       ['analytics.warehouse_clients', 1],
       ['analytics.youth_education_statuses', 1],
     ]
-
-    views.each { |view, _| drop_view view }
-    safety_assured { _up }
-    views.each { |view, version| create_view(view, version: version) }
   end
 
-  def _up
-    # This query identifies integer columns that should be bigints,
-    # based on naming conventions and common sense exclusions.
-    # It is derived from issue.sql and handles cases where the type
-    # might already have been changed in some environments.
+  private def alter_tables
     query = <<~SQL
       SELECT
         col.table_schema,
@@ -158,75 +162,41 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
           JOIN pg_class AS c ON (inhrelid=c.oid)
           JOIN pg_class as p ON (inhparent=p.oid)
         )
-        AND col.table_name || '.' || col.column_name NOT IN (
-          'warehouse_houseds.differentidentity',
-          'warehouse_partitioned_monthly_reports.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports.project_id',
-          'warehouse_partitioned_monthly_reports_adult_only_households.client_id',
-          'warehouse_partitioned_monthly_reports_adult_only_households.destination_id',
-          'warehouse_partitioned_monthly_reports_adult_only_households.enrollment_id',
-          'warehouse_partitioned_monthly_reports_adult_only_households.organization_id',
-          'warehouse_partitioned_monthly_reports_adult_only_households.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_adult_only_households.project_id',
-          'warehouse_partitioned_monthly_reports_adults_with_children.client_id',
-          'warehouse_partitioned_monthly_reports_adults_with_children.destination_id',
-          'warehouse_partitioned_monthly_reports_adults_with_children.enrollment_id',
-          'warehouse_partitioned_monthly_reports_adults_with_children.organization_id',
-          'warehouse_partitioned_monthly_reports_adults_with_children.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_adults_with_children.project_id',
-          'warehouse_partitioned_monthly_reports_child_only_households.client_id',
-          'warehouse_partitioned_monthly_reports_child_only_households.destination_id',
-          'warehouse_partitioned_monthly_reports_child_only_households.enrollment_id',
-          'warehouse_partitioned_monthly_reports_child_only_households.organization_id',
-          'warehouse_partitioned_monthly_reports_child_only_households.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_child_only_households.project_id',
-          'warehouse_partitioned_monthly_reports_clients.client_id',
-          'warehouse_partitioned_monthly_reports_clients.destination_id',
-          'warehouse_partitioned_monthly_reports_clients.enrollment_id',
-          'warehouse_partitioned_monthly_reports_clients.organization_id',
-          'warehouse_partitioned_monthly_reports_clients.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_clients.project_id',
-          'warehouse_partitioned_monthly_reports_non_veterans.client_id',
-          'warehouse_partitioned_monthly_reports_non_veterans.destination_id',
-          'warehouse_partitioned_monthly_reports_non_veterans.enrollment_id',
-          'warehouse_partitioned_monthly_reports_non_veterans.organization_id',
-          'warehouse_partitioned_monthly_reports_non_veterans.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_non_veterans.project_id',
-          'warehouse_partitioned_monthly_reports_unknown.client_id',
-          'warehouse_partitioned_monthly_reports_unknown.destination_id',
-          'warehouse_partitioned_monthly_reports_unknown.enrollment_id',
-          'warehouse_partitioned_monthly_reports_unknown.organization_id',
-          'warehouse_partitioned_monthly_reports_unknown.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_unknown.project_id',
-          'warehouse_partitioned_monthly_reports_veterans.client_id',
-          'warehouse_partitioned_monthly_reports_veterans.destination_id',
-          'warehouse_partitioned_monthly_reports_veterans.enrollment_id',
-          'warehouse_partitioned_monthly_reports_veterans.organization_id',
-          'warehouse_partitioned_monthly_reports_veterans.prior_exit_destination_id',
-          'warehouse_partitioned_monthly_reports_veterans.project_id',
-          'warehouse_returns.client_id',
-          'warehouse_returns.differentidentity'
-        )
       ORDER BY col.table_name asc, column_name asc;
     SQL
 
-    results = GrdaWarehouseBase.connection.execute(query)
+    results = safely_execute(query)
 
+    dry_run_messages = []
     results.each do |row|
-
-      schema = row['table_schema']
       table = row['table_name']
       column = row['column_name']
+      schema = row['table_schema']
       next if partitioned?(table: table, schema: schema)
 
-      # We need to quote table and column names because some warehouse tables
-      # use CamelCase (e.g. "AssessmentQuestions")
-      GrdaWarehouseBase.connection.execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
+      if Rails.env.development? || Rails.env.test?
+        # We need to quote table and column names because some warehouse tables
+        # use CamelCase (e.g. "AssessmentQuestions")
+        safely_execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
+      else
+        dry_run_messages.push("\"#{schema}\".\"#{table}\"}#\"#{column}\"")
+      end
+    end
+
+    return unless dry_run_messages.any?
+
+    details = dry_run_messages.join(', ')
+    Sentry.capture_message("Warehouse tables found with int keys: #{details}") do |scope|
+      scope.set_fingerprint(['20260207120000_standardize_ids'])
     end
   end
 
   private def partitioned?(table:, schema: 'public')
-    result = execute("SELECT c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '#{schema}' AND c.relname = '#{table}'")
+    result = safely_execute("SELECT c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '#{schema}' AND c.relname = '#{table}'")
     result && result[0]['relkind'] == 'p'
+  end
+
+  private def safely_execute(statement)
+    safety_assured { execute(statement) }
   end
 end
