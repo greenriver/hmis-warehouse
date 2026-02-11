@@ -1141,11 +1141,20 @@ type CeReferral {
   currentSteps: [CeReferralStep!]
   customStatus: CeCustomReferralStatus
   daysOnCurrentSteps: Int
+
+  """
+  Eligibility requirements at the time the referral was created. May differ from
+  the unit group's current eligibility requirements.
+  """
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   notes(limit: Int, offset: Int): CeReferralNotesPaginated
   opportunity: CeOpportunity
   origin: CeReferralOrigin!
+
+  """
+  Priority schemes at the time the referral was created. May differ from the unit group's current priority schemes.
+  """
   prioritySchemes: [CeMatchRule!]
   referredBy: ApplicationUser
 
