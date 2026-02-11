@@ -230,11 +230,6 @@ RSpec.describe MaYyaReport::Report, 'unit tests' do
 
     it 'is explicitly the union of A1b, A2b, A3a, and A3b' do
       prevention_calculation = report.send(:section_a_total_cells)[:TotalYYAServedPrevention][:calculation]
-      report.send(:section_a1_cells)[:A1b][:calculation]
-      report.send(:section_a2_cells)[:A2b][:calculation]
-      report.send(:section_a3_cells)[:A3a][:calculation]
-      report.send(:section_a3_cells)[:A3b][:calculation]
-
       prevention_sql = prevention_calculation.to_sql
 
       # Should include all four cell criteria
