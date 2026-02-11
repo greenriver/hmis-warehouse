@@ -1854,11 +1854,9 @@ module HmisDataQualityTool
           title: 'Discharge Status',
           description: 'Discharge Status is "Data not collected" (99) or blank for veterans',
           required_for: 'Veterans',
-          detail_columns: [
-            default_detail_columns + [
-              :veteran,
-              :discharge_status,
-            ],
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :discharge_status,
           ],
           denominator: ->(item) {
             funding_sources = [
