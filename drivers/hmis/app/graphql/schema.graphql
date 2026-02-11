@@ -995,12 +995,12 @@ type CeOpportunity {
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
-  eligibilityRequirements: [CeMatchRule!]
+  eligibilityRequirements: [CeMatchRule!] @deprecated(reason: "Resolve eligibility requirements from the unit group or the referral")
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
   organizationName: String!
-  prioritySchemes: [CeMatchRule!]
+  prioritySchemes: [CeMatchRule!] @deprecated(reason: "Resolve priority schemes from the unit group or the referral")
   projectId: ID!
   projectName: String!
   projectType: ProjectType!
@@ -1009,7 +1009,7 @@ type CeOpportunity {
   Active or accepted referral
   """
   referral: CeReferral
-  stale: Boolean!
+  stale: Boolean! @deprecated(reason: "Always false; rules now come from unit_group and are always current")
   status: CeOpportunityStatus!
   unit: Unit
 }
@@ -1141,10 +1141,12 @@ type CeReferral {
   currentSteps: [CeReferralStep!]
   customStatus: CeCustomReferralStatus
   daysOnCurrentSteps: Int
+  eligibilityRequirements: [CeMatchRule!]
   id: ID!
   notes(limit: Int, offset: Int): CeReferralNotesPaginated
   opportunity: CeOpportunity
   origin: CeReferralOrigin!
+  prioritySchemes: [CeMatchRule!]
   referredBy: ApplicationUser
 
   """

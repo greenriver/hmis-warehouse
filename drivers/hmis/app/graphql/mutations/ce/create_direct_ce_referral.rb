@@ -52,11 +52,18 @@ module Mutations
         raise "No workflow template for direct referrals configured. Opportunity: #{opportunity.id}" unless workflow_template
 
         instance = workflow_template.instances.create!
+
+        # Capture the assignment rules from the unit group at referral creation time
+        # todo @martha - same concern here
+        rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
+        assignment_rules = rule_resolver.rules_for_unit_group(opportunity.unit_group).map(&:attributes)
+
         referral = opportunity.referrals.originated_from_direct_send.create!(
           workflow_instance: instance,
           referred_by: current_user,
           client: source_enrollment.client,
           source_enrollment: source_enrollment,
+          assignment_rules: assignment_rules,
         )
 
         referral.create_default_participants!

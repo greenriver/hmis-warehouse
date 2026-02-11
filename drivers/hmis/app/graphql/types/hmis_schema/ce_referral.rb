@@ -81,6 +81,8 @@ module Types
     field :notes, HmisSchema::CeReferralNote.page_type, null: true
     # generically resolve current values for any fields referenced by Match Rule expressions
     field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.'
+    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true, description: "Eligibility requirements at the time the referral was created. May differ from the unit group's current eligibility requirements."
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true, description: "Priority schemes at the time the referral was created. May differ from the unit group's current priority schemes."
 
     available_filter_options do
       arg :referral_status, [String]
@@ -298,7 +300,24 @@ module Types
       object.notes.order(created_at: :desc)
     end
 
+    def eligibility_requirements
+      revivified_rules.filter(&:eligibility_requirement?)
+    end
+
+    def priority_schemes
+      Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
+    end
+
     private
+
+    def revivified_rules
+      @revivified_rules ||= object.assignment_rules.map do |attrs|
+        record = Hmis::Ce::Match::Rule.new(attrs)
+        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
+        record.freeze
+        record
+      end
+    end
 
     def target_project
       load_ar_association(object, :target_project)
