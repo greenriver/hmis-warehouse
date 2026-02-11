@@ -80,7 +80,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # row 7
       # Multi-type: households with more than one distinct service type, aggregated by HOH client ID
       service_type_filter_cases = service_type_filters.all.
-        map.with_index { |f, idx| "WHEN type_provided IN (#{f.codes.join(', ')}) THEN #{idx}" }
+        map.with_index { |f, idx| "WHEN type_provided IN (#{f.codes.map(&:to_i).join(', ')}) THEN #{idx}" }
       multi_type_hoh_client_ids = services_with_hoh(relevant_services).
         group('hoh.destination_client_id').
         having("COUNT(DISTINCT CASE #{service_type_filter_cases.join(' ')} END) > 1").
