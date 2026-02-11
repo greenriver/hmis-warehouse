@@ -14,8 +14,13 @@ RSpec.shared_context 'with ce processing setup' do
   let!(:client2) { create :grda_warehouse_hud_client, data_source: destination_data_source }
   let!(:client3) { create :grda_warehouse_hud_client, data_source: destination_data_source }
 
+  let!(:ce_data_source) { create(:hmis_primary_data_source) }
   let!(:pool) { create(:hmis_ce_match_candidate_pool) }
-  let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: pool) }
+  let!(:project) { create(:hmis_hud_project, data_source: ce_data_source) }
+  let!(:project_config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true) }
+  let!(:unit_group) { create(:hmis_unit_group, project: project, candidate_pool: pool) }
+  let!(:unit) { create(:hmis_unit, unit_group: unit_group, project: project) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
   let(:now) { Time.current }
 
   before(:all) { cleanup_test_environment }
