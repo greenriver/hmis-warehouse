@@ -1077,6 +1077,7 @@ module MaYyaReport
     def self.available_age_ranges
       {
         under_eighteen: '< 18',
+        fourteen_to_seventeen: '14 - 17',
         eighteen_to_twenty_four: '18 - 24',
       }
     end
@@ -1091,6 +1092,7 @@ module MaYyaReport
         :organization_ids,
         :data_source_ids,
         :age_ranges,
+        :hoh_only,
       ].freeze
     end
   end

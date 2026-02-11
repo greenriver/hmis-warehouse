@@ -35,5 +35,34 @@ RSpec.describe Filters::Criteria::FilterForAge do
         expect(result.pluck(:id)).to contain_exactly(enrollments[2].id)
       end
     end
+
+    context 'with fourteen_to_seventeen age range' do
+      let(:age_ranges) { [:fourteen_to_seventeen] }
+
+      it 'filters clients aged 14-17 inclusively' do
+        # Create clients aged 13, 14, 15, 16, 17, 18
+        # Use exact years without .years helper to avoid leap year calculation issues
+        ages_and_enrollments = [13, 14, 15, 16, 17, 18].map do |age|
+          dob = Date.new(start_date.year - age, start_date.month, start_date.day)
+          client = create(:hud_client, DOB: dob, data_source_id: data_source.id)
+          enrollment = create_enrollment_for_client(client)
+          [age, enrollment]
+        end
+
+        result = criteria.apply(scope)
+        result_ids = result.pluck(:id)
+
+        # Should include ages 14-17
+        ages_and_enrollments.select { |age, _| age.between?(14, 17) }.each do |age, enrollment|
+          expect(result_ids).to include(enrollment.id), "Expected age #{age} to be included"
+        end
+
+        # Should exclude ages 13 and 18
+        [13, 18].each do |excluded_age|
+          enrollment = ages_and_enrollments.find { |age, _| age == excluded_age }.last
+          expect(result_ids).not_to include(enrollment.id), "Expected age #{excluded_age} to be excluded"
+        end
+      end
+    end
   end
 end
