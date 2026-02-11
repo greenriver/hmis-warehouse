@@ -103,11 +103,15 @@ module Types
 
     # TODO(#8709) - remove
     def eligibility_requirements
+      return [] unless unit_group
+
       Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
     end
 
     # TODO(#8709) - remove
     def priority_schemes
+      return [] unless unit_group
+
       Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
     end
 

@@ -14,61 +14,25 @@ RSpec.describe Hmis::Ce::Match::CandidatePool do
   let!(:unit2) { create :hmis_unit, project: p1, unit_group: ug }
 
   describe 'scopes' do
-    describe '.active_for_maintenance and .active_for_current_eligibility' do
-      it 'both include pools referenced by unit groups' do
-        expect(described_class.active_for_maintenance).to include(pool)
-        expect(described_class.active_for_current_eligibility).to include(pool)
-      end
+    describe '.active' do
+      let!(:pool_with_no_unit_groups) { create :hmis_ce_match_candidate_pool }
 
-      context 'when pool is not referenced by any unit groups' do
-        # Mimic the situation where the unit group now refers to a new candidate pool, but there are stale opportunities that still reference the old pool
-        let!(:new_pool) { create :hmis_ce_match_candidate_pool }
-        let!(:ug) { create :hmis_unit_group, project: p1, candidate_pool: new_pool }
+      let!(:pool_in_inactive_project) { create :hmis_ce_match_candidate_pool }
+      let!(:inactive_project) { create :hmis_hud_project, data_source: ds1, operating_end_date: 1.day.ago }
+      let!(:inactive_project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: inactive_project }
+      let!(:inactive_unit_group) { create :hmis_unit_group, project: inactive_project, candidate_pool: pool_in_inactive_project }
 
-        context 'with open opportunities' do
-          let!(:opp) { create :hmis_ce_opportunity, unit: unit1, status: :open, candidate_pool: pool }
+      let!(:pool_in_non_ce_project) { create :hmis_ce_match_candidate_pool }
+      let!(:non_ce_project) { create :hmis_hud_project, data_source: ds1 }
+      let!(:non_ce_unit_group) { create :hmis_unit_group, project: non_ce_project, candidate_pool: pool_in_non_ce_project }
 
-          it 'both include pools with open opportunities' do
-            expect(described_class.active_for_maintenance).to include(pool)
-            expect(described_class.active_for_current_eligibility).to include(pool)
-          end
-        end
+      it 'includes active pools referenced by current unit groups' do
+        active_pools = described_class.active
+        expect(active_pools).to include(pool)
 
-        context 'with locked opportunities' do
-          let!(:opp) { create :hmis_ce_opportunity, unit: unit1, status: :locked, candidate_pool: pool }
-
-          it 'active_for_maintenance includes pools with only locked opportunities' do
-            expect(described_class.active_for_maintenance).to include(pool)
-          end
-
-          it 'active_for_current_eligibility excludes pools with only locked opportunities' do
-            expect(described_class.active_for_current_eligibility).not_to include(pool)
-          end
-        end
-
-        context 'with only closed opportunities' do
-          let!(:opp) { create :hmis_ce_opportunity, unit: unit1, status: :closed, candidate_pool: pool }
-
-          it 'both exclude pools with only closed opportunities' do
-            expect(described_class.active_for_maintenance).not_to include(pool)
-            expect(described_class.active_for_current_eligibility).not_to include(pool)
-          end
-        end
-
-        context 'with stale open opportunities and locked opportunities from old pool' do
-          let!(:new_pool) { create :hmis_ce_match_candidate_pool }
-          let!(:opp_locked) { create :hmis_ce_opportunity, unit: unit1, status: :locked, candidate_pool: pool }
-          let!(:opp_open) { create :hmis_ce_opportunity, unit: unit1, status: :open, candidate_pool: new_pool }
-          let!(:ug) { create :hmis_unit_group, project: p1, candidate_pool: new_pool }
-
-          it 'active_for_current_eligibility excludes old pool with only locked opportunities' do
-            expect(described_class.active_for_current_eligibility).not_to include(pool)
-          end
-
-          it 'active_for_current_eligibility includes new pool with open opportunities' do
-            expect(described_class.active_for_current_eligibility).to include(new_pool)
-          end
-        end
+        expect(active_pools).not_to include(pool_with_no_unit_groups)
+        expect(active_pools).not_to include(pool_in_inactive_project)
+        expect(active_pools).not_to include(pool_in_non_ce_project)
       end
     end
   end

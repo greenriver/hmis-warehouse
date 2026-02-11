@@ -63,9 +63,6 @@ module Hmis::Ce
     end
 
     scope :active, -> { where.not(status: 'closed') }
-    # todo @martha - not sure about this. maybe we just put everything in 1 PR after all.
-    # Stale no longer tracked; scope returns none for backwards compatibility with OpportunityRefresher (deprecated in PR2)
-    scope :stale, -> { none }
 
     # TODO(#7537) - implement "available_on_date". For now, return all
     scope :available_on_date, ->(_date) { all }
