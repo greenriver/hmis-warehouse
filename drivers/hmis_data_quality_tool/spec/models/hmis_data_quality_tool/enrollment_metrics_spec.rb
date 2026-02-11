@@ -1197,5 +1197,248 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
       end
     end
+
+    describe 'Employed' do
+      # Employment required for adults in HUD-VASH, RHY, SSVF, GPD projects.
+      # Uses only entry (stage 1) and exit (stage 3) records within report range.
+      def create_employment_required_project(project_type: 0)
+        # project_type 0 = ES Entry/Exit (employment required for SSVF). 1 = ES NBN, not in employed denominator.
+        project = create_project(project_type: project_type)
+        create(
+          :hud_funder,
+          data_source: data_source,
+          ProjectID: project.ProjectID,
+          Funder: 33, # VA: SSVF (funder_components['VA: SSVF'] => [33])
+        )
+        project
+      end
+
+      def create_employment_education(enrollment:, information_date:, data_collection_stage:, employed:, employment_type: nil, not_employed_reason: nil)
+        attrs = {
+          enrollment: enrollment,
+          data_source: enrollment.data_source,
+          PersonalID: enrollment.PersonalID,
+          EnrollmentID: enrollment.EnrollmentID,
+          InformationDate: information_date,
+          DataCollectionStage: data_collection_stage,
+          Employed: employed,
+        }
+        attrs[:EmploymentType] = employment_type if employment_type.present?
+        attrs[:NotEmployedReason] = not_employed_reason if not_employed_reason.present?
+        create(:hud_employment_education, attrs)
+      end
+
+      context 'with valid employment at entry (stage 1)' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit (0)
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-01-15'.to_date,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2022-11-01'.to_date,
+            data_collection_stage: 1,
+            employed: 1,
+            employment_type: 2,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not flag valid employment at entry' do
+          expect_result(key: :employed, invalid_count: 0)
+        end
+      end
+
+      context 'with valid employment at exit (stage 3)' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-01-15'.to_date,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2023-01-15'.to_date,
+            data_collection_stage: 3,
+            employed: 0,
+            not_employed_reason: 2,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not flag valid employment at exit' do
+          expect_result(key: :employed, invalid_count: 0)
+        end
+      end
+
+      context 'with both entry and exit in range' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-01-15'.to_date,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2022-11-01'.to_date,
+            data_collection_stage: 1,
+            employed: 0,
+            not_employed_reason: 2,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2023-01-15'.to_date,
+            data_collection_stage: 3,
+            employed: 1,
+            employment_type: 2,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'uses most recent required (exit) over entry' do
+          enrollment_item = HmisDataQualityTool::Enrollment.find_by(enrollment_id: @enrollment.id, report_id: @report.id)
+          expect(enrollment_item.employed).to eq(1)
+          expect_result(key: :employed, invalid_count: 0)
+        end
+      end
+
+      context 'with annual (stage 2) more recent than entry' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-03-15'.to_date,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2022-11-01'.to_date,
+            data_collection_stage: 1,
+            employed: 1,
+            employment_type: 2,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2023-01-15'.to_date,
+            data_collection_stage: 2,
+            employed: 99,
+            employment_type: 99,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'uses most recent required (entry) and ignores more recent non-required (annual)' do
+          enrollment_item = HmisDataQualityTool::Enrollment.find_by(enrollment_id: @enrollment.id, report_id: @report.id)
+          expect(enrollment_item.employed).to eq(1)
+          expect_result(key: :employed, invalid_count: 0)
+        end
+      end
+
+      context 'with invalid employed (99) at entry' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-01-15'.to_date,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2022-11-01'.to_date,
+            data_collection_stage: 1,
+            employed: 99,
+            employment_type: 99,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags invalid employed status' do
+          expect_result(key: :employed, invalid_count: 1)
+        end
+      end
+
+      context 'with no employment education at entry' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-01-15'.to_date,
+          )
+          # No EmploymentEducation created - entry assessment without employment data
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags missing employed status' do
+          enrollment_item = HmisDataQualityTool::Enrollment.find_by(enrollment_id: @enrollment.id, report_id: @report.id)
+          expect(enrollment_item.employed).to be_nil
+          expect_result(key: :employed, invalid_count: 1)
+        end
+      end
+
+      context 'with no employment education when employment not required' do
+        before do
+          # ES Entry/Exit without SSVF/HUD-VASH/RHY/GPD - employment not required
+          @project = create_project(project_type: 0)
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-01-15'.to_date,
+          )
+          # No EmploymentEducation - not required for this project
+          @report = setup_report([@project.id])
+        end
+
+        it 'excludes enrollment from employed section' do
+          enrollment_item = HmisDataQualityTool::Enrollment.find_by(enrollment_id: @enrollment.id, report_id: @report.id)
+          expect(enrollment_item.employed).to be_nil
+          expect_result(key: :employed, total: 0, invalid_count: 0)
+        end
+      end
+
+      context 'with only annual (stage 2) in range' do
+        before do
+          @project = create_employment_required_project # ES Entry/Exit
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-11-01'.to_date,
+            exit_date: '2023-03-15'.to_date,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2023-01-15'.to_date,
+            data_collection_stage: 2,
+            employed: 99,
+            employment_type: 99,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not populate employed when only non-required (annual) record in range' do
+          enrollment_item = HmisDataQualityTool::Enrollment.find_by(enrollment_id: @enrollment.id, report_id: @report.id)
+          expect(enrollment_item.employed).to be_nil
+        end
+      end
+    end
   end
 end
