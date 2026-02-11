@@ -17,6 +17,13 @@ module Hmis::Ce
     has_paper_trail
     include SimpleStateMachine
 
+    has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
+    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
+    has_many :categories, through: :categorizations
+
+    belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
+    has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
+
     # The unit group may or may not have a candidate_pool_id.
     # - Unit groups in projects supporting waitlist-based referrals will have an associated candidate pool, once processing has run.
     #   This includes unit groups that *don't* support waitlist-based referrals because they only have a Direct Referral Workflow Template.
@@ -25,11 +32,6 @@ module Hmis::Ce
     # TODO(#8555) - update comment if this behavior changes
     has_one :candidate_pool, through: :unit_group, class_name: 'Hmis::Ce::Match::CandidatePool'
 
-    has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
-    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
-    has_many :categories, through: :categorizations
-    belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
-    has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
     has_one :project, through: :unit, class_name: 'Hmis::Hud::Project'
     has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id

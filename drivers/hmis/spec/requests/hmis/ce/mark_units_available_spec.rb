@@ -74,27 +74,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect(unit.latest_opportunity.unit_group.workflow_template).to eq(template)
         expect(unit.latest_opportunity.created_by).to eq(hmis_user)
       end
-
-      context 'with assignment rules' do
-        let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
-
-        it 'captures assignment rules for historical reference' do
-          # Run the builder to ensure the unit group gets a pool based on the rule
-          Hmis::Ce::Match::CandidatePoolBuilder.call
-          unit_group.reload
-
-          _response, result = post_graphql(**variables) { mutation }
-
-          opportunity = unit.reload.latest_opportunity
-          requirements = result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'eligibilityRequirements')
-          expect(requirements).to be_present
-          expect(requirements.first['id']).to include(rule.id.to_s) # GraphQL ID is a composite
-          expect(requirements.first['expression']).to eq(rule.expression)
-
-          # Verify the data was persisted correctly on the model
-          expect(opportunity.assignment_rules.first['id']).to eq(rule.id)
-        end
-      end
     end
 
     context 'when unit is not in a unit group' do

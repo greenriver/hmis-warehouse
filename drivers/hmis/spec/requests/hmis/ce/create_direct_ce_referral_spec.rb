@@ -98,6 +98,22 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
         step = referral.steps.where(status: 'completed').sole
         expect(step.custom_data_elements.count).to eq(2)
       end
+
+      context 'with assignment rules on unit_group' do
+        let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
+        let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
+
+        it 'captures assignment rules on the referral at creation time' do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+
+          referral = Hmis::Ce::Referral.last
+          expect(referral.assignment_rules).to be_an(Array)
+          expect(referral.assignment_rules.length).to eq(2)
+          rule_ids = referral.assignment_rules.map { |r| r['id'] }
+          expect(rule_ids).to contain_exactly(eligibility_rule.id, priority_rule.id)
+        end
+      end
     end
 
     context 'when user lacks can_manage_outgoing_referrals permission' do

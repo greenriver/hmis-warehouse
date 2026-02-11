@@ -103,21 +103,12 @@ module Types
 
     # TODO(#8709) - remove
     def eligibility_requirements
-      revivified_rules.filter(&:eligibility_requirement?)
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
     end
 
     # TODO(#8709) - remove
     def priority_schemes
-      Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
-    end
-
-    def revivified_rules
-      @revivified_rules ||= object.assignment_rules.map do |attrs|
-        record = Hmis::Ce::Match::Rule.new(attrs)
-        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
-        record.freeze
-        record
-      end
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
     end
 
     def categories
@@ -132,6 +123,12 @@ module Types
     def stale
       # No longer tracked (column is ignored); rules come from unit_group and are always current
       false
+    end
+
+    private
+
+    def unit_group
+      load_ar_association(object, :unit_group)
     end
   end
 end

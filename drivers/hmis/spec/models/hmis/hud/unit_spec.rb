@@ -193,48 +193,6 @@ RSpec.describe Hmis::Unit, type: :model do
       expect(opportunity.project).to eq(p1)
       expect(opportunity.name).to include("Unit #{unit.id}")
       expect(opportunity.name).to include(unit_type.description)
-
-      expect(opportunity.candidate_pool_id).to be_nil
-      expect(opportunity.assignment_rules).to eq([])
-    end
-
-    context 'with unit group that has rules' do
-      let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
-      let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
-
-      context 'and unit group has candidate pool' do
-        before do
-          Hmis::Ce::Match::CandidatePoolBuilder.call
-          unit_group.reload
-          expect(unit_group.candidate_pool).not_to be_nil
-        end
-
-        it 'returns an unsaved opportunity' do
-          opportunity = unit.build_ce_opportunity
-
-          # Sets candidate pool
-          expect(opportunity.candidate_pool_id).to eq(unit_group.candidate_pool_id)
-          expect(opportunity.candidate_pool_id).not_to be_nil
-
-          # Sets assignment rules
-          expect(opportunity.assignment_rules).to be_an(Array)
-          expect(opportunity.assignment_rules.length).to eq(2)
-          rule_ids = opportunity.assignment_rules.map { |r| r['id'] }
-          expect(rule_ids).to contain_exactly(eligibility_rule.id, priority_rule.id)
-        end
-      end
-
-      context 'and unit group does not have candidate pool' do
-        # Example scenarios: project only accepts direct referrals, or candidate pool processing hasn't finished yet
-
-        it 'does not set the candidate pool id, but stores the rules on the opportunity' do
-          opportunity = unit.build_ce_opportunity
-          expect(opportunity.candidate_pool_id).to be_nil
-          expect(opportunity.assignment_rules.length).to eq(2)
-          rule_ids = opportunity.assignment_rules.map { |r| r['id'] }
-          expect(rule_ids).to contain_exactly(eligibility_rule.id, priority_rule.id)
-        end
-      end
     end
 
     context 'without unit group' do
