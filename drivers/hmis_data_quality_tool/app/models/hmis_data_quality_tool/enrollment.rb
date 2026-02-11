@@ -24,6 +24,10 @@ module HmisDataQualityTool
     HOMELESS_LIVING_SITUATIONS = HudHelper.util.homeless_situations(as: :prior)
     INSTITUTIONAL_LIVING_SITUATIONS = HudHelper.util.institutional_situations(as: :prior)
     HOUSED_LIVING_SITUATIONS = HudHelper.util.temporary_situations(as: :prior) + HudHelper.util.permanent_situations(as: :prior)
+    REQUIRED_EMPLOYMENT_STAGES = [
+      HudHelper.util.data_collection_stage('Project entry', true),
+      HudHelper.util.data_collection_stage('Project exit', true),
+    ].freeze
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
@@ -419,16 +423,9 @@ module HmisDataQualityTool
 
     # Employment/Education required at Project Start and Project Exit (HUD-VASH, RHY, SSVF, GPD).
     # Pull most recent entry or exit record within range.
-    private def required_employment_stages
-      [
-        HudHelper.util.data_collection_stage('Project entry', true),
-        HudHelper.util.data_collection_stage('Project exit', true),
-      ]
-    end
-
     private def required_employment_education_in_range(enrollment, range)
       enrollment.employment_educations.select do |ee|
-        required_employment_stages.include?(ee.DataCollectionStage) &&
+        REQUIRED_EMPLOYMENT_STAGES.include?(ee.DataCollectionStage) &&
           ee.InformationDate.present? &&
           range.cover?(ee.InformationDate)
       end.max_by(&:InformationDate)

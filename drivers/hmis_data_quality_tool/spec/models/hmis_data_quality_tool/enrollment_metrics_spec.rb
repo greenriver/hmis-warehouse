@@ -1199,6 +1199,12 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
     end
 
     describe 'Employed' do
+      # Guard against HUD list changes: Project entry/exit must resolve to valid data collection stages.
+      it 'resolves Project entry and Project exit to valid data collection stage values' do
+        stages = HmisDataQualityTool::Enrollment::REQUIRED_EMPLOYMENT_STAGES
+        expect(stages).to contain_exactly(1, 3), "Expected stages 1 (Project entry) and 3 (Project exit), got #{stages.inspect}"
+      end
+
       # Employment required for adults in HUD-VASH, RHY, SSVF, GPD projects.
       # Uses only entry (stage 1) and exit (stage 3) records within report range.
       def create_employment_required_project(project_type: 0)
