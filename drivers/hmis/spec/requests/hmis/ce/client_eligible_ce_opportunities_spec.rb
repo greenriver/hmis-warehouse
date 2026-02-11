@@ -28,6 +28,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   # Basic setup
   let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+  let(:project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
   let(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
   let(:client_proxy) { create :hmis_ce_client_proxy, client: client.destination_client }
 
@@ -39,6 +40,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       priority_expression: 'current_age',
     )
   end
+  let!(:unit_group_veterans) { create :hmis_unit_group, project: project, candidate_pool: pool_veterans }
 
   let!(:pool_seniors) do
     create(
@@ -47,6 +49,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       priority_expression: 'current_age',
     )
   end
+  let!(:unit_group_seniors) { create :hmis_unit_group, project: project, candidate_pool: pool_seniors }
 
   # Create candidates linking client to pools
   let!(:veteran_candidate) do
@@ -69,35 +72,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'client query with opportunities' do
     # Create opportunities in different states
-    let!(:unit1) { create :hmis_unit, project: project }
-    let!(:opportunity_veterans) do
-      create(
-        :hmis_ce_opportunity,
-        unit: unit1,
-        candidate_pool: pool_veterans,
-        status: 'open',
-      )
-    end
+    let!(:unit1) { create :hmis_unit, project: project, unit_group: unit_group_veterans }
+    let!(:opportunity_veterans) { create(:hmis_ce_opportunity, unit: unit1, status: 'open') }
 
-    let!(:unit2) { create :hmis_unit, project: project }
-    let!(:opportunity_seniors) do
-      create(
-        :hmis_ce_opportunity,
-        unit: unit2,
-        candidate_pool: pool_seniors,
-        status: 'open',
-      )
-    end
+    let!(:unit2) { create :hmis_unit, project: project, unit_group: unit_group_seniors }
+    let!(:opportunity_seniors) { create(:hmis_ce_opportunity, unit: unit2, status: 'open') }
 
-    let!(:unit3) { create :hmis_unit, project: project }
-    let!(:closed_opportunity) do
-      create(
-        :hmis_ce_opportunity,
-        unit: unit3,
-        candidate_pool: pool_veterans,
-        status: 'closed',
-      )
-    end
+    let!(:unit3) { create :hmis_unit, project: project, unit_group: unit_group_veterans }
+    let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit3, status: 'closed') }
 
     let(:query) do
       <<~GRAPHQL
@@ -259,15 +241,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    let(:p1) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
-    let(:p2) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
-    let(:p3) { create :hmis_hud_project, project_type: 5, data_source: ds1, user: u1 }
-    let(:unit1) { create :hmis_unit, project: p1 }
-    let(:unit2) { create :hmis_unit, project: p2 }
-    let(:unit3) { create :hmis_unit, project: p3 }
-    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1, candidate_pool: pool_veterans) }
-    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: unit2, candidate_pool: pool_veterans) }
-    let!(:opportunity3) { create(:hmis_ce_opportunity, unit: unit3, candidate_pool: pool_veterans) }
+    let!(:p1) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
+    let!(:p2) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
+    let!(:p3) { create :hmis_hud_project, project_type: 5, data_source: ds1, user: u1 }
+    let!(:p1_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p1) }
+    let!(:p2_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p2) }
+    let!(:p3_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p3) }
+    let!(:unit_group_p1) { create :hmis_unit_group, project: p1, candidate_pool: pool_veterans }
+    let!(:unit_group_p2) { create :hmis_unit_group, project: p2, candidate_pool: pool_veterans }
+    let!(:unit_group_p3) { create :hmis_unit_group, project: p3, candidate_pool: pool_veterans }
+    let!(:unit1) { create :hmis_unit, project: p1, unit_group: unit_group_p1 }
+    let!(:unit2) { create :hmis_unit, project: p2, unit_group: unit_group_p2 }
+    let!(:unit3) { create :hmis_unit, project: p3, unit_group: unit_group_p3 }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: unit1) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: unit2) }
+    let!(:opportunity3) { create(:hmis_ce_opportunity, unit: unit3) }
 
     context 'when project ID filter is passed' do
       let(:variables) do
@@ -312,8 +300,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'when there are many opportunities' do
         before do
           opportunities = 30.times.map do
-            unit = build(:hmis_unit, project: p1)
-            build(:hmis_ce_opportunity, unit: unit, candidate_pool: pool_veterans)
+            unit_group = build(:hmis_unit_group, project: p1, candidate_pool: pool_veterans)
+            unit = build(:hmis_unit, project: p1, unit_group: unit_group)
+            build(:hmis_ce_opportunity, unit: unit)
           end
           opportunities.map(&:save!)
         end
