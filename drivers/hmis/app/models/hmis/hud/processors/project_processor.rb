@@ -17,6 +17,19 @@ module Hmis::Hud::Processors
       attributes = case attribute_name
       when 'residential_affiliation_project_ids'
         process_residential_affiliations(value)
+
+      # Process 'initial' fields -- CoC, funder, etc. -- if this is a new project.
+      # These process_initial_ methods read the values needed from @hud_values,
+      # so skip processing if there's already a record (to prevent creating duplicates)
+      when 'initial_coc_code', 'initial_geocode'
+        project.new_record? && project.project_cocs.none? ? process_initial_coc_fields : {}
+      when 'initial_funder', 'initial_other_funder', 'initial_funder_grant_id'
+        project.new_record? && project.funders.none? ? process_initial_funder_fields : {}
+      when 'initial_ce_access_point', 'initial_ce_participation_services', 'initial_ce_receives_referrals'
+        project.new_record? && project.ce_participations.none? ? process_initial_ce_participation_fields : {}
+      when 'initial_hmis_participation_type'
+        # Only one value related to HMIS participation type is collected, so no need to check for duplicates
+        project.new_record? ? process_initial_hmis_participation_fields(value) : {}
       else
         { attribute_name => attribute_value }
       end
@@ -57,13 +70,86 @@ module Hmis::Hud::Processors
       {
         affiliations_attributes: [
           *res_projects_to_add.map do |res_project_id|
-            {
-              res_project_id: res_project_id,
-              user: @processor.hud_user,
-              **project.slice(:project_id, :data_source_id),
-            }
+            related_record_attributes.merge(res_project_id: res_project_id)
           end,
           *affiliations_to_remove.map { |id| { id: id, _destroy: 1 } },
+        ],
+      }
+    end
+
+    def related_record_attributes
+      project = @processor.send(factory_name)
+      {
+        user: @processor.hud_user,
+        **project.slice(:project_id, :data_source_id),
+      }
+    end
+
+    def process_initial_coc_fields
+      coc_code = @hud_values['initialCocCode']
+      geocode = @hud_values['initialGeocode']
+      return unless coc_code || geocode
+
+      {
+        project_cocs_attributes: [
+          related_record_attributes.merge(
+            coc_code: coc_code,
+            geocode: geocode,
+          ),
+        ],
+      }
+    end
+
+    def process_initial_funder_fields
+      funder = @hud_values['initialFunder']
+      other_funder = @hud_values['initialOtherFunder']
+      grant_id = @hud_values['initialFunderGrantId']
+      start_date = @hud_values['operatingStartDate']
+      return unless funder
+
+      {
+        funders_attributes: [
+          related_record_attributes.merge(
+            funder: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::FundingSource, funder),
+            other_funder: attribute_value_for_enum(nil, other_funder), # _HIDDEN => nil
+            grant_id: grant_id,
+            start_date: start_date,
+          ),
+        ],
+      }
+    end
+
+    def process_initial_hmis_participation_fields(value)
+      return {} unless value.present?
+
+      {
+        hmis_participations_attributes: [
+          related_record_attributes.merge(
+            hmis_participation_type: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::HMISParticipationType, value),
+            hmis_participation_status_start_date: @hud_values['operatingStartDate'],
+          ),
+        ],
+      }
+    end
+
+    def process_initial_ce_participation_fields
+      access_point = @hud_values['initialCeAccessPoint']
+      services = @hud_values['initialCeParticipationServices']
+      receives_referrals = @hud_values['initialCeReceivesReferrals']
+      return {} unless access_point || services || receives_referrals
+
+      {
+        ce_participations_attributes: [
+          related_record_attributes.merge(
+            access_point: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::NoYes, access_point),
+            **attributes_from_multi_select(
+              services,
+              enum: Types::HmisSchema::Enums::CeParticipationServices,
+              attribute_map: HudHelper.util.ce_participation_services_fields,
+            ),
+            receives_referrals: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::NoYes, receives_referrals),
+            ce_participation_status_start_date: @hud_values['operatingStartDate'],
+          ),
         ],
       }
     end
