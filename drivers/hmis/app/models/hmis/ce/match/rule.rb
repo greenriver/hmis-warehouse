@@ -97,6 +97,8 @@ module Hmis::Ce::Match
       applicability.call(entity)
     end
 
+    # Primarily used as a helper internally in this file!
+    # Outside of this file, we usually want to use eligibility_and_priority_rules_for_entity instead.
     # Returns all rules applicable to the given entity (UnitGroup/Project/Organization),
     # considering owner lineage and applicability_config (project_types, project_funders).
     # Loads all rules and filters in Ruby to respect polymorphic owner lineage and config.
@@ -121,9 +123,19 @@ module Hmis::Ce::Match
       for_entity(entity).select(&:eligibility_requirement?)
     end
 
-    # Helper for GraphQL resolvers: return most specific, rank-ordered priority schemes
+    # Helper for GraphQL resolvers: return most specific, rank-ordered priority schemes.
+    # Example of priority scheme filtering by rank:
+    # - Unit group has rule A with priority rank 1 and Rule B with priority rank 2.
+    # - Unit group's project has Rule C with priority rank 1.
+    # - priority_schemes_for_entity(unit_group) returns Rule A and Rule B (not Rule C)
+    # - priority_schemes_for_entity(project) returns Rule C.
     def self.priority_schemes_for_entity(entity)
       most_specific_priority_schemes_from(for_entity(entity))
+    end
+
+    # Return all rules for this entity, with priority schemes filtered to the most specific rank per owner.
+    def self.eligibility_and_priority_rules_for_entity(entity)
+      eligibility_requirements_for_entity(entity) + priority_schemes_for_entity(entity)
     end
 
     private

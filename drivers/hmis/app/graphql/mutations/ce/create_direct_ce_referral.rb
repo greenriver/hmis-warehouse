@@ -54,9 +54,9 @@ module Mutations
         instance = workflow_template.instances.create!
 
         # Capture the assignment rules from the unit group at referral creation time
-        # todo @martha - same concern here
-        rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
-        assignment_rules = rule_resolver.rules_for_unit_group(opportunity.unit_group).map(&:attributes)
+        assignment_rules = Hmis::Ce::Match::Rule.
+          eligibility_and_priority_rules_for_entity(opportunity.unit_group).
+          map(&:attributes)
 
         referral = opportunity.referrals.originated_from_direct_send.create!(
           workflow_instance: instance,
