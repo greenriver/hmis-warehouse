@@ -103,16 +103,33 @@ module Types
 
     # TODO(#8709) - remove
     def eligibility_requirements
-      return [] unless unit_group
-
-      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
+      revivified_rules.filter(&:eligibility_requirement?)
     end
 
     # TODO(#8709) - remove
     def priority_schemes
-      return [] unless unit_group
+      Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
+    end
 
-      Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
+    # TODO(#8709) - remove.
+    # For backwards compatibility, revivify the rules from the *referral*, now that we are ignoring the opportunity's assignment_rules column.
+    # It's fine to return [] if there is no referral, because the frontend only uses these fields for opportunities with referrals.
+    def revivified_rules
+      return @revivified_rules if defined?(@revivified_rules)
+
+      referral = load_ar_association(object, :active_or_accepted_referral)
+
+      unless referral.present?
+        @revivified_rules = []
+        return @revivified_rules
+      end
+
+      @revivified_rules = referral.assignment_rules.map do |attrs|
+        record = Hmis::Ce::Match::Rule.new(attrs)
+        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
+        record.freeze
+        record
+      end
     end
 
     def categories
@@ -124,15 +141,9 @@ module Types
     end
 
     # TODO(#8709) - remove
+    # For backwards compatibility, just return false.
     def stale
-      # No longer tracked (column is ignored); rules come from unit_group and are always current
       false
-    end
-
-    private
-
-    def unit_group
-      load_ar_association(object, :unit_group)
     end
   end
 end

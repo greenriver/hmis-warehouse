@@ -8,6 +8,7 @@
 # 1. Creates Candidate Pools for all unique rule sets derived from Unit Groups.
 # 2. Associates Unit Groups with their corresponding Candidate Pool.
 # 3. Marks newly created or all pools as "dirty" to trigger reprocessing.
+# 4. Cleans up orphaned pools that are no longer referenced by Unit Groups or Opportunities
 #    after a configurable grace period.
 #
 # Semantics and concurrency notes:

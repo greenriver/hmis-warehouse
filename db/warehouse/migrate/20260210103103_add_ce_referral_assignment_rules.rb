@@ -5,11 +5,7 @@ class AddCeReferralAssignmentRules < ActiveRecord::Migration[7.2]
     add_column :ce_referrals, :assignment_rules, :jsonb, null: false, default: []
 
     # Backfill assignment rules on existing referrals from their corresponding opportunities.
-    # We could achieve this without raw SQL, but it's bad practice to use rails models in a migration.
-    # Hmis::Ce::Referral.joins(:opportunity).includes(:opportunity).find_each do |referral|
-    #   referral.update_column(:assignment_rules, referral.opportunity.assignment_rules)
-    # end
-    reversible do |dir|
+    reversible do |dir| # reversible with only `up` block tells ActiveRecord that nothing needs to be done on `down`
       dir.up do
         safety_assured do
           execute <<-SQL.squish

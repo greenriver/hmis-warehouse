@@ -305,7 +305,7 @@ module Types
     end
 
     def priority_schemes
-      Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
+      revivified_rules.filter(&:priority_scheme?)
     end
 
     private

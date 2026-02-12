@@ -97,11 +97,12 @@ module Hmis::Ce::Match
       applicability.call(entity)
     end
 
-    # Primarily used as a helper internally in this file!
-    # Outside of this file, we usually want to use eligibility_and_priority_rules_for_entity instead.
+    # Primarily used as a helper internally in this file.
+    # Outside of this file, we usually want eligibility_and_priority_rules_for_entity instead; see below.
     # Returns all rules applicable to the given entity (UnitGroup/Project/Organization),
     # considering owner lineage and applicability_config (project_types, project_funders).
     # Loads all rules and filters in Ruby to respect polymorphic owner lineage and config.
+    # Does not filter priority schemes by rank/owner, so this may be a superset of the rules that are effectively used by the entity.
     def self.for_entity(entity)
       all_rules = by_owner_precedence.preload(:owner).to_a
       all_rules.filter { |rule| rule.applies_to_entity?(entity) }
@@ -110,6 +111,11 @@ module Hmis::Ce::Match
     # Returns only the most specific owner level priority schemes from a provided rule set,
     # ordered by [priority_rank, id]. If ranks are nil (e.g., during transitional states), they are
     # treated as lowest priority for stable ordering.
+    # Example:
+    # - Rule A is a priority scheme with priority rank 1 and owner type Hmis::UnitGroup
+    # - Rule B is a priority scheme with priority rank 2 and owner type Hmis::UnitGroup
+    # - Rule C is a priority scheme with priority rank 1 and owner type Hmis::Hud::Project
+    # - most_specific_priority_schemes_from([Rule A, Rule B, Rule C]) returns Rule A and Rule B.
     def self.most_specific_priority_schemes_from(rules)
       priority_rules = rules.select(&:priority_scheme?).sort_by { |r| [r.priority_rank || Float::INFINITY, r.id] }
       return [] if priority_rules.empty?
@@ -124,16 +130,12 @@ module Hmis::Ce::Match
     end
 
     # Helper for GraphQL resolvers: return most specific, rank-ordered priority schemes.
-    # Example of priority scheme filtering by rank:
-    # - Unit group has rule A with priority rank 1 and Rule B with priority rank 2.
-    # - Unit group's project has Rule C with priority rank 1.
-    # - priority_schemes_for_entity(unit_group) returns Rule A and Rule B (not Rule C)
-    # - priority_schemes_for_entity(project) returns Rule C.
     def self.priority_schemes_for_entity(entity)
       most_specific_priority_schemes_from(for_entity(entity))
     end
 
-    # Return all rules for this entity, with priority schemes filtered to the most specific rank per owner.
+    # Return all rules applicable to this entity, with priority schemes filtered to the most specific rank per owner.
+    # This is the method to use if you want this entity's effective ruleset that is actually used for prioritization, NOT simply for_entity.
     def self.eligibility_and_priority_rules_for_entity(entity)
       eligibility_requirements_for_entity(entity) + priority_schemes_for_entity(entity)
     end

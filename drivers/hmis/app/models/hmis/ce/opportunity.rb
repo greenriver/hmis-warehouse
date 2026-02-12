@@ -9,8 +9,8 @@ module Hmis::Ce
     self.ignored_columns += [
       'project_id', # Stop using direct association to project, go through unit instead
       'candidate_pool_id', # Resolve through unit_group now
-      'stale', # No longer tracked; rules always come from unit_group
-      'assignment_rules', # Rules now come from unit_group; referrals get their own at creation
+      'stale', # No longer tracked; opportunity is always up-to-date
+      'assignment_rules', # Rules now come from unit_group, and referrals save their rules at creation time
     ]
 
     acts_as_paranoid
