@@ -12,6 +12,12 @@
 # Note, we skip partitioned tables and will handle those in dedicated migrations later
 class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
   def up
+    return unless Rails.env.development? || Rails.env.test?
+
+    # extra safety check
+    db_name = ActiveRecord::Base.connection.current_database
+    raise "database \"#{db_name}\" not supported" unless db_name =~ /(development|test)/
+
     views = ['puma_scaling_login_demand']
     views.reverse_each { |view| drop_view view }
     alter_tables
@@ -49,27 +55,15 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
     SQL
 
     results = safely_execute(query)
-    dry_run_messages = []
     results.each do |row|
       schema = row['table_schema']
       table = row['table_name']
       column = row['column_name']
       next if partitioned?(table: table, schema: schema)
 
-      if Rails.env.development? || Rails.env.test?
-        # We need to quote table and column names because some warehouse tables
-        # use CamelCase (e.g. "AssessmentQuestions")
-        safely_execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
-      else
-        dry_run_messages.push("\"#{schema}\".\"#{table}\"}#\"#{column}\"")
-      end
-    end
-
-    return unless dry_run_messages.any?
-
-    details = dry_run_messages.join(', ')
-    Sentry.capture_message("Warehouse tables found with int keys: #{details}") do |scope|
-      scope.set_fingerprint(['20260207120000_standardize_ids'])
+      # We need to quote table and column names because some warehouse tables
+      # use CamelCase (e.g. "AssessmentQuestions")
+      safely_execute "ALTER TABLE \"#{schema}\".\"#{table}\" ALTER COLUMN \"#{column}\" TYPE bigint;"
     end
   end
 
