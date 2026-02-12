@@ -44,6 +44,17 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
         expect(unit_group_1.reload.candidate_pool).to eq(pool1)
         expect(unit_group_2.reload.candidate_pool).to eq(pool2)
+
+        assignments = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.all.order(:unit_group_id)
+        expect(assignments.count).to eq(2)
+        expect(assignments.first.unit_group).to eq(unit_group_1)
+        expect(assignments.first.candidate_pool).to eq(pool1)
+        expect(assignments.first.started_at).to be_present
+        expect(assignments.first.ended_at).to be_nil
+        expect(assignments.second.unit_group).to eq(unit_group_2)
+        expect(assignments.second.candidate_pool).to eq(pool2)
+        expect(assignments.second.started_at).to be_present
+        expect(assignments.second.ended_at).to be_nil
       end
 
       it 'leaves candidate_pool_id nil for unit groups with no rules' do
@@ -67,13 +78,19 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'removes the unit groups candidate pool when no longer applicable' do
         described_class.call
         expect(unit_group_1.reload.candidate_pool).to be_present
+        expect(Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.active.count).to eq(2)
+        unit_group_1_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.where(unit_group: unit_group_1).sole
+        unit_group_2_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.where(unit_group: unit_group_2).sole
 
         Hmis::Ce::Match::Rule.where(owner: unit_group_1).destroy_all
 
         expect do
           described_class.call
           unit_group_1.reload
-        end.to change(unit_group_1, :candidate_pool_id).to(nil)
+          unit_group_1_assignment.reload
+        end.to change(unit_group_1, :candidate_pool_id).to(nil).
+          and change(unit_group_1_assignment, :ended_at).from(nil).to(be_present).
+          and not_change(unit_group_2_assignment, :ended_at)
       end
     end
 
@@ -87,6 +104,12 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         first_pool_id = unit_group.reload.candidate_pool_id
         expect(first_pool_id).to be_present
 
+        first_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.sole
+        expect(first_assignment.unit_group).to eq(unit_group)
+        expect(first_assignment.candidate_pool_id).to eq(first_pool_id)
+        expect(first_assignment.started_at).to be_present
+        expect(first_assignment.ended_at).to be_nil
+
         # Add a rule, which changes the key and should result in a new pool
         create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'b = 1')
         described_class.call
@@ -94,6 +117,15 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
         expect(second_pool_id).to be_present
         expect(second_pool_id).not_to eq(first_pool_id)
+
+        first_assignment.reload
+        expect(Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.count).to eq(2)
+        expect(first_assignment.ended_at).to be_present
+        second_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.last
+        expect(second_assignment.unit_group).to eq(unit_group)
+        expect(second_assignment.candidate_pool_id).to eq(second_pool_id)
+        expect(second_assignment.started_at).to be_present
+        expect(second_assignment.ended_at).to be_nil
       end
     end
 

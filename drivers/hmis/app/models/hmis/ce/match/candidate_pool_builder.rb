@@ -110,7 +110,7 @@ module Hmis::Ce::Match
         }
 
         # Pass all attributes to satisfy validations
-        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: candidate_pool_id)
+        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: new_pool_id)
       end
 
       updated_count = 0
