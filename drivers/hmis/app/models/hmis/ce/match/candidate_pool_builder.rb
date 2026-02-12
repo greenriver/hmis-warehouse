@@ -7,9 +7,10 @@
 # The builder:
 # 1. Creates Candidate Pools for all unique rule sets derived from Unit Groups.
 # 2. Associates Unit Groups with their corresponding Candidate Pool.
-# 3. Marks newly created or all pools as "dirty" to trigger reprocessing.
-# 4. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
-# 5. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
+# 3. Maintains the historical record of which pool a unit group was assigned to at a given time.
+# 4. Marks newly created or all pools as "dirty" to trigger reprocessing.
+# 5. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
+# 6. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
 
 # Semantics and concurrency notes:
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
@@ -18,7 +19,8 @@
 # - Bulk creation relies on a DB unique index over (priority_expressions, requirement_expression) and is idempotent.
 # - Concurrency/transactions are handled by callers. This class performs pure operations without
 #   acquiring locks or opening transactions.
-# - Triggered automatically by Rule and UnitGroup callbacks. Can be called manually via `CeBuilder`
+# - Triggered automatically, *synchronously*, by Rule and UnitGroup callbacks, so our aim is to keep this fast and lightweight.
+# - Can be called manually via `CeBuilder`
 module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize
@@ -79,6 +81,7 @@ module Hmis::Ce::Match
     # - Compute effective key for each unit group
     # - Create pools for non-default keys
     # - Assign unit_groups.candidate_pool_id accordingly (NULL if default key)
+    # - Record history of unit group/pool assignments
     # Returns newly created pool IDs for dirty marking
     def upsert_unit_group_pools!(unit_group_scope)
       keys_by_unit_group_id = @rule_resolver.keys_for_all_unit_groups(unit_group_scope)
@@ -88,12 +91,23 @@ module Hmis::Ce::Match
 
       # Prepare bulk updates for unit groups
       unit_group_updates = []
+      pool_changes = [] # Track changes: { unit_group_id:, old_pool_id:, new_pool_id: }
       pools_by_key = @pool_repository.all_by_key
       unit_group_scope.where(id: keys_by_unit_group_id.keys).find_each do |unit_group|
         computed_key = keys_by_unit_group_id[unit_group.id]
-        candidate_pool_id = pools_by_key[computed_key]&.id
+        old_pool_id = unit_group.candidate_pool_i
+        # If the key is nil, the unit group should not be asssociated with a pool. If it has an existing one, it should be removed
+        # todo @martha - bring in the test that checked for this, and the spec updates needed.
+        new_pool_id = computed_key ? pools_by_key[computed_key]&.id : nil
 
-        next if unit_group.candidate_pool_id == candidate_pool_id
+        next if old_pool_id == new_pool_id
+
+        # Track the pool change for historical record
+        pool_changes << {
+          unit_group_id: unit_group.id,
+          old_pool_id: old_pool_id,
+          new_pool_id: new_pool_id,
+        }
 
         # Pass all attributes to satisfy validations
         unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: candidate_pool_id)
@@ -111,9 +125,40 @@ module Hmis::Ce::Match
         raise "Failed to update Unit Groups with candidate pool assignments: #{result.inspect}" if result.failed_instances.present?
 
         updated_count = unit_group_updates.size
+
+        record_pool_unit_group_assignments!(pool_changes)
       end
 
       [created_ids, updated_count]
+    end
+
+    # Record historical pool/unit group assignments by closing old assignments and creating new ones
+    def record_pool_unit_group_assignments!(pool_changes)
+      return if pool_changes.empty?
+
+      timestamp = Time.current
+
+      # Close old assignments by setting ended_at
+      old_assignments_to_close = pool_changes.select { |change| change[:old_pool_id].present? }
+      if old_assignments_to_close.any?
+        unit_group_ids = old_assignments_to_close.map { |change| change[:unit_group_id] }
+        CandidatePoolUnitGroupAssignment.
+          # Each unit group has one active assignment at a time,
+          # so this should be safe even though we aren't checking pool IDs here
+          active.where(unit_group_id: unit_group_ids).
+          update_all(ended_at: timestamp)
+      end
+
+      # Create new assignments for new pool associations
+      new_assignments = pool_changes.select { |change| change[:new_pool_id].present? }.map do |change|
+        {
+          unit_group_id: change[:unit_group_id],
+          candidate_pool_id: change[:new_pool_id],
+          started_at: timestamp,
+        }
+      end
+
+      CandidatePoolUnitGroupAssignment.insert_all!(new_assignments) if new_assignments.any?
     end
 
     def update_stale_flags!
