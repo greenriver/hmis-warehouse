@@ -987,6 +987,7 @@ module Filters
         zero_to_four: '0 - 4',
         five_to_ten: '5 - 10',
         eleven_to_fourteen: '11 - 14',
+        fourteen_to_seventeen: '14 - 17',
         fifteen_to_seventeen: '15 - 17',
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
