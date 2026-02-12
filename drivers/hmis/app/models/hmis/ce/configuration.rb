@@ -14,11 +14,17 @@ module Hmis::Ce
       !!value_for(:enabled)
     end
 
+    # If a candidate pool is no longer associated with any active opportunities, how long should it be retained?
+    def days_to_retain_orphan_candidate_pools
+      value_for(:days_to_retain_orphan_candidate_pools)&.to_i
+    end
+
     protected
 
     # read all configuration values from the db
     PROPERTIES = [
       :enabled,
+      :days_to_retain_orphan_candidate_pools,
     ].freeze
     def values
       @values ||= AppConfigProperty.

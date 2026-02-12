@@ -240,6 +240,29 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
+    context 'with orphaned candidate pools' do
+      let(:expiration_days) { 30 }
+      let!(:old_orphaned_pool) do
+        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago)
+      end
+      let!(:new_orphaned_pool) do
+        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days - 1).days.ago)
+      end
+      let!(:active_pool) { create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago) }
+      let!(:unit_group_with_pool) { create(:hmis_unit_group, candidate_pool: active_pool) }
+
+      before do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:days_to_retain_orphan_candidate_pools).and_return(expiration_days)
+      end
+
+      it 'deletes old orphaned pools but not new or active ones' do
+        expect { described_class.call }.to change(Hmis::Ce::Match::CandidatePool, :count).by(-1)
+        expect(Hmis::Ce::Match::CandidatePool.exists?(old_orphaned_pool.id)).to be_falsey
+        expect(Hmis::Ce::Match::CandidatePool.exists?(new_orphaned_pool.id)).to be_truthy
+        expect(Hmis::Ce::Match::CandidatePool.exists?(active_pool.id)).to be_truthy
+      end
+    end
+
     context 'with closed projects' do
       let!(:closed_project) { create(:hmis_hud_project, organization: organization, operating_end_date: 1.day.ago) }
       let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: closed_project) }

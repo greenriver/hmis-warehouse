@@ -11,6 +11,8 @@
 # 4. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
 # 5. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
 # 6. Generates candidate events when unit group pool assignments change.
+# 7. Cleans up orphaned pools that are no longer referenced by Unit Groups
+#    after a configurable grace period.
 #
 # Semantics and concurrency notes:
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
@@ -44,6 +46,7 @@ module Hmis::Ce::Match
 
       backfill_opportunities_without_pools!
       update_stale_flags!
+      cleanup_orphan_pools
 
       log_info(
         format(
@@ -154,6 +157,18 @@ module Hmis::Ce::Match
 
     def log_info(message)
       Rails.logger.info { "[CandidatePoolBuilder] #{message}" }
+    end
+
+    # Delete pools that haven't been used in a while
+    def cleanup_orphan_pools
+      duration = Hmis::Ce.configuration.days_to_retain_orphan_candidate_pools
+      return unless duration
+
+      expiration_date = now - duration.days
+      Hmis::Ce::Match::CandidatePool.
+        orphaned.
+        where(updated_at: ...expiration_date).
+        find_each(&:destroy!)
     end
   end
 end
