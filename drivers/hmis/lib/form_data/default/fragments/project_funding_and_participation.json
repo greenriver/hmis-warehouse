@@ -1,0 +1,163 @@
+{
+  "type": "GROUP",
+  "link_id": "project_funding_and_participation_group",
+  "text": "Funding and Participation",
+  "enable_behavior": "ALL",
+  "enable_when": [
+    {
+      "local_constant": "$projectId",
+      "operator": "EXISTS",
+      "answer_boolean": false,
+      "_comment": "Only show this group if creating a new project"
+    }
+  ],
+  "item": [
+    {
+      "type": "DISPLAY",
+      "link_id": "project_hud_setup_display",
+      "text": "This section collects the initial HUD records for the project. After the project is created, these can be managed under project configuration."
+    },
+    {
+      "type": "GROUP",
+      "link_id": "coc_group",
+      "text": "Continuum of Care Information",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "coc",
+          "text": "CoC Code",
+          "required": true,
+          "pick_list_reference": "COC",
+          "mapping": {
+            "field_name": "initialCocCode"
+          },
+          "helper_text": "Additional CoC Codes can be added later"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "geocode",
+          "text": "Geocode",
+          "pick_list_reference": "GEOCODE",
+          "required": true,
+          "mapping": {
+            "field_name": "initialGeocode"
+          }
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "funder_group",
+      "text": "Funding Sources",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "funder",
+          "text": "Funding Source",
+          "pick_list_reference": "FundingSource",
+          "mapping": {
+            "field_name": "initialFunder"
+          },
+          "helper_text": "Additional funding sources can be added later"
+        },
+        {
+          "type": "OPEN_CHOICE",
+          "required": true,
+          "link_id": "other",
+          "text": "Other Funder",
+          "mapping": {
+            "field_name": "initialOtherFunder"
+          },
+          "pick_list_reference": "OTHER_FUNDERS",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "funder",
+              "operator": "EQUAL",
+              "answer_code": "LOCAL_OR_OTHER_FUNDING_SOURCE"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "grant_id",
+          "text": "Grant Identifier",
+          "mapping": {
+            "field_name": "initialFunderGrantId"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "funder",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "hmis_participation_group",
+      "text": "HMIS Participation Status",
+      "item": [
+        {
+          "type": "CHOICE",
+          "component": "DROPDOWN",
+          "link_id": "q_2_08_1",
+          "text": "HMIS Participation Status",
+          "pick_list_reference": "HMISParticipationType",
+          "mapping": {
+            "field_name": "initialHmisParticipationType"
+          }
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "hmis_ce_participation_group",
+      "text": "Coordinated Entry Participation Status",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "access_point",
+          "text": "Project is a Coordinated Entry Access Point",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "initialCeAccessPoint"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "ce_participation_services",
+          "repeats": true,
+          "text": "Provided by CE Project",
+          "required": true,
+          "pick_list_reference": "CeParticipationServices",
+          "mapping": {
+            "field_name": "initialCeParticipationServices"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "access_point",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "receives_referrals",
+          "text": "Project Receives CE Referrals",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "initialCeReceivesReferrals"
+          }
+        }
+      ]
+    }
+  ]
+}
