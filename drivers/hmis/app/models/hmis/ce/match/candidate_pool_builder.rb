@@ -12,6 +12,7 @@
 #    after a configurable grace period.
 #
 # Semantics and concurrency notes:
+# - Opportunity's pool is always derived from unit → unit_group → candidate_pool (not stored on opportunity).
 # - A `nil` key represents the default case where no specific rules apply; do not create a pool for this key.
 #   UnitGroups with a `nil` key will have `candidate_pool_id = NULL`.
 # - Bulk creation relies on a DB unique index over (priority_expressions, requirement_expression) and is idempotent.
