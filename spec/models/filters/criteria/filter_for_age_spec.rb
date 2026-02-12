@@ -38,6 +38,7 @@ RSpec.describe Filters::Criteria::FilterForAge do
 
     context 'with fourteen_to_seventeen age range' do
       let(:age_ranges) { [:fourteen_to_seventeen] }
+      let(:filter) { ::Filters::FilterBase.new(user_id: user.id, start: start_date, age_ranges: age_ranges) }
 
       it 'filters clients aged 14-17 inclusively' do
         # Create clients aged 13, 14, 15, 16, 17, 18
