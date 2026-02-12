@@ -86,10 +86,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:pool_2_unit) { create :hmis_unit, project: p2, unit_group: pool_2_unit_group }
       let!(:pool_2_opportunity) { create :hmis_ce_opportunity, unit: pool_2_unit, status: 'locked' }
 
-      # cruft: Pool 3 is not active because it has no unit group, candidate membership should be disregarded
+      # cruft: Pool 3 is not active because it has no unit group. Candidate membership should be disregarded
       let!(:pool_3) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
 
-      # cruft: Pool 4 is not active because it has a deleted unit group, candidate membership should be disregarded
+      # cruft: Pool 4 is not active because it is only associated with a deleted unit group. Candidate membership should be disregarded
       let!(:pool_4) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
       let!(:pool_4_unit_group) { create :hmis_unit_group, project: p1, candidate_pool: pool_4, deleted_at: Time.current - 3.days }
 

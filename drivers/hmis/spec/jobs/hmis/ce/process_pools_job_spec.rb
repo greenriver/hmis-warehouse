@@ -51,7 +51,7 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
     create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
 
     # Remove unit group first to avoid deletion restriction
-    unit_group.destroy!
+    pool.unit_groups.sole.destroy!
     pool.destroy!
 
     # Should not raise an error and should clean up the marker
