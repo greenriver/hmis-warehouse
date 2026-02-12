@@ -19,10 +19,10 @@ module HealthFileController
 
     def download
       @file = @upload_object.health_file
-      filename = @file.file&.file&.filename&.to_s || 'health_file'
+      filename = @file.name || 'health_file.pdf'
       send_data(
         @file.content,
-        type: @file.content_type,
+        type: @file.content_type || 'application/pdf',
         filename: filename,
       )
     end
