@@ -137,11 +137,47 @@ module HmisExternalApis::AcHmis
 
       Rails.logger.info "Found #{merge_sets.length} duplicate MCI unique IDs"
 
-      Rails.logger.info 'Enqueuing dedup jobs for each one'
+      return if merge_sets.empty?
+
+      reviewer = User.find(actor_id)
+      timestamp = Time.current
+
+      # Record whether we made any updates, so we can trigger service history rebuild.
+      # Even if there are merge_sets, if they already point to the same destination client, no updates are needed.
+      any_updates = false
 
       merge_sets.each do |set|
-        Hmis::MergeClientsJob.perform_later(client_ids: set.client_ids, actor_id: actor_id)
+        source_client_ids = Array.wrap(set.client_ids).compact
+
+        # Choose the lowest destination ID as the "winner"
+        # Update all other source clients in the set to point to this destination client.
+        destination_ids = GrdaWarehouse::WarehouseClient.
+          where(source_id: source_client_ids).
+          pluck(:destination_id).
+          compact
+
+        winner_destination_id = destination_ids.min
+        winner = GrdaWarehouse::Hud::Client.find(winner_destination_id)
+
+        source_clients = Hmis::Hud::Client.where(id: source_client_ids).preload(:warehouse_client_source)
+        source_clients.each do |source_client|
+          # If the source client already points to the winner destination, no action needed
+          next if source_client.warehouse_client_source&.destination_id == winner_destination_id
+
+          # Otherwise, point the source client to the winner destination.
+          winner.merge_from(
+            source_client.as_warehouse,
+            reviewed_by: reviewer,
+            reviewed_at: timestamp,
+          )
+          any_updates = true
+        end
       end
+
+      return unless any_updates
+
+      # If there were updates, trigger a service history rebuild.
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
     def data_source
