@@ -158,7 +158,7 @@ module Hmis::Ce::Match
         }
       end
 
-      CandidatePoolUnitGroupAssignment.insert_all!(new_assignments) if new_assignments.any?
+      CandidatePoolUnitGroupAssignment.import!(new_assignments) if new_assignments.any?
     end
 
     def update_stale_flags!
