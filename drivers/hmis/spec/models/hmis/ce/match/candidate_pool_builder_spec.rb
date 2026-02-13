@@ -88,6 +88,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           described_class.call
           unit_group_1.reload
           unit_group_1_assignment.reload
+          unit_group_2_assignment.reload
         end.to change(unit_group_1, :candidate_pool_id).to(nil).
           and change(unit_group_1_assignment, :ended_at).from(nil).to(be_present).
           and not_change(unit_group_2_assignment, :ended_at)
