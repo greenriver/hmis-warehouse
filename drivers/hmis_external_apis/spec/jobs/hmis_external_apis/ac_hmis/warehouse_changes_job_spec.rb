@@ -75,9 +75,10 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   it 'soft-merges duplicate MCI unique IDs' do
     stub_api
 
-    # Second source client with its own destination; same MCI ID will be applied to both via the job
-    other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
     destination_id = client.warehouse_id
+
+    # Second source client with different destination client but same MCI unique ID
+    other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
     expect(other_client.warehouse_id).not_to eq(destination_id) # Confirm setup
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
 
@@ -95,7 +96,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
 
       client.reload
       other_client.reload
-    end.to change(other_client, :warehouse_id).to(destination_id). # other_client was updated to point at same destination
+    end.to change(other_client, :warehouse_id).to(destination_id).
       and not_change(client, :warehouse_id)
 
     # Confirm soft merge: both source clients now point to the same destination
@@ -107,6 +108,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
 
     # Second source client sharing the same destination; no repointing needed
     other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
     other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
 
     # confirm setup
@@ -153,6 +155,8 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
       end
 
       perform
+
+      expect(job.merge_sets.length).to eq(3)
 
       # Assert soft-merge behavior: each MCI set converges on one "winner" destination ID
       clients_by_mci.each do |mci_uniq_id, clients|
