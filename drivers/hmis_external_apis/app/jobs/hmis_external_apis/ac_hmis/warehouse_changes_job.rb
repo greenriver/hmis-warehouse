@@ -147,24 +147,20 @@ module HmisExternalApis::AcHmis
       any_updates = false
 
       merge_sets.each do |set|
-        source_client_ids = Array.wrap(set.client_ids).compact
+        source_client_ids = set.client_ids
 
-        # Choose the lowest destination ID as the "winner"
-        # Update all other source clients in the set to point to this destination client.
-        destination_ids = GrdaWarehouse::WarehouseClient.
+        # Choose the lowest destination ID as the "winner".
+        winner_destination_id = GrdaWarehouse::WarehouseClient.
           where(source_id: source_client_ids).
-          pluck(:destination_id).
-          compact
-
-        winner_destination_id = destination_ids.min
+          minimum(:destination_id)
         winner = GrdaWarehouse::Hud::Client.find(winner_destination_id)
 
+        # Update all source clients to point to the winner destination.
         source_clients = Hmis::Hud::Client.where(id: source_client_ids).preload(:warehouse_client_source)
         source_clients.each do |source_client|
           # If the source client already points to the winner destination, no action needed
           next if source_client.warehouse_client_source&.destination_id == winner_destination_id
 
-          # Otherwise, point the source client to the winner destination.
           winner.merge_from(
             source_client.as_warehouse,
             reviewed_by: reviewer,
