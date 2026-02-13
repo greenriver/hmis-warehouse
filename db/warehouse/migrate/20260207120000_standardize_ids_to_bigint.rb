@@ -19,7 +19,11 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
     db_name = GrdaWarehouseBase.connection.current_database
     raise "database \"#{db_name}\" not supported" unless db_name =~ /(development|test)/
 
-    views.reverse_each { |view, _| drop_view view }
+    views.reverse_each do |view, _|
+      next unless view_exists?(view)
+
+      drop_view view
+    end
     alter_tables
     views.each do |view, version|
       create_view(view, version: version)
@@ -196,5 +200,23 @@ class StandardizeIdsToBigint < ActiveRecord::Migration[7.2]
 
   private def safely_execute(statement)
     safety_assured { execute(statement) }
+  end
+
+  private def view_exists?(view)
+    schema, view_name = view.split('.', 2)
+    if view_name.nil?
+      view_name = schema
+      schema = 'public'
+    end
+
+    result = safely_execute(<<~SQL)
+      SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.views
+          WHERE table_schema = '#{schema}'
+          AND table_name = '#{view_name}'
+      );
+    SQL
+    result[0]['exists']
   end
 end
