@@ -1,1 +1,24 @@
-SELECT * FROM "Services" WHERE "DateDeleted" is NULL
+SELECT "ServicesID",
+    "EnrollmentID",
+    "PersonalID",
+    "DateProvided",
+    "RecordType",
+    "TypeProvided",
+    "OtherTypeProvided",
+    "SubTypeProvided",
+    "FAAmount",
+    "ReferralOutcome",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    id,
+    source_hash,
+    pending_date_deleted,
+    "MovingOnOtherType",
+    "FAStartDate",
+    "FAEndDate"
+   FROM "Services"
+  WHERE ("DateDeleted" IS NULL)
