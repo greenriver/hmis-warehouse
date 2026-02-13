@@ -32,6 +32,8 @@ module Hmis::Ce::Match
     def self.call(...) = new.call(...)
 
     def call(unit_group_ids: nil, force_reprocessing: false)
+      @timestamp = Time.current
+
       unit_group_scope = Hmis::UnitGroup.with_ce_waitlists_enabled
       unit_group_scope = unit_group_scope.where(id: unit_group_ids) if unit_group_ids
 
@@ -91,7 +93,8 @@ module Hmis::Ce::Match
 
       # Prepare bulk updates for unit groups
       unit_group_updates = []
-      pool_changes = [] # Track changes: { unit_group_id:, old_pool_id:, new_pool_id: }
+      pool_assignments_to_create = []
+      unit_group_ids_to_close_assignments_for = []
       pools_by_key = @pool_repository.all_by_key
 
       unit_group_scope.find_each do |unit_group|
@@ -102,12 +105,17 @@ module Hmis::Ce::Match
 
         next if old_pool_id == new_pool_id
 
-        # Track the pool change for historical record
-        pool_changes << {
-          unit_group_id: unit_group.id,
-          old_pool_id: old_pool_id,
-          new_pool_id: new_pool_id,
-        }
+        # If the unit group previously had a pool and it's changing, collect the unit group ID to close the assignment.
+        unit_group_ids_to_close_assignments_for << unit_group.id if old_pool_id.present?
+
+        # If the unit group is assigned to a new pool, collect the unit group ID and the new pool ID to create a new assignment.
+        if new_pool_id.present?
+          pool_assignments_to_create << {
+            unit_group_id: unit_group.id,
+            candidate_pool_id: new_pool_id,
+            started_at: @timestamp,
+          }
+        end
 
         # Pass all attributes to satisfy validations
         unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: new_pool_id)
@@ -126,39 +134,24 @@ module Hmis::Ce::Match
 
         updated_count = unit_group_updates.size
 
-        record_pool_unit_group_assignments!(pool_changes)
+        record_pool_unit_group_assignments!(unit_group_ids_to_close_assignments_for, pool_assignments_to_create)
       end
 
       [created_ids, updated_count]
     end
 
     # Record historical pool/unit group assignments by closing old assignments and creating new ones
-    def record_pool_unit_group_assignments!(pool_changes)
-      return if pool_changes.empty?
-
-      timestamp = Time.current
-
-      # Close old assignments by setting ended_at
-      old_assignments_to_close = pool_changes.select { |change| change[:old_pool_id].present? }
-      if old_assignments_to_close.any?
-        unit_group_ids = old_assignments_to_close.map { |change| change[:unit_group_id] }
+    def record_pool_unit_group_assignments!(unit_group_ids_to_close_assignments_for, pool_assignments_to_create)
+      if unit_group_ids_to_close_assignments_for.any?
         CandidatePoolUnitGroupAssignment.
           # Each unit group has one active assignment at a time,
-          # so this should be safe even though we aren't checking pool IDs here
-          active.where(unit_group_id: unit_group_ids).
-          update_all(ended_at: timestamp)
+          # so this should be safe even though we aren't checking pool IDs
+          active.where(unit_group_id: unit_group_ids_to_close_assignments_for).
+          update_all(ended_at: @timestamp)
       end
 
       # Create new assignments for new pool associations
-      new_assignments = pool_changes.select { |change| change[:new_pool_id].present? }.map do |change|
-        {
-          unit_group_id: change[:unit_group_id],
-          candidate_pool_id: change[:new_pool_id],
-          started_at: timestamp,
-        }
-      end
-
-      CandidatePoolUnitGroupAssignment.import!(new_assignments) if new_assignments.any?
+      CandidatePoolUnitGroupAssignment.import!(pool_assignments_to_create) if pool_assignments_to_create.any?
     end
 
     def update_stale_flags!
