@@ -66,8 +66,8 @@ RSpec.describe User, type: :model do
 
   describe '.text_search' do
     let!(:user1) { create(:user, first_name: 'Alice', last_name: 'Smith', email: 'alice.smith@example.com') }
-    let!(:user2) { create(:user, first_name: 'Alicea', last_name: 'Smythe', email: 'alicia.smythe@example.com') }
-    let!(:user3) { create(:user, first_name: 'Bob', last_name: 'Jones', email: 'bob.jones@example.com') }
+    let!(:user2) { create(:user, first_name: 'Alicea', last_name: 'Smythe', email: 'alicia.smythe@green.com') }
+    let!(:user3) { create(:user, first_name: 'Bob', last_name: 'Jones', email: 'bob.jones@green.com') }
 
     it 'finds users by first name' do
       results = User.text_search('Alice')
@@ -85,6 +85,12 @@ RSpec.describe User, type: :model do
       results = User.text_search('alice.smith@example.com')
       expect(results).to include(user1)
       expect(results).not_to include(user3)
+    end
+
+    it 'finds users by email domain (substring match)' do
+      results = User.text_search('green')
+      expect(results).to include(user2, user3) # accounts with email domain 'green.com'
+      expect(results).not_to include(user1)
     end
 
     it 'returns none for no match' do
