@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hmis-supplemental.md
 # Test / QA for data set imports
 module HmisSupplemental
   class DataSetUploadsController < ApplicationController

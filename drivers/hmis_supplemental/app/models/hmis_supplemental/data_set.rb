@@ -6,11 +6,7 @@
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
+# @see docs/features/hmis-supplemental.md
 
 module HmisSupplemental
   class DataSet < GrdaWarehouseBase
@@ -86,6 +82,10 @@ module HmisSupplemental
 
     def full_object_key
       [remote_credential.s3_prefix, object_key].compact.join('/')
+    end
+
+    def policy_class
+      GrdaWarehouse::AuthPolicies::SupplementalDataSetPolicy
     end
   end
 end

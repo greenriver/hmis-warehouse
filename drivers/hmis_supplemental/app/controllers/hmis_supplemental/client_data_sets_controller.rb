@@ -6,23 +6,32 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hmis-supplemental.md
+
 # a "tab" on the client dashboard for viewing a data set.
 # This controller is for both client and enrollment-based data sets
 module HmisSupplemental
-  class ClientDataSetsController < ApplicationController
+  class ClientDataSetsController < ApplicationControllerV2
     include ClientController
     include ClientPathGenerator
     include ClientDependentControllers
 
-    before_action :require_can_view_clients!
     before_action :set_client
+    before_action :load_authorized_data_set
+
+    authorize_with do
+      current_user.policy_for(@client).can_view_supplemental_data? &&
+      current_user.policy_for(@data_set).can_view?
+    end
 
     def show
-      @data_set = load_authorized_data_set
       @groups = []
       case @data_set.owner_type
       when 'client'
         @groups = source_clients.map do |client|
+          # extra safety check
+          raise if client.data_source != @data_set.data_source
+
           {
             title: client.data_source.name,
             values: @data_set.field_values.for_owner(client).index_by(&:field_key),
@@ -30,6 +39,9 @@ module HmisSupplemental
         end
       when 'enrollment'
         @groups = source_enrollments.map do |enrollment|
+          # extra safety check
+          raise if enrollment.data_source != @data_set.data_source
+
           {
             title: "#{enrollment.entry_date.to_fs} #{enrollment.project.name}",
             values: @data_set.field_values.for_owner(enrollment).index_by(&:field_key),
@@ -57,7 +69,7 @@ module HmisSupplemental
     end
 
     def load_authorized_data_set
-      data_set_scope.find(params[:data_set_id])
+      @data_set = data_set_scope.find(params[:data_set_id])
     end
 
     def data_set_scope

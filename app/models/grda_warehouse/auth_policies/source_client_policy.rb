@@ -29,6 +29,19 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     false
   end
 
+  def can_view_supplemental_data?
+    # supplemental data sets do not support legacy role-based permissions
+    return false unless user.using_acls?
+
+    # require specific data source-level permission
+    return false unless context.data_source_role_permissions(client.data_source_id).include?(:can_view_supplemental_client_data)
+
+    # ensure the client has an active roi
+    return false unless roi_authorized?
+
+    return true
+  end
+
   protected
 
   def validate_resource!(arg)
@@ -61,10 +74,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     destination = client.destination_client
     return false unless destination
 
-    roi_authorizations = destination.roi_authorizations.order(:id).filter(&:active?)
-    return false if roi_authorizations.blank?
-
-    roi_authorizations.any? { |a| a.matches_coc_codes?(user.coc_codes) }
+    context.client_roi_loader.get(destination.id)
   end
 
   # a set of permissions the user has for either the project or the client which would grant them access to this client
