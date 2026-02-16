@@ -23,3 +23,9 @@ Rails.application.config.queued_tasks[:hmis_disabling_condition_and_race_cleanup
   HmisDataCleanup::Util.fix_disabling_condition_nils!
   HmisDataCleanup::Util.fix_race_gender_99s!
 end
+
+if HmisEnforcement.hmis_enabled?
+  Rails.application.config.queued_tasks[:hmis_populate_cded_reporting_keys_2_2026] = -> do
+    PopulateCdedReportingKeys20260216.populate!
+  end
+end
