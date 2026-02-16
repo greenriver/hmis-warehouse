@@ -122,4 +122,104 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       end
     end
   end
+
+  describe 'POST /cohorts/:cohort_id/cohort_clients (create)' do
+    let!(:client1) { create(:grda_warehouse_hud_client, data_source_id: warehouse_data_source.id) }
+    let!(:client2) { create(:grda_warehouse_hud_client, data_source_id: warehouse_data_source.id) }
+    let(:create_params) { { grda_warehouse_cohort: { client_ids: "#{client1.id},#{client2.id}" } } }
+
+    context 'when logged out' do
+      it 'redirects to the login page' do
+        post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      end
+    end
+
+    context 'when logged in with insufficient permissions' do
+      let(:unauthorized_user) { create(:acl_user) }
+      before { sign_in unauthorized_user }
+
+      it 'redirects with an authorization error' do
+        post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to include('Sorry you are not authorized to do that')
+      end
+    end
+
+    context 'when logged in with sufficient permissions' do
+      before { sign_in user }
+
+      it 'adds clients to the cohort' do
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to change { cohort.cohort_clients.count }.by(2)
+
+        expect(cohort.cohort_clients.pluck(:client_id)).to contain_exactly(client1.id, client2.id)
+        expect(response).to redirect_to(cohort_path(cohort))
+        expect(flash[:notice]).to include('2 Clients added')
+      end
+
+      it 'enqueues AddCohortClientsJob to populate client data' do
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to have_enqueued_job(AddCohortClientsJob).with(cohort.id, "#{client1.id},#{client2.id}", user.id)
+      end
+
+      it 'skips clients already in the cohort' do
+        cohort.cohort_clients.create!(client_id: client1.id)
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to change { cohort.cohort_clients.count }.by(1)
+
+        expect(cohort.cohort_clients.pluck(:client_id)).to contain_exactly(client1.id, client2.id)
+      end
+
+      it 'restores previously deleted clients when their IDs are included' do
+        cohort_client = cohort.cohort_clients.create!(client_id: client1.id)
+        cohort_client.destroy!
+        expect(cohort.cohort_clients.with_deleted.count).to eq(1)
+
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to change { cohort.cohort_clients.count }.from(0).to(2)
+
+        expect(cohort_client.reload.deleted?).to be false
+      end
+    end
+  end
+
+  describe 'GET /cohorts/:cohort_id/cohort_clients/new with actives age filter' do
+    let(:start_date) { 1.month.ago.to_date }
+    let(:end_date) { 1.day.ago.to_date }
+    let(:actives_params) do
+      {
+        actives: {
+          start: start_date,
+          end: end_date,
+          min_days_homeless: 0,
+          age_ranges: ['under_eighteen', 'eighteen_to_twenty_four'],
+        },
+      }
+    end
+
+    context 'when logged in with sufficient permissions' do
+      before { sign_in user }
+
+      it 'uses Filters::Criteria::FilterForAge when age_ranges are present' do
+        filter_for_age = instance_double(Filters::Criteria::FilterForAge, applies?: true)
+        allow(Filters::Criteria::FilterForAge).to receive(:new).and_return(filter_for_age)
+        allow(filter_for_age).to receive(:apply).and_return(GrdaWarehouse::ServiceHistoryEnrollment.none)
+
+        get new_cohort_cohort_client_path(cohort_id: cohort.id), params: actives_params
+
+        expect(Filters::Criteria::FilterForAge).to have_received(:new) do |args|
+          expect(args[:input]).to be_a(Filters::FilterBase)
+          expect(args[:input].age_ranges).to contain_exactly(:under_eighteen, :eighteen_to_twenty_four)
+          expect(args[:input].start).to eq(start_date)
+          expect(args[:config].join_clients_method).to eq(:client)
+        end
+        expect(filter_for_age).to have_received(:apply)
+      end
+    end
+  end
 end
