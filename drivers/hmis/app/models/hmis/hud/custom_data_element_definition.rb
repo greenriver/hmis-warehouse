@@ -75,7 +75,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     normalized = key.downcase.gsub(/[^a-z0-9_]/, '_')
 
     # Ensure it starts with a letter
-    normalized = "f_#{normalized}" unless normalized.match?(/\A[a-z]/)
+    normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
 
     # Truncate to 63 characters if needed
     normalized = normalized[0..62]

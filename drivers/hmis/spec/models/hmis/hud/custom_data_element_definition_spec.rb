@@ -131,4 +131,101 @@ RSpec.describe Hmis::Hud::CustomDataElementDefinition, type: :model do
       expect(different_owner).to be_valid
     end
   end
+
+  describe '.generate_reporting_key' do
+    let(:owner_type) { 'Hmis::Hud::CustomAssessment' }
+
+    it 'generates valid reporting_key from lowercase key with underscores' do
+      key = described_class.generate_reporting_key('valid_key', owner_type: owner_type)
+      expect(key).to eq('valid_key')
+      expect(key).to match(/\A[a-z][a-z0-9_]{0,62}\z/)
+    end
+
+    it 'converts hyphens to underscores' do
+      key = described_class.generate_reporting_key('key-with-hyphens', owner_type: owner_type)
+      expect(key).to eq('key_with_hyphens')
+    end
+
+    it 'converts special characters to underscores' do
+      key = described_class.generate_reporting_key('key$with@special!chars', owner_type: owner_type)
+      expect(key).to eq('key_with_special_chars')
+    end
+
+    it 'prepends "k_" when key starts with a number' do
+      key = described_class.generate_reporting_key('1invalid', owner_type: owner_type)
+      expect(key).to eq('k_1invalid')
+    end
+
+    it 'truncates keys longer than 63 characters' do
+      key = described_class.generate_reporting_key('a' * 100, owner_type: owner_type)
+      expect(key.length).to eq(63)
+      expect(key).to eq('a' * 63)
+    end
+
+    it 'appends number when reporting_key conflicts with existing record' do
+      create(
+        :hmis_custom_data_element_definition,
+        data_source: data_source,
+        user: user,
+        owner_type: owner_type,
+        reporting_key: 'duplicate_key',
+      )
+
+      key = described_class.generate_reporting_key('duplicate_key', owner_type: owner_type)
+      expect(key).to eq('duplicate_key_1')
+    end
+
+    it 'appends number when reporting_key conflicts with unpersisted reserved keys' do
+      reserved_keys = Set.new([[owner_type, 'reserved_key']])
+      key = described_class.generate_reporting_key('reserved_key', owner_type: owner_type, unpersisted_reserved_keys: reserved_keys)
+      expect(key).to eq('reserved_key_1')
+    end
+
+    it 'truncates and appends number for long conflicting keys' do
+      long_key = 'a' * 63
+      create(
+        :hmis_custom_data_element_definition,
+        data_source: data_source,
+        user: user,
+        owner_type: owner_type,
+        reporting_key: long_key,
+      )
+
+      key = described_class.generate_reporting_key('a' * 100, owner_type: owner_type)
+      expect(key.length).to eq(63)
+      expect(key).to end_with('_1')
+    end
+
+    it 'allows same reporting_key for different owner_types' do
+      create(
+        :hmis_custom_data_element_definition,
+        data_source: data_source,
+        user: user,
+        owner_type: owner_type,
+        reporting_key: 'shared_key',
+      )
+
+      # Different owner_type should not conflict
+      key = described_class.generate_reporting_key('shared_key', owner_type: 'Hmis::Hud::Service')
+      expect(key).to eq('shared_key')
+    end
+
+    it 'raises error after 50 attempts' do
+      # Create 51 records with conflicting keys
+      51.times do |i|
+        suffix = i.zero? ? '' : "_#{i}"
+        create(
+          :hmis_custom_data_element_definition,
+          data_source: data_source,
+          user: user,
+          owner_type: owner_type,
+          reporting_key: "key#{suffix}",
+        )
+      end
+
+      expect do
+        described_class.generate_reporting_key('key', owner_type: owner_type)
+      end.to raise_error(/Unique reporting_key generation failed/)
+    end
+  end
 end
