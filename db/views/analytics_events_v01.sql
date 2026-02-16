@@ -1,1 +1,22 @@
-SELECT * FROM "Event" WHERE "DateDeleted" is NULL
+SELECT id,
+    "EventID",
+    "EnrollmentID",
+    "PersonalID",
+    "EventDate",
+    "Event",
+    "ProbSolDivRRResult",
+    "ReferralCaseManageAfter",
+    "LocationCrisisOrPHHousing",
+    "ReferralResult",
+    "ResultDate",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    pending_date_deleted,
+    source_hash,
+    synthetic
+   FROM "Event"
+  WHERE ("DateDeleted" IS NULL)
