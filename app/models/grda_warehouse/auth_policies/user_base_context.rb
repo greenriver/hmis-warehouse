@@ -18,11 +18,11 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
 
   def initialize(user)
     raise ArgumentError, 'must be a user' unless user.is_a?(User)
+
     @user = user
   end
 
   memoize def client_roi_loader
     GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader.new(@user)
   end
-
 end

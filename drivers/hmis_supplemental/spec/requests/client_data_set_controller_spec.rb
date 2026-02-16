@@ -48,6 +48,15 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
     create(:access_control, role: ds_role, collection: ds_collection, user_group: ds_user_group)
     ds_collection.set_viewables({ supplemental_data_sets: [data_set.id] })
 
+    # Grant data source permission too (required by SupplementalDataSetPolicy)
+    ds_collection.set_viewables({
+                                  supplemental_data_sets: [data_set.id],
+                                  data_sources: [data_source.id],
+                                })
+
+    # Ensure destination client has an ROI (required by SourceClientPolicy)
+    create(:client_roi_authorization, destination_client: destination_client, status: 'full')
+
     sign_in(user)
   end
 
@@ -64,6 +73,17 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
       expect(assigns(:groups)).to be_an(Array)
       expect(assigns(:groups).first[:title]).to eq(data_source.name)
       expect(assigns(:groups).size).to eq(1)
+    end
+
+    context 'without ROI' do
+      before do
+        destination_client.roi_authorizations.delete_all
+      end
+
+      it 'denies access' do
+        get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
+        expect(response).to redirect_to(root_path)
+      end
     end
 
     context 'with enrollment data set' do
@@ -104,7 +124,7 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
   context 'without any access' do
     it 'denies access' do
       get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

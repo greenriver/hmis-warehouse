@@ -101,6 +101,10 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
       before { access_group.add_viewable(project) }
       include_examples 'pii permission checks with access'
       include_examples 'roi checks'
+
+      it 'denies supplemental data permission for legacy user' do
+        expect(policy.can_view_supplemental_data?).to be false
+      end
     end
 
     context 'without project access' do
@@ -187,6 +191,26 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       include_examples 'pii permission checks with access'
       include_examples 'roi checks'
+
+      context 'supplemental data' do
+        before do
+          role.update!(can_view_supplemental_client_data: true)
+          collection.set_viewables({ data_sources: [data_source.id] })
+          create(:warehouse_client, source: client, data_source: data_source)
+          create(:client_roi_authorization, destination_client: client.destination_client)
+        end
+
+        it 'grants supplemental data permission when authorized' do
+          expect(policy.can_view_supplemental_data?).to be true
+        end
+
+        it 'denies supplemental data permission without ROI' do
+          # Clear ROI
+          client.destination_client.roi_authorizations.delete_all
+
+          expect(policy.can_view_supplemental_data?).to be false
+        end
+      end
     end
 
     context 'without collection access' do
