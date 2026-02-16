@@ -173,6 +173,7 @@ module HmisExternalApis::AcHmis
       return unless any_updates
 
       # If there were updates, trigger a service history rebuild.
+      # If there were updates, trigger a service history rebuild. Records requiring rebuild were marked for re-processing by the merge_from method
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
