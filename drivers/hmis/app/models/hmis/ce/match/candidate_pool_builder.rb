@@ -144,7 +144,7 @@ module Hmis::Ce::Match
     def record_pool_unit_group_assignments!(unit_group_ids_to_close_assignments_for, pool_assignments_to_create)
       if unit_group_ids_to_close_assignments_for.any?
         CandidatePoolUnitGroupAssignment.
-          # Each unit group has one active assignment at a time,
+          # Each unit group has one active assignment at a time (enforced by DB constraint),
           # so this should be safe even though we aren't checking pool IDs
           active.where(unit_group_id: unit_group_ids_to_close_assignments_for).
           update_all(ended_at: @timestamp)
