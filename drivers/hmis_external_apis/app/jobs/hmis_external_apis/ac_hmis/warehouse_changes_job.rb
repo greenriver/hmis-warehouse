@@ -159,7 +159,10 @@ module HmisExternalApis::AcHmis
         source_clients = Hmis::Hud::Client.where(id: source_client_ids).preload(:warehouse_client_source)
         source_clients.each do |source_client|
           # If the source client already points to the winner destination, no action needed
-          next if source_client.warehouse_client_source&.destination_id == winner_destination_id
+          old_destination_id = source_client.warehouse_client_source&.destination_id
+          next if old_destination_id == winner_destination_id
+
+          Rails.logger.info "Moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner.id}"
 
           winner.merge_from(
             source_client.as_warehouse,
