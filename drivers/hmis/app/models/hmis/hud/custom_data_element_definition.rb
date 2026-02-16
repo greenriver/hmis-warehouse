@@ -43,6 +43,9 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
 
+  # reporting_key is stricter: must be lowercase, start with a letter, ASCII, max 63 chars
+  validates_format_of :reporting_key, with: /\A[a-z][a-z0-9_]{0,62}\z/, allow_nil: true
+
   scope :for_type, ->(owner_type) do
     where(owner_type: owner_type)
   end
