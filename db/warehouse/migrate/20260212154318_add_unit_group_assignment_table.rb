@@ -2,7 +2,6 @@
 
 class AddUnitGroupAssignmentTable < ActiveRecord::Migration[7.2]
   def change
-    # should be supported in RDS
     enable_extension 'btree_gist' unless extension_enabled?('btree_gist')
 
     create_table :ce_pool_unit_group_assignments do |t|
@@ -12,7 +11,7 @@ class AddUnitGroupAssignmentTable < ActiveRecord::Migration[7.2]
       t.references :candidate_pool, null: false, index: true
       t.datetime :started_at, null: false
       t.datetime :ended_at, null: true
-      t.datetime :created_at, null: true
+      t.timestamps
     end
 
     reversible do |dir|
