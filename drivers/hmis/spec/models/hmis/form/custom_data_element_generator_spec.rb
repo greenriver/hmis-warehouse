@@ -227,5 +227,155 @@ RSpec.describe Hmis::Form::CustomDataElementGenerator, type: :model do
         end
       end
     end
+
+    describe 'reporting_key generation' do
+      let(:cded_key) { 'use_this_key' }
+      let(:definition_json) do
+        {
+          'item': [
+            {
+              'type': 'STRING',
+              'link_id': 'linkid_string',
+              'required': false,
+              'text': 'String Field',
+              'assessment_date': true,
+              'mapping': { 'custom_field_key': cded_key },
+            },
+          ],
+        }
+      end
+
+      context 'when creating new CDEDs with valid keys' do
+        it 'generates valid reporting_key from lowercase key with underscores' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          expect(cdeds.sole.reporting_key).to eq(cded_key)
+        end
+      end
+
+      context 'when key contains hyphens' do
+        let(:cded_key) { 'use-this-key' }
+
+        it 'normalizes hyphens to underscores' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          # Key may contain hyphens, but reporting_key should convert them to underscores
+          expect(cdeds.sole.key).to eq(cded_key)
+          expect(cdeds.sole.reporting_key).to eq('use_this_key')
+        end
+      end
+
+      context 'when key starts with a number' do
+        let(:cded_key) { '1_invalid_key' }
+
+        it 'prepends "k_" to make reporting_key valid' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          expect(cdeds.sole.key).to eq('1_invalid_key')
+          expect(cdeds.sole.reporting_key).to eq('k_1_invalid_key')
+        end
+      end
+
+      context 'when key is too long' do
+        let(:cded_key) { 'a' * 100 }
+
+        it 'truncates reporting_key to 63 characters' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          expect(cdeds.sole.key).to eq(cded_key)
+          expect(cdeds.sole.reporting_key.length).to eq(63)
+        end
+      end
+
+      context 'when reporting_key would cause conflict within the form' do
+        let(:definition_json) do
+          {
+            'item': [
+              {
+                'type': 'STRING',
+                'link_id': 'a' * 100 + '_1', # long link_id ensures the truncation will result in a duplicate
+                'text': 'String Field',
+              },
+              {
+                'type': 'STRING',
+                'link_id': 'a' * 100 + '_2',
+                'text': 'String Field',
+              },
+            ],
+          }
+        end
+
+        it 'truncates and appends a number to make it unique' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          reporting_keys = cdeds.pluck(:reporting_key)
+          expect(reporting_keys.uniq.count).to eq(2) # they are unique
+          expect(reporting_keys.map(&:length)).to eq([63, 63]) # they are both 63 characters
+        end
+      end
+
+      context 'when reporting_key would cause conflict with an existing cded' do
+        let(:link_id) { 'linkid_string' }
+        let(:definition_json) do
+          {
+            'item': [
+              {
+                'type': 'STRING',
+                'link_id': link_id,
+                'required': false,
+                'text': 'String Field',
+                'assessment_date': true,
+              },
+            ],
+          }
+        end
+
+        let!(:existing_cded) do
+          create(
+            :hmis_custom_data_element_definition,
+            data_source: data_source,
+            owner_type: 'Hmis::Hud::CustomAssessment',
+            key: link_id,
+            reporting_key: "#{definition.identifier}_#{link_id}",
+          )
+        end
+
+        it 'appends a number to ensure uniqueness' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          expect(cdeds.sole.reporting_key).to eq("#{definition.identifier}_#{link_id}_1")
+        end
+      end
+    end
   end
 end
