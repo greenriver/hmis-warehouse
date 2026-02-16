@@ -21,10 +21,6 @@
 # 2.  **Association**: Once a pool is created, the builder associates the relevant
 #     `UnitGroup`s with it via the `candidate_pool_id` foreign key.
 #
-# 3.  **Cleanup**: Pools that are no longer referenced by any `UnitGroup` or active
-#     `Opportunity` are considered "orphaned" and are automatically deleted after a
-#     configurable period.
-#
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
     # Bulk-managed, does not log to paper_trail
@@ -87,23 +83,6 @@ module Hmis::Ce::Match
     # Helper scope - Candidate pools that are referenced by opportunities with the specified status.
     scope :referenced_by_opportunities_with_status, ->(status:) {
       joins(:opportunities).merge(Hmis::Ce::Opportunity.where(status: status)).distinct
-    }
-
-    # orphan pools can be safely deleted after a period if inactivity.
-    # currently we consider a pool orphaned if it is not tied to any opportunities or unit groups.
-    #
-    # Note this could be expanded to allow deleting additional pools if needed, including:
-    # 1) Pools that are exclusively tied to closed opportunities. (Would require modification to opportunities relation :restrict_with_exception).
-    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_ce_waitlists_enabled)
-    scope :orphaned, -> {
-      referenced_ids = [
-        ::Hmis::Ce::Opportunity,
-        ::Hmis::UnitGroup,
-      ].flat_map do |scope|
-        scope.where.not(candidate_pool_id: nil).distinct.pluck(:candidate_pool_id)
-      end
-
-      where.not(id: referenced_ids)
     }
 
     def self.mark_all_dirty

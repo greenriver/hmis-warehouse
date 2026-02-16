@@ -169,10 +169,6 @@ module Hmis::Ce::Match
         update_all(stale: false)
     end
 
-    def now
-      @now ||= Time.current
-    end
-
     def arel
       Hmis::ArelHelper.instance
     end
