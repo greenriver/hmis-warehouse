@@ -80,7 +80,11 @@ module Hmis
           cded_key = custom_field_key || ensure_unique_key("#{cded_key_prefix}_#{item.link_id}", owner_type: owner_type)
 
           # Generate reporting_key from cded_key, ensuring it's valid
-          reporting_key = generate_reporting_key(cded_key, owner_type: owner_type)
+          reporting_key = Hmis::Hud::CustomDataElementDefinition.generate_reporting_key(
+            cded_key,
+            owner_type: owner_type,
+            unpersisted_reserved_keys: @reporting_keys_in_batch,
+          )
           @reporting_keys_in_batch << [owner_type, reporting_key]
 
           @cdeds << Hmis::Hud::CustomDataElementDefinition.new(
@@ -182,46 +186,6 @@ module Hmis
           raise 'Unique key generation failed after 50 attempts' if count > 50
         end
         possible_key
-      end
-
-      # Generate a valid, unique reporting_key from the given key
-      def generate_reporting_key(key, owner_type:)
-        # Start with lowercase and replace hyphens/invalid chars with underscores
-        normalized = key.downcase.gsub(/[^a-z0-9_]/, '_')
-
-        # Ensure it starts with a letter
-        normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
-
-        # Truncate to 63 characters if needed
-        normalized = normalized[0..62]
-
-        # Check uniqueness against both existing records AND the current batch
-        return normalized unless reporting_key_exists?(normalized, owner_type)
-
-        # Make unique by appending a number, up to a maximum of 50 attempts.
-        count = 1
-        max_attempts = 50
-
-        while count <= max_attempts
-          suffix = "_#{count}"
-          base_length = 63 - suffix.length # Truncate base to leave room for suffix
-          candidate = "#{normalized[0...base_length]}#{suffix}"
-
-          return candidate unless reporting_key_exists?(candidate, owner_type)
-
-          count += 1
-        end
-
-        raise "Unique reporting_key generation failed after #{max_attempts} attempts"
-      end
-
-      # Check if a reporting_key exists either in the database or in the current batch
-      def reporting_key_exists?(reporting_key, owner_type)
-        # Check in database
-        return true if Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, reporting_key: reporting_key)
-
-        # Check in current batch
-        @reporting_keys_in_batch.include?([owner_type, reporting_key])
       end
     end
   end
