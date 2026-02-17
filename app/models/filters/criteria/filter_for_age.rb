@@ -10,6 +10,7 @@ class Filters::Criteria::FilterForAge < Filters::Criteria::Base
     under_eighteen: 0..17,
     eighteen_to_twenty_four: 18..24,
     twenty_five_to_twenty_nine: 25..29,
+    twenty_five_to_sixty_one: 25..61,
     thirty_to_thirty_four: 30..34,
     thirty_five_to_thirty_nine: 35..39,
     thirty_to_thirty_nine: 30..39,
