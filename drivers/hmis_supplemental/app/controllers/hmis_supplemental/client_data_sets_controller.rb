@@ -53,18 +53,24 @@ module HmisSupplemental
 
     def source_clients
       # order is important here, source_visible_to appears to clobber the data source condition
-      @client.source_clients.
+      results = @client.source_clients.
         source_visible_to(current_user).
         where(data_source_id: @data_set.data_source_id).
         order(:id)
+      results.to_a.filter do |source_client|
+        current_user.policy_for(source_client).can_view_supplemental_data?
+      end
     end
 
     def source_enrollments
-      @client.source_enrollments.
+      results = @client.source_enrollments.
         visible_to(current_user).
         where(data_source_id: @data_set.data_source_id).
         order(entry_date: :desc, id: :desc).
-        preload(:project)
+        preload(:project, :client)
+      results.to_a.filter do |enrollment|
+        current_user.policy_for(enrollment.client).can_view_supplemental_data?
+      end
     end
 
     def load_authorized_data_set

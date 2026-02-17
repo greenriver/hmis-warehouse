@@ -31,11 +31,9 @@ To view a supplemental data set for a **Destination Client** (warehouse client),
 
 1.  **ACL User**: The user must be using the ACL-based permission system (Legacy role-based permissions are not supported for this feature).
 2.  **DataSet Permission**: The user must have the `can_view_supplemental_client_data` permission on a collection containing the specific `HmisSupplemental::DataSet`. Allows administrators to control access to specific types of data independently.
-3.  **DataSource Permission**: The user must have the `can_view_supplemental_client_data` permission on a collection containing the `GrdaWarehouse::DataSource` that owns the data set.
+3.  **DataSource Visibility**: The user must have the `can_view_supplemental_client_data` permission on the `GrdaWarehouse::DataSource` that owns the data set, or on any of its related child entities (such as Projects or Organizations).
 4.  **Source Client Matching**: The **Source Client** data source must match the data source on the `DataSet`. A destination client might have source records from multiple data sources, each contributing different supplemental data.
 5.  **Destination Client ROI**: The **Destination Client** must have an active Release of Information (ROI).
-
-
 
 ## Integration Points
 

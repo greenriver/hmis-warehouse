@@ -107,11 +107,13 @@
 
     if RailsDrivers.loaded.include?(:hmis_supplemental)
       supplemental_data_sets = []
-      if current_user.policy_for(@client).can_view_supplemental_data?
-        supplemental_data_sets = HmisSupplemental::DataSet.viewable_by(current_user).where(data_source_id: @client.source_clients.select(:data_source_id))
-      end
+      source_clients_by_data_source = @client.source_clients.group_by(&:data_source_id)
+      supplemental_data_sets = HmisSupplemental::DataSet.viewable_by(current_user)
 
       supplemental_data_sets.each do |data_set|
+        source_clients = source_clients_by_data_source[data_set.data_source_id] || []
+        next unless source_clients.any? { |sc| current_user.policy_for(sc).can_view_supplemental_data? }
+
         key = hmis_supplemental_data_set_client_data_set_path(id: @client.id, data_set_id: data_set.id)
         hmis.merge!({
           key => {
