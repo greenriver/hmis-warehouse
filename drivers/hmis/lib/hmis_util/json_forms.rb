@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-# add spec tests for this class
-# add feature documentation for form seeding and forms "managed in version control"
 module HmisUtil
   class JsonForms
     JsonFormException = Class.new(StandardError)
@@ -16,8 +14,6 @@ module HmisUtil
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
     def initialize(env_key: nil, enable_cded_generation_in_test: false)
-      # raise 'HMIS Data Source must exist' unless GrdaWarehouse::DataSource.hmis.exists?
-
       @env_key = env_key if env_key.presence # allow override for testing
       @enable_cded_generation_in_test = enable_cded_generation_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
     end
