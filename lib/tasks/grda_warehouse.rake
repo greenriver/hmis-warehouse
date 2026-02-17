@@ -12,56 +12,6 @@ namespace :grda_warehouse do
   desc 'Setup a sample GRDA warehouse database'
   task setup: [:migrate, :seed_data_sources]
 
-  namespace :ssn do
-    desc 'Report SSN changes that would result from the enhanced selector'
-    task :audit, [:use_oldest] => [:environment, 'log:info_to_stdout'] do |_task, args|
-      require 'progress_bar'
-      use_oldest_arg = args[:use_oldest]
-      use_oldest = use_oldest_arg.nil? || ActiveModel::Type::Boolean.new.cast(use_oldest_arg)
-
-      total = GrdaWarehouse::Hud::Client.destination.count
-      progress = ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
-
-      csv_output = CSV.generate(headers: true) do |csv|
-        csv << ['client_id', 'current_ssn', 'current_ssn_dq', 'proposed_ssn', 'proposed_ssn_dq']
-
-        default_dq = 99
-        default_date_created = 10.years.ago
-        data_source_ids = GrdaWarehouse::DataSource.pluck(:id)
-
-        GrdaWarehouse::Hud::Client.destination.preload(:source_clients).find_in_batches(batch_size: 1000) do |clients|
-          clients.each do |destination|
-            progress.increment!
-            source_clients = destination.source_clients.filter_map do |source|
-              next unless source.data_source_id.in?(data_source_ids)
-
-              source.SSNDataQuality ||= default_dq
-              source.DateCreated ||= default_date_created
-              source
-            end
-
-            next if source_clients.empty?
-
-            dest_attr = destination.attributes.with_indifferent_access.slice(:SSN, :SSNDataQuality)
-            proposed = GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr.dup, source_clients: source_clients, use_oldest: use_oldest)
-
-            next if [destination.SSN, destination.SSNDataQuality] == [proposed[:SSN], proposed[:SSNDataQuality]]
-
-            csv << [
-              destination.id,
-              destination.SSN,
-              destination.SSNDataQuality,
-              proposed[:SSN],
-              proposed[:SSNDataQuality],
-            ]
-          end
-        end
-      end
-
-      $stdout.write(csv_output)
-    end
-  end
-
   task defrag: [:environment] do
     puts 'Finding fragmented indexes'
     sql_fragged_report = <<-SQL.strip_heredoc
@@ -405,7 +355,7 @@ namespace :grda_warehouse do
     # Purge old soft-deleted records
     safely_execute do
       enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
-      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
+      PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
     end
 
     # Run CSG Engage export if ready
@@ -524,7 +474,7 @@ namespace :grda_warehouse do
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
     # Queue the cohort analytics generation job if it's not already queued
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: BaseJob::CACHE_REFRESH_PRIORITY_12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'
@@ -606,5 +556,29 @@ namespace :grda_warehouse do
   task :remove_water_from_shapes, [] => [:environment] do
     installer = GrdaWarehouse::Shape::Installer.new
     installer.remove_all_water!
+  end
+
+  desc 'Clean up orphaned contacts (contacts whose entities have been deleted)'
+  task :clean_orphaned_contacts, [] => [:environment, 'log:info_to_stdout'] do
+    project_contact_ids = GrdaWarehouse::Contact::Project.
+      where.not(entity_id: GrdaWarehouse::Hud::Project.select(:id)).
+      pluck(:id)
+
+    organization_contact_ids = GrdaWarehouse::Contact::Organization.
+      where.not(entity_id: GrdaWarehouse::Hud::Organization.select(:id)).
+      pluck(:id)
+
+    total = project_contact_ids.count + organization_contact_ids.count
+
+    if total.zero?
+      puts 'No orphaned contacts found.'
+    else
+      puts "Found #{total} orphaned contacts (#{project_contact_ids.count} project, #{organization_contact_ids.count} organization)"
+      puts 'Destroying orphaned project contacts...'
+      GrdaWarehouse::Contact::Project.where(id: project_contact_ids).destroy_all
+      puts 'Destroying orphaned organization contacts...'
+      GrdaWarehouse::Contact::Organization.where(id: organization_contact_ids).destroy_all
+      puts 'Done.'
+    end
   end
 end

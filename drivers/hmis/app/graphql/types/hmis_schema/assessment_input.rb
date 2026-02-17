@@ -46,7 +46,7 @@ module Types
         raise HmisErrors::ApiError, 'Assessment or Enrollment must be specified'
       end
 
-      raise HmisErrors::ApiError, 'Access Denied' unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
+      raise HmisErrors::ApiError, 'Access Denied' unless current_user.policy_for(enrollment, policy_type: :hmis_enrollment).can_edit?
 
       # Validation: can't create 2nd intake/exit assessment
       unless assessment.present?

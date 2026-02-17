@@ -22,7 +22,9 @@ module HudSpmReport::Generators::Fy2026
       @report.spm_enrollments.delete_all
       @report.mark_snapshot_started!
 
-      HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(@report)
+      @report.track_progress("#{self.class.question_number} - Snapshot") do
+        HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(@report)
+      end
       @report.mark_snapshot_completed!
 
       @report.spm_enrollments
@@ -68,6 +70,13 @@ module HudSpmReport::Generators::Fy2026
         generator: generator_klass,
         question_name: self.class.question_number,
       )
+    end
+
+    def run!
+      super
+    ensure
+      HudReports::ReportInstance.connection.clear_query_cache
+      GC.start
     end
   end
 end

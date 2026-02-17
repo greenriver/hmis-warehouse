@@ -68,6 +68,7 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
   config.include AccessControlSetup
+  config.include DelayedJobHelpers
 
   require_relative 'support/s3_utils'
   config.include S3Utils
@@ -156,4 +157,12 @@ def default_excluded_tables
   ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs', 'delayed_jobs', 'translations', 'schema_migrations'] +
   HmisCsvImporter::Utility.loader_table_classes.map(&:table_name) +
   HmisCsvImporter::Utility.importer_table_classes.map(&:table_name)
+end
+
+def path_for_warehouse_sign_in
+  new_user_session_path
+end
+
+def regex_for_warehouse_sign_in
+  /#{Regexp.escape(new_user_session_path)}/
 end

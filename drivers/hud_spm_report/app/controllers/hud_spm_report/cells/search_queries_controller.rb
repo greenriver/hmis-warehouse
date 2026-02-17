@@ -1,0 +1,41 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module HudSpmReport::Cells
+  # This controller is responsible for securely storing SPM cell search parameters
+  class SearchQueriesController < HudSpmReport::BaseController
+    include ::HudReports::Cells::SearchQueriesBehavior
+
+    private def report_param_name
+      :spm_id
+    end
+
+    private def question_param_name
+      :measure_id
+    end
+
+    private def build_search_path(query_id)
+      search_hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: @drilldown.measure,
+        id: @drilldown.cell,
+        query_id: query_id,
+        table: @drilldown.table,
+      )
+    end
+
+    private def build_cell_path
+      hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: @drilldown.measure,
+        id: @drilldown.cell,
+        table: @drilldown.table,
+      )
+    end
+  end
+end

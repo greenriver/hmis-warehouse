@@ -121,7 +121,7 @@ module HudSpmReport::Fy2026
                 and(arel_table[:prior_living_situation].between(200..299)).
                 and(arel_table[:los_under_threshold].eq(true))).
               or(arel_table[:previous_street_essh].eq(true).
-                and(arel_table[:prior_living_situation].between(300..499)).
+                and(arel_table[:prior_living_situation].between(0..99).or(arel_table[:prior_living_situation].between(300..499))).
                 and(arel_table[:los_under_threshold].eq(true)))))),
       )
     end
@@ -141,6 +141,7 @@ module HudSpmReport::Fy2026
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
+        report_instance.check_halt_status!
         members = []
         batch.each do |enrollment|
           client = enrollment.client
@@ -203,6 +204,21 @@ module HudSpmReport::Fy2026
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
+    end
+
+    def self.pluck_project_ids
+      project_table = GrdaWarehouse::Hud::Project.arel_table
+      joins(enrollment: :project).distinct.pluck(project_table[:id])
+    end
+
+    def self.search_columns
+      table = arel_table
+      [
+        table[:first_name],
+        table[:last_name],
+        table[:personal_id],
+        Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
+      ]
     end
 
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)

@@ -104,8 +104,8 @@ class Deployer
 
   def self.check_that_you_pushed_to_remote!
     branch = `git rev-parse --abbrev-ref HEAD`.chomp
-    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
-    our_commit = `git rev-parse #{branch}`.chomp
+    remote = `git ls-remote origin | grep #{Shellwords.escape("refs/heads/#{branch}")}$`.chomp
+    our_commit = `git rev-parse #{Shellwords.escape(branch)}`.chomp
 
     raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
   end
@@ -147,7 +147,7 @@ class Deployer
   end
 
   def _set_revision!
-    `echo #{revision} > #{_assets_path}/REVISION`
+    File.write(File.join(_assets_path, 'REVISION'), revision)
   end
 
   def _check_that_you_pushed_to_remote!
@@ -159,7 +159,7 @@ class Deployer
     data = resp.to_h[:authorization_data].first
     user, pass = Base64.decode64(data[:authorization_token]).split(/:/)
     server = data[:proxy_endpoint]
-    cmd = "docker login -u #{user} -p #{pass} #{server}"
+    cmd = "docker login -u #{Shellwords.escape(user)} -p #{Shellwords.escape(pass)} #{Shellwords.escape(server)}"
     _run(cmd, alt_msg: 'docker login')
   end
 

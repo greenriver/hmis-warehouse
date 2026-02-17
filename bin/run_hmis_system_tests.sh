@@ -107,7 +107,19 @@ cd "$ORIGINAL_CWD"
 # skip okta if it's set in our local env
 unset HMIS_OKTA_CLIENT_ID
 unset OKTA_DOMAIN
-RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec drivers/hmis/spec/system/hmis/*
+
+SPEC_PATH=${TARGET_SPECS:-"drivers/hmis/spec/system/hmis/*"}
+
+# Validate spec path if explicitly provided
+if [ -n "$TARGET_SPECS" ]; then
+  # Check if any files match the pattern (suppress output)
+  if ! ls $TARGET_SPECS >/dev/null 2>&1; then
+    echo "Warning: TARGET_SPECS='$TARGET_SPECS' may not match any files"
+    echo "Attempting to run anyway..."
+  fi
+fi
+
+RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec $SPEC_PATH
 
 TEST_EXIT_CODE=$?
 

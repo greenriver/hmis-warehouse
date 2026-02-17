@@ -16,7 +16,9 @@
   = link_to 'All Patients', health_team_patients_path(entity_id: 'All Patients'), class: btn_classes
 
 .mt-4.mb-6
-  = render 'warehouse_reports/health/agency_performance/table', report: @report, entities: @teams, entity_label: 'Team', totals: @totals, detail_path: [:detail, :health, :team_patients], permission: current_user.has_some_patient_access?
+  = render 'background_render', url: render_section_health_team_patients_path, fetch_params: {start_date: @start_date, end_date: @end_date, entity_id: @team_name} do
+    .rollup
+      .rollup-container.well
 
 .o-page__controls
   .o-page__search

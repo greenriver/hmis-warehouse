@@ -221,7 +221,12 @@ module HudApr::Generators::Shared::Fy2026
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
-          adjusted_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
+          calculated_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
+          # For non-PH projects, populate adjusted_move_in_date with entry date
+          # For PH projects, keep nil if they haven't moved in
+          is_ph_or_pfs_project = last_service_history_enrollment.ph? ||
+            (last_service_history_enrollment.other? && last_service_history_enrollment.project.pay_for_success?)
+          adjusted_move_in_date = calculated_move_in_date || (is_ph_or_pfs_project ? nil : last_service_history_enrollment.first_date_in_program)
           hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
 
@@ -334,8 +339,8 @@ module HudApr::Generators::Shared::Fy2026
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
             last_date_in_program: last_service_history_enrollment.last_date_in_program,
             last_name: source_client.LastName,
-            length_of_stay: stay_length(last_service_history_enrollment),
             bed_nights: bed_nights(last_service_history_enrollment),
+            length_of_stay: stay_length(last_service_history_enrollment),
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
@@ -533,33 +538,28 @@ module HudApr::Generators::Shared::Fy2026
         group_by(&:client_id).
         transform_values do |enrollments|
           enrollments.select do |enrollment|
-            nbn_with_service_or_so_with_cls?(enrollment)
+            nbn_with_service?(enrollment)
           end
         end.
         reject { |_, enrollments| enrollments.empty? }
     end
 
     # Uses Method 2 Active Clients by Date of Service from the HMIS Glossary
-    private def nbn_with_service_or_so_with_cls?(enrollment)
-      return true unless enrollment.nbn? || enrollment.so?
-      # In addition to the date of service, Method 2 should also include the [project exit date] as an indicator of an active client
-      return true if enrollment.last_date_in_program.present? && (@report.start_date..@report.end_date).cover?(enrollment.last_date_in_program)
+    private def nbn_with_service?(enrollment)
+      # Return early for non-NBN projects. The non-NBN types use Method 1 (always included),
+      # so no service check needed. Only NBN projects use Method 2 (requires service).
+      return true unless enrollment.nbn?
 
-      # anyone with service in the range (bed-night for ES NBN, CLS for SO)
-      @with_service ||= Set.new.tap do |enrollment_ids|
-        # ES NBN
-        enrollment_ids.merge(GrdaWarehouse::ServiceHistoryService.bed_night.
+      @with_service ||= (
+        # anyone with service in the range
+        GrdaWarehouse::ServiceHistoryService.bed_night.
           service_excluding_extrapolated.
           service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
           where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
-          pluck(:service_history_enrollment_id))
-        # SO
-        enrollment_ids.merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          joins(enrollment: [:current_living_situations, :project]).
-          merge(GrdaWarehouse::Hud::Project.so.where(id: @report.project_ids)).
-          merge(GrdaWarehouse::Hud::CurrentLivingSituation.between(start_date: @report.start_date, end_date: @report.end_date)).
-          pluck(:id))
-      end
+          pluck(:service_history_enrollment_id) +
+        # plus anyone with an exit within the range
+        enrollment_scope_without_preloads.exit_within_date_range(start_date: @report.start_date, end_date: @report.end_date).pluck(:id)).to_set
+
       @with_service.include?(enrollment.id)
     end
 

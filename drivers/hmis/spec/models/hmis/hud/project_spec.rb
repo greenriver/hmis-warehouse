@@ -258,4 +258,121 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(project.staff_assignments_enabled?).to eq(true)
     end
   end
+
+  describe '.with_ce_enabled' do
+    context 'with config matching by project_id' do
+      let!(:config) { create(:hmis_project_ce_config, project: project) }
+
+      it 'returns only the matching open project' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
+      end
+    end
+
+    context 'with config matching by project_type' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 2) }
+
+      it 'returns all open projects with matching project_type' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
+      end
+    end
+
+    context 'with config matching by organization_id' do
+      let!(:organization) { create(:hmis_hud_organization, data_source: data_source) }
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, organization: organization) }
+      let!(:config) { create(:hmis_project_ce_config, organization: organization) }
+
+      it 'returns all open projects in the matching organization' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
+      end
+    end
+
+    context 'with multiple configs' do
+      let!(:project_1) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+      let!(:project_2) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
+      let!(:project_3) { create(:hmis_hud_project, data_source: data_source, project_type: 3) }
+      let!(:config_1) { create(:hmis_project_ce_config, project: project_1) }
+      let!(:config_2) { create(:hmis_project_ce_config, project_type: 2) }
+      let!(:config_3) { create(:hmis_project_ce_config, organization: project_3.organization) }
+
+      it 'returns all matching open projects' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project_1, project_2, project_3)
+      end
+    end
+
+    context 'with disabled config' do
+      let!(:config) { create(:hmis_project_ce_config, project: project, enabled: false) }
+
+      it 'does not return projects with disabled config' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to be_empty
+      end
+    end
+
+    context 'with no matching config' do
+      it 'returns no projects' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to be_empty
+      end
+    end
+
+    context 'with closed project matching config' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+      let!(:closed_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1, operating_end_date: 1.year.ago) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 1) }
+
+      it 'does not return closed projects' do
+        expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
+        expect(Hmis::Hud::Project.with_ce_enabled).not_to include(closed_project)
+      end
+    end
+  end
+
+  describe '.with_ce_waitlists_enabled' do
+    context 'with config that supports waitlist referrals' do
+      let!(:config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true) }
+
+      it 'returns the matching open project' do
+        expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to contain_exactly(project)
+      end
+    end
+
+    context 'with config that does not support waitlist referrals' do
+      let!(:config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: false, receives_direct_referrals: true) }
+
+      it 'does not return the project' do
+        expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to be_empty
+      end
+    end
+
+    context 'with mixed configs' do
+      let!(:project_1) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+      let!(:project_2) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
+      let!(:config_1) { create(:hmis_project_ce_config, project: project_1, supports_waitlist_referrals: true) }
+      let!(:config_2) { create(:hmis_project_ce_config, project: project_2, supports_waitlist_referrals: false, receives_direct_referrals: true) }
+
+      it 'returns only projects with waitlist referrals enabled' do
+        expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to contain_exactly(project_1)
+      end
+    end
+
+    context 'with config matching by project_type' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+      let!(:closed_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1, operating_end_date: 1.year.ago) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 1, supports_waitlist_referrals: true) }
+
+      it 'returns all open projects with matching project_type' do
+        expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to contain_exactly(project)
+        expect(Hmis::Hud::Project.with_ce_waitlists_enabled).not_to include(closed_project)
+      end
+    end
+
+    context 'with config matching by organization_id' do
+      let!(:organization) { create(:hmis_hud_organization, data_source: data_source) }
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, organization: organization) }
+      let!(:config) { create(:hmis_project_ce_config, organization: organization, supports_waitlist_referrals: true) }
+
+      it 'returns all open projects in the matching organization' do
+        expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to contain_exactly(project)
+      end
+    end
+  end
 end

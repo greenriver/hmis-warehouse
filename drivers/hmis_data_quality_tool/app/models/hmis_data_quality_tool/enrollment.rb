@@ -24,6 +24,10 @@ module HmisDataQualityTool
     HOMELESS_LIVING_SITUATIONS = HudHelper.util.homeless_situations(as: :prior)
     INSTITUTIONAL_LIVING_SITUATIONS = HudHelper.util.institutional_situations(as: :prior)
     HOUSED_LIVING_SITUATIONS = HudHelper.util.temporary_situations(as: :prior) + HudHelper.util.permanent_situations(as: :prior)
+    REQUIRED_EMPLOYMENT_STAGES = [
+      HudHelper.util.data_collection_stage('Project entry', true),
+      HudHelper.util.data_collection_stage('Project exit', true),
+    ].freeze
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
@@ -171,6 +175,7 @@ module HmisDataQualityTool
         preload(
           :exit,
           :services,
+          :employment_educations,
           :current_living_situations,
           :disabilities_at_entry,
           :health_and_dvs_at_entry,
@@ -266,7 +271,7 @@ module HmisDataQualityTool
       report_item.iraq_ond = client.IraqOND
       report_item.military_branch = client.MilitaryBranch
       report_item.discharge_status = client.DischargeStatus
-      employment_education = enrollment.employment_educations.max_by(&:InformationDate)
+      employment_education = required_employment_education_in_range(enrollment, report.filter.start..report.filter.end)
       report_item.employed = employment_education&.Employed
       report_item.employment_type = employment_education&.EmploymentType
       report_item.not_employed_reason = employment_education&.NotEmployedReason
@@ -416,6 +421,16 @@ module HmisDataQualityTool
       report_item
     end
 
+    # Employment/Education required at Project Start and Project Exit (HUD-VASH, RHY, SSVF, GPD).
+    # Pull most recent entry or exit record within range.
+    private def required_employment_education_in_range(enrollment, range)
+      enrollment.employment_educations.select do |ee|
+        REQUIRED_EMPLOYMENT_STAGES.include?(ee.DataCollectionStage) &&
+          ee.InformationDate.present? &&
+          range.cover?(ee.InformationDate)
+      end.max_by(&:InformationDate)
+    end
+
     private def hp_targeting_criteria_complete(enrollment)
       # V7 HP Targeting Criteria in https://files.hudexchange.info/resources/documents/HMIS-Data-Dictionary-2024.pdf
       valid_yes_no_missing_options = HudHelper.util.yes_no_missing_options.keys - [99]
@@ -547,12 +562,24 @@ module HmisDataQualityTool
       item.funders.include?(45) # VA: GPD Case Management/Housing Retention
     end
 
+    # Determines if the enrollment is in a Pay for Success project (project type 7 with Funder 35)
+    # @param item [HmisDataQualityTool::Enrollment]
+    # @return [Boolean] true if the enrollment is in a Pay for Success project
+    def self.pay_for_success_project?(item)
+      return false unless item.project_type == 7 # Other project type
+      return false unless item.enrollment.present?
+
+      item.enrollment&.project&.pay_for_success?
+    end
+
     def self.requires_move_in_date?(item)
       return false unless hoh?(item)
 
       in_ph_and_not_rrh_sso = HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type) && ! rrh_sso_only?(item)
+      # SSO project with the 'VA: Grant Per Diem - Case Management/Housing Retention' funder
       sso_with_gpd_cm_hr = sso_with_gpd_cm_hr_funder?(item)
-      in_ph_and_not_rrh_sso || sso_with_gpd_cm_hr
+      pay_for_success = pay_for_success_project?(item)
+      in_ph_and_not_rrh_sso || sso_with_gpd_cm_hr || pay_for_success
     end
 
     def self.chronic_denominator?(item)
@@ -1212,7 +1239,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will eventually move into housing, these clients have been without a move-in date 90 days ore more, or have an invalid move-in date ',
-          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
+          required_for: 'HoH in PH (excluding RRH-SSO), SSO with VA: GPD CM/HR, and Pay for Success projects',
           detail_columns: default_detail_columns + [
             :project_type,
             :funders,
@@ -1236,7 +1263,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will eventually move into housing, these clients have been without a move-in date 180 days ore more, or have an invalid move-in date',
-          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
+          required_for: 'HoH in PH (excluding RRH-SSO), SSO with VA: GPD CM/HR, and Pay for Success projects',
           detail_columns: default_detail_columns + [
             :project_type,
             :funders,
@@ -1260,7 +1287,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will eventually move into housing, these clients have been without a move-in date 365 days or more, or have an invalid move-in date',
-          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
+          required_for: 'HoH in PH (excluding RRH-SSO), SSO with VA: GPD CM/HR, and Pay for Success projects',
           detail_columns: default_detail_columns + [
             :project_type,
             :funders,
@@ -1283,8 +1310,8 @@ module HmisDataQualityTool
         },
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',
-          description: 'Move-in date must be on or after the entry date, only checked for PH projects and SSO with VA: GPD CM/HR',
-          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
+          description: 'Move-in date must be on or after the entry date, only checked for PH projects, SSO with VA: GPD CM/HR, and Pay for Success projects',
+          required_for: 'HoH in PH (excluding RRH-SSO), SSO with VA: GPD CM/HR, and Pay for Success projects',
           detail_columns: default_detail_columns + [
             :project_type,
             :funders,
@@ -1304,8 +1331,8 @@ module HmisDataQualityTool
         },
         move_in_post_exit_issues: {
           title: 'Move-In After Exit Date',
-          description: 'Move-in date must be on or before the exit date, only checked for PH projects and SSO with VA: GPD CM/HR',
-          required_for: 'HoH in PH (excluding RRH-SSO) and SSO with VA: GPD CM/HR',
+          description: 'Move-in date must be on or before the exit date, only checked for PH projects, SSO with VA: GPD CM/HR, and Pay for Success projects',
+          required_for: 'HoH in PH (excluding RRH-SSO), SSO with VA: GPD CM/HR, and Pay for Success projects',
           detail_columns: default_detail_columns + [
             :project_type,
             :funders,
@@ -1317,6 +1344,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if HmisDataQualityTool::Enrollment.rrh_sso_only?(item)
+            return false unless HmisDataQualityTool::Enrollment.requires_move_in_date?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
 
             item.move_in_date > item.exit_date
@@ -1841,11 +1869,9 @@ module HmisDataQualityTool
           title: 'Discharge Status',
           description: 'Discharge Status is "Data not collected" (99) or blank for veterans',
           required_for: 'Veterans',
-          detail_columns: [
-            default_detail_columns + [
-              :veteran,
-              :discharge_status,
-            ],
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :discharge_status,
           ],
           denominator: ->(item) {
             funding_sources = [

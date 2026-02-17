@@ -65,11 +65,17 @@ Questions (or Measures in SPM) extend `HudReports::QuestionBase`. Each class cor
 
 1.  **Initialization**: Create a `ReportInstance` with parameters (date range, project selection)
 2.  **Queuing**: Generator queues `Reporting::Hud::RunReportJob`
-3.  **Execution**: Job instantiates the Generator and iterates through questions
+3.  **Execution**: Job instantiates the Generator and iterates through questions, tracking progress via checkpoints
 4.  **Data Gathering**: Questions fetch HMIS data (Enrollments, Clients, Services), filter by report parameters (CoC, Date Range), and calculate derived attributes (Age, Chronic Status)
 5.  **Snapshotting**: Some reports create intermediate snapshot records (e.g., `AprClient`, `SpmEnrollment`) that cache calculated values
 6.  **Aggregation**: Questions aggregate data into report format
 7.  **Completion**: Results are saved to `ReportInstance`
+
+## Progress Tracking
+
+The framework tracks report execution progress using checkpoints stored in `HudReports::ReportCheckpoint`.  Checkpoints are created automatically via `ReportInstance#track_progress`
+
+Report duration is calculated from completed checkpoints rather than wall-clock time.
 
 ## Data Management
 
@@ -85,6 +91,26 @@ Many reports use snapshot models to cache calculated values (e.g., "Chronic Home
 Examples:
 - **APR/CAPER**: `AprClient` stores age, household type, and disability status
 - **SPM**: `SpmEnrollment` normalizes enrollment data across project types
+
+## Cell Drilldowns
+
+Cell drilldowns allow users to view individual records behind aggregated report cells. Clicking a cell navigates to a paginated detail view showing the underlying data with optional client search and Excel export.
+
+### Architecture
+
+The drilldown system provides shared infrastructure for consistent behavior across reports:
+
+- **DrilldownContext**: Encapsulates cell parameters, scope building, and display metadata
+- **CellDrilldownConcern**: Controller concern providing standardized pagination, search, and export actions
+- **CellDetailExportBuilderBase**: Base class for asynchronous Excel exports with PII filtering
+
+Reports implement drilldowns by including the concern and providing report-specific configuration (export class, route helpers, scope preloading).
+
+### Search and Export
+
+Drilldowns support optional client search by name, ID, or Personal ID. Snapshot models opt-in by implementing a search interface.
+
+Excel exports run asynchronously via background jobs. Exports batch-process records to avoid memory issues and respect user PII permissions and project access policies.
 
 ## Retry and Idempotency
 
@@ -110,7 +136,8 @@ Default: `supports_idempotent_retry?` returns `false` (retries disabled).
 
 1. Completed questions are skipped (won't run again)
 2. Incomplete/failed questions are reset (cells and universe members deleted before re-running)
-3. Shared snapshot data (e.g., `SpmEnrollment`) is reused if already created
+3. Shared snapshot data (e.g., `SpmEnrollment`) is reused if already created (via `snapshot_status` check)
+4. Checkpoints track individual question execution, making retry progress visible. `ReportInstance#track_progress` automatically skips execution if a successful checkpoint already exists (e.g., 'Preparation' step).
 
 **With `supports_idempotent_retry? == false` (default, e.g., PIT)**:
 
@@ -136,6 +163,14 @@ Reports use several different patterns and are not uniform.
 - Not retry-safe: questions are interdependent
 - Retries are blocked when questions have completed
 
+## Helpful commands
+A report instance can be run as follows. Note, can only re-run idempotent reports like this
+```ruby
+instance = HudReports::ReportInstance.find(instance_id)
+generator = HopwaCaper::Generators::Fy2026::Generator
+Reporting::Hud::RunReportJob.new.perform(generator.name, instance, email: false)
+```
+
 ## Supported Reports
 
 The framework supports the following HUD reports:
@@ -147,3 +182,8 @@ The framework supports the following HUD reports:
 - **PATH** (`/app/drivers/hud_path_report`)
 - **PIT** (`/app/drivers/hud_pit`)
 - **SPM** (`/app/drivers/hud_spm_report`)
+
+
+## Related Code
+
+- **Auth Policy:** `app/models/grda_warehouse/auth_policies/hud_report_policy.rb`

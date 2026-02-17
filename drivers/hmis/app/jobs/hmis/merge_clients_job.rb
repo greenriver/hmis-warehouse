@@ -294,10 +294,8 @@ module Hmis
       end
     end
 
-    # Note: WarehouseChangesJob process kicks off MergeClientsJob for clients that
-    # share the same MCI Unique ID, so that is the most likely scenario. However,
-    # it's also possible to perform a manual merge in HMIS for two clients that
-    # may or may not share MCI Unique ID values.
+    # Clients being manually merged in HMIS may or may not share MCI Unique ID values.
+    # (WarehouseChangesJob no longer hard-merges clients with the same MCI Unique ID.)
     def merge_mci_unique_ids
       # If retained client has an MCI Unique ID, no action is needed.
       # Max 1 MCI Unique ID is permitted per client, so if any of

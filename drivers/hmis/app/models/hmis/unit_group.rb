@@ -27,10 +27,12 @@ module Hmis
     has_many :unit_types, through: :units # TODO(#8157) - Unit should have at most 1 unit type. Remove when no longer used
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
     has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
+    has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
+    has_many :pool_assignments, class_name: 'Hmis::Ce::Match::CandidatePoolUnitGroupAssignment', foreign_key: :unit_group_id
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
     belongs_to :workflow_template,
-               -> { latest_versions }, # choose the most recent version of the template
+               -> { published.latest_versions }, # choose the most recent published version of the template
                foreign_key: :workflow_template_identifier,
                primary_key: :identifier,
                class_name: 'Hmis::WorkflowDefinition::Template',
@@ -38,7 +40,7 @@ module Hmis
 
     # The workflow template to use for direct referrals to Units belonging to this Unit Group
     belongs_to :direct_referral_workflow_template,
-               -> { latest_versions }, # choose the most recent version of the template
+               -> { published.latest_versions }, # choose the most recent published version of the template
                foreign_key: :direct_referral_workflow_template_identifier,
                primary_key: :identifier,
                class_name: 'Hmis::WorkflowDefinition::Template',

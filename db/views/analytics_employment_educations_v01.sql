@@ -1,1 +1,21 @@
-SELECT * FROM "EmploymentEducation" WHERE "DateDeleted" is NULL
+SELECT "EmploymentEducationID",
+    "EnrollmentID",
+    "PersonalID",
+    "InformationDate",
+    "LastGradeCompleted",
+    "SchoolStatus",
+    "Employed",
+    "EmploymentType",
+    "NotEmployedReason",
+    "DataCollectionStage",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    id,
+    source_hash,
+    pending_date_deleted
+   FROM "EmploymentEducation"
+  WHERE ("DateDeleted" IS NULL)

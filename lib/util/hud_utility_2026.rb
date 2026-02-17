@@ -780,7 +780,7 @@ module HudUtility2026
 
   # SPM definition of CoC funded projects
   def spm_coc_funders
-    [2, 3, 4, 5, 43, 44, 54, 55, 56]
+    [2, 3, 4, 5, 6, 43, 44, 54, 55, 56]
   end
 
   def ce_event_joint_th_rrh_funders
@@ -829,6 +829,16 @@ module HudUtility2026
       individual_counseling: 1,
       family_counseling: 2,
       group_counseling: 3,
+    }
+  end
+
+  # field name => ID from Data Dictionary
+  def ce_participation_services_fields
+    {
+      prevention_assessment: 1,
+      crisis_assessment: 2,
+      housing_assessment: 3,
+      direct_services: 4,
     }
   end
 

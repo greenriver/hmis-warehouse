@@ -6,6 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# See @docs/features/coc-performance-measurement-dashboard.md
 module PerformanceMeasurement::Details
   extend ActiveSupport::Concern
 
@@ -173,16 +174,15 @@ module PerformanceMeasurement::Details
     memoize :other_projects
 
     def project_details(user, key)
-      details = results.project.left_outer_joins(:hud_project).
+      # Return all project Results for this metric
+      # The calculation methods only create Results for relevant project types,
+      # so if a Result exists, the metric is relevant (show 0 if denominator is 0)
+      # If no Result exists, the metric is not relevant (will show N/A in the view)
+      results.project.left_outer_joins(:hud_project).
         order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
         for_field(key).
         sort_by { |project| project&.hud_project&.name(user) || 'unknown' }.
         index_by(&:project_id)
-      # throw out any where there are no associated client_projects
-      # NOTE: we also need to throw these out in `inventory_sum`
-      cp_key = detail_for(key)[:calculation_column]
-      project_ids = client_projects.for_question(cp_key).distinct.pluck(:project_id)
-      details.select { |k, _| k.in?(project_ids) }.to_h
     end
     memoize :project_details
 
@@ -404,10 +404,10 @@ module PerformanceMeasurement::Details
           goal_unit: '%',
           goal_calculation: :people,
           denominator_label: '',
-          calculation_description: 'The difference (as a percentage) between the number of persons who entered a homeless project with no prior enrollments in HMIS (via the CoC\'s ES, SH, TH, and PH projects) during the reporting range and comparison range.',
+          calculation_description: 'The difference (as a percentage) between the number of persons who entered a ES, SH, TH, or PH project with no prior enrollments in HMIS (via the CoC\'s ES, SH, TH, and PH projects) during the reporting range and comparison range.',
           calculation_column: :first_time,
           measure: 'Measure 5',
-          table: '5.1',
+          table: '5.2',
           cell: 'C4',
           detail_columns: [
             'first_time',
@@ -812,7 +812,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People in RRH or PH with Move-in or Permanent Exit',
+          title: 'Percentage of People in PH except RRH with Move-in or Permanent Exit',
           goal_description: '**At least %{goal}%%** of persons remain housed in PH projects or exit to a permanent housing destination',
           goal_calculation: :destination_permanent,
           goal_description_brief: 'positive destinations',
@@ -822,7 +822,7 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons with a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project divided by the number of persons housed by PH projects.',
           calculation_column: :moved_in_destination_positive,
           measure: 'Measure 7',
-          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # NOTE: these are hard-coded in result_calculation.rb since it's somewhat complex
           # tables: [ '7b.2'],
           # cells: ['C2', 'C3'],
           detail_columns: [

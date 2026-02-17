@@ -1160,6 +1160,34 @@ FactoryBot.define do
                   },
                 ],
               },
+              {
+                'text': 'Decline Reason',
+                'type': 'CHOICE',
+                'link_id': 'decline_reason',
+                'mapping': {
+                  'custom_field_key': 'decline_reason',
+                },
+                'enable_when': [
+                  {
+                    'question': 'client_accepted',
+                    'operator': 'EQUAL',
+                    'answer_code': '0',
+                  },
+                ],
+                'enable_behavior': 'ALL',
+                'required': true,
+                'warn_if_empty': false,
+                'pick_list_options': [
+                  {
+                    'code': 'user_error',
+                    'label': 'HMIS user error',
+                  },
+                  {
+                    'code': 'client_not_interested',
+                    'label': 'Client not interested in the program',
+                  },
+                ],
+              },
             ],
           },
         ],

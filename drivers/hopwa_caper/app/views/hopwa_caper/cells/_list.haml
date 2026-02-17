@@ -1,16 +1,17 @@
 - project_ids = list.map(&:project_id).uniq
 - current_user.policy_context.preload_project_dependencies(project_ids)
+- presenter = presenter_class.new(list, @report, current_user, format: :html)
+- display_headers = presenter.headers
 .card
   .overflow-x-scroll
     %table.table.table-sm.table-bordered
       %thead.table-dark
         %tr
-          - headers.each_value do |header|
+          - display_headers.each_value do |header|
             %th= header
       %tbody
         - list.each do |record|
-          - pii_policy = current_user.reporting_policy_for_project(project_id: record.project_id)
           %tr
-            - headers.each_key do |field|
+            - display_headers.each_key do |field|
               %td{style: 'max-width: 600px;'}
-                = record.display_value(field, pii_policy: pii_policy, include_content_tag: true)
+                = presenter.display_value(record, field)

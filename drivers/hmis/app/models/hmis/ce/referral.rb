@@ -36,6 +36,7 @@ module Hmis::Ce
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
     belongs_to :custom_status, class_name: 'Hmis::Ce::CustomReferralStatus', foreign_key: :custom_referral_status_id, optional: true
+    belongs_to :decline_reason, class_name: 'Hmis::Ce::ReferralDeclineReason', optional: true
     has_one :ce_event, class_name: 'Hmis::Hud::Event', foreign_key: :ce_referral_id, dependent: :nullify
 
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
@@ -105,6 +106,20 @@ module Hmis::Ce
     scope :originated_from_waitlist, -> { where(referral_origin: WAITLIST_ORIGIN) }
     scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
 
+    # Free-text search for Referral
+    scope :matching_search_term, ->(search_term) do
+      search_term = search_term.strip
+
+      # If it's a possible PK, check if it's a Referral primary key
+      if possibly_pk?(search_term)
+        matching_referrals = where(id: search_term.to_i)
+        return matching_referrals if matching_referrals.exists?
+      end
+
+      # Search by client name
+      joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
+    end
+
     def self.sort_by_option(option)
       case option
       when :status
@@ -122,6 +137,8 @@ module Hmis::Ce
     validate :ce_template
     validate :consistent_data_source
     validate :consistent_project
+
+    before_save :clear_decline_reason_when_accepted
 
     # When referral status changes, its CustomReferralStatus (user-facing status) should also be updated.
     # See ReferralMessageHandler for example.
@@ -155,6 +172,21 @@ module Hmis::Ce
 
     def active?
       !accepted? && !rejected?
+    end
+
+    # Create ReferralParticipant records based on DefaultSwimlaneAssignment records
+    # for this referral's target project, unit group, organization, and data source.
+    # Assignments are additive - if multiple levels define default contacts, they all get assigned.
+    # This method is intended to be called within a transaction when the referral is created.
+    def create_default_participants!
+      default_swimlane_assignments = Hmis::Ce::DefaultSwimlaneAssignment.
+        for_unit_group_including_inherited(unit.unit_group).
+        where(swimlane_id: swimlanes.pluck(:id)).
+        includes(:user, :swimlane)
+
+      default_swimlane_assignments.each do |assignment|
+        participants.find_or_create_by!(user: assignment.user, swimlane: assignment.swimlane)
+      end
     end
 
     def self.apply_filters(input)
@@ -258,6 +290,10 @@ module Hmis::Ce
       return unless target_enrollment
 
       errors.add(:target_enrollment, 'must be in same project as referral') unless target_enrollment.project == target_project
+    end
+
+    def clear_decline_reason_when_accepted
+      self.decline_reason = nil if accepted?
     end
   end
 end

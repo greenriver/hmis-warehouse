@@ -1,1 +1,20 @@
-SELECT * FROM "Organization" WHERE "DateDeleted" is NULL
+SELECT "OrganizationID",
+    "OrganizationName",
+    "OrganizationCommonName",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    id,
+    dmh,
+    source_hash,
+    pending_date_deleted,
+    "VictimServicesProvider",
+    "VictimServiceProvider",
+    confidential,
+    description,
+    contact_information
+   FROM "Organization"
+  WHERE ("DateDeleted" IS NULL)

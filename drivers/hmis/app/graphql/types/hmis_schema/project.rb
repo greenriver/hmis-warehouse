@@ -26,6 +26,7 @@ module Types
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCeOpportunities
     include Types::HmisSchema::HasCeReferrals
+    include Types::HmisSchema::HasCeDefaultContacts
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -35,8 +36,7 @@ module Types
     def self.authorized?(object, ctx)
       # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
       # the viewable_by scope is our primary defense against this.
-      permission = :can_view_project
-      super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
+      super && ctx[:current_user].policy_for(object, policy_type: :hmis_project).can_view?
     end
 
     available_filter_options do
@@ -50,6 +50,7 @@ module Types
       arg :funder, [HmisSchema::Enums::Hud::FundingSource]
       arg :organization, [ID]
       arg :search_term, String
+      arg :ce_enabled, Boolean
     end
 
     hud_field :id, ID, null: false
@@ -88,8 +89,9 @@ module Types
     field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
     field :auto_exit_enabled, Boolean, null: false, description: 'Whether auto-exit is enabled in this project', method: :auto_exit_enabled?
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
-    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
     field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
+    ce_default_contacts_field
+    field :ce_swimlanes, [HmisSchema::CeSwimlane], null: false, description: 'Coordinated Entry swimlanes that are in templates used by this project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -165,6 +167,25 @@ module Types
         receives_direct_referrals: receives_direct_referrals,
         sends_direct_referrals: sends_referrals_config.present?,
       )
+    end
+
+    def ce_default_contacts
+      project_default_assignments = Hmis::Ce::DefaultSwimlaneAssignment.for_project_including_inherited(object)
+
+      # Merge swimlane scope in order to filter out irrelevant assignments from higher levels.
+      # For example: if there is a default data source assignment for swimlane XYZ, but swimlane XYZ is not used in project X.
+      project_swimlanes = Hmis::WorkflowDefinition::Swimlane.used_in_project(object)
+      project_assignments_for_project_swimlanes = project_default_assignments.joins(:swimlane).merge(project_swimlanes)
+
+      resolve_ce_default_contacts(project_assignments_for_project_swimlanes)
+    end
+
+    def ce_swimlanes
+      Hmis::WorkflowDefinition::Swimlane.ce.
+        viewable_by(current_user).
+        used_in_project(object).
+        order(:name, :id).
+        distinct
     end
 
     def assessments(**args)

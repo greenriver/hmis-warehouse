@@ -9,7 +9,7 @@
 module GrdaWarehouse
   module Tasks
     class UpdateHousingReleaseStatusesJob < ApplicationJob
-      queue_as :default
+      queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
       def perform
         Rails.logger.info 'Starting background update of housing release statuses'

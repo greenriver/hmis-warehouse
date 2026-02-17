@@ -40,11 +40,7 @@ module HopwaCaper
     scope :hud_services, -> { where(service_source: HUD_SERVICE_SOURCE) }
     scope :custom_services, -> { where(service_source: CUSTOM_SERVICE_SOURCE) }
 
-    delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, to: :enrollment
-
-    def project_id
-      enrollment.project.id
-    end
+    delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, :project_id, to: :enrollment
 
     def self.as_report_members
       current_scope.map do |record|
@@ -94,33 +90,6 @@ module HopwaCaper
         service_category_name: service_category&.name,
         service_type_name: service_type&.name,
       )
-    end
-
-    def self.detail_headers
-      special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
-      cols = special + (column_names - special - remove)
-      cols.map do |header|
-        label = case header
-        when 'service_source'
-          'Service Source'
-        when 'destination_client_id'
-          'Warehouse Client ID'
-        when 'personal_id'
-          'HMIS Personal ID'
-        when 'hmis_enrollment_id'
-          'HMIS Enrollment ID'
-        when 'service_id'
-          'HMIS Service ID'
-        when 'service_category_name'
-          'Service Category'
-        when 'service_type_name'
-          'Service Type'
-        else
-          header.humanize
-        end
-        [header, label]
-      end.to_h
     end
 
     def self.common_attributes(report:, enrollment:, client:, service_id:, service_source:, data_source_id:)

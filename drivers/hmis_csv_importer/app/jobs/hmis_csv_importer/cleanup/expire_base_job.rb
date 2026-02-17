@@ -26,9 +26,13 @@ module HmisCsvImporter::Cleanup
     include ElapsedTimeHelper
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-    # low priority
+    # low priority - eventual consistency cleanup
     def self.default_priority
-      10
+      BaseJob::MAINTENANCE_PRIORITY_15
+    end
+
+    def enqueue(job)
+      job.priority = self.class.default_priority
     end
 
     def perform(**args)

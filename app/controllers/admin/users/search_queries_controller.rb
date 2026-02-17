@@ -13,6 +13,11 @@ module Admin::Users
 
     def create
       safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      if safe_params['q'].to_s.strip.blank? # if no search query, redirect to users index
+        redirect_to admin_users_path
+        return
+      end
+
       query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
       if query.valid?
         redirect_to user_search_query_admin_users_path(id: query.id)

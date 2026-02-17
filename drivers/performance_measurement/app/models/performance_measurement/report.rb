@@ -6,6 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# See @docs/features/coc-performance-measurement-dashboard.md
 require 'memery'
 
 module PerformanceMeasurement
@@ -20,6 +21,7 @@ module PerformanceMeasurement
     include ArelHelper
     include PerformanceMeasurement::ResultCalculation
     include PerformanceMeasurement::Details
+    include ReportArchival
 
     include ::WarehouseReports::Publish
 
@@ -32,6 +34,12 @@ module PerformanceMeasurement
     has_many :results
     has_many :client_projects
     has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
+
+    # Active Storage attachments for CSV archival
+    has_many_attached :clients_csv
+    has_many_attached :projects_csv
+    has_many_attached :client_projects_csv
+    has_many_attached :results_csv
 
     after_initialize :filter
 
@@ -48,11 +56,11 @@ module PerformanceMeasurement
     end
 
     def reporting_spm_id
-      @reporting_spm_id ||= clients.detect { |c| c.reporting_spm_id.present? }&.reporting_spm_id
+      @reporting_spm_id ||= clients.where.not(reporting_spm_id: nil).pluck(:reporting_spm_id).first
     end
 
     def comparison_spm_id
-      @comparison_spm_id ||= clients.detect { |c| c.comparison_spm_id.present? }&.comparison_spm_id
+      @comparison_spm_id ||= clients.where.not(comparison_spm_id: nil).pluck(:comparison_spm_id).first
     end
 
     def using_static_spm_for_comparison?
@@ -125,7 +133,10 @@ module PerformanceMeasurement
       @filter ||= begin
         f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
         f.default_project_type_codes = self.class.default_project_type_codes
-        f.update((options || {}).with_indifferent_access)
+        opts = (options || {}).with_indifferent_access
+        f.update(opts)
+        # Force project type codes to what we chose, they really want to use the defaults if we told the report not to use any
+        f.project_type_codes = opts[:project_type_codes] if opts.key?(:project_type_codes)
         f.update(start: f.end - 1.years + 1.days)
         f
       end
@@ -231,12 +242,20 @@ module PerformanceMeasurement
       processed_filter = filter
       # report uses only one coc_code, need to adjust for the HUD filter that needs coc_codes
       processed_filter.coc_codes = [processed_filter.coc_code]
-      processed_filter.project_ids = processed_filter.effective_project_ids
+      # If we end up with no active projects (e.g., explicit project selection outside operating dates),
+      # an empty array behaves like "no filter" in criteria application. Use a sentinel id to ensure
+      # the scope is empty instead of unintentionally widening to all projects in the CoC.
+      processed_filter.project_ids = active_project_ids(processed_filter.effective_project_ids).presence || [0]
       scope = processed_filter.apply(report_scope_source)
       scope = filter_for_range(scope)
 
       reset_filter
       scope
+    end
+
+    # Limit project_ids ton only those operating during the report range
+    private def active_project_ids(project_ids)
+      GrdaWarehouse::Hud::Project.where(id: project_ids).active_during(filter.range).pluck(:id)
     end
 
     def report_scope_source
@@ -1154,7 +1173,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['5.1', 'C4']], # TODO: confirm if we want to pivot to 5.2
+          cells: [['5.2', 'C4']],
           title: 'First Time',
           measure: :m5,
           history_source: :m5_history,
@@ -1580,6 +1599,28 @@ module PerformanceMeasurement
           type: 'text/css',
         },
       ]
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+        projects_csv: {
+          association: :projects,
+          filename: -> { "#{report_type}-projects-#{id}.csv" },
+        },
+        client_projects_csv: {
+          association: :client_projects,
+          filename: -> { "#{report_type}-client_projects-#{id}.csv" },
+        },
+        results_csv: {
+          association: :results,
+          filename: -> { "#{report_type}-results-#{id}.csv" },
+        },
+      }
     end
 
     private def asset_path(asset)

@@ -60,15 +60,19 @@ module HudApr::CeApr::CeAprConcern
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCeAprExport.new
     end
+  end
 
-    def possible_generator_classes
-      {
-        fy2020: HudApr::Generators::CeApr::Fy2020::Generator,
-        fy2021: HudApr::Generators::CeApr::Fy2021::Generator,
-        fy2023: HudApr::Generators::CeApr::Fy2023::Generator,
-        fy2024: HudApr::Generators::CeApr::Fy2024::Generator,
-        fy2026: HudApr::Generators::CeApr::Fy2026::Generator,
-      }
-    end
+  def self.possible_generator_classes
+    {
+      fy2020: HudApr::Generators::CeApr::Fy2020::Generator,
+      fy2021: HudApr::Generators::CeApr::Fy2021::Generator,
+      fy2023: HudApr::Generators::CeApr::Fy2023::Generator,
+      fy2024: HudApr::Generators::CeApr::Fy2024::Generator,
+      fy2026: HudApr::Generators::CeApr::Fy2026::Generator,
+    }
+  end
+
+  def possible_generator_classes
+    HudApr::CeApr::CeAprConcern.possible_generator_classes
   end
 end

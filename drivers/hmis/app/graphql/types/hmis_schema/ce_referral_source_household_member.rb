@@ -27,7 +27,7 @@ module Types
     end
 
     def client_name
-      client = load_ar_association(object, :client)
+      client = load_ar_client_association(object)
       if can_view_client && current_permission?(permission: :can_view_client_name, entity: client)
         client.brief_name
       else
@@ -46,7 +46,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client)
+      load_ar_client_association(object)
     end
   end
 end

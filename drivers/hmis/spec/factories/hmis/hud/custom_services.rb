@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :hmis_custom_service, class: 'Hmis::Hud::CustomService' do
+  factory :hmis_custom_service, class: 'Hmis::Hud::CustomService', parent: :hmis_base_factory do
     data_source { association :hmis_data_source }
     user { association :hmis_hud_user, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }

@@ -11,6 +11,7 @@
 # and 24 months.
 module HudSpmReport::Generators::Fy2026
   class MeasureFive < MeasureBase
+    # Universe: SpmEnrollments
     def self.question_number
       'Measure 5'
     end
@@ -94,8 +95,12 @@ module HudSpmReport::Generators::Fy2026
       answer.add_members(prior_members)
       answer.update(summary: prior_members.count)
 
+      # include universe for performance metrics dependent report
+      first_time_members = report_members.
+        where.not(client_id: prior_members.preload(:universe_membership).map { |u| u.universe_membership.client_id })
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: report_members.count - prior_members.count)
+      answer.update(summary: first_time_members.count)
+      answer.add_members(first_time_members)
     end
 
     def create_universe(universe_name, project_types)
