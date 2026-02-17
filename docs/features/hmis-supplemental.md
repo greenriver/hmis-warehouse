@@ -11,7 +11,7 @@ The feature is implemented as a driver in `drivers/hmis_supplemental`.
 - **DataSet** (`HmisSupplemental::DataSet`): Defines the configuration for a supplemental data set, including its owner type (Client or Enrollment), field definitions (JSON config), and S3 credentials.
 - **Field** (`HmisSupplemental::Field`): A virtual object representing a single column in the data set. It handles value casting and formatting for different data types (string, int, float, boolean, date).
 - **FieldValue** (`HmisSupplemental::FieldValue`): Stores the actual data points for a specific client or enrollment. Values are linked via an `owner_key` (e.g., `client/<personal_id>` or `enrollment/<enrollment_id>`).
-- **ImportJob** (`HmisSupplemental::ImportJob`): A background job that downloads CSV data from S3, parses it according to the `DataSet` configuration, and populates `FieldValue` records.
+- **ImportJob** (`HmisSupplemental::ImportJob`): Core import process, see below
 
 ## Data Import
 
@@ -22,10 +22,6 @@ Data import is handled by `HmisSupplemental::ImportJob`.
 - Imports data into the `hmis_supplemental_field_values` table in the warehouse database.
 
 ## Visibility and Permissions
-
-Access to supplemental data is controlled through the collections-based permission system and requires a "defense in depth" multi-layered authorization check.
-
-### Permission Requirements
 
 To view a supplemental data set for a **Destination Client** (warehouse client), the following conditions must be met:
 
@@ -60,7 +56,6 @@ To view a supplemental data set for a **Destination Client** (warehouse client),
 - **Data Deduplication**:
   - Single-valued fields: The first encountered value for a given owner and field key is preserved.
   - Multi-valued fields: All values are collected and joined with a delimiter (`|`).
-
 
 ## Notes
 - feature is also referred to as "Configurable Client Record Pages"
