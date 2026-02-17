@@ -11,36 +11,31 @@
 # a "tab" on the client dashboard for viewing a data set.
 # This controller is for both client and enrollment-based data sets
 module HmisSupplemental
-  class ClientDataSetsController < ApplicationControllerV2
+  class ClientDataSetsController < ApplicationController
     include ClientController
     include ClientPathGenerator
     include ClientDependentControllers
 
+    before_action :require_can_view_clients!
     before_action :set_client
-
-    authorize_with do
-      current_user.policy_for(@client).can_view_supplemental_data?
-    end
 
     def show
       @data_set = load_authorized_data_set
-      @groups = []
+      @groups = authorized_groups
+      not_authorized! unless @groups.present?
+    end
+
+    def authorized_groups
       case @data_set.owner_type
       when 'client'
-        @groups = source_clients.map do |client|
-          # extra safety check
-          raise if client.data_source != @data_set.data_source
-
+        source_clients.map do |client|
           {
             title: client.data_source.name,
             values: @data_set.field_values.for_owner(client).index_by(&:field_key),
           }
         end
       when 'enrollment'
-        @groups = source_enrollments.map do |enrollment|
-          # extra safety check
-          raise if enrollment.data_source != @data_set.data_source
-
+        source_enrollments.map do |enrollment|
           {
             title: "#{enrollment.entry_date.to_fs} #{enrollment.project.name}",
             values: @data_set.field_values.for_owner(enrollment).index_by(&:field_key),

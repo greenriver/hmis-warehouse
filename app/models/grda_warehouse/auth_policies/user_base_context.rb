@@ -12,7 +12,7 @@ require 'memery'
 
 class GrdaWarehouse::AuthPolicies::UserBaseContext
   include Memery
-  attr_accessor :user
+  attr_reader :user
 
   EMPTY_SET = Set.new.freeze
 

@@ -19,6 +19,13 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
       expect(loader.get(client.destination_id)).to be true
     end
 
+    it 'returns false when ROI coc_codes do not match user coc_codes' do
+      # ROI restricted to a specific CoC; user has no CoC codes (no collections assigned)
+      create(:client_roi_authorization, destination_client: client.destination, status: 'full', coc_codes: ['CO-500'])
+
+      expect(loader.get(client.destination_id)).to be false
+    end
+
     it 'caches the result' do
       expect(GrdaWarehouse::ClientRoiAuthorization).to receive(:active).once.and_call_original
       loader.get(client.destination_id)
@@ -32,7 +39,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
     it 'loads multiple clients in one query' do
       expect(GrdaWarehouse::ClientRoiAuthorization).to receive(:active).once.and_call_original
       loader.preload([client.destination_id, client2.destination_id])
-      
+
       # Should not trigger more queries
       expect(GrdaWarehouse::ClientRoiAuthorization).not_to receive(:active)
       loader.get(client.destination_id)

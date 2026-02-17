@@ -94,6 +94,17 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
         )
         expect(assigns(:groups).size).to eq(2)
       end
+
+      context 'without ROI' do
+        before do
+          destination_client.roi_authorizations.delete_all
+        end
+
+        it 'denies access' do
+          get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
+          expect(response).to redirect_to(root_path)
+        end
+      end
     end
   end
 
@@ -118,7 +129,7 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
   context 'without any access' do
     it 'denies access' do
       get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
     end
   end
 end

@@ -204,6 +204,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
           expect(policy.can_view_supplemental_data?).to be true
         end
 
+        it 'denies supplemental data permission without the required role permission' do
+          role.update!(can_view_supplemental_client_data: false)
+          expect(policy.can_view_supplemental_data?).to be false
+        end
+
         it 'denies supplemental data permission without ROI' do
           # Clear ROI
           client.destination_client.roi_authorizations.delete_all

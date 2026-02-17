@@ -68,7 +68,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
   #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
   # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
-  memoize def roi_authorized?
+  def roi_authorized?
     return false unless client.data_source&.obey_consent?
 
     destination = client.destination_client
