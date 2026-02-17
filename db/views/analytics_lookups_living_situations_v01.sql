@@ -1,1 +1,4 @@
-SELECT * FROM "lookups_living_situations"
+SELECT id,
+    value,
+    text
+   FROM lookups_living_situations

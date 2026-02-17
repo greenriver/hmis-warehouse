@@ -21,10 +21,6 @@
 # 2.  **Association**: Once a pool is created, the builder associates the relevant
 #     `UnitGroup`s with it via the `candidate_pool_id` foreign key.
 #
-# 3.  **Cleanup**: Pools that are no longer referenced by any `UnitGroup` or active
-#     `Opportunity` are considered "orphaned" and are automatically deleted after a
-#     configurable period.
-#
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
     # Bulk-managed, does not log to paper_trail
@@ -34,6 +30,7 @@ module Hmis::Ce::Match
     has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: :candidate_pool_id, dependent: :restrict_with_exception
     has_many :opportunities, through: :unit_groups, class_name: 'Hmis::Ce::Opportunity'
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
+    has_many :unit_group_assignments, class_name: 'Hmis::Ce::Match::CandidatePoolUnitGroupAssignment', foreign_key: :candidate_pool_id
 
     attr_readonly :requirement_expression, :priority_expression
 
@@ -43,13 +40,6 @@ module Hmis::Ce::Match
 
     scope :active, -> {
       joins(:unit_groups).merge(Hmis::UnitGroup.with_ce_waitlists_enabled).distinct
-    }
-
-    # Orphan pools can be safely deleted after a period if inactivity.
-    # A pool is orphaned if it is not referenced by any unit group.
-    scope :orphaned, -> {
-      referenced_ids = ::Hmis::UnitGroup.where.not(candidate_pool_id: nil).distinct.pluck(:candidate_pool_id)
-      where.not(id: referenced_ids)
     }
 
     def self.mark_all_dirty
