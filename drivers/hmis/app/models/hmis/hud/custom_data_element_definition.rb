@@ -43,7 +43,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
 
-  # reporting_key is stricter: must be lowercase, start with a letter, ASCII, max 63 chars
+  # reporting_key is stricter than key. Must be lowercase, start with a letter, no hyphens, max 63 chars
   validates_format_of :reporting_key, with: /\A[a-z][a-z0-9_]{0,62}\z/, allow_nil: true
 
   scope :for_type, ->(owner_type) do
@@ -58,7 +58,8 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 
-  # Generate and set a valid, unique reporting_key for this instance
+  # Generate and set a valid, unique reporting_key for this instance.
+  # Caller is responsible for saving the instance.
   # @param unpersisted_reserved_keys [Set<Array>] Optional set of [owner_type, reporting_key] pairs
   # that are reserved (we must avoid conflicting with them),
   # but aren't yet persisted (so a call to `exists?` won't find them).
@@ -67,17 +68,17 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     self.reporting_key = self.class.generate_reporting_key(key, owner_type: owner_type, unpersisted_reserved_keys: unpersisted_reserved_keys)
   end
 
-  # Generate a valid, unique reporting_key from a given key
-  # Exposed as a class method for generating reporting_keys when bulk creating CDEDs.
+  # Generate a valid, unique reporting_key from a given key.
+  # Exposed as a class method for use when bulk creating CDEDs.
   # See comment on the instance method above.
   def self.generate_reporting_key(key, owner_type:, unpersisted_reserved_keys: Set.new)
-    # Start with lowercase and replace non-alphanumeric characters with underscores
+    # Lowercase and replace non-alphanumeric characters with underscores
     normalized = key.downcase.gsub(/[^a-z0-9_]/, '_')
 
     # Ensure it starts with a letter
     normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
 
-    # Truncate to 63 characters if needed
+    # Truncate to 63 characters
     normalized = normalized[0..62]
 
     # Check uniqueness
@@ -101,12 +102,10 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     raise "Unique reporting_key generation failed after #{max_attempts} attempts for key: #{key}"
   end
 
-  # Check if a reporting_key exists either in the database or in unpersisted reserved keys
+  # Check if a reporting_key exists either in the database or in unpersisted reserved keys if provided
   def self.reporting_key_exists?(reporting_key, owner_type, unpersisted_reserved_keys = Set.new)
-    # Check in unpersisted reserved keys first
     return true if unpersisted_reserved_keys.include?([owner_type, reporting_key])
 
-    # Check in database
     exists?(owner_type: owner_type, reporting_key: reporting_key)
   end
 

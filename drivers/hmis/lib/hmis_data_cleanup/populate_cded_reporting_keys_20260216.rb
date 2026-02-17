@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# One-time task queued on deploy using TaskQueue to populate reporting_keys for CDEDs.
+# Finds all CDEDs with null reporting_key and attempts to generate a valid, unique reporting_key based on the key.
+# If generation fails, the CDED is skipped and logged to slack/sentry for manual cleanup.
+# To run manually from rails console: HmisDataCleanup::PopulateCdedReportingKeys20260216.populate!
 module HmisDataCleanup
   class PopulateCdedReportingKeys20260216
     include NotifierConfig
@@ -15,12 +19,10 @@ module HmisDataCleanup
       skipped = []
       total_processed = 0
 
-      # Find all CDEDs with null reporting_key
       Hmis::Hud::CustomDataElementDefinition.where(reporting_key: nil).find_each do |cded|
         total_processed += 1
 
         begin
-          # Generate and set the reporting_key
           cded.generate_reporting_key
           cded.save!
           updated_count += 1

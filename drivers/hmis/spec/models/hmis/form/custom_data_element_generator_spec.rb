@@ -77,6 +77,19 @@ RSpec.describe Hmis::Form::CustomDataElementGenerator, type: :model do
             expect(cdeds.sole.key).to eq(added_key)
           end
         end
+
+        # simple path tested here; more detailed testing of the reporting_key generation is in custom_data_element_definition_spec.rb
+        it 'generates valid reporting_key for new CDEDs' do
+          generator = described_class.new(
+            definition: definition,
+            create_missing_mappings: true,
+            data_source: data_source,
+          )
+
+          cdeds = generator.run
+          expect(cdeds.sole.reporting_key).to be_present
+          expect(cdeds.sole.reporting_key).to eq(cdeds.sole.key)
+        end
       end
 
       context 'when create_missing_mappings is false' do
@@ -225,21 +238,6 @@ RSpec.describe Hmis::Form::CustomDataElementGenerator, type: :model do
 
           expect { generator.run }.to raise_error(/repeats mismatch/)
         end
-      end
-    end
-
-    describe 'reporting_key generation' do
-      # simple happy-path tested here; more detailed testing of the reporting_key generation is in custom_data_element_definition_spec.rb
-      it 'generates valid reporting_key for new CDEDs' do
-        generator = described_class.new(
-          definition: definition,
-          create_missing_mappings: true,
-          data_source: data_source,
-        )
-
-        cdeds = generator.run
-        expect(cdeds.sole.reporting_key).to be_present
-        expect(cdeds.sole.reporting_key).to match(/\A[a-z][a-z0-9_]{0,62}\z/)
       end
     end
   end

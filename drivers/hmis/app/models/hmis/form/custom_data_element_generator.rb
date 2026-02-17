@@ -37,7 +37,7 @@ module Hmis
         @hud_user = hud_user || Hmis::Hud::User.system_user(data_source_id: @data_source.id)
         @create_missing_mappings = create_missing_mappings
         @set_form_definition_identifier = set_form_definition_identifier
-        @reporting_keys_in_batch = Set.new
+        @reporting_keys_in_batch = Set.new # track reporting keys we have seen so far in this batch, to avoid conflicts when bulk-saving
       end
 
       def run
@@ -79,7 +79,7 @@ module Hmis
           # Use referenced key for CDED if present, otherwise generate a new unique key based on link_id
           cded_key = custom_field_key || ensure_unique_key("#{cded_key_prefix}_#{item.link_id}", owner_type: owner_type)
 
-          # Generate reporting_key from cded_key, ensuring it's valid
+          # Generate reporting_key based on cded_key
           reporting_key = Hmis::Hud::CustomDataElementDefinition.generate_reporting_key(
             cded_key,
             owner_type: owner_type,
