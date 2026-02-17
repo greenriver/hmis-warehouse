@@ -187,39 +187,4 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       end
     end
   end
-
-  describe 'GET /cohorts/:cohort_id/cohort_clients/new with actives age filter' do
-    let(:start_date) { 1.month.ago.to_date }
-    let(:end_date) { 1.day.ago.to_date }
-    let(:actives_params) do
-      {
-        actives: {
-          start: start_date,
-          end: end_date,
-          min_days_homeless: 0,
-          age_ranges: ['under_eighteen', 'eighteen_to_twenty_four'],
-        },
-      }
-    end
-
-    context 'when logged in with sufficient permissions' do
-      before { sign_in user }
-
-      it 'uses Filters::Criteria::FilterForAge when age_ranges are present' do
-        filter_for_age = instance_double(Filters::Criteria::FilterForAge, applies?: true)
-        allow(Filters::Criteria::FilterForAge).to receive(:new).and_return(filter_for_age)
-        allow(filter_for_age).to receive(:apply).and_return(GrdaWarehouse::ServiceHistoryEnrollment.none)
-
-        get new_cohort_cohort_client_path(cohort_id: cohort.id), params: actives_params
-
-        expect(Filters::Criteria::FilterForAge).to have_received(:new) do |args|
-          expect(args[:input]).to be_a(Filters::FilterBase)
-          expect(args[:input].age_ranges).to contain_exactly(:under_eighteen, :eighteen_to_twenty_four)
-          expect(args[:input].start).to eq(start_date)
-          expect(args[:config].join_clients_method).to eq(:client)
-        end
-        expect(filter_for_age).to have_received(:apply)
-      end
-    end
-  end
 end

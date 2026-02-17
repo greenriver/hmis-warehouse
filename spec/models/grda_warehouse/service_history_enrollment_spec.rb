@@ -161,35 +161,18 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
 
     subject(:scope_call) { described_class.in_age_ranges(age_ranges, on_date: on_date) }
 
-    context 'when filtering for under_eighteen' do
-      let(:age_ranges) { [:under_eighteen] }
+    {
+      under_eighteen: { enrollment: :enrollment_under_18, description: 'clients under 18' },
+      eighteen_to_twenty_four: { enrollment: :enrollment_18_to_24, description: 'clients between 18 and 24' },
+      twenty_five_to_sixty_one: { enrollment: :enrollment_25_to_61, description: 'clients between 25 and 61' },
+      over_sixty_one: { enrollment: :enrollment_over_61, description: 'clients over 61' },
+    }.each do |age_range, config|
+      context "when filtering for #{age_range}" do
+        let(:age_ranges) { [age_range] }
 
-      it 'returns only enrollments for clients under 18' do
-        expect(scope_call).to contain_exactly(enrollment_under_18)
-      end
-    end
-
-    context 'when filtering for eighteen_to_twenty_four' do
-      let(:age_ranges) { [:eighteen_to_twenty_four] }
-
-      it 'returns only enrollments for clients between 18 and 24' do
-        expect(scope_call).to contain_exactly(enrollment_18_to_24)
-      end
-    end
-
-    context 'when filtering for twenty_five_to_sixty_one' do
-      let(:age_ranges) { [:twenty_five_to_sixty_one] }
-
-      it 'returns only enrollments for clients between 25 and 61' do
-        expect(scope_call).to contain_exactly(enrollment_25_to_61)
-      end
-    end
-
-    context 'when filtering for over_sixty_one' do
-      let(:age_ranges) { [:over_sixty_one] }
-
-      it 'returns only enrollments for clients over 61' do
-        expect(scope_call).to contain_exactly(enrollment_over_61)
+        it "returns only enrollments for #{config[:description]}" do
+          expect(scope_call).to contain_exactly(send(config[:enrollment]))
+        end
       end
     end
 
