@@ -17,14 +17,13 @@ module HmisSupplemental
     include ClientDependentControllers
 
     before_action :set_client
-    before_action :load_authorized_data_set
 
     authorize_with do
-      current_user.policy_for(@client).can_view_supplemental_data? &&
-      current_user.policy_for(@data_set).can_view?
+      current_user.policy_for(@client).can_view_supplemental_data?
     end
 
     def show
+      @data_set = load_authorized_data_set
       @groups = []
       case @data_set.owner_type
       when 'client'
@@ -69,7 +68,7 @@ module HmisSupplemental
     end
 
     def load_authorized_data_set
-      @data_set = data_set_scope.find(params[:data_set_id])
+      data_set_scope.find(params[:data_set_id])
     end
 
     def data_set_scope

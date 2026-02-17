@@ -83,9 +83,5 @@ module HmisSupplemental
     def full_object_key
       [remote_credential.s3_prefix, object_key].compact.join('/')
     end
-
-    def policy_class
-      GrdaWarehouse::AuthPolicies::SupplementalDataSetPolicy
-    end
   end
 end

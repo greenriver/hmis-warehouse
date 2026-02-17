@@ -12,6 +12,7 @@ The system consists of three main components:
 
 - **Entry Point**: `User#policy_for(resource)` or `User#reporting_policy_for_project(project_id)` are the primary ways to obtain a policy.
 - **Context Objects**: `UserAclContext` and `UserLegacyContext` encapsulate permission lookups. They provide a common interface for policies to query permissions without knowing how they are stored or resolved.
+- **Context Loaders**: Specialized objects (e.g., `ClientRoiLoader`) that provide cached data loading for policies to avoid N+1 queries.
 - **Policies**: Concrete classes inheriting from `BasePolicy` that define domain-specific authorization logic.
 
 ### Relationship Diagram
@@ -22,6 +23,8 @@ graph TD
     Policy -->|queries| Context
     Context -->|resolves| ACLs[ACL System]
     Context -->|resolves| Legacy[Legacy System]
+    Context -->|uses| Loaders[Context Loaders]
+    Loaders -->|optimizes| DB[(Database)]
     Policy -->|validates| Resource
 ```
 
@@ -30,10 +33,8 @@ graph TD
 Policies are located in `app/models/grda_warehouse/auth_policies/`.
 
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
-- `ProjectPolicy`: Authorization for HUD projects.
-- `SourceClientPolicy`: Authorization for HUD clients, including complex logic for ROI (Release of Information) and data sharing.
-- `DataSourcePolicy`: Authorization for data sources.
-- `ProjectPiiPolicy`: Specialized policy for controlling access to Personally Identifiable Information (PII) in reporting contexts.
+- **Resource Policies**: Specialized policies for warehouse resources (e.g., `ProjectPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
+- **Reporting Policies**: Specialized policies for controlling access to sensitive data in reporting contexts (e.g., `ProjectPiiPolicy`).
 
 ## Usage
 
@@ -56,7 +57,12 @@ When checking policies for multiple resources (e.g., in a list view), the contex
 
 ```ruby
 context = current_user.policy_context
-context.preload_project_dependencies(project_ids)
+
+# Preload resource permissions
+context.preload_some_dependencies(resource_ids)
+
+# Preload through a context loader
+context.some_loader.preload(resource_ids)
 ```
 
 ## PII Policies

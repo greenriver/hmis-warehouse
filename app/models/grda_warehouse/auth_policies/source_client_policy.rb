@@ -33,8 +33,8 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     # supplemental data sets do not support legacy role-based permissions
     return false unless user.using_acls?
 
-    # require specific data source-level permission
-    return false unless context.data_source_role_permissions(client.data_source_id).include?(:can_view_supplemental_client_data)
+    # permission check
+    return false unless resource_permissions.include?(:can_view_supplemental_client_data)
 
     # ensure the client has an active roi
     return false unless roi_authorized?

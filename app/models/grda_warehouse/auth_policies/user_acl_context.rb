@@ -28,11 +28,6 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     permissions_for_collection_ids(collection_ids)
   end
 
-  memoize def supplemental_data_set_role_permissions(data_set_id)
-    collection_ids = supplemental_data_set_collection_ids(data_set_id)
-    permissions_for_collection_ids(collection_ids)
-  end
-
   memoize def direct_client_role_permissions(client_id)
     collection_ids = direct_client_collection_ids(client_id)
     permissions_for_collection_ids(collection_ids)
@@ -102,15 +97,6 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
-      where.not(collection_id: nil).
-      pluck(:collection_id)
-    (active_collection_ids & ids).to_a.sort
-  end
-
-  def supplemental_data_set_collection_ids(supplemental_data_set_id)
-    ids = GrdaWarehouse::GroupViewableEntity.
-      where(entity_type: HmisSupplemental::DataSet.sti_name).
-      where(entity_id: supplemental_data_set_id).
       where.not(collection_id: nil).
       pluck(:collection_id)
     (active_collection_ids & ids).to_a.sort

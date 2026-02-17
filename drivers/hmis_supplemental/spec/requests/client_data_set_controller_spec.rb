@@ -48,12 +48,6 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
     create(:access_control, role: ds_role, collection: ds_collection, user_group: ds_user_group)
     ds_collection.set_viewables({ supplemental_data_sets: [data_set.id] })
 
-    # Grant data source permission too (required by SupplementalDataSetPolicy)
-    ds_collection.set_viewables({
-                                  supplemental_data_sets: [data_set.id],
-                                  data_sources: [data_source.id],
-                                })
-
     # Ensure destination client has an ROI (required by SourceClientPolicy)
     create(:client_roi_authorization, destination_client: destination_client, status: 'full')
 
