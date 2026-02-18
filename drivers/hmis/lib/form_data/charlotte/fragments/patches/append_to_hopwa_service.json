@@ -3,19 +3,56 @@
     "form_identifier": "service",
     "append_items": [
       {
+        "text": "Bill Amount",
+        "type": "CURRENCY",
+        "link_id": "bill_amount",
+        "disabled_display": "HIDDEN",
+        "enable_behavior": "ANY",
+        "enable_when": [
+          {
+            "_comment": "Collect when service is HOPWA Financial Assistance",
+            "local_constant": "$hudRecordType",
+            "operator": "EQUAL",
+            "answer_code": "HOPWA_FINANCIAL_ASSISTANCE"
+          }
+        ],
+        "custom_rule": {
+          "operator": "ANY",
+          "_comment": "Collect when project funders include 17 HUD: HOPWA – Short-Term Rent, Mortgage, Utility assistance",
+          "parts": [
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 17
+            }
+          ]
+        },
+        "mapping": {
+          "custom_field_key": "hopwa_financial_assistance_bill_amount"
+        }
+      },
+      {
         "text": "Weeks of Service",
         "type": "INTEGER",
         "bounds": [
           {
-            "id": "min_weeks_of_service",
-            "type": "MIN",
+            "id": "bound_a09cac78",
+            "type": "MAX",
             "severity": "error",
-            "value_number": 0
+            "value_number": 4
           }
         ],
         "link_id": "weeks_of_service",
         "required": false,
+        "read_only": true,
         "warn_if_empty": false,
+        "autofill_values": [
+          {
+            "formula": "ROUND((faAmount/bill_amount)*4)",
+            "autofill_behavior": "ANY",
+            "autofill_readonly": true
+          }
+        ],
         "enable_behavior": "ANY",
         "enable_when": [
           {
