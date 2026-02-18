@@ -13,8 +13,16 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
       expect(loader.get(client.destination_id)).to be false
     end
 
-    it 'returns true for client with active ROI matching CoC codes' do
-      create(:client_roi_authorization, destination_client: client.destination, status: 'full')
+    it 'returns true for client with active ROI and no CoC codes' do
+      create(:client_roi_authorization, destination_client: client.destination, status: 'full', coc_codes: nil)
+
+      expect(loader.get(client.destination_id)).to be true
+    end
+
+    it 'returns true for client with active ROI and no CoC codes' do
+      code = 'CO-500'
+      create(:client_roi_authorization, destination_client: client.destination, status: 'full', coc_codes: [code])
+      user.coc_codes = [code]
 
       expect(loader.get(client.destination_id)).to be true
     end
