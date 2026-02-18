@@ -10,7 +10,7 @@
 module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase
     include ArelHelper
-    VALID_CATEGORIES = ['client_services', 'household_calculations'].freeze
+    VALID_CATEGORIES = ['client_services', 'household_calculations', 'csv_import'].freeze
     COLLECTION_HOUR = 2 # Hour of day (0-23) to run daily metric collection
 
     has_many :metric_snapshots,
@@ -70,6 +70,32 @@ module GrdaWarehouse::Monitoring
             metric.assign_attributes(attrs.except(*non_database_attributes))
           end
         end
+        maintain_csv_metrics!
+      end
+    end
+
+    # Create metric definitions for each allowed CSV file (for per-CSV import monitoring)
+    def self.maintain_csv_metrics!
+      return unless defined?(GrdaWarehouse::ImportCsvMonitor)
+
+      csv_files = GrdaWarehouse::ImportCsvMonitor.allowed_csv_files
+      calculator_class = GrdaWarehouse::Monitoring::MetricCalculators::CsvRowCountMetricCalculator.name
+
+      csv_files.each do |csv_file_name|
+        metric_name = "csv_row_count_#{csv_file_name.gsub('.csv', '').parameterize.underscore}"
+        metric = find_or_initialize_by(
+          name: metric_name,
+          entity_type: 'GrdaWarehouse::DataSource',
+        )
+        metric.assign_attributes(
+          display_name: "#{csv_file_name} row count",
+          description: "Row count for #{csv_file_name} from import summary",
+          calculator_class: calculator_class,
+          category: 'csv_import',
+          subtype: csv_file_name,
+          active: false,
+        )
+        metric.save!
       end
     end
 

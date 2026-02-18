@@ -1,0 +1,8 @@
+The CSV import threshold was exceeded for #{@data_source.name}:
+
+#{@csv_file_name}: Row count changed from #{@previous[:pre_processed]} to #{@current[:pre_processed]} (#{@change_count.positive? ? '+' : ''}#{@change_count} rows).
+
+- if @import.present?
+  View import: #{import_url(@import)}
+- else
+  Check the import log for this data source for details.

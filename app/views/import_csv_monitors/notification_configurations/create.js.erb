@@ -1,0 +1,8 @@
+<% if notification_configuration.errors.any? %>
+  $('.notification-configuration').html("<%= j render('form', submit_label: 'Add Notification') %>");
+<% else %>
+  $('#ajax-modal').modal('hide');
+  html = "<%= j render('import_csv_monitors/notification_table', monitor: @import_csv_monitor, data_source: @data_source) %>";
+  slug = "<%= GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize %>";
+  $("." + slug).html(html);
+<% end %>

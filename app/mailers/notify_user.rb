@@ -256,6 +256,24 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'You have received a Secure File')
   end
 
+  def csv_change_threshold_exceeded
+    @user = params[:user]
+    return unless @user.active?
+
+    @monitor = params[:import_csv_monitor]
+    @data_source = params[:data_source]
+    @csv_file_name = params[:csv_file_name]
+    @current = params[:current] || {}
+    @previous = params[:previous] || {}
+    @change_count = params[:change_count] || 0
+    @import = params[:import_log_id].present? ? GrdaWarehouse::ImportLog.find_by(id: params[:import_log_id]) : nil
+
+    direction = @change_count.positive? ? 'increased' : 'decreased'
+    subject = "#{@data_source.name}: #{@csv_file_name} row count #{direction} by #{@change_count.abs}"
+
+    mail(to: @user.email, subject: subject)
+  end
+
   def metric_threshold_crossed(user_id:, alert_code:, crossings:, calculation_date:)
     @user = User.find(user_id)
     return unless @user.active?

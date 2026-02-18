@@ -1,0 +1,36 @@
+.well
+  %h2 Per-CSV Import Monitors
+  %p
+    Configure alerts for specific CSV files (e.g., Client.csv, Services.csv).
+    When row counts change beyond your thresholds, notifications will be sent to the configured recipients.
+  = link_to 'Add Monitor', new_data_source_import_csv_monitor_path(data_source), class: 'btn btn-secondary btn-sm mb-3'
+  - if import_csv_monitors.any?
+    %table.table.table-striped
+      %thead
+        %tr
+          %th CSV File
+          %th Count Increase
+          %th Count Decrease
+          %th % Increase
+          %th % Decrease
+          %th Active
+          %th Notifications
+          %th Actions
+      %tbody
+        - import_csv_monitors.each do |monitor|
+          %tr
+            %td= monitor.csv_file_name
+            %td= monitor.count_increase_threshold || '—'
+            %td= monitor.count_decrease_threshold || '—'
+            %td= monitor.percent_increase_threshold ? "#{monitor.percent_increase_threshold}%" : '—'
+            %td= monitor.percent_decrease_threshold ? "#{monitor.percent_decrease_threshold}%" : '—'
+            %td= checkmark_or_x(monitor.active)
+            %td
+              - users = monitor.notification_configurations_for_slug.map { |nc| nc.user&.name_with_email }.compact
+              = users.any? ? safe_join(users, tag(:br)) : '—'
+            %td
+              - items = [{ link_to: { path: edit_data_source_import_csv_monitor_path(data_source, monitor) }, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :pencil, label: 'Edit' }]
+              - items << { link_to: { path: data_source_import_csv_monitor_path(data_source, monitor), method: :delete, data: { confirm: 'Remove this monitor?' } }, class: ['btn', 'btn-sm', 'btn-danger'], label: 'Remove' }
+              = action_menu_or_button(items: items)
+  - else
+    %p.text-muted No monitors configured. Add one to get started.

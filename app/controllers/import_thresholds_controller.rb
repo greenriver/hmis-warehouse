@@ -13,6 +13,7 @@ class ImportThresholdsController < ApplicationController
   before_action :import_threshold
 
   def show
+    @import_csv_monitors = data_source.import_csv_monitors.order(:csv_file_name)
   end
 
   def update

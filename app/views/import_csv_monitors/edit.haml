@@ -1,0 +1,17 @@
+= render 'data_sources/breadcrumbs', data_source: data_source
+- content_for :title, "Edit Monitor: #{import_csv_monitor.csv_file_name}"
+%h1= content_for :title
+
+.well
+  = render 'form', submit_label: 'Update Monitor'
+
+%h3.mt-4 Notifications
+.slug{ class: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize }
+  - if import_csv_monitor.items_for(GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG).any?
+    = render 'import_csv_monitors/notification_table', monitor: import_csv_monitor, data_source: data_source
+.none-found.mt-2
+  = link_to new_data_source_import_csv_monitor_notification_configuration_path(data_source, import_csv_monitor, notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG), class: 'btn btn-secondary btn-sm', data: { loads_in_ajax_modal: true } do
+    %i.icon-plus
+    Add Notification
+
+= link_to 'Back', data_source_import_threshold_path(data_source), class: 'btn btn-secondary mt-3'

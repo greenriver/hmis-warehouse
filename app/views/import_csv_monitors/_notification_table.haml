@@ -1,0 +1,19 @@
+- items = monitor.items_for(GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG)
+.card.c-card-overflow-inherit
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+        %th Email
+        %th Receive Notifications
+        %th Actions
+    %tbody
+      - items.each do |item|
+        %tr
+          %td= item.user&.name
+          %td= item.user&.email
+          %td= checkmark_or_x(item.active)
+          %td
+            - table_items = [{ link_to: { path: edit_data_source_import_csv_monitor_notification_configuration_path(data_source, monitor, item, notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG), data: { loads_in_ajax_modal: true } }, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :pencil, label: 'Edit' }]
+            - table_items << { link_to: { path: data_source_import_csv_monitor_notification_configuration_path(data_source, monitor, item, notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG), remote: true, method: :delete, data: { confirm: 'Remove this notification?' } }, class: ['btn', 'btn-sm', 'btn-danger'], label: 'Delete' }
+            = action_menu_or_button(items: table_items)
