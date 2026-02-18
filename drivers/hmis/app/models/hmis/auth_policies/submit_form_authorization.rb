@@ -39,6 +39,7 @@ class Hmis::AuthPolicies::SubmitFormAuthorization
     @resource = resource
   end
 
+  # todo @martha - what about NEW_CLIENT_ENROLLMENT ?
   # Answers the question: Can the user submit this form to create/edit this resource?
   # Resource may be anything that can be submitted via a form -- client, project, enrollment, etc.
   # Resource may be a new, unpersisted record or an existing persisted record.

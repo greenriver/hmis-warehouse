@@ -126,6 +126,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
 
   # Configuration for SubmitForm
+  # TODO(#8676) - now that permission config lives in the SubmitFormAuthorization helper,
+  # this can be simplified, but complete that work in a 2nd PR because it involves disruption to unit tests,
+  # and we want confidence that the existing tests pass for the 1st PR.
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: 'Hmis::Hud::HmisService',
