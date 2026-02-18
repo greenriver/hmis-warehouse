@@ -158,6 +158,7 @@ RSpec.describe HmisUtil::JsonForms do
     end
 
     it 'does not load test environment forms in non-test environment' do
+      allow(ENV).to receive(:[]).with('CLIENT').and_return('qa_hmis')
       allow(Rails.env).to receive(:test?).and_return(false)
 
       expect do

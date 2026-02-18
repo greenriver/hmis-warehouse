@@ -23,6 +23,7 @@ module HmisUtil
     end
 
     def seed_all
+      puts "Seeding all forms #{env_key}, #{ENV['CLIENT']}"
       Hmis::Hud::Base.transaction do
         # Load the latest record definitions from JSON files. (Client, Project, Enrollment, etc.)
         # This also ensures that any system-level instances exist.
