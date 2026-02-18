@@ -15,3 +15,20 @@
       %div{ class: "icon-#{icon}" }
     .c-tag__content
       %span=status
+
+- # there should be either zero or 1 authorizations
+- rois = @client.roi_authorizations.order(:id).to_a
+- if rois.any?
+  - rois.each do |roi|
+    .card.mt-3
+      %table.table.table-sm.mb-0
+        %tr
+          %th.fw-semibold.pr-2(scope="row")
+            Start date
+          %td
+            = roi.starts_at ? I18n.l(roi.starts_at) : 'None'
+        %tr
+          %th.fw-semibold.border-0.pr-2(scope="row")
+            Expiration date
+          %td.border-0
+            = roi.expires_at ? I18n.l(roi.expires_at) : 'None'
