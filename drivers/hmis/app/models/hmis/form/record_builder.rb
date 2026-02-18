@@ -23,7 +23,7 @@ class Hmis::Form::RecordBuilder
     organization = Hmis::Hud::Organization.viewable_by(@user).find_by(id: @input.organization_id) if @input.organization_id.present?
     custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: @input.service_type_id) if @input.service_type_id.present?
 
-    ds = { data_source_id: @data_source_id } #  todo @martha ???
+    ds = { data_source_id: @data_source_id }
 
     case @klass.name
     when 'Hmis::Hud::Client'

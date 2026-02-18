@@ -97,7 +97,6 @@ class Hmis::AuthPolicies::SubmitFormAuthorization
 
   def project_authorized?(creating)
     if creating
-      # todo @martha - organization is available yet on the project(?)
       @user.policy_for(@resource.organization, policy_type: :hmis_organization).can_create_project?
     else
       @user.policy_for(@resource, policy_type: :hmis_project).can_edit?
@@ -107,7 +106,6 @@ class Hmis::AuthPolicies::SubmitFormAuthorization
   def enrollment_authorized?(creating)
     if creating
       # Creating an enrollment requires permission to enroll clients in the target project
-      # todo @martha - project is available on the enrollment?
       @user.policy_for(@resource.project, policy_type: :hmis_project).can_enroll_clients?
     else
       @user.policy_for(@resource, policy_type: :hmis_enrollment).can_edit?
@@ -116,8 +114,13 @@ class Hmis::AuthPolicies::SubmitFormAuthorization
 
   def enrollment_for_resource
     # HmisService is a view model; delegate to its underlying owner record
-    # todo @martha- spec this and understand what it maps to from the previous code
-    resource = @resource.is_a?(Hmis::Hud::HmisService) ? @resource.owner : @resource
+    # todo @martha- is this necessary? the existing submit_form spec doesn't hit it
+    resource = if @resource.is_a?(Hmis::Hud::HmisService)
+      # binding.pry
+      @resource.owner
+    else
+      @resource
+    end
     resource.enrollment
   end
 end
