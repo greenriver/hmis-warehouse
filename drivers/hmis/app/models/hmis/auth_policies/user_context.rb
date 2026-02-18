@@ -51,6 +51,25 @@ class Hmis::AuthPolicies::UserContext
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
+  # Set of permissions that the user has for the given organization.
+  # Unlike for Project, where we built loaders to ensure efficient queries against multiple projects,
+  # we can just load all permissions for the given organization directly,
+  # because the organization policy methods are only ever checked against one organization at a time.
+  # We can update this internally without changing the HmisOrganizationPolicy's interface if that changes.
+  def organization_permissions(organization)
+    unless organization.data_source_id == user.hmis_data_source_id
+      Sentry.capture_message(
+        "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+        "attempted to access Organization #{organization_id} (DS: #{organization.data_source_id})",
+      )
+
+      return EMPTY_SET
+    end
+
+    access_group_ids = Hmis::GroupViewableEntity.includes_organization(organization).pluck(:collection_id).to_set
+    permission_loader.for_access_group_ids(access_group_ids)
+  end
+
   def preload_project_dependencies(project_ids)
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
