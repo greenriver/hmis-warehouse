@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hmis-supplemental.md
+
 # Manage data sets
 module HmisSupplemental
   class DataSetsController < ApplicationController
