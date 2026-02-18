@@ -34,62 +34,83 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
     end
   end
 
-  context 'with direct project access' do
-    before do
-      create_access_control(user, project, with_permission: [:can_view_project, :can_edit_project_details])
+  describe 'basic permission checks with permission granted through different entities' do
+    context 'with direct project access' do
+      before do
+        create_access_control(user, project, with_permission: [:can_view_project, :can_edit_project_details])
+      end
+      include_examples 'permission checks with access'
     end
-    include_examples 'permission checks with access'
+
+    context 'with organization access' do
+      before do
+        create_access_control(user, organization, with_permission: [:can_view_project, :can_edit_project_details])
+      end
+      include_examples 'permission checks with access'
+    end
+
+    context 'with data source access' do
+      before do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_project_details])
+      end
+      include_examples 'permission checks with access'
+    end
+
+    context 'with project group access' do
+      let(:project_group) do
+        group = create(:hmis_project_group)
+        project.project_groups << group
+        project.save!
+        group
+      end
+
+      before do
+        create_access_control(user, project_group, with_permission: [:can_view_project, :can_edit_project_details])
+      end
+
+      include_examples 'permission checks with access'
+    end
+
+    context 'without any access' do
+      include_examples 'permission checks without access'
+    end
+
+    context 'when project belongs to a different data source' do
+      let(:other_data_source) { create(:hmis_data_source) }
+      before do
+        # grant user access to the project
+        create_access_control(user, project, with_permission: [:can_view_project, :can_edit_project_details])
+        # link user to the other data source
+        user.hmis_data_source_id = other_data_source.id
+      end
+
+      it 'is denied' do
+        expect(policy.can_view?).to be false
+      end
+
+      it 'reports the mismatch to Sentry' do
+        expect(Sentry).to receive(:capture_message).with(/HMIS Data Source Mismatch/)
+        policy.can_view?
+      end
+    end
   end
 
-  context 'with organization access' do
-    before do
-      create_access_control(user, organization, with_permission: [:can_view_project, :can_edit_project_details])
-    end
-    include_examples 'permission checks with access'
-  end
+  describe '#can_enroll_clients?' do
+    context 'with can_edit_enrollments permission' do
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
 
-  context 'with data source access' do
-    before do
-      create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_project_details])
-    end
-    include_examples 'permission checks with access'
-  end
-
-  context 'with project group access' do
-    let(:project_group) do
-      group = create(:hmis_project_group)
-      project.project_groups << group
-      project.save!
-      group
+      it 'returns true' do
+        expect(policy.can_enroll_clients?).to be true
+      end
     end
 
-    before do
-      create_access_control(user, project_group, with_permission: [:can_view_project, :can_edit_project_details])
-    end
+    context 'without can_edit_enrollments permission (even if it is granted at another project)' do
+      let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+      let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
 
-    include_examples 'permission checks with access'
-  end
-
-  context 'without any access' do
-    include_examples 'permission checks without access'
-  end
-
-  context 'when project belongs to a different data source' do
-    let(:other_data_source) { create(:hmis_data_source) }
-    before do
-      # grant user access to the project
-      create_access_control(user, project, with_permission: [:can_view_project, :can_edit_project_details])
-      # link user to the other data source
-      user.hmis_data_source_id = other_data_source.id
-    end
-
-    it 'is denied' do
-      expect(policy.can_view?).to be false
-    end
-
-    it 'reports the mismatch to Sentry' do
-      expect(Sentry).to receive(:capture_message).with(/HMIS Data Source Mismatch/)
-      policy.can_view?
+      it 'returns false' do
+        expect(policy.can_enroll_clients?).to be false
+      end
     end
   end
 end

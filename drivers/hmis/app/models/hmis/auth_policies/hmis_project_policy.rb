@@ -50,6 +50,17 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
     end
 
+    def can_enroll_clients?
+      # TODO(#7475) - The historical relationship between can_enroll_clients and can_edit_enrollments is complex.
+      # Currently we are only checking can_edit_enrollments, but this should be rethought/updated using permission requirements.
+      # See ticket for details.
+      project_permissions.include?(:can_edit_enrollments)
+    end
+
+    def can_manage_external_form_submissions?
+      project_permissions.include?(:can_manage_external_form_submissions)
+    end
+
     protected
 
     memoize def project_permissions
