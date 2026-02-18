@@ -21,14 +21,14 @@
 - if rois.any?
   - rois.each do |roi|
     .card.mt-3
-      %table.table.table-sm.mb-0
+      %table.table.mb-0
         %tr
           %th.fw-semibold.pr-2(scope="row")
-            Start date
+            Effective Date of ROI
           %td
-            = roi.starts_at ? I18n.l(roi.starts_at) : 'None'
+            = roi.starts_at ? roi.starts_at.to_fs : 'None'
         %tr
-          %th.fw-semibold.border-0.pr-2(scope="row")
-            Expiration date
+          %th.fw-semibold.border-0(scope="row")
+            Expiration Date of ROI
           %td.border-0
-            = roi.expires_at ? I18n.l(roi.expires_at) : 'None'
+            = roi.expires_at ? roi.expires_at.to_fs : 'None'
