@@ -23,13 +23,6 @@ module Hmis::Ce
 
     belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
-
-    # The unit group may or may not have a candidate_pool_id.
-    # - Unit groups in projects supporting waitlist-based referrals will have an associated candidate pool, once processing has run.
-    #   This includes unit groups that *don't* support waitlist-based referrals because they only have a Direct Referral Workflow Template.
-    # - Unit groups in projects only supporting direct referrals typically do not have an associated candidate pool,
-    #   but they may have one left over if they used to support waitlists.
-    # TODO(#8555) - update comment if this behavior changes
     has_one :candidate_pool, through: :unit_group, class_name: 'Hmis::Ce::Match::CandidatePool'
 
     has_one :project, through: :unit, class_name: 'Hmis::Hud::Project'
