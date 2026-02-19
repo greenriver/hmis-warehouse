@@ -357,10 +357,22 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         expect(answer_b2.summary.to_i).to eq(3)
 
         # Average should be (75 + 75 + 56) / 3 = 68.67 days
-        expect(answer_d2.summary.to_f).to be_within(1).of(68.67)
+        expect(answer_d2.summary.to_f).to eq(68.67)
 
         # Median should be 75 days
         expect(answer_g2.summary.to_i).to eq(75)
+      end
+
+      it 'correctly captures values in hdx' do
+        run_measure(@report, HudSpmReport::Generators::Fy2026::HdxUpload)
+        # row 2
+        expect(hdx_answer('ESSHUniverse_1A').summary).to eq(3)
+        expect(hdx_answer('ESSHAvgTime_1A').summary).to eq(68.67)
+        expect(hdx_answer('ESSHMedianTime_1A').summary).to eq(75)
+        # row 3 is the same as there are not TH projects
+        expect(hdx_answer('ESSHTHUniverse_1A').summary).to eq(3)
+        expect(hdx_answer('ESSHTHAvgTime_1A').summary).to eq(68.67)
+        expect(hdx_answer('ESSHTHMedianTime_1A').summary).to eq(75)
       end
     end
   end
