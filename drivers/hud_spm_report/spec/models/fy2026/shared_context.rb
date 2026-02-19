@@ -61,5 +61,4 @@ RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
     measure.run_question!
     report.reload
   end
-
 end
