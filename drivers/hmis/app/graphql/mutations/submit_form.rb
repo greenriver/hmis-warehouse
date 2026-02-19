@@ -28,28 +28,14 @@ module Mutations
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
       raise HmisErrors::ApiError, "FormDefinition #{definition.id} status #{definition.status} is invalid" unless definition.valid_status_for_submit?
+      raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless definition.owner_class.present?
 
-      # Determine record class
-      klass = definition.owner_class
-      raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless klass.present?
-
-      # Find or build record
-      if input.record_id.present?
-        record = klass.viewable_by(current_user).find_by(id: input.record_id)
-        record = record.owner if record.is_a?(Hmis::Hud::HmisService)
-        raise HmisErrors::ApiError, 'Record not found' unless record.present?
-
-        record.lock_version = record_lock_version if record_lock_version
-      else
-        record = Hmis::Form::RecordBuilder.new(
-          klass: klass,
-          input: input,
-          user: current_user,
-        ).build
-      end
-
-      # Check authorization using the form authorization helper
-      access_denied! unless Hmis::AuthPolicies::SubmitFormAuthorization.can_submit?(user: current_user, resource: record)
+      record = Hmis::AuthPolicies::SubmitFormAuthorizer.authorized_record(
+        user: current_user,
+        definition: definition,
+        input: input,
+      )
+      record.lock_version = record_lock_version if record_lock_version
 
       # Use existing FormProcessor or build a new one. The FormProcessor handles validating + processing the values into the database,
       # updating any related record(s), and storing references to related records.

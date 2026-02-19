@@ -126,7 +126,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
 
   # Configuration for SubmitForm
-  # TODO(#8676) - now that permission config lives in the SubmitFormAuthorization helper,
+  # TODO(#8676) - now that permission config lives in the SubmitFormAuthorizer helper,
   # this can be simplified, but complete that work in a 2nd PR because it involves disruption to unit tests,
   # and we want confidence that the existing tests pass for the 1st PR.
   FORM_ROLE_CONFIG = {
@@ -180,7 +180,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     FILE: {
       owner_class: 'Hmis::File',
-      permission: [:can_manage_any_client_files, :can_manage_own_client_files],
+      permission: [:can_manage_any_client_files, :can_manage_own_client_files], # todo @martha - is/was this used? (only other example of 2 permissions)
       authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
     # Deprecated: was used to send Referral Requests to external Link system.
