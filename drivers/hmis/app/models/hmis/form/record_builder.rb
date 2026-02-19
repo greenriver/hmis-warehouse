@@ -60,7 +60,7 @@ class Hmis::Form::RecordBuilder
     when 'HmisExternalApis::AcHmis::ReferralPosting'
       # Look up the receiving project without `viewable_by` scope, since referrer may not have access to receiving project
       receiving_project = Hmis::Hud::Project.find_by(id: @input.project_id)
-      raise HmisErrors::ApiError, 'Access denied' unless enrollment.present? && receiving_project.present?
+      raise HmisErrors::ApiError, 'access denied' unless enrollment.present? && receiving_project.present?
 
       HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
         enrollment: enrollment, # enrollment at the source project
