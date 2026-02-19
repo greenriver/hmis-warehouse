@@ -23,16 +23,15 @@ module HmisUtil
     end
 
     def seed_all
-      puts "Seeding all forms #{env_key}, #{ENV['CLIENT']}"
       Hmis::Hud::Base.transaction do
         # Load the latest record definitions from JSON files. (Client, Project, Enrollment, etc.)
-        # This also ensures that any system-level instances exist.
+        # and ensure that required system-level instances exist.
         seed_record_form_definitions
         # Load the latest assessment definitions from JSON files. (Intake, Exit, Update, Annual, Post-exit)
         seed_assessment_form_definitions
-        # Load custom assessment definitions from JSON files. (Only for testing, typically custom assessments are not managed in version control)
+        # Load custom assessment definitions from JSON files. (Only for testing/QA, typically custom assessments are not managed in version control)
         seed_custom_assessment_form_definitions
-        # Load static admin forms (not configurable)
+        # Load static admin forms
         seed_static_forms
       end
     end
@@ -357,18 +356,8 @@ module HmisUtil
         funders: HudHelper.util.path_funders,
       )
 
-      if Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION).empty?
-        # If installation has no rules enabling the CLS form, set up default rules for applicable project types
-        create_system_instances!(
-          identifier: 'current_living_situation',
-          data_collected_about: :HOH_AND_ADULTS,
-          project_types: HudHelper.util.cls_project_types,
-          system: false, # These aren't system records, they can be deleted. This is special for CLS to enable multiple CLS forms for different project types.
-        )
-      else
-        # Raises an error if the minimum HUD requirements aren't met for CLS collection
-        validate_current_living_situation! unless Rails.env.test? || Rails.env.development?
-      end
+      # Enforce system rules for the default Current Living Situation form (HUD-required collection).
+      ensure_cls_system_instances!
     end
 
     FORM_TITLES = {
@@ -400,7 +389,6 @@ module HmisUtil
         end
       end
       # Ensure system instances exist for records, so the application functions correctly and HUD compliance is met.
-      # Skip in test environment, loading the db with Form Instances interfere with unit testing.
       ensure_system_instances_exist! unless Rails.env.test?
       # puts "Saved definitions with identifiers: #{added_identifiers.join(', ')}"
     end
@@ -490,30 +478,30 @@ module HmisUtil
     # enabled to meet minimum HUD requirements.
     private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [], system: true)
       raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
-      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
 
       project_types.each do |project_type|
-        instance = Hmis::Form::Instance.find_or_initialize_by(
-          definition_identifier: identifier,
-          data_collected_about: data_collected_about,
-          project_type: project_type,
-          funder: nil,
-          entity: nil,
-        )
-        instance.assign_attributes(active: true, system: system)
-        instance.save! if instance.changed?
+        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: project_type, funder: nil, system: system)
       end
       funders.each do |funder|
-        instance = Hmis::Form::Instance.find_or_initialize_by(
-          definition_identifier: identifier,
-          data_collected_about: data_collected_about,
-          funder: funder,
-          project_type: nil,
-          entity: nil,
-        )
-        instance.assign_attributes(active: true, system: system)
-        instance.save! if instance.changed?
+        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: nil, funder: funder, system: system)
       end
+    end
+
+    # Create or update a single system instance with optional project_type and/or funder.
+    # At least one of project_type or funder must be provided.
+    private def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil, system: true)
+      raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
+      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
+
+      instance = Hmis::Form::Instance.find_or_initialize_by(
+        definition_identifier: identifier,
+        data_collected_about: data_collected_about,
+        project_type: project_type,
+        funder: funder,
+        entity: nil,
+      )
+      instance.assign_attributes(active: true, system: system)
+      instance.save! if instance.changed?
     end
 
     # Find or create default system instance, which applies to all projects
@@ -523,31 +511,54 @@ module HmisUtil
       instance.save! if instance.changed?
     end
 
-    # For Current living situation, just raise an error if the minimum HUD requirements aren't met.
-    # Since CLS is not a mutually exclusive form type, there may be multiple Definitions for it.
-    # (E.g. one CLS form that collects geolocation applied to SO projects, another CLS form applied to other projects).
-    #
-    # Minimum HUD requirements in FY24/26 are:
-    # - HoH and Adults in ES NBN (if specified by funder)
-    # - HoH and Adults in Street Outreach (if specified by funder)
-    # - HoH and Adults in Services Only (if specified by funder)
-    # - HoH and Adults in Coordinated Entry (if specified by funder)
-    private def validate_current_living_situation!
-      HudHelper.util.cls_project_types.each do |project_type|
-        # For ES, rule must either apply to ALL funders OR have separate rules for funder 53 (ESG RUSH) and 8 (ESG ES).
-        # For other project types, rule must apply to all funders. These could be further constrained by funder if needed in the future (for example locally funded SO projects don't technically need to collect CLS).
-        funders = project_type == 1 ? [53, 8] : [nil]
-        funders.each do |funder|
-          rule_exists = Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION).where(
-            project_type: [project_type, nil],
-            data_collected_about: [:HOH_AND_ADULTS, :ALL_CLIENTS, nil],
-            funder: [funder, nil],
-            other_funder: nil,
-            entity: nil,
-          ).exists?
 
-          raise "Missing minimum form instance for Current Living Situation for project type #{project_type}, funder #{funder}" unless rule_exists
-        end
+    # CLS requirements from HUD spec:
+    # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
+    # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
+    # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
+    # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
+    # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
+    # HUD: Rural Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
+    # HHS: PATH – Collection required for all components
+    # HHS: RHY – Collection only required for Street Outreach
+
+    CLS_SYSTEM_RULE_SPECS = [
+      # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
+      { project_type: nil, funder: 4 }, # Funder 'HUD: CoC - Supportive Services Only' (4) per the CoC program manual can be set up as Services Only, Street Outreach, or Coordinated Entry. Err on the side of collecting more data, and require CLS collection for all project types funded by CoC SSO
+      # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
+      { project_type: nil, funder: 43 }, # Require CLS collection for all YHDP programs. This errs on the side of collecting more data.
+      # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
+      { project_type: 1, funder: 8 },
+      { project_type: 4, funder: 8 },
+      # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
+      { project_type: 1, funder: 53 },
+      { project_type: 4, funder: 53 },
+      { project_type: 14, funder: 53 },
+      # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
+      { project_type: 4, funder: 54 },
+      { project_type: 14, funder: 54 },
+      # HUD: Rural Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
+      { project_type: 4, funder: 55 },
+      { project_type: 14, funder: 55 },
+      # HHS: PATH – Collection required for all components
+      { project_type: nil, funder: 21 },
+      # HHS: RHY – Collection only required for Street Outreach
+      { project_type: 4, funder: 22 },
+      { project_type: 4, funder: 23 },
+      { project_type: 4, funder: 24 },
+      { project_type: 4, funder: 25 },
+      { project_type: 4, funder: 26 },
+    ].freeze
+
+    private def ensure_cls_system_instances!
+      CLS_SYSTEM_RULE_SPECS.each do |spec|
+        create_system_instance!(
+          identifier: 'current_living_situation',
+          data_collected_about: :HOH_AND_ADULTS,
+          project_type: spec[:project_type],
+          funder: spec[:funder],
+          system: true,
+        )
       end
     end
   end

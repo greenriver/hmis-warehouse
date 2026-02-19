@@ -86,13 +86,17 @@ RSpec.describe HmisUtil::JsonForms do
         # The HUD Service form (SERVICE) should have exactly 1 form. No instances, as those are loaded separately (HmisUtil::ServiceTypes.seed_hud_service_form_instances)
         it_behaves_like 'a seeded form', role: :SERVICE
 
-        # The Current Living Situation form (CURRENT_LIVING_SITUATION) should have exactly 1 form and at least 1 system instance
+        # The Current Living Situation form (CURRENT_LIVING_SITUATION) should have exactly 1 form and system rules for the default form
         it_behaves_like 'a seeded form', role: :CURRENT_LIVING_SITUATION
-        it 'loads default instance rules for CURRENT_LIVING_SITUATION' do
-          rules = Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION)
-          expect(rules.count).to be >= 1
-          expect(rules.any?(&:system)).to be(false) # CLS forms are not system records, they can be deleted
-          expect(rules.map(&:project_type).sort).to eq(HudHelper.util.cls_project_types.sort)
+        it 'loads system instance rules for CURRENT_LIVING_SITUATION default form' do
+          rules = Hmis::Form::Instance.active.system
+            .with_role(:CURRENT_LIVING_SITUATION)
+            .where(definition_identifier: 'current_living_situation')
+          expect(rules.count).to eq(HmisUtil::JsonForms::CLS_SYSTEM_RULE_SPECS.size)
+          expect(rules).to all(be_system)
+          expected_pairs = HmisUtil::JsonForms::CLS_SYSTEM_RULE_SPECS.map { |s| [s[:project_type], s[:funder]] }.to_set
+          actual_pairs = rules.map { |r| [r.project_type, r.funder] }.to_set
+          expect(actual_pairs).to eq(expected_pairs)
         end
 
         # Each HUD occurrence point form (Move-in Date, Date of Engagement, PATH Status) should have exactly 1 form and at least 1 system instance
