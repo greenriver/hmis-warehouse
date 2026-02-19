@@ -13,8 +13,6 @@
 class Hmis::AuthPolicies::SubmitFormAuthorizer
   # Enrollment-related records: authorization delegates to the enrollment policy
   ENROLLMENT_RELATED_CLASSES = [
-    'Hmis::Hud::Service',
-    'Hmis::Hud::CustomService',
     'Hmis::Hud::CurrentLivingSituation',
     'Hmis::Hud::Assessment',
     'Hmis::Hud::CustomCaseNote',
@@ -158,7 +156,6 @@ class Hmis::AuthPolicies::SubmitFormAuthorizer
     end
   end
 
-  # todo @martha - there is something funny here with services
   def hmis_service_record
     if @creating
       raise 'cannot create service without custom service type' unless @custom_service_type.present?
@@ -173,8 +170,7 @@ class Hmis::AuthPolicies::SubmitFormAuthorizer
         Hmis::Hud::CustomService.new(custom_service_type: @custom_service_type, **attrs)
       end
     else
-      enrollment = @record.is_a?(Hmis::Hud::HmisService) ? @record.owner.enrollment : @record.enrollment
-      access_denied! unless @user.policy_for(enrollment, policy_type: :hmis_enrollment).can_edit?
+      access_denied! unless @user.policy_for(@record.enrollment, policy_type: :hmis_enrollment).can_edit?
 
       @record
     end
