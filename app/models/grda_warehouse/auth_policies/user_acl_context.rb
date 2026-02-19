@@ -6,18 +6,14 @@
 
 # frozen_string_literal: true
 
-require 'memery'
+# @see docs/features/warehouse-auth-policies.md
 
 # cross-policy memoized utils for ACL permissions
-class GrdaWarehouse::AuthPolicies::UserAclContext
-  include Memery
-  attr_accessor :user
-  EMPTY_SET = Set.new.freeze
-
+class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies::UserBaseContext
   def initialize(user)
-    raise ArgumentError, 'must be acl user' unless user.is_a?(User) && user.using_acls?
+    super(user)
+    raise ArgumentError, 'must be acl user' unless @user.using_acls?
 
-    @user = user
     @coc_codes_by_project = {}
     @collection_ids_by_project = {}
   end

@@ -5,6 +5,7 @@
 ###
 # frozen_string_literal: true
 
+# @see docs/features/hmis-supplemental.md
 module HmisSupplemental
   class FieldValue < GrdaWarehouseBase
     self.table_name = 'hmis_supplemental_field_values'
