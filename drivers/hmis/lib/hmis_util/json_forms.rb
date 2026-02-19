@@ -357,7 +357,18 @@ module HmisUtil
       )
 
       # Enforce system rules for the default Current Living Situation form (HUD-required collection).
-      ensure_cls_system_instances!
+      # These rules are very specific (funder-level) and intentionally match exactly what HUD requires.
+      # For CLS it is common for customers to expand collection at the project type level (e.g. all shelters,
+      # all street outreach); adding such rules is fine since they only expand collection. Customers must not
+      # be able to delete these system rules, or the system would fall out of HUD compliance.
+      HudHelper.util.current_living_situation_funder_applicability_requirements.each do |spec|
+        create_system_instance!(
+          identifier: 'current_living_situation',
+          data_collected_about: :HOH_AND_ADULTS,
+          project_type: spec[:project_type],
+          funder: spec[:funder],
+        )
+      end
     end
 
     FORM_TITLES = {
@@ -474,22 +485,23 @@ module HmisUtil
       end
     end
 
-    # Find or create system instances as specified. This method is used to ensure HUD required forms are properly
-    # enabled to meet minimum HUD requirements.
-    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [], system: true)
+    # Create or update system instances for the given identifier. System instances are used to ensure HUD-required forms are properly enabled,
+    # and cannot be deleted in the interface. At least one of project_types or funders must be provided.
+    # When both are given: creates one rule per project_type (funder: nil) and one rule per funder (project_type: nil), not every combination.
+    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
       raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
 
       project_types.each do |project_type|
-        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: project_type, funder: nil, system: system)
+        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: project_type, funder: nil)
       end
       funders.each do |funder|
-        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: nil, funder: funder, system: system)
+        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: nil, funder: funder)
       end
     end
 
-    # Create or update a single system instance with optional project_type and/or funder.
-    # At least one of project_type or funder must be provided.
-    private def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil, system: true)
+    # Create or update a single system instance for the given identifier. At least one of project_type or funder must be provided.
+    # If project_type and funder are both specified, the rule will apply to projects that match both the project type and funder.
+    private def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil)
       raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
       raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
 
@@ -500,7 +512,7 @@ module HmisUtil
         funder: funder,
         entity: nil,
       )
-      instance.assign_attributes(active: true, system: system)
+      instance.assign_attributes(active: true, system: true)
       instance.save! if instance.changed?
     end
 
@@ -509,57 +521,6 @@ module HmisUtil
       instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
       instance.assign_attributes(active: true, system: true)
       instance.save! if instance.changed?
-    end
-
-
-    # CLS requirements from HUD spec:
-    # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
-    # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
-    # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
-    # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
-    # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-    # HUD: Rural Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-    # HHS: PATH – Collection required for all components
-    # HHS: RHY – Collection only required for Street Outreach
-
-    CLS_SYSTEM_RULE_SPECS = [
-      # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
-      { project_type: nil, funder: 4 }, # Funder 'HUD: CoC - Supportive Services Only' (4) per the CoC program manual can be set up as Services Only, Street Outreach, or Coordinated Entry. Err on the side of collecting more data, and require CLS collection for all project types funded by CoC SSO
-      # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
-      { project_type: nil, funder: 43 }, # Require CLS collection for all YHDP programs. This errs on the side of collecting more data.
-      # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
-      { project_type: 1, funder: 8 },
-      { project_type: 4, funder: 8 },
-      # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
-      { project_type: 1, funder: 53 },
-      { project_type: 4, funder: 53 },
-      { project_type: 14, funder: 53 },
-      # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-      { project_type: 4, funder: 54 },
-      { project_type: 14, funder: 54 },
-      # HUD: Rural Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-      { project_type: 4, funder: 55 },
-      { project_type: 14, funder: 55 },
-      # HHS: PATH – Collection required for all components
-      { project_type: nil, funder: 21 },
-      # HHS: RHY – Collection only required for Street Outreach
-      { project_type: 4, funder: 22 },
-      { project_type: 4, funder: 23 },
-      { project_type: 4, funder: 24 },
-      { project_type: 4, funder: 25 },
-      { project_type: 4, funder: 26 },
-    ].freeze
-
-    private def ensure_cls_system_instances!
-      CLS_SYSTEM_RULE_SPECS.each do |spec|
-        create_system_instance!(
-          identifier: 'current_living_situation',
-          data_collected_about: :HOH_AND_ADULTS,
-          project_type: spec[:project_type],
-          funder: spec[:funder],
-          system: true,
-        )
-      end
     end
   end
 end

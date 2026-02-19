@@ -89,10 +89,11 @@ RSpec.describe HmisUtil::JsonForms do
         # The Current Living Situation form (CURRENT_LIVING_SITUATION) should have exactly 1 form and system rules for the default form
         it_behaves_like 'a seeded form', role: :CURRENT_LIVING_SITUATION
         it 'loads system instance rules for CURRENT_LIVING_SITUATION default form' do
+          expected_specs = HudHelper.util.current_living_situation_funder_applicability_requirements
           rules = Hmis::Form::Instance.active.system
             .with_role(:CURRENT_LIVING_SITUATION)
             .where(definition_identifier: 'current_living_situation')
-          expect(rules.count).to eq(HmisUtil::JsonForms::CLS_SYSTEM_RULE_SPECS.size)
+          expect(rules.count).to eq(expected_specs.size)
           expect(rules).to all(be_system)
           expected_pairs = HmisUtil::JsonForms::CLS_SYSTEM_RULE_SPECS.map { |s| [s[:project_type], s[:funder]] }.to_set
           actual_pairs = rules.map { |r| [r.project_type, r.funder] }.to_set

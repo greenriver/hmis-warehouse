@@ -970,6 +970,10 @@ module HudUtility2026
   # - YHDP: The data dictionary requires collection for any project type serving clients who meet Category 2 or 3
   #   of the homeless definition. We err on the side of collecting more data and require CLS collection for
   #   all YHDP programs.
+  # - Funder-only rules: When a funder is only used for one project type, we do not explicitly add the project
+  #   type to the rule. For example, HUD ESG has a specific funder for Street Outreach; we do not add project
+  #   type to that rule. The requirement is ultimately driven by the funder, and we err on the side of
+  #   collecting CLS for that funder even if the project type is misconfigured.
   def current_living_situation_funder_applicability_requirements
     # helper map for relevant project types
     pt = {
@@ -993,16 +997,16 @@ module HudUtility2026
 
     [
       # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
-      { funder: cls_funder_codes[:coc_sso], project_type: nil }, 
+      { funder: cls_funder_codes[:coc_sso] },
       # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
-      { funder: cls_funder_codes[:coc_yhdp], project_type: nil }, 
+      { funder: cls_funder_codes[:coc_yhdp] }, 
       # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
+      { funder: cls_funder_codes[:esg_street_outreach] },
       { funder: cls_funder_codes[:esg_emergency_shelter], project_type: pt[:es_nbn] },
-      { funder: cls_funder_codes[:esg_street_outreach], project_type: pt[:street_outreach] },
       # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:es_nbn] },
       { funder: cls_funder_codes[:esg_rush], project_type: pt[:street_outreach] },
       { funder: cls_funder_codes[:esg_rush], project_type: pt[:coordinated_entry] },
+      { funder: cls_funder_codes[:esg_rush], project_type: pt[:es_nbn] },
       # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
       { funder: cls_funder_codes[:unsheltered_nofo], project_type: pt[:street_outreach] },
       { funder: cls_funder_codes[:unsheltered_nofo], project_type: pt[:coordinated_entry] },
@@ -1010,7 +1014,7 @@ module HudUtility2026
       { funder: cls_funder_codes[:rural_nofo], project_type: pt[:street_outreach] },
       { funder: cls_funder_codes[:rural_nofo], project_type: pt[:coordinated_entry] },
       # HHS: PATH – Collection required for all components
-      { funder: cls_funder_codes[:path], project_type: nil },
+      { funder: cls_funder_codes[:path] },
       # HHS: RHY – Collection only required for Street Outreach
       *funder_components['HHS: RHY'].map { |funder| { funder: funder, project_type: pt[:street_outreach] } }.to_a,
     ]
