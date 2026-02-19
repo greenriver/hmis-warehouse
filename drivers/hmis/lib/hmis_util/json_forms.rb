@@ -306,7 +306,7 @@ module HmisUtil
       record.set_hud_requirements
 
       # Generate and validate CDEDs if this isn't a test env, OR if it is a test env but enable_cded_generation_in_test flag is true.
-      should_generate_cdeds = data_source.present? && (!Rails.env.test? || enable_cded_generation_in_test?)
+      should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
 
       if should_generate_cdeds
         # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }

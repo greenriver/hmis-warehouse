@@ -11,6 +11,7 @@ require 'rails_helper'
 RSpec.describe HmisUtil::JsonForms do
   let(:json_forms) { described_class.new }
   let(:json_forms_with_qa_override) { described_class.new(env_key: 'qa_hmis') }
+  let!(:data_source) { create(:hmis_data_source) }
 
   # Start with a clean slate
   before(:all) do
