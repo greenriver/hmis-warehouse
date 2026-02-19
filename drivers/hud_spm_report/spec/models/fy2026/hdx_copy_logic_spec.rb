@@ -18,30 +18,30 @@ RSpec.describe 'HDX Copy Logic', type: :model do
     @report = setup_report([], ['Measure 1', 'Measure 2', 'Measure 3', 'Measure 4', 'Measure 5', 'Measure 6', 'Measure 7', 'HDX Upload'])
   end
 
-  it 'correctly copies values from measure 1a to HDX' do
-    run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+  context 'measure 1' do
+    before { run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne) }
 
-    verify_hdx_mapping({
-      'ESSHUniverse_1A'      => ['1a', 'B2'],
-      'ESSHAvgTime_1A'       => ['1a', 'D2'],
-      'ESSHMedianTime_1A'    => ['1a', 'G2'],
-      'ESSHTHUniverse_1A'    => ['1a', 'B3'],
-      'ESSHTHAvgTime_1A'     => ['1a', 'D3'],
-      'ESSHTHMedianTime_1A'  => ['1a', 'G3']
-    })
-  end
+    it 'correctly copies values from measure 1a to HDX' do
+      verify_hdx_mapping({
+        'ESSHUniverse_1A'      => ['1a', 'B2'],
+        'ESSHAvgTime_1A'       => ['1a', 'D2'],
+        'ESSHMedianTime_1A'    => ['1a', 'G2'],
+        'ESSHTHUniverse_1A'    => ['1a', 'B3'],
+        'ESSHTHAvgTime_1A'     => ['1a', 'D3'],
+        'ESSHTHMedianTime_1A'  => ['1a', 'G3'],
+      })
+    end
 
-  it 'correctly copies values from measure 1b to HDX' do
-    run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
-
-    verify_hdx_mapping({
-      'ESSHUniverse_1B'      => ['1b', 'B2'],
-      'ESSHAvgTime_1B'       => ['1b', 'D2'],
-      'ESSHMedianTime_1B'    => ['1b', 'G2'],
-      'ESSHTHUniverse_1B'    => ['1b', 'B3'],
-      'ESSHTHAvgTime_1B'     => ['1b', 'D3'],
-      'ESSHTHMedianTime_1B'  => ['1b', 'G3']
-    })
+    it 'correctly copies values from measure 1b to HDX' do
+      verify_hdx_mapping({
+        'ESSHUniverse_1B'      => ['1b', 'B2'],
+        'ESSHAvgTime_1B'       => ['1b', 'D2'],
+        'ESSHMedianTime_1B'    => ['1b', 'G2'],
+        'ESSHTHUniverse_1B'    => ['1b', 'B3'],
+        'ESSHTHAvgTime_1B'     => ['1b', 'D3'],
+        'ESSHTHMedianTime_1B'  => ['1b', 'G3'],
+      })
+    end
   end
 
   it 'correctly copies values from measure 2 to HDX' do
@@ -158,5 +158,14 @@ RSpec.describe 'HDX Copy Logic', type: :model do
     expected_values.each do |hdx_var, expected_val|
       expect(hdx_answer(hdx_var).summary).to eq(expected_val)
     end
+  end
+
+  def hdx_answer(name)
+    config = HudSpmReport::Generators::Fy2026::HdxUpload::COLUMNS.find do |h|
+      h[:variable_name] == name
+    end
+    raise "hdx col \"#{name}\" not found" unless config
+
+    @report.answer(question: 'csv', cell: "#{config.column_letter}2")
   end
 end

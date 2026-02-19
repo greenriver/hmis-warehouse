@@ -62,12 +62,4 @@ RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
     report.reload
   end
 
-  def hdx_answer(name)
-    config = HudSpmReport::Generators::Fy2026::HdxUpload::COLUMNS.find do |h|
-      h[:variable_name] == name
-    end
-    raise "hdx col \"#{name}\" not found" unless config
-
-    @report.answer(question: 'csv', cell: "#{config.column_letter}2")
-  end
 end
