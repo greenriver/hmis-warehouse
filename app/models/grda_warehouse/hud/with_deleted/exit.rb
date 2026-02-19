@@ -11,5 +11,7 @@
 module GrdaWarehouse::Hud::WithDeleted
   class Exit < GrdaWarehouse::Hud::Exit
     default_scope { unscope where: paranoia_column }
+
+    alias_attribute :enrollment, :enrollment_with_deleted
   end
 end
