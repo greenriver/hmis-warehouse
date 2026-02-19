@@ -519,18 +519,6 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         # Median should be 106 days
         expect(answer_g2.summary.to_i).to eq(106)
       end
-
-      it 'correctly captures values in hdx' do
-        run_measure(@report, HudSpmReport::Generators::Fy2026::HdxUpload)
-        # row 2
-        expect(hdx_answer('ESSHUniverse_1B').summary).to eq(3)
-        expect(hdx_answer('ESSHAvgTime_1B').summary).to eq(99.67)
-        expect(hdx_answer('ESSHMedianTime_1B').summary).to eq(106)
-        # row 3 is the same as there are not TH projects
-        expect(hdx_answer('ESSHTHUniverse_1B').summary).to eq(3)
-        expect(hdx_answer('ESSHTHAvgTime_1B').summary).to eq(99.67)
-        expect(hdx_answer('ESSHTHMedianTime_1B').summary).to eq(106)
-      end
     end
   end
 

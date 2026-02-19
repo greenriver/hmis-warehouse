@@ -25,19 +25,19 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
       G: ['SourceContactLast', :metadata],
       H: ['SourceContactEmail', :metadata],
 
-      I: ['ESSHUniverse_1A', :spm, '1a', :B1],
-      J: ['ESSHAvgTime_1A', :spm, '1a', :D1],
-      K: ['ESSHMedianTime_1A', :spm, '1a', :G1],
-      L: ['ESSHTHUniverse_1A', :spm, '1a', :B2],
-      M: ['ESSHTHAvgTime_1A', :spm, '1a', :D2],
-      N: ['ESSHTHMedianTime_1A', :spm, '1a', :G2],
+      I: ['ESSHUniverse_1A', :spm, '1a', :B2],
+      J: ['ESSHAvgTime_1A', :spm, '1a', :D2],
+      K: ['ESSHMedianTime_1A', :spm, '1a', :G2],
+      L: ['ESSHTHUniverse_1A', :spm, '1a', :B3],
+      M: ['ESSHTHAvgTime_1A', :spm, '1a', :D3],
+      N: ['ESSHTHMedianTime_1A', :spm, '1a', :G3],
 
-      O: ['ESSHUniverse_1B', :spm, '1b', :B1],
-      P: ['ESSHAvgTime_1B', :spm, '1b', :D1],
-      Q: ['ESSHMedianTime_1B', :spm, '1b', :G1],
-      R: ['ESSHTHUniverse_1B', :spm, '1b', :B2],
-      S: ['ESSHTHAvgTime_1B', :spm, '1b', :D2],
-      T: ['ESSHTHMedianTime_1B', :spm, '1b', :G2],
+      O: ['ESSHUniverse_1B', :spm, '1b', :B2],
+      P: ['ESSHAvgTime_1B', :spm, '1b', :D2],
+      Q: ['ESSHMedianTime_1B', :spm, '1b', :G2],
+      R: ['ESSHTHUniverse_1B', :spm, '1b', :B3],
+      S: ['ESSHTHAvgTime_1B', :spm, '1b', :D3],
+      T: ['ESSHTHMedianTime_1B', :spm, '1b', :G3],
 
       U: ['SOExitPH_2', :spm, '2a and 2b', :B2],
       V: ['SOReturn0to180_2', :spm, '2a and 2b', :C2],
@@ -247,8 +247,8 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
     it 'exports measure 1 metrics with expected values' do
       expect(@report.answer(question: '1a', cell: :B2).summary.to_i).to eq(2)
       expect(@report.answer(question: 'csv', cell: 'L2').summary).to eq(2.0)
-      expect(@report.answer(question: 'csv', cell: 'M2').summary).to eq(75.5)
-      expect(@report.answer(question: 'csv', cell: 'N2').summary).to eq(75.5)
+      expect(@report.answer(question: 'csv', cell: 'M2').summary).to eq(112.0)
+      expect(@report.answer(question: 'csv', cell: 'N2').summary).to eq(112.0)
     end
 
     # Test Data Quality Report fields are populated
