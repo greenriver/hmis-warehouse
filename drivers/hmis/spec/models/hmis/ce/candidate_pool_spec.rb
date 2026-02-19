@@ -20,24 +20,48 @@ RSpec.describe Hmis::Ce::Match::CandidatePool do
 
   describe 'scopes' do
     describe '.active' do
-      let!(:pool_with_no_unit_groups) { create :hmis_ce_match_candidate_pool }
+      context 'when pool is referenced by unit group in open project with waitlists enabled' do
+        it 'includes the pool' do
+          expect(described_class.active).to include(pool)
+        end
+      end
 
-      let!(:pool_in_inactive_project) { create :hmis_ce_match_candidate_pool }
-      let!(:inactive_project) { create :hmis_hud_project, data_source: ds1, operating_end_date: 1.day.ago }
-      let!(:inactive_project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: inactive_project }
-      let!(:inactive_unit_group) { create :hmis_unit_group, project: inactive_project, candidate_pool: pool_in_inactive_project }
+      context 'when pool has no unit groups' do
+        let!(:pool_with_no_unit_groups) { create :hmis_ce_match_candidate_pool }
+        it 'excludes the pool' do
+          expect(described_class.active).not_to include(pool_with_no_unit_groups)
+        end
+      end
 
-      let!(:pool_in_non_ce_project) { create :hmis_ce_match_candidate_pool }
-      let!(:non_ce_project) { create :hmis_hud_project, data_source: ds1 }
-      let!(:non_ce_unit_group) { create :hmis_unit_group, project: non_ce_project, candidate_pool: pool_in_non_ce_project }
+      context 'when pool is only referenced by unit group in closed project' do
+        let!(:pool_in_inactive_project) { create :hmis_ce_match_candidate_pool }
+        let!(:inactive_project) { create :hmis_hud_project, data_source: ds1, operating_end_date: 1.day.ago }
+        let!(:inactive_project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: inactive_project }
+        let!(:inactive_unit_group) { create :hmis_unit_group, project: inactive_project, candidate_pool: pool_in_inactive_project }
 
-      it 'includes active pools referenced by current unit groups' do
-        active_pools = described_class.active
-        expect(active_pools).to include(pool)
+        it 'excludes the pool' do
+          expect(described_class.active).not_to include(pool_in_inactive_project)
+        end
+      end
 
-        expect(active_pools).not_to include(pool_with_no_unit_groups)
-        expect(active_pools).not_to include(pool_in_inactive_project)
-        expect(active_pools).not_to include(pool_in_non_ce_project)
+      context 'when pool is only referenced by unit group in project without waitlists enabled' do
+        let!(:pool_in_non_ce_project) { create :hmis_ce_match_candidate_pool }
+        let!(:non_ce_project) { create :hmis_hud_project, data_source: ds1 }
+        let!(:non_ce_unit_group) { create :hmis_unit_group, project: non_ce_project, candidate_pool: pool_in_non_ce_project }
+
+        it 'excludes the pool' do
+          expect(described_class.active).not_to include(pool_in_non_ce_project)
+        end
+      end
+
+      context 'when pool is referenced by both active and inactive unit groups' do
+        let!(:inactive_project) { create :hmis_hud_project, data_source: ds1, operating_end_date: 1.day.ago }
+        let!(:inactive_project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: inactive_project }
+        let!(:inactive_unit_group) { create :hmis_unit_group, project: inactive_project, candidate_pool: pool }
+
+        it 'includes the pool' do
+          expect(described_class.active).to include(pool)
+        end
       end
     end
   end
