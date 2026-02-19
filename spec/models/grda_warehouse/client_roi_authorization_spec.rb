@@ -12,6 +12,23 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
   let(:authorization) { create(:client_roi_authorization) }
   let(:today) { Date.current }
 
+  describe '.active' do
+    let!(:active_partial) { create(:client_roi_authorization, status: described_class::PARTIAL_STATUS) }
+    let!(:active_full) { create(:client_roi_authorization, status: described_class::FULL_STATUS) }
+    let!(:revoked) { create(:client_roi_authorization, status: described_class::REVOKED_STATUS) }
+    let!(:expired) { create(:client_roi_authorization, status: described_class::FULL_STATUS, expires_at: today - 1.day) }
+    let!(:future) { create(:client_roi_authorization, status: described_class::FULL_STATUS, starts_at: today + 1.day) }
+    let!(:within_range) { create(:client_roi_authorization, status: described_class::FULL_STATUS, starts_at: today - 1.day, expires_at: today + 1.day) }
+
+    it 'returns only active authorizations for today' do
+      expect(described_class.active).to contain_exactly(active_partial, active_full, within_range)
+    end
+
+    it 'returns active authorizations for a specific date' do
+      expect(described_class.active(today + 2.days)).to contain_exactly(active_partial, active_full, future)
+    end
+  end
+
   context 'when status is revoked' do
     before { authorization.status = described_class::REVOKED_STATUS }
 
