@@ -993,6 +993,7 @@ module HudUtility2026
       unsheltered_nofo: funding_source('HUD: Unsheltered Special NOFO', true, raise_on_missing: true),
       rural_nofo: funding_source('HUD: Rural Special NOFO', true, raise_on_missing: true),
       path: funding_source('HHS: PATH - Street Outreach & Supportive Services Only', true, raise_on_missing: true),
+      rhy_street_outreach: funding_source('HHS: RHY - Street Outreach Project', true, raise_on_missing: true),
     }
 
     [
@@ -1016,7 +1017,7 @@ module HudUtility2026
       # HHS: PATH – Collection required for all components
       { funder: cls_funder_codes[:path] },
       # HHS: RHY – Collection only required for Street Outreach
-      *funder_components['HHS: RHY'].map { |funder| { funder: funder, project_type: pt[:street_outreach] } }.to_a,
+      { funder: cls_funder_codes[:rhy_street_outreach] },
     ]
   end
 end
