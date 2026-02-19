@@ -180,7 +180,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     FILE: {
       owner_class: 'Hmis::File',
-      permission: [:can_manage_any_client_files, :can_manage_own_client_files], # todo @martha - is/was this used? (only other example of 2 permissions)
+      # Because File has an `authorize` proc, this `permission` mapping is unused except in unit tests.
+      permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
     # Deprecated: was used to send Referral Requests to external Link system.
