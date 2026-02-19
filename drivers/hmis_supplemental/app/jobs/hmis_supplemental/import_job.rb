@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hmis-supplemental.md
 class HmisSupplemental::ImportJob < BaseJob
   attr_reader :data_set
 

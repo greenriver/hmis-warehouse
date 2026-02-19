@@ -281,6 +281,7 @@ class User < ApplicationRecord
     policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
   end
 
+  # @see docs/features/warehouse-auth-policies.md
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
       raise ArgumentError, "policy class not supported: #{policy_class.name}" unless policy_class < GrdaWarehouse::AuthPolicies::BasePolicy

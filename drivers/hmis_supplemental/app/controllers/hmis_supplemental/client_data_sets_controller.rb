@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hmis-supplemental.md
+
 # a "tab" on the client dashboard for viewing a data set.
 # This controller is for both client and enrollment-based data sets
 module HmisSupplemental
@@ -19,17 +21,21 @@ module HmisSupplemental
 
     def show
       @data_set = load_authorized_data_set
-      @groups = []
+      @groups = authorized_groups
+      not_authorized! unless @groups.present?
+    end
+
+    def authorized_groups
       case @data_set.owner_type
       when 'client'
-        @groups = source_clients.map do |client|
+        source_clients.map do |client|
           {
             title: client.data_source.name,
             values: @data_set.field_values.for_owner(client).index_by(&:field_key),
           }
         end
       when 'enrollment'
-        @groups = source_enrollments.map do |enrollment|
+        source_enrollments.map do |enrollment|
           {
             title: "#{enrollment.entry_date.to_fs} #{enrollment.project.name}",
             values: @data_set.field_values.for_owner(enrollment).index_by(&:field_key),
@@ -42,18 +48,24 @@ module HmisSupplemental
 
     def source_clients
       # order is important here, source_visible_to appears to clobber the data source condition
-      @client.source_clients.
+      results = @client.source_clients.
         source_visible_to(current_user).
         where(data_source_id: @data_set.data_source_id).
         order(:id)
+      results.to_a.filter do |source_client|
+        current_user.policy_for(source_client).can_view_supplemental_data?
+      end
     end
 
     def source_enrollments
-      @client.source_enrollments.
+      results = @client.source_enrollments.
         visible_to(current_user).
         where(data_source_id: @data_set.data_source_id).
         order(entry_date: :desc, id: :desc).
-        preload(:project)
+        preload(:project, :client)
+      results.to_a.filter do |enrollment|
+        current_user.policy_for(enrollment.client).can_view_supplemental_data?
+      end
     end
 
     def load_authorized_data_set
