@@ -75,6 +75,21 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(obey_consent: true)
   end
 
+  ##
+  # Returns DataSources that the user has permission to view.
+  #
+  # This scope performs an inclusive (OR) check across several entity types. A DataSource is
+  # considered viewable if the user has the specified permission on:
+  # - The DataSource itself
+  # - Any Organization within the DataSource
+  # - Any Project within the DataSource
+  # - (ACL users only) Any ProjectAccessGroup or CocCode associated with the DataSource
+  #
+  # @param user [User] The user whose permissions are being checked.
+  # @param permission [Symbol] The permission to check (e.g., :can_view_projects, :can_view_supplemental_client_data).
+  #   Note: This argument is ignored for legacy role-based users.
+  # @return [ActiveRecord::Relation]
+  #
   scope :viewable_by, ->(user, permission: :can_view_projects) do
     # TODO: START_ACL cleanup after migration to ACLs
     if user.using_acls?
@@ -116,6 +131,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # END_ACL
   end
 
+  ##
+  # Returns DataSources where the user has direct permissions on the record itself.
+  #
+  # This is a narrower check than `viewable_by`, as it does NOT grant access via
+  # child projects or organizations.
+  #
+  # @param user [User] The user whose permissions are being checked.
+  # @param permission [Symbol] The permission to check.
+  # @return [ActiveRecord::Relation]
+  #
   scope :directly_viewable_by, ->(user, permission: :can_view_projects) do
     # TODO: START_ACL cleanup after migration to ACLs
     return none if user.using_acls? && ! user&.send("#{permission}?")

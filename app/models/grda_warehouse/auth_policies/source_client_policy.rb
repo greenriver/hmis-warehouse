@@ -29,6 +29,19 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     false
   end
 
+  def can_view_supplemental_data?
+    # supplemental data sets do not support legacy role-based permissions
+    return false unless user.using_acls?
+
+    # permission check
+    return false unless resource_permissions.include?(:can_view_supplemental_client_data)
+
+    # ensure the client has an active roi
+    return false unless roi_authorized?
+
+    return true
+  end
+
   protected
 
   def validate_resource!(arg)
@@ -55,16 +68,13 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
   #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
   # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
-  memoize def roi_authorized?
+  def roi_authorized?
     return false unless client.data_source&.obey_consent?
 
     destination = client.destination_client
     return false unless destination
 
-    roi_authorizations = destination.roi_authorizations.order(:id).filter(&:active?)
-    return false if roi_authorizations.blank?
-
-    roi_authorizations.any? { |a| a.matches_coc_codes?(user.coc_codes) }
+    context.client_roi_loader.get(destination.id)
   end
 
   # a set of permissions the user has for either the project or the client which would grant them access to this client
