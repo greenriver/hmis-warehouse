@@ -6,17 +6,12 @@
 
 # frozen_string_literal: true
 
-require 'memery'
+# @see docs/features/warehouse-auth-policies.md
 
 # cross-policy memoized utils for Legacy user-role-based permissions
-class GrdaWarehouse::AuthPolicies::UserLegacyContext
-  include Memery
-  attr_accessor :user
-
-  EMPTY_SET = Set.new.freeze
-
+class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolicies::UserBaseContext
   def initialize(user)
-    @user = user
+    super(user)
     raise ArgumentError, 'cannot be acl user' if @user.using_acls?
 
     @coc_codes_by_project = {}

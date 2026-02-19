@@ -6,12 +6,7 @@
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
+# @see docs/features/hmis-supplemental.md
 module HmisSupplemental
   Field = Struct.new(:key, :label, :type, :multi_valued, :data_set, keyword_init: true) do
     DELIMITER = '|'.freeze
