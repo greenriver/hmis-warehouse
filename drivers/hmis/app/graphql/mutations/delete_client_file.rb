@@ -13,7 +13,7 @@ module Mutations
     field :file, Types::HmisSchema::File, null: true
 
     def resolve(file_id:)
-      file = Hmis::File.find_by(id: file_id)
+      file = Hmis::File.viewable_by(current_user).find_by(id: file_id)
       default_delete_record(
         record: file,
         field_name: :file,

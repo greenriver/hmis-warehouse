@@ -14,7 +14,6 @@ module Types
     argument :organization_id, ID, required: false
     argument :project_id, ID, required: false
     argument :data_collected_about, Types::Forms::Enums::DataCollectedAbout, required: false
-    argument :active_status, Types::HmisSchema::Enums::ActiveStatus, required: false, deprecation_reason: 'Rules are always active when created. This type is no longer used for updating a form rule. To deactivate, use DeleteFormRule mutation.'
     argument :service_type_id, ID, required: false
     argument :service_category_id, ID, required: false
 

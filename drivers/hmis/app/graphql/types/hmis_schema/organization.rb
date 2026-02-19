@@ -23,7 +23,7 @@ module Types
     field :id, ID, null: false
     field :hud_id, ID, null: false, method: :organization_id
     field :organization_name, String, null: false
-    projects_field :projects, filter_args: { omit: [:organization], type_name: 'ProjectsForEnrollment' }
+    projects_field :projects, filter_args: { omit: [:organization, :ce_enabled], type_name: 'ProjectsForEnrollment' }
     field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing, null: false, default_value: 99
     field :description, String, null: true
     field :contact_information, String, null: true

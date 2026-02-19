@@ -40,6 +40,8 @@ module Types
     field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     field :household_size, Integer, null: false
     field :household_members, [Types::HmisSchema::CeReferralSourceHouseholdMember], null: false
+
+    # TODO(#8767) - remove in next release
     field :other_household_member_names, [String], null: false, deprecation_reason: 'Use household_members field instead'
 
     field :assessments, [Types::HmisSchema::AssessmentSummary], null: false

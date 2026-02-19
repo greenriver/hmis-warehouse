@@ -700,7 +700,6 @@ Lint/DeprecatedClassMethods:
 # Offense count: 2
 Lint/DuplicateCaseCondition:
   Exclude:
-    - 'app/models/concerns/performance_dashboard/overview/detail.rb'
 
 # Offense count: 2
 Lint/DuplicateMethods:
@@ -1357,7 +1356,6 @@ Style/RedundantFreeze:
     - 'drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/measure_seven.rb'
     - 'drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/measure_six.rb'
     - 'drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/measure_three.rb'
-    - 'drivers/performance_measurement/app/models/performance_measurement/equity_analysis/builder.rb'
     - 'lib/util/serialized_asset.rb'
     - 'spec/models/talentlms/facade_spec.rb'
 

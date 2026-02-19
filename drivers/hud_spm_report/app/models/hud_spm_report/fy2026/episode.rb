@@ -6,8 +6,33 @@
 
 # frozen_string_literal: true
 
+### Summary of the Workflow
+# *   **`candidate_bed_nights`**: Gathers all "potential" homeless nights across all relevant projects, even historical ones.
+# *   **`excluded_bed_nights`**: Gathers all "housed" nights (TH stays or PH after move-in).
+# *   **`compute_episode`**: Subtracts the housed nights from the potential homeless nights.
+# *   **`filter_episode`**: Anchors the timeline to a night in the report range and walks backward until it hits a gap.
+
 module HudSpmReport::Fy2026
   class Episode < HudReports::ReportClientBase
+    CandidateBedNight = Data.define(:enrollment, :service_id, :date) do
+      def <=>(other)
+        return nil unless other.is_a?(self.class)
+
+        # Primary sort by date
+        res = date <=> other.date
+        return res unless res.zero?
+
+        # Tie-break by enrollment ID to ensure deterministic behavior.
+        # We use a reverse tie-break (other <=> self) so that the "latest"
+        # enrollment (highest ID) comes first
+        res = other.enrollment.id <=> enrollment.id
+        return res unless res.zero?
+
+        # Further tie-break by service_id for NbN deterministic behavior
+        (other.service_id || 0) <=> (service_id || 0)
+      end
+    end
+
     self.table_name = 'hud_report_spm_episodes'
     include Detail
 
@@ -78,7 +103,7 @@ module HudSpmReport::Fy2026
       @debugger&.log_timeline('calculated_bed_nights', calculated_bed_nights)
       excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
       @debugger&.log_timeline('excluded_dates', excluded_dates)
-      allowed_bed_nights = calculated_bed_nights.reject { |_, _, date| date.in?(excluded_dates) }
+      allowed_bed_nights = calculated_bed_nights.reject { |bn| bn.date.in?(excluded_dates) }
       @debugger&.log_timeline('allowed_bed_nights', allowed_bed_nights)
 
       # when including 3.917 add days before entry from PH projects where entry was from a literally homeless situation
@@ -92,67 +117,31 @@ module HudSpmReport::Fy2026
       # Or
       # ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
-      pre_entry_inclusion_dates = if include_self_reported_and_ph
-        ph_enrollments = enrollments.select { |enrollment, _, _| enrollment.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph)) }
-        add_self_reported([], ph_enrollments).reject { |_, _, date| date.in?(excluded_dates) }
-      else
-        # when not including 3.917
-        []
-      end
-      @debugger&.log_timeline('pre_entry_inclusion_dates', pre_entry_inclusion_dates)
       # To be included, in both 1a and 1b you need a homeless enrollment overlapping the range
+      # Step 1d: Preserve every relevant bed night which caused the client to be considered active in the date range.
+      # (Note: Step 1d-iii for PH says dates between start and move-in, which are already in allowed_bed_nights)
+      @debugger&.log_timeline('inclusion_dates', allowed_bed_nights)
+      return if allowed_bed_nights.blank?
 
-      # Step 1
-      inclusion_dates = allowed_bed_nights
-      # 1b additionally checks time before entry for PH projects
-      inclusion_dates += pre_entry_inclusion_dates
-      # Step 2 D
-      # note, inclusion dates are only used to check if these enrollments should be used, this variable is not used below
-      @debugger&.log_timeline('inclusion_dates', inclusion_dates)
-      return unless inclusion_dates.present?
-
-      # Steps 3 and 4
-      filtered_bed_nights = filter_episode(allowed_bed_nights) || []
-      @debugger&.log_timeline('filtered_bed_nights', filtered_bed_nights)
-      # step 5
-      # 5.	Measure 1b:  For each relevant project stay the client's response to Data Standards element 3.917.3 –  Approximate date this episode of homelessness started – also represents time the client has experienced homelessness.
-      # Including pre-entry for homeless enrollments
-      # when including 3.917 add days before entry
-      pre_entry_dates = if include_self_reported_and_ph
-        add_self_reported([], enrollments).reject { |_, _, date| date.in?(excluded_dates) }
-      else
-        # when not including 3.917
-        []
+      # Steps 3-6: Determine episode range and include contiguous nights
+      # Collect all possible nights including self-reported (Step 5)
+      all_candidate_nights = allowed_bed_nights
+      if include_self_reported_and_ph
+        # Step 5: For each relevant project stay, add self-reported dates if meeting literal homelessness criteria
+        pre_entry_dates = add_self_reported([], enrollments).reject { |bn| bn.date.in?(excluded_dates) }
+        @debugger&.log_timeline('pre_entry_dates', pre_entry_dates)
+        all_candidate_nights += pre_entry_dates
       end
-      @debugger&.log_timeline('pre_entry_dates', pre_entry_dates)
-      # note, at this point the array is no-longer sorted
-      filtered_bed_nights += pre_entry_dates
-      @debugger&.log_timeline('filtered_bed_nights + pre_entry_dates', filtered_bed_nights)
 
-      filtered_bed_nights = filter_episode(filtered_bed_nights)
-      @debugger&.log_timeline('filtered_episode(filtered_bed_nights + pre_entry_dates)', filtered_bed_nights)
+      filtered_bed_nights = filter_episode(all_candidate_nights)
+      @debugger&.log_timeline('filtered_bed_nights', filtered_bed_nights)
 
-      return unless filtered_bed_nights.present?
+      return if filtered_bed_nights.blank?
 
-      bed_nights_array = []
-      enrollment_links_array = []
-      any_bed_nights_in_report_range = filtered_bed_nights.any? { |_, _, date| date.between?(report_start_date, report_end_date) }
-      # any_bed_nights_in_report_range = false
-      # filtered_bed_nights.each do |enrollment, service_id, date|
-      #   bed_nights_array << BedNight.new(
-      #     client_id: client.id,
-      #     enrollment_id: enrollment.id,
-      #     service_id: service_id,
-      #     date: date,
-      #   )
-      #   any_bed_nights_in_report_range = true if date.between?(report_start_date, report_end_date)
-      # end
+      any_bed_nights_in_report_range = filtered_bed_nights.any? { |bn| bn.date.between?(report_start_date, report_end_date) }
 
-      enrollment_ids = filtered_bed_nights.map { |enrollment, _, _| enrollment.id }.uniq
-      enrollment_ids.each do |enrollment_id|
-        enrollment_links_array << EnrollmentLink.new(
-          enrollment_id: enrollment_id,
-        )
+      enrollment_links_array = filtered_bed_nights.map { |bn| bn.enrollment.id }.uniq.map do |enrollment_id|
+        EnrollmentLink.new(enrollment_id: enrollment_id)
       end
 
       first_date, last_date, days_homeless, first_date_enrollments = compute_episode_statistics(filtered_bed_nights)
@@ -169,50 +158,35 @@ module HudSpmReport::Fy2026
 
       {
         episode: self,
-        bed_nights: bed_nights_array,
+        bed_nights: [],
         enrollment_links: enrollment_links_array,
         any_bed_nights_in_report_range: any_bed_nights_in_report_range,
       }
     end
 
-    # @param bed_nights [Array] an array of [enrollment, index(?), date]
+    # @param bed_nights [Array<CandidateBedNight>]
     private def compute_episode_statistics(bed_nights)
-      min_val = bed_nights[0].last # The date component
-      max_val = bed_nights[0].last
-      distinct = {}
-      distinct_count = 0
-      first_date_enrollments = Set.new
-
-      bed_nights.each do |enrollment, _, date|
-        if date < min_val
-          min_val = date
-          first_date_enrollments = Set.new([enrollment]) # Reset to just this enrollment
-        elsif date == min_val
-          first_date_enrollments.add(enrollment) # Add to enrollments for first date
-        end
-        max_val = date if date > max_val
-
-        next if distinct.key?(date)
-
-        distinct[date] = true
-        distinct_count += 1
-      end
-
-      # Return min date, max date, count of distinct dates, and enrollments for min date
-      [min_val, max_val, distinct_count, first_date_enrollments]
+      # bed_nights are already sorted and unique by date from filter_episode
+      [
+        bed_nights.first.date,
+        bed_nights.last.date,
+        bed_nights.length,
+        Set.new([bed_nights.first.enrollment]),
+      ]
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
+      ph_project_types = HudHelper.util('2026').project_type_number_from_code(:ph)
+
       enrollments = enrollments.select do |e|
         # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
-        in_project_type = e.project_type.in?(project_types)
         # Always drop PH that wasn't literally homeless at entry or not in report range
         # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
-        if include_self_reported_and_ph && e.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:ph))
+        if include_self_reported_and_ph && e.project_type.in?(ph_project_types)
           enrollment_literally_homeless_at_entry(e) && include_ph_enrollment?(e)
         else
-          in_project_type
+          e.project_type.in?(project_types)
         end
       end
       enrollments.each do |enrollment|
@@ -240,11 +214,10 @@ module HudSpmReport::Fy2026
               map.with_index do |date, i|
                 next unless date.between?(first_night, last_night)
 
-                # return a triple [enrollment, id, date], using the index in place of the id so we don't need to load
+                # return a CandidateBedNight, using the index in place of the id so we don't need to load
                 # it from the DB (middle item needs to be unique within the enrollment)
-                [enrollment, i, date]
-              end.compact.group_by(&:last).
-              transform_values { |v| Array.wrap(v).last }, # Unique by date
+                CandidateBedNight.new(enrollment: enrollment, service_id: i, date: date)
+              end.compact.index_by(&:date),
           )
         else
           start_date = enrollment.entry_date
@@ -259,7 +232,7 @@ module HudSpmReport::Fy2026
           # Don't include days after the end of the reporting period
           end_date = [end_date, report_end_date].compact.min
           (start_date .. end_date).each do |date|
-            bed_nights[date] = [enrollment, nil, date]
+            bed_nights[date] = CandidateBedNight.new(enrollment: enrollment, service_id: nil, date: date)
           end
         end
       end
@@ -300,8 +273,10 @@ module HudSpmReport::Fy2026
     end
 
     private def add_self_reported(existing_bed_nights, enrollments)
-      bed_nights = existing_bed_nights.index_by(&:last)
+      bed_nights = existing_bed_nights.index_by(&:date)
       enrollments.each do |enrollment|
+        next unless enrollment_literally_homeless_at_entry(enrollment)
+
         if enrollment.project_type.in?(HudHelper.util('2026').project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range and within the enrollment period
           first_night = [report_start_date, enrollment.entry_date].max
@@ -326,7 +301,7 @@ module HudSpmReport::Fy2026
           next unless earliest_bed_night >= lookback_date && start_date < enrollment.entry_date
 
           (start_date .. earliest_bed_night).each do |date|
-            bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
+            bed_nights[date] ||= CandidateBedNight.new(enrollment: enrollment, service_id: nil, date: date) # Add the day if not already present
           end
         else
           # Self-reported dates earlier than the entry date if present and the **project** start is on or after the lookback date
@@ -335,7 +310,7 @@ module HudSpmReport::Fy2026
           next unless enrollment.entry_date >= lookback_date && start_date < enrollment.entry_date
 
           (start_date .. enrollment.entry_date).each do |date|
-            bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
+            bed_nights[date] ||= CandidateBedNight.new(enrollment: enrollment, service_id: nil, date: date) # Add the day if not already present
           end
         end
       end
@@ -351,42 +326,75 @@ module HudSpmReport::Fy2026
     # 4.	For each active client, create a [client start date] which is 365 days prior to the [client end date] going back no further than the [lookback stop date].
     #   a.	[Client start date] = [client end date] – 365 days.
     #   b.	A [client start date] will usually be prior to the [report start date].
-    # @param bed_nights [[Enrollment, service_id, Date]] Array of candidate bed nights to be processed
-    private def filter_episode(calculated_bed_nights)
-      return unless calculated_bed_nights.present?
+    #
+    # @param bed_nights [Array<CandidateBedNight>] Array of candidate bed nights to be processed
+    # @return [Array<CandidateBedNight>, nil] Filtered bed nights for the episode, or nil if none qualify
+    private def filter_episode(bed_nights)
+      return if bed_nights.blank?
 
-      # Sort by date to ensure chronological order
-      calculated_bed_nights = calculated_bed_nights.sort_by(&:last).uniq(&:last)
+      # Sort by date to ensure chronological order, dedupe by date
+      bed_nights = bed_nights.sort.uniq(&:date)
+
       # Keep bed nights that are:
-      # - on or after the lookback date
-      # - OR associated with an enrollment that started on or after the lookback date
-      calculated_bed_nights = calculated_bed_nights.select do |enrollment, _, bed_night_date|
-        bed_night_on_or_after_lookback = bed_night_date >= lookback_date
-        enrollment_on_or_after_lookback = enrollment.entry_date >= lookback_date
+      # - on or after the client's date of birth
+      # - AND (on or after the lookback date
+      #   OR associated with an enrollment that started on or after the lookback date)
+      #
+      # Per spec (Step 5): "include additional nights experiencing homelessness based on
+      # [approximate date this episode of homelessness started] up to and including
+      # [project start date]... even if response extends prior to [lookback stop date]"
+      client_dob = client&.dob
+      bed_nights = bed_nights.select do |bn|
+        next false if client_dob && bn.date < client_dob
 
-        bed_night_on_or_after_lookback || enrollment_on_or_after_lookback
+        bn.date >= lookback_date || bn.enrollment.entry_date >= lookback_date
       end
 
       # If we've filtered out all bed nights, return nil
-      return if calculated_bed_nights.empty?
+      return if bed_nights.empty?
 
-      # Now find the client's end date based on the remaining bed nights
-      client_end_date = calculated_bed_nights.last.last
-      client_start_date = client_end_date - 365.days
+      # Step 3: Determine client's end date (latest homeless bed night in report range)
+      # Must be >= report_start_date and <= report_end_date.
+      # bed_nights are already capped at report_end_date.
+      client_end_date = bed_nights.reverse_each.find { |bn| bn.date >= report_start_date }&.date
+      return if client_end_date.nil?
+
+      # Step 4: Client start date is 365 days prior to end date
+      # going back no further than the [lookback stop date] or client DOB.
+      client_start_date = [client_end_date - 365.days, lookback_date, client_dob].compact.max
 
       @debugger&.log("client_start_date: #{client_start_date.to_fs(:db)}")
       @debugger&.log("client_end_date: #{client_end_date.to_fs(:db)}")
 
-      # Include contiguous dates before the calculated client start date:
-      # First, find as close to the start date as possible in the array
-      index = 0
-      index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last <= client_start_date
+      # Step 6a (Forward): Find first index where date >= client_start_date
+      # All nights from here to end are included (gaps allowed in forward direction)
+      forward_start_index = bed_nights.bsearch_index { |bn| bn.date >= client_start_date } || bed_nights.length
 
-      # Then walk back until there is a break
-      index -= 1 while index.positive? && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
+      # Step 6b (Backward): Include contiguous dates before client_start_date
+      # Walk backwards until there is a gap > 1 day or we hit lookback_date
+      backward_start_index = forward_start_index
 
-      # Finally, return the selected dates
-      calculated_bed_nights[index..]
+      if forward_start_index.positive?
+        # "To be contiguous, a date must be no more than one day earlier than
+        # another date already in the client's dataset or the [client start date]"
+        contiguity_edge = client_start_date
+
+        (forward_start_index - 1).downto(0) do |i|
+          bn = bed_nights[i]
+          # stop if we've exceeded the lookback_date
+          break if bn.date < lookback_date && bn.enrollment.entry_date < lookback_date
+          # Gap > 1 day found - "the period of at least one day when a client
+          # is not experiencing homelessness" - stop here
+          break if (contiguity_edge - bn.date).to_i > 1
+
+          # Contiguous - include this night and continue walking back
+          backward_start_index = i
+          contiguity_edge = bn.date
+        end
+      end
+
+      # Return the selected bed nights (contiguous backward + all forward)
+      bed_nights[backward_start_index..]
     end
 
     private def enrollment_literally_homeless_at_entry(enrollment)
@@ -396,7 +404,7 @@ module HudSpmReport::Fy2026
       enrollment.project_type.in?([2, 3, 9, 10, 13]) &&
         (enrollment.prior_living_situation.in?(100..199) ||
           (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(200..299) && enrollment.los_under_threshold?) ||
-            (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(300..499) && enrollment.los_under_threshold?))
+          (enrollment.previous_street_essh? && (enrollment.prior_living_situation.in?(0..99) || enrollment.prior_living_situation.in?(300..499)) && enrollment.los_under_threshold?))
     end
 
     private def include_ph_enrollment?(enrollment)
@@ -404,8 +412,8 @@ module HudSpmReport::Fy2026
       return false unless enrollment.project_type.in?([2, 3, 9, 10, 13])
 
       enrollment.entry_date.between?(report_start_date, report_end_date) ||
-        (enrollment.move_in_date.present? && enrollment.move_in_date.between?(report_start_date, report_end_date)) ||
-        (enrollment.move_in_date.blank? && enrollment.exit_date.present? && enrollment.exit_date.between?(report_start_date, report_end_date))
+        enrollment.move_in_date&.between?(report_start_date, report_end_date) ||
+        (enrollment.move_in_date.blank? && enrollment.exit_date&.between?(report_start_date, report_end_date))
     end
 
     private def report_start_date

@@ -81,7 +81,11 @@ module Types
 
     # the Hmis::WorkflowDefinition::UserTask that configures this referral step
     def workflow_task
-      load_ar_association(object, :user_task)
+      node = load_ar_association(object, :node)
+      # Raise legible error if we mistakenly try to resolve a step that is not a UserTask
+      raise "Unable to resolve step #{object.id}. Expected node to be a UserTask, but it is a #{node&.type&.demodulize}" unless node&.user_task?
+
+      node
     end
   end
 end

@@ -28,7 +28,7 @@ module PerformanceDashboard::Overview::Exiting::Gender
               HudHelper.util.gender_id_to_field_name.invert[k]
             end
           end.compact
-          next unless genders.present?
+          genders = [99] if genders.empty?
 
           genders.each do |gender|
             counted[gender_bucket(gender)] ||= Set.new
