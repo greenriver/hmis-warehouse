@@ -51,8 +51,10 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
         merge(GrdaWarehouse::Hud::Funder.where(Funder: 21)).
         pluck(:id)
 
+      # Per AAQ response, date of engagement `prior to` here should include the report end date
+      # https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=EEE88B5C-17B7-4C2E-B6D667BF7F53A48D
       query = a_t[:project_type].eq(4).
-        and(a_t[:date_of_engagement].lt(@report.end_date))
+        and(a_t[:date_of_engagement].lteq(@report.end_date))
       query = query.or(a_t[:project_type].eq(6).and(a_t[:project_id].in(path_funded_project_ids))) if path_funded_project_ids.present?
       so_or_path_funded_sso_members = adults_and_hohs.where(query)
       answer.add_members(so_or_path_funded_sso_members)
