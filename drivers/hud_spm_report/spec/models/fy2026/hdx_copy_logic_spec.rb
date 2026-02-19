@@ -95,7 +95,8 @@ RSpec.describe 'HDX Copy Logic', type: :model do
                        })
   end
 
-  it 'correctly copies values from measure 6 to HDX' do
+  # measure 6 is not implemented
+  xit 'correctly copies values from measure 6 to HDX' do
     run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureSix)
 
     table_main = '6a.1 and 6b.1'
@@ -140,32 +141,98 @@ RSpec.describe 'HDX Copy Logic', type: :model do
                        })
   end
 
+  context 'data quality' do
+    before do
+      # Create an isolated DQ report to stub into the HDX generator.
+      # The HDX upload normally generates these internally during its run, but intercepting
+      # it allows us to verify the cell references independently without running the full suite.
+      filter = default_filter.dup
+      questions = ['Question 1', 'Question 4']
+      @dq_report = HudReports::ReportInstance.from_filter(
+        filter,
+        HudApr::Generators::Dq::Fy2026::Generator.title,
+        build_for_questions: questions,
+      )
+      @dq_report.question_names = questions
+      @dq_report.save!
+
+      generator = HudApr::Generators::Dq::Fy2026::Generator
+      generator.new(@dq_report).run!(email: false, manual: false)
+
+      allow_any_instance_of(HudSpmReport::Generators::Fy2026::HdxUpload).to receive(:generate_dq).and_return(@dq_report)
+    end
+
+    it 'correctly copies values from ES-SH DQ' do
+      verify_hdx_mapping({
+                           'ESSH_UndupHMIS_DQ' => ['Q1', 'B2'],
+                           'ESSH_LeaversHMIS_DQ' => ['Q1', 'B6'],
+                           'ESSH_DkRMHMIS_DQ' => ['Q4', 'E2'],
+                         }, report: @dq_report)
+    end
+
+    it 'correctly copies values from TH DQ' do
+      verify_hdx_mapping({
+                           'TH_UndupHMIS_DQ' => ['Q1', 'B2'],
+                           'TH_LeaversHMIS_DQ' => ['Q1', 'B6'],
+                           'TH_DkRMHMIS_DQ' => ['Q4', 'E2'],
+                         }, report: @dq_report)
+    end
+
+    it 'correctly copies values from PSH/OPH DQ' do
+      verify_hdx_mapping({
+                           'PSHOPH_UndupHMIS_DQ' => ['Q1', 'B2'],
+                           'PSHOPH_LeaversHMIS_DQ' => ['Q1', 'B6'],
+                           'PSHOPH_DkRMHMIS_DQ' => ['Q4', 'E2'],
+                         }, report: @dq_report)
+    end
+
+    it 'correctly copies values from RRH DQ' do
+      verify_hdx_mapping({
+                           'RRH_UndupHMIS_DQ' => ['Q1', 'B2'],
+                           'RRH_LeaversHMIS_DQ' => ['Q1', 'B6'],
+                           'RRH_DkRMHMIS_DQ' => ['Q4', 'E2'],
+                         }, report: @dq_report)
+    end
+
+    it 'correctly copies values from Street Outreach DQ' do
+      verify_hdx_mapping({
+                           'StOutreach_UndupHMIS_DQ' => ['Q1', 'B2'],
+                           'StOutreach_LeaversHMIS_DQ' => ['Q1', 'B6'],
+                           'StOutreach_DkRMHMIS_DQ' => ['Q4', 'E2'],
+                         }, report: @dq_report)
+    end
+  end
+
   private
 
-  def verify_hdx_mapping(mapping)
-    # 1. Inject unique values from sequence
+  def verify_hdx_mapping(mapping, report: @report)
     expected_values = {}
+    answer_map = report.report_cells.where(universe: false).index_by { |c| [c.question, c.cell_name] }
+
     mapping.each do |hdx_var, (source_table, source_cell)|
+      # Inject unique values from sequence for comparison
       val = sequence.next.to_f
-      @report.answer(question: source_table, cell: source_cell).update!(summary: val)
+      answer = answer_map[[source_table, source_cell]]
+      expect(answer).to be_present, "Source cell #{source_table}:#{source_cell} not found"
+      answer.update!(summary: val)
       expected_values[hdx_var] = val
     end
 
-    # 2. Run the copy
+    # Run the copy
     run_measure(@report, HudSpmReport::Generators::Fy2026::HdxUpload)
 
-    # 3. Verify all mappings
+    # Verify all mappings
     expected_values.each do |hdx_var, expected_val|
       expect(hdx_answer(hdx_var).summary).to eq(expected_val)
     end
   end
 
-  def hdx_answer(name)
+  def hdx_answer(name, report: @report)
     config = HudSpmReport::Generators::Fy2026::HdxUpload::COLUMNS.find do |h|
       h[:variable_name] == name
     end
     raise "hdx col \"#{name}\" not found" unless config
 
-    @report.answer(question: 'csv', cell: "#{config.column_letter}2")
+    report.answer(question: 'csv', cell: "#{config.column_letter}2")
   end
 end

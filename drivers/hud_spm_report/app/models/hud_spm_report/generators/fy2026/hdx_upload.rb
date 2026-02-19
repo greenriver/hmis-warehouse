@@ -108,6 +108,7 @@ module HudSpmReport::Generators::Fy2026
     end
     private_constant :HdxColumn
 
+    # Column definitions must match those from "System Performance Measures (SPM) Comma Separated Value (CSV) Export Specifications", published on hudexchange
     COLUMNS = [
       # Metadata fields
       { column_letter: 'A', variable_name: 'CocCode', source_type: :metadata, source_table: 'CocCode', data_type: :string, max_length: 6 },
