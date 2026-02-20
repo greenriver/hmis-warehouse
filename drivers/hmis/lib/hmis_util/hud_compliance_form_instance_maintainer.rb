@@ -10,6 +10,8 @@ module HmisUtil
   # Encapsulates HUD compliance rules for form system instances. Creates (or in dry run, reports)
   # the system form instances required for record forms and assessments.
   class HudComplianceFormInstanceMaintainer
+    include NotifierConfig
+
     FORM_IDENTIFIERS = {
       move_in_date: 'move_in_date',
       date_of_engagement: 'date_of_engagement',
@@ -32,7 +34,9 @@ module HmisUtil
 
     def initialize(dry_run: false)
       @dry_run = dry_run
-      @missing_rules_summary = [] # used in dry run to collect what would be created
+      @created = []  # { type: :default|:rule, ... } for reporting
+      @updated = []  # same shape: existing instances changed to system/active
+      setup_notifier('HUD Form Compliance')
     end
 
     def ensure_all_system_instances_exist!
@@ -40,7 +44,10 @@ module HmisUtil
       ensure_record_form_system_instances!
       # Create required system instances for assessments (Intake, Exit, etc)
       ensure_assessment_system_instances!
-      # TODO(#8874): ensure system instances exist for HUD Service form (Currently handled by HmisUtil::ServiceTypes)
+      # TODO(#8874) ADD: ensure system instances exist for HUD Service form (Currently handled by HmisUtil::ServiceTypes)
+
+      # Report changes
+      report_changes_if_any
     end
 
     private
@@ -48,8 +55,6 @@ module HmisUtil
     # Ensures all required system instances exist for HUD record forms: default system form roles,
     # move-in date, date of engagement, path status, and current living situation.
     def ensure_record_form_system_instances!
-      @missing_rules_summary = [] if @dry_run
-
       # Ensure form rules exist to enable all System Forms globally
       Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
         create_default_system_instance!(identifier: role.to_s.downcase)
@@ -84,15 +89,11 @@ module HmisUtil
           funder: spec[:funder],
         )
       end
-
-      print_compliance_summary('Record forms', @missing_rules_summary) if @dry_run && @missing_rules_summary.any?
     end
 
     # Ensures required system instances exist for HUD assessments: default rule for intake/exit/update/annual,
     # funder-specific rule for post-exit (RHY aftercare).
     def ensure_assessment_system_instances!
-      @missing_rules_summary = [] if @dry_run # reset for assessment section
-
       ASSESSMENT_IDENTIFIERS.each do |identifier|
         if identifier == FORM_IDENTIFIERS[:base_post_exit]
           create_system_instances!(
@@ -104,19 +105,17 @@ module HmisUtil
           create_default_system_instance!(identifier: identifier)
         end
       end
-
-      print_compliance_summary('Assessments', @missing_rules_summary) if @dry_run && @missing_rules_summary.any?
     end
 
     def create_default_system_instance!(identifier:)
-      if @dry_run
-        exists = Hmis::Form::Instance.defaults.exists?(definition_identifier: identifier)
-        @missing_rules_summary << { type: :default, definition_identifier: identifier } unless exists
-        return
-      end
       instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
+      was_new = instance.new_record?
       instance.assign_attributes(active: true, system: true)
-      instance.save! if instance.changed?
+      return unless instance.changed?
+
+      instance.save! unless @dry_run
+      payload = { type: :default, definition_identifier: identifier }
+      was_new ? @created << payload : @updated << payload
     end
 
     def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
@@ -142,30 +141,55 @@ module HmisUtil
         entity_type: nil,
         entity_id: nil,
       }
-      if @dry_run
-        @missing_rules_summary << { type: :rule, **attrs } unless Hmis::Form::Instance.active.exists?(attrs)
-        return
-      end
-
       instance = Hmis::Form::Instance.find_or_initialize_by(attrs)
+      was_new = instance.new_record?
       instance.assign_attributes(active: true, system: true)
-      instance.save! if instance.changed?
+      return unless instance.changed?
+
+      instance.save! unless @dry_run
+      payload = { type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder }
+      was_new ? @created << payload : @updated << payload
     end
 
-    def print_compliance_summary(section_label, entries)
-      default_count = entries.count { |e| e[:type] == :default }
-      rule_count = entries.count { |e| e[:type] == :rule }
-      by_identifier = entries.select { |e| e[:type] == :rule }.group_by { |e| e[:definition_identifier] }
-      lines = [
-        "HUD Form Compliance (dry run) — #{section_label} — new instances that would be created:",
-        "  Default (all projects): #{default_count}",
-        "  Funder/project-type rules: #{rule_count}",
-      ]
-      by_identifier.each do |identifier, items|
-        lines << "    #{identifier}: #{items.size} rule(s)"
+    def report_changes_if_any
+      message = build_summary_lines.join("\n")
+      return if message.blank?
+
+      Rails.logger.info message
+      @notifier.ping(message) unless @dry_run
+    end
+
+    # One summary format for dry run (would create/update) and real run (created/updated). Entries
+    # are hashes with :type (:default or :rule), :definition_identifier, and for rules :project_type, :funder.
+    def build_summary_lines
+      return [] if @created.empty? && @updated.empty?
+
+      title = @dry_run ? 'HUD Form Compliance (dry run) — instances that would be created or updated:' : 'HUD Form Compliance — changes applied:'
+      created_label = @dry_run ? "Would create (#{@created.size}):" : "Created (#{@created.size}):"
+      updated_label = @dry_run ? "Would update (#{@updated.size}):" : "Updated (#{@updated.size}):"
+
+      lines = [title]
+      if @created.any?
+        lines << created_label
+        lines.concat(format_entries(@created))
       end
-      Rails.logger.info lines.join("\n")
-      puts lines.join("\n")
+      if @updated.any?
+        lines << updated_label
+        lines.concat(format_entries(@updated))
+      end
+      lines
+    end
+
+    def format_entries(entries)
+      entries.map do |entry|
+        summary = [
+          entry[:definition_identifier],
+          entry[:project_type] ? "project_type=#{entry[:project_type]}" : nil,
+          entry[:funder] ? "funder=#{entry[:funder]}" : nil,
+        ].compact.join(', ')
+
+        "  #{entry[:type] == :default ? 'default rule' : 'rule'}: #{summary}"
+      end.sort
     end
   end
 end

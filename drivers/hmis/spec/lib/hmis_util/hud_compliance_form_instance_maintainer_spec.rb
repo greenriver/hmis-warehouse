@@ -95,16 +95,19 @@ RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer do
     end
 
     context 'with dry run' do
-      it 'does not create records when instances are missing, but prints them in the summary' do
+      it 'does not create records when instances are missing, but logs them in the summary' do
         # Delete some system instances so there are missing compliance instances
         Hmis::Form::Instance.system.where(definition_identifier: 'client').delete_all
         Hmis::Form::Instance.system.where(definition_identifier: 'project').delete_all
+        Hmis::Form::Instance.system.where(definition_identifier: 'move_in_date').last.update!(system: false) # should trigger update
         count_after_deletion = Hmis::Form::Instance.count
 
-        expect do
-          described_class.new(dry_run: true).ensure_all_system_instances_exist!
-        end.to output(a_string_including('HUD Form Compliance (dry run)', 'Record forms', 'new instances that would be created', 'Default (all projects): 2')).to_stdout
+        allow(Rails.logger).to receive(:info)
+        described_class.new(dry_run: true).ensure_all_system_instances_exist!
 
+        expect(Rails.logger).to have_received(:info).with(
+          a_string_including('HUD Form Compliance (dry run)', 'Would create (2):', 'client', 'project', 'Would update (1):', 'move_in_date'),
+        )
         expect(Hmis::Form::Instance.count).to eq(count_after_deletion)
       end
     end
