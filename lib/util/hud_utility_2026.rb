@@ -969,7 +969,6 @@ module HudUtility2026
     pt = {
       es_nbn: 1,             # Emergency Shelter - Night-by-Night
       street_outreach: 4,    # Street Outreach
-      services_only: 6,      # Services Only
       coordinated_entry: 14, # Coordinated Entry
     }
 
