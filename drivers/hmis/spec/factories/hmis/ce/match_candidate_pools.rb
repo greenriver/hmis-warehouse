@@ -7,10 +7,10 @@ FactoryBot.define do
     sequence(:priority_expression) { |n| "{#{n}}" }
   end
 
-  # Helper factory for creating a candidate pool that is already considered active:
+  # Helper factory for creating a candidate pool that is considered active:
   # - tied to a unit group
   # - unit group is in a project that supports waitlist-based referrals
-  factory :hmis_ce_match_candidate_pool_active, parent: :hmis_ce_match_candidate_pool do
+  factory :hmis_ce_match_candidate_pool_active_with_unit_group, parent: :hmis_ce_match_candidate_pool do
     transient do
       data_source { create(:hmis_data_source) }
       project { create(:hmis_hud_project, data_source: data_source) }

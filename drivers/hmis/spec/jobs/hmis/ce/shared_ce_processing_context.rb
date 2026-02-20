@@ -23,7 +23,7 @@ RSpec.shared_context 'with ce processing setup' do
   end
 
   let!(:ce_data_source) { create(:hmis_primary_data_source) }
-  let!(:pool) { create(:hmis_ce_match_candidate_pool_active, data_source: ce_data_source) }
+  let!(:pool) { create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source) }
   let(:now) { Time.current }
 
   before(:all) { cleanup_test_environment }
