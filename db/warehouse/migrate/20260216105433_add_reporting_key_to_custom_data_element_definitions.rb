@@ -13,6 +13,8 @@ class AddReportingKeyToCustomDataElementDefinitions < ActiveRecord::Migration[7.
                 where: '"reporting_key" IS NOT NULL',
                 name: 'index_cded_on_owner_type_and_reporting_key'
     end
+
+    update_view 'analytics.custom_data_element_definitions', version: 2, revert_to_version: 1
   end
 end
 
