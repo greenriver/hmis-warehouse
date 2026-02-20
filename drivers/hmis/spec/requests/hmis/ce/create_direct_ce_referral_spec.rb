@@ -36,6 +36,13 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
     }
   end
 
+  # perform mutation and return the referral id
+  def perform_mutation(variables)
+    response, result = post_graphql(**variables) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'createDirectCeReferral', 'referral', 'id')
+  end
+
   describe 'create direct CE referral mutation' do
     let(:mutation) do
       <<~GRAPHQL
@@ -104,10 +111,8 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
         let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
 
         it 'captures assignment rules on the referral at creation time' do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-
-          referral = Hmis::Ce::Referral.last
+          referral_id = perform_mutation(variables)
+          referral = Hmis::Ce::Referral.find(referral_id)
           expect(referral.assignment_rules).to be_an(Array)
           expect(referral.assignment_rules.length).to eq(2)
           rule_ids = referral.assignment_rules.map { |r| r['id'] }
@@ -188,12 +193,12 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
       let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template, direct_referral_workflow_template: direct_referral_workflow_template) }
 
       it 'creates the referral with the correct template' do
+        referral_id = nil
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
+          referral_id = perform_mutation(variables)
         end.to change(Hmis::Ce::Referral, :count).by(1)
 
-        referral = Hmis::Ce::Referral.last
+        referral = Hmis::Ce::Referral.find(referral_id)
         expect(referral.workflow_template).to eq(direct_referral_workflow_template)
       end
     end
@@ -208,12 +213,12 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
       end
 
       it 'creates referral participants from default assignments' do
+        referral_id = nil
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
+          referral_id = perform_mutation(variables)
         end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
 
-        referral = Hmis::Ce::Referral.last
+        referral = Hmis::Ce::Referral.find(referral_id)
         participant = referral.participants.first
         expect(participant.user).to eq(case_manager)
         expect(participant.swimlane).to eq(swimlane)
