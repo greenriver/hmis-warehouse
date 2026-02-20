@@ -365,16 +365,6 @@ module HudUtility2026
     ].freeze
   end
 
-  # Project types that are required to collect Current Living Situation (if required by funder)
-  def cls_project_types
-    [
-      1, # Emergency Shelter – Night-by-Night
-      4, # Street Outreach
-      6, # Services Only
-      14, # Coordinated Entry
-    ].freeze
-  end
-
   # Funders that require Move-in Date collection
   def move_in_date_funders
     [45]
@@ -1000,7 +990,7 @@ module HudUtility2026
       # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
       { funder: cls_funder_codes[:coc_sso] },
       # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
-      { funder: cls_funder_codes[:coc_yhdp] }, 
+      { funder: cls_funder_codes[:coc_yhdp] },
       # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
       { funder: cls_funder_codes[:esg_street_outreach] },
       { funder: cls_funder_codes[:esg_emergency_shelter], project_type: pt[:es_nbn] },

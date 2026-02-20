@@ -22,10 +22,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID' # Invalid enum representation
 
-  before(:all) do
-    ::HmisUtil::JsonForms.seed_all
-  end
-
   describe 'IncomeBenefit processor' do
     it 'succeeds if overall is YES and sources are specified (income)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)

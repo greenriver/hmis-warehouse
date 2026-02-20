@@ -36,8 +36,8 @@ RSpec.feature 'Data collection features', type: :system do
       Hmis::Form::Instance.with_role(:CURRENT_LIVING_SITUATION).each(&:destroy!)
     end
     after(:all) do
-      # re-seed CLS form instance to restore default behavior
-      HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CURRENT_LIVING_SITUATION])
+      # re-seed CLS form instances to restore default behavior
+      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
     end
     it 'should not show CLS in the project side nav' do
       visit "/projects/#{p1.id}/overview"

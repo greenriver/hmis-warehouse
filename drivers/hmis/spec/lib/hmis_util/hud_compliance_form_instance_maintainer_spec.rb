@@ -17,7 +17,6 @@ RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer do
 
   after(:all) do
     # clear and reset to original state
-    Hmis::Form::Definition.delete_all
     Hmis::Form::Instance.delete_all
     HmisUtil::JsonForms.seed_all
   end
