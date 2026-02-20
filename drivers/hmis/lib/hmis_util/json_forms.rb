@@ -7,15 +7,26 @@
 # frozen_string_literal: true
 
 module HmisUtil
+  # Loads HMIS form definitions from version-controlled JSON files into the database.
+  #
+  # Reads from drivers/hmis/lib/form_data:
+  #   - Base definitions live under default/ (fragments, record forms, assessments, static admin forms)
+  #   - Environment-specific overrides are loaded from subdirs to override or extend the base definitions: e.g. test, qa_hmis, or ENV['CLIENT']
+  # Optionally generates custom data element definitions (CDEDs) from custom_field_key mappings.
+  # Optionally ensures HUD-compliant system form instances exist (HudComplianceFormInstanceMaintainer).
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException
 
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
-    def initialize(env_key: nil, enable_cded_generation_in_test: false)
-      @env_key = env_key if env_key.presence # allow override for testing
-      @enable_cded_generation_in_test = enable_cded_generation_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
+    attr_reader :env_key, :generate_cdeds, :create_instances
+
+    def initialize(env_key: nil, generate_cdeds: nil, create_instances: nil)
+      in_test = Rails.env.test?
+      @env_key = env_key.presence || compute_default_env_key
+      @generate_cdeds = generate_cdeds.nil? ? !in_test : generate_cdeds # default: generate CDEDs from custom_field_key mappings in non-test environments
+      @create_instances = create_instances.nil? ? !in_test : create_instances # default: create HUD-compliant system instances in non-test environments
     end
 
     def self.seed_all
@@ -25,7 +36,6 @@ module HmisUtil
     def seed_all
       Hmis::Hud::Base.transaction do
         # Load the latest record definitions from JSON files. (Client, Project, Enrollment, etc.)
-        # and ensure that required system-level instances exist.
         seed_record_form_definitions
         # Load the latest assessment definitions from JSON files. (Intake, Exit, Update, Annual, Post-exit)
         seed_assessment_form_definitions
@@ -33,24 +43,19 @@ module HmisUtil
         seed_custom_assessment_form_definitions
         # Load static admin forms
         seed_static_forms
+        # Ensure all system instances exist for HUD compliance. System instances cannot be removed in the admin UI.
+        HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist! if create_instances
       end
     end
 
     protected
 
-    def enable_cded_generation_in_test?
-      @enable_cded_generation_in_test
-    end
+    def compute_default_env_key
+      return 'test' if Rails.env.test? # Load records from lib/form_data/test
+      return ENV['CLIENT'] if ENV['CLIENT'].present? # Load records from lib/form_data/ENV['CLIENT']
+      return 'qa_hmis' if Rails.env.development? # In development, load records from lib/form_data/qa_hmis
 
-    def env_key
-      @env_key ||= if Rails.env.test?
-        'test'
-      elsif ENV['CLIENT'].present?
-        ENV['CLIENT']
-      elsif Rails.env.development?
-        # default to QA environment in development to get forms with all possible questions enabled
-        'qa_hmis'
-      end
+      nil
     end
 
     def fragment_map
@@ -96,12 +101,12 @@ module HmisUtil
       end
     end
 
-    def client_override(file_path)
+    def path_with_env_override(file_path)
       return file_path unless env_key
 
-      client_override_fpath = file_path.gsub('/default/', "/#{env_key}/")
-      if File.exist?(client_override_fpath)
-        client_override_fpath
+      env_override_path = file_path.gsub('/default/', "/#{env_key}/")
+      if File.exist?(env_override_path)
+        env_override_path
       else
         file_path
       end
@@ -118,7 +123,7 @@ module HmisUtil
           role = identifier.upcase.to_sym
           raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.include?(role)
 
-          file_path = client_override(file_path)
+          file_path = path_with_env_override(file_path)
           # puts "Loading #{identifier} from #{file_path}"
           file = File.read(file_path)
           forms[role] ||= {}
@@ -144,7 +149,7 @@ module HmisUtil
           # Load client-specific
           Dir.glob("#{DATA_DIR}/#{env_key}/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            file_path = client_override(file_path)
+            file_path = path_with_env_override(file_path)
             # puts "Loading #{identifier} from #{file_path}"
             file = File.read(file_path)
             forms[role][identifier] = JSON.parse(file)
@@ -305,10 +310,7 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
-      # Generate and validate CDEDs if this isn't a test env, OR if it is a test env but enable_cded_generation_in_test flag is true.
-      should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
-
-      if should_generate_cdeds
+      if generate_cdeds
         # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
         cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
@@ -324,51 +326,11 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        skip_cded_validation: !should_generate_cdeds, # skip validation if we didn't generate CDEDs
+        skip_cded_validation: !generate_cdeds, # skip validation if we didn't generate CDEDs
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
       record.save!
-    end
-
-    # Ensure necessary system instances exist for HUD compliance. System instances cannot be removed in the admin UI.
-    public def ensure_system_instances_exist!
-      # Ensure form rules exist to enable all System Forms globally
-      Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
-        create_default_system_instance!(identifier: role.to_s.downcase)
-      end
-
-      # Find or create required rules for HUD Occurrence Point forms (Move-in Date, Date of Engagement, and Path Status)
-      create_system_instances!(
-        identifier: 'move_in_date',
-        data_collected_about: :HOH,
-        project_types: HudHelper.util.permanent_housing_project_types,
-        funders: HudHelper.util.move_in_date_funders,
-      )
-      create_system_instances!(
-        identifier: 'date_of_engagement',
-        data_collected_about: :HOH_AND_ADULTS,
-        project_types: HudHelper.util.doe_project_types,
-      )
-      create_system_instances!(
-        identifier: 'path_status',
-        data_collected_about: :HOH_AND_ADULTS,
-        funders: HudHelper.util.path_funders,
-      )
-
-      # Enforce system rules for the default Current Living Situation form (HUD-required collection).
-      # These rules are very specific (funder-level) and intentionally match exactly what HUD requires.
-      # For CLS it is common for customers to expand collection at the project type level (e.g. all shelters,
-      # all street outreach); adding such rules is fine since they only expand collection. Customers must not
-      # be able to delete these system rules, or the system would fall out of HUD compliance.
-      HudHelper.util.current_living_situation_funder_applicability_requirements.each do |spec|
-        create_system_instance!(
-          identifier: 'current_living_situation',
-          data_collected_about: :HOH_AND_ADULTS,
-          project_type: spec[:project_type],
-          funder: spec[:funder],
-        )
-      end
     end
 
     FORM_TITLES = {
@@ -384,13 +346,10 @@ module HmisUtil
 
     # Load form definitions for editing and creating records
     public def seed_record_form_definitions(roles: [])
-      added_identifiers = []
       record_forms_by_role.each do |role, definition_hash|
         next if roles.any? && !roles.map(&:to_s).include?(role.to_s)
 
         definition_hash.each do |identifier, form_definition|
-          # puts "Loading #{identifier} => #{role}"
-          added_identifiers << identifier
           load_definition(
             form_definition: form_definition,
             identifier: identifier,
@@ -399,15 +358,11 @@ module HmisUtil
           )
         end
       end
-      # Ensure system instances exist for records, so the application functions correctly and HUD compliance is met.
-      ensure_system_instances_exist! unless Rails.env.test?
-      # puts "Saved definitions with identifiers: #{added_identifiers.join(', ')}"
     end
 
     # Load form definitions for HUD assessments
     public def seed_assessment_form_definitions
       roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL, :POST_EXIT]
-      identifiers = []
       roles.each do |role|
         filename = "base_#{role.to_s.downcase}.json"
         begin
@@ -418,30 +373,14 @@ module HmisUtil
         file ||= File.read("#{DATA_DIR}/default/assessments/#{filename}")
         form_definition = JSON.parse(file)
 
-        # Load definition into database
         identifier = "base-#{role.to_s.downcase}"
-        identifiers << identifier
-
         load_definition(
           form_definition: form_definition,
           identifier: identifier,
           role: role,
           title: FORM_TITLES[identifier],
         )
-
-        if role == :POST_EXIT
-          # Ensure minimum rule exists for Post-exit which is required for RHY
-          create_system_instances!(
-            identifier: identifier,
-            data_collected_about: :HOH_AND_ADULTS,
-            funders: HudHelper.util.post_exit_aftercare_plans_funders,
-          )
-        else
-          # Ensure default rule exists for other HUD assessments (enabled in all projects)
-          create_default_system_instance!(identifier: identifier)
-        end
       end
-      # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
     def seed_custom_assessment_form_definitions
@@ -483,44 +422,6 @@ module HmisUtil
           title: role.to_s.titlecase,
         )
       end
-    end
-
-    # Create or update system instances for the given identifier. System instances are used to ensure HUD-required forms are properly enabled,
-    # and cannot be deleted in the interface. At least one of project_types or funders must be provided.
-    # When both are given: creates one rule per project_type (funder: nil) and one rule per funder (project_type: nil), not every combination.
-    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
-      raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
-
-      project_types.each do |project_type|
-        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: project_type, funder: nil)
-      end
-      funders.each do |funder|
-        create_system_instance!(identifier: identifier, data_collected_about: data_collected_about, project_type: nil, funder: funder)
-      end
-    end
-
-    # Create or update a single system instance for the given identifier. At least one of project_type or funder must be provided.
-    # If project_type and funder are both specified, the rule will apply to projects that match both the project type and funder.
-    private def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil)
-      raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
-      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
-
-      instance = Hmis::Form::Instance.find_or_initialize_by(
-        definition_identifier: identifier,
-        data_collected_about: data_collected_about,
-        project_type: project_type,
-        funder: funder,
-        entity: nil,
-      )
-      instance.assign_attributes(active: true, system: true)
-      instance.save! if instance.changed?
-    end
-
-    # Find or create default system instance, which applies to all projects
-    private def create_default_system_instance!(identifier:)
-      instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
-      instance.assign_attributes(active: true, system: true)
-      instance.save! if instance.changed?
     end
   end
 end

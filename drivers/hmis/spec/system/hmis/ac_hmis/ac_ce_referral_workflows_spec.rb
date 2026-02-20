@@ -15,7 +15,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   before(:all) do
     ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true)
 
-    HmisUtil::JsonForms.new(env_key: 'allegheny', enable_cded_generation_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
+    # Seed client-specific Referral Step forms, and Enrollment form so it collects units
+    HmisUtil::JsonForms.new(env_key: 'allegheny', generate_cdeds: true, create_instances: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
     workflow_builder.build_housing_workflow
