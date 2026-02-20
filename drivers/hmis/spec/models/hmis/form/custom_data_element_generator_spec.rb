@@ -61,7 +61,7 @@ RSpec.describe Hmis::Form::CustomDataElementGenerator, type: :model do
 
         context 'when a CDED with the generated key already exists' do
           before do
-            create(:hmis_custom_data_element_definition, key: "#{definition.identifier}_linkid_string", data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment')
+            create(:hmis_custom_data_element_definition, key: 'linkid_string', data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment')
           end
           it 'generates a unique key for the new CDED' do
             generator = described_class.new(

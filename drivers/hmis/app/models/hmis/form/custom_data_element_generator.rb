@@ -41,9 +41,6 @@ module Hmis
       end
 
       def run
-        # Prefix all CDED keys with a slug of the form identifier
-        cded_key_prefix = @definition.identifier.parameterize.underscore
-
         cded_attributes = {
           form_definition_identifier: @set_form_definition_identifier ? @definition.identifier : nil,
           data_source: @data_source,
@@ -77,7 +74,7 @@ module Hmis
           # Determine the owner type for the CDED
           owner_type = determine_owner_type(item)
           # Use referenced key for CDED if present, otherwise generate a new unique key based on link_id
-          cded_key = custom_field_key || ensure_unique_key("#{cded_key_prefix}_#{item.link_id}", owner_type: owner_type)
+          cded_key = custom_field_key || ensure_unique_key(item.link_id, owner_type: owner_type)
 
           # Generate reporting_key based on cded_key
           reporting_key = self.class.generate_reporting_key(
