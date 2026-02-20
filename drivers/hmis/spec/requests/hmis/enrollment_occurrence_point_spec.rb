@@ -81,10 +81,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'for project that matches the custom rule' do
       it 'custom_rule is applied (question_2 is included)' do
         forms = query_forms(e1.id)
-        expect(forms).to contain_exactly(a_hash_including('id' => "#{definition.id}:#{p1.id}"))
+        expected_id = "#{definition.id}:#{p1.id}"
+        expect(forms).to include(a_hash_including('id' => expected_id))
 
         # ensure question_2 is included in items
-        items = forms.first.dig('definition', 'definition', 'item')
+        items = forms.find { |form| form['id'] == expected_id }.dig('definition', 'definition', 'item')
         expect(items.size).to eq(2)
         expect(items).to contain_exactly(
           a_hash_including('linkId' => 'question_1'),
@@ -96,10 +97,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'for project that does not match the custom rule' do
       it 'custom_rule is applied (question_2 is excluded)' do
         forms = query_forms(e2.id)
-        expect(forms).to contain_exactly(a_hash_including('id' => "#{definition.id}:#{p2.id}"))
+        expected_id = "#{definition.id}:#{p2.id}"
+        expect(forms).to include(a_hash_including('id' => expected_id))
 
         # ensure question_2 is excluded from items
-        items = forms.first.dig('definition', 'definition', 'item')
+        items = forms.find { |form| form['id'] == expected_id }.dig('definition', 'definition', 'item')
         expect(items.size).to eq(1)
         expect(items).not_to include(a_hash_including('linkId' => 'question_2'))
       end

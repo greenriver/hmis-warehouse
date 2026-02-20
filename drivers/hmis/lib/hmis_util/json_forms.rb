@@ -22,11 +22,10 @@ module HmisUtil
 
     attr_reader :env_key, :generate_cdeds, :create_instances
 
-    def initialize(env_key: nil, generate_cdeds: nil, create_instances: nil)
-      in_test = Rails.env.test?
+    def initialize(env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?)
       @env_key = env_key.presence || compute_default_env_key
-      @generate_cdeds = generate_cdeds.nil? ? !in_test : generate_cdeds # default: generate CDEDs from custom_field_key mappings in non-test environments
-      @create_instances = create_instances.nil? ? !in_test : create_instances # default: create HUD-compliant system instances in non-test environments
+      @create_instances = create_instances
+      @generate_cdeds = generate_cdeds # default: generate CDEDs from custom_field_key mappings in non-test environments
     end
 
     def self.seed_all

@@ -15,6 +15,15 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   let!(:client) { create :hmis_hud_client, data_source: data_source }
   let!(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
 
+  before(:all) do
+    # delete default instances to test from a clean slate (for data_collection_features and occurrence_point_form_instances tests)
+    Hmis::Form::Instance.delete_all
+  end
+  after(:all) do
+    # reset to original state
+    HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
+  end
+
   describe '#destroy' do
     # Create dependent records to ensure they are destroyed when the project is destroyed
     let!(:project_coc) { create(:hmis_hud_project_coc, project: project, data_source: data_source) }

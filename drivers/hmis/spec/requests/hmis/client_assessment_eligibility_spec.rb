@@ -38,9 +38,18 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     hmis_login(user)
   end
 
+  # before(:all) do
+  #   # Create form instances enabling the HUD Assessments
+  #   HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
+  # end
+  # after(:all) do
+  #   # Clean up
+  #   Hmis::Form::Instance.delete_all
+  # end
+
   def run_query(enrollment:)
     response, result = post_graphql(enrollmentId: enrollment.id) { query }
-    expect(response.status).to eq(200)
+    expect(response.status).to eq(200), result.inspect
     result.dig('data', 'enrollment', 'assessmentEligibilities').map { |n| n['role'] }
   end
 
@@ -75,7 +84,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
 
     it 'only resolves published eligible custom assessment definition' do
       response, result = post_graphql(enrollmentId: e1.id) { query }
-      expect(response.status).to eq(200)
+      expect(response.status).to eq(200), result.inspect
       custom_assmt_eligibilities = result.dig('data', 'enrollment', 'assessmentEligibilities').filter { |n| n['role'] == 'CUSTOM_ASSESSMENT' }
       expect(custom_assmt_eligibilities).to contain_exactly(a_hash_including('formDefinitionId' => published_active_form.id.to_s))
     end

@@ -108,14 +108,15 @@ RSpec.configure do |config|
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     end
 
-    # Load HMIS form definitions if we're testing the driver.
+    # Load HMIS form definitions and system form instances if we're testing the driver.
     # This is an overall performance improvement to our test suite, since many tests depend on these form definitions.
     # However, it does mean that if individual tests modify the seeded forms, they are responsible for cleaning up
     # by restoring all forms to their original seeded state, *not* by using Hmis::Form::Definition.delete_all.
-    if example_file_paths.grep(%r{/drivers/hmis/}).any? && ENV['ENABLE_HMIS_API'] == 'true' # rubocop:disable Style/RegexpLiteral
-      # Only create system instances for system tests, they interfere with other tests that don't expect them
-      ::HmisUtil::JsonForms.new(create_instances: ENV['RUN_SYSTEM_TESTS'] == 'true').seed_all
+    # rubocop:disable Style/IfUnlessModifier, Style/RegexpLiteral
+    if example_file_paths.grep(%r{/drivers/hmis/}).any? && ENV['ENABLE_HMIS_API'] == 'true'
+      ::HmisUtil::JsonForms.seed_all
     end
+    # rubocop:enable Style/IfUnlessModifier, Style/RegexpLiteral
 
     AccessGroup.maintain_system_groups
   end
