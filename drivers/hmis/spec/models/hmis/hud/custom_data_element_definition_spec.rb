@@ -12,88 +12,104 @@ RSpec.describe Hmis::Hud::CustomDataElementDefinition, type: :model do
   let(:data_source) { create(:hmis_primary_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
 
-  describe 'reporting_key validations' do
-    it 'allows nil reporting_key' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: nil)
-      expect(cded).to be_valid
+  shared_examples 'saves successfully' do
+    it 'is valid and saves' do
+      expect(subject).to be_valid
+      expect { subject.save! }.to change(Hmis::Hud::CustomDataElementDefinition, :count).by(1)
     end
+  end
 
-    it 'allows valid reporting_key (lowercase, starts with letter, max 63 chars)' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: 'valid_key_123')
-      expect(cded).to be_valid
-    end
-
-    it 'rejects reporting_key starting with number' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: '1invalid')
-      expect(cded).not_to be_valid
-      expect(cded.errors[:reporting_key]).to be_present
-    end
-
-    it 'rejects reporting_key with uppercase letters' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: 'InvalidKey')
-      expect(cded).not_to be_valid
-      expect(cded.errors[:reporting_key]).to be_present
-    end
-
-    it 'rejects reporting_key with special characters' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: 'invalid-key')
-      expect(cded).not_to be_valid
-      expect(cded.errors[:reporting_key]).to be_present
-    end
-
-    it 'rejects reporting_key longer than 63 characters' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: 'a' * 64)
-      expect(cded).not_to be_valid
-      expect(cded.errors[:reporting_key]).to be_present
-    end
-
-    it 'allows reporting_key with exactly 63 characters' do
-      cded = build(:hmis_custom_data_element_definition, reporting_key: 'a' * 63)
-      expect(cded).to be_valid
-    end
-
-    it 'enforces uniqueness scoped to owner_type' do
-      create(
-        :hmis_custom_data_element_definition,
-        data_source: data_source,
-        user: user,
-        owner_type: 'Hmis::Hud::Client',
-        reporting_key: 'duplicate_key',
-      )
-
-      duplicate = build(
-        :hmis_custom_data_element_definition,
-        data_source: data_source,
-        user: user,
-        owner_type: 'Hmis::Hud::Client',
-        reporting_key: 'duplicate_key',
-      )
-
-      # enforced in a DB constraint, not an AR validation, so check for ActiveRecord::StatementInvalid
+  shared_examples 'rejects with error' do |error_pattern|
+    it 'raises an error and does not save' do
       expect do
-        duplicate.save!
-      end.to raise_error(ActiveRecord::StatementInvalid, /violates unique constraint/).
-        and not_change(Hmis::Hud::CustomDataElementDefinition, :count).from(1)
+        subject.save!
+      end.to raise_error(ActiveRecord::StatementInvalid, error_pattern).
+        and not_change(Hmis::Hud::CustomDataElementDefinition, :count)
+    end
+  end
+
+  describe 'reporting_key validations' do
+    context 'allows nil reporting_key' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: nil) }
+      include_examples 'saves successfully'
     end
 
-    it 'allows same reporting_key for different owner_types' do
-      create(
-        :hmis_custom_data_element_definition,
-        data_source: data_source,
-        user: user,
-        owner_type: 'Hmis::Hud::Client',
-        reporting_key: 'shared_key',
-      )
+    context 'allows valid reporting_key (lowercase, starts with letter, max 63 chars)' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: 'valid_key_123') }
+      include_examples 'saves successfully'
+    end
 
-      different_owner = build(
-        :hmis_custom_data_element_definition,
-        data_source: data_source,
-        user: user,
-        owner_type: 'Hmis::Hud::Service',
-        reporting_key: 'shared_key',
-      )
+    context 'allows reporting_key with exactly 63 characters' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: 'a' * 63) }
+      include_examples 'saves successfully'
+    end
 
-      expect(different_owner).to be_valid
+    context 'rejects reporting_key starting with number' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: '1invalid') }
+      include_examples 'rejects with error', /violates check constraint/
+    end
+
+    context 'rejects reporting_key with uppercase letters' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: 'InvalidKey') }
+      include_examples 'rejects with error', /violates check constraint/
+    end
+
+    context 'rejects reporting_key with special characters' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: 'invalid-key') }
+      include_examples 'rejects with error', /violates check constraint/
+    end
+
+    context 'rejects reporting_key longer than 63 characters' do
+      subject { build(:hmis_custom_data_element_definition, reporting_key: 'a' * 64) }
+      include_examples 'rejects with error', /value too long/
+    end
+
+    context 'enforces uniqueness scoped to owner_type' do
+      before do
+        create(
+          :hmis_custom_data_element_definition,
+          data_source: data_source,
+          user: user,
+          owner_type: 'Hmis::Hud::Client',
+          reporting_key: 'duplicate_key',
+        )
+      end
+
+      subject do
+        build(
+          :hmis_custom_data_element_definition,
+          data_source: data_source,
+          user: user,
+          owner_type: 'Hmis::Hud::Client',
+          reporting_key: 'duplicate_key',
+        )
+      end
+
+      include_examples 'rejects with error', /violates unique constraint/
+    end
+
+    context 'allows same reporting_key for different owner_types' do
+      before do
+        create(
+          :hmis_custom_data_element_definition,
+          data_source: data_source,
+          user: user,
+          owner_type: 'Hmis::Hud::Client',
+          reporting_key: 'shared_key',
+        )
+      end
+
+      subject do
+        build(
+          :hmis_custom_data_element_definition,
+          data_source: data_source,
+          user: user,
+          owner_type: 'Hmis::Hud::Service',
+          reporting_key: 'shared_key',
+        )
+      end
+
+      include_examples 'saves successfully'
     end
   end
 
