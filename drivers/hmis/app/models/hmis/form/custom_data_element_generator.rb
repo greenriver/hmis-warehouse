@@ -80,7 +80,7 @@ module Hmis
           cded_key = custom_field_key || ensure_unique_key("#{cded_key_prefix}_#{item.link_id}", owner_type: owner_type)
 
           # Generate reporting_key based on cded_key
-          reporting_key = Hmis::Hud::CustomDataElementDefinition.generate_reporting_key(
+          reporting_key = self.class.generate_reporting_key(
             cded_key,
             owner_type: owner_type,
             unpersisted_reserved_keys: @reporting_keys_in_batch,
@@ -102,6 +102,39 @@ module Hmis
         end
 
         @cdeds
+      end
+
+      # Generate a valid, unique reporting_key from a given key.
+      # @param unpersisted_reserved_keys [Set<Array>] Optional set of [owner_type, reporting_key] pairs
+      # that are reserved but not yet persisted (so a call to `exists?` won't find them).
+      # @return [String] The generated reporting_key
+      def self.generate_reporting_key(key, owner_type:, unpersisted_reserved_keys: Set.new)
+        normalized = key.downcase.gsub(/[^a-z0-9_]/, '_')
+        normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
+        normalized = normalized[0..62]
+
+        return normalized unless reporting_key_exists?(normalized, owner_type, unpersisted_reserved_keys)
+
+        count = 1
+        max_attempts = 50
+
+        while count <= max_attempts
+          suffix = "_#{count}"
+          base_length = 63 - suffix.length
+          candidate = "#{normalized[0...base_length]}#{suffix}"
+
+          return candidate unless reporting_key_exists?(candidate, owner_type, unpersisted_reserved_keys)
+
+          count += 1
+        end
+
+        raise "Unique reporting_key generation failed after #{max_attempts} attempts for key: #{key}"
+      end
+
+      def self.reporting_key_exists?(reporting_key, owner_type, unpersisted_reserved_keys = Set.new)
+        return true if unpersisted_reserved_keys.include?([owner_type, reporting_key])
+
+        Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, reporting_key: reporting_key)
       end
 
       private

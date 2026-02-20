@@ -55,57 +55,6 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 
-  # Generate and set a valid, unique reporting_key for this instance.
-  # Caller is responsible for saving the instance.
-  # @param unpersisted_reserved_keys [Set<Array>] Optional set of [owner_type, reporting_key] pairs
-  # that are reserved (we must avoid conflicting with them),
-  # but aren't yet persisted (so a call to `exists?` won't find them).
-  # @return [String] The generated reporting_key
-  def generate_reporting_key(unpersisted_reserved_keys: Set.new)
-    self.reporting_key = self.class.generate_reporting_key(key, owner_type: owner_type, unpersisted_reserved_keys: unpersisted_reserved_keys)
-  end
-
-  # Generate a valid, unique reporting_key from a given key.
-  # Exposed as a class method for use when bulk creating CDEDs.
-  # See comment on the instance method above.
-  def self.generate_reporting_key(key, owner_type:, unpersisted_reserved_keys: Set.new)
-    # Lowercase and replace non-alphanumeric characters with underscores
-    normalized = key.downcase.gsub(/[^a-z0-9_]/, '_')
-
-    # Ensure it starts with a letter
-    normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
-
-    # Truncate to 63 characters
-    normalized = normalized[0..62]
-
-    # Check uniqueness
-    return normalized unless reporting_key_exists?(normalized, owner_type, unpersisted_reserved_keys)
-
-    # Try to make it unique by appending a number
-    count = 1
-    max_attempts = 50
-
-    while count <= max_attempts
-      suffix = "_#{count}"
-      # Truncate base to leave room for suffix
-      base_length = 63 - suffix.length
-      candidate = "#{normalized[0...base_length]}#{suffix}"
-
-      return candidate unless reporting_key_exists?(candidate, owner_type, unpersisted_reserved_keys)
-
-      count += 1
-    end
-
-    raise "Unique reporting_key generation failed after #{max_attempts} attempts for key: #{key}"
-  end
-
-  # Check if a reporting_key exists either in the database or in unpersisted reserved keys if provided
-  def self.reporting_key_exists?(reporting_key, owner_type, unpersisted_reserved_keys = Set.new)
-    return true if unpersisted_reserved_keys.include?([owner_type, reporting_key])
-
-    exists?(owner_type: owner_type, reporting_key: reporting_key)
-  end
-
   def cde_arel_field
     cde_t = Hmis::Hud::CustomDataElement.arel_table
     column_name = FIELD_TYPE_TO_COLUMN[field_type.to_sym]

@@ -23,7 +23,7 @@ module HmisDataCleanup
         total_processed += 1
 
         begin
-          cded.generate_reporting_key
+          cded.reporting_key = Hmis::Form::CustomDataElementGenerator.generate_reporting_key(cded.key, owner_type: cded.owner_type)
           cded.save!
           updated_count += 1
         rescue RuntimeError, ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
