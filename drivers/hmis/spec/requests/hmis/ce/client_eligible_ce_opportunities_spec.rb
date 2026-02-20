@@ -37,7 +37,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create(
       :hmis_ce_match_candidate_pool,
       requirement_expression: 'veteran_status = 1',
-      priority_expression: '{current_age}',
+      priority_expression: 'current_age',
     )
   end
   let!(:unit_group_veterans) { create :hmis_unit_group, project: project, candidate_pool: pool_veterans }
@@ -46,7 +46,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create(
       :hmis_ce_match_candidate_pool,
       requirement_expression: 'current_age >= 65',
-      priority_expression: '{current_age}',
+      priority_expression: 'current_age',
     )
   end
   let!(:unit_group_seniors) { create :hmis_unit_group, project: project, candidate_pool: pool_seniors }
@@ -300,7 +300,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'when there are many opportunities' do
         before do
           opportunities = 30.times.map do
-            unit_group = create(:hmis_unit_group, project: p1, candidate_pool: pool_veterans)
+            unit_group = build(:hmis_unit_group, project: p1, candidate_pool: pool_veterans)
             unit = build(:hmis_unit, project: p1, unit_group: unit_group)
             build(:hmis_ce_opportunity, unit: unit)
           end

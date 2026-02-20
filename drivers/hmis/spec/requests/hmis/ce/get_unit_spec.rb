@@ -14,7 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   # Basic setup
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 1 }
-  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: create(:hmis_workflow_definition_template, data_source: ds1)) }
+  let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
+  let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: create(:hmis_workflow_definition_template, data_source: ds1), candidate_pool: candidate_pool) }
   let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
   let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
 
