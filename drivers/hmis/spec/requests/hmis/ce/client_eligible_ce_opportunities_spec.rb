@@ -241,6 +241,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
+    before do
+      # Prevent automatic rebuilding of pools, so unit group stays associated with the pool and pool is considered active.
+      allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
+    end
+
     let!(:p1) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
     let!(:p2) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
     let!(:p3) { create :hmis_hud_project, project_type: 5, data_source: ds1, user: u1 }
