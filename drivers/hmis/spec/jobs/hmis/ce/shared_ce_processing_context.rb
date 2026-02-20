@@ -17,9 +17,6 @@ RSpec.shared_context 'with ce processing setup' do
   before do
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
-    # Prevent automatic rebuilding of pools, so unit group stays associated with the pool and pool is considered active.
-    # This is acceptable tests that use this shared setup are testing pool processing, not pool building.
-    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
   end
 
   let!(:ce_data_source) { create(:hmis_primary_data_source) }

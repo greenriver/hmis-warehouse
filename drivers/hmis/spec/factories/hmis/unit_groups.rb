@@ -14,9 +14,21 @@ FactoryBot.define do
     # TODO(#8157) - add unit_type
     # unit_type { association :hmis_unit_type }
 
-    # Caution: When using this factory to create a unit with a candidate_pool,
-    # if the unit does not have rules, then the after_create callback will overwrite the candidate_pool back to nil.
-    # Work around this by stubbing the CandidatePoolBuilder in tests that don't need to test its functionality:
-    # allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
+    before(:create) do |unit_group|
+      if unit_group.candidate_pool.present? && unit_group.ce_match_rules.empty?
+        # The UnitGroup model has an after_create callback that rebuilds candidate pools.
+        # In tests, if a unit group factory is passed a candidate_pool, but no rules apply,
+        # then the after_create callback will overwrite the candidate_pool back to nil.
+        # This is inconvenient in tests that don't care about the CandidatePoolBuilder behavior
+        # and just want to create a UnitGroup/CandidatePool that's considered active.
+        # Work around this by creating dummy rules that match the provided candidate pool.
+
+        create(:hmis_ce_match_rule, owner: unit_group, rule_type: 'eligibility_requirement', expression: unit_group.candidate_pool.requirement_expression)
+        # Hack: Expect the priority expression to be a string like "{1}" and just remove the curly braces.
+        # This won't work if the priority expression is more complex, like {1, 2, etc.}
+        # In those cases, the caller should manually create rules for the unit group that match the candidate pool.
+        create(:hmis_ce_match_rule, owner: unit_group, rule_type: 'priority_scheme', expression: unit_group.candidate_pool.priority_expression.tr('{}', ''), priority_rank: 1)
+      end
+    end
   end
 end

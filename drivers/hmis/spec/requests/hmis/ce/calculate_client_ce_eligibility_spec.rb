@@ -10,8 +10,6 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) do
     hmis_login(user)
-    # Stub CandidatePoolBuilder to prevent it from overwriting the unit groups' pools in after_create callbacks
-    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
   end
 
   let!(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1, dob: 30.years.ago }

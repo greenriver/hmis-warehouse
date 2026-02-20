@@ -3,11 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::CandidatePool do
-  before(:each) do
-    # Stub CandidatePoolBuilder to prevent it from overwriting the unit groups' pools in after_create callbacks
-    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
-  end
-
   let!(:ds1) { create :hmis_data_source }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, project_type: 13 }
   let!(:project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: p1 }

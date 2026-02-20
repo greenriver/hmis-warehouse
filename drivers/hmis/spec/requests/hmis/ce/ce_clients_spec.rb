@@ -18,8 +18,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
-    # Stub CandidatePoolBuilder to prevent it from overwriting the unit groups' pools in after_create callbacks
-    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
     hmis_login(user)
   end
 
