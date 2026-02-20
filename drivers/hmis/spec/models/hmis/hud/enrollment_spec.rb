@@ -155,6 +155,16 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(enrollment.send(assoc)).not_to be_present, "expected #{assoc} not to be present"
       end
     end
+
+    it 'nullifies external_form_submissions on destroy' do
+      submission = create(:hmis_external_form_submission, enrollment: enrollment)
+      expect(submission.enrollment_id).to eq(enrollment.id)
+
+      enrollment.destroy
+
+      submission.reload
+      expect(submission.enrollment_id).to be_nil
+    end
   end
 
   describe 'enrollments status is set correctly:' do
