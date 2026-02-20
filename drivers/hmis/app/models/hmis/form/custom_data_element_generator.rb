@@ -78,7 +78,7 @@ module Hmis
 
           # Generate reporting_key based on cded_key
           reporting_key = self.class.generate_reporting_key(
-            cded_key,
+            item.link_id,
             owner_type: owner_type,
             unpersisted_reserved_keys: @reporting_keys_in_batch,
           )
@@ -105,8 +105,8 @@ module Hmis
       # @param unpersisted_reserved_keys [Set<Array>] Optional set of [owner_type, reporting_key] pairs
       # that are reserved but not yet persisted (so a call to `exists?` won't find them).
       # @return [String] The generated reporting_key
-      def self.generate_reporting_key(key, owner_type:, unpersisted_reserved_keys: Set.new)
-        normalized = key.downcase.gsub(/[^a-z0-9_]/, '_')
+      def self.generate_reporting_key(link_id, owner_type:, unpersisted_reserved_keys: Set.new)
+        normalized = link_id.downcase.gsub(/[^a-z0-9_]/, '_')
         normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
         normalized = normalized[0..62]
 
@@ -125,7 +125,7 @@ module Hmis
           count += 1
         end
 
-        raise "Unique reporting_key generation failed after #{max_attempts} attempts for key: #{key}"
+        raise "Unique reporting_key generation failed after #{max_attempts} attempts for link_id: #{link_id}"
       end
 
       def self.reporting_key_exists?(reporting_key, owner_type, unpersisted_reserved_keys = Set.new)
