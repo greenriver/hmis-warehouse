@@ -38,15 +38,6 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     hmis_login(user)
   end
 
-  # before(:all) do
-  #   # Create form instances enabling the HUD Assessments
-  #   HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
-  # end
-  # after(:all) do
-  #   # Clean up
-  #   Hmis::Form::Instance.delete_all
-  # end
-
   def run_query(enrollment:)
     response, result = post_graphql(enrollmentId: enrollment.id) { query }
     expect(response.status).to eq(200), result.inspect
