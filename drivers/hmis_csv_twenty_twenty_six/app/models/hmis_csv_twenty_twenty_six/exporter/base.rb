@@ -328,6 +328,7 @@ module HmisCsvTwentyTwentySix::Exporter
         GrdaWarehouse::Hud::Assessment => GrdaWarehouse::Hud::WithDeleted::Assessment,
         GrdaWarehouse::Hud::Client => GrdaWarehouse::Hud::WithDeleted::Client,
         GrdaWarehouse::Hud::Enrollment => GrdaWarehouse::Hud::WithDeleted::Enrollment,
+        GrdaWarehouse::Hud::Exit => GrdaWarehouse::Hud::WithDeleted::Exit,
         GrdaWarehouse::Hud::Inventory => GrdaWarehouse::Hud::WithDeleted::Inventory,
         GrdaWarehouse::Hud::Organization => GrdaWarehouse::Hud::WithDeleted::Organization,
         GrdaWarehouse::Hud::Project => GrdaWarehouse::Hud::WithDeleted::Project,

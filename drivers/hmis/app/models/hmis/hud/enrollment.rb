@@ -84,6 +84,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :annual_assessments, -> { annuals }, **hmis_enrollment_relation('CustomAssessment')
   has_many :post_exit_assessments, -> { post_exits }, **hmis_enrollment_relation('CustomAssessment')
 
+  has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :nullify, inverse_of: :enrollment
+
   # Files
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
 
