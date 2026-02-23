@@ -453,12 +453,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
   end
 
-  def allowed_proc
-    return unless FORM_ROLE_CONFIG[role.to_sym].present?
-
-    FORM_ROLE_CONFIG[role.to_sym][:authorize]
-  end
-
   def assessment_date_item
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end

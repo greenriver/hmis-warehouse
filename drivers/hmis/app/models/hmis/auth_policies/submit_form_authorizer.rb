@@ -77,8 +77,6 @@ class Hmis::AuthPolicies::SubmitFormAuthorizer
       referral_posting_record
     when 'Hmis::File'
       file_record
-    when 'HmisExternalApis::ExternalForms::FormSubmission'
-      external_form_record
     else
       raise "No authorization configured for #{@klass.name}"
     end
@@ -221,14 +219,6 @@ class Hmis::AuthPolicies::SubmitFormAuthorizer
 
       @record
     end
-  end
-
-  def external_form_record
-    raise "No authorization configured for creating #{@klass.name}" if @creating
-
-    access_denied! unless @user.policy_for(@record.project, policy_type: :hmis_project).can_manage_external_form_submissions?
-
-    @record
   end
 
   def access_denied!
