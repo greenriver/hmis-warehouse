@@ -17,6 +17,7 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
   let!(:deleted_client_enrollment) { create(:hmis_hud_enrollment, client: deleted_client, project: project, data_source: data_source) }
   let!(:deleted_client_name) { create(:hmis_hud_custom_client_name, client: deleted_client, data_source: data_source) }
   let!(:deleted_client_file) { create(:client_file, client_id: deleted_client.id) }
+  let!(:deleted_client_ce_referral) { create(:hmis_ce_referral, data_source: data_source, client: deleted_client) }
 
   before do
     # Perform a merge
@@ -62,7 +63,7 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
     end
 
     it 'restores client attributes from pre-merge state' do
-      original_attributes = deleted_client.attributes.except('id', 'created_at', 'updated_at', 'deleted_at')
+      personal_id_before_undo = deleted_client.personal_id
 
       described_class.perform_now(
         retained_client_id: retained_client.id,
@@ -70,8 +71,7 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
       )
 
       deleted_client.reload
-      # Check a few key attributes
-      expect(deleted_client.personal_id).to eq(original_attributes['personal_id'])
+      expect(deleted_client.personal_id).to eq(personal_id_before_undo)
     end
 
     it 'transfers enrollments back to deleted client' do
@@ -104,6 +104,17 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
       deleted_client_file.reload
       expect(deleted_client_file.client_id).to eq(deleted_client.id)
     end
+
+    it 'restores CE referrals to deleted client' do
+      expect(deleted_client_ce_referral.reload.client_id).to eq(retained_client.id), 'merge should have moved referral to retained client'
+
+      described_class.perform_now(
+        retained_client_id: retained_client.id,
+        deleted_client_id: deleted_client.id,
+      )
+
+      deleted_client_ce_referral.reload
+      expect(deleted_client_ce_referral.client_id).to eq(deleted_client.id)
+    end
   end
 end
-

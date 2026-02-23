@@ -100,6 +100,8 @@ module Hmis
       restore_mci_unique_ids(mappings['mci_unique_ids'])
       restore_scan_cards(mappings['scan_cards'])
       restore_client_locations(mappings['client_locations'])
+      restore_ce_referrals(mappings['ce_referrals'])
+
       # Note: Enrollment-related records (assessments, services, disabilities, etc.) are automatically
       # updated when enrollments are transferred via TransferEnrollment, so no need to restore them separately.
     end
@@ -272,6 +274,23 @@ module Hmis
 
         location.update_column(:client_id, deleted_client.id)
         Rails.logger.info "Restored client location #{location_id} to client #{deleted_client.id}"
+      end
+    end
+
+    def restore_ce_referrals(mappings)
+      return unless mappings
+
+      mappings.each do |referral_id_str, mapping_data|
+        referral_id = referral_id_str.to_i
+        referral = Hmis::Ce::Referral.find_by(id: referral_id)
+        original_client_id = mapping_data['client_id']
+
+        next unless referral
+        next unless referral.client_id == retained_client.id
+        next unless original_client_id.to_i == deleted_client.id
+
+        referral.update_column(:client_id, deleted_client.id)
+        Rails.logger.info "Restored CE referral #{referral_id} to client #{deleted_client.id}"
       end
     end
   end
