@@ -11,42 +11,54 @@ module KnownCategories::Race
 
   def race_calculations
     @race_calculations ||= {}.tap do |calcs|
-      HudHelper.util.races.each do |key, title|
-        next if key.to_sym == :RaceNone
+      HudHelper.util.race_ethnicity_combinations.each do |key, title|
+        next if key == :race_none
 
-        calcs[title] = ->(value) { value == key }
+        calcs[title] = ->(value) { value == key.to_s }
       end
-      title = HudHelper.util.race('MultiRacial', multi_racial: true)
-      calcs[title] = ->(value) { value == title }
       calcs['Client doesn\'t know'] = ->(value) { value == '8' }
-      calcs['Client refused'] = ->(value) { value == '9' }
+      calcs['Client prefers not to answer'] = ->(value) { value == '9' }
       calcs['Data not collected'] = ->(value) { value == '99' }
     end
   end
 
   def standard_race_calculation
-    # See LSA for calculation logic
-    columns = [
+    # Calculate race + HispanicLatinaeo combinations
+    race_columns = [
       c_t[:AmIndAKNative],
       c_t[:Asian],
       c_t[:BlackAfAmerican],
       c_t[:NativeHIPacific],
       c_t[:White],
-      c_t[:HispanicLatinaeo],
       c_t[:MidEastNAfrican],
     ]
+    race_sum = race_columns.reduce(:+)
+
+    race_mappings = {
+      c_t[:AmIndAKNative] => 'am_ind_ak_native',
+      c_t[:Asian] => 'asian',
+      c_t[:BlackAfAmerican] => 'black_af_american',
+      c_t[:NativeHIPacific] => 'native_hi_pacific',
+      c_t[:White] => 'white',
+      c_t[:MidEastNAfrican] => 'mid_east_n_african',
+    }
+
     conditions = [
-      [Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98), 'MultiRacial'],
       [c_t[:RaceNone].eq(8), '8'],
       [c_t[:RaceNone].eq(9), '9'],
-      [c_t[:AmIndAKNative].eq(1), 'AmIndAKNative'],
-      [c_t[:Asian].eq(1), 'Asian'],
-      [c_t[:BlackAfAmerican].eq(1), 'BlackAfAmerican'],
-      [c_t[:NativeHIPacific].eq(1), 'NativeHIPacific'],
-      [c_t[:White].eq(1), 'White'],
-      [c_t[:HispanicLatinaeo].eq(1), 'HispanicLatinaeo'],
-      [c_t[:MidEastNAfrican].eq(1), 'MidEastNAfrican'],
+      [c_t[:RaceNone].eq(99), '99'],
+      [race_sum.gt(1).and(c_t[:HispanicLatinaeo].eq(1)), 'multi_racial_hispanic_latinaeo'],
+      [race_sum.gt(1), 'multi_racial'],
     ]
-    acase(conditions, elsewise: '99')
+
+    race_mappings.each do |race_column, race_key|
+      single_race_condition = race_column.eq(1).and(race_sum.eq(1))
+      conditions << [single_race_condition.and(c_t[:HispanicLatinaeo].eq(1)), "#{race_key}_hispanic_latinaeo"]
+      conditions << [single_race_condition, race_key]
+    end
+
+    conditions << [c_t[:HispanicLatinaeo].eq(1).and(race_sum.eq(0)), 'hispanic_latinaeo']
+
+    acase(conditions, elsewise: 'race_none')
   end
 end

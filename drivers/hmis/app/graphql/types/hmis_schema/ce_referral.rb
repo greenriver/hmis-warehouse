@@ -138,11 +138,11 @@ module Types
     end
 
     def client
-      load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
+      load_ar_client_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
 
     def client_name
-      c = load_ar_association(object, :client)
+      c = load_ar_client_association(object)
 
       # This is a summary field. If the current user can view the referral, always return the client name
       # (even if the current user can't otherwise view that client), UNLESS the user doesn't have permission to view client names in general.
@@ -155,7 +155,7 @@ module Types
       end
 
       # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
-      viewable_client = load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
+      viewable_client = load_ar_client_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
       return c.masked_name unless viewable_client
       return c.masked_name unless current_permission?(permission: :can_view_client_name, entity: viewable_client)
 
@@ -164,16 +164,19 @@ module Types
 
     # NOTE: This field intentionally does not check can_view_clients
     def client_age
-      load_ar_association(object, :client).age
+      load_ar_client_association(object).age
     end
 
     def current_steps
-      load_ar_association(object, :current_steps).sort_by { |step| [step.available_at, step.id] }
+      # Filter to only UserTasks, because CeReferralStep type is only able to resolve those
+      load_ar_association(object, :current_steps).
+        filter { |step| step.node.user_task? }. # node is preloaded
+        sort_by { |step| [step.available_at, step.id] }
     end
 
     def days_on_current_steps
       # If there are multiple open steps, use the one that has been available longest
-      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:available_at)
+      oldest_open_step = current_steps.min_by(&:available_at)
       return nil if oldest_open_step.nil?
 
       # How many days ago this step was made available
@@ -182,7 +185,7 @@ module Types
 
     def updated_by
       # TODO(#7678): Add updated_by as a field to the referral table, and use that directly here
-      most_recently_updated_step = load_ar_association(object, :current_steps).to_a.max_by(&:updated_at)
+      most_recently_updated_step = current_steps.max_by(&:updated_at)
 
       # If a step was updated more recently than the referral record itself, return the user who updated that step
       if most_recently_updated_step.present? && most_recently_updated_step.updated_at > object.updated_at

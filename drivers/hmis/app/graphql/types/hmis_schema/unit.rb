@@ -12,13 +12,6 @@ module Types
       arg :unit_type, [ID]
       arg :unit_group, [ID]
       arg :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus
-      arg :status, [
-        Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
-          # FIXME standardize names "Assigned/Empty"
-          value 'AVAILABLE', description: 'Available' # Vacant
-          value 'FILLED', description: 'Filled' # Occupied
-        end,
-      ], deprecation_reason: 'Use `occupancyStatus` instead'
     end
 
     field :id, ID, null: false

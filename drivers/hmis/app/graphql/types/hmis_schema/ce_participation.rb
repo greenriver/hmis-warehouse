@@ -21,10 +21,11 @@ module Types
     # nullable to be generous with imported data, even though its required.
     hud_field :ce_participation_status_start_date, null: true
     hud_field :ce_participation_status_end_date
-    hud_field :crisis_assessment, HmisSchema::Enums::Hud::NoYes
-    hud_field :direct_services, HmisSchema::Enums::Hud::NoYes
-    hud_field :housing_assessment, HmisSchema::Enums::Hud::NoYes
-    hud_field :prevention_assessment, HmisSchema::Enums::Hud::NoYes
+    hud_field :ce_participation_services, [HmisSchema::Enums::CeParticipationServices], null: false
+    hud_field :crisis_assessment, HmisSchema::Enums::Hud::NoYes, deprecation_reason: 'Use ceParticipationServices instead'
+    hud_field :direct_services, HmisSchema::Enums::Hud::NoYes, deprecation_reason: 'Use ceParticipationServices instead'
+    hud_field :housing_assessment, HmisSchema::Enums::Hud::NoYes, deprecation_reason: 'Use ceParticipationServices instead'
+    hud_field :prevention_assessment, HmisSchema::Enums::Hud::NoYes, deprecation_reason: 'Use ceParticipationServices instead'
     hud_field :receives_referrals, HmisSchema::Enums::Hud::NoYes
   end
 end

@@ -59,6 +59,7 @@ module Mutations
           source_enrollment: source_enrollment,
         )
 
+        referral.create_default_participants!
         engine = referral.workflow_engine
         engine.start_workflow!(user: current_user)
 

@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCeOpportunities
     include Types::HmisSchema::HasCeReferrals
+    include Types::HmisSchema::HasCeDefaultContacts
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -255,6 +256,8 @@ module Types
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
       definition ||= Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
+      # Add filter context to apply project-specific filtering rules ("custom_rule")
+      definition&.filter_context = { project: project }
       definition
     end
 
@@ -306,13 +309,11 @@ module Types
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-      field :can_view_coordinated_entry, Boolean, null: false, deprecation_reason: 'Replaced with Project-level coordinatedEntryEnabled field and global feature flag'
     end
 
     def access
       {
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?, # TODO(#7409) once we have project-level configuration, remove this
       }
     end
 
@@ -643,6 +644,23 @@ module Types
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       Hmis::Ce::ClientProxy.find_by(id: id)
+    end
+
+    field :ce_swimlanes, [HmisSchema::CeSwimlane], null: false, description: 'All CE swimlanes from published workflow templates'
+    def ce_swimlanes
+      Hmis::WorkflowDefinition::Swimlane.
+        joins(:template).
+        merge(Hmis::WorkflowDefinition::Template.ce.published.viewable_by(current_user)).
+        order(:name, :id).
+        distinct
+    end
+
+    ce_default_contacts_field(:global_ce_default_contacts, description: 'Global Coordinated Entry default contacts, grouped by swimlane')
+    def global_ce_default_contacts
+      data_source = GrdaWarehouse::DataSource.find(current_user.hmis_data_source_id)
+      access_denied! unless policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_manage_ce_default_contacts?
+
+      resolve_ce_default_contacts(data_source.ce_default_swimlane_assignments)
     end
 
     field :unit_group, HmisSchema::UnitGroup, null: true do

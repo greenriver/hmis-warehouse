@@ -1,0 +1,14 @@
+%h3.text-center Time in Project
+.row
+  .col-sm-3.text-center
+    %h3 Average Time in Project
+    %ul.list-unstyled
+      = @report.describe_completeness :average_time_in_project
+    %hr
+    %h3 Percent in Project Over One Year
+    %ul.list-unstyled
+      = @report.describe_completeness :percent_in_project_over_one_year
+    %hr
+  .col-sm-9
+    .time-in-program-chart.jChart
+      %p.jLoading Loading
