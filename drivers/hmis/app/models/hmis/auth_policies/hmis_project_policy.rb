@@ -57,10 +57,6 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_edit_enrollments)
     end
 
-    def can_manage_external_form_submissions?
-      project_permissions.include?(:can_manage_external_form_submissions)
-    end
-
     protected
 
     memoize def project_permissions
