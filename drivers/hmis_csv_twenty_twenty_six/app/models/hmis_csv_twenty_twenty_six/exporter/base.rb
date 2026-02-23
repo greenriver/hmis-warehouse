@@ -325,15 +325,29 @@ module HmisCsvTwentyTwentySix::Exporter
       return klass unless @include_deleted
 
       @classes_with_deleted ||= {
+        GrdaWarehouse::Hud::Affiliation => GrdaWarehouse::Hud::WithDeleted::Affiliation,
         GrdaWarehouse::Hud::Assessment => GrdaWarehouse::Hud::WithDeleted::Assessment,
+        GrdaWarehouse::Hud::AssessmentQuestion => GrdaWarehouse::Hud::WithDeleted::AssessmentQuestion,
+        GrdaWarehouse::Hud::AssessmentResult => GrdaWarehouse::Hud::WithDeleted::AssessmentResult,
+        GrdaWarehouse::Hud::CeParticipation => GrdaWarehouse::Hud::WithDeleted::CeParticipation,
         GrdaWarehouse::Hud::Client => GrdaWarehouse::Hud::WithDeleted::Client,
+        GrdaWarehouse::Hud::CurrentLivingSituation => GrdaWarehouse::Hud::WithDeleted::CurrentLivingSituation,
+        GrdaWarehouse::Hud::Disability => GrdaWarehouse::Hud::WithDeleted::Disability,
+        GrdaWarehouse::Hud::EmploymentEducation => GrdaWarehouse::Hud::WithDeleted::EmploymentEducation,
         GrdaWarehouse::Hud::Enrollment => GrdaWarehouse::Hud::WithDeleted::Enrollment,
+        GrdaWarehouse::Hud::Event => GrdaWarehouse::Hud::WithDeleted::Event,
         GrdaWarehouse::Hud::Exit => GrdaWarehouse::Hud::WithDeleted::Exit,
+        GrdaWarehouse::Hud::Funder => GrdaWarehouse::Hud::WithDeleted::Funder,
+        GrdaWarehouse::Hud::HealthAndDv => GrdaWarehouse::Hud::WithDeleted::HealthAndDv,
+        GrdaWarehouse::Hud::HmisParticipation => GrdaWarehouse::Hud::WithDeleted::HmisParticipation,
+        GrdaWarehouse::Hud::IncomeBenefit => GrdaWarehouse::Hud::WithDeleted::IncomeBenefit,
         GrdaWarehouse::Hud::Inventory => GrdaWarehouse::Hud::WithDeleted::Inventory,
         GrdaWarehouse::Hud::Organization => GrdaWarehouse::Hud::WithDeleted::Organization,
         GrdaWarehouse::Hud::Project => GrdaWarehouse::Hud::WithDeleted::Project,
         GrdaWarehouse::Hud::ProjectCoc => GrdaWarehouse::Hud::WithDeleted::ProjectCoc,
+        GrdaWarehouse::Hud::Service => GrdaWarehouse::Hud::WithDeleted::Service,
         GrdaWarehouse::Hud::User => GrdaWarehouse::Hud::WithDeleted::User,
+        GrdaWarehouse::Hud::YouthEducationStatus => GrdaWarehouse::Hud::WithDeleted::YouthEducationStatus,
       }.freeze
 
       @classes_with_deleted[klass] || klass
