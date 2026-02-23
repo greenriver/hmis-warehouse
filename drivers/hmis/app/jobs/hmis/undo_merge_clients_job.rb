@@ -29,6 +29,8 @@ module Hmis
       end
       # queue identify duplicates to run in the background. should we also run match_existing here?
       Hmis::Hud::Client.warehouse_identify_duplicate_clients
+      # queue service history processing to reprocess the enrollments
+      Hmis::Hud::Enrollment.queue_service_history_processing!
     end
 
     private
@@ -63,6 +65,7 @@ module Hmis
 
       Rails.logger.info "Restoring #{enrollment_mappings.size} enrollments to client #{deleted_client.id}"
 
+      updated_enrollment_ids = []
       enrollment_mappings.each do |enrollment_id_str, mapping_data|
         enrollment_id = enrollment_id_str.to_i
         enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
@@ -72,11 +75,17 @@ module Hmis
         next unless enrollment.personal_id == retained_client.personal_id
         next unless original_personal_id == deleted_client.personal_id
 
-        TransferEnrollmentClientJob.new(
-          enrollment_id: enrollment.id,
-          to_client_id: deleted_client.id,
-        ).perform_now
+        # update Enrollment to point to deleted client
+        enrollment.update_columns(PersonalID: deleted_client.personal_id)
+        updated_enrollment_ids << enrollment.id
       end
+
+      # fix PersonalID on other Enrollment-related references (assessments, services, disabilities, etc.)
+      updated_enrollment_scope = Hmis::Hud::Enrollment.where(id: updated_enrollment_ids)
+      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(enrollment_scope: updated_enrollment_scope, dry_run: false)
+
+      # invalidate processing so service history gets reprocessed (queued later)
+      updated_enrollment_scope.each(&:invalidate_processing!)
     end
 
     def restore_associated_records
