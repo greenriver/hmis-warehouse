@@ -9,11 +9,12 @@
 module HmisUtil
   # Loads HMIS form definitions from version-controlled JSON files into the database.
   #
-  # Reads from drivers/hmis/lib/form_data:
+  # By default, ensures HUD-compliant system form instances exist using HudComplianceFormInstanceMaintainer. (create_instances option)
+  # Optionally, ensures custom data element definitions (CDEDs) referenced by custom_field_key mappings exist. (generate_cdeds option)
+  #
+  # Reads form JSON files from drivers/hmis/lib/form_data:
   #   - Base definitions live under default/ (fragments, record forms, assessments, static admin forms)
   #   - Environment-specific overrides are loaded from subdirs to override or extend the base definitions: e.g. test, qa_hmis, or ENV['CLIENT']
-  # Optionally generates custom data element definitions (CDEDs) from custom_field_key mappings.
-  # Optionally ensures HUD-compliant system form instances exist (HudComplianceFormInstanceMaintainer).
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException
