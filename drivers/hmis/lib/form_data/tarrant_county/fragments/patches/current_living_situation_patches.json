@@ -1,0 +1,34 @@
+[
+  {
+    "link_id": "current_living_situation",
+    "append_items": [
+      {
+        "text": "Notes",
+        "type": "TEXT",
+        "link_id": "current_living_situation_notes",
+        "mapping": {
+          "custom_field_key": "current_living_situation_notes"
+        }
+      },
+      {
+        "text": "Location Map",
+        "type": "GEOLOCATION",
+        "link_id": "cls_location",
+        "mapping": {
+          "field_name": "coordinates",
+          "record_type": "GEOLOCATION"
+        },
+        "custom_rule": {
+          "operator": "ALL",
+          "parts": [
+            {
+              "variable": "projectType",
+              "operator": "EQUAL",
+              "value": 4
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
