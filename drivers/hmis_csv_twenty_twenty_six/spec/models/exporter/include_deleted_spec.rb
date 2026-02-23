@@ -12,6 +12,7 @@ require_relative '../../support/export_helper_2026'
 RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
   def delete_records
     ExportHelper2026.enrollments.first.update(DateDeleted: Date.current)
+    ExportHelper2026.exits.first.update(DateDeleted: Date.current)
   end
 
   before(:all) do
@@ -46,6 +47,11 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.enrollment_class), headers: true)
       expect(csv.count).to eq 4
     end
+
+    it 'Only exports undeleted exits' do
+      csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.exit_class), headers: true)
+      expect(csv.count).to eq 4
+    end
   end
 
   describe 'When include deleted is set:' do
@@ -69,6 +75,11 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
 
     it 'Exports deleted enrollments' do
       csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.enrollment_class), headers: true)
+      expect(csv.count).to eq 5
+    end
+
+    it 'Exports deleted exits' do
+      csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.exit_class), headers: true)
       expect(csv.count).to eq 5
     end
   end
