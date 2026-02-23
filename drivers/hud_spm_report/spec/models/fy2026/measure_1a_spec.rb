@@ -357,7 +357,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         expect(answer_b2.summary.to_i).to eq(3)
 
         # Average should be (75 + 75 + 56) / 3 = 68.67 days
-        expect(answer_d2.summary.to_f).to be_within(1).of(68.67)
+        expect(answer_d2.summary.to_f).to eq(68.67)
 
         # Median should be 75 days
         expect(answer_g2.summary.to_i).to eq(75)
