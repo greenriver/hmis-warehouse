@@ -130,59 +130,11 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
-    context 'with opportunity backfilling' do
-      let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity_without_pool) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: nil) }
-      let(:unit_group) { unit.unit_group }
-
-      it 'backfills the pool and rules for opportunities missing them' do
-        [
-          create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1'),
-          create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a'),
-        ]
-
-        described_class.call
-        opportunity_without_pool.reload
-
-        expect(opportunity_without_pool.candidate_pool_id).to eq(unit_group.reload.candidate_pool_id)
-
-        # The `assignment_rules` attribute stores a serialized snapshot of the rules.
-        # We need to compare the essential parts of these stored rules.
-        actual_rules = opportunity_without_pool.assignment_rules.map { |r| r.slice('rule_type', 'expression') }
-        expected_rules = [{ 'rule_type' => 'eligibility_requirement', 'expression' => 'a = 1' }, { 'rule_type' => 'priority_scheme', 'expression' => 'score_a' }]
-
-        expect(actual_rules).to contain_exactly(*expected_rules)
-      end
-    end
-
-    context 'with stale tracking' do
-      let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
-      let(:unit_group) { unit.unit_group }
-
-      it 'marks opportunity as stale when unit group pool changes and marks as clean when unit group pool reverts' do
-        rule = create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
-        create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
-
-        described_class.call
-        expect(opportunity.reload.candidate_pool).to be_present
-        expect(opportunity.reload.stale).to be_falsey
-
-        # Make the opportunity stale
-        rule.update!(expression: 'a = 2')
-        expect { described_class.call }.to change { opportunity.reload.stale }.from(false).to(true)
-
-        # reverting the unit group to its original pool
-        rule.update!(expression: 'a = 1')
-        expect { described_class.call }.to change { opportunity.reload.stale }.from(true).to(false)
-      end
-    end
-
     context 'with closed projects' do
       let!(:closed_project) { create(:hmis_hud_project, organization: organization, operating_end_date: 1.day.ago) }
       let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: closed_project) }
       let!(:unit) { create(:hmis_unit, project: closed_project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: nil, unit: unit) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
       let(:unit_group) { unit.unit_group }
 
       before do
@@ -198,12 +150,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'does not associate unit groups from closed projects with candidate pools' do
         described_class.call
         expect(unit_group.reload.candidate_pool_id).to be_nil
-      end
-
-      it 'does not backfill opportunities from closed projects' do
-        described_class.call
-        opportunity.reload
-        expect(opportunity.candidate_pool_id).to be_nil
       end
 
       it 'excludes closed projects even when scoped to specific unit groups' do

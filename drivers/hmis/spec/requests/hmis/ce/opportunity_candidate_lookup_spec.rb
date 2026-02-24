@@ -11,8 +11,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:pool) { create :hmis_ce_match_candidate_pool }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:unit) { create :hmis_unit, project: project }
-  let!(:opportunity) { create :hmis_ce_opportunity, unit: unit, candidate_pool: pool }
+  let!(:unit_group) { create :hmis_unit_group, project: project, candidate_pool: pool }
+  let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+  let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
   let!(:proxy) { create(:hmis_ce_client_proxy, client: client.destination_client) }
   let!(:candidate) { create(:hmis_ce_match_candidate, client_proxy: proxy, candidate_pool: pool) }
 
