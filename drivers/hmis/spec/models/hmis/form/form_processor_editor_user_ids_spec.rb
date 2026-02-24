@@ -63,7 +63,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
-  context 'when the user has permission on an item' do
+  shared_examples 'processes all fields' do
     it 'processes all fields' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: definition, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
@@ -72,12 +72,29 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
 
       expect do
-        assessment.form_processor.run!(user: hmis_user)
+        assessment.form_processor.run!(user: processor_user)
         assessment.save_not_in_progress
       end.to change(Hmis::Hud::CustomDataElement, :count).by(2)
 
       expect(Hmis::Hud::CustomDataElement.of_type(anyone_cded).sole.value_string).to eq('This string will save to the db')
       expect(Hmis::Hud::CustomDataElement.of_type(only_cded).sole.value_string).to eq('This will also save')
     end
+  end
+
+  context 'when the user has permission on an item' do
+    let(:processor_user) { hmis_user }
+
+    it_behaves_like 'processes all fields'
+  end
+
+  context 'when the user is system user' do
+    let(:processor_user) do
+      user = Hmis::User.system_user
+      user.hmis_data_source_id = ds1.id
+      user
+    end
+
+    # System user can always edit, even if not included in editor_user_ids
+    it_behaves_like 'processes all fields'
   end
 end

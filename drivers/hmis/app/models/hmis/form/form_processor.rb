@@ -84,11 +84,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         processor = container_processor(container)
         raise unknown_field_error(definition) unless processor
 
-        # Check item-level permissions (editor_user_ids) here. The frontend passes all values even if nil, so rather
-        # than raising an exception, just skip processing if we see a value this user doesn't have permission to edit.
-        editor_user_ids = mapped_form_items["#{container}:#{field}"]&.editor_user_ids
-        # If the item doesn't specify editor_user_ids, then everyone can edit it.
-        next if editor_user_ids && !editor_user_ids.include?(user.id.to_s)
+        # The frontend passes all values even if nil, so rather than raising an exception,
+        # just skip processing if we see a value this user doesn't have permission to edit.
+        next unless user_can_edit_item?(item: mapped_form_items["#{container}:#{field}"], user: user)
 
         if mapped_custom_form_fields[container].include?(field)
           # If this key can be identified as a CustomDataElement, set it and continue
@@ -124,6 +122,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
+  end
+
+  def user_can_edit_item?(item:, user:)
+    # The system user can always edit
+    return true if user.system_user?
+
+    # If the form item specifies editor_user_ids, check if the user is in the list.
+    return item.editor_user_ids.include?(user.id.to_s) if item&.editor_user_ids
+
+    # If the item doesn't specify editor_user_ids, then everyone can edit it.
+    true
   end
 
   # Transforms
