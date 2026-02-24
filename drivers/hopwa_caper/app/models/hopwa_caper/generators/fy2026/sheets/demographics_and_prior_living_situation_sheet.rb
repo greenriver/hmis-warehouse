@@ -36,9 +36,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_demographics_enrollments
-      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
-        all_hopwa(range: @report.report_range).
-        apply(@report.hopwa_caper_enrollments)
+      # assume all included enrollments are hopwa funded, don't filter by funder
+      @report.hopwa_caper_enrollments.within_range(@report.report_range)
     end
 
     def demographics_sheet_a(sheet)

@@ -26,23 +26,6 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
       end
     end
 
-    def self.all_hopwa(range: nil)
-      new(
-        label: 'ALL',
-        range: range,
-        types: [
-          'HUD: HOPWA - Hotel/Motel Vouchers',
-          'HUD: HOPWA - Housing Information',
-          'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
-          'HUD: HOPWA - Permanent Housing Placement',
-          'HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance',
-          'HUD: HOPWA - Short-Term Supportive Facility',
-          'HUD: HOPWA - Transitional Housing (facility based or TBRA)',
-          'HUD: HOPWA - CV [Deprecated]',
-        ],
-      )
-    end
-
     def self.tbra_hopwa(range: nil)
       new(
         label: 'TBRA',

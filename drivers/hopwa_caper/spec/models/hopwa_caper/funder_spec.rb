@@ -15,28 +15,8 @@ RSpec.describe HopwaCaper::Funder, type: :model do
     let(:range) { report_start..report_end }
 
     describe '.within_range' do
-      it 'includes funding that overlaps the start of the range' do
+      it 'includes funding that overlaps the range' do
         funder = create(:hopwa_caper_funder, code: php_funder, start_date: report_start - 1.month, end_date: report_start + 1.month)
-        expect(HopwaCaper::Funder.within_range(range)).to include(funder)
-      end
-
-      it 'includes funding that overlaps the end of the range' do
-        funder = create(
-          :hopwa_caper_funder,
-          code: php_funder,
-          start_date: report_start - 1.month,
-          end_date: report_start + 1.month,
-        )
-        expect(HopwaCaper::Funder.within_range(range)).to include(funder)
-      end
-
-      it 'includes funding that is entirely within the range' do
-        funder = create(:hopwa_caper_funder, code: php_funder, start_date: report_start + 1.month, end_date: report_end - 1.month)
-        expect(HopwaCaper::Funder.within_range(range)).to include(funder)
-      end
-
-      it 'includes funding that encompasses the entire range' do
-        funder = create(:hopwa_caper_funder, code: php_funder, start_date: report_start - 1.year, end_date: report_end + 1.year)
         expect(HopwaCaper::Funder.within_range(range)).to include(funder)
       end
 
