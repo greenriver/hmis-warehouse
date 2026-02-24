@@ -30,7 +30,7 @@ module Mutations
       raise HmisErrors::ApiError, "FormDefinition #{definition.id} status #{definition.status} is invalid" unless definition.valid_status_for_submit?
       raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless definition.owner_class.present?
 
-      record = Hmis::AuthPolicies::SubmitFormAuthorizer.authorized_record(
+      record = Hmis::Form::SubmitFormAuthorizer.authorized_record(
         user: current_user,
         definition: definition,
         input: input,

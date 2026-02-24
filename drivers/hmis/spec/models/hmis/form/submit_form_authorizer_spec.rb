@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::AuthPolicies::SubmitFormAuthorizer, type: :model do
+RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:organization) { create(:hmis_hud_organization, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }

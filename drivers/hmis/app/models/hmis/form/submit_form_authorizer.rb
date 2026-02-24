@@ -6,11 +6,13 @@
 
 # frozen_string_literal: true
 
-# Note: This is not a policy, but an authorization helper.
-# It's colocated with the policies since it is logically related to them.
-# It both builds new records and authorizes form submission on create or edit.
-# Returns the authorized record; raises HmisErrors::ApiError if unauthorized.
-class Hmis::AuthPolicies::SubmitFormAuthorizer
+# SubmitFormAuthorizer is a helper module used by the SubmitForm mutation.
+# Usage: Hmis::Form::SubmitFormAuthorizer.authorized_record(user, definition, input)
+# - finds the record if the user is trying to edit an existing record
+# - builds the record if the user is trying to create
+# - returns the authorized record if the user is authorized to submit this form for this record
+# - raises 'access denied' otherwise
+class Hmis::Form::SubmitFormAuthorizer
   # Enrollment-related records: authorization delegates to the enrollment policy
   ENROLLMENT_RELATED_CLASSES = [
     'Hmis::Hud::CurrentLivingSituation',
