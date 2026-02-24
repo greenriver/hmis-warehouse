@@ -21,6 +21,12 @@ module Hmis
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
+
+    # Candidate Pool assigned by CandidatePoolBuilder. Non-null when the project has CE waitlists enabled via ProjectCeConfig,
+    # and the unit group has applicable rules.
+    # Note: the candidate pool may be specified even when the unit group does not _really_ use waitlists, if:
+    # 1. The project has waitlists enabled but this unit group does not (e.g. no referral workflow template specified). Or,
+    # 2. The project previously used waitlists but no longer does (TODO #8555: clean up stale references).
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id

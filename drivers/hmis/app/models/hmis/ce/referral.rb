@@ -214,7 +214,7 @@ module Hmis::Ce
         pluck(:referral_id)
     end
 
-    # Returns an array of fields referenced by Match Rules for this referral's opportunity,
+    # Returns an array of fields referenced by Match Rules for this referral,
     # with their current values for the referred Client's _Destination_ Client record.
     #
     # NOTE: This field intentionally does not check viewable_by scopes on the associated data;
@@ -227,10 +227,10 @@ module Hmis::Ce
       calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       seen_field_names = Set.new
 
-      # Fetch all match rules applicable to the opportunity
-      # These rules are loaded from the state of the Opportunity when it was assigned to its pool,
+      # Fetch all match rules applicable to the referral.
+      # These rules are captured from the unit group at referral creation time,
       # ensuring historical accuracy.
-      match_rules = opportunity.assignment_rules.map { |attrs| Hmis::Ce::Match::Rule.new(attrs).freeze }
+      match_rules = assignment_rules.map { |attrs| Hmis::Ce::Match::Rule.new(attrs).freeze }
       match_rules.sort_by(&:id).map do |rule|
         calculator.dependencies(rule.expression).map do |field|
           next if excluded_fields.map(&:to_s).include?(field.to_s)
