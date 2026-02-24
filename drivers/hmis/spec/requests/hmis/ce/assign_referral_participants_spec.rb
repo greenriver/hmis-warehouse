@@ -26,232 +26,245 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
   let!(:hmis_user2) { create(:hmis_user, data_source: ds1) }
 
-  describe 'assign participants mutation' do
-    let(:mutation) do
-      <<~GRAPHQL
-        mutation AssignParticipants($referralId: ID!, $participants: [CeReferralParticipantInput!]!) {
-          assignReferralParticipants(referralId: $referralId, participants: $participants) {
-            referral {
+  let(:mutation) do
+    <<~GRAPHQL
+      mutation AssignParticipants($referralId: ID!, $participants: [CeReferralParticipantInput!]!) {
+        assignReferralParticipants(referralId: $referralId, participants: $participants) {
+          referral {
+            id
+            swimlanes {
               id
-              swimlanes {
+              name
+              participants {
                 id
                 name
-                participants {
-                  id
-                  name
-                }
               }
-              steps {
+            }
+            steps {
+              id
+              stepId
+              name
+              status
+              swimlane
+              assignees {
                 id
-                stepId
                 name
-                status
-                swimlane
-                assignees {
-                  id
-                  name
-                }
               }
             }
           }
         }
-      GRAPHQL
+      }
+    GRAPHQL
+  end
+
+  let(:variables) do
+    {
+      referralId: referral.id,
+      participants: [
+        {
+          userId: hmis_user.id,
+          swimlaneId: case_manager_swimlane.id,
+        },
+        {
+          userId: hmis_user2.id,
+          swimlaneId: provider_swimlane.id,
+        },
+      ],
+    }
+  end
+
+  def perform_mutation
+    response, result = post_graphql(**variables) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'assignReferralParticipants', 'referral')
+  end
+
+  before(:each) do
+    referral.workflow_engine.start_workflow!(user: hmis_user)
+  end
+  let(:step) { referral.workflow_engine.active_steps.sole }
+
+  it 'creates referral participants' do
+    expect do
+      referral_data = perform_mutation
+      referral_swimlanes = referral_data['swimlanes']
+      expect(referral_swimlanes).to contain_exactly(
+        a_hash_including(
+          'id' => case_manager_swimlane.id.to_s,
+          'name' => case_manager_swimlane.name,
+          'participants' => [
+            a_hash_including(
+              'id' => hmis_user.id.to_s,
+              'name' => hmis_user.name,
+            ),
+          ],
+        ),
+        a_hash_including(
+          'id' => provider_swimlane.id.to_s,
+          'name' => provider_swimlane.name,
+          'participants' => [
+            a_hash_including(
+              'id' => hmis_user2.id.to_s,
+              'name' => hmis_user2.name,
+            ),
+          ],
+        ),
+      )
+    end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
+  end
+
+  it 'creates step assignments on active steps' do
+    expect do
+      perform_mutation
+      step.reload
+    end.to change(step.assignments, :count).from(0).to(1).
+      and change(Hmis::WorkflowExecution::StepAssignment, :count).by(1)
+    expect(step.assignments.sole.user).to eq(hmis_user)
+  end
+
+  context 'when active step is already assigned' do
+    let!(:assignment) { step.assignments.create(user: hmis_user) }
+
+    it 'does not try to create duplicate assignees' do
+      expect do
+        perform_mutation
+        step.reload
+      end.to not_change(step.assignments, :count).from(1)
+      expect(step.assignments.sole.user).to eq(hmis_user)
+    end
+  end
+
+  context 'when active step is already assigned to a different user' do
+    let!(:other_user_assignment) { step.assignments.create(user: hmis_user2) }
+
+    it 'removes old assignee and assigns new user' do
+      expect do
+        perform_mutation
+        step.reload
+      end.to change { step.assignments.map(&:user) }.from([hmis_user2]).to([hmis_user])
+
+      expect(other_user_assignment.reload).to be_deleted
+    end
+    context 'when step is completed' do
+      before(:each) do
+        step.start!
+        step.complete!
+      end
+      it 'does not remove old assignee' do
+        expect do
+          perform_mutation
+          step.reload
+        end.to not_change { step.assignments.map(&:user) }.from([hmis_user2])
+
+        expect(other_user_assignment.reload).not_to be_deleted
+      end
+    end
+  end
+
+  describe 'referral with existing participant' do
+    let!(:existing_participant) { referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user) }
+
+    it 'does not create duplicate participants' do
+      expect do
+        perform_mutation
+        existing_participant.reload
+      end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(2).
+        and not_change(existing_participant, :updated_at)
     end
 
+    context 'with input that indicates deletion of a participant' do
+      let(:variables) do
+        {
+          referralId: referral.id,
+          participants: [],
+        }
+      end
+
+      it 'deletes removed participants' do
+        expect do
+          perform_mutation
+        end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(0)
+      end
+    end
+  end
+
+  context 'with invalid user' do
+    let(:variables) do
+      {
+        referralId: referral.id,
+        participants: [
+          {
+            userId: 'abc',
+            swimlaneId: case_manager_swimlane.id,
+          },
+        ],
+      }
+    end
+
+    it 'does not assign invalid user' do
+      expect do
+        perform_mutation
+      end.not_to change(Hmis::Ce::ReferralParticipant, :count)
+    end
+  end
+
+  context 'with invalid swimlane' do
     let(:variables) do
       {
         referralId: referral.id,
         participants: [
           {
             userId: hmis_user.id,
-            swimlaneId: case_manager_swimlane.id,
-          },
-          {
-            userId: hmis_user2.id,
-            swimlaneId: provider_swimlane.id,
+            swimlaneId: 'xyz',
           },
         ],
       }
     end
 
-    before do
-      referral.workflow_engine.start_workflow!(user: hmis_user)
+    it 'raises an error' do
+      expect_gql_error(post_graphql(**variables) { mutation }, message: /Failed to assign to swimlanes/)
     end
-    let(:step) { referral.workflow_engine.active_steps.sole }
+  end
 
-    it 'creates referral participants' do
+  context 'with no permission' do
+    let!(:hmis_user_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
+
+    it 'raises an error' do
+      expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
+    end
+  end
+
+  context 'when some participants are not in scope (inactive or lack permission)' do
+    # hmis_user2 has no referral-task permission; only hmis_user is authorized
+    let!(:hmis_user2_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
+
+    it 'drops ineligible users, succeeds with the rest, and reports to Sentry' do
+      allow(Sentry).to receive(:capture_message)
+
+      referral_data = perform_mutation
+      expect(referral_data).to be_present
+
+      referral_swimlanes = referral_data['swimlanes']
+      case_mgr_swimlane = referral_swimlanes.find { |s| s['id'] == case_manager_swimlane.id.to_s }
+      provider_swimlane_result = referral_swimlanes.find { |s| s['id'] == provider_swimlane.id.to_s }
+      expect(case_mgr_swimlane['participants'].map { |p| p['id'] }).to eq([hmis_user.id.to_s])
+      expect(provider_swimlane_result['participants']).to be_empty
+
+      expect(Sentry).to have_received(:capture_message).with(
+        a_string_including('Referral assignment'),
+        hash_including(extra: hash_including(missing_user_ids: [hmis_user2.id])),
+      )
+    end
+  end
+
+  context 'when the assigned user has permission to do their own tasks' do
+    let!(:hmis_user2_access) { create_access_control(hmis_user2, ds1, with_permission: [:can_perform_own_referral_tasks]) }
+
+    it 'successfully creates participants' do
       expect do
         response, result = post_graphql(**variables) { mutation }
         expect(response.status).to eq(200), result.inspect
-
-        referral_swimlanes = result.dig('data', 'assignReferralParticipants', 'referral', 'swimlanes')
-        expect(referral_swimlanes).to contain_exactly(
-          a_hash_including(
-            'id' => case_manager_swimlane.id.to_s,
-            'name' => case_manager_swimlane.name,
-            'participants' => [
-              a_hash_including(
-                'id' => hmis_user.id.to_s,
-                'name' => hmis_user.name,
-              ),
-            ],
-          ),
-          a_hash_including(
-            'id' => provider_swimlane.id.to_s,
-            'name' => provider_swimlane.name,
-            'participants' => [
-              a_hash_including(
-                'id' => hmis_user2.id.to_s,
-                'name' => hmis_user2.name,
-              ),
-            ],
-          ),
-        )
       end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
-    end
-
-    it 'creates step assignments on active steps' do
-      expect do
-        response, result = post_graphql(**variables) { mutation }
-        expect(response.status).to eq(200), result.inspect
-        step.reload
-      end.to change(step.assignments, :count).from(0).to(1).
-        and change(Hmis::WorkflowExecution::StepAssignment, :count).by(1)
-      expect(step.assignments.sole.user).to eq(hmis_user)
-    end
-
-    context 'when active step is already assigned' do
-      let!(:assignment) { step.assignments.create(user: hmis_user) }
-
-      it 'does not try to create duplicate assignees' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-          step.reload
-        end.to not_change(step.assignments, :count).from(1)
-        expect(step.assignments.sole.user).to eq(hmis_user)
-      end
-    end
-
-    context 'when active step is already assigned to a different user' do
-      let!(:other_user_assignment) { step.assignments.create(user: hmis_user2) }
-
-      it 'removes old assignee and assigns new user' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-          step.reload
-        end.to change { step.assignments.map(&:user) }.from([hmis_user2]).to([hmis_user])
-
-        expect(other_user_assignment.reload).to be_deleted
-      end
-      context 'when step is completed' do
-        before(:each) do
-          step.start!
-          step.complete!
-        end
-        it 'does not remove old assignee' do
-          expect do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
-            step.reload
-          end.to not_change { step.assignments.map(&:user) }.from([hmis_user2])
-
-          expect(other_user_assignment.reload).not_to be_deleted
-        end
-      end
-    end
-
-    describe 'referral with existing participant' do
-      let!(:existing_participant) { referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user) }
-
-      it 'does not create duplicate participants' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-          existing_participant.reload
-        end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(2).
-          and not_change(existing_participant, :updated_at)
-      end
-
-      context 'with input that indicates deletion of a participant' do
-        let(:variables) do
-          {
-            referralId: referral.id,
-            participants: [],
-          }
-        end
-
-        it 'deletes removed participants' do
-          expect do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
-          end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(0)
-        end
-      end
-    end
-
-    context 'with invalid user' do
-      let(:variables) do
-        {
-          referralId: referral.id,
-          participants: [
-            {
-              userId: 'abc',
-              swimlaneId: case_manager_swimlane.id,
-            },
-          ],
-        }
-      end
-
-      it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
-      end
-    end
-
-    context 'with invalid swimlane' do
-      let(:variables) do
-        {
-          referralId: referral.id,
-          participants: [
-            {
-              userId: hmis_user.id,
-              swimlaneId: 'xyz',
-            },
-          ],
-        }
-      end
-
-      it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
-      end
-    end
-
-    context 'with no permission' do
-      let!(:hmis_user_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
-
-      it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
-      end
-    end
-
-    context 'when the assigned user does not have permission' do
-      let!(:hmis_user2_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
-
-      it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
-      end
-    end
-
-    context 'when the assigned user has permission to do their own tasks' do
-      let!(:hmis_user2_access) { create_access_control(hmis_user2, ds1, with_permission: [:can_perform_own_referral_tasks]) }
-
-      it 'successfully creates participants' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-        end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
-      end
     end
   end
 end
