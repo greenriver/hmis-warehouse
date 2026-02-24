@@ -34,7 +34,7 @@ class AcCeBulkVoid
     void_definition = Hmis::Form::Definition.published.find_by(identifier: VOID_FORM_IDENTIFIER)
     validate_form_definition!(void_definition)
 
-    puts "Bulk voiding #{client_ids.count} clients for CE project #{ce_project_id}"
+    puts "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{ce_project_id}"
 
     source_client_ids = Hmis::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
 
