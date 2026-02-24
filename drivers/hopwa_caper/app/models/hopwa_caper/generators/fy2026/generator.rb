@@ -44,6 +44,7 @@ module HopwaCaper::Generators::Fy2026
       # Rails.logger.level = 1
       report.hopwa_caper_enrollments.delete_all
       report.hopwa_caper_services.delete_all
+      report.hopwa_caper_funders.delete_all
       report.report_cells.with_deleted.destroy_all
       # report.update! state: 'Waiting'
     end
@@ -111,7 +112,8 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def build_hopwa_caper_models
-      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }, :services])
+      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, :project, :services])
+      project_ids = Set.new
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -126,6 +128,7 @@ module HopwaCaper::Generators::Fy2026
           next unless client
 
           enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
+          project_ids.add hud_enrollment.project.id
 
           # Store enrollment context for later custom service lookup
           context_key = [hud_enrollment.data_source_id, hud_enrollment.EnrollmentID]
@@ -150,6 +153,18 @@ module HopwaCaper::Generators::Fy2026
         import_rows(HopwaCaper::Enrollment, enrollment_rows)
         import_rows(HopwaCaper::Service, service_rows)
       end
+
+      funder_rows = []
+      GrdaWarehouse::Hud::Project.where(id: project_ids).preload(:funders).each do |project|
+        project.funders.each do |funder|
+          funder_rows << HopwaCaper::Funder.from_hud_record(
+            funder: funder,
+            project: project,
+            report: report,
+          )
+        end
+      end
+      HopwaCaper::Funder.import(funder_rows)
 
       report.hopwa_caper_enrollments.distinct.pluck(:destination_client_id).in_groups_of(100, false) do |client_ids|
         enrollments = report.hopwa_caper_enrollments.where(destination_client_id: client_ids).order(:id)

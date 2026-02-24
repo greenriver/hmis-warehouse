@@ -24,11 +24,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def program_filter
-      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa(range: @report.report_range)
     end
 
     def base_enrollments
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      program_filter.apply(@report.hopwa_caper_enrollments)
     end
 
     def relevant_enrollments

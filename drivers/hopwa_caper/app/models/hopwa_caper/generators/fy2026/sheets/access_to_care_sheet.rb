@@ -190,20 +190,23 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def housing_subsidy_households_for_activity(activity_type)
       case activity_type
       when :tbra
-        filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
-        overlapping_enrollments(filter.apply(@report.hopwa_caper_enrollments))
+        HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+          tbra_hopwa(range: @report.report_range).
+          apply(@report.hopwa_caper_enrollments)
       when :strmu
-        enrollments = overlapping_enrollments(
-          HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa.apply(@report.hopwa_caper_enrollments),
-        )
+        enrollments = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+          strmu_hopwa(range: @report.report_range).
+          apply(@report.hopwa_caper_enrollments)
+
         service_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
         relevant_services = service_filter.apply(@report.hopwa_caper_services).
           where(date_provided: @report.start_date..@report.end_date).
           joins(:enrollment).merge(enrollments)
         enrollments.where(report_household_id: relevant_services.select(:report_household_id))
       when :php
-        filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.php_hopwa
-        overlapping_enrollments(filter.apply(@report.hopwa_caper_enrollments))
+        HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+          php_hopwa(range: @report.report_range).
+          apply(@report.hopwa_caper_enrollments)
       when :pfbh, :st_tfbh
         # P-FBH and ST-TFBH may be part of TBRA or PHP - for now return empty scope
         @report.hopwa_caper_enrollments.none
@@ -216,7 +219,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def housing_info_households
       @report.hopwa_caper_services.custom_services.
-        where(date_provided: @report.start_date..@report.end_date).
+        where(date_provided: @report.report_range).
         where(service_category_name: 'HOPWA Housing Information').
         select(:report_household_id).
         distinct

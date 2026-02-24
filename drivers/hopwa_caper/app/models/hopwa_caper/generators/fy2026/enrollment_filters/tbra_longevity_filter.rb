@@ -14,12 +14,23 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
 
     # interpreting the spec as measuring years since the earliest entry-date for a hopwa-qualified individual
     def self.for_report(report)
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
+      # hoh_enrollments in report range
+      project_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        tbra_hopwa(range: report.report_range)
 
-      rows = program_filter.apply(report.hopwa_caper_enrollments).
+      hoh_enrollments = project_filter.apply(report.hopwa_caper_enrollments).
         where(hopwa_eligible: true).
+        head_of_household
+
+      rows = report.hopwa_caper_enrollments.
+        where(destination_client_id: hoh_enrollments.select(:destination_client_id)).
+        joins(:funders).
+        merge(HopwaCaper::Funder.where(code: project_filter.codes)).
         group(:destination_client_id).
-        pluck(:destination_client_id, Arel.sql('MIN(entry_date)'))
+        pluck(
+          :destination_client_id,
+          Arel.sql('GREATEST(MIN(entry_date), MIN(start_date))'),
+        )
 
       buckets = {
         'less than one year' => [],

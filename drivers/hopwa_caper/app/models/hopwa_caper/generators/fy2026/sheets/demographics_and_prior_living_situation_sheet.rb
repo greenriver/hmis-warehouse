@@ -36,8 +36,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_demographics_enrollments
-      # assume all included enrollments are hopwa funded, don't filter by funder
-      overlapping_enrollments(@report.hopwa_caper_enrollments)
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        all_hopwa(range: @report.report_range).
+        apply(@report.hopwa_caper_enrollments)
     end
 
     def demographics_sheet_a(sheet)
@@ -160,14 +161,18 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def prior_living_situation_sheet(sheet)
       sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP')
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_or_php_hopwa
-      relevant_enrollments = overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments)).where(hopwa_eligible: true)
+
+      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        tbra_or_php_hopwa(range: @report.report_range)
+      relevant_enrollments = program_filter.apply(@report.hopwa_caper_enrollments.where(hopwa_eligible: true))
 
       sheet.append_row(label: 'How many HOPWA-eligible individuals continued receiving HOPWA assistance from the previous year?') do |row|
+        prior_year = (@report.start_date - 1.year)..(@report.start_date - 1.day)
         cell_scope = relevant_enrollments.then do |scope|
-          includes_scope = program_filter.apply(@report.hopwa_caper_enrollments).
+          includes_scope = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_or_php_hopwa(range: prior_year).
+            apply(@report.hopwa_caper_enrollments).
             where(hopwa_eligible: true).
-            overlapping_range(start_date: @report.start_date - 1.year, end_date: @report.start_date)
+            within_range(prior_year)
           scope.where(destination_client_id: includes_scope.select(:destination_client_id))
         end
         row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)

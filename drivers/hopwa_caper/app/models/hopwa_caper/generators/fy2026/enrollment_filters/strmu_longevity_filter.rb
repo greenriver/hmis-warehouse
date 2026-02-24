@@ -14,13 +14,20 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
     end
 
     def self.for_report(report)
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
+      project_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        strmu_hopwa(range: report.report_range)
 
-      rows = program_filter.apply(report.hopwa_caper_enrollments).
+      hoh_enrollments = project_filter.apply(report.hopwa_caper_enrollments).
         where(hopwa_eligible: true).
+        head_of_household
+
+      rows = report.hopwa_caper_enrollments.
+        where(destination_client_id: hoh_enrollments.select(:destination_client_id)).
+        joins(:funders).
+        merge(HopwaCaper::Funder.where(code: project_filter.codes)).
         where(entry_date: (report.start_date - 5.years)..report.end_date).
         group(:destination_client_id).
-        pluck(:destination_client_id, Arel.sql('ARRAY_AGG(entry_date)'))
+        pluck(:destination_client_id, Arel.sql('ARRAY_AGG(entry_date)'), Arel.sql('MIN(start_date)'))
 
       # since the report asks us to sum these, assume they are expected mutually exclusive
       buckets = {
@@ -32,9 +39,11 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
 
       current_year = report.end_date.year
       service_years = (0..4).map { |i| current_year - i }
-      rows.each do |client_id, entry_dates|
+      rows.each do |client_id, entry_dates, start_date|
         # what years are covered by prior enrollments
-        entry_years = entry_dates.map(&:year).to_set
+        entry_years = entry_dates.
+          map { |e| [e, start_date].compact.max }.
+          map(&:year).to_set
         years_served = service_years.count do |service_year|
           service_year.in?(entry_years)
         end

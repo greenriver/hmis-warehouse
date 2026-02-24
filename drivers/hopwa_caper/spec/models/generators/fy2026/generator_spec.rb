@@ -220,4 +220,41 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: nil))).to be_nil
     end
   end
+
+  describe '#build_hopwa_caper_models' do
+    let(:project) { tbra_project }
+    let(:client) { create(:hud_client, data_source: data_source) }
+    let!(:enrollment) do
+      create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    it 'persists HopwaCaper::Funder records from the source project funders' do
+      # Source hud_funder has start/end dates
+      hud_funder = project.funders.first
+      hud_funder.update!(
+        start_date: report_start_date - 1.month,
+        end_date: report_end_date + 1.month,
+      )
+
+      report = create_report([project])
+      run_report(report)
+
+      # Verify HopwaCaper::Funder was created
+      persisted_funder = HopwaCaper::Funder.find_by(
+        report_instance_id: report.id,
+        project_id: project.id,
+        code: tbra_funder.to_i,
+      )
+
+      expect(persisted_funder).to be_present
+      expect(persisted_funder.start_date).to eq(hud_funder.start_date)
+      expect(persisted_funder.end_date).to eq(hud_funder.end_date)
+      expect(persisted_funder.funder_id).to eq(hud_funder.id)
+    end
+  end
 end
