@@ -53,8 +53,6 @@ module Hmis
         merge_mci_unique_ids
         merge_scan_cards
         merge_client_locations
-        # TODO(#8241) - merge CE records such as referrals, and possibly candidacy events?
-
         client_to_retain.reload
         dedup(client_to_retain.names, keepers: dedup(client_to_retain.names.where(primary: true)))
         dedup(client_to_retain.contact_points)
@@ -248,6 +246,7 @@ module Hmis
     def update_client_id_foreign_keys
       candidates = [
         [Hmis::File, 'files'],
+        [Hmis::Ce::Referral, 'ce_referrals'],
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
