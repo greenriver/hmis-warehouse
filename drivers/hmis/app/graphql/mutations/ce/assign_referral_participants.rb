@@ -22,14 +22,9 @@ module Mutations
 
       swimlane_ids = participants.map(&:swimlane_id).uniq
       swimlanes = referral.workflow_instance.template.swimlanes.where(id: swimlane_ids)
-      raise 'Not found' unless swimlanes.size == swimlane_ids.size
+      raise "Failed to assign to swimlanes #{swimlane_ids.join(', ')}, not all swimlanes found on template" unless swimlanes.size == swimlane_ids.size
 
-      # Verify that the given users have permission to perform referral tasks in this project
-      user_ids = participants.map(&:user_id).uniq
-      users = Hmis::User.can_perform_any_referral_tasks_for(project).
-        or(Hmis::User.can_perform_own_referral_tasks_for(project)).
-        where(id: user_ids)
-      raise 'Not found' unless users.size == user_ids.size
+      participants = filter_to_authorized_participants(participants, project)
 
       referral.with_lock do
         # Create a participant for each user in the input, if one doesn't already exist
@@ -46,6 +41,28 @@ module Mutations
       end
 
       { referral: referral.reload }
+    end
+
+    private
+
+    # Users not in scope (inactive or lost access) are dropped and reported to Sentry.
+    # This can happen if a user was previously assigned but is no longer active/authorized,
+    # or lost access between loading the assignee pick list (ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS)
+    # and submitting the mutation.
+    def filter_to_authorized_participants(participants, project)
+      user_ids = participants.map(&:user_id).map(&:to_i).to_set
+      authorized_user_ids = Hmis::User.active.can_perform_any_referral_tasks_for(project).
+        or(Hmis::User.can_perform_own_referral_tasks_for(project)).
+        where(id: user_ids).pluck(:id).to_set
+
+      missing_user_ids = user_ids - authorized_user_ids
+      return participants if missing_user_ids.empty?
+
+      msg = 'Referral assignment: some users were not in scope (inactive or lost access), removed from assignee list'
+      Sentry.capture_message(msg, extra: { missing_user_ids: missing_user_ids.to_a, project_id: project.id })
+      Rails.logger.warn(msg)
+
+      participants.filter { |p| authorized_user_ids.include?(p.user_id.to_i) }
     end
   end
 end
