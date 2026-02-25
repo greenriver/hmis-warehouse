@@ -163,11 +163,11 @@ module HmisExternalApis::AcHmis
           next if old_destination_id == winner_destination_id
 
           if GrdaWarehouse::ClientSplitHistory.exists?(split_from: winner_destination_id, split_into: old_destination_id)
-            Rails.logger.info "Not moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner.id} because they were previously split"
+            Rails.logger.info "Not moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner_destination_id} because they were previously split"
             next
           end
 
-          Rails.logger.info "Moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner.id}"
+          Rails.logger.info "Moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner_destination_id}"
 
           winner.merge_from(
             source_client.as_warehouse,
