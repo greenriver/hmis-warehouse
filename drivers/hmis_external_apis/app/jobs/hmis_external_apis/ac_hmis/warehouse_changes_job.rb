@@ -162,6 +162,11 @@ module HmisExternalApis::AcHmis
           old_destination_id = source_client.warehouse_client_source&.destination_id
           next if old_destination_id == winner_destination_id
 
+          if GrdaWarehouse::ClientSplitHistory.exists?(split_from: winner_destination_id, split_into: old_destination_id)
+            Rails.logger.info "Not moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner.id} because they were previously split"
+            next
+          end
+
           Rails.logger.info "Moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner.id}"
 
           winner.merge_from(
@@ -175,7 +180,6 @@ module HmisExternalApis::AcHmis
 
       return unless any_updates
 
-      # If there were updates, trigger a service history rebuild.
       # If there were updates, trigger a service history rebuild. Records requiring rebuild were marked for re-processing by the merge_from method
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
