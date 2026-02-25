@@ -36,8 +36,7 @@ RSpec.describe Hmis::Ce::ProcessClientsJob, type: :job do
   end
 
   it 'processes clients against multiple active pools' do
-    pool2 = create(:hmis_ce_match_candidate_pool)
-    create(:hmis_ce_opportunity, candidate_pool: pool2)
+    pool2 = create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source)
 
     # Explicitly create markers for all clients to make test deterministic
     create(:hmis_ce_change_marker, trackable: client1, current_version: 1, processed_version: 0)

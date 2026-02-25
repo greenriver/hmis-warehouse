@@ -246,6 +246,17 @@ services:
   redis:
     container_name: hmis-warehouse-redis
     image: redis:alpine
+    env_file:
+      - .env.development.local
+      - .env.local
+    command: >
+      sh -c '
+      if [ -n "$$CACHE_AUTH_TOKEN" ]; then
+        exec redis-server --requirepass "$$CACHE_AUTH_TOKEN";
+      else
+        exec redis-server;
+      fi
+      '
     volumes:
       - redis:/data
     expose:
