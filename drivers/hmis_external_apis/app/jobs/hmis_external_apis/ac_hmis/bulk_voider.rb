@@ -33,7 +33,7 @@ module HmisExternalApis::AcHmis
       @current_date = Date.current
 
       # Find the Void Assessment and validate it has the expected link IDs
-      void_definition = Hmis::Form::Definition.published.find_by(identifier: VOID_FORM_IDENTIFIER)
+      @void_definition = Hmis::Form::Definition.published.find_by(identifier: VOID_FORM_IDENTIFIER)
 
       # Raise if the expected CDEDs are not found
       cded_scope = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::CustomAssessment.sti_name).where(data_source_id: @data_source_id)
@@ -66,12 +66,22 @@ module HmisExternalApis::AcHmis
         return
       end
 
-      Rails.logger.info 'Processing enrollments:'
+      # Enrollments we must create a void assessment for (clients in destination_client_ids)
+      enrollment_ids_to_void = enrollments.pluck(:id).to_set
 
       Hmis::Hud::Base.transaction do
-        # Process each enrollment to void the client
         enrollments.find_each do |enrollment|
-          process_enrollment(enrollment, void_definition)
+          # Exit all open household members
+          household_enrollments = if enrollment.household_id.present?
+            enrollment.household_members.open_excluding_wip
+          else
+            [enrollment]
+          end
+
+          household_enrollments.each do |e|
+            create_exit(e)
+            create_void_assessment(e) if enrollment_ids_to_void.include?(e.id)
+          end
         end
       end
 
@@ -80,37 +90,7 @@ module HmisExternalApis::AcHmis
 
     private
 
-    def process_enrollment(enrollment, void_definition)
-      # Build a synthetic Void Assessment
-      assessment = Hmis::Hud::CustomAssessment.new(
-        user: @hud_system_user,
-        assessment_date: @current_date,
-        data_collection_stage: 99,
-        data_source_id: enrollment.data_source_id,
-        personal_id: enrollment.personal_id,
-        enrollment_id: enrollment.enrollment_id,
-        created_by_hud_user: @hud_system_user, # todo @martha - this isn't working
-        updated_by_hud_user: @hud_system_user,
-        definition: void_definition,
-        wip: false,
-      )
-      assessment.build_form_processor(definition: void_definition)
-      assessment.save!
-      assessment.form_processor.save!
-
-      assessment.custom_data_elements.create!(
-        data_element_definition: @void_cded,
-        user: @hud_system_user,
-        data_source_id: assessment.data_source_id,
-        value_boolean: true,
-      )
-      assessment.custom_data_elements.create!(
-        data_element_definition: @void_reason_cded,
-        user: @hud_system_user,
-        data_source_id: assessment.data_source_id,
-        value_string: VOID_REASON_TEXT,
-      )
-
+    def create_exit(enrollment)
       # Create an Exit record exiting the client from the CE project.
       # TODO - This is copied from Auto Exit Job, and should be refactored to a shared place, that can also be used for bulk-exiting enrollments (#6917)
       exit_record = Hmis::Hud::Exit.new(
@@ -133,8 +113,39 @@ module HmisExternalApis::AcHmis
       raise ActiveRecord::RecordInvalid, exit_record if exit_record.invalid?
 
       exit_assessment.save!
+      Rails.logger.info "Exited enrollment #{enrollment.enrollment_id}"
+    end
 
-      Rails.logger.info enrollment.enrollment_id
+    def create_void_assessment(enrollment)
+      assessment = Hmis::Hud::CustomAssessment.new(
+        user: @hud_system_user,
+        assessment_date: @current_date,
+        data_collection_stage: 99,
+        data_source_id: enrollment.data_source_id,
+        personal_id: enrollment.personal_id,
+        enrollment_id: enrollment.enrollment_id,
+        created_by_hud_user: @hud_system_user, # todo @martha - this isn't working
+        updated_by_hud_user: @hud_system_user,
+        definition: @void_definition,
+        wip: false,
+      )
+      assessment.build_form_processor(definition: @void_definition)
+      assessment.save!
+      assessment.form_processor.save!
+
+      assessment.custom_data_elements.create!(
+        data_element_definition: @void_cded,
+        user: @hud_system_user,
+        data_source_id: assessment.data_source_id,
+        value_boolean: true,
+      )
+      assessment.custom_data_elements.create!(
+        data_element_definition: @void_reason_cded,
+        user: @hud_system_user,
+        data_source_id: assessment.data_source_id,
+        value_string: VOID_REASON_TEXT,
+      )
+      Rails.logger.info "Void assessment for enrollment #{enrollment.enrollment_id}"
     end
   end
 end
