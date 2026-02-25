@@ -7,11 +7,17 @@
 # frozen_string_literal: true
 
 # Bulk void a list of destination clients from the waitlist and exit them from the Coordinated Entry project.
-# destination_client_ids: a list of destination client IDs to void. This class finds the corresponding source clients
+#
+# Usage: HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], ce_project_id: 201, dry_run: true)
+#
+# destination_client_ids: a list of destination client IDs to void
 # ce_project_id: the ID of the Coordinated Entry project
 # dry_run: if true, logs the enrollments that would be processed, without taking action
 #
-# HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], ce_project_id: 201, dry_run: true)
+# Notes:
+# - This could re-void an enrollment that’s already voided, or a client that wasn't deemed eligible to begin with.
+#   If the client has an open enrollment in the CE project, then a Void Assessment will be generated, regardless of whether they are on the waitlist.
+# - This will *not* void clients that are exited from the CE project, even if they are still on the waitlist.
 module HmisExternalApis::AcHmis
   class BulkVoider
     VOID_REASON_TEXT = 'This household has been exited from Coordinated Entry and removed from the Homeless Housing Program Waitlist as part of the CE Waitlist Management Process due to no contact with Coordinated Entry in at least 45 days.'
