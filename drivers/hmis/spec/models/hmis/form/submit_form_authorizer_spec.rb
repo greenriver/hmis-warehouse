@@ -110,6 +110,18 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         expect(authorizer.authorized_to_create?(record)).to be false
       end
 
+      context 'when user can create clients in a different project, but not this one' do
+        let(:p2) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+        before(:each) do
+          create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
+          create_access_control(user, p2, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients])
+        end
+
+        it 'still returns false' do
+          expect(authorizer.authorized_to_create?(record)).to be false
+        end
+      end
+
       it 'returns false when user cannot enroll clients' do
         create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details])
         expect(authorizer.authorized_to_create?(record)).to be false
