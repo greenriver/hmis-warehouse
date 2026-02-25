@@ -29,6 +29,8 @@ module HmisExternalApis::AcHmis
 
     # Hard-coded expectations of the Void Assessment form shape
     VOID_FORM_IDENTIFIER = 'void_assessment'
+    VOID_CDED_KEY = 'void_assessment_void_all_referrals'
+    VOID_REASON_CDED_KEY = 'void_assessment_void_reason'
 
     def perform(destination_client_ids:, ce_project_id:, dry_run: false)
       # Expect the given project ID to be open on the current date, and to be a Coordinated Entry project (14)
@@ -42,8 +44,8 @@ module HmisExternalApis::AcHmis
 
       # Raise if the expected CDEDs are not found
       cded_scope = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::CustomAssessment.sti_name).where(data_source_id: @data_source_id)
-      @void_cded = cded_scope.find_by(key: 'void_assessment_void_all_referrals')
-      @void_reason_cded = cded_scope.find_by(key: 'void_assessment_void_reason')
+      @void_cded = cded_scope.find_by!(key: VOID_CDED_KEY)
+      @void_reason_cded = cded_scope.find_by!(key: VOID_REASON_CDED_KEY)
 
       Rails.logger.info "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{ce_project_id}"
 
@@ -150,6 +152,7 @@ module HmisExternalApis::AcHmis
         data_source_id: assessment.data_source_id,
         value_string: VOID_REASON_TEXT,
       )
+      # todo @martha - more useful logging
       Rails.logger.info "Void assessment for enrollment #{enrollment.enrollment_id}"
     end
   end
