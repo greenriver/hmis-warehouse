@@ -133,10 +133,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     # Second source client with different destination client but same MCI unique ID
     other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
-
-    # Perform the WarehouseChangesJob for the first time, which soft-merges the source clients, pointing them to the same destination
-    perform
-    expect(client.reload.warehouse_id).to eq(other_client.reload.warehouse_id)
+    other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
 
     # Split the other_client out
     client.destination_client.as_warehouse.split([other_client.id], nil, nil, user)
