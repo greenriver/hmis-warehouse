@@ -68,9 +68,11 @@ module HmisExternalApis::AcHmis
 
       Rails.logger.info 'Processing enrollments:'
 
-      # Process each enrollment to void the client
-      enrollments.find_each do |enrollment|
-        process_enrollment(enrollment, void_definition)
+      Hmis::Hud::Base.transaction do
+        # Process each enrollment to void the client
+        enrollments.find_each do |enrollment|
+          process_enrollment(enrollment, void_definition)
+        end
       end
 
       Rails.logger.info 'Completed processing all enrollments'
@@ -79,62 +81,60 @@ module HmisExternalApis::AcHmis
     private
 
     def process_enrollment(enrollment, void_definition)
-      Hmis::Hud::Base.transaction do
-        # Build a synthetic Void Assessment
-        assessment = Hmis::Hud::CustomAssessment.new(
-          user: @hud_system_user,
-          assessment_date: @current_date,
-          data_collection_stage: 99,
-          data_source_id: enrollment.data_source_id,
-          personal_id: enrollment.personal_id,
-          enrollment_id: enrollment.enrollment_id,
-          created_by_hud_user: @hud_system_user, # todo @martha - this isn't working
-          updated_by_hud_user: @hud_system_user,
-          definition: void_definition,
-          wip: false,
-        )
-        assessment.build_form_processor(definition: void_definition)
-        assessment.save!
-        assessment.form_processor.save!
+      # Build a synthetic Void Assessment
+      assessment = Hmis::Hud::CustomAssessment.new(
+        user: @hud_system_user,
+        assessment_date: @current_date,
+        data_collection_stage: 99,
+        data_source_id: enrollment.data_source_id,
+        personal_id: enrollment.personal_id,
+        enrollment_id: enrollment.enrollment_id,
+        created_by_hud_user: @hud_system_user, # todo @martha - this isn't working
+        updated_by_hud_user: @hud_system_user,
+        definition: void_definition,
+        wip: false,
+      )
+      assessment.build_form_processor(definition: void_definition)
+      assessment.save!
+      assessment.form_processor.save!
 
-        assessment.custom_data_elements.create!(
-          data_element_definition: @void_cded,
-          user: @hud_system_user,
-          data_source_id: assessment.data_source_id,
-          value_boolean: true,
-        )
-        assessment.custom_data_elements.create!(
-          data_element_definition: @void_reason_cded,
-          user: @hud_system_user,
-          data_source_id: assessment.data_source_id,
-          value_string: VOID_REASON_TEXT,
-        )
+      assessment.custom_data_elements.create!(
+        data_element_definition: @void_cded,
+        user: @hud_system_user,
+        data_source_id: assessment.data_source_id,
+        value_boolean: true,
+      )
+      assessment.custom_data_elements.create!(
+        data_element_definition: @void_reason_cded,
+        user: @hud_system_user,
+        data_source_id: assessment.data_source_id,
+        value_string: VOID_REASON_TEXT,
+      )
 
-        # Create an Exit record exiting the client from the CE project.
-        # TODO - This is copied from Auto Exit Job, and should be refactored to a shared place, that can also be used for bulk-exiting enrollments (#6917)
-        exit_record = Hmis::Hud::Exit.new(
-          personal_id: enrollment.personal_id,
-          enrollment_id: enrollment.enrollment_id,
-          data_source_id: enrollment.data_source_id,
-          user_id: @hud_system_user.user_id,
-          exit_date: @current_date,
-          destination: ::HudHelper.util.destination_no_exit_interview_completed,
-        )
-        exit_assessment = Hmis::Hud::CustomAssessment.new(
-          user_id: @hud_system_user.user_id,
-          assessment_date: @current_date,
-          data_collection_stage: 3,
-          data_source_id: enrollment.data_source_id,
-          personal_id: enrollment.personal_id,
-          enrollment_id: enrollment.enrollment_id,
-        )
-        exit_assessment.build_form_processor(exit: exit_record)
-        raise ActiveRecord::RecordInvalid, exit_record if exit_record.invalid?
+      # Create an Exit record exiting the client from the CE project.
+      # TODO - This is copied from Auto Exit Job, and should be refactored to a shared place, that can also be used for bulk-exiting enrollments (#6917)
+      exit_record = Hmis::Hud::Exit.new(
+        personal_id: enrollment.personal_id,
+        enrollment_id: enrollment.enrollment_id,
+        data_source_id: enrollment.data_source_id,
+        user_id: @hud_system_user.user_id,
+        exit_date: @current_date,
+        destination: ::HudHelper.util.destination_no_exit_interview_completed,
+      )
+      exit_assessment = Hmis::Hud::CustomAssessment.new(
+        user_id: @hud_system_user.user_id,
+        assessment_date: @current_date,
+        data_collection_stage: 3,
+        data_source_id: enrollment.data_source_id,
+        personal_id: enrollment.personal_id,
+        enrollment_id: enrollment.enrollment_id,
+      )
+      exit_assessment.build_form_processor(exit: exit_record)
+      raise ActiveRecord::RecordInvalid, exit_record if exit_record.invalid?
 
-        exit_assessment.save!
+      exit_assessment.save!
 
-        Rails.logger.info enrollment.enrollment_id
-      end
+      Rails.logger.info enrollment.enrollment_id
     end
   end
 end
