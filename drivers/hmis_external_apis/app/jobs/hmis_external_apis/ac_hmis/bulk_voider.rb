@@ -11,7 +11,7 @@
 # ce_project_id: the ID of the Coordinated Entry project
 # dry_run: if true, logs the enrollments that would be processed, without taking action
 #
-# HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: client_ids, ce_project_id: project_id, dry_run: dry_run)
+# HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], ce_project_id: 201, dry_run: true)
 module HmisExternalApis::AcHmis
   class BulkVoider
     VOID_REASON_TEXT = 'This household has been exited from Coordinated Entry and removed from the Homeless Housing Program Waitlist as part of the CE Waitlist Management Process due to no contact with Coordinated Entry in at least 45 days.'
@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis
     # Hard-coded expectations of the Void Assessment form shape
     VOID_FORM_IDENTIFIER = 'void_assessment'
 
-    def perform(destination_client_ids:, ce_project_id:, dry_run:)
+    def perform(destination_client_ids:, ce_project_id:, dry_run: false)
       # Expect the given project ID to be open on the current date, and to be a Coordinated Entry project (14)
       project = Hmis::Hud::Project.hmis.open_on_date.where(project_type: 14).find(ce_project_id)
       @data_source_id = project.data_source_id
@@ -45,7 +45,15 @@ module HmisExternalApis::AcHmis
         joins(:client).
         where(client: { id: source_client_ids })
 
+      # Log client IDs that we won't process because they don't have an open enrollment in the CE project
+      source_ids_with_enrollment = enrollments.distinct.pluck(Arel.sql('client.id'))
+      destination_ids_with_enrollment = Hmis::WarehouseClient.
+        where(source_id: source_ids_with_enrollment, destination_id: destination_client_ids).
+        pluck(:destination_id)
+      destination_ids_without_enrollment = destination_client_ids.map(&:to_s) - destination_ids_with_enrollment.map(&:to_s)
+
       Rails.logger.info "Found #{enrollments.count} enrollments to process"
+      Rails.logger.info "Destination client IDs with no enrollment to process (#{destination_ids_without_enrollment.size}): #{destination_ids_without_enrollment.join(', ')}" if destination_ids_without_enrollment.any?
 
       if dry_run
         Rails.logger.info "DRY RUN: Would have processed the following enrollments:\n#{enrollments.pluck(:enrollment_id).join("\n")}"
