@@ -6,25 +6,21 @@
 
 # frozen_string_literal: true
 
-# SubmitFormAuthorizer finds or builds the record for form submission and authorizes the action.
-# - Edit path: find existing record by record_id, authorize edit
-# - Create path: build record via SubmitFormRecordInitializer, authorize create
+# SubmitFormAuthorizer answers whether the user may submit a form to create or edit a record.
+# Caller finds or builds the record, then calls authorized_to_create?(record) or authorized_to_edit?(record).
 #
-# Usage: Hmis::Form::SubmitFormAuthorizer.authorized_record(user:, definition:, input:)
+# Accepts the full definition (not just role) to support potential future use-case for fine-grained authorization
+# that would involve introspecting on the definition to see which fields and related records are being touched.
+#
+# Usage: Hmis::Form::SubmitFormAuthorizer.new(user:, definition:).authorized_to_create?(record)
 class Hmis::Form::SubmitFormAuthorizer
-  attr_reader :user, :klass, :form_role
+  attr_reader :user, :form_role
 
   ENROLLMENT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::ENROLLMENT_RELATED_CLASSES
   PROJECT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::PROJECT_RELATED_CLASSES
 
-  # Returns the authorized record. Raises if not found or unauthorized.
-  def self.authorized_record(user:, definition:, input:)
-    new(user: user, definition: definition).call(input)
-  end
-
   def initialize(user:, definition:)
     @user = user
-    @klass = definition.owner_class
     @form_role = definition.role.to_sym
   end
 
