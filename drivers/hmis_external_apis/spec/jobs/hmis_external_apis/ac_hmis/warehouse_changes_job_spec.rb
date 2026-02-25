@@ -45,6 +45,10 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     job.perform(actor_id: user.id)
   end
 
+  before(:each) do
+    stub_api
+  end
+
   it 'finds clients' do
     stub_api
 
@@ -53,8 +57,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'inserts a new MCI unique ID' do
-    stub_api
-
     perform
     expect(HmisExternalApis::ExternalId.count).to eq(1)
     expect(client.external_ids.length).to eq(1)
@@ -62,7 +64,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'updates an existing MCI unique ID' do
-    stub_api
     perform
 
     default_record['mciUniqId'] = '999999'
@@ -73,8 +74,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'soft-merges duplicate MCI unique IDs' do
-    stub_api
-
     destination_id = client.warehouse_id
 
     # Second source client with different destination client but same MCI unique ID
@@ -104,8 +103,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'takes no merge action for duplicate MCI unique IDs when source clients already share same destination' do
-    stub_api
-
     # Second source client sharing the same destination; no repointing needed
     other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
@@ -133,8 +130,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'takes no merge action for duplicate MCI unique IDs when the source clients were previously split' do
-    stub_api
-
     # Second source client with different destination client but same MCI unique ID
     other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
@@ -153,6 +148,27 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     expect(client.reload.warehouse_id).not_to eq(other_client.reload.warehouse_id)
   end
 
+  it 'still soft-merges when the source client has a previous split event associated with a different destination client' do
+    # Setup 2 new source clients with the same destination client
+    other_client_1 = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    other_client_2 = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    other_client_2.warehouse_client_source.update(destination_id: other_client_1.warehouse_id)
+    expect(other_client_1.warehouse_id).to eq(other_client_2.warehouse_id)
+
+    # One of the new source clients has the same MCI unique ID as the original client
+    create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client_1)
+
+    # Split other_client_1 out from other_client_2's dest client
+    other_client_2.destination_client.as_warehouse.split([other_client_1.id], nil, nil, user)
+    expect(other_client_1.reload.warehouse_id).not_to eq(other_client_2.reload.warehouse_id)
+    expect(GrdaWarehouse::ClientSplitHistory.exists?(split_from: other_client_2.destination_client.id)).to be_truthy
+
+    # Perform the WarehouseChangesJob and expect the soft merge between other_client_1 and client to still take place
+    perform
+    expect(client.reload.warehouse_id).to eq(other_client_1.reload.warehouse_id)
+    expect(other_client_2.reload.warehouse_id).not_to eq(other_client_1.reload.warehouse_id)
+  end
+
   context 'when there are multiple sets of multiple duplicate MCIs' do
     let!(:clients_by_mci) do
       # Create 3 sets of 3 clients each with different MCI unique IDs
@@ -169,8 +185,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     end
 
     it 'soft-merges all sets of duplicates' do
-      stub_api
-
       expected_winner_destination_ids = clients_by_mci.transform_values do |clients|
         clients.map(&:warehouse_id).min
       end
