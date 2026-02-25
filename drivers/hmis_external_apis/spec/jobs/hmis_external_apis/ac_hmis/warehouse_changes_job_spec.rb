@@ -130,7 +130,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'takes no merge action for duplicate MCI unique IDs when the source clients were previously split' do
-    # Second source client with different destination client but same MCI unique ID
+    # Second source client with same destination client and same MCI unique ID
     other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
     other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
@@ -140,7 +140,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     expect(other_client.reload.warehouse_id).not_to eq(client.reload.warehouse_id)
     expect(GrdaWarehouse::ClientSplitHistory.exists?(split_from: client.destination_client.id)).to be_truthy
 
-    # Perform the WarehouseChangesJob again, which should take no action because the source clients were previously split
+    # Perform the WarehouseChangesJob, which should take no action because the source clients were previously split
     perform
     expect(client.reload.warehouse_id).not_to eq(other_client.reload.warehouse_id)
   end
