@@ -50,8 +50,10 @@ class Hmis::Form::SubmitFormRecordInitializer
   attr_reader :owner_class, :user
 
   def resolve_associations(input)
+    # skip viewable_by check for ReferralPosting (legacy) because sender doesn't need to have access to receiving project
+    dangerous_skip_project_viewability = owner_class.name == 'HmisExternalApis::AcHmis::ReferralPosting'
     {
-      project: find_viewable(Hmis::Hud::Project, input.project_id),
+      project: dangerous_skip_project_viewability ? Hmis::Hud::Project.find(input.project_id) : find_viewable(Hmis::Hud::Project, input.project_id),
       client: find_viewable(Hmis::Hud::Client, input.client_id),
       enrollment: find_viewable(Hmis::Hud::Enrollment, input.enrollment_id),
       organization: find_viewable(Hmis::Hud::Organization, input.organization_id),

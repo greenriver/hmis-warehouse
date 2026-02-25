@@ -28,28 +28,9 @@ class Hmis::Form::SubmitFormAuthorizer
     @form_role = definition.role.to_sym
   end
 
-  def call(input)
-    if input.record_id
-      record = find_record(input.record_id)
-      raise "User not authorized to submit form to edit #{record.class.name.demodulize}##{record.id}" unless authorized_to_edit?(record)
-    else
-      record = Hmis::Form::SubmitFormRecordInitializer.build(owner_class: klass, input: input, user: user)
-      raise "User not authorized to submit form to create #{record.class.name.demodulize}" unless authorized_to_create?(record)
-    end
-    record
-  end
-
-  private
-
-  def find_record(record_id)
-    record = klass.viewable_by(user).find_by(id: record_id)
-    record = record.owner if record.is_a?(Hmis::Hud::HmisService)
-    raise "User not authorized to view #{klass.name}##{record_id} (record not found)" unless record.present?
-
-    record
-  end
-
   def authorized_to_create?(record)
+    raise 'expected record to be a new record' unless record.new_record?
+
     case record.class.name
     when 'Hmis::Hud::Client'
       user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_create?
@@ -77,6 +58,7 @@ class Hmis::Form::SubmitFormAuthorizer
   end
 
   def authorized_to_edit?(record)
+    raise 'expected record to be an existing record' unless record.persisted?
     # raise if trying to edit form role that should only be used for new record creation. FIXME: should be configured somewhere?
     raise 'Edit not supported for NEW_CLIENT_ENROLLMENT form role' if form_role == :NEW_CLIENT_ENROLLMENT
 
