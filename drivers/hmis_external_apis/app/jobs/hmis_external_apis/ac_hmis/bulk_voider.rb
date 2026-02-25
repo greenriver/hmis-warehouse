@@ -10,6 +10,11 @@
 #
 # Usage: HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], ce_project_id: 201, dry_run: true)
 #
+# For more useful log output, set the log level to INFO rather than DEBUG, so that we can easily copy and paste the list of enrollment IDs that are processed.
+# Rails.logger.level = Logger::INFO
+# HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], ce_project_id: 201, dry_run: true)
+# Rails.logger.level = Logger::DEBUG
+#
 # destination_client_ids: a list of destination client IDs to void
 # ce_project_id: the ID of the Coordinated Entry project
 # dry_run: if true, logs the enrollments that would be processed, without taking action
