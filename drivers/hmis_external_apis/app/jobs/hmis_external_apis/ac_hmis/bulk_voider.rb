@@ -39,10 +39,8 @@ module HmisExternalApis::AcHmis
       @hud_system_user = Hmis::Hud::User.system_user(data_source_id: @data_source_id)
       @current_date = Date.current
 
-      # Find the Void Assessment and validate it has the expected link IDs
-      @void_definition = Hmis::Form::Definition.published.find_by(identifier: VOID_FORM_IDENTIFIER)
-
-      # Raise if the expected CDEDs are not found
+      # Find the Void Assessment and validate the expected CDEDs exist
+      @void_definition = Hmis::Form::Definition.published.find_by!(identifier: VOID_FORM_IDENTIFIER)
       cded_scope = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::CustomAssessment.sti_name).where(data_source_id: @data_source_id)
       @void_cded = cded_scope.find_by!(key: VOID_CDED_KEY)
       @void_reason_cded = cded_scope.find_by!(key: VOID_REASON_CDED_KEY)
@@ -97,10 +95,12 @@ module HmisExternalApis::AcHmis
           end
 
           household_enrollments.each do |e|
-            # Exit the household member
-            create_exit(e)
             # Create a void assessment only if the client was in the provided list
             create_void_assessment(e) if enrollment_ids_to_void.include?(e.id)
+
+            # Exit the household member
+            create_exit(e)
+
             Rails.logger.info e.enrollment_id + (enrollment_ids_to_void.include?(e.id) ? '' : " (household member of #{enrollment.enrollment_id})")
           end
         end
