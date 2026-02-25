@@ -13,11 +13,11 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
       # Ensure the enrollment actually overlaps with the funding period.
       # Scope funders to the same report as the enrollment scope to avoid cross-report contamination.
       funder_scope = HopwaCaper::Funder.
-        where(report_instance_id: scope.distinct.select(:report_instance_id)).
+        where(report_instance_id: scope.distinct.pluck(:report_instance_id)).
         where(code: codes).
         within_range(range)
 
-      scope.where(project_id: funder_scope.select(:project_id)).within_range(range)
+      scope.where(project_id: funder_scope.distinct.pluck(:project_id)).within_range(range)
     end
 
     def codes
