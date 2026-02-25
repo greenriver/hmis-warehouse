@@ -79,13 +79,21 @@ module HmisExternalApis::AcHmis
 
       Rails.logger.info "Processing enrollments (#{enrollments.count}):"
 
+      skipped = []
+
       Hmis::Hud::Base.transaction do
         enrollments.find_each do |enrollment|
-          # Gather all open household members for this enrollment
+          # Gather all open household enrollments associated with this enrollment
           household_enrollments = if enrollment.household_id.present?
-            enrollment.household_members.open_excluding_wip
+            enrollment.household_members.open_including_wip
           else
             [enrollment]
+          end
+
+          # If any household member has an in-progress enrollment, don't exit or void.
+          if household_enrollments.any?(&:in_progress?)
+            skipped << [enrollment.enrollment_id, enrollment.client.warehouse_id]
+            next
           end
 
           household_enrollments.each do |e|
@@ -98,6 +106,12 @@ module HmisExternalApis::AcHmis
         end
       end
 
+      if skipped.any?
+        Rails.logger.info "Skipped #{skipped.count} enrollments because they have incomplete household members:"
+        skipped.each do |enrollment_id, client_id|
+          Rails.logger.info "#{enrollment_id} (client #{client_id})"
+        end
+      end
       Rails.logger.info 'Completed processing all enrollments'
     end
 

@@ -108,6 +108,29 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
         expect(spouse_enrollment.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
         expect(child_enrollment.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
       end
+
+      context 'when there is an incomplete intake for a hhm' do
+        let!(:other_hhm) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
+        let!(:other_hhm_enrollment) { create(:hmis_hud_wip_enrollment, data_source: data_source, project: ce_project, client: other_hhm, household_id: enrollment.household_id, relationship_to_hoh: 2) }
+
+        let!(:unrelated) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
+        let!(:unrelated_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: unrelated) }
+
+        it 'does not exit or void any of the enrollments' do
+          expect do
+            perform_bulk_void([client.warehouse_id, unrelated.warehouse_id])
+          end.to change(Hmis::Hud::Exit, :count).by(1).
+            and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(1)
+
+          expect(enrollment.reload.exit).not_to be_present
+          expect(spouse_enrollment.reload.exit).not_to be_present
+          expect(child_enrollment.reload.exit).not_to be_present
+          expect(other_hhm_enrollment.reload.exit).not_to be_present
+
+          # Only the unrelated enrollment is exited
+          expect(unrelated_enrollment.reload.exit).to be_present
+        end
+      end
     end
 
     describe 'with dry_run: true' do
