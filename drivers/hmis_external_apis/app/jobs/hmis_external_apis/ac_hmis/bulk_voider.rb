@@ -65,20 +65,23 @@ module HmisExternalApis::AcHmis
         pluck(:destination_id)
       destination_ids_without_enrollment = destination_client_ids.map(&:to_s) - destination_ids_with_enrollment.map(&:to_s)
 
-      Rails.logger.info "Found #{enrollments.count} enrollments to process"
       Rails.logger.info "Destination client IDs with no enrollment to process (#{destination_ids_without_enrollment.size}): #{destination_ids_without_enrollment.join(', ')}" if destination_ids_without_enrollment.any?
 
+      return if enrollments.empty?
+
       if dry_run
-        Rails.logger.info "DRY RUN: Would have processed the following enrollments:\n#{enrollments.pluck(:enrollment_id).join("\n")}"
+        Rails.logger.info "DRY RUN: Would have processed the following #{enrollments.count} enrollments (and their household members):\n#{enrollments.pluck(:enrollment_id).join("\n")}"
         return
       end
 
-      # Enrollments we must create a void assessment for (clients in destination_client_ids)
+      # Enrollments to make a void assessment for (clients in the provided list)
       enrollment_ids_to_void = enrollments.pluck(:id).to_set
+
+      Rails.logger.info "Processing enrollments (#{enrollments.count}):"
 
       Hmis::Hud::Base.transaction do
         enrollments.find_each do |enrollment|
-          # Exit all open household members
+          # Gather all open household members for this enrollment
           household_enrollments = if enrollment.household_id.present?
             enrollment.household_members.open_excluding_wip
           else
@@ -86,8 +89,11 @@ module HmisExternalApis::AcHmis
           end
 
           household_enrollments.each do |e|
+            # Exit the household member
             create_exit(e)
+            # Create a void assessment only if the client was in the provided list
             create_void_assessment(e) if enrollment_ids_to_void.include?(e.id)
+            Rails.logger.info e.enrollment_id + (enrollment_ids_to_void.include?(e.id) ? '' : " (household member of #{enrollment.enrollment_id})")
           end
         end
       end
@@ -122,7 +128,6 @@ module HmisExternalApis::AcHmis
       raise ActiveRecord::RecordInvalid, exit_record if exit_record.invalid?
 
       exit_assessment.save!
-      Rails.logger.info "Exited enrollment #{enrollment.enrollment_id}"
     end
 
     def create_void_assessment(enrollment)
@@ -133,7 +138,7 @@ module HmisExternalApis::AcHmis
         data_source_id: enrollment.data_source_id,
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
-        created_by_hud_user: @hud_system_user, # todo @martha - this isn't working
+        created_by_hud_user: @hud_system_user,
         updated_by_hud_user: @hud_system_user,
         definition: @void_definition,
         wip: false,
@@ -154,8 +159,6 @@ module HmisExternalApis::AcHmis
         data_source_id: assessment.data_source_id,
         value_string: VOID_REASON_TEXT,
       )
-      # todo @martha - more useful logging
-      Rails.logger.info "Void assessment for enrollment #{enrollment.enrollment_id}"
     end
   end
 end
