@@ -6,236 +6,102 @@
 
 # frozen_string_literal: true
 
-# SubmitFormAuthorizer is a helper module used by the SubmitForm mutation.
-# Usage: Hmis::Form::SubmitFormAuthorizer.authorized_record(user, definition, input)
-# - finds the record if the user is trying to edit an existing record
-# - builds the record if the user is trying to create
-# - returns the authorized record if the user is authorized to submit this form for this record
-# - raises 'access denied' otherwise
+# SubmitFormAuthorizer finds or builds the record for form submission and authorizes the action.
+# - Edit path: find existing record by record_id, authorize edit
+# - Create path: build record via SubmitFormRecordInitializer, authorize create
+#
+# Usage: Hmis::Form::SubmitFormAuthorizer.authorized_record(user:, definition:, input:)
 class Hmis::Form::SubmitFormAuthorizer
-  # Enrollment-related records: authorization delegates to the enrollment policy
-  ENROLLMENT_RELATED_CLASSES = [
-    'Hmis::Hud::CurrentLivingSituation',
-    'Hmis::Hud::Assessment',
-    'Hmis::Hud::CustomCaseNote',
-    'Hmis::Hud::Event',
-  ].freeze
+  attr_reader :user, :klass, :form_role
 
-  # Project-related records: authorization delegates to the project policy
-  PROJECT_RELATED_CLASSES = [
-    'Hmis::Hud::Funder',
-    'Hmis::Hud::ProjectCoc',
-    'Hmis::Hud::Inventory',
-    'Hmis::Hud::CeParticipation',
-    'Hmis::Hud::HmisParticipation',
-  ].freeze
+  ENROLLMENT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::ENROLLMENT_RELATED_CLASSES
+  PROJECT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::PROJECT_RELATED_CLASSES
 
-  # Returns the authorized record. Raises HmisErrors::ApiError if not found or unauthorized.
+  # Returns the authorized record. Raises if not found or unauthorized.
   def self.authorized_record(user:, definition:, input:)
-    new(user: user, definition: definition, input: input).send(:authorized_record)
+    new(user: user, definition: definition).call(input)
   end
 
-  def initialize(user:, definition:, input:)
+  def initialize(user:, definition:)
     @user = user
     @klass = definition.owner_class
     @form_role = definition.role.to_sym
-    @input = input
+  end
 
+  def call(input)
     if input.record_id
-      @record = find_existing_record(input.record_id)
+      record = find_record(input.record_id)
+      raise "User not authorized to submit form to edit #{record.class.name.demodulize}##{record.id}" unless authorized_to_edit?(record)
     else
-      @creating = true
-
-      # Resolve associations if provided in input
-      @project = Hmis::Hud::Project.viewable_by(@user).find_by(id: @input.project_id) if @input.project_id.present?
-      @client = Hmis::Hud::Client.viewable_by(@user).find_by(id: @input.client_id) if @input.client_id.present?
-      @enrollment = Hmis::Hud::Enrollment.viewable_by(@user).find_by(id: @input.enrollment_id) if @input.enrollment_id.present?
-      @organization = Hmis::Hud::Organization.viewable_by(@user).find_by(id: @input.organization_id) if @input.organization_id.present?
-      @custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: @input.service_type_id) if @input.service_type_id.present?
+      record = Hmis::Form::SubmitFormRecordInitializer.build(owner_class: klass, input: input, user: user)
+      raise "User not authorized to submit form to create #{record.class.name.demodulize}" unless authorized_to_create?(record)
     end
+    record
   end
 
   private
 
-  def authorized_record
-    case @klass.name
-    when 'Hmis::Hud::Client'
-      client_record
-    when 'Hmis::Hud::Organization'
-      organization_record
-    when 'Hmis::Hud::Project'
-      project_record
-    when 'Hmis::Hud::Enrollment'
-      enrollment_record
-    when *PROJECT_RELATED_CLASSES
-      project_related_record
-    when 'Hmis::Hud::HmisService'
-      hmis_service_record
-    when *ENROLLMENT_RELATED_CLASSES
-      enrollment_related_record
-    when 'HmisExternalApis::AcHmis::ReferralRequest'
-      raise 'ReferralRequest form submission is no longer supported'
-    when 'HmisExternalApis::AcHmis::ReferralPosting'
-      referral_posting_record
-    when 'Hmis::File'
-      file_record
-    else
-      raise "No authorization configured for #{@klass.name}"
-    end
-  end
-
-  def client_record
-    if @creating
-      access_denied! unless @user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_create?
-
-      @klass.new(ds)
-    else
-      access_denied! unless @user.policy_for(@record, policy_type: :hmis_client).can_edit?
-
-      @record
-    end
-  end
-
-  def organization_record
-    if @creating
-      access_denied! unless @user.policy_for(Hmis::Hud::Organization, policy_type: :hmis_organization).can_create?
-
-      @klass.new(ds)
-    else
-      access_denied! unless @user.policy_for(@record, policy_type: :hmis_organization).can_edit?
-
-      @record
-    end
-  end
-
-  def project_record
-    if @creating
-      access_denied! unless @organization.present?
-      access_denied! unless @user.policy_for(@organization, policy_type: :hmis_organization).can_create_project?
-
-      @klass.new(
-        **ds,
-        organization_id: @organization&.organization_id,
-        project_id: @klass.generate_uuid, # Generate project ID so that related records created using nested attributes will be valid
-      )
-    else
-      access_denied! unless @user.policy_for(@record, policy_type: :hmis_project).can_edit?
-
-      @record
-    end
-  end
-
-  def enrollment_record
-    if @creating
-      access_denied! unless @project.present?
-      access_denied! unless @user.policy_for(@project, policy_type: :hmis_project).can_enroll_clients?
-
-      if @form_role == :NEW_CLIENT_ENROLLMENT
-        # New Client Enrollment form creates both an Enrollment and a Client record, so authorize both
-        access_denied! unless @user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_create?
-      end
-
-      @klass.new(project_id: @project&.project_id, project_pk: @project&.id, personal_id: @client&.personal_id, **ds)
-    else
-      access_denied! unless @user.policy_for(@record, policy_type: :hmis_enrollment).can_edit?
-
-      @record
-    end
-  end
-
-  def project_related_record
-    if @creating
-      access_denied! unless @project.present?
-      access_denied! unless @user.policy_for(@project, policy_type: :hmis_project).can_edit?
-
-      @klass.new(project_id: @project&.project_id, **ds)
-    else
-      access_denied! unless @user.policy_for(@record.project, policy_type: :hmis_project).can_edit?
-
-      @record
-    end
-  end
-
-  def hmis_service_record
-    if @creating
-      raise 'cannot create service without custom service type' unless @custom_service_type.present?
-
-      access_denied! unless @enrollment.present?
-      access_denied! unless @user.policy_for(@enrollment, policy_type: :hmis_enrollment).can_edit?
-
-      attrs = { enrollment_id: @enrollment&.enrollment_id, personal_id: @enrollment&.personal_id, **ds }
-      if @custom_service_type.hud_service?
-        Hmis::Hud::Service.new(record_type: @custom_service_type.hud_record_type, type_provided: @custom_service_type.hud_type_provided, **attrs)
-      else
-        Hmis::Hud::CustomService.new(custom_service_type: @custom_service_type, **attrs)
-      end
-    else
-      access_denied! unless @user.policy_for(@record.enrollment, policy_type: :hmis_enrollment).can_edit?
-
-      @record
-    end
-  end
-
-  def enrollment_related_record
-    if @creating
-      access_denied! unless @enrollment.present?
-      access_denied! unless @user.policy_for(@enrollment, policy_type: :hmis_enrollment).can_edit?
-
-      @klass.new(personal_id: @enrollment&.personal_id, enrollment_id: @enrollment&.enrollment_id, **ds)
-    else
-      access_denied! unless @user.policy_for(@record.enrollment, policy_type: :hmis_enrollment).can_edit?
-
-      @record
-    end
-  end
-
-  def referral_posting_record
-    if @creating
-      receiving_project = Hmis::Hud::Project.find_by(id: @input.project_id)
-      access_denied! unless @enrollment.present? && receiving_project.present?
-
-      source_project = @enrollment.project
-      access_denied! unless @user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
-
-      HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
-        enrollment: @enrollment,
-        receiving_project: receiving_project,
-        user: @user,
-      )
-    else
-      source_project = @record.referral.enrollment.project
-      access_denied! unless @user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
-
-      @record
-    end
-  end
-
-  def file_record
-    if @creating
-      access_denied! unless @client.present?
-      access_denied! unless Hmis::File.authorize_proc.call(@client, @user)
-
-      @klass.new(client_id: @client&.id, enrollment_id: @enrollment&.id)
-    else
-      access_denied! unless Hmis::File.authorize_proc.call(@record, @user)
-
-      @record
-    end
-  end
-
-  def access_denied!
-    raise HmisErrors::ApiError, 'access denied'
-  end
-
-  def ds
-    { data_source_id: @user.hmis_data_source_id }
-  end
-
-  def find_existing_record(record_id)
-    record = @klass.viewable_by(@user).find_by(id: record_id)
+  def find_record(record_id)
+    record = klass.viewable_by(user).find_by(id: record_id)
     record = record.owner if record.is_a?(Hmis::Hud::HmisService)
-    raise HmisErrors::ApiError, 'Record not found' unless record.present?
+    raise "User not authorized to view #{klass.name}##{record_id} (record not found)" unless record.present?
 
     record
+  end
+
+  def authorized_to_create?(record)
+    case record.class.name
+    when 'Hmis::Hud::Client'
+      user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_create?
+    when 'Hmis::Hud::Organization'
+      user.policy_for(Hmis::Hud::Organization, policy_type: :hmis_organization).can_create?
+    when 'Hmis::Hud::Project'
+      user.policy_for(record.organization, policy_type: :hmis_organization).can_create_project?
+    when 'Hmis::Hud::Enrollment'
+      project_policy = user.policy_for(record.project, policy_type: :hmis_project)
+      form_role == :NEW_CLIENT_ENROLLMENT ? project_policy.can_create_and_enroll_new_clients? : project_policy.can_enroll_clients?
+    when *PROJECT_RELATED_CLASSES
+      user.policy_for(record.project, policy_type: :hmis_project).can_edit?
+    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService'
+      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+    when *ENROLLMENT_RELATED_CLASSES
+      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+    when 'HmisExternalApis::AcHmis::ReferralPosting'
+      source_project = record.referral.enrollment.project
+      user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
+    when 'Hmis::File'
+      Hmis::File.authorize_proc.call(record.client, user)
+    else
+      raise "No authorization configured for #{record.class.name}"
+    end
+  end
+
+  def authorized_to_edit?(record)
+    # raise if trying to edit form role that should only be used for new record creation. FIXME: should be configured somewhere?
+    raise 'Edit not supported for NEW_CLIENT_ENROLLMENT form role' if form_role == :NEW_CLIENT_ENROLLMENT
+
+    case record.class.name
+    when 'Hmis::Hud::Client'
+      user.policy_for(record, policy_type: :hmis_client).can_edit?
+    when 'Hmis::Hud::Organization'
+      user.policy_for(record, policy_type: :hmis_organization).can_edit?
+    when 'Hmis::Hud::Project'
+      user.policy_for(record, policy_type: :hmis_project).can_edit?
+    when 'Hmis::Hud::Enrollment'
+      user.policy_for(record, policy_type: :hmis_enrollment).can_edit?
+    when *PROJECT_RELATED_CLASSES
+      user.policy_for(record.project, policy_type: :hmis_project).can_edit?
+    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService'
+      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+    when *ENROLLMENT_RELATED_CLASSES
+      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+    when 'HmisExternalApis::AcHmis::ReferralPosting'
+      source_project = record.referral.enrollment.project
+      user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
+    when 'Hmis::File'
+      Hmis::File.authorize_proc.call(record, user)
+    else
+      raise "No authorization configured for #{record.class.name}"
+    end
   end
 end

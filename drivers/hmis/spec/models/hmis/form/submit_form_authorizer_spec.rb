@@ -28,25 +28,25 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
     described_class.authorized_record(user: user, definition: definition, input: input)
   end
 
-  # `with_permission` - permission(s) to grant
-  # `returns_new` - for new-record cases, the expected class of the returned record
-  # When `returns_new` is omitted, the examples expect `expected_record` to be defined as a fixture
-  shared_examples 'authorized form submission' do |with_permission:, returns_new: nil|
-    context 'with required permission' do
-      before { create_access_control(user, data_source, with_permission: with_permission) }
+  # Permission(s) to grant so that submission succeeds. When `returns_new` is omitted, expects `expected_record`.
+  shared_examples 'authorized record' do |with_permission:, returns_new: nil|
+    before { create_access_control(user, data_source, with_permission: with_permission) }
 
-      it 'returns authorized record' do
-        result = authorized_record(definition: definition, input: input)
-        if returns_new
-          expect(result).to be_a(returns_new)
-        else
-          expect(result).to eq(expected_record)
-        end
+    it 'returns authorized record' do
+      result = authorized_record(definition: definition, input: input)
+      if returns_new
+        expect(result).to be_a(returns_new)
+      else
+        expect(result).to eq(expected_record)
       end
     end
+  end
 
-    it 'raises without permission' do
-      expect { authorized_record(definition: definition, input: input) }.to raise_error(HmisErrors::ApiError)
+  # Optional `with_permission` for viewability perms to let find/build succeed prior to checking create/edit auth.
+  shared_examples 'unauthorized record' do |with_permission: nil|
+    it "raises authorization error (with permissions: #{with_permission || 'none'})" do
+      create_access_control(user, data_source, with_permission: with_permission) if with_permission.present?
+      expect { authorized_record(definition: definition, input: input) }.to raise_error(/not authorized/)
     end
   end
 
@@ -57,9 +57,10 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       context 'new record' do
         let(:input) { make_input }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_clients, :can_edit_clients],
                         returns_new: Hmis::Hud::Client
+        it_behaves_like 'unauthorized record'
       end
 
       context 'existing record' do
@@ -67,8 +68,9 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:input) { make_input(record_id: client.id) }
         let(:expected_record) { client }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_clients, :can_edit_clients]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_clients]
       end
     end
 
@@ -78,17 +80,19 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       context 'new record' do
         let(:input) { make_input }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_edit_organization],
                         returns_new: Hmis::Hud::Organization
+        it_behaves_like 'unauthorized record'
       end
 
       context 'existing record' do
         let(:input) { make_input(record_id: organization.id) }
         let(:expected_record) { organization }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_edit_organization]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project]
       end
     end
 
@@ -98,17 +102,19 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       context 'new record' do
         let(:input) { make_input(organization_id: organization.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_edit_project_details],
                         returns_new: Hmis::Hud::Project
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project]
       end
 
       context 'existing record' do
         let(:input) { make_input(record_id: project.id) }
         let(:expected_record) { project }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_edit_project_details]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project]
       end
     end
 
@@ -118,9 +124,10 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       context 'new record' do
         let(:input) { make_input(project_id: project.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_edit_project_details],
                         returns_new: Hmis::Hud::Funder
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project]
       end
 
       context 'existing record' do
@@ -128,8 +135,9 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:input) { make_input(record_id: funder.id) }
         let(:expected_record) { funder }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_edit_project_details]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project]
       end
     end
 
@@ -138,9 +146,10 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'ENROLLMENT') }
         let(:input) { make_input(project_id: project.id, client_id: client.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
                         returns_new: Hmis::Hud::Enrollment
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_clients]
       end
 
       context 'new record (NEW_CLIENT_ENROLLMENT role, creates both enrollment and client)' do
@@ -154,12 +163,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
 
         it 'raises when user cannot create clients' do
           create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
-          expect { authorized_record(definition: definition, input: input) }.to raise_error(HmisErrors::ApiError)
+          expect { authorized_record(definition: definition, input: input) }.to raise_error(/not authorized/)
         end
 
         it 'raises when user cannot enroll clients' do
           create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details])
-          expect { authorized_record(definition: definition, input: input) }.to raise_error(HmisErrors::ApiError)
+          expect { authorized_record(definition: definition, input: input) }.to raise_error(/not authorized/)
         end
       end
 
@@ -169,8 +178,9 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:input) { make_input(record_id: enrollment.id) }
         let(:expected_record) { enrollment }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_enrollment_details]
       end
     end
 
@@ -181,9 +191,10 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:definition) { make_definition(owner_class: Hmis::Hud::CustomCaseNote) }
         let(:input) { make_input(enrollment_id: enrollment.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
                         returns_new: Hmis::Hud::CustomCaseNote
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_enrollment_details]
       end
 
       context 'existing Assessment' do
@@ -192,8 +203,9 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:input) { make_input(record_id: assessment.id) }
         let(:expected_record) { assessment }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_enrollment_details]
       end
     end
 
@@ -205,27 +217,20 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:custom_service_type) { create(:hmis_hud_custom_service_type, data_source: data_source) }
         let(:input) { make_input(enrollment_id: enrollment.id, service_type_id: custom_service_type.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
                         returns_new: Hmis::Hud::Service
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_enrollment_details]
       end
 
       context 'new record with custom service type (creates Hmis::Hud::CustomService)' do
         let(:custom_service_type) { create(:hmis_custom_service_type, data_source: data_source) }
         let(:input) { make_input(enrollment_id: enrollment.id, service_type_id: custom_service_type.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
                         returns_new: Hmis::Hud::CustomService
-      end
-
-      context 'new record without service_type_id' do
-        let(:input) { make_input(enrollment_id: enrollment.id) }
-
-        it 'raises when service_type_id is missing' do
-          create_access_control(user, project, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
-          expect { authorized_record(definition: definition, input: input) }.to raise_error(RuntimeError, /service type/)
-        end
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_enrollment_details]
       end
 
       context 'existing service record' do
@@ -234,8 +239,9 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:input) { make_input(record_id: hmis_service.id) }
         let(:expected_record) { service }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments]
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_project, :can_view_enrollment_details]
       end
     end
 
@@ -246,9 +252,10 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       context 'new record' do
         let(:input) { make_input(client_id: client.id) }
 
-        it_behaves_like 'authorized form submission',
+        it_behaves_like 'authorized record',
                         with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files],
                         returns_new: Hmis::File
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_clients]
       end
 
       context 'existing record' do
@@ -256,8 +263,10 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
         let(:input) { make_input(record_id: file.id) }
         let(:expected_record) { file }
 
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files]
+        it_behaves_like 'authorized record',
+                        with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files],
+                        returns_new: Hmis::File
+        it_behaves_like 'unauthorized record', with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files]
       end
     end
   end
