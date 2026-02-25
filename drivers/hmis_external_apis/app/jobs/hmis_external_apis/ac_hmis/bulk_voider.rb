@@ -21,7 +21,7 @@ module HmisExternalApis::AcHmis
 
     def perform(destination_client_ids:, ce_project_id:, dry_run:)
       # Expect the given project ID to be open on the current date, and to be a Coordinated Entry project (14)
-      project = Hmis::Hud::Project.open_on_date.where(project_type: 14).find(ce_project_id)
+      project = Hmis::Hud::Project.hmis.open_on_date.where(project_type: 14).find(ce_project_id)
       @data_source_id = project.data_source_id
       @hud_system_user = Hmis::Hud::User.system_user(data_source_id: @data_source_id)
       @current_date = Date.current
@@ -29,12 +29,12 @@ module HmisExternalApis::AcHmis
       # Find the Void Assessment and validate it has the expected link IDs
       void_definition = Hmis::Form::Definition.published.find_by(identifier: VOID_FORM_IDENTIFIER)
 
-      # Validate the existence of the CDEDs we want to create
+      # Raise if the expected CDEDs are not found
       cded_scope = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::CustomAssessment.sti_name).where(data_source_id: @data_source_id)
       @void_cded = cded_scope.find_by(key: 'void_assessment_void_all_referrals')
       @void_reason_cded = cded_scope.find_by(key: 'void_assessment_void_reason')
 
-      puts "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{ce_project_id}"
+      Rails.logger.info "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{ce_project_id}"
 
       source_client_ids = Hmis::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
 
@@ -45,21 +45,21 @@ module HmisExternalApis::AcHmis
         joins(:client).
         where(client: { id: source_client_ids })
 
-      puts "Found #{enrollments.count} enrollments to process"
+      Rails.logger.info "Found #{enrollments.count} enrollments to process"
 
       if dry_run
-        puts "DRY RUN: Would have processed the following enrollments:\n#{enrollments.pluck(:enrollment_id).join("\n")}"
+        Rails.logger.info "DRY RUN: Would have processed the following enrollments:\n#{enrollments.pluck(:enrollment_id).join("\n")}"
         return
       end
 
-      puts 'Processing enrollments:'
+      Rails.logger.info 'Processing enrollments:'
 
       # Process each enrollment to void the client
       enrollments.find_each do |enrollment|
         process_enrollment(enrollment, void_definition)
       end
 
-      puts 'Completed processing all enrollments'
+      Rails.logger.info 'Completed processing all enrollments'
     end
 
     private
@@ -119,7 +119,7 @@ module HmisExternalApis::AcHmis
 
         exit_assessment.save!
 
-        puts enrollment.enrollment_id
+        Rails.logger.info enrollment.enrollment_id
       end
     end
   end
