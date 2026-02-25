@@ -54,11 +54,17 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       expect(enrollment.exit.exit_date).to eq(Date.current)
       expect(enrollment.exit.destination).to eq(::HudHelper.util.destination_no_exit_interview_completed)
 
+      exit_assessment = Hmis::Hud::CustomAssessment.where(enrollment_id: enrollment.enrollment_id, data_collection_stage: 3).sole
+      expect(exit_assessment.created_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
+      expect(exit_assessment.updated_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
+
       void_assessment = Hmis::Hud::CustomAssessment.where(enrollment_id: enrollment.enrollment_id, data_collection_stage: 99).sole
       expect(void_assessment.custom_data_elements.count).to eq(2)
       expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_cded).value_boolean).to eq(true)
       expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_reason_cded).value_string).
         to include('CE Waitlist Management Process')
+      expect(void_assessment.created_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
+      expect(void_assessment.updated_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
     end
 
     context 'when client is already exited' do

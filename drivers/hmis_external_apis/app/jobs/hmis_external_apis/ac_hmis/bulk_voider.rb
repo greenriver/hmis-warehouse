@@ -115,6 +115,8 @@ module HmisExternalApis::AcHmis
         data_source_id: enrollment.data_source_id,
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
+        created_by_hud_user: @hud_system_user,
+        updated_by_hud_user: @hud_system_user,
       )
       exit_assessment.build_form_processor(exit: exit_record)
       raise ActiveRecord::RecordInvalid, exit_record if exit_record.invalid?
