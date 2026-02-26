@@ -57,14 +57,7 @@ class Hmis::AuthPolicies::UserContext
   # because the organization policy methods are only ever checked against one organization at a time.
   # We can update this internally without changing the HmisOrganizationPolicy's interface if that changes.
   def organization_permissions(organization)
-    unless organization.data_source_id == user.hmis_data_source_id
-      Sentry.capture_message(
-        "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
-        "attempted to access Organization #{organization_id} (DS: #{organization.data_source_id})",
-      )
-
-      return EMPTY_SET
-    end
+    return EMPTY_SET unless organization_belongs_to_current_data_source?(organization)
 
     access_group_ids = Hmis::GroupViewableEntity.includes_organization(organization).pluck(:collection_id).to_set
     permission_loader.for_access_group_ids(access_group_ids)
@@ -140,6 +133,17 @@ class Hmis::AuthPolicies::UserContext
       "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
       "attempted to access Project #{project_id} (DS: #{project_data_source_id})",
     )
+    false
+  end
+
+  def organization_belongs_to_current_data_source?(organization)
+    return true if organization.data_source_id == user.hmis_data_source_id
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Organization #{organization.id} (DS: #{organization.data_source_id})",
+    )
+
     false
   end
 

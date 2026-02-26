@@ -19,245 +19,317 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
     instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role)
   end
 
-  def make_input(**attrs)
-    defaults = { record_id: nil, project_id: nil, client_id: nil, enrollment_id: nil, organization_id: nil, service_type_id: nil }
-    OpenStruct.new(defaults.merge(attrs))
-  end
+  describe '#authorized_to_create?' do
+    subject(:authorizer) { described_class.new(user: user, definition: definition) }
 
-  def authorized_record(definition:, input:)
-    described_class.authorized_record(user: user, definition: definition, input: input)
-  end
-
-  # `with_permission` - permission(s) to grant
-  # `returns_new` - for new-record cases, the expected class of the returned record
-  # When `returns_new` is omitted, the examples expect `expected_record` to be defined as a fixture
-  shared_examples 'authorized form submission' do |with_permission:, returns_new: nil|
-    context 'with required permission' do
-      before { create_access_control(user, data_source, with_permission: with_permission) }
-
-      it 'returns authorized record' do
-        result = authorized_record(definition: definition, input: input)
-        if returns_new
-          expect(result).to be_a(returns_new)
-        else
-          expect(result).to eq(expected_record)
-        end
-      end
-    end
-
-    it 'raises without permission' do
-      expect { authorized_record(definition: definition, input: input) }.to raise_error(HmisErrors::ApiError)
-    end
-  end
-
-  describe '.authorized_record' do
     context 'Client' do
       let(:definition) { make_definition(owner_class: Hmis::Hud::Client) }
+      let(:record) { Hmis::Hud::Client.new(data_source: data_source) }
 
-      context 'new record' do
-        let(:input) { make_input }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_clients, :can_edit_clients],
-                        returns_new: Hmis::Hud::Client
+      it 'returns true when user can create clients' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients, :can_edit_clients])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'existing record' do
-        let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
-        let(:input) { make_input(record_id: client.id) }
-        let(:expected_record) { client }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_clients, :can_edit_clients]
+      it 'returns false when user cannot create clients' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients])
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
     context 'Organization' do
       let(:definition) { make_definition(owner_class: Hmis::Hud::Organization) }
+      let(:record) { Hmis::Hud::Organization.new(data_source: data_source) }
 
-      context 'new record' do
-        let(:input) { make_input }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_edit_organization],
-                        returns_new: Hmis::Hud::Organization
+      it 'returns true when user can create organizations' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_organization])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'existing record' do
-        let(:input) { make_input(record_id: organization.id) }
-        let(:expected_record) { organization }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_edit_organization]
+      it 'returns false when user cannot create organizations' do
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
     context 'Project' do
       let(:definition) { make_definition(owner_class: Hmis::Hud::Project) }
+      let(:record) { Hmis::Hud::Project.new(organization: organization, data_source: data_source) }
 
-      context 'new record' do
-        let(:input) { make_input(organization_id: organization.id) }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_edit_project_details],
-                        returns_new: Hmis::Hud::Project
+      it 'returns true when user can create projects' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_project_details])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'existing record' do
-        let(:input) { make_input(record_id: project.id) }
-        let(:expected_record) { project }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_edit_project_details]
+      it 'returns false when user cannot create projects' do
+        create_access_control(user, data_source, with_permission: [:can_view_project])
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
-    context 'project-related records (Funder, Inventory, etc.)' do
+    context 'project-related records (Funder)' do
       let(:definition) { make_definition(owner_class: Hmis::Hud::Funder) }
+      let(:record) { Hmis::Hud::Funder.new(project: project, data_source: data_source) }
 
-      context 'new record' do
-        let(:input) { make_input(project_id: project.id) }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_edit_project_details],
-                        returns_new: Hmis::Hud::Funder
+      it 'returns true when user can edit project' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_project_details])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'existing record' do
-        let!(:funder) { create(:hmis_hud_funder, project: project, data_source: data_source) }
-        let(:input) { make_input(record_id: funder.id) }
-        let(:expected_record) { funder }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_edit_project_details]
+      it 'returns false when user cannot edit project' do
+        create_access_control(user, data_source, with_permission: [:can_view_project])
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
-    context 'Enrollment' do
-      context 'new record (ENROLLMENT form role)' do
-        let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'ENROLLMENT') }
-        let(:input) { make_input(project_id: project.id, client_id: client.id) }
+    context 'Enrollment (ENROLLMENT form role)' do
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'ENROLLMENT') }
+      let(:record) { Hmis::Hud::Enrollment.new(project: project, client: client, data_source: data_source) }
 
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
-                        returns_new: Hmis::Hud::Enrollment
+      it 'returns true when user can enroll clients' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'new record (NEW_CLIENT_ENROLLMENT role, creates both enrollment and client)' do
-        let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'NEW_CLIENT_ENROLLMENT') }
-        let(:input) { make_input(project_id: project.id) }
+      it 'returns false when user cannot enroll clients' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_clients])
+        expect(authorizer.authorized_to_create?(record)).to be false
+      end
+    end
 
-        it 'returns new enrollment when user can enroll and create clients' do
-          create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details, :can_edit_enrollments])
-          expect(authorized_record(definition: definition, input: input)).to be_a(Hmis::Hud::Enrollment)
-        end
+    context 'Enrollment (NEW_CLIENT_ENROLLMENT form role)' do
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'NEW_CLIENT_ENROLLMENT') }
+      let(:record) { Hmis::Hud::Enrollment.new(project: project, client: client, data_source: data_source) }
 
-        it 'raises when user cannot create clients' do
+      it 'returns true when user can create and enroll new clients' do
+        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_create?(record)).to be true
+      end
+
+      it 'returns false when user cannot create clients' do
+        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_create?(record)).to be false
+      end
+
+      context 'when user can create clients in a different project, but not this one' do
+        let(:p2) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+        before(:each) do
           create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
-          expect { authorized_record(definition: definition, input: input) }.to raise_error(HmisErrors::ApiError)
+          create_access_control(user, p2, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients])
         end
 
-        it 'raises when user cannot enroll clients' do
-          create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details])
-          expect { authorized_record(definition: definition, input: input) }.to raise_error(HmisErrors::ApiError)
+        it 'still returns false' do
+          expect(authorizer.authorized_to_create?(record)).to be false
         end
       end
 
-      context 'existing record' do
-        let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
-        let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'ENROLLMENT') }
-        let(:input) { make_input(record_id: enrollment.id) }
-        let(:expected_record) { enrollment }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments]
+      it 'returns false when user cannot enroll clients' do
+        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
-    context 'enrollment-related records (CaseNote, Event, etc.)' do
+    context 'enrollment-related records (CustomCaseNote)' do
       let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::CustomCaseNote) }
+      let(:record) { Hmis::Hud::CustomCaseNote.new(enrollment: enrollment, data_source: data_source) }
 
-      context 'new CustomCaseNote' do
-        let(:definition) { make_definition(owner_class: Hmis::Hud::CustomCaseNote) }
-        let(:input) { make_input(enrollment_id: enrollment.id) }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
-                        returns_new: Hmis::Hud::CustomCaseNote
+      it 'returns true when user can edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'existing Assessment' do
-        let!(:assessment) { create(:hmis_hud_assessment, client: client, enrollment: enrollment, data_source: data_source) }
-        let(:definition) { make_definition(owner_class: Hmis::Hud::Assessment) }
-        let(:input) { make_input(record_id: assessment.id) }
-        let(:expected_record) { assessment }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments]
+      it 'returns false when user cannot edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
-    context 'HmisService' do
+    context 'HmisService (Hud::Service)' do
       let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
       let(:definition) { make_definition(owner_class: Hmis::Hud::HmisService) }
+      let(:record) { Hmis::Hud::Service.new(enrollment: enrollment, client: client, data_source: data_source) }
 
-      context 'new record with HUD service type (creates Hmis::Hud::Service)' do
-        let(:custom_service_type) { create(:hmis_hud_custom_service_type, data_source: data_source) }
-        let(:input) { make_input(enrollment_id: enrollment.id, service_type_id: custom_service_type.id) }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
-                        returns_new: Hmis::Hud::Service
+      it 'returns true when user can edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'new record with custom service type (creates Hmis::Hud::CustomService)' do
-        let(:custom_service_type) { create(:hmis_custom_service_type, data_source: data_source) }
-        let(:input) { make_input(enrollment_id: enrollment.id, service_type_id: custom_service_type.id) }
+      it 'returns false when user cannot edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_create?(record)).to be false
+      end
+    end
 
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
-                        returns_new: Hmis::Hud::CustomService
+    context 'HmisService (Hud::CustomService)' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::HmisService) }
+      let(:record) { Hmis::Hud::CustomService.new(enrollment: enrollment, client: client, data_source: data_source) }
+
+      it 'returns true when user can edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'new record without service_type_id' do
-        let(:input) { make_input(enrollment_id: enrollment.id) }
-
-        it 'raises when service_type_id is missing' do
-          create_access_control(user, project, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
-          expect { authorized_record(definition: definition, input: input) }.to raise_error(RuntimeError, /service type/)
-        end
-      end
-
-      context 'existing service record' do
-        let!(:service) { create(:hmis_hud_service, enrollment: enrollment, client: client, data_source: data_source) }
-        let(:hmis_service) { Hmis::Hud::HmisService.find_by(owner: service) }
-        let(:input) { make_input(record_id: hmis_service.id) }
-        let(:expected_record) { service }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments]
+      it 'returns false when user cannot edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
 
     context 'Hmis::File' do
-      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
       let(:definition) { make_definition(owner_class: Hmis::File) }
+      let(:record) { Hmis::File.new(client: client) }
 
-      context 'new record' do
-        let(:input) { make_input(client_id: client.id) }
-
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files],
-                        returns_new: Hmis::File
+      it 'returns true when user can manage client files' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files])
+        expect(authorizer.authorized_to_create?(record)).to be true
       end
 
-      context 'existing record' do
-        let!(:file) { create(:file, :skip_validate, client: client, user: user) }
-        let(:input) { make_input(record_id: file.id) }
-        let(:expected_record) { file }
+      it 'returns false when user cannot manage client files' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_clients])
+        expect(authorizer.authorized_to_create?(record)).to be false
+      end
+    end
+  end
 
-        it_behaves_like 'authorized form submission',
-                        with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files]
+  describe '#authorized_to_edit?' do
+    subject(:authorizer) { described_class.new(user: user, definition: definition) }
+
+    context 'Client' do
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Client) }
+      let(:record) { client }
+
+      it 'returns true when user can edit clients' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients, :can_edit_clients])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit clients' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'Organization' do
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Organization) }
+      let(:record) { organization }
+
+      it 'returns true when user can edit organization' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_organization])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit organization' do
+        create_access_control(user, data_source, with_permission: [:can_view_project])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'Project' do
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Project) }
+      let(:record) { project }
+
+      it 'returns true when user can edit project' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_project_details])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit project' do
+        create_access_control(user, data_source, with_permission: [:can_view_project])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'project-related records (Funder)' do
+      let!(:funder) { create(:hmis_hud_funder, project: project, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Funder) }
+      let(:record) { funder }
+
+      it 'returns true when user can edit project' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_edit_project_details])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit project' do
+        create_access_control(user, data_source, with_permission: [:can_view_project])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'ENROLLMENT') }
+      let(:record) { enrollment }
+
+      it 'returns true when user can edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'Enrollment with NEW_CLIENT_ENROLLMENT form role' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'NEW_CLIENT_ENROLLMENT') }
+      let(:record) { enrollment }
+
+      it 'raises because edit is not supported for this form role' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect { authorizer.authorized_to_edit?(record) }.to raise_error(/Edit not supported for NEW_CLIENT_ENROLLMENT/)
+      end
+    end
+
+    context 'enrollment-related records (Assessment)' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
+      let!(:assessment) { create(:hmis_hud_assessment, client: client, enrollment: enrollment, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Assessment) }
+      let(:record) { assessment }
+
+      it 'returns true when user can edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'HmisService (existing service)' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
+      let!(:service) { create(:hmis_hud_service, enrollment: enrollment, client: client, data_source: data_source) }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::HmisService) }
+      let(:record) { service }
+
+      it 'returns true when user can edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot edit enrollments' do
+        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        expect(authorizer.authorized_to_edit?(record)).to be false
+      end
+    end
+
+    context 'Hmis::File' do
+      let!(:file) { create(:file, :skip_validate, client: client, user: user) }
+      let(:definition) { make_definition(owner_class: Hmis::File) }
+      let(:record) { file }
+
+      it 'returns true when user can manage client files' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files])
+        expect(authorizer.authorized_to_edit?(record)).to be true
+      end
+
+      it 'returns false when user cannot manage client files' do
+        create_access_control(user, data_source, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files])
+        expect(authorizer.authorized_to_edit?(record)).to be false
       end
     end
   end
