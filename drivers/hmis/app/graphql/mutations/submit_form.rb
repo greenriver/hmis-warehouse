@@ -23,9 +23,6 @@ module Mutations
 
     protected
 
-    EDIT = 'edit'
-    CREATE = 'create'
-
     def _resolve(input:, record_lock_version: nil)
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
@@ -33,9 +30,9 @@ module Mutations
       raise HmisErrors::ApiError, "FormDefinition #{definition.id} status #{definition.status} is invalid" unless definition.valid_status_for_submit?
       raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless definition.owner_class.present?
 
-      action = input.record_id.present? ? EDIT : CREATE
+      action = input.record_id.present? ? Hmis::Form::Definition::EDIT : Hmis::Form::Definition::CREATE
 
-      if action == EDIT
+      if action == Hmis::Form::Definition::EDIT
         record = find_record(owner_class: definition.owner_class, record_id: input.record_id, record_lock_version: record_lock_version)
       else
         record = build_record(owner_class: definition.owner_class, input: input)
@@ -137,9 +134,9 @@ module Mutations
     def authorized_to_submit?(definition:, record:, action:)
       authorizer = Hmis::Form::SubmitFormAuthorizer.new(user: current_user, definition: definition)
       case action
-      when EDIT
+      when Hmis::Form::Definition::EDIT
         authorizer.authorized_to_edit?(record)
-      when CREATE
+      when Hmis::Form::Definition::CREATE
         authorizer.authorized_to_create?(record)
       else
         raise "Invalid action: #{action}"

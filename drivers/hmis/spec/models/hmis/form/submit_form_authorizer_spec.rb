@@ -15,8 +15,8 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
   let(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
 
-  def make_definition(owner_class:, role: 'FORM')
-    instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role)
+  def make_definition(owner_class:, role: 'FORM', allowed_form_record_actions: [Hmis::Form::Definition::CREATE, Hmis::Form::Definition::EDIT])
+    instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role, allowed_form_record_actions: allowed_form_record_actions)
   end
 
   describe '#authorized_to_create?' do
@@ -262,12 +262,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
 
     context 'Enrollment with NEW_CLIENT_ENROLLMENT form role' do
       let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
-      let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'NEW_CLIENT_ENROLLMENT') }
+      let(:definition) { make_definition(owner_class: Hmis::Hud::Enrollment, role: 'NEW_CLIENT_ENROLLMENT', allowed_form_record_actions: [Hmis::Form::Definition::CREATE]) }
       let(:record) { enrollment }
 
       it 'raises because edit is not supported for this form role' do
         create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
-        expect { authorizer.authorized_to_edit?(record) }.to raise_error(/Edit not supported for NEW_CLIENT_ENROLLMENT/)
+        expect { authorizer.authorized_to_edit?(record) }.to raise_error(/form role NEW_CLIENT_ENROLLMENT cannot be used to edit existing records/)
       end
     end
 

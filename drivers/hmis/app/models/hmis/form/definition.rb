@@ -120,6 +120,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
 
+  EDIT = 'edit'
+  CREATE = 'create'
+  FORM_RECORD_ACTIONS = [EDIT, CREATE].freeze
+
   ENROLLMENT_CONFIG = {
     owner_class: 'Hmis::Hud::Enrollment',
     permission: :can_edit_enrollments,
@@ -206,6 +210,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     NEW_CLIENT_ENROLLMENT: {
       **ENROLLMENT_CONFIG,
       permission: [:can_edit_clients, :can_edit_enrollments],
+      allowed_form_record_actions: [CREATE],
     },
     CLIENT_DETAIL: {
       owner_class: 'Hmis::Hud::Client',
@@ -445,6 +450,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def owner_class
     self.class.owner_class_for_role(role)
+  end
+
+  def allowed_form_record_actions
+    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    if FORM_ROLE_CONFIG[role.to_sym][:allowed_form_record_actions].present?
+      Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:allowed_form_record_actions])
+    else
+      FORM_RECORD_ACTIONS # If no actions are specified on the form config, both edit and create are allowed
+    end
   end
 
   def record_editing_permissions
