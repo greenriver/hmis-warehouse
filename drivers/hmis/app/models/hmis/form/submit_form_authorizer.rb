@@ -36,7 +36,7 @@ class Hmis::Form::SubmitFormAuthorizer
       user.policy_for(record.organization, policy_type: :hmis_organization).can_create_project?
     when 'Hmis::Hud::Enrollment'
       project_policy = user.policy_for(record.project, policy_type: :hmis_project)
-      form_role == :NEW_CLIENT_ENROLLMENT ? project_policy.can_create_and_enroll_new_clients? : project_policy.can_enroll_clients?
+      form_role == :NEW_CLIENT_ENROLLMENT ? project_policy.can_create_and_enroll_new_clients? : project_policy.can_create_enrollments?
     when *PROJECT_RELATED_CLASSES
       user.policy_for(record.project, policy_type: :hmis_project).can_edit?
     when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService', *ENROLLMENT_RELATED_CLASSES

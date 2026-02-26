@@ -95,12 +95,12 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
     end
   end
 
-  describe '#can_enroll_clients?' do
+  describe '#can_create_enrollments?' do
     context 'with can_edit_enrollments permission' do
       let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
 
       it 'returns true' do
-        expect(policy.can_enroll_clients?).to be true
+        expect(policy.can_create_enrollments?).to be true
       end
     end
 
@@ -109,7 +109,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
       let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
 
       it 'returns false' do
-        expect(policy.can_enroll_clients?).to be false
+        expect(policy.can_create_enrollments?).to be false
       end
     end
   end
