@@ -85,7 +85,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before { remove_permissions(access_control, :can_edit_clients) }
 
       it 'returns access denied' do
-        expect_access_denied post_graphql(input: { input: input }) { mutation }
+        expect_gql_error post_graphql(input: { input: input }) { mutation }, message: /not authorized/
       end
     end
   end
