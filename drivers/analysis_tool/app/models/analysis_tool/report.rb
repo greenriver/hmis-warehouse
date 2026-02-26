@@ -14,6 +14,7 @@ module AnalysisTool
     include ArelHelper
     include ::KnownCategories::Age
     include ::KnownCategories::Gender
+    include ::KnownCategories::Sex
     include ::KnownCategories::HouseholdType
     include ::KnownCategories::Race
     include ::KnownCategories::VeteranStatus
@@ -199,6 +200,7 @@ module AnalysisTool
       @available_breakdowns ||= {
         age: { title: 'Age', method: :age_calculations, calculation_column: standard_age_calculation },
         gender: { title: 'Gender', method: :gender_calculations, calculation_column: standard_gender_calculation },
+        sex: { title: 'Sex', method: :sex_calculations, calculation_column: standard_sex_calculation },
         household: { title: 'Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
         veteran: { title: 'Veteran Status', method: :veteran_status_calculations, calculation_column: standard_veteran_status_calculation },
         race: { title: 'Race', method: :race_calculations, calculation_column: standard_race_calculation },

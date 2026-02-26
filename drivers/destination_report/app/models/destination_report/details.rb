@@ -118,23 +118,13 @@ module
         HudHelper.util.project_type(column)
       when 'CoC'
         HudHelper.util.coc_name(column)
-      when 'Woman', 'Man', 'Non-Binary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
-        HudHelper.util.no_yes_reasons_for_missing_data(column)
+      when 'Sex'
+        HudHelper.util.sex(column)
       when *HudHelper.util.races.values
         HudHelper.util.no_yes_missing(column)
       else
         column
       end
-    end
-
-    private def genders
-      @genders ||= HudHelper.util.gender_field_name_label.map do |col, label|
-        label = 'Unknown Gender' if col == :GenderNone
-        [
-          c_t[col],
-          label,
-        ]
-      end.to_h
     end
 
     def client_headers
@@ -144,7 +134,8 @@ module
         'First Name',
         'Last Name',
         'DOB',
-      ] + genders.values + HudHelper.util.races.values
+        'Sex',
+      ] + HudHelper.util.races.values
     end
 
     def client_columns
@@ -154,7 +145,8 @@ module
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
-      ] + genders.keys + HudHelper.util.races.keys.map { |k| c_t[k.to_sym] }
+        c_t[:Sex],
+      ] + HudHelper.util.races.keys.map { |k| c_t[k.to_sym] }
     end
   end
 end

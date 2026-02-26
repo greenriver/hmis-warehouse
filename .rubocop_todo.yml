@@ -1004,7 +1004,6 @@ Style/Alias:
     - 'drivers/built_for_zero_report/app/models/built_for_zero_report/youth.rb'
     - 'drivers/cas_ce_data/app/models/cas_ce_data/synthetic/assessment.rb'
     - 'drivers/hmis/app/graphql/types/hmis_schema/external_identifier.rb'
-    - 'drivers/hmis/app/graphql/types/hmis_schema/household_client.rb'
     - 'drivers/hmis/lib/hmis_errors/errors.rb'
     - 'lib/omni_auth/strategies/custom_okta.rb'
 

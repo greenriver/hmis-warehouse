@@ -8,6 +8,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/hud-pit-report.md
 # PIT Notes
 #   CoCs should report on people based on where they are sleeping on the night of the count, as opposed to the program they are enrolled in.
 #    RRH + PH (don't count)
@@ -116,6 +117,7 @@ module HudPit::Generators::Pit::Fy2025
             member_age = GrdaWarehouse::Hud::Client.age(date: pit_date, dob: member['dob'])
             next unless member_age
 
+            # Record max age for the household to determine if it's a youth household
             hh_max_age = member_age if member_age > hh_max_age
             hh_has_minor_children = true if member_relationship_to_hoh == 2 && member_age < 18
             hh_max_age_of_parents = member_age if member_relationship_to_hoh.in?([1, 3]) && member_age > hh_max_age_of_parents
