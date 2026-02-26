@@ -80,21 +80,14 @@ module HmisExternalApis::AcHmis
       skipped = []
 
       Hmis::Hud::Base.transaction do
-        enrollments.find_each do |enrollment|
-          # Gather all open household enrollments associated with this enrollment
-          household_enrollments = if enrollment.household_id.present?
-            enrollment.household_members.open_including_wip
-          else
-            [enrollment]
-          end
-
-          # If any household member has an in-progress enrollment, don't exit or void.
-          if household_enrollments.any?(&:in_progress?)
+        enrollments.preload(household: :enrollments).each do |enrollment|
+          # Can't auto-exit incomplete members. Skip entirely and log that we skipped
+          if enrollment.household.any_wip?
             skipped << [enrollment.enrollment_id, enrollment.client.warehouse_id]
             next
           end
 
-          household_enrollments.each do |e|
+          enrollment.household.enrollments.open_excluding_wip.each do |e|
             # Create a void assessment only if the client was in the provided list
             create_void_assessment(e) if enrollment_ids_to_void.include?(e.id)
 
