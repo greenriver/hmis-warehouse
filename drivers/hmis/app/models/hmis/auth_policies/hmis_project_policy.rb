@@ -57,9 +57,9 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_edit_enrollments)
     end
 
-    # FIXME: maybe? revisit in separate comment. authorizes "new client enrollment" form submission
+    # Whether the user can create a new client and enroll them in the project. Authorizes "new client enrollment" form submission
     def can_create_and_enroll_new_clients?
-      project_permissions.include?(:can_edit_enrollments) && project_permissions.include?(:can_edit_clients)
+      project_permissions.include?(:can_edit_clients) && can_enroll_clients?
     end
 
     protected

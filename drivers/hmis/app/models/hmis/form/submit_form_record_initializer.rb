@@ -39,7 +39,7 @@ class Hmis::Form::SubmitFormRecordInitializer
   end
 
   def build(input)
-    raise 'shouldn\'t be called for input with record_id' if input.record_id.present?
+    raise "shouldn't be called for input with record_id" if input.record_id.present?
 
     associations = resolve_associations(input)
     build_record(associations)
@@ -111,7 +111,7 @@ class Hmis::Form::SubmitFormRecordInitializer
 
   def build_project_record(associations)
     organization = associations[:organization]
-    raise 'cannot create project-related record without organization' unless organization
+    raise 'cannot create project without organization' unless organization
 
     Hmis::Hud::Project.new(
       **ds,
@@ -135,7 +135,7 @@ class Hmis::Form::SubmitFormRecordInitializer
 
   def build_project_related_record(associations)
     project = associations[:project]
-    raise 'cannot create project related record without project' unless project
+    raise 'cannot create project-related record without project' unless project
 
     owner_class.new(project_id: project.project_id, **ds)
   end
@@ -160,7 +160,7 @@ class Hmis::Form::SubmitFormRecordInitializer
 
   def build_enrollment_related_record(associations)
     enrollment = associations[:enrollment]
-    raise 'cannot create enrollment without enrollment' unless enrollment
+    raise 'cannot create enrollment related record without enrollment' unless enrollment
 
     owner_class.new(
       personal_id: enrollment.personal_id,

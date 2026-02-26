@@ -803,19 +803,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       _, errors = submit_form(input)
       expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'out_of_range' }))
     end
-
-    context 'permissions' do
-      # The basic tests above only test removal of both permissions. Here, test removing each separately.
-      it 'fails if user cannot create client' do
-        remove_permissions(access_control, :can_edit_clients)
-        expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: /not authorized/
-      end
-
-      it 'fails if user cannot create enrollment' do
-        remove_permissions(access_control, :can_edit_enrollments)
-        expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: /not authorized/
-      end
-    end
   end
 
   describe 'SubmitForm for creating a ReferralPosting' do

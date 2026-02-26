@@ -39,9 +39,7 @@ class Hmis::Form::SubmitFormAuthorizer
       form_role == :NEW_CLIENT_ENROLLMENT ? project_policy.can_create_and_enroll_new_clients? : project_policy.can_enroll_clients?
     when *PROJECT_RELATED_CLASSES
       user.policy_for(record.project, policy_type: :hmis_project).can_edit?
-    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService'
-      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
-    when *ENROLLMENT_RELATED_CLASSES
+    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService', *ENROLLMENT_RELATED_CLASSES
       user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
     when 'HmisExternalApis::AcHmis::ReferralPosting'
       source_project = record.referral.enrollment.project
@@ -69,9 +67,7 @@ class Hmis::Form::SubmitFormAuthorizer
       user.policy_for(record, policy_type: :hmis_enrollment).can_edit?
     when *PROJECT_RELATED_CLASSES
       user.policy_for(record.project, policy_type: :hmis_project).can_edit?
-    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService'
-      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
-    when *ENROLLMENT_RELATED_CLASSES
+    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService', *ENROLLMENT_RELATED_CLASSES
       user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
     when 'HmisExternalApis::AcHmis::ReferralPosting'
       source_project = record.referral.enrollment.project
