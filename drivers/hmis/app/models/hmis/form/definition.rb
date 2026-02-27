@@ -120,12 +120,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
 
+  EDIT = 'edit'
+  CREATE = 'create'
+  FORM_RECORD_ACTIONS = [EDIT, CREATE].freeze
+
   ENROLLMENT_CONFIG = {
     owner_class: 'Hmis::Hud::Enrollment',
     permission: :can_edit_enrollments,
   }.freeze
 
   # Configuration for SubmitForm
+  # TODO(#8676) - now that permission config lives in the SubmitFormAuthorizer helper,
+  # this can be simplified, but complete that work in a 2nd PR because it involves disruption to unit tests,
+  # and we want confidence that the existing tests pass for the 1st PR.
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: 'Hmis::Hud::HmisService',
@@ -177,6 +184,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     FILE: {
       owner_class: 'Hmis::File',
+      # Because File has an `authorize` proc, this `permission` mapping is unused except in unit tests.
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
@@ -202,6 +210,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     NEW_CLIENT_ENROLLMENT: {
       **ENROLLMENT_CONFIG,
       permission: [:can_edit_clients, :can_edit_enrollments],
+      allowed_form_record_actions: [CREATE],
     },
     CLIENT_DETAIL: {
       owner_class: 'Hmis::Hud::Client',
@@ -443,16 +452,20 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     self.class.owner_class_for_role(role)
   end
 
+  def allowed_form_record_actions
+    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    if FORM_ROLE_CONFIG[role.to_sym][:allowed_form_record_actions].present?
+      Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:allowed_form_record_actions])
+    else
+      FORM_RECORD_ACTIONS # If no actions are specified on the form config, both edit and create are allowed
+    end
+  end
+
   def record_editing_permissions
     return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
-  end
-
-  def allowed_proc
-    return unless FORM_ROLE_CONFIG[role.to_sym].present?
-
-    FORM_ROLE_CONFIG[role.to_sym][:authorize]
   end
 
   def assessment_date_item
