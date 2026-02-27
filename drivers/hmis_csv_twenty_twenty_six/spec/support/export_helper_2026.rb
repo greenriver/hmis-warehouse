@@ -14,7 +14,8 @@ module ExportHelper2026
                 :disabilities, :employment_educations, :health_and_dvs,
                 :income_benefits, :services, :exits, :assessments,
                 :assessment_questions, :assessment_results, :events,
-                :current_living_situations, :ce_participations, :hmis_participations,
+                :current_living_situations, :youth_education_statuses,
+                :ce_participations, :hmis_participations,
                 :custom_data_element_definitions, :custom_data_elements,
                 :project_class, :project_coc_class, :enrollment_class,
                 :client_class, :exit_class, :income_benefit_class
@@ -69,6 +70,7 @@ module ExportHelper2026
       @assessment_results = FactoryBot.create_list :hud_assessment_result, 5, data_source_id: @data_source.id
       @events = FactoryBot.create_list :hud_event, 5, data_source_id: @data_source.id
       @current_living_situations = FactoryBot.create_list :hud_current_living_situation, 5, data_source_id: @data_source.id
+      @youth_education_statuses = FactoryBot.create_list :hud_youth_education_status, 5, data_source_id: @data_source.id, InformationDate: 1.week.ago
       @ce_participations = FactoryBot.create_list :hud_ce_participation, 5, data_source_id: @data_source.id
       @hmis_participations = FactoryBot.create_list :hud_hmis_participation, 5, data_source_id: @data_source.id
 
@@ -158,6 +160,14 @@ module ExportHelper2026
         assessment_results: HmisCsvTwentyTwentySix::Exporter::AssessmentResult,
         events: HmisCsvTwentyTwentySix::Exporter::Event,
         current_living_situations: HmisCsvTwentyTwentySix::Exporter::CurrentLivingSituation,
+        youth_education_statuses: HmisCsvTwentyTwentySix::Exporter::YouthEducationStatus,
+      }
+    end
+
+    def project_participation_items
+      {
+        hmis_participations: HmisCsvTwentyTwentySix::Exporter::HmisParticipation,
+        ce_participations: HmisCsvTwentyTwentySix::Exporter::CeParticipation,
       }
     end
   end

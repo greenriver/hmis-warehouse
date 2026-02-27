@@ -1,0 +1,46 @@
+[
+  {
+    "form_identifier": "service",
+    "append_items": [
+      {
+        "text": "Weeks of Service",
+        "type": "INTEGER",
+        "bounds": [
+          {
+            "id": "min_weeks_of_service",
+            "type": "MIN",
+            "severity": "error",
+            "value_number": 0
+          }
+        ],
+        "link_id": "weeks_of_service",
+        "required": false,
+        "warn_if_empty": false,
+        "enable_behavior": "ANY",
+        "enable_when": [
+          {
+            "_comment": "Collect when service is HOPWA Financial Assistance",
+            "local_constant": "$hudRecordType",
+            "operator": "EQUAL",
+            "answer_code": "HOPWA_FINANCIAL_ASSISTANCE"
+          }
+        ],
+        "disabled_display": "HIDDEN",
+        "custom_rule": {
+          "operator": "ANY",
+          "_comment": "Collect when project funders include 17 HUD: HOPWA – Short-Term Rent, Mortgage, Utility assistance",
+          "parts": [
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 17
+            }
+          ]
+        },
+        "mapping": {
+          "custom_field_key": "hopwa_financial_assistance_weeks_of_service"
+        }
+      }
+    ]
+  }
+]

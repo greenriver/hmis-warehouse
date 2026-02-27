@@ -32,8 +32,7 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
   end
 
   it 'processes multiple dirty pools' do
-    pool2 = create(:hmis_ce_match_candidate_pool)
-    create(:hmis_ce_opportunity, candidate_pool: pool2)
+    pool2 = create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source)
 
     create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
     create(:hmis_ce_change_marker, trackable: pool2, current_version: 1, processed_version: 0)
@@ -51,8 +50,8 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
     # Create marker first, then destroy the pool
     create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
 
-    # Remove opportunity first to avoid deletion restriction
-    opportunity.destroy!
+    # Remove unit group first to avoid deletion restriction
+    pool.unit_groups.sole.destroy!
     pool.destroy!
 
     # Should not raise an error and should clean up the marker
@@ -93,8 +92,7 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
         # Create exactly batch_size additional pools to exceed the batch limit
         # This ensures some pools remain dirty after the first batch
         batch_size.times do
-          additional_pool = create(:hmis_ce_match_candidate_pool)
-          create(:hmis_ce_opportunity, candidate_pool: additional_pool)
+          additional_pool = create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source)
           create(:hmis_ce_change_marker, trackable: additional_pool, current_version: 1, processed_version: 0)
         end
 
@@ -129,8 +127,7 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
         create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
 
         2.times do
-          additional_pool = create(:hmis_ce_match_candidate_pool)
-          create(:hmis_ce_opportunity, candidate_pool: additional_pool)
+          additional_pool = create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source)
           create(:hmis_ce_change_marker, trackable: additional_pool, current_version: 1, processed_version: 0)
         end
 
