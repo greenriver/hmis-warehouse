@@ -54,7 +54,7 @@ staticClients:
     redirectURIs:
       # These redirect URIs point to the `--redirect-url` for OAuth2 proxy.
       - "https://hmis-warehouse.dev.test/oauth2/callback"
-    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    secret: "${JWT_SECRET}"
     trustedPeers:
       - hmis-frontend
     public: true
@@ -63,7 +63,7 @@ staticClients:
     redirectURIs:
       - "https://hmis.dev.test/oauth2/callback"
       - "https://hmis-backend.dev.test/oauth2/callback"
-    secret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    secret: "${JWT_SECRET}"
     trustedPeers:
       - hmis-warehouse
     public: true

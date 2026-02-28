@@ -58,6 +58,12 @@ cp sample.env .env.development.local
 cp docs/sample_files/envrc.sample .envrc
 touch .env.local
 
+# Generate a secret and set JWT_SECRET, OAUTH2_PROXY_COOKIE_SECRET, and
+# OAUTH2_PROXY_CLIENT_SECRET in .env.development.local to the same value:
+#   openssl rand -base64 32
+# Then generate the oauth2-proxy config files (re-run if templates change):
+bash docker/auth/generate-dev-auth.sh
+
 # Configure direnv
 direnv allow .
 
