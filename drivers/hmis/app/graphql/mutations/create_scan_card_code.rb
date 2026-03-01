@@ -15,7 +15,7 @@ module Mutations
 
     def resolve(client_id:, expiration_date: nil)
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
-      raise 'unauthorized' unless current_permission?(permission: :can_manage_scan_cards, entity: client)
+      access_denied! unless policy_for(client, policy_type: :hmis_client).can_manage_scan_cards?
 
       scan_card_code = Hmis::ScanCardCode.new(
         client: client,

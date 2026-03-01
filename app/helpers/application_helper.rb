@@ -129,6 +129,8 @@ module ApplicationHelper
   end
 
   def hmis_external_link(entity, data_source: entity.data_source, user: nil, wrapper_class: 'text-teeny', text: 'Open in HMIS ', icon_class: 'icon-link-ext', icon_style: nil)
+    return unless entity.present?
+
     path = data_source.hmis_url_for(entity, user: user)
     return unless path.present?
 

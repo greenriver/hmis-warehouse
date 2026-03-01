@@ -440,6 +440,22 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         it_behaves_like 'merge that saves mappings', 'client_locations', 'client_id', 'id'
       end
 
+      context 'with CE Referral records' do
+        let!(:record1) { create(:hmis_ce_referral, data_source: data_source, client: client1) }
+        let!(:record2) { create(:hmis_ce_referral, data_source: data_source, client: client2) }
+
+        it 'transfers referrals from deleted client to retained client and does not delete them' do
+          expect { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }.
+            not_to change(Hmis::Ce::Referral, :count)
+
+          expect(record2.reload.client_id).to eq(client1.id)
+          expect(client1.ce_referrals).to include(record1, record2)
+        end
+
+        it_behaves_like 'merge of records related by client_id'
+        it_behaves_like 'merge that saves mappings', 'ce_referrals', 'client_id', 'id'
+      end
+
       context 'with external referral records (legacy)' do
         let!(:referral1) { create :hmis_external_api_ac_hmis_referral }
         let!(:referral1_hhm1) { create :hmis_external_api_ac_hmis_referral_household_member, client: client1, referral: referral1 }

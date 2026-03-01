@@ -45,6 +45,10 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     job.perform(actor_id: user.id)
   end
 
+  before(:each) do
+    stub_api
+  end
+
   it 'finds clients' do
     stub_api
 
@@ -53,8 +57,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'inserts a new MCI unique ID' do
-    stub_api
-
     perform
     expect(HmisExternalApis::ExternalId.count).to eq(1)
     expect(client.external_ids.length).to eq(1)
@@ -62,7 +64,6 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   end
 
   it 'updates an existing MCI unique ID' do
-    stub_api
     perform
 
     default_record['mciUniqId'] = '999999'
@@ -72,34 +73,129 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     expect(client.external_ids.first.value).to eq('999999')
   end
 
-  it 'triggers merge of duplicate mci unique IDs' do
-    stub_api
+  it 'soft-merges duplicate MCI unique IDs' do
+    destination_id = client.warehouse_id
 
-    other_client = create(:hmis_hud_client, data_source: data_source)
+    # Second source client with different destination client but same MCI unique ID
+    other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    expect(other_client.warehouse_id).not_to eq(destination_id) # Confirm setup
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
 
-    allow(Hmis::MergeClientsJob).to receive(:perform_later).with(client_ids: [client.id, other_client.id].sort, actor_id: user.id)
+    # hard-merge job should NOT be called
+    expect(Hmis::MergeClientsJob).not_to receive(:perform_later)
 
-    perform
+    # mock the ServiceHistory::Add task and assert it is called
+    expect(GrdaWarehouse::Tasks::ServiceHistory::Add).
+      to receive(:new).with(force_sequential_processing: true).
+      and_return(instance_double(GrdaWarehouse::Tasks::ServiceHistory::Add, run!: true))
 
-    expect(job.merge_sets.length).to eq(1)
+    expect do
+      perform
+      expect(job.merge_sets.length).to eq(1)
+
+      client.reload
+      other_client.reload
+    end.to change(other_client, :warehouse_id).to(destination_id).
+      and not_change(client, :warehouse_id)
+
+    # Confirm soft merge: both source clients now point to the same destination
+    expect(client.warehouse_id).to eq(other_client.warehouse_id)
   end
 
-  it 'triggers merge of duplicate mci unique IDs for source clients with the same destination id' do
-    stub_api
-
-    # Second Source Client that does not have an MCI Unique ID, but shares the same destination clients
+  it 'takes no merge action for duplicate MCI unique IDs when source clients already share same destination' do
+    # Second source client sharing the same destination; no repointing needed
     other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
     other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
 
     # confirm setup
     expect(client.destination_client.source_clients.size).to eq(2)
     expect(client.destination_client.source_clients.pluck(:id)).to contain_exactly(client.id, other_client.id)
+    expect(Hmis::MergeClientsJob).not_to receive(:perform_later)
 
-    allow(Hmis::MergeClientsJob).to receive(:perform_later).with(client_ids: [client.id, other_client.id].sort, actor_id: user.id)
+    # ServiceHistory::Add task should not be called, since no change is made
+    expect(GrdaWarehouse::Tasks::ServiceHistory::Add).not_to receive(:new)
 
+    expect do
+      perform
+      expect(job.merge_sets.length).to eq(1)
+
+      client.reload
+      other_client.reload
+    end.to not_change(client, :warehouse_id).
+      and not_change(other_client, :warehouse_id)
+
+    # unchanged from before, no soft merge was needed
+    expect(client.warehouse_id).to eq(other_client.warehouse_id)
+  end
+
+  it 'takes no merge action for duplicate MCI unique IDs when the source clients were previously split' do
+    # Second source client with same destination client and same MCI unique ID
+    other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
+    other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
+
+    # Split the other_client out
+    client.destination_client.as_warehouse.split([other_client.id], nil, nil, user)
+    expect(other_client.reload.warehouse_id).not_to eq(client.reload.warehouse_id)
+    expect(GrdaWarehouse::ClientSplitHistory.exists?(split_from: client.destination_client.id)).to be_truthy
+
+    # Perform the WarehouseChangesJob, which should take no action because the source clients were previously split
     perform
+    expect(client.reload.warehouse_id).not_to eq(other_client.reload.warehouse_id)
+  end
 
-    expect(job.merge_sets.length).to eq(1)
+  it 'still soft-merges when the source client has a previous split event associated with a different destination client' do
+    # Setup 2 new source clients with the same destination client
+    other_client_1 = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    other_client_2 = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    other_client_2.warehouse_client_source.update(destination_id: other_client_1.warehouse_id)
+    expect(other_client_1.warehouse_id).to eq(other_client_2.warehouse_id)
+
+    # One of the new source clients has the same MCI unique ID as the original client
+    create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client_1)
+
+    # Split other_client_1 out from other_client_2's dest client
+    other_client_2.destination_client.as_warehouse.split([other_client_1.id], nil, nil, user)
+    expect(other_client_1.reload.warehouse_id).not_to eq(other_client_2.reload.warehouse_id)
+    expect(GrdaWarehouse::ClientSplitHistory.exists?(split_from: other_client_2.destination_client.id)).to be_truthy
+
+    # Perform the WarehouseChangesJob and expect the soft merge between other_client_1 and client to still take place
+    perform
+    expect(client.reload.warehouse_id).to eq(other_client_1.reload.warehouse_id)
+    expect(other_client_2.reload.warehouse_id).not_to eq(other_client_1.reload.warehouse_id)
+  end
+
+  context 'when there are multiple sets of multiple duplicate MCIs' do
+    let!(:clients_by_mci) do
+      # Create 3 sets of 3 clients each with different MCI unique IDs
+      3.times.each_with_object({}) do |i, h|
+        mci_uniq_id = "99999#{i}"
+        h[mci_uniq_id] = []
+
+        3.times do
+          c = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+          create(:mci_unique_id_external_id, value: mci_uniq_id, remote_credential: remote_credential, source: c)
+          h[mci_uniq_id] << c
+        end
+      end
+    end
+
+    it 'soft-merges all sets of duplicates' do
+      expected_winner_destination_ids = clients_by_mci.transform_values do |clients|
+        clients.map(&:warehouse_id).min
+      end
+
+      perform
+
+      expect(job.merge_sets.length).to eq(3)
+
+      # Assert soft-merge behavior: each MCI set converges on one "winner" destination ID
+      clients_by_mci.each do |mci_uniq_id, clients|
+        clients.each(&:reload)
+        winner_destination_id = expected_winner_destination_ids.fetch(mci_uniq_id)
+        expect(clients.map(&:warehouse_id).uniq).to eq([winner_destination_id])
+      end
+    end
   end
 end

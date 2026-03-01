@@ -38,18 +38,38 @@ module GraphqlApplicationHelper
     GraphqlPermissionChecker.current_permission_for_context?(context, permission: permission, entity: entity)
   end
 
+  def data_source_client_preloader
+    # memoize into context; data source relies on stable object identity
+    context[:data_source_client_preloader] ||= ->(clients) {
+      client_ids = clients.compact.map(&:id)
+      current_user.policy_context.preload_client_dependencies(client_ids)
+    }
+  end
+
+  # Helper that should be used in place of `load_ar_association(object, :client)`.
+  # Preloads client authorization dependencies to avoid n+1s
+  def load_ar_client_association(object, association_name: :client)
+    load_ar_association(object, association_name, onload: data_source_client_preloader)
+  end
+
+  # Helper that should be used in place of `load_ar_scope(scope: Hmis::Hud::Client.all, id: x)` (or similar).
+  # Preloads client authorization dependencies to avoid n+1s
+  def load_ar_client_scope(scope:, id:)
+    load_ar_scope(scope: scope, id: id, onload: data_source_client_preloader)
+  end
+
   # Use data loader to load an ActiveRecord association.
-  def load_ar_association(object, association_name)
+  def load_ar_association(object, association_name, onload: nil)
     raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(ActiveRecord::Base)
 
     # if we already have preloaded association, just return it
-    return object.public_send(association_name) if object.association(association_name).loaded?
+    return object.public_send(association_name) if object.association(association_name).loaded? && onload.blank?
 
-    dataloader.with(Sources::ActiveRecordAssociation, association_name).load(object)
+    dataloader.with(Sources::ActiveRecordAssociation, association_name, onload: onload).load(object)
   end
 
-  def load_ar_scope(scope:, id:)
-    dataloader.with(Sources::ActiveRecordScope, scope).load(id)
+  def load_ar_scope(scope:, id:, onload: nil)
+    dataloader.with(Sources::ActiveRecordScope, scope, onload: onload).load(id)
   end
 
   # Helper to resolve the active enrollment for this client at the specified project on the specified date.

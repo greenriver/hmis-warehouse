@@ -13,4 +13,7 @@
 - if can_publish_reports?
   = render 'common/publish'
 
-= render action_name
+- if @report.purged?
+  = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: reload_from_csv_performance_measurement_warehouse_reports_report_path(@report)
+- else
+  = render action_name

@@ -27,14 +27,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               status
               active
               clientId
+              clientName
               client {
                 id
               }
               createdAt
-              currentSteps {
-                id
-                name
-              }
               referredBy {
                 id
                 name
@@ -177,6 +174,61 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = result.dig('data', 'ceReferrals', 'nodes')
         expect(referrals.size).to eq(1)
         expect(referrals.dig(0, 'id')).to eq(referral.id.to_s) # referral2 is excluded
+      end
+    end
+
+    context 'when searching referrals by client name' do
+      let!(:client1) { create(:hmis_hud_client, data_source: ds1, FirstName: 'Alice', LastName: 'Wonderland') }
+      let!(:client2) { create(:hmis_hud_client, data_source: ds1, FirstName: 'Bob', LastName: 'Builder') }
+      let!(:referral1) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client1) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, client: client2) }
+
+      it 'can search by client name' do
+        variables = { filters: { searchTerm: 'Wonderland' } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral1.id.to_s)
+      end
+
+      it 'can search by referral ID' do
+        variables = { filters: { searchTerm: referral2.id.to_s } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['id']).to eq(referral2.id.to_s)
+      end
+    end
+
+    context 'when referral has available script task' do
+      # Regression test: Ensures ScriptTasks don't appear in currentSteps (only User tasks should be resolved).
+      # This came up after a manual support fix left a dangling available script task. Also future-proofing for other task types.
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
+      let!(:script_task) { create(:hmis_workflow_definition_script_task, template: workflow_template_1, name: 'Script Task') }
+      let!(:start_event) { create(:hmis_workflow_definition_start_event, template: workflow_template_1) }
+      let!(:script_step) do
+        # Manually create an available script task step to simulate a dangling step from a manual support fix
+        referral.workflow_instance.steps.create!(
+          node: script_task,
+          status: 'available',
+          available_at: Time.current,
+        )
+      end
+
+      before do
+        referral.workflow_engine.start_workflow!(user: hmis_user) # start workflow to make user task available
+      end
+
+      it 'does not include ScriptTask in currentSteps, only UserTask' do
+        response, result = post_graphql { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals).to contain_exactly(a_hash_including('currentSteps' => [a_hash_including('name' => 'Client Acceptance')]))
       end
     end
 

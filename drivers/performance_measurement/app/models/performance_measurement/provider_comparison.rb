@@ -55,6 +55,7 @@ module PerformanceMeasurement
       table_data[:system] = {}
       definition[:details].each do |detail|
         result = report.result_for(detail)
+        next unless result.present?
 
         table_data[:system][detail] = {
           value: result.primary_value,
@@ -89,6 +90,7 @@ module PerformanceMeasurement
               goal: info[:goal],
               decorator: info[:decorator],
               decorator_bg_color: info[:decorator_bg_color],
+              tooltip: detail_tooltip(info[:sub_field]),
               display_value: info[:display_value],
             }
           end
@@ -109,6 +111,7 @@ module PerformanceMeasurement
               goal: result.goal,
               decorator: decorator(result, detail),
               decorator_bg_color: decorator_bg_color(result, detail),
+              tooltip: detail_tooltip(detail),
               display_value: display_value(result, detail),
             }
           end
@@ -183,6 +186,7 @@ module PerformanceMeasurement
           goal: sub_result.goal,
           decorator: decorator_class,
           decorator_bg_color: decorator_bg_color(sub_result, info[:sub_field]),
+          tooltip: detail_tooltip(info[:sub_field]),
           display_value: display_value(sub_result, info[:sub_field]),
         }
       end
@@ -201,8 +205,23 @@ module PerformanceMeasurement
       # For increased income metrics, show the prior year value so we can show the current year goal as an absolute number
       # For example, if the goal is to increase income of at least 3% of adults, and last year they had 6% of adults had increased income,
       # we want to show a goal of 9% of clients (Prior Year: 6%)
-      value = "#{value} (Prior Year: #{result.comparison_primary_value}#{result.secondary_unit})" if detail.to_s.include?('increased_')
+      # However, if we are using a static spm for comparison, we don't want to show the prior year value.
+      if detail.to_s.include?('increased_')
+        value = if report.using_static_spm_for_comparison?
+          value
+        else
+          "#{value} (Prior Year: #{result.comparison_primary_value}#{result.secondary_unit})"
+        end
+      end
       value
+    end
+
+    # For static SPM runs on income related metrics, we add a tooltip to indicate that the comparison year values are from the static SPM.
+    private def detail_tooltip(detail)
+      return nil unless detail.to_s.include?('increased_')
+      return nil unless report.using_static_spm_for_comparison?
+
+      'Using a static SPM, no prior year values are available.'
     end
 
     private def approaching?(result, detail)
@@ -234,8 +253,9 @@ module PerformanceMeasurement
           :length_of_homeless_stay_average, # Length of Homeless Stay
           :retention_or_positive_destinations, # % of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-In
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
-          :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
-          :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
+          # NOTE: returned in two years uses I7, which includes 0-2 years.
+          # :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
+          # :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
         ],
       }.freeze
     end
@@ -248,8 +268,9 @@ module PerformanceMeasurement
           :length_of_homeless_stay_average, # Length of Homeless Stay
           :retention_or_positive_destinations, # % of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-In
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
-          :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
-          :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
+          # NOTE: returned in two years uses I7, which includes 0-2 years.
+          # :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
+          # :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
         ],
       }.freeze
     end
@@ -261,10 +282,10 @@ module PerformanceMeasurement
           :rrh_average_bed_utilization, # Avg Bed Utilization
           :time_to_move_in_average, # Length of Time to Move-In
           :retention_or_positive_destinations, # % of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-In
-          :moved_in_positive_destinations, # Percentage of People in PH except RRH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
-          :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
-          :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
+          # NOTE: returned in two years uses I7, which includes 0-2 years.
+          # :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
+          # :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
           :increased_income_all_clients, # Number of People with Increased Income
           :stayers_with_increased_income, # Stayer with Increased Income
           :stayers_with_increased_earned_income, # Stayer with Increased Earned Income
@@ -284,8 +305,9 @@ module PerformanceMeasurement
           :time_to_move_in_average, # Length of Time to Move-In
           :retention_or_positive_destinations, # Percentage of People in PH except RRH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
-          :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
-          :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
+          # NOTE: returned in two years uses I7, which includes 0-2 years.
+          # :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
+          # :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
           :increased_income_all_clients, # Number of People with Increased Income
           :stayers_with_increased_income, # Stayer with Increased Income
           :stayers_with_increased_earned_income, # Stayer with Increased Earned Income
@@ -305,7 +327,8 @@ module PerformanceMeasurement
           :time_to_move_in_average, # Length of Time to Move-In
           :retention_or_positive_destinations, # % of People in RRH or PH with Move-in or Permanent Exit
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
-          :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
+          # NOTE: returned in two years uses I7, which includes 0-2 years.
+          # :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
           # :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
         ],
       }
@@ -317,8 +340,9 @@ module PerformanceMeasurement
         details: [
           :so_positive_destinations, # % of People Exiting SO to a Positive Destination
           :returned_in_two_years, # Percentage of People Who Returned to Homelessness Within Two Years
-          :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
-          :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
+          # NOTE: returned in two years uses I7, which includes 0-2 years.
+          # :returned_in_one_year, # % of People Who Returned to Homelessness within 12 Months
+          # :returned_in_six_months, # % of People Who Returned to Homelessness within 6 Months
           :increased_income_all_clients, # Number of People with Increased Income
           :leavers_with_increased_income, # Leaver with Increased Income
           :leavers_with_increased_earned_income, # Leaver with Increased Earned Income

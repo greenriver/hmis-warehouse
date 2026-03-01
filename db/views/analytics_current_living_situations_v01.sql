@@ -1,1 +1,26 @@
-SELECT * FROM "CurrentLivingSituation" WHERE "DateDeleted" is NULL
+SELECT id,
+    "CurrentLivingSitID",
+    "EnrollmentID",
+    "PersonalID",
+    "InformationDate",
+    "CurrentLivingSituation",
+    "VerifiedBy",
+    "LeaveSituation14Days",
+    "SubsequentResidence",
+    "ResourcesToObtain",
+    "LeaseOwn60Day",
+    "MovedTwoOrMore",
+    "LocationDetails",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    pending_date_deleted,
+    source_hash,
+    "CLSSubsidyType",
+    "CurrentLivingSituation2022",
+    verified_by_project_id
+   FROM "CurrentLivingSituation"
+  WHERE ("DateDeleted" IS NULL)

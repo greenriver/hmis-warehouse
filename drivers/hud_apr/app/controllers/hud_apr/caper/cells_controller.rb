@@ -9,11 +9,9 @@
 module HudApr::Caper
   class CellsController < HudApr::CellsController
     include CaperConcern
-    before_action :set_report
-    before_action :set_question
 
-    def report_param_name
-      :caper_id
+    private def report_type_param
+      'caper'
     end
   end
 end

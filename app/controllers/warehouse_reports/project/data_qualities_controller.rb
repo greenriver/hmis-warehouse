@@ -203,7 +203,7 @@ module WarehouseReports::Project
 
     # The version of the report we are currently generating
     def report_scope
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFive
     end
 
     def report_base_class

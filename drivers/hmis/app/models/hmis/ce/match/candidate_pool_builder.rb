@@ -7,20 +7,20 @@
 # The builder:
 # 1. Creates Candidate Pools for all unique rule sets derived from Unit Groups.
 # 2. Associates Unit Groups with their corresponding Candidate Pool.
-# 3. Marks newly created or all pools as "dirty" to trigger reprocessing.
-# 4. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
-# 5. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
-# 6. Cleans up orphaned pools that are no longer referenced by Unit Groups or Opportunities
-#    after a configurable grace period.
-#
+# 3. Maintains the historical record of which pool a unit group was assigned to at a given time.
+# 4. Marks newly created or all pools as "dirty" to trigger reprocessing.
+# 5. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
+# 6. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
+
 # Semantics and concurrency notes:
-# - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
+# - Opportunity's pool is always derived from unit → unit_group → candidate_pool (not stored on opportunity).
 # - A `nil` key represents the default case where no specific rules apply; do not create a pool for this key.
 #   UnitGroups with a `nil` key will have `candidate_pool_id = NULL`.
 # - Bulk creation relies on a DB unique index over (priority_expressions, requirement_expression) and is idempotent.
 # - Concurrency/transactions are handled by callers. This class performs pure operations without
 #   acquiring locks or opening transactions.
-# - Triggered automatically by Rule and UnitGroup callbacks. Can be called manually via `CeBuilder`
+# - Triggered automatically, *synchronously*, by Rule and UnitGroup callbacks, so our aim is to keep this fast and lightweight.
+# - Can be called manually via `CeBuilder`
 module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize
@@ -32,6 +32,8 @@ module Hmis::Ce::Match
     def self.call(...) = new.call(...)
 
     def call(unit_group_ids: nil, force_reprocessing: false)
+      @timestamp = Time.current
+
       unit_group_scope = Hmis::UnitGroup.with_ce_waitlists_enabled
       unit_group_scope = unit_group_scope.where(id: unit_group_ids) if unit_group_ids
 
@@ -42,10 +44,6 @@ module Hmis::Ce::Match
       elsif created_pool_ids.any?
         Hmis::Ce::Match::CandidatePool.where(id: created_pool_ids).mark_all_dirty
       end
-
-      backfill_opportunities_without_pools!
-      update_stale_flags!
-      cleanup_orphan_pools
 
       log_info(
         format(
@@ -62,26 +60,11 @@ module Hmis::Ce::Match
 
     private
 
-    # Normally the pool will be set by the mutation when the opportunity is created.
-    def backfill_opportunities_without_pools!
-      scope = Hmis::Ce::Opportunity.
-        where(candidate_pool_id: nil).
-        joins(unit: :unit_group).
-        where(arel.ug_t[:candidate_pool_id].not_eq(nil))
-      scope.preload(unit: :unit_group).find_each do |opportunity|
-        unit_group = opportunity.unit.unit_group
-        log_info("backfilling pool #{unit_group.candidate_pool_id} for opportunity #{opportunity.id}")
-        opportunity.update!(
-          candidate_pool_id: unit_group.candidate_pool_id,
-          assignment_rules: @rule_resolver.rules_for_unit_group(unit_group).map(&:attributes),
-        )
-      end
-    end
-
     # Build and assign candidate pools for all unit groups.
     # - Compute effective key for each unit group
     # - Create pools for non-default keys
     # - Assign unit_groups.candidate_pool_id accordingly (NULL if default key)
+    # - Record history of unit group/pool assignments
     # Returns newly created pool IDs for dirty marking
     def upsert_unit_group_pools!(unit_group_scope)
       keys_by_unit_group_id = @rule_resolver.keys_for_all_unit_groups(unit_group_scope)
@@ -91,15 +74,32 @@ module Hmis::Ce::Match
 
       # Prepare bulk updates for unit groups
       unit_group_updates = []
+      pool_assignments_to_create = []
+      unit_group_ids_to_close_assignments_for = []
       pools_by_key = @pool_repository.all_by_key
-      unit_group_scope.where(id: keys_by_unit_group_id.keys).find_each do |unit_group|
-        computed_key = keys_by_unit_group_id[unit_group.id]
-        candidate_pool_id = pools_by_key[computed_key]&.id
 
-        next if unit_group.candidate_pool_id == candidate_pool_id
+      unit_group_scope.find_each do |unit_group|
+        computed_key = keys_by_unit_group_id[unit_group.id]
+        old_pool_id = unit_group.candidate_pool_id
+        # If the key is nil, the unit group should not be asssociated with a pool. If it has an existing one, it should be removed
+        new_pool_id = computed_key ? pools_by_key[computed_key]&.id : nil
+
+        next if old_pool_id == new_pool_id
+
+        # If the unit group previously had a pool and it's changing, collect the unit group ID to close the assignment.
+        unit_group_ids_to_close_assignments_for << unit_group.id if old_pool_id.present?
+
+        # If the unit group is assigned to a new pool, collect the unit group ID and the new pool ID to create a new assignment.
+        if new_pool_id.present?
+          pool_assignments_to_create << {
+            unit_group_id: unit_group.id,
+            candidate_pool_id: new_pool_id,
+            started_at: @timestamp,
+          }
+        end
 
         # Pass all attributes to satisfy validations
-        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: candidate_pool_id)
+        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: new_pool_id)
       end
 
       updated_count = 0
@@ -114,28 +114,25 @@ module Hmis::Ce::Match
         raise "Failed to update Unit Groups with candidate pool assignments: #{result.inspect}" if result.failed_instances.present?
 
         updated_count = unit_group_updates.size
+
+        record_pool_unit_group_assignments!(unit_group_ids_to_close_assignments_for, pool_assignments_to_create)
       end
 
       [created_ids, updated_count]
     end
 
-    def update_stale_flags!
-      op_scope = Hmis::Ce::Opportunity.where.not(candidate_pool_id: nil).joins(unit: :unit_group)
+    # Record historical pool/unit group assignments by closing old assignments and creating new ones
+    def record_pool_unit_group_assignments!(unit_group_ids_to_close_assignments_for, pool_assignments_to_create)
+      if unit_group_ids_to_close_assignments_for.any?
+        CandidatePoolUnitGroupAssignment.
+          # Each unit group has one active assignment at a time (enforced by DB constraint),
+          # so this should be safe even though we aren't checking pool IDs
+          active.where(unit_group_id: unit_group_ids_to_close_assignments_for).
+          update_all(ended_at: @timestamp)
+      end
 
-      # Mark opportunities as stale if their pool no longer matches their unit group's pool
-      op_scope.
-        where(arel.opp_t[:candidate_pool_id].not_eq(arel.ug_t[:candidate_pool_id])).
-        update_all(stale: true)
-
-      # Un-mark opportunities that are currently stale but are now in the correct pool
-      # (e.g., if rules were changed and then changed back)
-      op_scope.
-        where(arel.opp_t[:candidate_pool_id].eq(arel.ug_t[:candidate_pool_id])).
-        update_all(stale: false)
-    end
-
-    def now
-      @now ||= Time.current
+      # Create new assignments for new pool associations
+      CandidatePoolUnitGroupAssignment.import!(pool_assignments_to_create) if pool_assignments_to_create.any?
     end
 
     def arel
@@ -144,18 +141,6 @@ module Hmis::Ce::Match
 
     def log_info(message)
       Rails.logger.info { "[CandidatePoolBuilder] #{message}" }
-    end
-
-    # Delete pools that haven't been used in a while
-    def cleanup_orphan_pools
-      duration = Hmis::Ce.configuration.days_to_retain_orphan_candidate_pools
-      return unless duration
-
-      expiration_date = now - duration.days
-      Hmis::Ce::Match::CandidatePool.
-        orphaned.
-        where(updated_at: ...expiration_date).
-        find_each(&:destroy!)
     end
   end
 end

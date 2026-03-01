@@ -201,6 +201,7 @@ module HudReports
     # @param question [String] the question name (e.g., 'Question 1')
     def complete(question)
       universe(question).update!(status: 'Completed')
+      @preload_answers&.delete(question) # Clear memoized cells for this question
       complete_report if remaining_questions.empty?
     end
 
@@ -306,11 +307,13 @@ module HudReports
       question_names.include?('HDX Upload')
     end
 
+    # TODO: replace with equivalent method on drilldownContext
     # only allow alpha numeric
     def valid_cell_name(cell_name)
       cell_name&.match(/[A-Z0-9]+/i).to_s
     end
 
+    # TODO: replace with equivalent method on drilldownContext
     # only allow alpha numeric, and dashes
     def valid_table_name(table)
       table&.match(/[A-Z0-9-]+/i).to_s

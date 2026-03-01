@@ -11,7 +11,7 @@ This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMar
 ### Core Components
 
 - **`Hmis::Ce::ChangeMarker`**: A polymorphic model that tracks the state of other records (currently `GrdaWarehouse::Hud::Client` and `Hmis::Ce::Match::CandidatePool`). It uses `current_version` and `processed_version` to determine if a record is "dirty."
-- **`Hmis::Ce::Match::CandidatePoolBuilder`**: A service object that serves as the main component for maintaining candidate pools. It is triggered synchronously by model callbacks and a daily Rake task to create pools, associate them with `UnitGroup`s, and manage stale flags on `Opportunity` records.
+- **`Hmis::Ce::Match::CandidatePoolBuilder`**: A service object that serves as the main component for maintaining candidate pools. It is triggered synchronously by model callbacks and a daily Rake task to create pools and associate them with `UnitGroup`s.
 - **`Hmis::Ce::ProcessPoolsJob`**: A self-scheduling job that processes dirty candidate pools on the long-running queue. It is enqueued by the `CandidatePoolBuilder` or the nightly Rake task.
 - **`Hmis::Ce::ProcessClientsJob`**: A self-scheduling job that processes dirty clients on the short-running queue for fast updates. It uses non-blocking per-pool locks to coordinate with the pool processor.
 - **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved.
@@ -25,7 +25,7 @@ The following table summarizes the key events that trigger actions within the CE
 | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | **Client data is updated** (via API or other tasks)      | The `MarkClientAsDirtyBehavior` concern increments the `current_version` on the client's `ChangeMarker` record.                                                                                                | `ProcessClientsJob` is continuously running and will pick up the dirty marker in its next batch.    |
 | **`Rule` or `UnitGroup` is created/updated/destroyed**   | An ActiveRecord callback acquires a lock and runs `CandidatePoolBuilder.call`. The builder creates/updates pools, associates them with unit groups, and marks any newly created pools as dirty.                 | `CandidatePoolBuilder` enqueues `ProcessPoolsJob` to evaluate the newly dirtied pools.              |
-| **`markUnitsAvailable` mutation is called**              | A new `Opportunity` is created. It immediately inherits its `candidate_pool_id` and a historical snapshot of the `assignment_rules` from its parent `UnitGroup`.                                                 | None directly. The associated pool is processed by `ProcessPoolsJob` when it is marked dirty.     |
+| **`markUnitsAvailable` mutation is called**              | A new `Opportunity` is created. | None directly. The associated pool is processed by `ProcessPoolsJob` when it is marked dirty.     |
 | **Nightly Cron Task** (`grda_warehouse:hourly_maintenance`) | The Rake task acquires a maintenance lock and runs `CandidatePoolBuilder.call(force_reprocessing: true)`. This rebuilds all pool associations and marks all existing `CandidatePool` records as dirty. | The builder enqueues `ProcessPoolsJob` to re-evaluate all pools. The cron also ensures `ProcessClientsJob` is running. |
 
 ### Workflow
@@ -61,7 +61,7 @@ sequenceDiagram
     alt Mark Unit Available
         UserAction->>+RailsApp: `markUnitsAvailable` mutation
         RailsApp->>RailsApp: Reads `candidate_pool_id`<br>from UnitGroup
-        RailsApp->>RailsApp: Creates new Opportunity with<br>pool_id and rule snapshot
+        RailsApp->>RailsApp: Creates new Opportunity
     end
 
     loop Concurrent Pool Processing

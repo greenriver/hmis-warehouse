@@ -47,7 +47,3 @@ WHERE
 GROUP BY
   targets.project_id,
   group_viewable_entities.access_group_id;
-
-CREATE RULE attempt_project_access_group_members_del AS ON DELETE TO project_access_group_members DO INSTEAD NOTHING;
-
-CREATE RULE attempt_project_access_group_members_up AS ON UPDATE TO project_access_group_members DO INSTEAD NOTHING;

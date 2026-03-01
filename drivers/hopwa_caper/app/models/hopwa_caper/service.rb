@@ -40,10 +40,15 @@ module HopwaCaper
     scope :hud_services, -> { where(service_source: HUD_SERVICE_SOURCE) }
     scope :custom_services, -> { where(service_source: CUSTOM_SERVICE_SOURCE) }
 
-    delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, to: :enrollment
+    delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, :project_id, to: :enrollment
 
-    def project_id
-      enrollment.project.id
+    def self.as_report_members
+      current_scope.map do |record|
+        ::HudReports::UniverseMember.new(
+          universe_membership_type: sti_name,
+          universe_membership_id: record.id,
+        )
+      end
     end
 
     def self.from_hud_service(service:, enrollment:, report:, client:)

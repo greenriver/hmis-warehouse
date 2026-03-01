@@ -1,1 +1,21 @@
-SELECT * FROM "CEParticipation" WHERE "DateDeleted" is NULL
+SELECT id,
+    "CEParticipationID",
+    "ProjectID",
+    "AccessPoint",
+    "PreventionAssessment",
+    "CrisisAssessment",
+    "HousingAssessment",
+    "DirectServices",
+    "ReceivesReferrals",
+    "CEParticipationStatusStartDate",
+    "CEParticipationStatusEndDate",
+    "DateCreated",
+    "DateUpdated",
+    "DateDeleted",
+    "UserID",
+    "ExportID",
+    data_source_id,
+    pending_date_deleted,
+    source_hash
+   FROM "CEParticipation"
+  WHERE ("DateDeleted" IS NULL)

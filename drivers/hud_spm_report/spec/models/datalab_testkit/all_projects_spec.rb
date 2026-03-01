@@ -34,7 +34,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         question: '1a',
         skip: [
           'B2', # expected '4808.0000' (4808), got '4417.0000' (4417)
-          'D2', # expected '73.9500' (73.95), got '53.2000' (53.20)
           'G2', # expected '37.0000' (37), got '31.0000' (31)
           'B3', # expected '0.0000' (), got '4825.0000' (4825)
           'D3', # expected '0.0000' (), got '73.7400' (73.74)
@@ -54,10 +53,8 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         skip: [
           'B2', # expected '5749.0000' (5749), got '5437.0000' (5437)
           'D2', # expected '261.2200' (261.22), got '252.9400' (252.94)
-          'G2', # expected '94.0000' (94), got '90.0000' (90)
           'B3', # expected '0.0000' (), got '5814.0000' (5814)
           'D3', # expected '0.0000' (), got '263.0700' (263.07)
-          'G3', # expected '0.0000' (), got '96.0000' (96.0)
         ],
       )
     end

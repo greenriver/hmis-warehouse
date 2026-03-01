@@ -264,7 +264,7 @@ class Hmis::User < ApplicationRecord
     policy_class = "Hmis::AuthPolicies::#{policy_name}".safe_constantize
     raise ArgumentError, "policy not found: #{policy_name}" unless policy_class
 
-    policy_class.new(resource: resource, context: policy_context)
+    policy_class.for_resource(resource: resource, context: policy_context)
   end
 
   memoize def policy_context

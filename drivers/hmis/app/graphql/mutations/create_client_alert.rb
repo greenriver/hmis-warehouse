@@ -15,7 +15,7 @@ module Mutations
 
     def resolve(input:)
       client = Hmis::Hud::Client.find(input.client_id)
-      raise 'not allowed' unless current_permission?(permission: :can_manage_client_alerts, entity: client)
+      access_denied! unless policy_for(client, policy_type: :hmis_client).can_manage_alerts?
 
       params = input.to_params
       alert = Hmis::ClientAlert.new(params)

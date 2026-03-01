@@ -164,6 +164,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           enrolled_homeless_shelter: calcs.enrolled_homeless_shelter(client_id),
           enrolled_homeless_unsheltered: calcs.enrolled_homeless_unsheltered(client_id),
           enrolled_permanent_housing: calcs.enrolled_permanent_housing(client_id),
+          most_recent_move_in_date: calcs.most_recent_move_in_date(client_id),
           household_members: calcs.household_members(client_id),
           open_enrollments: calcs.open_enrollments(client_id),
           rrh_desired: calcs.rrh_desired(client_id),
@@ -208,6 +209,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :enrolled_homeless_shelter,
               :enrolled_homeless_unsheltered,
               :enrolled_permanent_housing,
+              :most_recent_move_in_date,
               :household_members,
               :open_enrollments,
               :rrh_desired,
@@ -525,6 +527,17 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def enrolled_permanent_housing(client_id)
       @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.pluck(:client_id).to_set
       @enrolled_permanent_housing.include?(client_id)
+    end
+
+    def most_recent_move_in_date(client_id)
+      @most_recent_move_in_dates ||= GrdaWarehouse::ServiceHistoryEnrollment.
+        permanent_housing.
+        ongoing.
+        where(client_id: @client_ids).
+        where.not(move_in_date: nil).
+        group(:client_id).
+        maximum(:move_in_date)
+      @most_recent_move_in_dates[client_id]
     end
 
     private def ongoing_enrollments

@@ -17,6 +17,11 @@ module GrdaWarehouse
     FULL_STATUS = 'full'
 
     scope :with_invalid_client, -> { left_outer_joins(:destination_client).where(c_t[:id].eq(nil)) }
+    scope :active, ->(date = Date.current) {
+      where(status: [PARTIAL_STATUS, FULL_STATUS]).
+        where(arel_table[:starts_at].eq(nil).or(arel_table[:starts_at].lteq(date))).
+        where(arel_table[:expires_at].eq(nil).or(arel_table[:expires_at].gteq(date)))
+    }
 
     def active?(date: Date.current)
       case status

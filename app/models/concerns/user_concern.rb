@@ -342,6 +342,98 @@ module UserConcern
       root_path
     end
 
+    def invitation_status
+      if invitation_accepted_at.present? || invitation_sent_at.blank?
+        :active
+      elsif invitation_due_at > Time.now
+        :pending_confirmation
+      else
+        :invitation_expired
+      end
+    end
+
+    # Prevent sending confirmation emails if the user has an open invitation
+    def send_reset_password_instructions
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # Prevent confirming accounts if the user has an open invitation
+    def pending_any_confirmation
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # @return [Array] an array of text that describes the status of the account
+    def overall_status(current_user)
+      return ['Active'] if active_for_authentication?
+      return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
+
+      text = []
+      text << 'Invitation expired' if invitation_status == :invitation_expired
+      if expired_at?
+        text << "Account expired on #{expired_at}"
+      elsif expired?
+        text << "Account expired due to inactivity. Last activity on #{last_activity_at}"
+      else
+        text << deactivation_status(current_user)
+      end
+      text
+    end
+
+    def deactivation_status(user)
+      return unless inactive?
+
+      # The PaperTrail versions association has a fixed order with newest last
+      version = versions.where(event: 'deactivate').last
+
+      return 'Account deactivated' unless version
+      return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
+
+      name = nil
+      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+
+      return "Account deactivated on #{version.created_at}" unless name
+
+      "Account deactivated by #{name} on #{version.created_at}"
+    end
+
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      base_salt = super
+      return base_salt if custom_session_invalidator.blank?
+
+      # Poison the salt to force the user to re-login by changing custom_session_invalidator
+      # Make sure the salt isn't changing length
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
+    end
+
     # Search for users by name or email using prefix matching
     #
     # @param text [String] the search query
@@ -359,9 +451,10 @@ module UserConcern
       return none if terms.empty?
 
       scope = terms.map do |term|
-        prefix_condition = arel_table[:first_name].matches("#{term}%").
-          or(arel_table[:last_name].matches("#{term}%")).
-          or(arel_table[:email].matches("#{term}%"))
+        escaped = sanitize_sql_like(term)
+        prefix_condition = arel_table[:first_name].matches("#{escaped}%").
+          or(arel_table[:last_name].matches("#{escaped}%")).
+          or(arel_table[:email].matches("%#{escaped}%"))
 
         where(prefix_condition)
       end.inject(&:or)

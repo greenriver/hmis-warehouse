@@ -44,9 +44,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result.dig('data', 'mergeClients', 'client', 'id')).to eq(remaining_clients.first.id.to_s)
     end
 
-    it 'should fail if user lacks permission' do
+    it 'should fail if user lacks merge permission' do
+      remove_permissions(access_control, :can_merge_clients)
+      expect_access_denied post_graphql(input: { client_ids: [c1.id, c2.id] }) { mutation }
+    end
+
+    it 'should fail if user lacks view permission' do
       remove_permissions(access_control, :can_view_clients)
-      expect_gql_error post_graphql(input: { client_ids: [c1.id, c2.id] }) { mutation }
+      expect_access_denied post_graphql(input: { client_ids: [c1.id, c2.id] }) { mutation }
     end
 
     it 'should fail if any clients are not viewable' do

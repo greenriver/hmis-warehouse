@@ -457,7 +457,18 @@ services:
 
   redis:
     container_name: hmis-warehouse-redis
-    image: index.docker.io/library/redis@sha256:6cbef353e480a8a6e7f10ec545f13d7d3fa85a212cdcc5ffaf5a1c818b9d3798 # alpine
+    image: redis:alpine
+    env_file:
+      - .env.development.local
+      - .env.local
+    command: >
+      sh -c '
+      if [ -n "$$CACHE_AUTH_TOKEN" ]; then
+        exec redis-server --requirepass "$$CACHE_AUTH_TOKEN";
+      else
+        exec redis-server;
+      fi
+      '
     volumes:
       - redis:/data
     expose:
@@ -557,7 +568,6 @@ services:
     depends_on:
       zitadel:
         condition: service_healthy
-        restart: false
 
   # Automated Zitadel configuration for Dex integration
   # Runs once on first startup, skips if already configured

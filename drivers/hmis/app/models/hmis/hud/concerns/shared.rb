@@ -28,7 +28,9 @@ module Hmis::Hud::Concerns::Shared
       warehouse_class.find(id)
     end
 
-    def self.enrollment_related_hud_class_names
+    # Classes that use EnrollmentID + PersonalID composite keys to associate with enrollments.
+    # Includes both HUD-defined and custom record types that follow this association pattern.
+    def self.enrollment_personal_id_keyed_class_names
       [
         'Disability',
         'EmploymentEducation',
@@ -42,12 +44,15 @@ module Hmis::Hud::Concerns::Shared
         'AssessmentResult',
         'Event',
         'YouthEducationStatus',
+        'CustomAssessment',
+        'CustomCaseNote',
+        'CustomService',
       ].freeze
     end
 
     def self.hud_class_names
       [
-        *enrollment_related_hud_class_names,
+        *enrollment_personal_id_keyed_class_names.filter { |name| !name.start_with?('Custom') },
         'Export',
         'Organization',
         'Project',
@@ -64,7 +69,7 @@ module Hmis::Hud::Concerns::Shared
     end
 
     def self.hmis_enrollment_related_classes
-      enrollment_related_hud_class_names.map do |name|
+      enrollment_personal_id_keyed_class_names.map do |name|
         "Hmis::Hud::#{name}".constantize
       end
     end

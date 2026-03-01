@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
   include_context 'file upload setup'
 
@@ -45,7 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   def call_mutation(file_id)
     response, result = post_graphql(file_id: file_id) { mutation }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     file = result.dig('data', 'deleteClientFile', 'file')
     errors = result.dig('data', 'deleteClientFile', 'errors')
     [file, errors]
@@ -67,12 +60,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::File.all).to include(have_attributes(id: file_id))
     end
 
-    it 'should throw error if only allowed to manage own files and trying to delete file that is not their own' do
-      remove_permissions(access_control, :can_manage_any_client_files)
-      file_id = f1.id
-      f1.update!(user_id: u2.id)
-      expect_gql_error post_graphql(file_id: file_id) { mutation }
-      expect(Hmis::File.all).to include(have_attributes(id: file_id))
+    context 'only allowed to manage own files' do
+      before(:each) do
+        remove_permissions(access_control, :can_manage_any_client_files)
+      end
+
+      it 'should delete the file if it is their own' do
+        file_id = f1.id
+        file, errors = call_mutation(file_id)
+        expect(errors).to be_empty
+        expect(file).to be_present
+        expect(Hmis::File.all).not_to include(have_attributes(id: file_id))
+      end
+
+      it 'should throw error if trying to delete file that is not their own' do
+        file_id = f1.id
+        f1.update!(user_id: u2.id)
+        expect_gql_error post_graphql(file_id: file_id) { mutation }
+        expect(Hmis::File.all).to include(have_attributes(id: file_id))
+      end
     end
 
     it 'tracks metadata on versions' do

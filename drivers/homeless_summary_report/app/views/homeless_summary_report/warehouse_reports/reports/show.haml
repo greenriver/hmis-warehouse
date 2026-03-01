@@ -12,32 +12,35 @@
 %p.mb-2= @report.description
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 
-.well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
-  .col-8.pl-0
-    = @report.describe_filter_as_html
-  .col-3.text-right
-    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: homeless_summary_report_warehouse_reports_report_path(@report, format: :xlsx)
-- @report.measures.each do |measure, data|
-  .well
-    - measure_slug = measure.underscore.tr(' ', '_')
-    .d-flex
-      .mb-4.mr-4
-        %h2= measure
-        %p= data[:description]
-      .ml-auto
-        %a{href: '#', data: { 'bs-toggle' => :collapse, 'bs-target' => "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
-          View details
-          %i.icon-arrow-circled-down
-    - @report.variants.each do |household_category, details|
-      .collapse{id: measure_slug}
+- if @report.purged?
+  = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: reload_from_csv_homeless_summary_report_warehouse_reports_report_path(@report)
+- else
+  .well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
+    .col-8.pl-0
+      = @report.describe_filter_as_html
+    .col-3.text-right
+      = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: homeless_summary_report_warehouse_reports_report_path(@report, format: :xlsx)
+  - @report.measures.each do |measure, data|
+    .well
+      - measure_slug = measure.underscore.tr(' ', '_')
+      .d-flex
+        .mb-4.mr-4
+          %h2= measure
+          %p= data[:description]
+        .ml-auto
+          %a{href: '#', data: { 'bs-toggle' => :collapse, 'bs-target' => "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
+            View details
+            %i.icon-arrow-circled-down
+      - @report.variants.each do |household_category, details|
+        .collapse{id: measure_slug}
+          - base_variant = details[:base_variant]
+          = render 'counts_table', measure: measure, data: data, household_category: household_category, demographic_category: 'all', title: base_variant[:name]
+          - details[:variants].each do |demographic_category, variant|
+            = render 'counts_table', data: data, household_category: household_category, demographic_category: demographic_category, title: variant[:name], measure: measure
+      - @report.variants.each do |household_category, details|
         - base_variant = details[:base_variant]
-        = render 'counts_table', measure: measure, data: data, household_category: household_category, demographic_category: 'all', title: base_variant[:name]
-        - details[:variants].each do |demographic_category, variant|
-          = render 'counts_table', data: data, household_category: household_category, demographic_category: demographic_category, title: variant[:name], measure: measure
-    - @report.variants.each do |household_category, details|
-      - base_variant = details[:base_variant]
-      - data[:fields].each do |field, row|
-        - if measure == 'Measure 7'
-          = render 'chart_stacked', measure: measure, household_category: household_category, field: field, row: row
-        - else
-          = render 'chart', measure: measure, household_category: household_category, field: field, row: row
+        - data[:fields].each do |field, row|
+          - if measure == 'Measure 7'
+            = render 'chart_stacked', measure: measure, household_category: household_category, field: field, row: row
+          - else
+            = render 'chart', measure: measure, household_category: household_category, field: field, row: row

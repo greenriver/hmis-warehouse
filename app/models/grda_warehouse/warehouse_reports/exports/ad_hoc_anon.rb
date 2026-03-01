@@ -33,7 +33,7 @@ module GrdaWarehouse::WarehouseReports::Exports
             rows << [
               client.age(filter.end),
               race_for_client(client),
-              client.gender,
+              HudHelper.util.sex(client.Sex),
               report_calculator.pregnancy_status_for(client),
               HudHelper.util.veteran_status(client.VeteranStatus),
               yes_no(report_calculator.disabled_and_impairing?(client)),
@@ -59,7 +59,7 @@ module GrdaWarehouse::WarehouseReports::Exports
       [
         'Age',
         'Race',
-        'Gender',
+        'Sex',
         'Pregnancy Status',
         'Veteran Status',
         'Indefinite and Impairing Disabling Condition',

@@ -22,6 +22,11 @@ on:
         required: false
         type: boolean
         default: false
+      testkit_check_all_table_results:
+        description: 'Ignore skip option in table comparisons'
+        required: false
+        type: boolean
+        default: false
       with_logging:
         description: "Run logging configuration tests"
         required: false
@@ -102,6 +107,7 @@ jobs:
       run_warehouse: ${{ steps.set-matrix.outputs.run_warehouse }}
       focused_path: ${{ steps.set-matrix.outputs.focused_path }}
       okta: ${{ steps.set-matrix.outputs.okta }}
+      testkit_check_all_table_results: ${{ steps.set-matrix.outputs.testkit_check_all_table_results }}
       logging: ${{ steps.set-matrix.outputs.logging }}
       profiling: ${{ steps.set-matrix.outputs.profiling }}
 
@@ -119,6 +125,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TEST_PATH: ${{ github.event.inputs.test_path }}
           INPUT_WITH_OKTA: ${{ github.event.inputs.with_okta }}
+          INPUT_TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ github.event.inputs.testkit_check_all_table_results }}
           INPUT_WITH_LOGGING: ${{ github.event.inputs.with_logging }}
           INPUT_WITH_PROFILING: ${{ github.event.inputs.with_profiling }}
         run: |
@@ -272,6 +279,7 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           TODO_OR_DIE_LOG_ONLY: true
+          TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}
           FOCUS_PATH: ${{ matrix.test_group.test_path }}
         run: |
           if [ -n "$FOCUS_PATH" ]; then
@@ -376,6 +384,7 @@ jobs:
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROMIUM_PATH: /usr/bin/chromium
           TARGET_SPECS: ${{ needs.determine_matrix.outputs.focused_path }}
+          TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}
           TODO_OR_DIE_LOG_ONLY: true
         run: bash ./bin/run_hmis_system_tests.sh
 
@@ -442,6 +451,7 @@ jobs:
           LOG_LEVEL: INFO
           CHROMIUM_PATH: /usr/bin/chromium
           RUN_RAILS_SYSTEM_TESTS: true
+          TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}
           TODO_OR_DIE_LOG_ONLY: true
         run: |
           FOCUS_PATH="${{ needs.determine_matrix.outputs.focused_path }}"

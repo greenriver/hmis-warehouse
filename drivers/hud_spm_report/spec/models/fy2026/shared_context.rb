@@ -42,6 +42,10 @@ RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
     # Build ServiceHistoryEnrollments
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 
+    # Prepare report (builds household context)
+    generator = HudSpmReport::Generators::Fy2026::Generator.new(report)
+    generator.prepare_report
+
     # Generate the SpmEnrollment records
     HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set(report)
 

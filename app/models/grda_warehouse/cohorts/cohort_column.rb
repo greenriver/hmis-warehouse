@@ -62,6 +62,7 @@ module GrdaWarehouse::Cohorts
         'CohortColumns::SifEligible',
         'CohortColumns::SensoryImpaired',
         'CohortColumns::HousedDate',
+        'CohortColumns::MostRecentMoveInDate',
         'CohortColumns::Destination',
         'CohortColumns::SubPopulation',
         'CohortColumns::IndividualInMostRecentEnrollment',

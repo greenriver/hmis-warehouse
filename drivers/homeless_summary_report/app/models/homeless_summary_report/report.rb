@@ -20,10 +20,15 @@ module HomelessSummaryReport
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include ReportArchival
 
     belongs_to :user, optional: true
     has_many :clients
     has_many :results
+
+    # Active Storage attachments for CSV archival
+    has_many_attached :clients_csv
+    has_many_attached :results_csv
 
     after_initialize :filter
 
@@ -912,5 +917,19 @@ module HomelessSummaryReport
       value&.round(1) || 0
     end
     memoize :calculate
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+        results_csv: {
+          association: :results,
+          filename: -> { "#{report_type}-results-#{id}.csv" },
+        },
+      }
+    end
   end
 end

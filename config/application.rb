@@ -22,6 +22,9 @@ Bundler.require(*Rails.groups)
 require_relative '../lib/util/id_protector'
 require_relative '../lib/util/rails_trusted_proxies_config'
 
+# common route concerns, included here to avoid class loader issues due to "drivers" load order in dev mode
+require_relative '../lib/hud_reports/route_concerns'
+
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -146,5 +149,6 @@ module BostonHmis
     config.help_links = []
     config.location_processors = []
     config.queued_tasks = {}
+    config.report_archival_types = []
   end
 end

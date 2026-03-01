@@ -135,6 +135,20 @@ module HudReports
       ['first_name', 'last_name', 'dob', 'ssn']
     end
 
+    # Builds a DrilldownContext with validated components.
+    # This centralizes validation via the context while keeping the generator
+    # as the source of business rules for measure/table validation.
+    def self.drilldown_context(report:, measure_id:, cell_id:, table_id:, report_type: nil)
+      ::HudReports::DrilldownContext.build(
+        report: report,
+        generator: self,
+        measure_id: measure_id,
+        cell_id: cell_id,
+        table_id: table_id,
+        report_type: report_type,
+      )
+    end
+
     def self.allowed_options(_)
       [
         :start,

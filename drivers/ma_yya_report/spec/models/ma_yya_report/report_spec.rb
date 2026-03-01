@@ -440,4 +440,30 @@ RSpec.describe MaYyaReport::Report do
       expect(report.detail_description(:NonexistentCell)).to be_nil
     end
   end
+
+  describe '.available_age_ranges' do
+    it 'includes all expected age range options' do
+      age_ranges = described_class.available_age_ranges
+
+      expect(age_ranges).to include(
+        under_eighteen: '< 18',
+        fourteen_to_seventeen: '14 - 17',
+        eighteen_to_twenty_four: '18 - 24',
+      )
+    end
+
+    it 'has exactly three age range options' do
+      expect(described_class.available_age_ranges.keys).to contain_exactly(
+        :under_eighteen,
+        :fourteen_to_seventeen,
+        :eighteen_to_twenty_four,
+      )
+    end
+  end
+
+  describe '.report_options' do
+    it 'includes hoh_only in report options' do
+      expect(described_class.report_options).to include(:hoh_only)
+    end
+  end
 end

@@ -78,7 +78,7 @@ module Types
       enrollment = load_ar_association(object, :enrollment)
       return unless enrollment
 
-      load_ar_association(enrollment, :client)&.id
+      load_ar_client_association(enrollment)&.id
     end
 
     private def sanitized_value(value)

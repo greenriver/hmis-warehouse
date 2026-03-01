@@ -18,6 +18,7 @@ module Types
     field :email, String, null: false
     field :first_name, String, null: true
     field :last_name, String, null: true
+    field :active, Boolean, null: false
 
     # activity_logs is for auditing entities that this user has accessed/viewed.
     # It's based on every GraphQL query that was made, but the raw data is not useful to show end users

@@ -14,7 +14,7 @@ module Mutations
 
     def resolve(id:)
       code = Hmis::ScanCardCode.find(id)
-      raise 'unauthorized' unless current_permission?(permission: :can_manage_scan_cards, entity: code.client)
+      access_denied! unless policy_for(code.client, policy_type: :hmis_client).can_manage_scan_cards?
 
       code.deleted_at = Time.current
       code.deleted_by = current_user
