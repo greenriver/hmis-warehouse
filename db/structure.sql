@@ -142,9 +142,9 @@ ALTER SEQUENCE public.access_controls_id_seq OWNED BY public.access_controls.id;
 --
 
 CREATE TABLE public.access_group_members (
-    id integer NOT NULL,
-    access_group_id integer,
-    user_id integer,
+    id bigint NOT NULL,
+    access_group_id bigint,
+    user_id bigint,
     deleted_at timestamp without time zone
 );
 
@@ -174,9 +174,9 @@ ALTER SEQUENCE public.access_group_members_id_seq OWNED BY public.access_group_m
 --
 
 CREATE TABLE public.access_groups (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
-    user_id integer,
+    user_id bigint,
     coc_codes character varying[] DEFAULT '{}'::character varying[],
     deleted_at timestamp without time zone,
     system jsonb DEFAULT '[]'::jsonb,
@@ -350,11 +350,11 @@ ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.acti
 --
 
 CREATE TABLE public.activity_logs (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     item_model character varying,
-    item_id integer,
+    item_id bigint,
     title character varying,
-    user_id integer NOT NULL,
+    user_id bigint NOT NULL,
     controller_name character varying NOT NULL,
     action_name character varying NOT NULL,
     method character varying,
@@ -392,7 +392,7 @@ ALTER SEQUENCE public.activity_logs_id_seq OWNED BY public.activity_logs.id;
 --
 
 CREATE TABLE public.agencies (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -479,13 +479,13 @@ CREATE TABLE public.ar_internal_metadata (
 --
 
 CREATE TABLE public.client_service_history (
-    unduplicated_client_id integer,
+    unduplicated_client_id bigint,
     date date,
     first_date_in_program date,
     last_date_in_program date,
     program_group_id character varying,
     program_type integer,
-    program_id integer,
+    program_id bigint,
     age integer,
     income numeric,
     income_type integer,
@@ -497,7 +497,7 @@ CREATE TABLE public.client_service_history (
     program_name character varying,
     program_tracking_method integer,
     record_type character varying,
-    dc_id integer,
+    dc_id bigint,
     housing_status_at_entry integer,
     housing_status_at_exit integer
 );
@@ -508,10 +508,10 @@ CREATE TABLE public.client_service_history (
 --
 
 CREATE TABLE public.clients_unduplicated (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     client_unique_id character varying NOT NULL,
-    unduplicated_client_id integer NOT NULL,
-    dc_id integer
+    unduplicated_client_id bigint NOT NULL,
+    dc_id bigint
 );
 
 
@@ -613,7 +613,7 @@ ALTER SEQUENCE public.consent_limits_id_seq OWNED BY public.consent_limits.id;
 --
 
 CREATE TABLE public.delayed_jobs (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     priority integer DEFAULT 0 NOT NULL,
     attempts integer DEFAULT 0 NOT NULL,
     handler text NOT NULL,
@@ -654,8 +654,8 @@ ALTER SEQUENCE public.delayed_jobs_id_seq OWNED BY public.delayed_jobs.id;
 --
 
 CREATE TABLE public.glacier_archives (
-    id integer NOT NULL,
-    glacier_vault_id integer NOT NULL,
+    id bigint NOT NULL,
+    glacier_vault_id bigint NOT NULL,
     upload_id text NOT NULL,
     archive_id text,
     checksum text,
@@ -698,7 +698,7 @@ ALTER SEQUENCE public.glacier_archives_id_seq OWNED BY public.glacier_archives.i
 --
 
 CREATE TABLE public.glacier_vaults (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying NOT NULL,
     vault_created_at timestamp without time zone,
     last_upload_attempt_at timestamp without time zone,
@@ -1137,7 +1137,7 @@ ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.i
 --
 
 CREATE TABLE public.imports (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     file character varying,
     source character varying,
     percent_complete double precision,
@@ -1175,7 +1175,7 @@ ALTER SEQUENCE public.imports_id_seq OWNED BY public.imports.id;
 --
 
 CREATE TABLE public.letsencrypt_plugin_challenges (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     response text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -1207,7 +1207,7 @@ ALTER SEQUENCE public.letsencrypt_plugin_challenges_id_seq OWNED BY public.letse
 --
 
 CREATE TABLE public.letsencrypt_plugin_settings (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     private_key text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -1273,14 +1273,14 @@ ALTER SEQUENCE public.links_id_seq OWNED BY public.links.id;
 --
 
 CREATE TABLE public.login_activities (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     scope character varying,
     strategy character varying,
     identity character varying,
     success boolean,
     failure_reason character varying,
     user_type character varying,
-    user_id integer,
+    user_id bigint,
     context character varying,
     ip character varying,
     user_agent text,
@@ -1317,8 +1317,8 @@ ALTER SEQUENCE public.login_activities_id_seq OWNED BY public.login_activities.i
 --
 
 CREATE TABLE public.messages (
-    id integer NOT NULL,
-    user_id integer,
+    id bigint NOT NULL,
+    user_id bigint,
     "from" character varying NOT NULL,
     subject character varying NOT NULL,
     body text NOT NULL,
@@ -1355,9 +1355,9 @@ ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
 --
 
 CREATE TABLE public.nicknames (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
-    nickname_id integer
+    nickname_id bigint
 );
 
 
@@ -1529,10 +1529,10 @@ ALTER SEQUENCE public.oauth_identities_id_seq OWNED BY public.oauth_identities.i
 --
 
 CREATE TABLE public.old_passwords (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     encrypted_password character varying NOT NULL,
     password_archivable_type character varying NOT NULL,
-    password_archivable_id integer NOT NULL,
+    password_archivable_id bigint NOT NULL,
     password_salt character varying,
     created_at timestamp without time zone
 );
@@ -1668,25 +1668,25 @@ CREATE VIEW public.puma_scaling_login_demand AS
 --
 
 CREATE TABLE public.report_results (
-    id integer NOT NULL,
-    report_id integer,
-    import_id integer,
+    id bigint NOT NULL,
+    report_id bigint,
+    import_id bigint,
     percent_complete double precision,
     results json,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
     completed_at timestamp without time zone,
-    user_id integer,
+    user_id bigint,
     original_results json,
     options json,
     job_status character varying,
     validations json,
     support json,
-    delayed_job_id integer,
-    file_id integer,
-    support_file_id integer,
-    export_id integer
+    delayed_job_id bigint,
+    file_id bigint,
+    support_file_id bigint,
+    export_id bigint
 );
 
 
@@ -1715,7 +1715,7 @@ ALTER SEQUENCE public.report_results_id_seq OWNED BY public.report_results.id;
 --
 
 CREATE TABLE public.report_results_summaries (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying NOT NULL,
     type character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
@@ -1749,13 +1749,13 @@ ALTER SEQUENCE public.report_results_summaries_id_seq OWNED BY public.report_res
 --
 
 CREATE TABLE public.reports (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying NOT NULL,
     type character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     weight integer DEFAULT 0 NOT NULL,
-    report_results_summary_id integer,
+    report_results_summary_id bigint,
     enabled boolean DEFAULT true NOT NULL
 );
 
@@ -1785,7 +1785,7 @@ ALTER SEQUENCE public.reports_id_seq OWNED BY public.reports.id;
 --
 
 CREATE TABLE public.roles (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying NOT NULL,
     verb character varying,
     created_at timestamp without time zone NOT NULL,
@@ -1995,7 +1995,7 @@ CREATE TABLE public.schema_migrations (
 --
 
 CREATE TABLE public.similarity_metrics (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     type character varying NOT NULL,
     mean double precision DEFAULT 0.0 NOT NULL,
     standard_deviation double precision DEFAULT 0.0 NOT NULL,
@@ -2032,12 +2032,12 @@ ALTER SEQUENCE public.similarity_metrics_id_seq OWNED BY public.similarity_metri
 --
 
 CREATE TABLE public.taggings (
-    id integer NOT NULL,
-    tag_id integer,
+    id bigint NOT NULL,
+    tag_id bigint,
     taggable_type character varying,
-    taggable_id integer,
+    taggable_id bigint,
     tagger_type character varying,
-    tagger_id integer,
+    tagger_id bigint,
     context character varying(128),
     created_at timestamp without time zone
 );
@@ -2068,7 +2068,7 @@ ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
 --
 
 CREATE TABLE public.tags (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     taggings_count integer DEFAULT 0
 );
@@ -2134,7 +2134,7 @@ ALTER SEQUENCE public.task_queues_id_seq OWNED BY public.task_queues.id;
 --
 
 CREATE TABLE public.tokens (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     token character varying NOT NULL,
@@ -2206,7 +2206,7 @@ CREATE TABLE public.two_factors_memorized_devices (
     uuid character varying NOT NULL,
     name character varying NOT NULL,
     expires_at timestamp without time zone NOT NULL,
-    session_id integer,
+    session_id bigint,
     log_in_ip character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -2237,7 +2237,7 @@ ALTER SEQUENCE public.two_factors_memorized_devices_id_seq OWNED BY public.two_f
 --
 
 CREATE TABLE public.unique_names (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     double_metaphone character varying
 );
@@ -2268,8 +2268,8 @@ ALTER SEQUENCE public.unique_names_id_seq OWNED BY public.unique_names.id;
 --
 
 CREATE TABLE public.uploads (
-    id integer NOT NULL,
-    data_source_id integer,
+    id bigint NOT NULL,
+    data_source_id bigint,
     file character varying NOT NULL,
     percent_complete double precision,
     unzipped_path character varying,
@@ -2281,7 +2281,7 @@ CREATE TABLE public.uploads (
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
     deleted_at timestamp without time zone,
-    user_id integer
+    user_id bigint
 );
 
 
@@ -2415,9 +2415,9 @@ ALTER SEQUENCE public.user_groups_id_seq OWNED BY public.user_groups.id;
 --
 
 CREATE TABLE public.user_roles (
-    id integer NOT NULL,
-    role_id integer,
-    user_id integer,
+    id bigint NOT NULL,
+    role_id bigint,
+    user_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -2449,7 +2449,7 @@ ALTER SEQUENCE public.user_roles_id_seq OWNED BY public.user_roles.id;
 --
 
 CREATE TABLE public.users (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     last_name character varying NOT NULL,
     email character varying NOT NULL,
     encrypted_password character varying DEFAULT ''::character varying NOT NULL,
@@ -2478,7 +2478,7 @@ CREATE TABLE public.users (
     invitation_accepted_at timestamp without time zone,
     invitation_limit integer,
     invited_by_type character varying,
-    invited_by_id integer,
+    invited_by_id bigint,
     invitations_count integer DEFAULT 0,
     receive_file_upload_notifications boolean DEFAULT false,
     phone character varying,
@@ -2488,7 +2488,7 @@ CREATE TABLE public.users (
     notify_on_anomaly_identified boolean DEFAULT false NOT NULL,
     email_schedule character varying DEFAULT 'immediate'::character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
-    agency_id integer,
+    agency_id bigint,
     encrypted_otp_secret character varying,
     encrypted_otp_secret_iv character varying,
     encrypted_otp_secret_salt character varying,
@@ -2554,20 +2554,19 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 --
 
 CREATE TABLE public.versions (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     item_type character varying NOT NULL,
-    item_id integer NOT NULL,
+    item_id bigint NOT NULL,
     event character varying NOT NULL,
     whodunnit character varying,
     object text,
     created_at timestamp without time zone,
-    user_id integer,
+    user_id bigint,
     session_id character varying,
     request_id character varying,
     object_changes text,
-    referenced_user_id integer,
-    referenced_entity_name character varying,
-    true_user_id bigint
+    referenced_user_id bigint,
+    referenced_entity_name character varying
 );
 
 
@@ -2596,8 +2595,8 @@ ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
 --
 
 CREATE TABLE public.warehouse_alerts (
-    id integer NOT NULL,
-    user_id integer,
+    id bigint NOT NULL,
+    user_id bigint,
     html character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -4307,7 +4306,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20251224185104'),
+('20260207120000'),
 ('20251215205826'),
 ('20251120143000'),
 ('20251106020333'),

@@ -92,6 +92,26 @@ Examples:
 - **APR/CAPER**: `AprClient` stores age, household type, and disability status
 - **SPM**: `SpmEnrollment` normalizes enrollment data across project types
 
+## Cell Drilldowns
+
+Cell drilldowns allow users to view individual records behind aggregated report cells. Clicking a cell navigates to a paginated detail view showing the underlying data with optional client search and Excel export.
+
+### Architecture
+
+The drilldown system provides shared infrastructure for consistent behavior across reports:
+
+- **DrilldownContext**: Encapsulates cell parameters, scope building, and display metadata
+- **CellDrilldownConcern**: Controller concern providing standardized pagination, search, and export actions
+- **CellDetailExportBuilderBase**: Base class for asynchronous Excel exports with PII filtering
+
+Reports implement drilldowns by including the concern and providing report-specific configuration (export class, route helpers, scope preloading).
+
+### Search and Export
+
+Drilldowns support optional client search by name, ID, or Personal ID. Snapshot models opt-in by implementing a search interface.
+
+Excel exports run asynchronously via background jobs. Exports batch-process records to avoid memory issues and respect user PII permissions and project access policies.
+
 ## Retry and Idempotency
 
 The framework supports retrying failed or partial report runs on an opt-in basis.

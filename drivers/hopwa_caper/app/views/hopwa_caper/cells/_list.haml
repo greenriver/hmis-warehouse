@@ -1,6 +1,6 @@
 - project_ids = list.map(&:project_id).uniq
 - current_user.policy_context.preload_project_dependencies(project_ids)
-- presenter = HopwaCaper::DrilldownPresenter.new(list, @report, current_user, format: :html)
+- presenter = presenter_class.new(list, @report, current_user, format: :html)
 - display_headers = presenter.headers
 .card
   .overflow-x-scroll

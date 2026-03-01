@@ -16,7 +16,7 @@ module Types
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
 
     def open_enrollment_summary
-      client = load_ar_association(object, :client)
+      client = load_ar_client_association(object)
       return [] unless current_user.can_view_open_enrollment_summary?
 
       load_ar_association(client, :enrollments).open_including_wip

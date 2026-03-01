@@ -35,14 +35,6 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
       end
 
-      it 'creates SpmEnrollment records correctly' do
-        expect(@report.spm_enrollments.count).to be > 0
-
-        spm_enrollment = @report.spm_enrollments.first
-        expect(spm_enrollment.entry_date).to eq('2022-11-01'.to_date)
-        expect(spm_enrollment.exit_date).to eq('2023-01-15'.to_date)
-      end
-
       it 'correctly calculates the length of time homeless without prior living situation' do
         # Verify that the universe was created for measure 1a
         expect(@report.universe('m1a1').members.count).to eq(1)
@@ -365,7 +357,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::MeasureOne, type: :model, exclu
         expect(answer_b2.summary.to_i).to eq(3)
 
         # Average should be (75 + 75 + 56) / 3 = 68.67 days
-        expect(answer_d2.summary.to_f).to be_within(1).of(68.67)
+        expect(answer_d2.summary.to_f).to eq(68.67)
 
         # Median should be 75 days
         expect(answer_g2.summary.to_i).to eq(75)

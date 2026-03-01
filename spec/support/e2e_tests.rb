@@ -89,6 +89,7 @@ module E2eTests
           logger: FerrumLogger.new,
           inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
           browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
+          timezone_id: 'America/New_York', # Match Rails timezone to avoid date mismatches after midnight UTC
         }
       end
 

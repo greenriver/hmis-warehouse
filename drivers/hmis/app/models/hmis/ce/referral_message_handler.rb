@@ -12,6 +12,7 @@ module Hmis::Ce
   class ReferralMessageHandler
     ACCEPT_REFERRAL_MESSAGE = 'accept_referral'
     REJECT_REFERRAL_MESSAGE = 'reject_referral'
+    DECLINE_REASON_LINK_ID = 'decline_reason'
 
     # In general, when accessing `submitted_values` from the message handler, use safe accessor because:
     # - `step` could be nil, when the message is triggered by an event that doesn't involve a step, such as `start_workflow`, `end_workflow`, or `pass_gateway`.
@@ -52,6 +53,10 @@ module Hmis::Ce
         referral_enroller.set_move_in_date(message)
       when 'set_custom_referral_status'
         set_custom_referral_status(status_key: message.params['custom_status_key'])
+      when 'set_referral_decline_reason'
+        set_referral_decline_reason(message)
+      when 'clear_referral_decline_reason'
+        clear_referral_decline_reason
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -124,6 +129,27 @@ module Hmis::Ce
 
       status = Hmis::Ce::CustomReferralStatus.find_by!(key: status_key, data_source: referral.data_source)
       referral.update!(custom_status: status)
+    end
+
+    def set_referral_decline_reason(message) # rubocop:disable Naming/AccessorMethodName
+      form_definition = message.step.form_definition
+
+      raise "Trying to set decline reason for referral #{referral.id}, step #{message.step.id}, but form definition is nil. This probably indicates a mistake in the workflow configuration." unless form_definition.present?
+      raise "Trying to set decline reason for referral #{referral.id}, step #{message.step.id}, but form definition '#{form_definition.identifier}' doesn't collect it. This probably indicates a mistake in the workflow configuration. The form must collect decline reason on an item with link_id '#{DECLINE_REASON_LINK_ID}'" unless form_definition.link_id_item_hash[DECLINE_REASON_LINK_ID].present?
+
+      decline_reason_key = message.step.submitted_values&.fetch(DECLINE_REASON_LINK_ID, nil)
+      # Skip if no decline reason submitted. This can happen when the form only conditionally collects decline reason, or if selecting the decline reason is optional.
+      return unless decline_reason_key.present?
+
+      decline_reason = Hmis::Ce::ReferralDeclineReason.find_by!(
+        key: decline_reason_key,
+        data_source: referral.data_source,
+      )
+      referral.update!(decline_reason: decline_reason)
+    end
+
+    def clear_referral_decline_reason
+      referral.update!(decline_reason: nil)
     end
 
     private

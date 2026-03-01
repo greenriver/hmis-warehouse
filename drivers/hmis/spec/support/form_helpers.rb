@@ -216,10 +216,7 @@ module FormHelpers
     }.stringify_keys,
     CE_PARTICIPATION: {
       "accessPoint": 'YES',
-      "preventionAssessment": 'YES',
-      "crisisAssessment": 'YES',
-      "housingAssessment": 'YES',
-      "directServices": 'YES',
+      "ceParticipationServices": ['PREVENTION_ASSESSMENT', 'CRISIS_ASSESSMENT', 'HOUSING_ASSESSMENT', 'DIRECT_SERVICES'],
       "receivesReferrals": 'YES',
       "ceParticipationStatusStartDate": '2020-07-01',
       "ceParticipationStatusEndDate": nil,

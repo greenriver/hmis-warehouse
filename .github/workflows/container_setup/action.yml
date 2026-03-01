@@ -54,10 +54,8 @@ runs:
         . /etc/os-release
         sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
-        # Install NodeJS and Yarn repositories
-        retry curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
-        retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+        # Install NodeJS repository
+        retry curl -fsSL https://deb.nodesource.com/setup_20.x | bash -s -- -y
 
         retry apt-get update
 

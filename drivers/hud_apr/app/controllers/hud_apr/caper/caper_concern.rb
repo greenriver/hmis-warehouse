@@ -60,15 +60,19 @@ module HudApr::Caper::CaperConcern
     private def set_pdf_export
       @pdf_export = HudApr::DocumentExports::HudCaperExport.new
     end
+  end
 
-    def possible_generator_classes
-      {
-        fy2020: HudApr::Generators::Caper::Fy2020::Generator,
-        fy2021: HudApr::Generators::Caper::Fy2021::Generator,
-        fy2023: HudApr::Generators::Caper::Fy2023::Generator,
-        fy2024: HudApr::Generators::Caper::Fy2024::Generator,
-        fy2026: HudApr::Generators::Caper::Fy2026::Generator,
-      }
-    end
+  def self.possible_generator_classes
+    {
+      fy2020: HudApr::Generators::Caper::Fy2020::Generator,
+      fy2021: HudApr::Generators::Caper::Fy2021::Generator,
+      fy2023: HudApr::Generators::Caper::Fy2023::Generator,
+      fy2024: HudApr::Generators::Caper::Fy2024::Generator,
+      fy2026: HudApr::Generators::Caper::Fy2026::Generator,
+    }
+  end
+
+  def possible_generator_classes
+    HudApr::Caper::CaperConcern.possible_generator_classes
   end
 end

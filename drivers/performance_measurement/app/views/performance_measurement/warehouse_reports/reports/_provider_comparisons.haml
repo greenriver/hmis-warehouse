@@ -1,7 +1,6 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
 = render 'chosen_universe'
 = render 'report_tabs'
-= render 'warehouse_reports/beta_warning'
 
 .row
   .col-sm-3
@@ -60,10 +59,12 @@
                   %td{class: data[:decorator]}= data[:display_value]
               - table[:projects].each do |project_id, data|
                 %tr
-                  %td= data[:project_name]
+                  %td= link_to_if can_view_projects?, data[:project_name], project_path(project_id)
                   - data[:values].each do |detail, result|
-                    %td{class: result[:decorator]}
+                    - data = {}
+                    - data = {data: { 'bs-toggle' => :tooltip, 'bs-title' => raw(markdown.render(result[:tooltip])), 'bs-html' => 'true' }} if result[:tooltip].present?
+                    %td{class: result[:decorator], **data}
                       - if result[:display_value].present?
                         = result[:display_value]
                       - else
-                        = 'N/A'
+                        .text-muted= 'N/A'

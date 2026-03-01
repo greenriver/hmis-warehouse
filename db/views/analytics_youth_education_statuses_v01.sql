@@ -1,1 +1,20 @@
-SELECT * FROM "YouthEducationStatus" WHERE "DateDeleted" is NULL
+SELECT id,
+    "YouthEducationStatusID",
+    "EnrollmentID",
+    "PersonalID",
+    "InformationDate",
+    "CurrentSchoolAttend",
+    "MostRecentEdStatus",
+    "CurrentEdStatus",
+    "DataCollectionStage",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    pending_date_deleted,
+    source_hash,
+    synthetic
+   FROM "YouthEducationStatus"
+  WHERE ("DateDeleted" IS NULL)

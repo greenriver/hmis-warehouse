@@ -36,6 +36,13 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
     }
   end
 
+  # perform mutation and return the referral id
+  def perform_mutation(variables)
+    response, result = post_graphql(**variables) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'createDirectCeReferral', 'referral', 'id')
+  end
+
   describe 'create direct CE referral mutation' do
     let(:mutation) do
       <<~GRAPHQL
@@ -97,6 +104,20 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
         # values were saved to CDEs
         step = referral.steps.where(status: 'completed').sole
         expect(step.custom_data_elements.count).to eq(2)
+      end
+
+      context 'with assignment rules on unit_group' do
+        let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
+        let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
+
+        it 'captures assignment rules on the referral at creation time' do
+          referral_id = perform_mutation(variables)
+          referral = Hmis::Ce::Referral.find(referral_id)
+          expect(referral.assignment_rules).to be_an(Array)
+          expect(referral.assignment_rules.length).to eq(2)
+          rule_ids = referral.assignment_rules.map { |r| r['id'] }
+          expect(rule_ids).to contain_exactly(eligibility_rule.id, priority_rule.id)
+        end
       end
     end
 
@@ -172,13 +193,35 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
       let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: workflow_template, direct_referral_workflow_template: direct_referral_workflow_template) }
 
       it 'creates the referral with the correct template' do
+        referral_id = nil
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
+          referral_id = perform_mutation(variables)
         end.to change(Hmis::Ce::Referral, :count).by(1)
 
-        referral = Hmis::Ce::Referral.last
+        referral = Hmis::Ce::Referral.find(referral_id)
         expect(referral.workflow_template).to eq(direct_referral_workflow_template)
+      end
+    end
+
+    # More comprehensive specs for default participant assignment are in the model spec
+    # (see spec/models/hmis/ce/referral_spec.rb #create_default_participants!)
+    context 'with default swimlane assignments' do
+      let!(:case_manager) { create :hmis_user }
+      let!(:swimlane) { workflow_template.swimlanes.create!(name: 'Case Managers') }
+      let!(:default_assignment) do
+        create(:hmis_ce_default_swimlane_assignment, user: case_manager, swimlane: swimlane, owner: project)
+      end
+
+      it 'creates referral participants from default assignments' do
+        referral_id = nil
+        expect do
+          referral_id = perform_mutation(variables)
+        end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
+
+        referral = Hmis::Ce::Referral.find(referral_id)
+        participant = referral.participants.first
+        expect(participant.user).to eq(case_manager)
+        expect(participant.swimlane).to eq(swimlane)
       end
     end
   end

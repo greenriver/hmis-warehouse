@@ -137,11 +137,51 @@ module HmisExternalApis::AcHmis
 
       Rails.logger.info "Found #{merge_sets.length} duplicate MCI unique IDs"
 
-      Rails.logger.info 'Enqueuing dedup jobs for each one'
+      return if merge_sets.empty?
+
+      reviewer = User.find(actor_id)
+      timestamp = Time.current
+
+      # Record whether we made any updates, so we can trigger service history rebuild.
+      # Even if there are merge_sets, if they already point to the same destination client, no updates are needed.
+      any_updates = false
 
       merge_sets.each do |set|
-        Hmis::MergeClientsJob.perform_later(client_ids: set.client_ids, actor_id: actor_id)
+        source_client_ids = set.client_ids
+
+        # Choose the lowest destination ID as the "winner".
+        winner_destination_id = GrdaWarehouse::WarehouseClient.
+          where(source_id: source_client_ids).
+          minimum(:destination_id)
+        winner = GrdaWarehouse::Hud::Client.find(winner_destination_id)
+
+        # Update all source clients to point to the winner destination.
+        source_clients = Hmis::Hud::Client.where(id: source_client_ids).preload(:warehouse_client_source)
+        source_clients.each do |source_client|
+          # If the source client already points to the winner destination, no action needed
+          old_destination_id = source_client.warehouse_client_source&.destination_id
+          next if old_destination_id == winner_destination_id
+
+          if GrdaWarehouse::ClientSplitHistory.exists?(split_from: winner_destination_id, split_into: old_destination_id)
+            Rails.logger.info "Not moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner_destination_id} because they were previously split"
+            next
+          end
+
+          Rails.logger.info "Moving source Client##{source_client.id} from destination Client##{old_destination_id} to destination Client##{winner_destination_id}"
+
+          winner.merge_from(
+            source_client.as_warehouse,
+            reviewed_by: reviewer,
+            reviewed_at: timestamp,
+          )
+          any_updates = true
+        end
       end
+
+      return unless any_updates
+
+      # If there were updates, trigger a service history rebuild. Records requiring rebuild were marked for re-processing by the merge_from method
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
     def data_source

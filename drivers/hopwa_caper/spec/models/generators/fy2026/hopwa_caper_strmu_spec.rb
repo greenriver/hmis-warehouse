@@ -160,7 +160,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
         data_source: data_source,
       )
 
-      # Household 2: receives only utilities assistance (single type)
+      # Household 2: receives only utility assistance (single type)
       create(
         :hud_service,
         enrollment: household2_enrollment,
@@ -176,8 +176,68 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       _, rows = run_and_extract_rows([project], 'Q3')
 
       expect(rows.fetch('STRMU Households Total')).to eq(2)
-      expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
+      expect(rows.fetch('How many households were served with STRMU utility assistance only?')).to eq(1)
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(1)
+    end
+
+    it 'correctly reports expenditures' do
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      expect(rows.fetch('STRMU mortgage assistance').to_f).to eq(0)
+      expect(rows.fetch('STRMU rental assistance').to_f).to eq(500)
+      expect(rows.fetch('STRMU utility assistance').to_f).to eq(250)
+      expect(rows.fetch('Total STRMU Expenditures').to_f).to eq(750)
+    end
+
+    it 'does not count households receiving multiple codes of the same type in "more than one type"' do
+      # Client with both utility deposits and utility payments (one type: utility)
+      utility_client = create(:hud_client, data_source: data_source)
+      utility_enrollment = create_hiv_positive_enrollment(
+        client: utility_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(:hud_service, enrollment: utility_enrollment, record_type: hopwa_financial_assistance,
+                           type_provided: hud_code(:hopwa_financial_assistance_options, 'Utility deposits'),
+                           fa_amount: 100, date_provided: utility_enrollment.entry_date, data_source: data_source)
+      create(:hud_service, enrollment: utility_enrollment, record_type: hopwa_financial_assistance,
+                           type_provided: hud_code(:hopwa_financial_assistance_options, 'Utility payments'),
+                           fa_amount: 200, date_provided: utility_enrollment.entry_date, data_source: data_source)
+
+      # Client with both rental assistance and security deposits (one type: rental)
+      rental_client = create(:hud_client, data_source: data_source)
+      rental_enrollment = create_hiv_positive_enrollment(
+        client: rental_client,
+        project: project,
+        entry_date: report_start_date + 2.days,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      create(:hud_service, enrollment: rental_enrollment, record_type: hopwa_financial_assistance,
+                           type_provided: hud_code(:hopwa_financial_assistance_options, 'Rental assistance'),
+                           fa_amount: 300, date_provided: rental_enrollment.entry_date, data_source: data_source)
+      create(:hud_service, enrollment: rental_enrollment, record_type: hopwa_financial_assistance,
+                           type_provided: hud_code(:hopwa_financial_assistance_options, 'Security deposits'),
+                           fa_amount: 400, date_provided: rental_enrollment.entry_date, data_source: data_source)
+
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      # Household 1 from outer before: rental + utility (2 types)
+      # Household 2 from outer before: utility (1 type)
+      # utility_client: utility + utility (1 type)
+      # rental_client: rental + rental (1 type)
+
+      # Total served: 2 (existing) + 2 (new) = 4
+      expect(rows.fetch('STRMU Households Total')).to eq(4)
+
+      # Only Household 1 should be in "more than one type"
+      expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(1)
+
+      # utility_client should be in "utility assistance only"
+      # rental_client should be in "rental assistance only"
+      # (Household 2 is also utility assistance only)
+      expect(rows.fetch('How many households were served with STRMU utility assistance only?')).to eq(2)
+      expect(rows.fetch('How many households were served with STRMU rental assistance only?')).to eq(1)
     end
 
     it 'correctly categorizes a client with multiple enrollments and different service types' do
@@ -226,10 +286,23 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       # This client should be in "more than one type" (total 2: household1 and this client)
       expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(2)
 
-      # They should NOT be in "mortgage assistance only" or "utilities assistance only"
+      # They should NOT be in "mortgage assistance only" or "utility assistance only"
       expect(rows.fetch('How many households were served with STRMU mortgage assistance only?')).to eq(0)
-      # (household2 is still utilities only)
-      expect(rows.fetch('How many households were served with STRMU utilities assistance only?')).to eq(1)
+      # (household2 is still utility only)
+      expect(rows.fetch('How many households were served with STRMU utility assistance only?')).to eq(1)
+
+      # Expenditures check for all 3 households:
+      # Household 1: Rental (500), Utility (150)
+      # Household 2: Utility (100)
+      # Client (Household 3/4): Mortgage (500), Utility (100)
+      # Total Mortgage: 500
+      # Total Rental: 500
+      # Total Utility: 150 + 100 + 100 = 350
+      # Grand Total: 500 + 500 + 350 = 1350
+      expect(rows.fetch('STRMU mortgage assistance').to_f).to eq(500)
+      expect(rows.fetch('STRMU rental assistance').to_f).to eq(500)
+      expect(rows.fetch('STRMU utility assistance').to_f).to eq(350)
+      expect(rows.fetch('Total STRMU Expenditures').to_f).to eq(1350)
     end
   end
 

@@ -118,6 +118,8 @@ module
         HudHelper.util.coc_name(column)
       when 'Woman', 'Man', 'Culturally Specific', 'Different Identity', 'Non-Binary', 'Transgender', 'Questioning', 'Unknown Gender'
         HudHelper.util.no_yes_reasons_for_missing_data(column)
+      when 'Sex'
+        HudHelper.util.sex(column)
       when *HudHelper.util.races.values
         HudHelper.util.no_yes_missing(column)
       else
@@ -131,14 +133,7 @@ module
         'First Name',
         'Last Name',
         'DOB',
-        'Woman',
-        'Man',
-        'Culturally Specific',
-        'Different Identity',
-        'Non-Binary',
-        'Transgender',
-        'Questioning',
-        'Unknown Gender',
+        'Sex',
       ] + HudHelper.util.races.values
     end
 
@@ -148,14 +143,7 @@ module
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
-        c_t[:Woman],
-        c_t[:Man],
-        c_t[:CulturallySpecific],
-        c_t[:DifferentIdentity],
-        c_t[:NonBinary],
-        c_t[:Transgender],
-        c_t[:Questioning],
-        c_t[:GenderNone],
+        c_t[:Sex],
       ] + HudHelper.util.races.keys.map { |k| c_t[k.to_sym] }
     end
   end

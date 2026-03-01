@@ -108,7 +108,7 @@ module Hmis::Ce
       markers.each do |marker|
         max_processed_trackable_id = [marker.trackable_id, max_processed_trackable_id].compact.max
         pool = ::Hmis::Ce::Match::CandidatePool.find_by(id: marker.trackable_id)
-        unless pool&.active_for_maintenance?
+        unless pool&.active?
           # skip processing inactive pools and remove dangling markers
           pool ? marker.mark_processed : marker.destroy!
           next
@@ -161,7 +161,7 @@ module Hmis::Ce
       log_info('Starting reconciliation of untracked pools')
 
       # Find and mark untracked active pools
-      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active_for_maintenance.
+      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
 

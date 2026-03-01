@@ -98,5 +98,14 @@ module HudHelper
     def staging_cutoff
       Date.new(2025, 9, 1)
     end
+
+    # Check if gender should be shown in reports
+    # @return [Boolean] true if gender should be shown
+    def show_gender_in_reports?
+      property = AppConfigProperty.find_by(key: 'show_gender_in_reports')
+      return false if property.nil?
+
+      property.value == true
+    end
   end
 end

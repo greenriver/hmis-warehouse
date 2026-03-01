@@ -1,1 +1,20 @@
-SELECT * FROM "CustomClientName" WHERE "DateDeleted" is NULL
+SELECT id,
+    first,
+    middle,
+    last,
+    suffix,
+    use,
+    notes,
+    "primary",
+    "NameDataQuality",
+    "CustomClientNameID",
+    "PersonalID",
+    "UserID",
+    data_source_id,
+    "DateCreated",
+    "DateUpdated",
+    "DateDeleted",
+    search_name_full,
+    search_name_last
+   FROM "CustomClientName"
+  WHERE ("DateDeleted" IS NULL)
