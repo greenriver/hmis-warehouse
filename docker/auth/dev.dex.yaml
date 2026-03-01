@@ -29,24 +29,19 @@ connectors:
       clientID: ${GITHUB_IDP_CLIENT_ID}
       clientSecret: ${GITHUB_IDP_CLIENT_SECRET}
       redirectURI: https://dex.dev.test/dex/callback
-  # Zitadel connector - requires running ./docker/zitadel/setup.sh first
-  # and adding the generated credentials to .env.local
-  # Until configured, this connector will appear but won't work
   - type: oidc
-    id: zitadel
+    id: keycloak
     name: Open Path Account
     config:
-      issuer: http://op-zitadel.dev.test:8080
-      clientID: ${ZITADEL_IDP_CLIENT_ID}
-      clientSecret: ${ZITADEL_IDP_CLIENT_SECRET}
+      issuer: http://op-keycloak.dev.test:8080/realms/openpath
+      clientID: ${KEYCLOAK_IDP_CLIENT_ID}
+      clientSecret: ${KEYCLOAK_IDP_CLIENT_SECRET}
       redirectURI: https://dex.dev.test/dex/callback
-      useLoginAsID: true
       scopes:
         - openid
         - email
         - profile
       getUserInfo: true
-      # insecureSkipEmailVerified allows login even if issuer is unreachable during config load
       insecureSkipEmailVerified: true
 staticClients:
   - id: hmis-warehouse
@@ -54,19 +49,17 @@ staticClients:
     redirectURIs:
       # These redirect URIs point to the `--redirect-url` for OAuth2 proxy.
       - "https://hmis-warehouse.dev.test/oauth2/callback"
-    secret: "${JWT_SECRET}"
+    secret: "dev-hmis-warehouse-secret"
     trustedPeers:
       - hmis-frontend
-    public: true
   - id: hmis-frontend
     name: "HMIS Frontend"
     redirectURIs:
       - "https://hmis.dev.test/oauth2/callback"
       - "https://hmis-backend.dev.test/oauth2/callback"
-    secret: "${JWT_SECRET}"
+    secret: "dev-hmis-frontend-secret"
     trustedPeers:
       - hmis-warehouse
-    public: true
 enablePasswordDB: true
 staticPasswords:
   - email: "admin@example.com"

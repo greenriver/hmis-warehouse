@@ -1,7 +1,7 @@
 x-env-file: &env_file
   - .env.development.local
   - .env.local
-  - docker/auth/zitadel-credentials.env
+  - docker/auth/keycloak-credentials.env
 
 x-app: &app
   image: hmis-warehouse:5.3
@@ -267,12 +267,12 @@ services:
     container_name: dex
     # image: dexidp/dex:latest-alpine
     image: ghcr.io/dexidp/dex@sha256:5d0656fce7d453c0e3b2706abf40c0d0ce5b371fb0b73b3cf714d05f35fa5f86 # v2.44.0
-    # Source Zitadel credentials at runtime before starting Dex
+    # Source Keycloak credentials at runtime before starting Dex
     command: >
       sh -c '
-        if [ -f /auth/zitadel-credentials.env ]; then
-          echo "Loading Zitadel credentials..."
-          export $$(grep -v "^#" /auth/zitadel-credentials.env | xargs)
+        if [ -f /auth/keycloak-credentials.env ]; then
+          echo "Loading Keycloak credentials..."
+          export $$(grep -v "^#" /auth/keycloak-credentials.env | xargs)
         fi
         dex serve /dex.yaml
       '
@@ -296,8 +296,6 @@ services:
       db:
         condition: "service_healthy"
       dex-db-init:
-        condition: service_completed_successfully
-      zitadel-setup:
         condition: service_completed_successfully
     # oauth2 proxy kept failing intermittently, added this health check
     healthcheck:
@@ -443,132 +441,55 @@ services:
       - traefik.http.middlewares.minio_https.redirectscheme.scheme=https
       - traefik.http.routers.minio.middlewares=op_https
 
-  # Zitadel IDP services
-  # Automatically configures Dex integration on first startup
-  zitadel-db-init:
-    image: index.docker.io/library/postgres@sha256:fbcea1bd13b6a882cd6caa6b58db3ae5c102efe50ec625b3e2a5cbc50db5bfe4 # 17.5-bookworm
-    container_name: zitadel-db-init
-    command: >
-      bash -c "psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'zitadel'\" | grep -q 1 || psql -h db -U postgres -c 'CREATE DATABASE zitadel'"
-    environment:
-      PGPASSWORD: postgres
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
-
-  zitadel:
+  # Keycloak IDP services
+  keycloak:
     restart: unless-stopped
-    image: ghcr.io/zitadel/zitadel@sha256:7475b0b7fc7dd2ccf6486a44a6f4edae0e82a430f35561898b35c0e687378623 # v4.9.0
-    container_name: op-zitadel
-    command: start-from-init --masterkey "MasterkeyNeedsToHave32Characters"
+    build:
+      context: ./docker/keycloak
+      dockerfile: Dockerfile
+    image: op-keycloak:local
+    container_name: op-keycloak
+    command: start-dev --import-realm
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.keycloak.rule=Host(`op-keycloak.dev.test`)
+      - traefik.http.routers.keycloak.entrypoints=web-secure
+      - traefik.http.routers.keycloak.tls=true
+      - traefik.http.services.keycloak.loadbalancer.server.port=8080
+      - traefik.http.services.keycloak.loadbalancer.server.scheme=http
     environment:
-      ZITADEL_EXTERNALDOMAIN: op-zitadel.dev.test
-      ZITADEL_EXTERNALPORT: 8080
-      ZITADEL_EXTERNALSECURE: false
-      ZITADEL_TLS_ENABLED: false
-
-      # Database connection (using main db container)
-      ZITADEL_DATABASE_POSTGRES_HOST: db
-      ZITADEL_DATABASE_POSTGRES_PORT: 5432
-      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
-      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
-      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: postgres
-      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
-      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
-      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
-      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
-
-      # Login client for V2 login UI
-      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel-config/login-client.pat
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Login Client
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2035-01-01T00:00:00Z"
-
-      # Login V2 settings
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: false
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: http://op-zitadel.dev.test:3000/ui/v2/login
-      ZITADEL_OIDC_DEFAULTLOGINURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/login?authRequest=
-      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/logout?post_logout_redirect=
-      ZITADEL_SAML_DEFAULTLOGINURLV2: http://op-zitadel.dev.test:3000/ui/v2/login/login?samlRequest=
-
-      # SMTP configuration (mailhog)
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_HOST: mailhog:1025
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_USER: ""
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_SMTP_PASSWORD: ""
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_TLS: false
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROM: noreply@op-zitadel.dev.test
-      ZITADEL_FIRSTINSTANCE_SMTPCONFIGURATION_FROMNAME: Open Path IDP
-
-      # Initial organization and admin user
-      ZITADEL_FIRSTINSTANCE_ORG_NAME: openpath
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: AdminPassword1!
-
-      # Service account for automated setup
-      ZITADEL_FIRSTINSTANCE_PATPATH: /zitadel-config/admin.pat
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: setup-admin
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Automated Setup Admin
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2035-01-01T00:00:00Z"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: op-keycloak.dev.test
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: AdminPassword1!
     healthcheck:
-      test: [CMD, /app/zitadel, ready]
+      test:
+        [
+          CMD-SHELL,
+          "curl -f http://localhost:9000/health/ready 2>/dev/null || bash -c 'exec 3<>/dev/tcp/localhost/8080' 2>/dev/null || exit 1",
+        ]
       interval: 10s
-      timeout: 60s
-      retries: 5
-      start_period: 20s
-    user: "0"
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     volumes:
-      - ./docker/auth:/zitadel-config:delegated
+      - ./docker/keycloak/realm-import.json:/opt/keycloak/data/import/realm-import.json:ro
     ports:
       - "8080:8080"
-      - "3001:3000"
-    hostname: op-zitadel.dev.test
+    hostname: op-keycloak.dev.test
     networks:
       default:
         aliases:
-          - op-zitadel.dev.test
+          - op-keycloak.dev.test
     depends_on:
       db:
         condition: service_healthy
-      zitadel-db-init:
-        condition: service_completed_successfully
-
-  zitadel-login:
-    restart: unless-stopped
-    image: ghcr.io/zitadel/zitadel-login@sha256:d7e22b6977424b14d6b2ac48eca454964591389ceed9b0a3bf942dd7e4c8060e # v4.9.0
-    container_name: op-zitadel-login
-    environment:
-      ZITADEL_API_URL: http://op-zitadel.dev.test:8080
-      NEXT_PUBLIC_BASE_PATH: /ui/v2/login
-      ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel-config/login-client.pat
-    network_mode: service:zitadel
-    user: "0"
-    volumes:
-      - ./docker/auth:/zitadel-config:ro
-    depends_on:
-      zitadel:
-        condition: service_healthy
-
-  # Automated Zitadel configuration for Dex integration
-  # Runs once on first startup, skips if already configured
-  zitadel-setup:
-    image: curlimages/curl:latest
-    container_name: zitadel-setup
-    user: "0"
-    volumes:
-      - ./docker/auth:/auth
-      - ./docker/zitadel/setup.sh:/setup.sh:ro
-    environment:
-      ZITADEL_URL: http://op-zitadel.dev.test:8080
-      AUTH_DIR: /auth
-      PAT_FILE: /auth/admin.pat
-      CREDENTIALS_FILE: /auth/zitadel-credentials.env
-    command: /setup.sh
-    depends_on:
-      zitadel:
-        condition: service_healthy
-    restart: "no"
 
 volumes:
   bundle_bookworm:

@@ -1,3 +1,6 @@
+# TEMPLATE FILE — do not use directly. After editing, re-run:
+#   bash docker/auth/generate-dev-auth.sh
+# The generated output goes to dev/auth/ (gitignored) and is mounted into the containers.
 injectRequestHeaders:
   - name: X-Forwarded-Groups
     values:
@@ -41,8 +44,8 @@ providers:
       tenant: common
     backendLogoutURL: "https://dex.dev.test/dex/auth/logout"
     bitbucketConfig: {}
-    clientID: hmis-warehouse
-    clientSecret: "${JWT_SECRET}"
+    clientID: hmis-frontend
+    clientSecret: "dev-hmis-frontend-secret"
     githubConfig: {}
     gitlabConfig: {}
     googleConfig: {}
@@ -54,7 +57,7 @@ providers:
         allow:
           - value: local
           - value: github_idp
-          - value: zitadel
+          - value: keycloak
     microsoftEntraIDConfig: {}
     name: Dex
     oidcConfig:
@@ -68,13 +71,13 @@ providers:
     provider: oidc
     scope: openid email profile federated:id
 server:
-  BindAddress: 0.0.0.0:4180
+  BindAddress: 0.0.0.0:4182
   SecureBindAddress: ""
   TLS: null
 upstreamConfig:
   upstreams:
     - flushInterval: 1s
-      id: warehouse
+      id: hmis-backend
       passHostHeader: true
       path: /
       proxyWebSockets: true

@@ -252,6 +252,17 @@ class Hmis::User < ApplicationRecord
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 
+  # Returns true if this user can log in to the given destination.
+  # :warehouse — user is a member of at least one warehouse UserGroup
+  # :hmis — user is a member of at least one HMIS UserGroup (and is not a system user)
+  def login_to?(destination)
+    case destination.to_sym
+    when :warehouse then UserGroupMember.exists?(user_id: id)
+    when :hmis then first_name != 'System' && user_group_members.exists?
+    else false
+    end
+  end
+
   # Determine whether this user has _any_ access to a given HMIS data source.
   # Returns true even if they can only access 1 project or org within the DS.
   # This doesn't check for permissions (so, they don't necessarily have can_view_projects within the DS).

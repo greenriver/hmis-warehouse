@@ -181,4 +181,64 @@ RSpec.describe User, type: :model do
       end
     end
   end
+
+  describe '#login_to?' do
+    context 'when user is a system user' do
+      let(:system_user) { create(:user, first_name: 'System', last_name: 'User') }
+
+      it 'returns false for :warehouse' do
+        expect(system_user.login_to?(:warehouse)).to be false
+      end
+
+      it 'returns false for :hmis' do
+        expect(system_user.login_to?(:hmis)).to be false
+      end
+    end
+
+    context 'when destination is :warehouse' do
+      context 'with ACL user (permission_context: acls)' do
+        let(:acl_user) { create(:acl_user) }
+
+        it 'returns true when user is in a warehouse UserGroup' do
+          user_group = create(:user_group)
+          user_group.add(acl_user)
+
+          expect(acl_user.login_to?(:warehouse)).to be true
+        end
+
+        it 'returns false when user has no warehouse UserGroup membership' do
+          expect(acl_user.login_to?(:warehouse)).to be false
+        end
+      end
+
+      context 'with legacy/role-based user' do
+        it 'returns true even without UserGroup membership' do
+          expect(user.login_to?(:warehouse)).to be true
+        end
+      end
+    end
+
+    context 'when destination is :hmis' do
+      it 'returns true when user is in an HMIS UserGroup' do
+        hmis_user_group = create(:hmis_user_group)
+        hmis_user_group.add(user)
+
+        expect(user.login_to?(:hmis)).to be true
+      end
+
+      it 'returns false when user has no HMIS UserGroup membership' do
+        expect(user.login_to?(:hmis)).to be false
+      end
+    end
+
+    context 'when destination is unknown' do
+      it 'returns false' do
+        expect(user.login_to?(:invalid)).to be false
+      end
+
+      it 'accepts string and normalizes to symbol' do
+        expect(user.login_to?('warehouse')).to eq(user.login_to?(:warehouse))
+      end
+    end
+  end
 end

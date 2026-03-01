@@ -183,6 +183,26 @@ module UserConcern
       where(permission_context: [nil, 'role_based'])
     end
 
+    # Returns true if this user has any groups in the given destination.
+    # :warehouse — user is a member of at least one warehouse UserGroup, or is not using ACLs
+    # :hmis — user is a member of at least one HMIS UserGroup (and is not a system user)
+    def login_to?(destination)
+      return false if first_name == 'System'
+
+      case destination.to_sym
+      when :warehouse
+        if using_acls?
+          user_group_members.exists?
+        else
+          true
+        end
+      when :hmis
+        Hmis::UserGroupMember.exists?(user_id: id)
+      else
+        false
+      end
+    end
+
     def using_acls?
       # Note using hash syntax to get around lack of column for some data migrations
       self[:permission_context].to_s == 'acls'
