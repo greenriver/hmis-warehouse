@@ -58,11 +58,11 @@ module WarehouseReports
 
     private def filter_params
       @filter_params = { user_id: current_user.id }
-      @filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
-      @filter_params[:start_age] = report_params.dig(:filter, :start_age) || 0
-      @filter_params[:end_age] = report_params.dig(:filter, :end_age) || 100
-      @filter_params[:start] = report_params.dig(:filter, :start) || Date.current.last_year.beginning_of_year
-      @filter_params[:end] = report_params.dig(:filter, :end) || Date.current.last_year.end_of_year
+      @filter_params.merge!(report_params[:filter].to_h.deep_symbolize_keys) if report_params[:filter].present?
+      @filter_params[:start_age] ||= 0
+      @filter_params[:end_age] ||= 100
+      @filter_params[:start] ||= Date.current.last_year.beginning_of_year
+      @filter_params[:end] ||= Date.current.last_year.end_of_year
 
       @filter_params
     end

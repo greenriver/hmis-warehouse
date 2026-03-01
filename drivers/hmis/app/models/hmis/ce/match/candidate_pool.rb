@@ -21,19 +21,16 @@
 # 2.  **Association**: Once a pool is created, the builder associates the relevant
 #     `UnitGroup`s with it via the `candidate_pool_id` foreign key.
 #
-# 3.  **Cleanup**: Pools that are no longer referenced by any `UnitGroup` or active
-#     `Opportunity` are considered "orphaned" and are automatically deleted after a
-#     configurable period.
-#
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
     # Bulk-managed, does not log to paper_trail
     self.table_name = 'ce_match_candidate_pools'
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
-    has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
     has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: :candidate_pool_id, dependent: :restrict_with_exception
+    has_many :opportunities, through: :unit_groups, class_name: 'Hmis::Ce::Opportunity'
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
+    has_many :unit_group_assignments, class_name: 'Hmis::Ce::Match::CandidatePoolUnitGroupAssignment', foreign_key: :candidate_pool_id
 
     attr_readonly :requirement_expression, :priority_expression
 
@@ -41,68 +38,8 @@ module Hmis::Ce::Match
     # foreign key constraint violations
     before_destroy :nullify_deleted_associations
 
-    # Returns candidate pools that need to be maintained by the system.
-    #
-    # Use this scope in maintenance operations such as the processing jobs (ProcessPoolsJob, ProcessClientsJob)
-    # when determining which candidate pools should be kept up-to-date.
-    #
-    # Includes pools that are referenced by:
-    # - Any active opportunities (both 'open' and 'locked' status)
-    #   - note: includes "stale" opportunities that no longer reflect the latest requirements
-    #   - note: includes locked opportunities, because their candidate pools should remain updated in case the opportunity becomes available again
-    # - Any unit groups with CE waitlists enabled
-    #   - note: candidate pools tied to unit groups are maintained to ensure they are up-to-date even if there are no vacancies at the moment
-    scope :active_for_maintenance, -> {
-      # Pool should be maintained if there are any open or locked Opportunities that reference it
-      ids_through_opportunities = referenced_by_opportunities_with_status(status: ['open', 'locked']).select(:id)
-      # Pool should be maintained if there are any UnitGroups that reference it
-      ids_through_unit_groups = referenced_by_unit_groups.select(:id)
-      where(id: (ids_through_opportunities + ids_through_unit_groups).sort.uniq)
-    }
-
-    # Returns candidate pools that represent current or future referral opportunities for clients.
-    #
-    # Use this scope when displaying unit groups that a client is "eligible for" on
-    # client profiles or similar user-facing features.
-    #
-    # Includes pools that are referenced by:
-    # - Any unit groups with CE waitlists enabled, regardless of vacancies
-    # - Open opportunities
-    #   - note: excludes locked opportunities because they can't be refreshed when stale.
-    #     If the candidate pool is *only* associated with locked stale opportunities,
-    #     clients shouldn't be considered eligible for that pool for the purposes of user-facing features.
-    scope :active_for_current_eligibility, -> {
-      # Pool reflects current eligibility if it is referenced by any open opportunities (different logic from active_for_maintenance)
-      ids_through_opportunities = referenced_by_opportunities_with_status(status: 'open').select(:id)
-      # Pool reflects current eligibility if there are any UnitGroups that reference it (same logic as active_for_maintenance)
-      ids_through_unit_groups = referenced_by_unit_groups.select(:id)
-      where(id: (ids_through_opportunities + ids_through_unit_groups).sort.uniq)
-    }
-
-    # Helper scope - Candidate pools that are referenced by unit groups with CE waitlists enabled.
-    scope :referenced_by_unit_groups, -> {
+    scope :active, -> {
       joins(:unit_groups).merge(Hmis::UnitGroup.with_ce_waitlists_enabled).distinct
-    }
-    # Helper scope - Candidate pools that are referenced by opportunities with the specified status.
-    scope :referenced_by_opportunities_with_status, ->(status:) {
-      joins(:opportunities).merge(Hmis::Ce::Opportunity.where(status: status)).distinct
-    }
-
-    # orphan pools can be safely deleted after a period if inactivity.
-    # currently we consider a pool orphaned if it is not tied to any opportunities or unit groups.
-    #
-    # Note this could be expanded to allow deleting additional pools if needed, including:
-    # 1) Pools that are exclusively tied to closed opportunities. (Would require modification to opportunities relation :restrict_with_exception).
-    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_ce_waitlists_enabled)
-    scope :orphaned, -> {
-      referenced_ids = [
-        ::Hmis::Ce::Opportunity,
-        ::Hmis::UnitGroup,
-      ].flat_map do |scope|
-        scope.where.not(candidate_pool_id: nil).distinct.pluck(:candidate_pool_id)
-      end
-
-      where.not(id: referenced_ids)
     }
 
     def self.mark_all_dirty
@@ -112,8 +49,8 @@ module Hmis::Ce::Match
       )
     end
 
-    def active_for_maintenance?
-      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.with_ce_waitlists_enabled.exists?(candidate_pool_id: id)
+    def active?
+      Hmis::UnitGroup.with_ce_waitlists_enabled.exists?(candidate_pool_id: id)
     end
 
     def warehouse_clients
@@ -171,12 +108,7 @@ module Hmis::Ce::Match
     protected
 
     def nullify_deleted_associations
-      [
-        Hmis::Ce::Opportunity,
-        Hmis::UnitGroup,
-      ].each do |model|
-        model.only_deleted.where(candidate_pool_id: id).update_all(candidate_pool_id: nil)
-      end
+      Hmis::UnitGroup.only_deleted.where(candidate_pool_id: id).update_all(candidate_pool_id: nil)
     end
   end
 end

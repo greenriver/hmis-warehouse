@@ -34,6 +34,13 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
   let!(:client) { create :hmis_hud_client, data_source: ds1 }
   let!(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
 
+  # perform mutation and return the referral id
+  def perform_mutation(variables)
+    response, result = post_graphql(**variables) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'createCeReferral', 'referral', 'id')
+  end
+
   describe 'create referral mutation' do
     let(:mutation) do
       <<~GRAPHQL
@@ -78,6 +85,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
         end
 
         it 'returns the created referral with steps' do
+          referral_id = nil
           expect do
             response, result = post_graphql(**variables) { mutation }
             expect(response.status).to eq(200), result.inspect
@@ -90,10 +98,28 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
               'name' => opportunity.name,
             )
             expect(referral_data['steps']).to be_an(Array)
+
+            referral_id = referral_data['id']
           end.to change(Hmis::WorkflowExecution::Instance, :count).by(1)
 
-          instance = Hmis::WorkflowExecution::Instance.last
+          referral = Hmis::Ce::Referral.find(referral_id)
+          instance = referral.workflow_instance
           expect(instance.template).to eq(template)
+        end
+
+        context 'with assignment rules on unit_group' do
+          let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
+          let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
+
+          it 'captures assignment rules on the referral at creation time' do
+            referral_id = perform_mutation(variables)
+
+            referral = Hmis::Ce::Referral.find(referral_id)
+            expect(referral.assignment_rules).to be_an(Array)
+            expect(referral.assignment_rules.length).to eq(2)
+            rule_ids = referral.assignment_rules.map { |r| r['id'] }
+            expect(rule_ids).to contain_exactly(eligibility_rule.id, priority_rule.id)
+          end
         end
       end
 
@@ -108,12 +134,12 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
         end
 
         it 'creates the referral using the source enrollment' do
+          referral_id = nil
           expect do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
+            referral_id = perform_mutation(variables)
           end.to change(Hmis::Ce::Referral, :count).by(1)
 
-          referral = Hmis::Ce::Referral.last
+          referral = Hmis::Ce::Referral.find(referral_id)
           expect(referral.client).to eq(client)
           expect(referral.source_enrollment).to eq(enrollment)
         end
@@ -165,6 +191,27 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
           expect do
             expect_gql_error post_graphql(**variables) { mutation }
           end.not_to change(Hmis::Ce::Referral, :count)
+        end
+      end
+
+      # More comprehensive specs for default participant assignment are in the model spec
+      # (see spec/models/hmis/ce/referral_spec.rb #create_default_participants!)
+      context 'with default swimlane assignments' do
+        let!(:case_manager) { create :hmis_user }
+        let!(:default_assignment) do
+          create(:hmis_ce_default_swimlane_assignment, user: case_manager, swimlane: swimlane, owner: project)
+        end
+
+        it 'creates referral participants from default assignments' do
+          referral_id = nil
+          expect do
+            referral_id = perform_mutation(variables)
+          end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
+
+          referral = Hmis::Ce::Referral.find(referral_id)
+          participant = referral.participants.first
+          expect(participant.user).to eq(case_manager)
+          expect(participant.swimlane).to eq(swimlane)
         end
       end
     end

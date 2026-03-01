@@ -834,20 +834,20 @@ module Filters
       HudHelper.util.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.invert.freeze
     end
 
-    def project_options_for_select(user:)
-      all_project_scope.options_for_select(user: user)
+    def project_options_for_select(user:, ids: nil)
+      all_project_scope.options_for_select(user: user, ids: ids)
     end
 
-    def organization_options_for_select(user:)
-      all_organizations_scope.distinct.options_for_select(user: user)
+    def organization_options_for_select(user:, ids: nil)
+      all_organizations_scope.distinct.options_for_select(user: user, ids: ids)
     end
 
-    def data_source_options_for_select(user:)
-      all_data_sources_scope.options_for_select(user: user)
+    def data_source_options_for_select(user:, ids: nil)
+      all_data_sources_scope.options_for_select(user: user, ids: ids)
     end
 
-    def funder_options_for_select(user:)
-      all_funders_scope.options_for_select(user: user)
+    def funder_options_for_select(user:, funder_codes: nil)
+      all_funders_scope.options_for_select(user: user, funder_codes: funder_codes)
     end
 
     def funder_other_options_for_select(user:)
@@ -858,12 +858,14 @@ module Filters
       GrdaWarehouse::Lookups::CocCode.options_for_select(user: user, permission: permission)
     end
 
-    def project_groups_options_for_select(user:)
-      all_project_group_scope.options_for_select(user: user)
+    def project_groups_options_for_select(user:, ids: nil)
+      all_project_group_scope.options_for_select(user: user, ids: ids)
     end
 
-    def cohorts_for_select(user:)
-      GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
+    def cohorts_for_select(user:, ids: nil)
+      scope = GrdaWarehouse::Cohort.viewable_by(user)
+      scope = scope.where(id: ids) if ids.present?
+      scope.distinct.order(name: :asc).pluck(:name, :id)
     end
 
     # A list of select/drop-down type cohort columns where there is at least one choice.
@@ -985,6 +987,7 @@ module Filters
         zero_to_four: '0 - 4',
         five_to_ten: '5 - 10',
         eleven_to_fourteen: '11 - 14',
+        fourteen_to_seventeen: '14 - 17',
         fifteen_to_seventeen: '15 - 17',
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
@@ -1508,14 +1511,18 @@ module Filters
     end
 
     def data_source_names
-      data_source_options_for_select(user: user).
+      return [] if data_source_ids.blank?
+
+      data_source_options_for_select(user: user, ids: data_source_ids).
         select do |_, id|
           data_source_ids.include?(id)
         end&.map(&:first)
     end
 
     def organization_names
-      organization_options_for_select(user: user).
+      return [] if organization_ids.blank?
+
+      organization_options_for_select(user: user, ids: organization_ids).
         values.
         flatten(1).
         select do |_, id|
@@ -1526,7 +1533,7 @@ module Filters
     def project_names(ids = project_ids)
       return [] if ids.blank?
 
-      project_options_for_select(user: user).
+      project_options_for_select(user: user, ids: ids).
         values.
         flatten(1).
         select do |_, id|
@@ -1535,19 +1542,27 @@ module Filters
     end
 
     def project_groups
-      project_groups_options_for_select(user: user).select { |_, id| project_group_ids.include?(id) }&.map(&:first)
+      return [] if project_group_ids.blank?
+
+      project_groups_options_for_select(user: user, ids: project_group_ids)&.map(&:first)
     end
 
     def funder_names
-      funder_options_for_select(user: user).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
+      return [] if funder_ids.blank?
+
+      funder_options_for_select(user: user, funder_codes: funder_ids)&.map(&:first)
     end
 
     def cohorts
-      cohorts_for_select(user: user).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
+      return [] if cohort_ids.blank?
+
+      cohorts_for_select(user: user, ids: cohort_ids)&.map(&:first)
     end
 
     def secondary_cohorts
-      cohorts_for_select(user: user).select { |_, id| secondary_cohort_ids.include?(id.to_i) }&.map(&:first)
+      return [] if secondary_cohort_ids.blank?
+
+      cohorts_for_select(user: user, ids: secondary_cohort_ids)&.map(&:first)
     end
 
     def chosen_secondary_cohorts

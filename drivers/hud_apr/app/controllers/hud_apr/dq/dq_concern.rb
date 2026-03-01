@@ -86,15 +86,19 @@ module HudApr::Dq::DqConcern
       @question = generator.valid_question_number(params[:question] || params[:id])
     end
 
-    def possible_generator_classes
-      {
-        fy2024: HudApr::Generators::Dq::Fy2024::Generator,
-        fy2026: HudApr::Generators::Dq::Fy2026::Generator,
-      }
-    end
-
     private def past_report_versions
       [:fy2020, :fy2022]
     end
+  end
+
+  def self.possible_generator_classes
+    {
+      fy2024: HudApr::Generators::Dq::Fy2024::Generator,
+      fy2026: HudApr::Generators::Dq::Fy2026::Generator,
+    }
+  end
+
+  def possible_generator_classes
+    HudApr::Dq::DqConcern.possible_generator_classes
   end
 end

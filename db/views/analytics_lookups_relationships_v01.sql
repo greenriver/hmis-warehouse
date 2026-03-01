@@ -1,1 +1,4 @@
-SELECT * FROM "lookups_relationships"
+SELECT id,
+    value,
+    text
+   FROM lookups_relationships

@@ -77,7 +77,8 @@ module MaReports::WarehouseReports
     end
 
     def report_options(filter)
-      filter.for_params[:filters].select { |k, _| report_class.report_options.include?(k) }
+      filter_options = filter.for_params[:filters].select { |k, _| report_class.report_options.include?(k) }
+      filter_options.merge(version: report_class.current_version)
     end
 
     private def set_report

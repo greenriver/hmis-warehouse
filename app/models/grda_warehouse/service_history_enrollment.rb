@@ -348,14 +348,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     arel = Hmis::ArelHelper.instance
     # Age on date calculates age at the later of entry date and on_date (which should be the start of the window)
     age_cond = arel.age_on_date(on_date.to_date)
-    ages = []
-    ages += (0..17).to_a if age_ranges.include?(:under_eighteen)
-    ages += (18..24).to_a if age_ranges.include?(:eighteen_to_twenty_four)
-    ages += (25..61).to_a if age_ranges.include?(:twenty_five_to_sixty_one)
-    ages += (62..110).to_a if age_ranges.include?(:over_sixty_one)
 
-    joins(:client).
-      where(age_cond.in(ages))
+    # Use the same age range mapping as FilterForAge
+    input_ranges = age_ranges.to_set
+    ages = ::Filters::Criteria::FilterForAge::AGE_RANGES.filter { |key, _| input_ranges.include?(key) }.
+      flat_map { |_key, range| range.to_a }
+
+    joins(:client).where(age_cond.in(ages))
   end
 
   # NOTE: at the moment this is Postgres only
@@ -500,11 +499,6 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def self.available_age_ranges
-    {
-      under_eighteen: '< 18',
-      eighteen_to_twenty_four: '18 - 24',
-      twenty_five_to_sixty_one: '25 - 61',
-      over_sixty_one: '62+',
-    }.invert.freeze
+    ::Filters::FilterBase.available_age_ranges
   end
 end

@@ -1,0 +1,82 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+# SubmitFormAuthorizer answers whether the user may submit a form to create or edit a record.
+# Caller finds or builds the record, then calls authorized_to_create?(record) or authorized_to_edit?(record).
+#
+# Accepts the full definition (not just role) to support potential future use-case for fine-grained authorization
+# that would involve introspecting on the definition to see which fields and related records are being touched.
+#
+# Usage: Hmis::Form::SubmitFormAuthorizer.new(user:, definition:).authorized_to_create?(record)
+class Hmis::Form::SubmitFormAuthorizer
+  attr_reader :user, :form_role, :allowed_form_record_actions
+
+  ENROLLMENT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::ENROLLMENT_RELATED_CLASSES
+  PROJECT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::PROJECT_RELATED_CLASSES
+
+  def initialize(user:, definition:)
+    @user = user
+    @form_role = definition.role.to_sym
+    @allowed_form_record_actions = definition.allowed_form_record_actions
+  end
+
+  def authorized_to_create?(record)
+    raise 'expected record to be a new record' unless record.new_record?
+    raise "form role #{form_role} cannot be used to create new records" unless allowed_form_record_actions.include?(Hmis::Form::Definition::CREATE)
+
+    case record.class.name
+    when 'Hmis::Hud::Client'
+      user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_create?
+    when 'Hmis::Hud::Organization'
+      user.policy_for(Hmis::Hud::Organization, policy_type: :hmis_organization).can_create?
+    when 'Hmis::Hud::Project'
+      user.policy_for(record.organization, policy_type: :hmis_organization).can_create_project?
+    when 'Hmis::Hud::Enrollment'
+      project_policy = user.policy_for(record.project, policy_type: :hmis_project)
+      form_role == :NEW_CLIENT_ENROLLMENT ? project_policy.can_create_and_enroll_new_clients? : project_policy.can_create_enrollments?
+    when *PROJECT_RELATED_CLASSES
+      user.policy_for(record.project, policy_type: :hmis_project).can_edit?
+    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService', *ENROLLMENT_RELATED_CLASSES
+      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+    when 'HmisExternalApis::AcHmis::ReferralPosting'
+      source_project = record.referral.enrollment.project
+      user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
+    when 'Hmis::File'
+      Hmis::File.authorize_proc.call(record.client, user)
+    else
+      raise "No authorization configured for #{record.class.name}"
+    end
+  end
+
+  def authorized_to_edit?(record)
+    raise 'expected record to be an existing record' unless record.persisted?
+    raise "form role #{form_role} cannot be used to edit existing records" unless allowed_form_record_actions.include?(Hmis::Form::Definition::EDIT)
+
+    case record.class.name
+    when 'Hmis::Hud::Client'
+      user.policy_for(record, policy_type: :hmis_client).can_edit?
+    when 'Hmis::Hud::Organization'
+      user.policy_for(record, policy_type: :hmis_organization).can_edit?
+    when 'Hmis::Hud::Project'
+      user.policy_for(record, policy_type: :hmis_project).can_edit?
+    when 'Hmis::Hud::Enrollment'
+      user.policy_for(record, policy_type: :hmis_enrollment).can_edit?
+    when *PROJECT_RELATED_CLASSES
+      user.policy_for(record.project, policy_type: :hmis_project).can_edit?
+    when 'Hmis::Hud::Service', 'Hmis::Hud::CustomService', *ENROLLMENT_RELATED_CLASSES
+      user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+    when 'HmisExternalApis::AcHmis::ReferralPosting'
+      source_project = record.referral.enrollment.project
+      user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
+    when 'Hmis::File'
+      Hmis::File.authorize_proc.call(record, user)
+    else
+      raise "No authorization configured for #{record.class.name}"
+    end
+  end
+end

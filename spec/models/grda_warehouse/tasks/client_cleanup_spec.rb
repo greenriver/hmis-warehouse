@@ -83,8 +83,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     before(:all) do
       @dob_1 = Date.new(1978, 6, 12)
       @dob_2 = Date.new(1977, 10, 31)
-      @ssn1 = '123456789'
-      @ssn2 = '987654321'
+      @ssn1 = Faker::IdNumber.valid.gsub(/[^0-9]/, '')
+      @ssn2 = Faker::IdNumber.valid.gsub(/[^0-9]/, '')
       @veteran = 1
       @civilian = 0
       @cleanup = GrdaWarehouse::Tasks::ClientCleanup.new
@@ -647,8 +647,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     before(:all) do
       @dob_1 = Date.new(1978, 6, 12)
       @dob_2 = Date.new(1977, 10, 31)
-      @ssn1 = '123456789'
-      @ssn2 = '987654321'
+      @ssn1 = Faker::IdNumber.valid.gsub(/[^0-9]/, '')
+      @ssn2 = Faker::IdNumber.valid.gsub(/[^0-9]/, '')
       @veteran = 1
       @civilian = 0
       @cleanup = GrdaWarehouse::Tasks::ClientCleanup.new
@@ -835,14 +835,15 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it 'does not normalize punctuation from SSNs before persisting them' do
-      source_1.update(SSN: '123-45-6789', SSNDataQuality: 1)
+      ssn_with_punctuation = Faker::IdNumber.valid
+      source_1.update(SSN: ssn_with_punctuation, SSNDataQuality: 1)
       source_2.update(SSN: nil, SSNDataQuality: 9)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
         Hash[@cleanup.client_columns.keys.zip(row)]
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('123-45-6789').to eq(@dest_attr[:SSN])
+      expect(ssn_with_punctuation).to eq(@dest_attr[:SSN])
       expect(1).to eq(@dest_attr[:SSNDataQuality])
     end
 

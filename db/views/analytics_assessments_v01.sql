@@ -1,1 +1,20 @@
-SELECT * FROM "Assessment" WHERE "DateDeleted" is NULL
+SELECT id,
+    "AssessmentID",
+    "EnrollmentID",
+    "PersonalID",
+    "AssessmentDate",
+    "AssessmentLocation",
+    "AssessmentType",
+    "AssessmentLevel",
+    "PrioritizationStatus",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    pending_date_deleted,
+    source_hash,
+    synthetic
+   FROM "Assessment"
+  WHERE ("DateDeleted" IS NULL)

@@ -15,7 +15,7 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::ClientAlert.find(id)
-      raise 'Access denied' unless current_permission?(permission: :can_manage_client_alerts, entity: record.client)
+      access_denied! unless policy_for(record.client, policy_type: :hmis_client).can_manage_alerts?
 
       record.destroy!
 

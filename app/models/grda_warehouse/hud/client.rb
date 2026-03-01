@@ -629,12 +629,64 @@ module GrdaWarehouse::Hud
       where(GenderNone: [8, 9, 99])
     end
 
+    scope :gender_doesnt_know, -> do
+      where(GenderNone: 8)
+    end
+
+    scope :gender_refused, -> do
+      where(GenderNone: 9)
+    end
+
+    scope :gender_not_collected, -> do
+      where(GenderNone: 99)
+    end
+
+    scope :gender_data_missing, -> do
+      gender_table = arel_table
+      all_gender_fields_nil = [
+        gender_table[:Woman].eq(nil),
+        gender_table[:Man].eq(nil),
+        gender_table[:NonBinary].eq(nil),
+        gender_table[:CulturallySpecific].eq(nil),
+        gender_table[:Transgender].eq(nil),
+        gender_table[:Questioning].eq(nil),
+        gender_table[:DifferentIdentity].eq(nil),
+        gender_table[:GenderNone].eq(nil),
+      ].reduce(:and)
+      where(all_gender_fields_nil)
+    end
+
     scope :gender_culturally_specific, -> do
       where(CulturallySpecific: 1)
     end
 
     scope :gender_different_identity, -> do
       where(DifferentIdentity: 1)
+    end
+
+    # Sex scopes
+    scope :sex_female, -> do
+      where(Sex: 0)
+    end
+
+    scope :sex_male, -> do
+      where(Sex: 1)
+    end
+
+    scope :sex_doesnt_know, -> do
+      where(Sex: 8)
+    end
+
+    scope :sex_refused, -> do
+      where(Sex: 9)
+    end
+
+    scope :sex_not_collected, -> do
+      where(Sex: 99)
+    end
+
+    scope :sex_data_missing, -> do
+      where(Sex: nil)
     end
 
     ####################

@@ -1,1 +1,16 @@
-SELECT * FROM "warehouse_clients"
+SELECT id,
+    id_in_source,
+    data_source_id,
+    proposed_at,
+    reviewed_at,
+    reviewd_by,
+    approved_at,
+    rejected_at,
+    created_at,
+    updated_at,
+    deleted_at,
+    source_id,
+    destination_id,
+    client_match_id,
+    source_hash
+   FROM warehouse_clients

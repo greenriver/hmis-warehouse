@@ -409,6 +409,11 @@ class SeedMaker
     builder = ::HmisUtil::JsonForms.new
     builder.seed_all
     builder.create_default_occurrence_point_instances! if Rails.env.development?
+
+    # Ensure service type and category records exist for each HUD service type
+    GrdaWarehouse::DataSource.hmis.pluck(:id).each do |data_source_id|
+      ::HmisUtil::ServiceTypes.seed_hud_service_types(data_source_id)
+    end
   end
 
   def populate_internal_system_choices

@@ -109,7 +109,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       alert = Hmis::ClientAlert.find(alert_id)
       expect(alert.note).to eq('raspberries')
       expect(alert.priority).to eq(Hmis::ClientAlert::HIGH)
-      expect(alert.expiration_date).to eq((Date.current + 2.months))
+      expect(alert.expiration_date).to eq(Date.current + 2.months)
       expect(alert.created_by.id).to eq(hmis_user.id)
     end
 
@@ -168,6 +168,45 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should not be allowed to delete alerts' do
       expect_gql_error post_graphql(id: a1.id) { delete_alert }
+      c1.reload
+      expect(c1.alerts.size).to eq(2), 'no alert should have been deleted'
+    end
+  end
+
+  describe 'when the user can view, but not manage' do
+    let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_client_alerts]) }
+
+    it 'should return a client with alerts' do
+      response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      alerts = result.dig('data', 'client', 'alerts')
+      expect(alerts.size).to eq 2
+    end
+
+    it 'should not be able to create alerts' do
+      mutation_input = { clientId: c1.id.to_s, note: 'err' }
+      expect_access_denied post_graphql(input: mutation_input) { create_alert }
+      expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
+    end
+
+    it 'should not be allowed to delete alerts' do
+      expect_access_denied post_graphql(id: a1.id) { delete_alert }
+      c1.reload
+      expect(c1.alerts.size).to eq(2), 'no alert should have been deleted'
+    end
+  end
+
+  describe 'when the user can manage, but not view (missing prerequisite permission)' do
+    let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_client_alerts]) }
+
+    it 'should not be able to create alerts' do
+      mutation_input = { clientId: c1.id.to_s, note: 'err' }
+      expect_access_denied post_graphql(input: mutation_input) { create_alert }
+      expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
+    end
+
+    it 'should not be allowed to delete alerts' do
+      expect_access_denied post_graphql(id: a1.id) { delete_alert }
       c1.reload
       expect(c1.alerts.size).to eq(2), 'no alert should have been deleted'
     end

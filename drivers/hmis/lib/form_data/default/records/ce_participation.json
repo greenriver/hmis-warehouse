@@ -3,72 +3,37 @@
     {
       "type": "CHOICE",
       "required": true,
-      "link_id": "q_2_09_1",
-      "text": "Access Point",
+      "link_id": "access_point",
+      "text": "Project is a Coordinated Entry Access Point",
       "pick_list_reference": "NoYes",
       "mapping": {
         "field_name": "accessPoint"
       }
     },
     {
-      "type": "GROUP",
-      "link_id": "q_2_09_A_conditionals",
+      "type": "CHOICE",
+      "link_id": "ce_participation_services",
+      "repeats": true,
+      "text": "Provided by CE Project",
+      "required": true,
+      "pick_list_reference": "CeParticipationServices",
+      "mapping": {
+        "field_name": "ceParticipationServices"
+      },
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "q_2_09_1",
+          "question": "access_point",
           "operator": "EQUAL",
           "answer_code": "YES"
-        }
-      ],
-      "item": [
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "q_2_09_A_prevention",
-          "text": "Prevention Assessment",
-          "pick_list_reference": "NoYes",
-          "mapping": {
-            "field_name": "preventionAssessment"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "q_2_09_A_crisis",
-          "text": "Crisis Assessment",
-          "pick_list_reference": "NoYes",
-          "mapping": {
-            "field_name": "crisisAssessment"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "q_2_09_A_housing",
-          "text": "Housing Assessment",
-          "pick_list_reference": "NoYes",
-          "mapping": {
-            "field_name": "housingAssessment"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "q_2_09_A_services",
-          "text": "Direct Services",
-          "pick_list_reference": "NoYes",
-          "mapping": {
-            "field_name": "directServices"
-          }
         }
       ]
     },
     {
       "type": "CHOICE",
       "required": true,
-      "link_id": "q_2_09_2",
-      "text": "Receives Referrals",
+      "link_id": "receives_referrals",
+      "text": "Project Receives CE Referrals",
       "pick_list_reference": "NoYes",
       "mapping": {
         "field_name": "receivesReferrals"

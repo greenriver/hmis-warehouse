@@ -33,7 +33,7 @@ module HopwaCaper::Generators::Fy2026::ServiceFilters
           types: ['Rental assistance', 'Security deposits'],
         ),
         new(
-          label: 'utilities assistance',
+          label: 'utility assistance',
           types: ['Utility deposits', 'Utility payments'],
         ),
       ]

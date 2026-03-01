@@ -1,0 +1,9 @@
+:ruby
+  download_data = {
+    type: export_class_name,
+    query_string: export_query_params.to_query,
+    url: document_exports_path,
+  }
+%a.btn.btn-secondary.j-document-exports{href: '#', data: download_data}
+  %i.icon-file-excel
+  Download

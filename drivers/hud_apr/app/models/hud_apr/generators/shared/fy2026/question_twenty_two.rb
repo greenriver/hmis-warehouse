@@ -105,7 +105,10 @@ module HudApr::Generators::Shared::Fy2026
           answer = @report.answer(question: table_name, cell: cell)
 
           members = universe.members.where(population_clause)
-          stay_lengths = members.pluck(a_t[:length_of_stay]).compact
+          # Per HMIS Glossary, ES-NBN (project_type 1) uses bed_nights, all others use length_of_stay
+          nbn_lengths = members.where(a_t[:project_type].eq(1)).pluck(a_t[:bed_nights]).compact
+          other_lengths = members.where(a_t[:project_type].not_eq(1)).pluck(a_t[:length_of_stay]).compact
+          stay_lengths = nbn_lengths + other_lengths
           value = 0
           case method
           when :average

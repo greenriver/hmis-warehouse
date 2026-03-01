@@ -20,19 +20,21 @@ module Hmis::Ce
   class FilteredCandidatesQuery
     def arel = Hmis::ArelHelper.instance
 
-    def initialize(opportunity:, exclude_declined_clients: false)
+    def initialize(opportunity:, exclude_declined_clients: false, search_term: nil)
       @opportunity = opportunity
       @unit_group_id = opportunity.unit_group.id
       @exclude_declined_clients = exclude_declined_clients
-      @base_candidate_scope = Hmis::Ce::Match::Candidate.for_opportunity(opportunity).prioritized
+      @search_term = search_term
     end
 
     def resolve
-      return @base_candidate_scope unless @exclude_declined_clients
+      scope = Hmis::Ce::Match::Candidate.for_opportunity(@opportunity).prioritized
+      scope = scope.matching_search_term(@search_term) if @search_term.present?
+      return scope unless @exclude_declined_clients
 
       # { source_client_id => most_recent_decline_timestamp }
       most_recent_declines = fetch_most_recent_declines
-      return @base_candidate_scope if most_recent_declines.blank?
+      return scope if most_recent_declines.blank?
 
       # { source_client_id => dest_client_id }
       source_to_dest_client_map = map_source_to_dest_clients(most_recent_declines.keys)
@@ -40,7 +42,7 @@ module Hmis::Ce
       # For now, this could only happen with a direct referral, since candidacy for waitlists is destination client based.
       # In the future, this could happen if we include more types of clients on waitlists, such as VSP clients.
       # Either way, if we can't find the client to exclude, just return the original unfiltered scope.
-      return @base_candidate_scope if source_to_dest_client_map.blank?
+      return scope if source_to_dest_client_map.blank?
 
       # { dest_client_id => most_recent_assessment_update_timestamp }
       most_recent_assessment_dates = fetch_most_recent_assessment_dates(source_to_dest_client_map.values)
@@ -51,9 +53,9 @@ module Hmis::Ce
         source_to_dest_client_map,
       )
 
-      return @base_candidate_scope if client_ids_to_exclude.blank?
+      return scope if client_ids_to_exclude.blank?
 
-      filter_candidates(client_ids_to_exclude)
+      filter_candidates(scope: scope, client_ids_to_exclude: client_ids_to_exclude)
     end
 
     private
@@ -106,8 +108,8 @@ module Hmis::Ce
       end
     end
 
-    def filter_candidates(client_ids_to_exclude)
-      @base_candidate_scope.
+    def filter_candidates(scope:, client_ids_to_exclude:)
+      scope.
         joins(:client_proxy).
         where.not(Hmis::Ce::ClientProxy.arel_table[:client_id].in(client_ids_to_exclude))
     end

@@ -27,15 +27,15 @@ module MaReports::MonthlyPerformance
       where(exit_date.gteq(range.first).or(exit_date.eq(nil)).and(entry_date.lteq(range.last)))
     end
 
-    def self.detail_headers
+    def self.detail_headers(report = nil)
       # On the details page, only show the race columns stored in the database record
-      headers.
+      headers_for_report(report).
         reject { |k| HudHelper.util.race_ethnicity_combinations.include?(k) }.
         merge(HudHelper.util.races.except('RaceNone').map { |k, v| [k.underscore.to_sym, v] }.to_h)
     end
 
-    def self.headers
-      {
+    def self.headers_for_report(report = nil)
+      base_headers = {
         client_id: 'Warehouse Client ID',
         personal_id: 'HMIS Personal ID',
         first_name: 'First Name',
@@ -63,19 +63,37 @@ module MaReports::MonthlyPerformance
         multi_racial: HudHelper.util.race_ethnicity_combinations[:multi_racial],
         multi_racial_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:multi_racial_hispanic_latinaeo],
         race_none: HudHelper.util.race_ethnicity_combinations[:race_none],
-        man: 'Man',
-        woman: 'Woman',
-        culturally_specific: 'Culturally Specific Identity (e.g., Two-Spirit)',
-        different_identity: 'Different Identity',
-        transgender: 'Transgender',
-        questioning: 'Questioning',
-        non_binary: 'Non-Binary',
+      }
+
+      # Show gender as a default. It was included in the original version of the report
+      show_gender = report.nil? || report.show_gender?
+      show_sex = report&.show_sex? || false
+
+      if show_gender
+        base_headers.merge!(
+          man: 'Man',
+          woman: 'Woman',
+          culturally_specific: 'Culturally Specific Identity (e.g., Two-Spirit)',
+          different_identity: 'Different Identity',
+          transgender: 'Transgender',
+          questioning: 'Questioning',
+          non_binary: 'Non-Binary',
+        )
+      end
+
+      base_headers[:sex] = 'Sex' if show_sex
+
+      base_headers.merge!(
         disabling_condition: 'Disabling Condition',
         reporting_age: 'Reporting Age',
         prior_living_situation: 'Prior Living Situation',
         months_homeless_past_three_years: 'Months homeless in the past three years',
         times_homeless_past_three_years: 'Times homeless in the past three years',
-      }
+      )
+    end
+
+    def self.headers
+      headers_for_report(nil)
     end
   end
 end

@@ -12,7 +12,7 @@ module Mutations
     field :success, Boolean, null: true
 
     def resolve(input:)
-      raise 'not allowed' unless current_user.can_merge_clients?
+      access_denied! unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients?
 
       all_client_ids = input.map(&:client_ids).flatten.uniq
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: all_client_ids)
