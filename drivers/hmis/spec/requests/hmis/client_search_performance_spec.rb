@@ -18,12 +18,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let(:search_term) { 'ross' }
-  let!(:enrollments) do
-    10.times.map do
-      client = create :hmis_hud_client_complete, data_source: ds1, user: u1, LastName: search_term
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1
-    end
-  end
 
   let!(:ds_access_control) do
     create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details, :can_view_project])
@@ -31,6 +25,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
+  end
+
+  # Setup: N clients that each have N enrollments at N different projects.
+  # (Do this to test performance of authorization check, which is based on user access to projects the client has enrollments at)
+  let(:n) { 10 }
+  let!(:projects) do
+    create_list(:hmis_hud_project, n, data_source: ds1, organization: o1, user: u1)
+  end
+  let!(:clients) do
+    create_list(:hmis_hud_client_complete, n, data_source: ds1, user: u1, LastName: search_term)
+  end
+  let!(:enrollments) do
+    clients.map do |client|
+      projects.map do |project|
+        create(:hmis_hud_enrollment, data_source: ds1, project: project, client: client, user: u1)
+      end
+    end.flatten
   end
 
   describe 'client search' do
@@ -268,14 +279,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # TODO(#185555687): improve performance of client search, decrease the upper bound here
       expect do
         _, result = post_graphql(**variables) { query }
-        expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(enrollments.size)
+        expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(n)
       end.to make_database_queries(count: 10..50)
     end
 
     it 'is responsive' do
       expect do
         _, result = post_graphql(**variables) { query }
-        expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(enrollments.size)
+        expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(n)
       end.to perform_under(400).ms
     end
   end

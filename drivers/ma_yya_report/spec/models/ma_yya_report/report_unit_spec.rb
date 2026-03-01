@@ -219,4 +219,41 @@ RSpec.describe MaYyaReport::Report, 'unit tests' do
       end
     end
   end
+
+  describe 'TotalYYAServedPrevention calculation' do
+    let(:filter) { double('filter', start: Date.new(2024, 1, 1), start_date: Date.new(2024, 1, 1), end: Date.new(2024, 12, 31)) }
+    let(:a_t) { MaYyaReport::Client.arel_table }
+
+    before do
+      allow(report).to receive(:filter).and_return(filter)
+    end
+
+    it 'is explicitly the union of A1b, A2b, A3a, and A3b' do
+      prevention_calculation = report.send(:section_a_total_cells)[:TotalYYAServedPrevention][:calculation]
+      prevention_sql = prevention_calculation.to_sql
+
+      # Should include all four cell criteria
+      expect(prevention_sql).to include('referral_source'), 'Should include A1b (referral_source = 7)'
+      expect(prevention_sql).to include('initial_contact'), 'Should include A2b (initial_contact)'
+      expect(prevention_sql).to include('entry_date'), 'Should include A3a/A3b (entry_date checks)'
+      expect(prevention_sql).to include('latest_non_homeless_cls_in_range'), 'Should include A3b (CLS during period)'
+
+      # The calculation should be a union (OR) of all four
+      expect(prevention_sql.scan(/\bOR\b/i).size).to be >= 3, 'Should have at least 3 OR operators for 4 clauses'
+    end
+
+    it 'includes each sub-population: A1b, A2b, A3a, A3b' do
+      # Verify that clients matching each specific criteria would be included
+      a1b_sql = report.send(:section_a1_cells)[:A1b][:calculation].to_sql
+      a2b_sql = report.send(:section_a2_cells)[:A2b][:calculation].to_sql
+      a3a_sql = report.send(:section_a3_cells)[:A3a][:calculation].to_sql
+      a3b_sql = report.send(:section_a3_cells)[:A3b][:calculation].to_sql
+
+      # Each should represent distinct criteria
+      expect(a1b_sql).to include('referral_source')
+      expect(a2b_sql).to include('initial_contact')
+      expect(a3a_sql).to include('entry_date').and include('at_risk_of_homelessness')
+      expect(a3b_sql).to include('entry_date').and include('latest_non_homeless_cls_in_range')
+    end
+  end
 end

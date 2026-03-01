@@ -19,6 +19,8 @@
     .row
       .col-sm-2
         = f.input :age_ranges, collection: MaYyaReport::Report.available_age_ranges.invert, as: :select_two, input_html: { multiple: true }, required: true
+      .col-sm-4.pt-no-label
+        = f.input :hoh_only, as: :pretty_boolean, label: 'Limit to Heads of Household'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 

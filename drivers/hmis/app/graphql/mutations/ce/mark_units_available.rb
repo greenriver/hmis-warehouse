@@ -27,8 +27,7 @@ module Mutations
       # Validate that units being marked available don't exceed assigned legacy ReferralPostings
       validate_unit_availability_against_referral_postings(units, project)
 
-      rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
-      opportunities = units.map { |unit| unit.build_ce_opportunity(rule_resolver: rule_resolver, created_by: current_user) }
+      opportunities = units.map { |unit| unit.build_ce_opportunity(created_by: current_user) }
       opportunities.each(&:save!)
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload

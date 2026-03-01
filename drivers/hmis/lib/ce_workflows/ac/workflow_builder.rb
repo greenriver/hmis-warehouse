@@ -70,7 +70,7 @@ module CeWorkflows::Ac
       )
       matching_in_progress_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': matching_in_progress_status.key } }]
 
-      start_event = CeWorkflows::Shared::CeBuilderUtils.create_start_event(template)
+      start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
 
       initial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Initial Review',
@@ -165,7 +165,7 @@ module CeWorkflows::Ac
       )
 
       # Start Event
-      start_event = CeWorkflows::Shared::CeBuilderUtils.create_start_event(template)
+      start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
 
       # Initial Outgoing Referral Task
       initial_outgoing_referral_task = Hmis::WorkflowDefinition::UserTask.create!(
@@ -299,8 +299,8 @@ module CeWorkflows::Ac
       )
 
       # Events
-      accept_event = CeWorkflows::Shared::CeBuilderUtils.create_accept_event(template, update_ce_event: true)
-      decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template)
+      accept_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_accept_event(template, update_ce_event: true)
+      decline_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_decline_event(template)
 
       # Set up gateway for declining that closes the CE Event if a ReferralResult outcome has been specified.
       # If neither condition matches, it declines the referral without updating the CE Event.

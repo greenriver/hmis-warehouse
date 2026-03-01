@@ -21,16 +21,24 @@ module Hmis
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
+
+    # Candidate Pool assigned by CandidatePoolBuilder. Non-null when the project has CE waitlists enabled via ProjectCeConfig,
+    # and the unit group has applicable rules.
+    # Note: the candidate pool may be specified even when the unit group does not _really_ use waitlists, if:
+    # 1. The project has waitlists enabled but this unit group does not (e.g. no referral workflow template specified). Or,
+    # 2. The project previously used waitlists but no longer does (TODO #8555: clean up stale references).
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
     has_many :unit_types, through: :units # TODO(#8157) - Unit should have at most 1 unit type. Remove when no longer used
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
     has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
+    has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
+    has_many :pool_assignments, class_name: 'Hmis::Ce::Match::CandidatePoolUnitGroupAssignment', foreign_key: :unit_group_id
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
     belongs_to :workflow_template,
-               -> { latest_versions }, # choose the most recent version of the template
+               -> { published.latest_versions }, # choose the most recent published version of the template
                foreign_key: :workflow_template_identifier,
                primary_key: :identifier,
                class_name: 'Hmis::WorkflowDefinition::Template',
@@ -38,7 +46,7 @@ module Hmis
 
     # The workflow template to use for direct referrals to Units belonging to this Unit Group
     belongs_to :direct_referral_workflow_template,
-               -> { latest_versions }, # choose the most recent version of the template
+               -> { published.latest_versions }, # choose the most recent published version of the template
                foreign_key: :direct_referral_workflow_template_identifier,
                primary_key: :identifier,
                class_name: 'Hmis::WorkflowDefinition::Template',

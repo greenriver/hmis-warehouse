@@ -53,8 +53,6 @@ module Hmis
         merge_mci_unique_ids
         merge_scan_cards
         merge_client_locations
-        # TODO(#8241) - merge CE records such as referrals, and possibly candidacy events?
-
         client_to_retain.reload
         dedup(client_to_retain.names, keepers: dedup(client_to_retain.names.where(primary: true)))
         dedup(client_to_retain.contact_points)
@@ -248,6 +246,7 @@ module Hmis
     def update_client_id_foreign_keys
       candidates = [
         [Hmis::File, 'files'],
+        [Hmis::Ce::Referral, 'ce_referrals'],
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
@@ -294,10 +293,8 @@ module Hmis
       end
     end
 
-    # Note: WarehouseChangesJob process kicks off MergeClientsJob for clients that
-    # share the same MCI Unique ID, so that is the most likely scenario. However,
-    # it's also possible to perform a manual merge in HMIS for two clients that
-    # may or may not share MCI Unique ID values.
+    # Clients being manually merged in HMIS may or may not share MCI Unique ID values.
+    # (WarehouseChangesJob no longer hard-merges clients with the same MCI Unique ID.)
     def merge_mci_unique_ids
       # If retained client has an MCI Unique ID, no action is needed.
       # Max 1 MCI Unique ID is permitted per client, so if any of

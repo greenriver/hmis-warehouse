@@ -21,6 +21,10 @@ module MaReports::MonthlyPerformance
     has_many :enrollments
     has_many :projects
 
+    def self.current_version
+      2026
+    end
+
     private def expires_in
       return 5.days if Rails.env.development?
 
@@ -85,6 +89,21 @@ module MaReports::MonthlyPerformance
       ma_reports_warehouse_reports_monthly_project_utilization_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
+    def report_version
+      # Legacy report did not include a version - default to 2024
+      options['version'] || 2024
+    end
+
+    def show_gender?
+      return true if report_version < 2026
+
+      HudHelper.show_gender_in_reports?
+    end
+
+    def show_sex?
+      report_version >= 2026
+    end
+
     private def create_universe
       # make create_universe repeatable for testing
       MaReports::MonthlyPerformance::Enrollment.where(report_id: id).delete_all
@@ -135,6 +154,7 @@ module MaReports::MonthlyPerformance
               transgender: client.transgender == 1,
               questioning: client.questioning == 1,
               non_binary: client.non_binary == 1,
+              sex: client.Sex,
               disabling_condition: enrollment.enrollment.disabling_condition == 1,
               reporting_age: age,
               relationship_to_hoh: enrollment.enrollment.relationship_to_ho_h,
@@ -294,16 +314,34 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).count,
           }
         end
-        HudHelper.util.gender_id_to_field_name.
-          reject { |k, _| k.in?([8, 9, 99]) }.
-          each do |gender_id, gender_column|
-            label = HudHelper.util.gender(gender_id)
-            key = ['Gender', gender_column]
-            breakdowns["Gender: #{label}"] = {
-              key: key,
-              count: enrollments_for(*key).count,
-            }
-          end
+        if show_gender?
+          HudHelper.util.gender_id_to_field_name.
+            reject { |k, _| k.in?([8, 9, 99]) }.
+            each do |gender_id, gender_column|
+              label = HudHelper.util.gender(gender_id)
+              key = ['Gender', gender_column]
+              breakdowns["Gender: #{label}"] = {
+                key: key,
+                count: enrollments_for(*key).count,
+              }
+            end
+        end
+        if show_sex?
+          HudHelper.util.sexes.
+            reject { |k, _| k.in?([8, 9, 99]) }.
+            each do |sex_id, label|
+              key = ['Sex', sex_id]
+              breakdowns["Sex: #{label}"] = {
+                key: key,
+                count: enrollments_for(*key).count,
+              }
+            end
+          key = ['Sex', 'Unknown']
+          breakdowns['Sex: Unknown (Missing, Prefers not to answer, Unknown)'] = {
+            key: key,
+            count: enrollments_for(*key).count,
+          }
+        end
         key = ['DisablingCondition', nil]
         breakdowns['Disabling Condition'] = {
           key: key,
@@ -350,9 +388,16 @@ module MaReports::MonthlyPerformance
 
         enrollments.where(id: race_ethnicities_breakdowns(enrollments)[race_ethnicity_combinations[sub_key.to_sym]].to_a)
       when 'Gender'
+        return enrollments.none unless show_gender?
         return enrollments.none unless HudHelper.util.gender_id_to_field_name.value?(sub_key)
 
         enrollments.where(sub_key.to_s.underscore => true)
+      when 'Sex'
+        return enrollments.none unless show_sex?
+        return enrollments.where(sex: [8, 9, 99, nil]) if sub_key == 'Unknown'
+        return enrollments.none unless HudHelper.util.sexes.key?(sub_key.to_i)
+
+        enrollments.where(sex: sub_key.to_i)
       when 'DisablingCondition'
         enrollments.where(disabling_condition: true)
       when 'Age'
@@ -384,7 +429,15 @@ module MaReports::MonthlyPerformance
         label = race_ethnicity_combinations[sub_key.to_sym]
         "#{key}: #{label}"
       when 'Gender'
+        return nil unless show_gender?
+
         label = HudHelper.util.gender(sub_key.to_i)
+        "#{key}: #{label}"
+      when 'Sex'
+        return nil unless show_sex?
+        return "#{key}: Unknown (Missing, Prefers not to answer, Unknown)" if sub_key == 'Unknown'
+
+        label = HudHelper.util.sex(sub_key.to_i)
         "#{key}: #{label}"
       when 'DisablingCondition'
         'Disabling Condition'

@@ -295,7 +295,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should fail if user lacks permission' do
           remove_permissions(access_control, *definition.record_editing_permissions)
-          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: /not authorized/
         end
 
         it 'should fail if form definition is draft' do
@@ -387,6 +387,88 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         _, result = close_project
         errors = result.dig('data', 'submitForm', 'errors')
         expect(errors).to be_empty
+      end
+    end
+
+    describe 'initial related records' do
+      let(:input) do
+        {
+          form_definition_id: definition.id,
+          organization_id: o1.id,
+          confirmed: false,
+        }
+      end
+
+      it 'should accept initial CoC code' do
+        form_values = mock_form_values_for_definition(definition)
+        form_values[:hud_values]['initialCocCode'] = 'MA-504'
+        form_values[:hud_values]['initialGeocode'] = '250354'
+
+        response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        project_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
+        project = Hmis::Hud::Project.find(project_id)
+        expect(project.project_cocs.count).to eq(1)
+        expect(project.project_cocs.first.coc_code).to eq('MA-504')
+        expect(project.project_cocs.first.geocode).to eq('250354')
+      end
+
+      it 'should accept initial funder' do
+        form_values = mock_form_values_for_definition(definition)
+        form_values[:hud_values]['initialFunder'] = 'LOCAL_OR_OTHER_FUNDING_SOURCE'
+        form_values[:hud_values]['initialOtherFunder'] = 'Xyz Funder'
+        form_values[:hud_values]['initialFunderGrantId'] = '12345'
+
+        response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        project_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
+        project = Hmis::Hud::Project.find(project_id)
+        expect(project.funders.count).to eq(1)
+        expect(project.funders.first.funder).to eq(46) # Local or other funding source
+        expect(project.funders.first.other_funder).to eq('Xyz Funder')
+        expect(project.funders.first.grant_id).to eq('12345')
+        expect(project.funders.first.start_date).to eq(project.operating_start_date)
+      end
+
+      it 'should accept initial HMIS participation type' do
+        form_values = mock_form_values_for_definition(definition)
+        form_values[:hud_values]['initialHmisParticipationType'] = 'HMIS_PARTICIPATING'
+
+        response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        project_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
+        project = Hmis::Hud::Project.find(project_id)
+        expect(project.hmis_participations.count).to eq(1)
+        expect(project.hmis_participations.first.hmis_participation_type).to eq(1)
+        expect(project.hmis_participations.first.hmis_participation_status_start_date).to eq(project.operating_start_date)
+      end
+
+      it 'should accept initial CE participation' do
+        form_values = mock_form_values_for_definition(definition)
+        form_values[:hud_values]['initialCeAccessPoint'] = 'YES'
+        form_values[:hud_values]['initialCeParticipationServices'] = ['PREVENTION_ASSESSMENT', 'HOUSING_ASSESSMENT']
+        form_values[:hud_values]['initialCeReceivesReferrals'] = 'YES'
+
+        response, result = post_graphql(input: { input: input.merge(**form_values) }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        project_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
+        project = Hmis::Hud::Project.find(project_id)
+        expect(project.ce_participations.count).to eq(1)
+        expect(project.ce_participations.first.access_point).to eq(1)
+        expect(project.ce_participations.first.prevention_assessment).to eq(1)
+        expect(project.ce_participations.first.crisis_assessment).to eq(0)
+        expect(project.ce_participations.first.housing_assessment).to eq(1)
+        expect(project.ce_participations.first.direct_services).to eq(0)
+        expect(project.ce_participations.first.receives_referrals).to eq(1)
+        expect(project.ce_participations.first.ce_participation_status_start_date).to eq(project.operating_start_date)
       end
     end
 
@@ -846,7 +928,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       [:can_manage_outgoing_referrals, :can_view_enrollment_details, :can_view_project].each do |permission|
         it "fails when referer lacks #{permission} in source project" do
           create_access_control(hmis_user, p1, without_permission: permission)
-          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: /not authorized/
         end
       end
 

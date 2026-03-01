@@ -11,5 +11,6 @@ module Types
     graphql_name 'CeOpportunityCandidatesFilterOptions'
 
     argument :exclude_declined_clients, Boolean, required: false, default_value: false
+    argument :search_term, String, required: false
   end
 end

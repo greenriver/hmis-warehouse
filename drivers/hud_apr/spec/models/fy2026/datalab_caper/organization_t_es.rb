@@ -56,10 +56,6 @@ RSpec.shared_context 'datalab organization t es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
-        skip: [
-          'B17', # expected '0.0000' (0), got '1.0000' (1)
-          'C17', # expected '0.0000' (0), got '1.0000' (1)
-        ],
       )
     end
 
@@ -75,8 +71,8 @@ RSpec.shared_context 'datalab organization t es caper', shared_context: :metadat
         file_path: result_file_prefix + results_dir,
         question: 'Q6b',
         skip: [
-          'E6', # expected '10.0000' (10), got '9.0000' (9)
           'D6', # expected '7.0000' (7), got '6.0000' (6)
+          'E6', # expected '10.0000' (10), got '9.0000' (9)
         ],
       )
     end
@@ -85,9 +81,6 @@ RSpec.shared_context 'datalab organization t es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
-        skip: [
-          'F4', # expected '0.0000' (0.0000), got '1.0000' (1.0000)
-        ],
       )
     end
 

@@ -258,5 +258,13 @@ RSpec.describe JobDetail, type: :model do
         expect(describe.job_class).to eq('BackgroundRender::SomeJob')
       end
     end
+
+    it 'does not crash when arguments.first is an Array' do
+      payload = double('ActiveJobWrapper', job_data: {
+                         'arguments' => [['nested', 'array'], 'second-arg'],
+                       })
+      allow(job).to receive(:payload_object).and_return(payload)
+      expect { describe.job_class }.not_to raise_error
+    end
   end
 end

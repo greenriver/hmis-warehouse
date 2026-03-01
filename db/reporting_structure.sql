@@ -1,8 +1,3 @@
--- \restrict ev8undYEDFLV4rJaDCpXx1db4FlVc1qSQxfgeU0stCiHDmNe1sawKDDIHZHneuL
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -21,50 +16,50 @@ SET row_security = off;
 
 CREATE FUNCTION public.monthly_reports_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-        BEGIN
-        IF  ( NEW.type = 'Reporting::MonthlyReports::AllClients' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_all_clients VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Veteran' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_veteran VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Youth' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_youth VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Parents' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_family_parents VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::ParentingYouth' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_parenting_youth VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::ParentingChildren' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_parenting_children VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::UnaccompaniedMinors' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_unaccompanied_minors VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::IndividualAdults' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_individual_adults VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::NonVeteran' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_non_veteran VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Family' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_family VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::YouthFamilies' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_youth_families VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Children' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_children VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_adult_only_households VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_adults_with_children VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_child_only_households VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'ClientsSubPop::Reporting::MonthlyReports::Clients' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_clients VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_non_veterans VALUES (NEW.*);
-           ELSIF  ( NEW.type = 'VeteransSubPop::Reporting::MonthlyReports::Veterans' ) THEN
-              INSERT INTO warehouse_partitioned_monthly_reports_veterans VALUES (NEW.*);
-          
-        ELSE
-          INSERT INTO warehouse_partitioned_monthly_reports_unknown VALUES (NEW.*);
-          END IF;
-          RETURN NULL;
-      END;
+    AS $$
+        BEGIN
+        IF  ( NEW.type = 'Reporting::MonthlyReports::AllClients' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_all_clients VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Veteran' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_veteran VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Youth' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_youth VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Parents' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_family_parents VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::ParentingYouth' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_parenting_youth VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::ParentingChildren' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_parenting_children VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::UnaccompaniedMinors' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_unaccompanied_minors VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::IndividualAdults' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_individual_adults VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::NonVeteran' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_non_veteran VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Family' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_family VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::YouthFamilies' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_youth_families VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Children' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_children VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_adult_only_households VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_adults_with_children VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_child_only_households VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'ClientsSubPop::Reporting::MonthlyReports::Clients' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_clients VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_non_veterans VALUES (NEW.*);
+           ELSIF  ( NEW.type = 'VeteransSubPop::Reporting::MonthlyReports::Veterans' ) THEN
+              INSERT INTO warehouse_partitioned_monthly_reports_veterans VALUES (NEW.*);
+          
+        ELSE
+          INSERT INTO warehouse_partitioned_monthly_reports_unknown VALUES (NEW.*);
+          END IF;
+          RETURN NULL;
+      END;
       $$;
 
 
@@ -233,7 +228,12 @@ CREATE TABLE public.warehouse_data_quality_report_enrollments (
     encrypted_last_name_iv character varying,
     encrypted_ssn character varying,
     encrypted_ssn_iv character varying,
-    gender_multi jsonb
+    gender_multi jsonb,
+    sex integer,
+    sex_complete boolean DEFAULT false,
+    sex_missing boolean DEFAULT false,
+    sex_refused boolean DEFAULT false,
+    sex_not_collected boolean DEFAULT false
 );
 
 
@@ -2875,11 +2875,10 @@ CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict ev8undYEDFLV4rJaDCpXx1db4FlVc1qSQxfgeU0stCiHDmNe1sawKDDIHZHneuL
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260128124000'),
 ('20230902232754'),
 ('20230824172741'),
 ('20210920002734'),

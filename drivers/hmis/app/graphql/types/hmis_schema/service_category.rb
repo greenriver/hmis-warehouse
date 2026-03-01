@@ -14,7 +14,6 @@ module Types
     graphql_name 'ServiceCategory'
     field :id, ID, null: false
     field :name, String, null: false
-    field :hud, Boolean, null: false, deprecation_reason: 'No longer used'
     field :service_types, HmisSchema::ServiceType.page_type, null: false
     form_rules_field
 
@@ -22,10 +21,6 @@ module Types
 
     def service_types
       load_ar_association(object, :service_types)
-    end
-
-    def hud # TODO(#5737) - Remove
-      service_types.all?(&:hud_service?)
     end
 
     def form_rules(**args)

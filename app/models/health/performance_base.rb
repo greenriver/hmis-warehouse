@@ -49,11 +49,11 @@ module Health
 
     def with_required_qa
       @with_required_qa ||=
-        patient_ids - Health::Patient.needs_qa(on: @range.last).pluck(:id)
+        patient_ids - Health::Patient.where(id: patient_ids).needs_qa(on: @range.last).pluck(:id)
     end
 
     def with_required_f2f_visit
-      @with_required_f2f_visit ||= patient_ids - Health::Patient.needs_f2f(on: @range.last).pluck(:id)
+      @with_required_f2f_visit ||= patient_ids - Health::Patient.where(id: patient_ids).needs_f2f(on: @range.last).pluck(:id)
     end
 
     def with_discharge_followup_completed
@@ -68,6 +68,7 @@ module Health
 
     def with_completed_intake
       @with_completed_intake ||= Health::Patient.
+        where(id: patient_ids).
         has_intake.
         pluck(:id)
     end
@@ -83,12 +84,12 @@ module Health
 
     def initial_intake_due
       date = [@range.last, Date.current.end_of_month].min
-      @initial_intake_due ||= Health::Patient.intake_due(on: date).pluck(:id)
+      @initial_intake_due ||= Health::Patient.where(id: patient_ids).intake_due(on: date).pluck(:id)
     end
 
     def initial_intake_overdue
       date = [@range.last, Date.current.end_of_month].min
-      @initial_intake_overdue ||= Health::Patient.intake_overdue(on: date).pluck(:id)
+      @initial_intake_overdue ||= Health::Patient.where(id: patient_ids).intake_overdue(on: date).pluck(:id)
     end
 
     def intake_renewal_due
@@ -103,15 +104,7 @@ module Health
 
     def with_required_wellcare_visit
       anchor = [@range.last, Date.current.end_of_month].min
-      @with_required_wellcare_visit ||=
-        begin
-          set = Set.new
-          patient_ids.each_slice(100).each do |patient_id_slice|
-            set.merge(wellcare_patient_ids(patient_id_slice, anchor))
-          end
-
-          set.to_a
-        end
+      @with_required_wellcare_visit ||= wellcare_patient_ids(patient_ids, anchor)
     end
 
     # The annual well-care visit filter includes a large OR:

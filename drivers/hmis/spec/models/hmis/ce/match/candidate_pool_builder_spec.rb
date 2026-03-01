@@ -44,6 +44,17 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
         expect(unit_group_1.reload.candidate_pool).to eq(pool1)
         expect(unit_group_2.reload.candidate_pool).to eq(pool2)
+
+        assignments = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.all.order(:unit_group_id)
+        expect(assignments.count).to eq(2)
+        expect(assignments.first.unit_group).to eq(unit_group_1)
+        expect(assignments.first.candidate_pool).to eq(pool1)
+        expect(assignments.first.started_at).to be_present
+        expect(assignments.first.ended_at).to be_nil
+        expect(assignments.second.unit_group).to eq(unit_group_2)
+        expect(assignments.second.candidate_pool).to eq(pool2)
+        expect(assignments.second.started_at).to be_present
+        expect(assignments.second.ended_at).to be_nil
       end
 
       it 'leaves candidate_pool_id nil for unit groups with no rules' do
@@ -63,6 +74,25 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         # unit_group_2 should not have been processed/associated
         expect(unit_group_2.reload.candidate_pool).to be_nil
       end
+
+      it 'removes the unit groups candidate pool when no longer applicable' do
+        described_class.call
+        expect(unit_group_1.reload.candidate_pool).to be_present
+        expect(Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.active.count).to eq(2)
+        unit_group_1_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.where(unit_group: unit_group_1).sole
+        unit_group_2_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.where(unit_group: unit_group_2).sole
+
+        Hmis::Ce::Match::Rule.where(owner: unit_group_1).destroy_all
+
+        expect do
+          described_class.call
+          unit_group_1.reload
+          unit_group_1_assignment.reload
+          unit_group_2_assignment.reload
+        end.to change(unit_group_1, :candidate_pool_id).to(nil).
+          and change(unit_group_1_assignment, :ended_at).from(nil).to(be_present).
+          and not_change(unit_group_2_assignment, :ended_at)
+      end
     end
 
     context 'when unit group rules change' do
@@ -75,6 +105,12 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         first_pool_id = unit_group.reload.candidate_pool_id
         expect(first_pool_id).to be_present
 
+        first_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.sole
+        expect(first_assignment.unit_group).to eq(unit_group)
+        expect(first_assignment.candidate_pool_id).to eq(first_pool_id)
+        expect(first_assignment.started_at).to be_present
+        expect(first_assignment.ended_at).to be_nil
+
         # Add a rule, which changes the key and should result in a new pool
         create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'b = 1')
         described_class.call
@@ -82,77 +118,15 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
         expect(second_pool_id).to be_present
         expect(second_pool_id).not_to eq(first_pool_id)
-      end
-    end
 
-    context 'with opportunity backfilling' do
-      let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity_without_pool) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: nil) }
-      let(:unit_group) { unit.unit_group }
-
-      it 'backfills the pool and rules for opportunities missing them' do
-        [
-          create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1'),
-          create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a'),
-        ]
-
-        described_class.call
-        opportunity_without_pool.reload
-
-        expect(opportunity_without_pool.candidate_pool_id).to eq(unit_group.reload.candidate_pool_id)
-
-        # The `assignment_rules` attribute stores a serialized snapshot of the rules.
-        # We need to compare the essential parts of these stored rules.
-        actual_rules = opportunity_without_pool.assignment_rules.map { |r| r.slice('rule_type', 'expression') }
-        expected_rules = [{ 'rule_type' => 'eligibility_requirement', 'expression' => 'a = 1' }, { 'rule_type' => 'priority_scheme', 'expression' => 'score_a' }]
-
-        expect(actual_rules).to contain_exactly(*expected_rules)
-      end
-    end
-
-    context 'with stale tracking' do
-      let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
-      let(:unit_group) { unit.unit_group }
-
-      it 'marks opportunity as stale when unit group pool changes and marks as clean when unit group pool reverts' do
-        rule = create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
-        create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
-
-        described_class.call
-        expect(opportunity.reload.candidate_pool).to be_present
-        expect(opportunity.reload.stale).to be_falsey
-
-        # Make the opportunity stale
-        rule.update!(expression: 'a = 2')
-        expect { described_class.call }.to change { opportunity.reload.stale }.from(false).to(true)
-
-        # reverting the unit group to its original pool
-        rule.update!(expression: 'a = 1')
-        expect { described_class.call }.to change { opportunity.reload.stale }.from(true).to(false)
-      end
-    end
-
-    context 'with orphaned candidate pools' do
-      let(:expiration_days) { 30 }
-      let!(:old_orphaned_pool) do
-        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago)
-      end
-      let!(:new_orphaned_pool) do
-        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days - 1).days.ago)
-      end
-      let!(:active_pool) { create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago) }
-      let!(:unit_group_with_pool) { create(:hmis_unit_group, candidate_pool: active_pool) }
-
-      before do
-        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:days_to_retain_orphan_candidate_pools).and_return(expiration_days)
-      end
-
-      it 'deletes old orphaned pools but not new or active ones' do
-        expect { described_class.call }.to change(Hmis::Ce::Match::CandidatePool, :count).by(-1)
-        expect(Hmis::Ce::Match::CandidatePool.exists?(old_orphaned_pool.id)).to be_falsey
-        expect(Hmis::Ce::Match::CandidatePool.exists?(new_orphaned_pool.id)).to be_truthy
-        expect(Hmis::Ce::Match::CandidatePool.exists?(active_pool.id)).to be_truthy
+        first_assignment.reload
+        expect(Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.count).to eq(2)
+        expect(first_assignment.ended_at).to be_present
+        second_assignment = Hmis::Ce::Match::CandidatePoolUnitGroupAssignment.last
+        expect(second_assignment.unit_group).to eq(unit_group)
+        expect(second_assignment.candidate_pool_id).to eq(second_pool_id)
+        expect(second_assignment.started_at).to be_present
+        expect(second_assignment.ended_at).to be_nil
       end
     end
 
@@ -160,7 +134,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:closed_project) { create(:hmis_hud_project, organization: organization, operating_end_date: 1.day.ago) }
       let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: closed_project) }
       let!(:unit) { create(:hmis_unit, project: closed_project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: nil, unit: unit) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
       let(:unit_group) { unit.unit_group }
 
       before do
@@ -176,12 +150,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'does not associate unit groups from closed projects with candidate pools' do
         described_class.call
         expect(unit_group.reload.candidate_pool_id).to be_nil
-      end
-
-      it 'does not backfill opportunities from closed projects' do
-        described_class.call
-        opportunity.reload
-        expect(opportunity.candidate_pool_id).to be_nil
       end
 
       it 'excludes closed projects even when scoped to specific unit groups' do
