@@ -49,7 +49,6 @@ RSpec.describe 'SubmitForm for Service', type: :request do
     }
   end
 
-  it_behaves_like 'submit form creates form processor'
   it_behaves_like 'submit form marks enrollment for re-processing' do
     let(:enrollment) { e1 }
   end
@@ -64,6 +63,15 @@ RSpec.describe 'SubmitForm for Service', type: :request do
     expect(service.date_provided).to eq(Date.parse('2023-03-15'))
     expect(service.record_type).to eq(200)
     expect(service.moving_on_other_type).to eq('something')
+  end
+
+  # special case (don't use shared example) because the owner is the underlying Hmis::Hud::Service, not the Hmis::Hud::HmisService
+  it 'creates a form processor' do
+    record, = submit_form(input)
+    record = definition.owner_class.find(record['id'])
+    owner = record.owner
+    expect(Hmis::Form::FormProcessor.where(owner: owner).count).to eq(1)
+    expect(owner.form_processor).to be_present
   end
 
   it 'persists submitted form values to an existing service' do
