@@ -13,7 +13,7 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base
   include PerformanceDashboard::Household::Exiting
   include PerformanceDashboard::Household::Enrolled
   include PerformanceDashboard::Household::ProjectType
-  include PerformanceDashboard::Household::Coc
+  include PerformanceDashboard::CocBuckets
 
   def self.url
     'performance_dashboards/household'
