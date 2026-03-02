@@ -25,7 +25,7 @@ RSpec.describe 'SubmitForm for File', type: :request do
   let(:definition) { Hmis::Form::Definition.find_by(role: :FILE) }
   let(:hud_values) do
     {
-      'confidential' => false, # todo @martha - test confidential vs non
+      'confidential' => false,
       'enrollmentId' => nil,
       'tags' => [tag.id.to_s],
       'fileBlobId' => blob.signed_id,
@@ -77,12 +77,52 @@ RSpec.describe 'SubmitForm for File', type: :request do
     expect(record.updated_by).to eq(hmis_user) # changed to user who most recently edited
   end
 
-  # todo @Martha - more in-depth treatment
-  context 'when user lacks file management permission' do
-    before { remove_permissions(access_control, :can_manage_any_client_files, :can_manage_own_client_files) }
+  describe 'permissions' do
+    context 'when user lacks both file management permissions (even if they can still view the file)' do
+      before { remove_permissions(access_control, :can_manage_any_client_files, :can_manage_own_client_files) }
 
-    it 'returns access denied' do
-      expect_gql_error submit_form(input, expect_raise: true), message: /not authorized/
+      it 'returns access denied for create' do
+        expect_gql_error submit_form(input, expect_raise: true), message: /not authorized/
+      end
+
+      it 'returns access denied for update' do
+        expect_gql_error submit_form(input.merge(record_id: file1.id), expect_raise: true), message: /not authorized/
+      end
+    end
+
+    context 'when user has only can_manage_own_client_files' do
+      before { remove_permissions(access_control, :can_manage_any_client_files) }
+
+      it 'allows creating a new file' do
+        record, = submit_form(input)
+        file = Hmis::File.find(record['id'])
+        expect(file.user_id).to eq(hmis_user.id)
+      end
+
+      it 'allows updating own file' do
+        expect do
+          submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge('enrollmentId' => e1.id)))
+          file1.reload
+        end.to change(file1, :enrollment_id).to(e1.id)
+      end
+
+      it "returns access denied when updating another user's file" do
+        other_hmis_user = create(:user).related_hmis_user(ds1)
+        file_owned_by_other = create(:file, client: c1, user: other_hmis_user, blob: blob, tags: [tag])
+        expect_gql_error submit_form(input.merge(record_id: file_owned_by_other.id), expect_raise: true), message: /not authorized/
+      end
+    end
+
+    context 'when user has can_manage_any_client_files' do
+      it "allows updating any file (including another user's file)" do
+        other_hmis_user = create(:user).related_hmis_user(ds1)
+        file_owned_by_other = create(:file, client: c1, user: other_hmis_user, blob: blob, tags: [tag])
+
+        expect do
+          submit_form(input.merge(record_id: file_owned_by_other.id, hud_values: hud_values.merge('enrollmentId' => e1.id)))
+          file_owned_by_other.reload
+        end.to change(file_owned_by_other, :enrollment_id).to(e1.id)
+      end
     end
   end
 end
