@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -13,121 +11,94 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
 
-RSpec.describe Hmis::GraphqlController, type: :request do
-  include_context 'hmis base setup'
+# This file contains shared examples for SubmitForm behavior across roles.
+# Used by submit_form_*_spec.rb files.
 
-  # let(:today) { Date.current }
-
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
-  before(:each) { hmis_login(user) }
-
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2020-01-01' }
-
-  # This file tests behavior that is general to all roles. For role-specific tests, see submit_form_*_spec.rb files.
-  let(:role) { :ENROLLMENT }
-  let(:definition) { Hmis::Form::Definition.find_by(role: role) }
-  let(:input) do
-    {
-      form_definition_id: definition.id,
-      record_id: e1.id,
-      hud_values: hud_values,
-      values: hud_values_to_values_by_link_id(hud_values),
-    }
+# Required lets when using: definition, input.
+RSpec.shared_examples 'submit form creates form processor' do
+  it 'creates a form processor' do
+    record, _errors = submit_form(input)
+    expect(record).to be_present
+    owner = definition.owner_class.find(record['id'])
+    expect(Hmis::Form::FormProcessor.where(owner: owner).count).to eq(1)
+    expect(owner.form_processor).to be_present
   end
+end
 
-  describe 'SubmitForm general tests' do
-    # todo @martha - this should be a shared example
-    it 'creates a form processor' do
-      expect(Hmis::Form::FormProcessor.where(owner: e1).count).to eq(1)
-      expect(e1.form_processor).to be_present
-    end
+# Required lets: enrollment, input
+# Include for roles that trigger enrollment reprocessing: ENROLLMENT, SERVICE, CURRENT_LIVING_SITUATION
+RSpec.shared_examples 'submit form marks enrollment for re-processing' do
+  it 'marks enrollment for re-processing' do
+    Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment']).delete_all
+    enrollment.update!(processed_as: 'PROCESSED', processed_hash: 'PROCESSED')
 
-    it 'marks enrollment for re-processing' do
-      # delete processing jobs that would have been queued from factory record creation
-      Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
-      # mark enrollment record as processed
-      e1.update!(processed_as: 'PROCESSED', processed_hash: 'PROCESSED')
+    expect do
+      submit_form(input)
+      enrollment.reload
+    end.to change(enrollment, :processed_as).from('PROCESSED').to(nil).
+      and change(enrollment, :processed_hash).from('PROCESSED').to(nil).
+      and change(Delayed::Job, :count).by(1)
 
-      expect do
-        submit_form(input)
-        e1.reload
-      end.to change(e1, :processed_as).from('PROCESSED').to(nil).
-        and change(e1, :processed_hash).from('PROCESSED').to(nil).
-        and change(Delayed::Job, :count).by(1)
+    expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').count).to be_positive
+  end
+end
 
-      # Check that enrollment.processed_as: nil and enrollment.processed_hash: nil, but weren't nil before save
-      # this should be true if exit, CLS, Service, or Enrollment changed/added/deleted
-      expect(e1.reload.processed_as).to be_nil if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
+# Required lets: input.
+# Include for roles that trigger IdentifyDuplicates job: CLIENT, NEW_CLIENT_ENROLLMENT.
+RSpec.shared_examples 'submit form triggers IdentifyDuplicates job' do
+  it 'triggers IdentifyDuplicates job' do
+    Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
 
-      # check that delayed jobs are queued for when above happens or client is changed
-      expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').count).to be_positive if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
-      expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive if role.in?([:CLIENT])
-    end
+    expect do
+      submit_form(input)
+    end.to change(Delayed::Job, :count)
 
-    it 'should fail if required field is missing' do
-      required_item = find_required_item(definition)
-      next unless required_item.present?
+    expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive
+  end
+end
 
-      input = test_input.merge(
-        values: test_input[:values].merge(required_item.link_id => nil),
-        hud_values: test_input[:hud_values].merge(required_item.mapping.field_name => nil),
-      )
+# Required: definition, input. Skips when form has no required field.
+RSpec.shared_examples 'submit form fails when required field is missing' do
+  it 'fails when required field is missing' do
+    required_item = find_required_item(definition)
+    skip 'No required field in this form' unless required_item.present?
 
-      expected_error = {
-        type: :required,
-        attribute: required_item.mapping.field_name,
-        severity: :error,
-      }
-      record, errors = submit_form(input)
+    bad_input = input.merge(
+      values: input[:values].merge(required_item.link_id => nil),
+      hud_values: input[:hud_values].merge(required_item.mapping.field_name => nil),
+    )
 
-      aggregate_failures 'checking response' do
-        expect(record).to be_nil
-        expect(errors).to include(
-          a_hash_including(**expected_error.transform_keys(&:to_s).transform_values(&:to_s)),
-        )
-      end
-    end
+    expect_validation_error(
+      bad_input,
+      exact: false,
+      type: 'required',
+      attribute: required_item.mapping.field_name,
+      severity: 'error',
+    )
+  end
+end
 
-    it 'should fail if form definition is draft' do
-      draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier)
-      expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
-    end
+# Required: definition, input.
+RSpec.shared_examples 'submit form fails when form definition is draft' do
+  it 'fails when form definition is draft' do
+    draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier)
+    expect_raise_error(input.merge(form_definition_id: draft.id), message: /status draft is invalid/)
+  end
+end
 
-    it 'should update user correctly' do
-      next if role == :REFERRAL # skip for referral, tested separately
+# Required: definition, input, hmis_user
+RSpec.shared_examples 'submit form updates user correctly' do
+  it 'updates user correctly' do
+    record, = submit_form(input)
+    record = definition.owner_class.find(record['id'])
+    expect(record.user).to eq(Hmis::Hud::User.from_user(hmis_user))
 
-      if role == :ENROLLMENT
-        _response, result = post_graphql(input: { input: test_input.merge(record_id: e1.id) }) { mutation }
-      else
-        _response, result = post_graphql(input: { input: test_input }) { mutation }
-      end
+    next_input = input.merge(record_id: record.id)
 
-      expect(result.dig('data', 'submitForm', 'errors')).to be_blank
-      record_id = result.dig('data', 'submitForm', 'record', 'id')
-      record = definition.owner_class.find_by(id: record_id)
+    record, = submit_form(next_input)
+    record = definition.owner_class.find(record['id'])
 
-      # FIXME refactor this out to its own file test
-      if role == :FILE
-        expect(record.user).to eq(hmis_user)
-        expect(record.updated_by).to eq(hmis_user)
-      else
-        expect(record.user).to eq(Hmis::Hud::User.from_user(hmis_user))
-      end
-
-      next_input = test_input.merge(record_id: record.id)
-      record.update(user_id: 999, updated_by_id: nil) if role == :FILE
-
-      _response, result = post_graphql(input: { input: next_input }) { mutation }
-      record_id = result.dig('data', 'submitForm', 'record', 'id')
-      record = definition.owner_class.find_by(id: record_id)
-
-      if role == :FILE
-        expect(record.user_id).to eq(999)
-        expect(record.updated_by).to eq(hmis_user)
-      else
-        expect(record.user).to eq(Hmis::Hud::User.from_user(hmis_user))
-      end
-    end
+    expect(record.user).to eq(Hmis::Hud::User.from_user(hmis_user))
   end
 end
 

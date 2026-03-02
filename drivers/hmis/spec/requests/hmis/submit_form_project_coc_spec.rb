@@ -10,6 +10,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
+require_relative 'submit_form_spec'
 
 RSpec.describe 'SubmitForm for ProjectCoc', type: :request do
   include_context 'hmis base setup'
@@ -41,6 +42,11 @@ RSpec.describe 'SubmitForm for ProjectCoc', type: :request do
       confirmed: false,
     }
   end
+
+  it_behaves_like 'submit form creates form processor'
+  it_behaves_like 'submit form fails when required field is missing'
+  it_behaves_like 'submit form fails when form definition is draft'
+  it_behaves_like 'submit form updates user correctly'
 
   it 'creates a new project coc' do
     project_coc = nil

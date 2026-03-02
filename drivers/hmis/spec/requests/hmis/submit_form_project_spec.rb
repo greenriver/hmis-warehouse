@@ -10,6 +10,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
+require_relative 'submit_form_spec'
 
 RSpec.describe 'SubmitForm for Project', type: :request do
   include_context 'hmis base setup'
@@ -18,7 +19,7 @@ RSpec.describe 'SubmitForm for Project', type: :request do
   before(:each) { hmis_login(user) }
 
   let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT) }
-  let(:base_hud_values) do
+  let(:hud_values) do
     {
       'projectName' => 'Test Project',
       'description' => 'project description',
@@ -33,8 +34,7 @@ RSpec.describe 'SubmitForm for Project', type: :request do
       'continuumProject' => 'NO',
     }.stringify_keys
   end
-  let(:hud_values) { base_hud_values } # overwrite in context blocks as needed
-  let(:base_input) do
+  let(:input) do
     {
       form_definition_id: definition.id,
       hud_values: hud_values,
@@ -43,7 +43,11 @@ RSpec.describe 'SubmitForm for Project', type: :request do
       confirmed: false,
     }
   end
-  let(:input) { base_input } # overwrite in context blocks as needed
+
+  it_behaves_like 'submit form creates form processor'
+  it_behaves_like 'submit form fails when required field is missing'
+  it_behaves_like 'submit form fails when form definition is draft'
+  it_behaves_like 'submit form updates user correctly'
 
   it 'creates a new project' do
     project = nil
@@ -78,8 +82,8 @@ RSpec.describe 'SubmitForm for Project', type: :request do
 
     let(:today) { Date.current }
     let(:end_date) { today }
-    let(:hud_values) { { **base_hud_values, 'operatingEndDate' => end_date.strftime('%Y-%m-%d') } }
-    let(:input) { base_input.merge(record_id: project.id) }
+    let(:hud_values) { super().merge(operatingEndDate: end_date.strftime('%Y-%m-%d')).stringify_keys }
+    let(:input) { super().merge(record_id: project.id) }
 
     context 'with open enrollments' do
       let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: project, entry_date: 1.month.ago }
@@ -107,7 +111,8 @@ RSpec.describe 'SubmitForm for Project', type: :request do
       let!(:coc) { create :hmis_hud_project_coc, data_source: ds1, project: project, coc_code: 'CO-500', user: u1 }
       let!(:inventory) { create :hmis_hud_inventory, data_source: ds1, project: project, coc_code: coc.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
 
-      let!(:input) { base_input.merge(record_id: project.id, hud_values: { **hud_values, 'operatingEndDate' => today.strftime('%Y-%m-%d') }) }
+      let(:hud_values) { super().merge(operatingEndDate: today.strftime('%Y-%m-%d')).stringify_keys }
+      let(:input) { super().merge(record_id: project.id) }
 
       it 'should warn if closing project' do
         record, errors = submit_form(input, expect_validation_errors: true)
@@ -122,7 +127,8 @@ RSpec.describe 'SubmitForm for Project', type: :request do
       end
 
       context 'when confirmed' do
-        let!(:input) { base_input.merge(record_id: project.id, hud_values: { **hud_values, 'operatingEndDate' => today.strftime('%Y-%m-%d') }, confirmed: true) }
+        let(:hud_values) { super().merge(operatingEndDate: today.strftime('%Y-%m-%d')).stringify_keys }
+        let(:input) { super().merge(record_id: project.id, confirmed: true) }
 
         it 'should close related funders and inventory if confirmed' do
           submit_form(input)
@@ -134,7 +140,8 @@ RSpec.describe 'SubmitForm for Project', type: :request do
 
       context 'when operating end date is not changed' do
         let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, with_coc: true, operating_end_date: '2030-01-01' }
-        let!(:input) { base_input.merge(record_id: project.id, hud_values: { **hud_values, 'operatingEndDate' => '2030-01-01' }) }
+        let(:hud_values) { super().merge(operatingEndDate: '2030-01-01').stringify_keys }
+        let(:input) { super().merge(record_id: project.id) }
 
         it 'should NOT warn if the operating end date was not changed' do
           submit_form(input)
@@ -146,7 +153,8 @@ RSpec.describe 'SubmitForm for Project', type: :request do
 
       context 'when operating end date is cleared' do
         let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, with_coc: true, operating_end_date: '2030-01-01' }
-        let!(:input) { base_input.merge(record_id: project.id, hud_values: { **hud_values, 'operatingEndDate' => nil }) }
+        let(:hud_values) { super().merge(operatingEndDate: nil).stringify_keys }
+        let(:input) { super().merge(record_id: project.id) }
 
         it 'should NOT warn if the operating end date was cleared' do
           submit_form(input)
@@ -160,7 +168,7 @@ RSpec.describe 'SubmitForm for Project', type: :request do
 
   describe 'initial related records' do
     context 'when initial CoC code is provided' do
-      let(:hud_values) { { **base_hud_values, 'initialCocCode' => 'MA-504', 'initialGeocode' => '250354' } }
+      let(:hud_values) { super().merge('initialCocCode' => 'MA-504', 'initialGeocode' => '250354').stringify_keys }
 
       it 'creates a new project CoC record' do
         record, = submit_form(input)
@@ -172,7 +180,7 @@ RSpec.describe 'SubmitForm for Project', type: :request do
     end
 
     context 'when initial funder is provided' do
-      let(:hud_values) { { **base_hud_values, 'initialFunder' => 'LOCAL_OR_OTHER_FUNDING_SOURCE', 'initialOtherFunder' => 'Xyz Funder', 'initialFunderGrantId' => '12345' } }
+      let(:hud_values) { super().merge(initialFunder: 'LOCAL_OR_OTHER_FUNDING_SOURCE', initialOtherFunder: 'Xyz Funder', initialFunderGrantId: '12345').stringify_keys }
 
       it 'creates a new funder record' do
         record, = submit_form(input)
@@ -186,7 +194,7 @@ RSpec.describe 'SubmitForm for Project', type: :request do
     end
 
     context 'when initial HMIS participation type is provided' do
-      let(:hud_values) { { **base_hud_values, 'initialHmisParticipationType' => 'HMIS_PARTICIPATING' } }
+      let(:hud_values) { super().merge(initialHmisParticipationType: 'HMIS_PARTICIPATING').stringify_keys }
 
       it 'creates a new HMIS participation record' do
         record, = submit_form(input)
@@ -198,7 +206,7 @@ RSpec.describe 'SubmitForm for Project', type: :request do
     end
 
     context 'when initial CE participation is provided' do
-      let(:hud_values) { { **base_hud_values, 'initialCeAccessPoint' => 'YES', 'initialCeParticipationServices' => ['PREVENTION_ASSESSMENT', 'HOUSING_ASSESSMENT'], 'initialCeReceivesReferrals' => 'YES' } }
+      let(:hud_values) { super().merge(initialCeAccessPoint: 'YES', initialCeParticipationServices: ['PREVENTION_ASSESSMENT', 'HOUSING_ASSESSMENT'], initialCeReceivesReferrals: 'YES').stringify_keys }
 
       it 'creates a new CE participation record' do
         record, = submit_form(input)

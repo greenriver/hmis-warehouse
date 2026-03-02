@@ -10,6 +10,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
+require_relative 'submit_form_spec'
 
 RSpec.describe 'SubmitForm for Enrollment', type: :request do
   include_context 'hmis base setup'
@@ -26,14 +27,14 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
   before(:each) { hmis_login(user) }
 
   let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
-  let(:base_hud_values) do
+  let(:hud_values) do
     {
       'entryDate' => yesterday.strftime('%Y-%m-%d'),
       'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
       'enrollmentCoc' => 'XX-500',
     }.stringify_keys
   end
-  let(:base_input) do
+  let(:input) do
     {
       form_definition_id: definition.id,
       hud_values: hud_values,
@@ -43,8 +44,6 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
       confirmed: false,
     }
   end
-  let(:hud_values) { base_hud_values } # overwrite in context blocks as needed
-  let(:input) { base_input } # overwrite in context blocks as needed
 
   shared_examples 'returns validation error' do |**expect_validation_error_args|
     it 'returns validation error' do
@@ -53,6 +52,15 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
       end.not_to change(Hmis::Hud::Enrollment, :count)
     end
   end
+
+  it_behaves_like 'submit form creates form processor'
+  it_behaves_like 'submit form marks enrollment for re-processing' do
+    let(:enrollment) { e1 }
+    let(:input) { super().merge(record_id: e1.id) }
+  end
+  it_behaves_like 'submit form fails when required field is missing'
+  it_behaves_like 'submit form fails when form definition is draft'
+  it_behaves_like 'submit form updates user correctly'
 
   describe 'saving a new enrollment' do
     it 'saves the new enrollment as WIP' do
@@ -66,18 +74,18 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
     end
 
     context 'if adding second HoH to existing household' do
-      let(:hud_values) { base_hud_values.merge('householdId' => e1.household_id) }
+      let(:hud_values) { super().merge(householdId: e1.household_id).stringify_keys }
       it_behaves_like 'returns validation error', fullMessage: Hmis::Hud::Validators::EnrollmentValidator.one_hoh_full_message
     end
 
     context 'if creating household without HoH' do
-      let(:hud_values) { base_hud_values.merge('relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2)) }
+      let(:hud_values) { super().merge(relationshipToHoH: Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2)).stringify_keys }
       it_behaves_like 'returns validation error', fullMessage: Hmis::Hud::Validators::EnrollmentValidator.first_member_hoh_full_message
     end
 
     context 'if client already has an open enrollment in the household' do
       let!(:e2) { create(:hmis_hud_enrollment, client: c2, data_source: ds1, project: p1, entry_date: two_weeks_ago.strftime('%Y-%m-%d'), household_id: e1.household_id) }
-      let(:hud_values) { base_hud_values.merge('householdId' => e1.household_id, 'relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2)) }
+      let(:hud_values) { super().merge(householdId: e1.household_id, relationshipToHoH: Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2)).stringify_keys }
       it_behaves_like 'returns validation error',
                       fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message,
                       exact: false
@@ -85,7 +93,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
 
     context 'if client has a closed enrollment in the household' do
       let!(:exited_e2) { create(:hmis_hud_enrollment, client: c2, data_source: ds1, project: p1, entry_date: '2020-01-01', exit_date: '2020-01-01', household_id: e1.household_id) }
-      let(:hud_values) { base_hud_values.merge('householdId' => e1.household_id, 'relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2)) }
+      let(:hud_values) { super().merge(householdId: e1.household_id, relationshipToHoH: Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2)).stringify_keys }
 
       it 'does not error and saves the enrollment' do
         record, = submit_form(input)
@@ -98,7 +106,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
     end
 
     context 'if client is already enrolled' do
-      let(:input) { base_input.merge(client_id: c1.id) }
+      let(:input) { super().merge(client_id: c1.id) }
       it 'returns validation error' do
         expect do
           expect_validation_error(
@@ -110,8 +118,8 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
       end
 
       context 'and entry date is BEFORE the existing enrollment entry date' do
-        let(:hud_values) { base_hud_values.merge('entryDate' => (e1.entry_date - 5.days).strftime('%Y-%m-%d')) }
-        let(:input) { base_input.merge(client_id: c1.id, confirmed: false) }
+        let(:hud_values) { super().merge(entryDate: (e1.entry_date - 5.days).strftime('%Y-%m-%d')).stringify_keys }
+        let(:input) { super().merge(client_id: c1.id, confirmed: false) }
 
         it 'returns validation error' do
           expect do
@@ -127,7 +135,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
     end
 
     context 'if entry date is in the future' do
-      let(:hud_values) { base_hud_values.merge('entryDate' => (today + 1.day).strftime('%Y-%m-%d')) }
+      let(:hud_values) { super().merge(entryDate: (today + 1.day).strftime('%Y-%m-%d')).stringify_keys }
       it_behaves_like 'returns validation error', message: Hmis::Hud::Validators::EnrollmentValidator.future_message
     end
 
@@ -166,7 +174,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
 
   describe 'updating an existing enrollment' do
     let(:wip_e1) { create :hmis_hud_wip_enrollment, data_source: ds1 }
-    let(:input) { base_input.merge(record_id: e1.id) }
+    let(:input) { super().merge(record_id: e1.id) }
 
     it 'updates the enrollment' do
       expect do
@@ -176,8 +184,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
     end
 
     it 'does not change WIP status (WIP enrollment)' do
-      input = base_input.merge(record_id: wip_e1.id)
-      submit_form(input)
+      submit_form(input.merge(record_id: wip_e1.id))
       wip_e1.reload
       expect(wip_e1.in_progress?).to eq(true)
     end
@@ -197,7 +204,8 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
       let(:e1) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p1, entry_date: 5.days.ago }
       let(:e2) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p1, entry_date: 20.days.ago, exit_date: 10.days.ago }
 
-      let!(:input) { base_input.merge(record_id: e1.id, hud_values: hud_values.merge('entryDate' => 15.days.ago.strftime('%Y-%m-%d'))) }
+      let(:hud_values) { super().merge(entryDate: 15.days.ago.strftime('%Y-%m-%d')).stringify_keys }
+      let(:input) { super().merge(record_id: e1.id) }
 
       it 'should warn' do
         expect_validation_error(

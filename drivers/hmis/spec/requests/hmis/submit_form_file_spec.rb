@@ -10,6 +10,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
+require_relative 'submit_form_spec'
 
 RSpec.describe 'SubmitForm for File', type: :request do
   include_context 'hmis base setup'
@@ -39,6 +40,10 @@ RSpec.describe 'SubmitForm for File', type: :request do
     }
   end
 
+  it_behaves_like 'submit form creates form processor'
+  it_behaves_like 'submit form fails when required field is missing'
+  it_behaves_like 'submit form fails when form definition is draft'
+
   it 'creates a new file' do
     record, = submit_form(input)
     file = Hmis::File.find(record['id'])
@@ -51,6 +56,25 @@ RSpec.describe 'SubmitForm for File', type: :request do
       submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge('enrollmentId' => e1.id)))
       file1.reload
     end.to change(file1, :enrollment).from(nil).to(e1)
+  end
+
+  # file.user is a special case, so use a special test instead of shared example used by the other submit_form tests
+  it 'updates user correctly' do
+    record, = submit_form(input.merge(record_id: file1.id))
+    record = definition.owner_class.find(record['id'])
+
+    expect(record.user).to eq(hmis_user)
+    expect(record.updated_by).to eq(hmis_user)
+
+    # update file to pretend it was created by a different user
+    record.update(user_id: 999, updated_by_id: nil)
+
+    next_input = input.merge(record_id: record.id)
+    record, = submit_form(next_input)
+    record = definition.owner_class.find(record['id'])
+
+    expect(record.user_id).to eq(999) # unchanged
+    expect(record.updated_by).to eq(hmis_user) # changed to user who most recently edited
   end
 
   # todo @Martha - more in-depth treatment
