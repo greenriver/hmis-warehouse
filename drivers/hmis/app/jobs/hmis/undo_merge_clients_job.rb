@@ -9,6 +9,7 @@
 module Hmis
   # intentionally doesn't restore attributes on retained client from pre_merge_state because
   # the retained client may have been updated since the merge, and we don't want to overwrite those changes.
+  # FIXME: should delete merge history after so clients don't show up in search together
   class UndoMergeClientsJob < BaseJob
     attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history
 
