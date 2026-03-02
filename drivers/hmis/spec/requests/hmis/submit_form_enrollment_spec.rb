@@ -16,15 +16,14 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
+  before(:each) { hmis_login(user) }
 
   let(:today) { Date.current }
   let(:yesterday) { today - 1.day }
   let(:two_weeks_ago) { today - 2.weeks }
 
-  let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: two_weeks_ago.strftime('%Y-%m-%d') }
-
-  before(:each) { hmis_login(user) }
+  let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
 
   let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
   let(:hud_values) do

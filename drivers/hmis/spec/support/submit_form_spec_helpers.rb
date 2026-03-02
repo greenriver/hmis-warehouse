@@ -12,7 +12,7 @@ module SubmitFormSpecHelpers
           record {
             ... on Client { id }
             ... on Organization { id }
-            ... on Project { id }#{' '}
+            ... on Project { id }
             ... on Funder { id }
             ... on ProjectCoc { id }
             ... on Inventory { id }

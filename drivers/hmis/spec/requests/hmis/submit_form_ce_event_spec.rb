@@ -16,9 +16,8 @@ RSpec.describe 'SubmitForm for CeEvent', type: :request do
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
-  let!(:evt1) { create :hmis_hud_event, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
+  let!(:evt1) { create :hmis_hud_event, data_source: ds1, client: c1, enrollment: e1, user: u1 }
 
   before(:each) { hmis_login(user) }
 

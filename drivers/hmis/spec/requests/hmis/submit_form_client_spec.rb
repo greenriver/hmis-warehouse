@@ -16,7 +16,6 @@ RSpec.describe 'SubmitForm for Client', type: :request do
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
 
   before(:each) { hmis_login(user) }
 
@@ -82,9 +81,9 @@ RSpec.describe 'SubmitForm for Client', type: :request do
 
   it 'persists submitted form values to the existing client' do
     expect do
-      submit_form(input.merge(record_id: c2.id))
-      c2.reload
-    end.to change(c2, :first_name).to('First').and change(c2, :last_name).to('Last')
+      submit_form(input.merge(record_id: c1.id))
+      c1.reload
+    end.to change(c1, :first_name).to('First').and change(c1, :last_name).to('Last')
   end
 
   context 'when user lacks can_edit_clients permission' do
