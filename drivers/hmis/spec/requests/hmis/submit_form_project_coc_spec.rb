@@ -10,7 +10,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
-require_relative 'submit_form_spec'
+require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for ProjectCoc', type: :request do
   include_context 'hmis base setup'

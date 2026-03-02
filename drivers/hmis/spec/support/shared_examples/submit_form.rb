@@ -6,10 +6,7 @@
 
 # frozen_string_literal: true
 
-require 'rails_helper'
-require_relative 'login_and_permissions'
-require_relative '../../support/hmis_base_setup'
-require_relative '../../support/submit_form_spec_helpers'
+require_relative '../submit_form_spec_helpers'
 
 # This file contains shared examples for SubmitForm behavior across roles.
 # Used by submit_form_*_spec.rb files.
