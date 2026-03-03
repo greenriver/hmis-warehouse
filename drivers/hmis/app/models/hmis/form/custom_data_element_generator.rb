@@ -106,7 +106,9 @@ module Hmis
       # that are reserved but not yet persisted (so a call to `exists?` won't find them).
       # @return [String] The generated reporting_key
       def self.generate_reporting_key(link_id, owner_type:, unpersisted_reserved_keys: Set.new)
-        normalized = link_id.downcase.gsub(/[^a-z0-9_]/, '_')
+        # Normalize base key to ensure it meets reporting key requirements
+        # Note: link_id should already be alphanumeric with underscores, and start with a letter, from schema validation. This is necessary for when generate_reporting_key is called with a different base string from one-time population task
+        normalized = base_key.downcase.gsub(/[^a-z0-9_]/, '_')
         normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
         normalized = normalized[0..62]
 
