@@ -58,7 +58,7 @@ module HmisDataCleanup
       Sentry.capture_message(
         'CustomDataElementDefinition CDED reporting_key population was unable to update all CDEDs',
         level: :warning,
-        extra: skipped,
+        extra: { skipped_cdeds: skipped },
       )
     end
   end
