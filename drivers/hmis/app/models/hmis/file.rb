@@ -99,7 +99,7 @@ class Hmis::File < GrdaWarehouse::File
         file = entity_base
         client = file.client
       # If the entity_base is a client, that means we're trying to authorize the
-      # creation of a new file. (SubmitForm defines the permission base to use)
+      # creation of a new file. (SubmitFormAuthorizer defines the permission base to use)
       when Hmis::Hud::Client
         client = entity_base
       else

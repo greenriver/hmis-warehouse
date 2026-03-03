@@ -287,7 +287,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should fail if user lacks permission' do
           remove_permissions(access_control, *definition.record_editing_permissions)
-          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: /not authorized/
         end
 
         it 'should fail if form definition is draft' do
@@ -920,7 +920,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       [:can_manage_outgoing_referrals, :can_view_enrollment_details, :can_view_project].each do |permission|
         it "fails when referer lacks #{permission} in source project" do
           create_access_control(hmis_user, p1, without_permission: permission)
-          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: /not authorized/
         end
       end
 

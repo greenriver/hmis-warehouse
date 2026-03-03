@@ -79,9 +79,9 @@ module HudReports::Households
       @hoh_enrollments
     end
 
-    # Chronic status should come from the HoH if they are chronically homeless
-    # if not, use any other adult who is,
-    # if no adults are either yes or no, use  self for adults, and the HoH enrollment for children
+    # CH at Project Start (chronic_status): any household member present at start can cause the household to be CH.
+    # CH at Point in Time (pit_chronic_status): at least one adult or minor head of household must be CH.
+    # If no qualifying members are CH, use self for adults, and the HoH enrollment for children.
     # from glossary:
     # In cases where the head of household as well as all other adult household members have an indeterminate CH status (don’t know, refused, missing), any child household members should carry the same CH status as the head of household.
     # NOTE: Client CH status is only inherited if the client was present at the start of the enrollment.
@@ -102,21 +102,30 @@ module HudReports::Households
       current_member_entry_date = current_member[:entry_date] if current_member.present?
       hoh_entry_date = hoh[:entry_date] if hoh.present?
 
-      # HoH if they are chronically homeless
-      return hoh if hoh.present? && hoh[chronic_status] && hoh_entry_date == current_member_entry_date
+      # CH at Project Start: "The members of a household present at project start... can cause other
+      #    household members present at start to be considered chronically homeless" - no HoH/adult restriction.
+      # CH at Point in Time: "at least one adult or minor head of household" - so we check HoH and adults only.
+      # Both require the member to be present at the start of the project (same entry date as the HoH)
+      if chronic_status == :chronic_status
+        # CH at Project Start
+        chronic_member = household_members.detect do |hm|
+          hm[chronic_status] && hm[:entry_date] == hoh_entry_date
+        end
+        return chronic_member if chronic_member.present?
+      else # :pit_chronic_status
+        # CH at Point in Time
+        return hoh if hoh.present? && hoh[chronic_status] && hoh_entry_date == current_member_entry_date
 
-      # If the HoH is not chronically homeless, check if any other adult is
-      # The HH CH status will inherit from a CH adultas long as they have the same entry date as the HoH
-      chronic_adult = household_members.detect do |hm|
-        next false unless hm[:age].present?
+        chronic_adult = household_members.detect do |hm|
+          next false unless hm[:age].present?
 
-        adult_is_chronic = hm[:age] >= 18 && hm[chronic_status]
-        adult_matches_entry_date = hm[:entry_date] == hoh_entry_date
+          adult_is_chronic = hm[:age] >= 18 && hm[chronic_status]
+          adult_matches_entry_date = hm[:entry_date] == hoh_entry_date
 
-        adult_is_chronic && adult_matches_entry_date
+          adult_is_chronic && adult_matches_entry_date
+        end
+        return chronic_adult if chronic_adult.present?
       end
-      # if not, use any other adult who is (with the same entry date)
-      return chronic_adult if chronic_adult.present?
 
       # Return false if we don't have a valid member to check
       return false unless current_member.present?
