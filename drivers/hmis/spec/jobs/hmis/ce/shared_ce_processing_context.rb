@@ -14,16 +14,19 @@ RSpec.shared_context 'with ce processing setup' do
   let!(:client2) { create :grda_warehouse_hud_client, data_source: destination_data_source }
   let!(:client3) { create :grda_warehouse_hud_client, data_source: destination_data_source }
 
-  let!(:pool) { create(:hmis_ce_match_candidate_pool) }
-  let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: pool) }
-  let(:now) { Time.current }
-
-  before(:all) { cleanup_test_environment }
-
   before do
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    # Prevent automatic rebuilding of pools, so unit group stays associated with the pool and pool is considered active.
+    # This is acceptable tests that use this shared setup are testing pool processing, not pool building.
+    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
   end
+
+  let!(:ce_data_source) { create(:hmis_primary_data_source) }
+  let!(:pool) { create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source) }
+  let(:now) { Time.current }
+
+  before(:all) { cleanup_test_environment }
 end
 
 RSpec.shared_examples 'a self-scheduling job' do |wait_time:|

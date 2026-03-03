@@ -44,11 +44,18 @@ module Mutations
         raise "No workflow template configured for this unit group. Opportunity: #{opportunity.id}" unless workflow_template
 
         instance = workflow_template.instances.create!
+
+        # Capture the assignment rules from the unit group at referral creation time
+        assignment_rules = Hmis::Ce::Match::Rule.
+          eligibility_and_priority_rules_for_entity(opportunity.unit_group).
+          map(&:attributes)
+
         referral = opportunity.referrals.originated_from_waitlist.create!(
           workflow_instance: instance,
           referred_by: current_user,
           client: client,
           source_enrollment: source_enrollment,
+          assignment_rules: assignment_rules,
         )
 
         referral.create_default_participants!
