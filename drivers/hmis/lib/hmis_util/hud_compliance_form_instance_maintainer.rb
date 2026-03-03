@@ -34,7 +34,7 @@ module HmisUtil
 
     def initialize(dry_run: false)
       @dry_run = dry_run
-      @created = []  # { type: :default|:rule, ... } for reporting
+      @created = []  # OpenStruct(type:, definition_identifier:, project_type?, funder?) for reporting
       @updated = []  # same shape: existing instances changed to system/active
       setup_notifier('HUD Form Compliance')
     end
@@ -80,13 +80,14 @@ module HmisUtil
         funders: HudHelper.util.path_funders,
       )
 
-      # Ensure required rules exist for Current Living Situation
-      HudHelper.util.current_living_situation_funder_applicability_requirements.each do |spec|
+      # Ensure required rules exist for Current Living Situation.
+      # Each requirement is a Hash with :project_type and/or :funder
+      HudHelper.util.current_living_situation_funder_applicability_requirements.each do |requirement|
         create_system_instance!(
           identifier: FORM_IDENTIFIERS[:current_living_situation],
           data_collected_about: :HOH_AND_ADULTS,
-          project_type: spec[:project_type],
-          funder: spec[:funder],
+          project_type: requirement[:project_type],
+          funder: requirement[:funder],
         )
       end
     end
@@ -114,7 +115,7 @@ module HmisUtil
       return unless instance.changed?
 
       instance.save! unless @dry_run
-      payload = { type: :default, definition_identifier: identifier }
+      payload = OpenStruct.new(type: :default, definition_identifier: identifier)
       was_new ? @created << payload : @updated << payload
     end
 
@@ -147,7 +148,7 @@ module HmisUtil
       return unless instance.changed?
 
       instance.save! unless @dry_run
-      payload = { type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder }
+      payload = OpenStruct.new(type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder)
       was_new ? @created << payload : @updated << payload
     end
 
@@ -160,7 +161,7 @@ module HmisUtil
     end
 
     # One summary format for dry run (would create/update) and real run (created/updated). Entries
-    # are hashes with :type (:default or :rule), :definition_identifier, and for rules :project_type, :funder.
+    # are OpenStructs with type (:default or :rule), definition_identifier, and for rules project_type, funder.
     def build_summary_lines
       return [] if @created.empty? && @updated.empty?
 
@@ -183,12 +184,12 @@ module HmisUtil
     def format_entries(entries)
       entries.map do |entry|
         summary = [
-          entry[:definition_identifier],
-          entry[:project_type] ? "project_type=#{entry[:project_type]}" : nil,
-          entry[:funder] ? "funder=#{entry[:funder]}" : nil,
+          entry.definition_identifier,
+          entry.project_type ? "project_type=#{entry.project_type}" : nil,
+          entry.funder ? "funder=#{entry.funder}" : nil,
         ].compact.join(', ')
 
-        "  #{entry[:type] == :default ? 'default rule' : 'rule'}: #{summary}"
+        "  #{entry.type == :default ? 'default rule' : 'rule'}: #{summary}"
       end.sort
     end
   end

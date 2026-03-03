@@ -10,7 +10,7 @@ module HmisUtil
   # Loads HMIS form definitions from version-controlled JSON files into the database.
   #
   # By default, ensures HUD-compliant system form instances exist using HudComplianceFormInstanceMaintainer. (create_instances option)
-  # Optionally, ensures custom data element definitions (CDEDs) referenced by custom_field_key mappings exist. (generate_cdeds option)
+  # Optionally ensures CDEDs for custom_field_key mappings exist (generate_cdeds; defaults to true except in test).
   #
   # Reads form JSON files from drivers/hmis/lib/form_data:
   #   - Base definitions live under default/ (fragments, record forms, assessments, static admin forms)

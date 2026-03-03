@@ -9,7 +9,7 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Hud::Project, type: :model do
+RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
   let!(:data_source) { create :hmis_primary_data_source }
   let!(:project) { create :hmis_hud_project, data_source: data_source }
   let!(:client) { create :hmis_hud_client, data_source: data_source }
@@ -18,10 +18,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   before(:all) do
     # delete default instances to test from a clean slate (for data_collection_features and occurrence_point_form_instances tests)
     Hmis::Form::Instance.delete_all
-  end
-  after(:all) do
-    # reset to original state
-    HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
   end
 
   describe '#destroy' do

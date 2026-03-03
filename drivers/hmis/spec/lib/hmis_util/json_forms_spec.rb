@@ -8,24 +8,13 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisUtil::JsonForms do
+RSpec.describe HmisUtil::JsonForms, :manages_hmis_form_state do
   let!(:data_source) { create(:hmis_data_source) }
 
-  # Start with a clean slate
+  # Start with a clean slate (gets reset after group by :manages_hmis_form_state)
   before(:all) do
     Hmis::Form::Definition.delete_all
     Hmis::Form::Instance.delete_all
-  end
-
-  # Clean up any seeded forms between tests
-  after(:each) do
-    Hmis::Form::Definition.delete_all
-    Hmis::Form::Instance.delete_all
-  end
-
-  # Reset forms to original state after all tests complete
-  after(:all) do
-    ::HmisUtil::JsonForms.seed_all
   end
 
   RSpec.shared_context 'a seeded form' do |role:, identifier: role.to_s.downcase|
