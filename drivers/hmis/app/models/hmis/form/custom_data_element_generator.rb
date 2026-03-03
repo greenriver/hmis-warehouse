@@ -105,9 +105,9 @@ module Hmis
       # @param unpersisted_reserved_keys [Set<Array>] Optional set of [owner_type, reporting_key] pairs
       # that are reserved but not yet persisted (so a call to `exists?` won't find them).
       # @return [String] The generated reporting_key
-      def self.generate_reporting_key(link_id, owner_type:, unpersisted_reserved_keys: Set.new)
-        # Normalize base key to ensure it meets reporting key requirements
-        # Note: link_id should already be alphanumeric with underscores, and start with a letter, from schema validation. This is necessary for when generate_reporting_key is called with a different base string from one-time population task
+      def self.generate_reporting_key(base_key, owner_type:, unpersisted_reserved_keys: Set.new)
+        # Normalize base_key to ensure it meets reporting key requirements
+        # Note: link_id should almost meet these requirements from schema validation, but the requirements are not exactly the same.
         normalized = base_key.downcase.gsub(/[^a-z0-9_]/, '_')
         normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
         normalized = normalized[0..62]
@@ -127,7 +127,7 @@ module Hmis
           count += 1
         end
 
-        raise "Unique reporting_key generation failed after #{max_attempts} attempts for link_id: #{link_id}"
+        raise "Unique reporting_key generation failed after #{max_attempts} attempts for base key: #{base_key}"
       end
 
       def self.reporting_key_exists?(reporting_key, owner_type, unpersisted_reserved_keys = Set.new)
