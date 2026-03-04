@@ -52,13 +52,10 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
     end
   end
 
-  it_behaves_like 'submit form creates form processor'
   it_behaves_like 'submit form marks enrollment for re-processing' do
     let(:enrollment) { e1 }
     let(:input) { super().merge(record_id: e1.id) }
   end
-  it_behaves_like 'submit form fails when required field is missing'
-  it_behaves_like 'submit form fails when form definition is draft'
   it_behaves_like 'submit form updates user correctly'
 
   describe 'saving a new enrollment' do

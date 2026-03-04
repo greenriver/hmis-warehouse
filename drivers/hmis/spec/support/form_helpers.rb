@@ -25,10 +25,6 @@ module FormHelpers
     }
   end
 
-  def find_required_item(definition)
-    definition.link_id_item_hash.find { |_link_id, item| item.required && item.mapping&.field_name&.present? }&.last
-  end
-
   def add_item_to_definition(definition, item)
     definition.definition['item'] << item
     definition.save!

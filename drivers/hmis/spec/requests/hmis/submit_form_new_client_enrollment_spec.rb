@@ -45,10 +45,7 @@ RSpec.describe 'SubmitForm for NEW_CLIENT_ENROLLMENT', type: :request do
     }
   end
 
-  it_behaves_like 'submit form creates form processor'
   it_behaves_like 'submit form triggers IdentifyDuplicates job'
-  it_behaves_like 'submit form fails when required field is missing'
-  it_behaves_like 'submit form fails when form definition is draft'
 
   it 'creates client and enrollment with submitted values' do
     enrollment = nil

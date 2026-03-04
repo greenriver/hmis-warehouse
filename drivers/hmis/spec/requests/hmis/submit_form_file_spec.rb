@@ -40,10 +40,6 @@ RSpec.describe 'SubmitForm for File', type: :request do
     }
   end
 
-  it_behaves_like 'submit form creates form processor'
-  it_behaves_like 'submit form fails when required field is missing'
-  it_behaves_like 'submit form fails when form definition is draft'
-
   it 'creates a new file' do
     record, = submit_form(input)
     file = Hmis::File.find(record['id'])

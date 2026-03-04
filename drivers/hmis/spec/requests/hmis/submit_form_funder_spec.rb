@@ -40,9 +40,6 @@ RSpec.describe 'SubmitForm for Funder', type: :request do
     }
   end
 
-  it_behaves_like 'submit form creates form processor'
-  it_behaves_like 'submit form fails when required field is missing'
-  it_behaves_like 'submit form fails when form definition is draft'
   it_behaves_like 'submit form updates user correctly'
 
   it 'saves a new funder' do

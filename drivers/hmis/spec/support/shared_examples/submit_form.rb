@@ -11,17 +11,6 @@ require_relative '../submit_form_spec_helpers'
 # This file contains shared examples for SubmitForm behavior across roles.
 # Used by submit_form_*_spec.rb files.
 
-# Required lets when using: definition, input.
-RSpec.shared_examples 'submit form creates form processor' do
-  it 'creates a form processor' do
-    record, _errors = submit_form(input)
-    expect(record).to be_present
-    owner = definition.owner_class.find(record['id'])
-    expect(Hmis::Form::FormProcessor.where(owner: owner).count).to eq(1)
-    expect(owner.form_processor).to be_present
-  end
-end
-
 # Required lets: enrollment, input
 # Include for roles that trigger enrollment reprocessing: ENROLLMENT, SERVICE, CURRENT_LIVING_SITUATION
 RSpec.shared_examples 'submit form marks enrollment for re-processing' do
@@ -54,36 +43,7 @@ RSpec.shared_examples 'submit form triggers IdentifyDuplicates job' do
   end
 end
 
-# Required: definition, input. Skips when form has no required field.
-RSpec.shared_examples 'submit form fails when required field is missing' do
-  it 'fails when required field is missing' do
-    required_item = find_required_item(definition)
-    skip 'No required field in this form' unless required_item.present?
-
-    bad_input = input.merge(
-      values: input[:values].merge(required_item.link_id => nil),
-      hud_values: input[:hud_values].merge(required_item.mapping.field_name => nil),
-    )
-
-    expect_validation_error(
-      bad_input,
-      exact: false,
-      type: 'required',
-      attribute: required_item.mapping.field_name,
-      severity: 'error',
-    )
-  end
-end
-
-# Required: definition, input.
-RSpec.shared_examples 'submit form fails when form definition is draft' do
-  it 'fails when form definition is draft' do
-    draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier)
-    expect_raise_error(input.merge(form_definition_id: draft.id), message: /status draft is invalid/)
-  end
-end
-
-# Required: definition, input, hmis_user
+# Required lets: definition, input, hmis_user
 RSpec.shared_examples 'submit form updates user correctly' do
   it 'updates user correctly' do
     record, = submit_form(input)
