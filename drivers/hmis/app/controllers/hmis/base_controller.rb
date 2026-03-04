@@ -40,8 +40,13 @@ class Hmis::BaseController < ActionController::Base
   def attach_data_source_id
     domain = current_hmis_host
 
-    # In development: treat requests from GraphiQL as if they are coming from the local frontend
-    domain = ENV['HMIS_HOSTNAME'] if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
+    # In development, treat requests from GraphQL as if they are coming from the local frontend
+    allowed_hmis_hosts = ENV['HMIS_HOSTNAME']&.split(',')&.map(&:strip)&.presence
+    if Rails.env.development? && domain == ENV['HOSTNAME'] && allowed_hmis_hosts.present?
+      # Resolve which HMIS host this request is from based on the custom X-HMIS-Host header
+      host = request.headers['X-HMIS-Host'].presence
+      domain = host && allowed_hmis_hosts.include?(host) ? host : allowed_hmis_hosts.first
+    end
 
     data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
     raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
