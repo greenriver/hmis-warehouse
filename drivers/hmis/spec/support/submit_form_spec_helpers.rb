@@ -10,54 +10,22 @@ module SubmitFormSpecHelpers
       mutation SubmitForm($input: SubmitFormInput!) {
         submitForm(input: $input) {
           record {
-            ... on Client {
-              id
-            }
-            ... on Organization {
-              id
-            }
-            ... on Project {
-              id
-            }
-            ... on Funder {
-              id
-            }
-            ... on ProjectCoc {
-              id
-            }
-            ... on Inventory {
-              id
-            }
-            ... on Service {
-              id
-            }
-            ... on File {
-              id
-            }
-            ... on CustomCaseNote {
-              id
-            }
-            ... on Enrollment {
-              id
-            }
-            ... on CurrentLivingSituation {
-              id
-            }
-            ... on CeAssessment {
-              id
-            }
-            ... on Event {
-              id
-            }
-            ... on HmisParticipation {
-              id
-            }
-            ... on CeParticipation {
-              id
-            }
-            ... on ReferralPosting {
-              id
-            }
+            ... on Client { id }
+            ... on Organization { id }
+            ... on Project { id }
+            ... on Funder { id }
+            ... on ProjectCoc { id }
+            ... on Inventory { id }
+            ... on Service { id }
+            ... on File { id }
+            ... on CustomCaseNote { id }
+            ... on Enrollment { id inProgress householdSize }
+            ... on CurrentLivingSituation { id }
+            ... on CeAssessment { id }
+            ... on Event { id }
+            ... on HmisParticipation { id }
+            ... on CeParticipation { id }
+            ... on ReferralPosting { id }
           }
           #{error_fields}
         }
@@ -83,5 +51,14 @@ module SubmitFormSpecHelpers
     end
 
     [record, errors]
+  end
+
+  def expect_validation_error(input, exact: true, mutation: nil, **expected_error)
+    _, errors = submit_form(input, mutation: mutation, expect_validation_errors: true)
+    if exact
+      expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+    else
+      expect(errors).to include(include(expected_error.stringify_keys))
+    end
   end
 end
