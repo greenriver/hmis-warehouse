@@ -56,7 +56,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
     let(:enrollment) { e1 }
     let(:input) { super().merge(record_id: e1.id) }
   end
-  it_behaves_like 'submit form updates user correctly'
+  it_behaves_like 'submit form updates HUD User on record'
 
   describe 'saving a new enrollment' do
     it 'saves the new enrollment as WIP' do

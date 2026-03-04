@@ -36,7 +36,7 @@ RSpec.describe 'SubmitForm for Organization', type: :request do
     }
   end
 
-  it_behaves_like 'submit form updates user correctly'
+  it_behaves_like 'submit form updates HUD User on record'
 
   it 'creates a new organization' do
     organization = nil

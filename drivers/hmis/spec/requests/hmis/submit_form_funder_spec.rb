@@ -40,7 +40,7 @@ RSpec.describe 'SubmitForm for Funder', type: :request do
     }
   end
 
-  it_behaves_like 'submit form updates user correctly'
+  it_behaves_like 'submit form updates HUD User on record'
 
   it 'saves a new funder' do
     record, = submit_form(input)

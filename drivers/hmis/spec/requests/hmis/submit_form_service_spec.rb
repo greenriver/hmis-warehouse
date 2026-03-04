@@ -52,7 +52,7 @@ RSpec.describe 'SubmitForm for Service', type: :request do
   it_behaves_like 'submit form marks enrollment for re-processing' do
     let(:enrollment) { e1 }
   end
-  it_behaves_like 'submit form updates user correctly'
+  it_behaves_like 'submit form updates HUD User on record'
 
   it 'saves a new HUD service' do
     record, = submit_form(input)

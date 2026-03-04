@@ -44,7 +44,7 @@ RSpec.shared_examples 'submit form triggers IdentifyDuplicates job' do
 end
 
 # Required lets: definition, input, hmis_user
-RSpec.shared_examples 'submit form updates user correctly' do
+RSpec.shared_examples 'submit form updates HUD User on record' do
   it 'updates user correctly' do
     record, = submit_form(input)
     record = definition.owner_class.find(record['id'])
