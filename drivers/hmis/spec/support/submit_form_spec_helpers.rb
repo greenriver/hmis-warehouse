@@ -61,9 +61,4 @@ module SubmitFormSpecHelpers
       expect(errors).to include(include(expected_error.stringify_keys))
     end
   end
-
-  def expect_raise_error(input, mutation: nil, **expected_error)
-    _, result = submit_form(input, mutation: mutation, expect_raise: true)
-    expect(result.dig('errors')).to contain_exactly(include(expected_error.stringify_keys))
-  end
 end

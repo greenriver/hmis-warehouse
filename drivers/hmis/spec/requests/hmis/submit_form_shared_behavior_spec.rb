@@ -40,7 +40,7 @@ RSpec.describe 'SubmitForm shared behavior', type: :request do
   shared_examples 'submit form fails when form definition is draft' do
     it 'fails when form definition is draft' do
       draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier)
-      expect_raise_error(input.merge(form_definition_id: draft.id), message: /status draft is invalid/)
+      expect_gql_error submit_form(input.merge(form_definition_id: draft.id), expect_raise: true), message: /status draft is invalid/
     end
   end
 
@@ -50,6 +50,7 @@ RSpec.describe 'SubmitForm shared behavior', type: :request do
       owner = definition.owner_class.find(record['id'])
       expect(Hmis::Form::FormProcessor.where(owner: owner).count).to eq(1)
       expect(owner.form_processor).to be_present
+      expect(owner.form_processor.definition).to eq(definition)
     end
   end
 

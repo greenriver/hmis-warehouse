@@ -91,7 +91,7 @@ RSpec.describe 'SubmitForm for NEW_CLIENT_ENROLLMENT', type: :request do
   context 'when trying to submit the form to edit an existing record' do
     let(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
     it 'raises' do
-      expect_raise_error(input.merge(record_id: enrollment.id), message: /cannot be used to edit existing records/)
+      expect_gql_error submit_form(input.merge(record_id: enrollment.id), expect_raise: true), message: /cannot be used to edit existing records/
     end
   end
 end
