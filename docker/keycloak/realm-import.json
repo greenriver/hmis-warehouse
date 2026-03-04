@@ -1,0 +1,52 @@
+{
+  "realm": "openpath",
+  "enabled": true,
+  "displayName": "Open Path",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+  "clients": [
+    {
+      "clientId": "dex-connector",
+      "secret": "dex-connector-secret-dev",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://dex.dev.test/dex/callback",
+        "http://dex.dev.test:4443/dex/callback"
+      ],
+      "webOrigins": ["*"],
+      "attributes": {
+        "post.logout.redirect.uris": "https://hmis-warehouse.dev.test/oauth2/sign_out##https://hmis.dev.test/oauth2/sign_out"
+      }
+    },
+    {
+      "clientId": "rails-service-account",
+      "secret": "rails-service-account-secret-dev",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "groups": [
+    { "name": "warehouse-users" },
+    { "name": "hmis-users" }
+  ],
+  "users": [
+    {
+      "username": "service-account-rails-service-account",
+      "enabled": true,
+      "serviceAccountClientId": "rails-service-account",
+      "clientRoles": {
+        "realm-management": ["manage-realm", "manage-users", "view-users", "query-users"]
+      }
+    }
+  ]
+}

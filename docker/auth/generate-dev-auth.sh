@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TEMPLATE_DIR="$REPO_ROOT/docker/auth"
+TEMPLATE_DIR="$REPO_ROOT/docker/auth/templates"
 OUTPUT_DIR="$REPO_ROOT/dev/auth"
 ENV_FILE="$REPO_ROOT/.env.development.local"
 

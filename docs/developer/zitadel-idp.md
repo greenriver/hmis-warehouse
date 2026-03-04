@@ -1,5 +1,8 @@
 # Zitadel IDP
 
+> **Deprecated.** Zitadel has been replaced by Keycloak as the default IDP.
+> See [keycloak-idp.md](keycloak-idp.md) for current setup instructions.
+
 The warehouse has run since 2017 using the [devise](https://github.com/heartcombo/devise) gem for authentication.  We are now switching to an Oauth2 authentication system that includes [Oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of [Dex](https://dexidp.io) which proxies pretty much any IDP. For installations where the community does not have an existing IDP, we use a stand-alone installation of [Zitadel](https://zitadel.com) to provide user management.
 
 ## Local Development Setup
