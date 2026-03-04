@@ -42,7 +42,7 @@ providers:
     backendLogoutURL: "https://dex.dev.test/dex/auth/logout"
     bitbucketConfig: {}
     clientID: hmis-frontend
-    clientSecret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    clientSecret: "${JWT_SECRET}"
     githubConfig: {}
     gitlabConfig: {}
     googleConfig: {}

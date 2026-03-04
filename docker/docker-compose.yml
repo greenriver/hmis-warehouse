@@ -35,9 +35,8 @@ x-app: &app
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
     # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientID
     IDP_AUD: ${IDP_AUD:-hmis-warehouse}
-    # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientSecret and
-    # Needs to match /app/docker/auth/dev.oauth2-proxy.cfg cookie_secret
-    JWT_SECRET: ${JWT_SECRET:-"dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="}
+    # JWT_SECRET, OAUTH2_PROXY_COOKIE_SECRET, OAUTH2_PROXY_CLIENT_SECRET are provided via env_file.
+    # See sample.env for instructions on generating these values.
     JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
     ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
     JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
@@ -173,7 +172,8 @@ services:
       - "dex.dev.test:host-gateway"
     volumes:
       - "./docker/auth/dev.oauth2-proxy-warehouse.cfg:/oauth2-proxy-warehouse.cfg"
-      - "./docker/auth/dev.oauth2-proxy-warehouse.yaml:/oauth2-proxy-warehouse.yaml"
+      - "./dev/auth/dev.oauth2-proxy-warehouse.yaml:/oauth2-proxy-warehouse.yaml"
+    env_file: *env_file
     environment:
       <<: *env
       FQDN: hmis-warehouse.dev.test
@@ -202,7 +202,8 @@ services:
       - "dex.dev.test:host-gateway"
     volumes:
       - "./docker/auth/dev.oauth2-proxy-hmis.cfg:/oauth2-proxy-hmis.cfg"
-      - "./docker/auth/dev.oauth2-proxy-hmis.yaml:/oauth2-proxy-hmis.yaml"
+      - "./dev/auth/dev.oauth2-proxy-hmis.yaml:/oauth2-proxy-hmis.yaml"
+    env_file: *env_file
     environment:
       <<: *env
       FQDN: hmis.dev.test
@@ -231,7 +232,8 @@ services:
       - "dex.dev.test:host-gateway"
     volumes:
       - "./docker/auth/dev.oauth2-proxy-hmis-backend.cfg:/oauth2-proxy-hmis-backend.cfg"
-      - "./docker/auth/dev.oauth2-proxy-hmis-backend.yaml:/oauth2-proxy-hmis-backend.yaml"
+      - "./dev/auth/dev.oauth2-proxy-hmis-backend.yaml:/oauth2-proxy-hmis-backend.yaml"
+    env_file: *env_file
     environment:
       <<: *env
       FQDN: hmis-backend.dev.test

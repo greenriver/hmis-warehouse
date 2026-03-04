@@ -42,7 +42,7 @@ providers:
     backendLogoutURL: ""
     bitbucketConfig: {}
     clientID: hmis-warehouse
-    clientSecret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    clientSecret: "${JWT_SECRET}"
     githubConfig: {}
     gitlabConfig: {}
     googleConfig: {}
