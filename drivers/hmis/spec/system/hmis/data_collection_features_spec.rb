@@ -32,6 +32,13 @@ RSpec.feature 'Data collection features', type: :system do
   end
 
   context 'when no CLS is enabled in the project' do
+    before(:all) do
+      Hmis::Form::Instance.with_role(:CURRENT_LIVING_SITUATION).each(&:destroy!)
+    end
+    after(:all) do
+      # re-seed CLS form instances to restore default behavior
+      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
+    end
     it 'should not show CLS in the project side nav' do
       visit "/projects/#{p1.id}/overview"
       expect(side_nav_elements).not_to include('Current Living Situations')

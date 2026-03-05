@@ -22,14 +22,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID' # Invalid enum representation
 
-  before(:all) do
-    cleanup_test_environment
-    ::HmisUtil::JsonForms.seed_all
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   describe 'IncomeBenefit processor' do
     it 'succeeds if overall is YES and sources are specified (income)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
@@ -967,7 +959,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
     let(:complete_hud_values) do
       {
-        "names": [primary_name.stringify_keys, secondary_name.stringify_keys],
+        'names' => [primary_name.stringify_keys, secondary_name.stringify_keys],
         'dob' => '2000-03-29',
         'dobDataQuality' => 'FULL_DOB_REPORTED',
         'ssn' => 'XXXXX1234',
@@ -1070,7 +1062,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       existing_client = c1
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
-        hud_values = empty_hud_values.merge({ 'veteranStatus': HIDDEN })
+        hud_values = empty_hud_values.merge({ 'veteranStatus' => HIDDEN })
         process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
         expect(client.veteran_status).to eq(99)
       end
