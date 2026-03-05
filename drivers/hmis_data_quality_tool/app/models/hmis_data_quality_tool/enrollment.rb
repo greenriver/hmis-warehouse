@@ -24,6 +24,10 @@ module HmisDataQualityTool
     HOMELESS_LIVING_SITUATIONS = HudHelper.util.homeless_situations(as: :prior)
     INSTITUTIONAL_LIVING_SITUATIONS = HudHelper.util.institutional_situations(as: :prior)
     HOUSED_LIVING_SITUATIONS = HudHelper.util.temporary_situations(as: :prior) + HudHelper.util.permanent_situations(as: :prior)
+    REQUIRED_EMPLOYMENT_STAGES = [
+      HudHelper.util.data_collection_stage('Project entry', true),
+      HudHelper.util.data_collection_stage('Project exit', true),
+    ].freeze
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
@@ -171,6 +175,7 @@ module HmisDataQualityTool
         preload(
           :exit,
           :services,
+          :employment_educations,
           :current_living_situations,
           :disabilities_at_entry,
           :health_and_dvs_at_entry,
@@ -266,7 +271,7 @@ module HmisDataQualityTool
       report_item.iraq_ond = client.IraqOND
       report_item.military_branch = client.MilitaryBranch
       report_item.discharge_status = client.DischargeStatus
-      employment_education = enrollment.employment_educations.max_by(&:InformationDate)
+      employment_education = required_employment_education_in_range(enrollment, report.filter.start..report.filter.end)
       report_item.employed = employment_education&.Employed
       report_item.employment_type = employment_education&.EmploymentType
       report_item.not_employed_reason = employment_education&.NotEmployedReason
@@ -414,6 +419,16 @@ module HmisDataQualityTool
       # count the days between the end of the earlier of the reporting end date or exit date and the most-recent service or the entry date
       report_item.days_since_last_service = (end_date - max_service).to_i
       report_item
+    end
+
+    # Employment/Education required at Project Start and Project Exit (HUD-VASH, RHY, SSVF, GPD).
+    # Pull most recent entry or exit record within range.
+    private def required_employment_education_in_range(enrollment, range)
+      enrollment.employment_educations.select do |ee|
+        REQUIRED_EMPLOYMENT_STAGES.include?(ee.DataCollectionStage) &&
+          ee.InformationDate.present? &&
+          range.cover?(ee.InformationDate)
+      end.max_by(&:InformationDate)
     end
 
     private def hp_targeting_criteria_complete(enrollment)
@@ -1854,11 +1869,9 @@ module HmisDataQualityTool
           title: 'Discharge Status',
           description: 'Discharge Status is "Data not collected" (99) or blank for veterans',
           required_for: 'Veterans',
-          detail_columns: [
-            default_detail_columns + [
-              :veteran,
-              :discharge_status,
-            ],
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :discharge_status,
           ],
           denominator: ->(item) {
             funding_sources = [

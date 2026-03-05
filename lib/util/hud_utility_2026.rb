@@ -807,6 +807,16 @@ module HudUtility2026
     }
   end
 
+  # field name => ID from Data Dictionary
+  def ce_participation_services_fields
+    {
+      prevention_assessment: 1,
+      crisis_assessment: 2,
+      housing_assessment: 3,
+      direct_services: 4,
+    }
+  end
+
   def ce_events_referrals_to_housing
     [
       12,
