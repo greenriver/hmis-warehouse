@@ -41,7 +41,8 @@ class Hmis::BaseController < ActionController::Base
     domain = current_hmis_host
 
     # In development, requests from GraphQL have current_hmis_host equal to the backend host (HOSTNAME).
-    # Treat them as if they are comign from the local frontend, by setting the domain to the local frontend hostname (from HMIS_HOSTNAME).
+    # Treat them as if they are coming from the local frontend, by setting the domain to the local frontend hostname
+    # (one of the values in HMIS_HOSTNAME).
     if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
       # HMIS_HOSTNAME can be a single value *or* a comma-separated list
       allowed_hmis_hosts = ENV['HMIS_HOSTNAME']&.split(',')&.map(&:strip)
