@@ -31,6 +31,10 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
+    # In development, use untrusted header X-Hmis-Dev-Host.
+    # Trusted header 'request.host' cannot be used because the dev server setup makes it appear to come from the backend host.
+    return request.headers['X-Hmis-Dev-Host'].presence || raise('X-Hmis-Dev-Host header required in development') if Rails.env.development?
+
     # Trust Rack/Rails host resolution (respects trusted proxies and allowed hosts)
     return request.host if request.host.present?
 
@@ -39,21 +43,6 @@ class Hmis::BaseController < ActionController::Base
 
   def attach_data_source_id
     domain = current_hmis_host
-
-    # In development, requests from GraphQL have current_hmis_host equal to the backend host (HOSTNAME).
-    # Treat them as if they are coming from the local frontend, by setting the domain to the local frontend hostname
-    # (one of the values in HMIS_HOSTNAME).
-    if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
-      # HMIS_HOSTNAME can be a single value *or* a comma-separated list
-      allowed_hmis_hosts = ENV['HMIS_HOSTNAME']&.split(',')&.map(&:strip)
-
-      # Resolve which HMIS host this request is from based on the custom X-HMIS-Host header
-      host = request.headers['X-HMIS-Host'].presence
-
-      # If the host is in the allowed list, use it. Otherwise, use the first allowed host.
-      domain = host && allowed_hmis_hosts.include?(host) ? host : allowed_hmis_hosts.first
-    end
-
     data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
     raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
 

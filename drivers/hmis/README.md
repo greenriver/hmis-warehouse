@@ -49,12 +49,12 @@ yarn dev
 HMIS_HOST=hmis-2.dev.test yarn dev
 ```
 
-Use the URLs shown by the vite server (e.g. `https://hmis.dev.test:5173` and `https://hmis-2.dev.test:5174`). Each is scoped to its data source via the custom header `X-HMIS-Host`.
+Use the URLs shown by the vite server (e.g. `https://hmis.dev.test:5173` and `https://hmis-2.dev.test:5174`). Each is scoped to its data source via the custom header `X-Hmis-Dev-Host`.
 
 #### Troubleshooting
 
 - **“HMIS data source not configured”** — Add a data source for that hostname and include it in warehouse `HMIS_HOSTNAME`.
-- **Wrong data on frontend** — Ensure the proxy sends the right host in the `X-HMIS-Host` header. `HMIS_HOST` must match the data source’s `hmis`.
+- **Wrong data on frontend** — Ensure the proxy sends the right host in the `X-Hmis-Dev-Host` header. `HMIS_HOST` must match the data source’s `hmis`.
 - **Cert mismatch / HTTPS certificate errors** — In frontend env, set `HMIS_HOSTNAME` to a comma-separated list of _all_ accepted hostnames, matching the backend's `HMIS_HOSTNAME`, such as `hmis.dev.test,hmis-2.dev.test`. This allows vite-plugin-mkcert to create one cert covering multiple hosts. Check: `openssl x509 -in ~/.vite-plugin-mkcert/cert.pem -noout -ext subjectAltName`
 - **CORS** — Warehouse `HMIS_HOSTNAME` must include every frontend hostname you use.
 
