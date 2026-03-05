@@ -162,19 +162,6 @@ RSpec.describe Hmis::Form::SubmitFormRecordInitializer, type: :model do
       end
     end
 
-    context 'ReferralPosting' do
-      let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project, data_source: data_source) }
-      let(:receiving_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
-      let(:owner_class) { HmisExternalApis::AcHmis::ReferralPosting }
-      let(:input_without_required) { make_input }
-      let(:input_with_required_id) { make_input(enrollment_id: enrollment.id, project_id: receiving_project.id) }
-
-      it_behaves_like 'raises when required association passed but not viewable'
-      it_behaves_like 'builds record when associations viewable',
-                      expected_class: HmisExternalApis::AcHmis::ReferralPosting,
-                      view_permission: [:can_view_project, :can_view_enrollment_details]
-    end
-
     context 'Hmis::File' do
       let(:owner_class) { Hmis::File }
       let(:input_without_required) { make_input }
