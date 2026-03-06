@@ -63,10 +63,15 @@ The implementation lives in `Hmis::BaseController#attach_data_source_id`; contro
 
 All HMIS data (clients, enrollments, projects, organizations, etc.) is stored in tables that include a `data_source_id` foreign key to `GrdaWarehouse::DataSource`. That column ties each row to the specific HMIS data source it belongs to.
 
-- **HUD entities** have `data_source_id`. Queries/resolvers scope by the current user’s `hmis_data_source_id` so there is no cross–data-source exposure.
-- **`viewable_by` scopes** do permission-based filtering *and* restrict to the user’s `hmis_data_source_id`; they are the convention for “only records in this data source that the user may see.”
-- **Policies** (`Hmis::AuthPolicies::UserContext`): user must have `hmis_data_source_id` set; mismatches raise “HMIS Data Source Mismatch.” **Global** permissions = perms the user has on some entity in that data source (`#global_permissions`); **instance** policies use `project_permissions` / `organization_permissions`, which are scoped to the current data source.
-- **Object-level auth** on some GraphQL types (e.g. `HmisSchema::Client`) adds a final check (often via an instance policy) so that even a mistakenly returned record from another data source is blocked.
+- **HUD entities** have `data_source_id`. Queries and resolvers scope by the current user’s `hmis_data_source_id`, so there is no cross–data-source exposure.
+
+- **`viewable_by` scopes** combine permission-based filtering with a restriction to the user’s `hmis_data_source_id`. Convention: use these when you need “only records in this data source that the user may see.”
+
+- **Auth Policies**  expect that the user has `hmis_data_source_id`, and raise an error if attempting to authorize data from a different data source.
+  - **Global Policies** authorize the set of permissions the user has on *some* entity in that data source (see `#global_permissions`).  
+  - **Instance Policies** authorize permissions against a particular record (often a project) and enforce that the data source matches the current data source. (See `#project_permissions`, `#organization_permissions`)
+
+- **Object-level auth** on some GraphQL types (e.g. `HmisSchema::Client`) adds a final check, often via an instance policy. If a record from a different data source slipped through, this check prevents it from resolving.
 
 ---
 
