@@ -85,7 +85,7 @@ Configuration (forms, form rules, referral workflows, auto-exit config, etc.) is
 
 Granting a user access to the **wrong** data source (e.g. an admin mistake) is a risk. We may want more infrastructure around user–agency relationship (or user-datasource relationship) on the access control side to address this. Moving to an IDP may provide other approaches to reducing this risk, for example using the IDP to manage which "applications" a user can reach.
 
-**As implemented today**, if that mistake happens: the user may be able to log in and act on a **different** HMIS (another data source), but they are **not** accidentally exposed to data in what they consider “their own” system. The failure mode is “user sees another HMIS” rather than “user sees wrong data inside their HMIS.” That reduces the risk of improper data access by accident—mis-assignment sends them to another system, not to the wrong data within their system.
+**As implemented today**, if that mistake happens: the user may be able to log in and act on a **different** HMIS (another data source), but they are not accidentally exposed to data in what they consider “their own” system. The failure mode is “user sees another HMIS” rather than “user sees wrong data inside their HMIS.”
 
 ---
 
