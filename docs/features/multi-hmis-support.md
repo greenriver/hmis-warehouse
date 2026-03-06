@@ -1,18 +1,18 @@
 # Multi-HMIS Support
 
-This document describes how a single warehouse deployment supports **multiple Open Path HMIS installations**—each backed by its own data source—and how configuration and access are isolated per HMIS instance.
+This document describes how a single warehouse deployment supports **multiple OP HMIS installations**—each backed by its own data source—and how configuration and access are isolated per HMIS instance.
 
 ## Context
 
-The **warehouse** already supports multiple data sources: it ingests data from different HMISs (including other vendors) and brings it together for reporting. That multi–data-source model is a core value proposition and a main function of the warehouse.
+The warehouse already supports multiple data sources: it ingests data from different HMISs (including other vendors') and brings it together for reporting. That multi–data-source model is a core value proposition and a main function of the warehouse.
 
-What this feature addresses is the case where a **single warehouse** has **multiple Open Path HMIS installations**—i.e., more than one HMIS instance powered by Open Path within the same deployment. Those OP HMIS installations may exist alongside data sources from other vendors (or not).
+This document addresses the case where **multiple Open Path HMIS installations** are backed by a single warehouse deployment. Those OP HMIS installations may sit alongside data sources from other vendors' HMISs, or the deployment may include only OP HMIS data sources.
 
 ### Customer types
 
-There are two primary customer types that this supports:
+There are two primary customer types this supports:
 
-1. **Multi-COC with isolation**: Each CoC operates its own isolated HMIS, backed by a separate Data Source. Data and users are strictly separated by CoC. The warehouse is used for unified reporting (and accessing unified client history) across CoCs.
+1. **Multi-COC with isolation**: Each CoC operates its own isolated HMIS, backed by a separate Data Source. Data and users are isolated by CoC. The warehouse aggregates data from all CoCs for unified reporting and client history.
 2. **Separate HMIS per agency**: Multiple Open Path HMIS installations (each its own data source) may exist *within* a single CoC. For example, when some agencies in that CoC use another vendor’s HMIS and one or more agencies have their own OP HMIS. Data source separation here is by agency/installation, not by CoC.
 
 The main point here is that **data source separation is not necessarily CoC separation.** A single HMIS installation can serve multiple CoCs, one CoC, or a subset of a CoC projects, depending on the customer need.
@@ -67,7 +67,20 @@ All HMIS data (clients, enrollments, projects, organizations, etc.) is stored in
 - **`viewable_by` scopes** do permission-based filtering *and* restrict to the user’s `hmis_data_source_id`; they are the convention for “only records in this data source that the user may see.”
 - **Policies** (`Hmis::AuthPolicies::UserContext`): user must have `hmis_data_source_id` set; mismatches raise “HMIS Data Source Mismatch.” **Global** permissions = perms the user has on some entity in that data source (`#global_permissions`); **instance** policies use `project_permissions` / `organization_permissions`, which are scoped to the current data source.
 - **Object-level auth** on some GraphQL types (e.g. `HmisSchema::Client`) adds a final check (often via an instance policy) so that even a mistakenly returned record from another data source is blocked.
-- **Configuration** (forms, form instances, referral workflows, rules, etc.) is intended to be scoped the same way: stored per data source and never shared across data sources. Today some form and config tables are still shared or not fully scoped; adding or enforcing `data_source_id` on those tables is part of the multi-HMIS work. (🟠TODO#6691)
+
+---
+
+## Configuration
+
+Configuration (forms, form rules, referral workflows, auto-exit config, etc.) is intended to be scoped the same way as data: stored **per data source** and never shared across data sources. Today, some form and config tables are still shared or not fully scoped. Adding or enforcing `data_source_id` on those tables is part of the multi-HMIS work. (🟠TODO#6691)
+
+---
+
+## User access control / mis-assignment risk
+
+Granting a user access to the **wrong** data source (e.g. an admin mistake) is a risk. We may want more infrastructure around user–agency relationship (or user-datasource relationship) on the access control side to address this. Moving to an IDP may provide other approaches to reducing this risk, for example using the IDP to manage which "applications" a user can reach.
+
+**As implemented today**, if that mistake happens: the user may be able to log in and act on a **different** HMIS (another data source), but they are **not** accidentally exposed to data in what they consider “their own” system. The failure mode is “user sees another HMIS” rather than “user sees wrong data inside their HMIS.” That reduces the risk of improper data access by accident—mis-assignment sends them to another system, not to the wrong data within their system.
 
 ---
 
