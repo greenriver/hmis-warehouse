@@ -11,6 +11,11 @@ module Types
     description 'HMIS Client search input'
 
     argument :id, ID, 'Client primary key', required: false
+
+    # need to make this either/or. Is there an easy way to do that in graphql without making nested types?
+    # or, make client search match the general filters pattern more closely overall(?)
+    argument :search_query_id, ID, 'ID of existing search query', required: false
+
     argument :text_search, String, 'Omnisearch string', required: false
     argument :personal_id, String, required: false
     argument :warehouse_id, String, required: false
