@@ -65,6 +65,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
         activity_label: 'TBRA',
         end_date: @report.end_date,
         reference_scope: all_time,
+        funder_codes: HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa.codes,
       )
       filters.each do |filter|
         add_household_enrollments_row(

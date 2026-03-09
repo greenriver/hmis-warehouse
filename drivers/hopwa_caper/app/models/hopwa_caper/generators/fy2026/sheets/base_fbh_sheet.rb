@@ -141,6 +141,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
         activity_label: activity_label,
         end_date: @report.end_date,
         reference_scope: all_time,
+        funder_codes: program_filter.codes,
       )
 
       # spreadsheet_row (e.g., 51) maps to index 49
@@ -153,7 +154,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # Detail rows start after the data check label
       filters.drop(1).each.with_index(start_index + 2) do |filter, idx|
         facility_row(sheet, label: filter.label, index: idx) do |fac, row|
-          filtered = filter.apply(relevant_enrollments).where(project_id: fac.id)
+          filtered = filter.apply(relevant_enrollments.where(hopwa_eligible: true)).where(project_id: fac.id)
           members = heads_of_household_for(filtered)
           row.append_cell_members(members: members)
           facility_counts[fac.id] += members.size

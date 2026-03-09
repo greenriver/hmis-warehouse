@@ -211,7 +211,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
         HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
           php_hopwa(range: @report.report_range).
           apply(@report.hopwa_caper_enrollments)
-      when :p_fbh,
+      when :p_fbh
         HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
           p_fbh(range: @report.report_range).
           apply(@report.hopwa_caper_enrollments).

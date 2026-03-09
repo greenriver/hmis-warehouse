@@ -14,7 +14,7 @@ RSpec.shared_context 'FBH sheet shared context' do
   let(:project) do
     create_hopwa_project(funder: funder).tap do |p|
       p.update!(HousingType: 1, HOPWAMedAssistedLivingFac: 1, OperatingStartDate: report_start_date + 1.month)
-      create(:hud_inventory, project: p, data_source: data_source, UnitInventory: 5, InventoryStartDate: report_start_date)
+      create(:hud_inventory, project: p, ProjectID: p.ProjectID, data_source: data_source, UnitInventory: 5, InventoryStartDate: report_start_date)
     end
   end
 
