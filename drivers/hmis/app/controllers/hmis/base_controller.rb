@@ -30,6 +30,8 @@ class Hmis::BaseController < ActionController::Base
     render_json_error(401, :unverified_request)
   end
 
+  # HMIS domain for this request; used to resolve the data source (DataSource.hmis).
+  # @see docs/architecture/multi-hmis-support.md
   def current_hmis_host
     # In development, use untrusted header X-Hmis-Dev-Host.
     # Trusted header 'request.host' cannot be used because the dev server setup makes it appear to come from the backend host.
@@ -41,6 +43,8 @@ class Hmis::BaseController < ActionController::Base
     raise 'cannot determine HMIS host'
   end
 
+  # Binds the current request to an HMIS data source using the request host
+  # @see docs/architecture/multi-hmis-support.md
   def attach_data_source_id
     domain = current_hmis_host
     data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
