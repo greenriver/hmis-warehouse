@@ -38,6 +38,10 @@ module Types
       private
 
       def scoped_enrollments(scope, sort_order: :most_recent, filters: nil, dangerous_skip_permission_check: false)
+        # is there a generic place to put this, a level up, where we add it once instead of per-query?
+        # this is hard-coded, just meant to illustrate the idea. in the future, we would create a search query with the given filters and return its id
+        context[:search_query_id] = '93a37afc-f57f-457b-83f3-c2de89343c58'
+
         scope = scope.viewable_by(current_user) unless dangerous_skip_permission_check
         scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
