@@ -46,7 +46,9 @@ HMIS API requests (GraphQL and other HMIS controllers) determine **which data so
 
    `current_hmis_user.hmis_data_source_id = data_source_id`
 
-   So for the rest of the request, the **current HMIS user** is bound to that data source. All HMIS authorization and data access use `current_user.hmis_data_source_id` (or equivalent) to scope to that single data source.
+   So for the rest of the request, the **current HMIS user** is bound to that data source. All HMIS authorization and data access use `current_user.hmis_data_source_id` to scope to that single data source.
+
+   **Note:** This user attribute is transient. Non-request contexts (like tests) that execute HMIS-scoped logic must explicitly set this ID on the user object.
 
 ### Where this runs
 
