@@ -36,7 +36,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       hoh_client_ids = @report.hopwa_caper_enrollments.
         head_of_household.
         where(report_household_id: relevant_services.select(:report_household_id)).
-        select(:destination_client_id)
+        pluck(:destination_client_id)
 
       @report.hopwa_caper_enrollments.
         head_of_household.

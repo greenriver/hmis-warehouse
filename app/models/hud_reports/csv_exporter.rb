@@ -96,9 +96,12 @@ module HudReports
     end
 
     def row_with_label(row_name)
-      label = @metadata['row_labels'][row_name.to_i - @metadata['first_row']] # Table rows are 1 based
-      if label.present? && !external_row_label
-        [label]
+      labels = @metadata['row_labels']
+      index = row_name.to_i - @metadata['first_row']
+      label = labels&.at(index)
+
+      if !external_row_label && labels.is_a?(Array)
+        [label || '']
       else
         []
       end

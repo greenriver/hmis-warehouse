@@ -137,6 +137,16 @@ module HopwaCaperHelpers
     [report, rows]
   end
 
+  # Run report and extract FBH rows (label => [values...])
+  def run_and_extract_fbh_rows(projects, question_number)
+    report = create_report(projects)
+    run_report(report)
+    rows = question_as_rows(question_number: question_number, report: report).map do |row|
+      [row.first, row[1..]]
+    end.to_h
+    [report, rows]
+  end
+
   # HUD code lookup helper
   def hud_code(category, value)
     HudHelper.util('2026').public_send(category).invert.fetch(value)

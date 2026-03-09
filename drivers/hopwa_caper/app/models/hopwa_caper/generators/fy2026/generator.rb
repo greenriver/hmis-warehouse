@@ -61,10 +61,13 @@ module HopwaCaper::Generators::Fy2026
         HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
         HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
         HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet,
       ]
 
       sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
 
+      sheets = sheets.sort_by { |s| s.question_number.gsub(/\AQ(\d+).*/, '\\1').to_i }
       sheets.map do |q|
         [q.question_number, q]
       end.to_h.freeze
@@ -89,6 +92,8 @@ module HopwaCaper::Generators::Fy2026
         :project_group_ids,
       ]
     end
+
+    def self.supports_idempotent_retry? = true
 
     protected
 
@@ -219,11 +224,17 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def find_hopwa_eligible_enrollment(enrollments)
-      hohs = enrollments.filter { |e| e.relationship_to_hoh == 1 }.sort_by(&:id)
-      return hohs.first if hohs.one? && hohs.first.hiv_positive
+      # Sort enrollments so that those active within the report period come first,
+      # then by most recent entry date, then by id.
+      sorted = enrollments.sort_by do |e|
+        is_active = (e.exit_date.nil? || e.exit_date >= report.start_date) && e.entry_date <= report.end_date
+        [is_active ? 0 : 1, -e.entry_date.to_time.to_i, e.id]
+      end
 
-      hiv = enrollments.filter(&:hiv_positive).sort_by(&:id)
-      return hiv.first if hiv.one?
+      hohs = sorted.filter { |e| e.relationship_to_hoh == 1 }
+      return hohs.detect(&:hiv_positive) || hohs.first if hohs.any?(&:hiv_positive)
+
+      hiv = sorted.filter(&:hiv_positive)
       return hiv.first if hiv.any?
 
       hohs.first
