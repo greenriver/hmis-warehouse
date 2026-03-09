@@ -39,7 +39,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               name
               status
-              stale
               referral {
                 id
                 status
