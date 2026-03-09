@@ -87,7 +87,7 @@ RSpec.describe GrdaWarehouse::Tasks::GrStaffReport do
         allow_any_instance_of(described_class).to receive(:s3_config).and_return(s3_credential)
       end
 
-      it 'uploads full report (no truncation) to S3 and sends a short Slack notification' do
+      it 'uploads report to S3 and sends a short Slack notification' do
         create(:user, email: 'a@greenriver.org')
         create(:user, email: 'b@greenriver.org')
 
