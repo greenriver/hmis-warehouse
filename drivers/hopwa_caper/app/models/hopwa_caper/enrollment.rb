@@ -38,10 +38,10 @@ module HopwaCaper
 
     scope :within_range, ->(range) {
       a_t = arel_table
-      end_ok   = a_t[:exit_date].eq(nil).or(a_t[:exit_date].gteq(range.first)) unless range.begin.nil?
-      start_ok = a_t[:entry_date].eq(nil).or(a_t[:entry_date].lteq(range.last)) unless range.end.nil?
-
-      where(end_ok).where(start_ok)
+      scope = current_scope
+      scope = scope.where(a_t[:exit_date].eq(nil).or(a_t[:exit_date].gteq(range.first))) if range.begin
+      scope = scope.where(a_t[:entry_date].eq(nil).or(a_t[:entry_date].lteq(range.last))) if range.end
+      scope
     }
 
     # HUD guidance for CAPER/APR reports specifies that unduplicated household counts
