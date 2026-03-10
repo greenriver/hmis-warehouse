@@ -15,10 +15,10 @@ module HopwaCaper
 
     scope :within_range, ->(range) do
       a_t = arel_table
-      end_ok   = a_t[:end_date].eq(nil).or(a_t[:end_date].gteq(range.first))     unless range.begin.nil?
-      start_ok = a_t[:start_date].eq(nil).or(a_t[:start_date].lteq(range.last))  unless range.end.nil?
-
-      where(end_ok).where(start_ok)
+      scope = current_scope
+      scope = scope.where(a_t[:end_date].eq(nil).or(a_t[:end_date].gteq(range.first))) if range.begin
+      scope = scope.where(a_t[:start_date].eq(nil).or(a_t[:start_date].lteq(range.last))) if range.end
+      scope
     end
 
     def within_range?(range)
