@@ -139,8 +139,8 @@ namespace :import do
       26 => 'Hotel',
     }
 
-    # todo#6690 (3)
-    data_source = GrdaWarehouse::DataSource.hmis.first
+    # Expect exactly one HMIS data source
+    data_source = GrdaWarehouse::DataSource.hmis.sole
     system_hud_user = Hmis::Hud::User.system_user(data_source_id: data_source.id)
     project = Hmis::Hud::Project.hmis.find(project_id)
 
