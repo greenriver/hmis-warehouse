@@ -43,14 +43,19 @@ class Hmis::BaseController < ActionController::Base
     raise 'cannot determine HMIS host'
   end
 
+  def current_data_source
+    @current_data_source ||= begin
+      data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
+      raise "HMIS data source not configured: #{current_hmis_host}" unless ds.present?
+
+      data_source
+    end
+  end
+
   # Binds the current request to an HMIS data source using the request host
   # @see docs/architecture/multi-hmis-support.md
   def attach_data_source_id
-    domain = current_hmis_host
-    data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
-    raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
-
-    current_hmis_user.hmis_data_source_id = data_source_id
+    current_hmis_user.hmis_data_source_id = current_data_source.id
   end
 
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
