@@ -18,7 +18,8 @@ namespace :import do
 
     csv = CSV.read(args.file, headers: true)
 
-    data_source = GrdaWarehouse::DataSource.hmis.first
+    # Expect exactly one HMIS data source
+    data_source = GrdaWarehouse::DataSource.hmis.sole
     system_hud_user = Hmis::Hud::User.system_user(data_source_id: data_source.id)
     enrollments_with_move_in_addresses = Hmis::Hud::CustomClientAddress.move_in.pluck(:enrollment_id).to_set
     skipped = 0
@@ -138,6 +139,7 @@ namespace :import do
       26 => 'Hotel',
     }
 
+    # todo#6690 (3)
     data_source = GrdaWarehouse::DataSource.hmis.first
     system_hud_user = Hmis::Hud::User.system_user(data_source_id: data_source.id)
     project = Hmis::Hud::Project.hmis.find(project_id)
