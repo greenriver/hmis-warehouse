@@ -54,6 +54,7 @@ class HmisExternalApis::PublishExternalFormsJob
   end
 
   def data_source_id
+    # TODO(#6691) - update this to use the FormDefinition's data source once that column is added
     @data_source_id ||= GrdaWarehouse::DataSource.hmis.first.id
   end
 
