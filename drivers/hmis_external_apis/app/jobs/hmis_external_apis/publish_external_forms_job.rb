@@ -45,7 +45,7 @@ class HmisExternalApis::PublishExternalFormsJob
     raise 'form must be published in Form Builder first' unless definition.published? # must publish in Form Builder first
 
     # Validate the form structure and CDEDs
-    errors = Hmis::Form::DefinitionValidator.perform(definition.definition)
+    errors = Hmis::Form::DefinitionValidator.perform(definition.definition, data_source_id: data_source_id)
     raise "cannot publish form with errors: #{errors.full_messages.join(', ')}" if errors.any?
   end
 

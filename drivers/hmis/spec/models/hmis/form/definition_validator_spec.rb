@@ -10,6 +10,7 @@ require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
+  # todo @martha - add validation here for newly added code
   def expect_validation_errors(definition:, role: nil, expected_errors: [])
     errors = Hmis::Form::DefinitionValidator.perform(definition, role)
 
@@ -18,7 +19,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     errors
   end
 
-  let(:data_source) { create(:hmis_data_source) }
+  let!(:data_source) { create(:hmis_data_source) }
 
   let(:valid_display_item) do
     {
@@ -344,6 +345,8 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     end
   end
 
+  # todo @martha - these are not really DefinitionValidator model tests, since they test definition.validate_json_form.
+  # todo @martha - add tests for the new data_source_id argument.
   describe 'Validating custom data element definitions on publish' do
     let!(:definition) { create :hmis_form_definition, role: 'CUSTOM_ASSESSMENT' }
     let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', data_source: data_source }

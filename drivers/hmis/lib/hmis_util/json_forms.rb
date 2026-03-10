@@ -327,6 +327,7 @@ module HmisUtil
         form_definition,
         role,
         skip_cded_validation: !generate_cdeds, # skip validation if we didn't generate CDEDs
+        data_source_id: generate_cdeds ? data_source.id : nil,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
