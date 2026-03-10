@@ -10,19 +10,14 @@ require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 
 RSpec.describe Hmis::Hud::Client, type: :model do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   let!(:ds1) { create :hmis_primary_data_source }
+  let!(:ds2) { create :hmis_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
 
   let!(:unenrolled_client) { create(:hmis_hud_client, data_source: ds1) }
+  let!(:unenrolled_client_at_ds2) { create(:hmis_hud_client, data_source: ds2) }
 
   let!(:client_at_p1) do
     # Client with non-WIP enrollment at p1
@@ -64,6 +59,13 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     hmis_user
   end
 
+  let!(:user_with_ds1_and_ds2_access) do
+    hmis_user = create(:hmis_user, data_source: ds2) # logged in at ds2
+    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) # BUT can only view clients in ds1
+    create_access_control(hmis_user, ds2, with_permission: [:can_view_project]) # can do something else in ds2 (not view clients)
+    hmis_user
+  end
+
   describe 'viewable_by scope' do
     it 'is empty if I have no access' do
       viewable_clients = Hmis::Hud::Client.viewable_by(user_with_no_access)
@@ -91,6 +93,12 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     it 'includes clients at projects where I have can_view_clients, even if I cant see those projects' do
       viewable_clients = Hmis::Hud::Client.viewable_by(user_with_can_view_clients_but_no_project_access)
       expect(viewable_clients).to contain_exactly(client_at_p1, client_at_p2, unenrolled_client)
+    end
+
+    # todo @martha - add link to split-out ticket
+    xit 'does not include unenrolled clients when I only have access in a different data source' do
+      viewable_clients = Hmis::Hud::Client.viewable_by(user_with_ds1_and_ds2_access)
+      expect(viewable_clients).to be_empty
     end
   end
 end
