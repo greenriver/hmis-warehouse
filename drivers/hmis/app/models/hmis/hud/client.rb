@@ -104,10 +104,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
     scopes = []
-    # todo @Martha - this is a bug, but doesn't quite fit in the current scope. split to another ticket
-    # see test in client_access_spec.rb
-    # right now it just checks "does the user have permission at any data source?"
-    # and if so, it includes all unenrolled clients from the user's current data source.
+    # TODO(#8916) - user.permissions? checks whether the user has this permission in any data source,
+    # but we should make sure they have this permission in their *current* data source.
+    # merge(GrdaWarehouse::DataSource.hmis(user) is correct though; only records in the current data source are returned.
     scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.permissions?(*permissions, **kwargs)
     scopes += [
       joins(:projects).where(p_t[:id].in(pids)),
