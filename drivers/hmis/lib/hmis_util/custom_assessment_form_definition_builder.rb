@@ -33,6 +33,7 @@ require 'nokogiri'
 #     end
 #   end
 
+# todo @Martha - get more background info on this helper and whether it is actively used
 class HmisUtil::CustomAssessmentFormDefinitionBuilder
   attr_accessor :registered_cdeds
 
@@ -333,6 +334,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
   end
 
   def data_source
+    # todo#6690 (3)
     @data_source ||= GrdaWarehouse::DataSource.hmis.first!
   end
 
