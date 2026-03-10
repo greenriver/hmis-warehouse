@@ -1,6 +1,7 @@
 desc 'One time data migration to populate created_by and updated_by on Custom Assessments'
 # rails driver:hmis:migrate_assessment_user_references_20241111
 task migrate_assessment_user_references_20241111: [:environment] do
+  # todo @martha - maybe delete this old code?
   data_source = GrdaWarehouse::DataSource.hmis.sole
   assessments = Hmis::Hud::CustomAssessment.where(data_source: data_source).joins(:user).preload(:versions)
   total_records = assessments.count
