@@ -16,6 +16,11 @@ module HmisDataCleanup
   class Util
     include ArelHelper
 
+    # todo @martha - this util takes a mixed approach, where some methods scope to a specific data source
+    # (previously accepting just 1, now accepting an argument),
+    # while other methods perform the action on all 'hmis' records regardless of ds.
+    # discuss on PR and maybe ticket out a separate improvement
+
     # Remove all ExportIDs from HMIS Enrollments.
     # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
     def self.clear_enrollment_export_ids!
@@ -161,13 +166,13 @@ module HmisDataCleanup
     # @param enrollment_scope [ActiveRecord::Relation, nil] Optional scope of enrollments to limit the fix to.
     #   When provided, only records associated with enrollments in this scope will be fixed.
     # @param dry_run [Boolean] If true, only reports what would be fixed without making changes.
-    def self.fix_incorrect_personal_id_references!(classes: nil, enrollment_scope: nil, dry_run: false)
+    # @param data_source_id [Integer] The ID of the HMIS data source to fix. If not provided, expects a sole HMIS data source.
+    def self.fix_incorrect_personal_id_references!(classes: nil, enrollment_scope: nil, dry_run: false, data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
       classes&.each do |klass|
         raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
       end
 
       classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
-      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
 
       # Extract EnrollmentIDs from the scope if provided, otherwise use all enrollments
       enrollment_ids = enrollment_scope.pluck(:EnrollmentID) if enrollment_scope
@@ -248,8 +253,8 @@ module HmisDataCleanup
       Hmis::Hud::Service.where(id: ids_to_delete).update_all(DateDeleted: Time.current, source_hash: nil)
     end
 
-    def self.delete_duplicate_exit_records!
-      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+    # @param data_source_id [Integer] The ID of the HMIS data source to fix. If not provided, expects a sole HMIS data source.
+    def self.delete_duplicate_exit_records!(data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
       dups = GrdaWarehouse::Hud::Exit.where(data_source_id: data_source_id).
         group(:EnrollmentID).
         having('count(*) > 1').
@@ -266,8 +271,9 @@ module HmisDataCleanup
     #
     # 1) Hard-delete deleted enrollments where there is any NON-deleted Enrollment that shares an EnrollmentID
     # 2) Hard-delete deleted all but 1 enrollment where there is a set of deleted Enrollments that share an EnrollmentID
-    def self.hard_delete_duplicate_deleted_enrollments!
-      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+    #
+    # @param data_source_id [Integer] The ID of the HMIS data source to fix. If not provided, expects a sole HMIS data source.
+    def self.hard_delete_duplicate_deleted_enrollments!(data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
       result = GrdaWarehouse::Hud::Enrollment.with_deleted.
         where(data_source_id: data_source_id).
         group(:EnrollmentID, :ProjectID).
@@ -412,10 +418,9 @@ module HmisDataCleanup
 
     # Write a file with all potential duplicates in HMIS. This uses the same logic as the "Review Potential Duplicates" page on the Admin
     # client merge screen in HMIS. Reviewing a CSV can be helpful prior to migration if there are lots of dups and bulk merge is needed.
-    def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true)
+    # @param data_source_id [Integer] The ID of the HMIS data source to fix. If not provided, expects a sole HMIS data source.
+    def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true, data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
       Rails.logger.info("Finding potential duplicates (variant: #{variant})")
-
-      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
 
       # Find all Destination clients that have >1 source client in HMIS
       destination_id_to_source_ids = GrdaWarehouse::WarehouseClient.where(data_source_id: data_source_id).
@@ -539,47 +544,6 @@ module HmisDataCleanup
       Rails.logger.info 'Done'
     end
 
-    # Similar to fix_missing_monthly_total_income! but with logging and transactional safety.
-    # Added for one-time use, can be removed once the corresponding"TaskQueue" is completed
-    def self.correct_total_income_records!
-      return unless HmisEnforcement.hmis_enabled?
-
-      data_sources = GrdaWarehouse::DataSource.hmis
-      return if data_sources.empty?
-
-      scope = Hmis::Form::FormProcessor.
-        joins(income_benefit: :data_source).
-        merge(data_sources).
-        preload(:income_benefit)
-
-      system_hud_users = data_sources.map do |ds|
-        Hmis::Hud::User.system_user(data_source_id: ds.id)
-      end.index_by(&:data_source_id)
-
-      messages = []
-      Hmis::Hud::IncomeBenefit.transaction do
-        scope.find_each do |fp|
-          record = fp.income_benefit
-          raise unless record
-
-          # skip records that were likely created by migrations
-          next if fp.values.nil?
-          next if record.user_id.nil?
-          next if record.user_id == system_hud_users.fetch(record.data_source_id)&.user_id
-
-          messages += Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
-          record.save! if record.changed?
-        end
-      end
-      messages.each do |message|
-        if Rails.env.development?
-          puts message
-        else
-          Sentry.capture_message(message)
-        end
-      end
-    end
-
     # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
     # WARNING: this cleanup task is not the most efficient. If there are a lot of record to clean up, may need further optimization.
     def self.cleanup_dangling_records_from_merge!(klass: Hmis::Hud::CustomCaseNote)
@@ -657,8 +621,10 @@ module HmisDataCleanup
       # s3.put(file_name: filename, prefix: 'initial-migration')
     end
 
-    def self.write_duplicate_custom_assessments(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_assessments.txt")
-      data_source = GrdaWarehouse::DataSource.hmis.first.id
+    # @param file_name [String] The name of the file to write the duplicate custom assessments to.
+    # @param data_source_id [Integer] The ID of the HMIS data source to fix. If not provided, expects a sole HMIS data source.
+    def self.write_duplicate_custom_assessments(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_assessments.txt", data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
+      data_source = GrdaWarehouse::DataSource.find(data_source_id)
       dupes = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_assessments(data_source)
       File.open(file_name, 'w') do |file|
         dupes.each do |row|
@@ -667,8 +633,10 @@ module HmisDataCleanup
       end
     end
 
-    def self.write_duplicate_custom_services(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_services.txt")
-      data_source = GrdaWarehouse::DataSource.hmis.first.id
+    # @param file_name [String] The name of the file to write the duplicate custom services to.
+    # @param data_source_id [Integer] The ID of the HMIS data source to fix. If not provided, expects a sole HMIS data source.
+    def self.write_duplicate_custom_services(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_services.txt", data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
+      data_source = GrdaWarehouse::DataSource.find(data_source_id)
       dupes = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_services(data_source)
       File.open(file_name, 'w') do |file|
         dupes.each do |row|
@@ -737,7 +705,7 @@ module HmisDataCleanup
       # Remember to generate HUD Assessments by running the MigrateAssessmentsJob:
       #
       # Hmis::MigrateAssessmentsJob.perform_now(
-      #   data_source_id: GrdaWarehouse::DataSource.hmis.first.id,
+      #   data_source_id: [<data source id>],
       #   project_ids: [<project ids>],
       #   clobber: false,
       #   delete_dangling_records: false,
