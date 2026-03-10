@@ -22,7 +22,6 @@ class Sources::CustomServiceTypeByHudTypeSource < ::GraphQL::Dataloader::Source
       to_a.
       index_by { |cst| [cst.hud_record_type, cst.hud_type_provided, cst.data_source_id] }
 
-    # todo @martha - add spec test for this change if time
     types.map { |type| by_type[type] }
   end
 end
