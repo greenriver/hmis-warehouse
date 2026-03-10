@@ -2,6 +2,8 @@ namespace :data_migration do
   # rails driver:hmis:data_migration:update_project_pk
   desc 'One time task to set Enrollment.project_pk'
   task :update_project_pk, [] => [:environment] do
+    # todo @martha: this task should accept data source ID as an argument if it is still used.
+    # otherwise it could be deleted, or left in place with a warning/comment why we are not updating
     data_source = GrdaWarehouse::DataSource.hmis.first
     return unless data_source
 
