@@ -93,7 +93,7 @@ module HopwaCaper::Generators::Fy2026
       ]
     end
 
-    def self.supports_idempotent_retry? = true
+    # def self.supports_idempotent_retry? = true
 
     protected
 
@@ -232,7 +232,8 @@ module HopwaCaper::Generators::Fy2026
       end
 
       hohs = sorted.filter { |e| e.relationship_to_hoh == 1 }
-      return hohs.detect(&:hiv_positive) || hohs.first if hohs.any?(&:hiv_positive)
+      hiv_positive_hoh = hohs.detect(&:hiv_positive)
+      return hiv_positive_hoh if hiv_positive_hoh
 
       hiv = sorted.filter(&:hiv_positive)
       return hiv.first if hiv.any?
