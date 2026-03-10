@@ -16,8 +16,10 @@ class AddHopwaCaperFunders < ActiveRecord::Migration[7.0]
       end
 
       reversible do |dir|
-        dir.up { populate_enrollment_project_id }
-        populate_hopwa_caper_funders
+        dir.up do
+          populate_enrollment_project_id
+          populate_hopwa_caper_funders
+        end
       end
     end
   end
