@@ -120,7 +120,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::StrmuLongevityFilter.for_report(@report)
+      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::FrequencyLongevityFilter.all(
+        activity_label: 'STRMU',
+        end_date: @report.end_date,
+        start_date: @report.start_date,
+        funder_codes: program_filter.codes,
+        reference_scope: @report.hopwa_caper_enrollments,
+      )
       filters.each do |filter|
         add_household_enrollments_row(
           sheet,

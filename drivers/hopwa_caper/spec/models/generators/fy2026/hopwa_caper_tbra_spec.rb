@@ -375,4 +375,42 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       expect(rows.fetch('How many households have been served with TBRA for more than 10 years, but less than 15 years?')).to eq(0)
     end
   end
+
+  context 'Longevity boundary conditions' do
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+
+    it 'assigns "less than one year" for 364 days of tenure' do
+      # Exactly 364 days before the end of the report
+      entry_date = report_end_date - 364.days
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: entry_date,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q2')
+      expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(1)
+      expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(0)
+    end
+
+    it 'assigns "more than one year, but less than five years" for exactly 365 days of tenure' do
+      # Exactly 365 days before the end of the report
+      entry_date = report_end_date - 365.days
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: entry_date,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q2')
+      # Note: 365 days is exactly one year. The bucket is "more than one year" (which usually means >= 1 in these reports)
+      expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(0)
+      expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
+    end
+  end
 end

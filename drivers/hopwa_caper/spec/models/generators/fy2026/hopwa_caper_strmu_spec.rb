@@ -84,27 +84,53 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       expect(rows.fetch('How many households have been served by STRMU for the first time this year?')).to eq(1)
     end
 
-    context 'with a prior enrollments' do
-      before do
-        previous_enrollment = create_enrollment(
+    context 'with prior enrollments' do
+      it 'counts longevity for "also received STRMU assistance during the previous STRMU eligibility period"' do
+        create_hiv_positive_enrollment(
           client: hoh_client,
           project: project,
           entry_date: report_start_date - 1.year,
           household_id: Hmis::Hud::Base.generate_uuid,
-          relationship_to_ho_h: 1,
         )
-        create(
-          :hud_exit,
-          enrollment: previous_enrollment,
-          exit_date: previous_enrollment.entry_date,
-          data_source: data_source,
-        )
-      end
-
-      it 'counts longevity' do
         _, rows = run_and_extract_rows([project], 'Q3')
         expect(rows.fetch('How many households have been served by STRMU for the first time this year?')).to eq(0)
-        expect(rows.fetch('How many households also received STRMU assistance during the previous year?')).to eq(1)
+        expect(rows.fetch('How many households also received STRMU assistance during the previous STRMU eligibility period?')).to eq(1)
+      end
+
+      it 'counts longevity for "received STRMU assistance more than twice during the previous five eligibility periods"' do
+        # Current enrollment is 2025 (report_start_date + 1.day)
+        # We need 2 more years within [2026, 2025, 2024, 2023, 2022]
+        # Let's add 2024 and 2023.
+        [1, 2].each do |years_ago|
+          create_hiv_positive_enrollment(
+            client: hoh_client,
+            project: project,
+            entry_date: report_start_date - years_ago.years,
+            household_id: Hmis::Hud::Base.generate_uuid,
+          )
+        end
+        _, rows = run_and_extract_rows([project], 'Q3')
+        expect(rows.fetch('How many households received STRMU assistance more than twice during the previous five eligibility periods?')).to eq(1)
+      end
+
+      it 'counts longevity for "received STRMU assistance during the last five consecutive eligibility periods"' do
+        # Current year is 2026 (report_end_date.year)
+        # service_years = [2026, 2025, 2024, 2023, 2022]
+
+        # 1. Update current enrollment to be in 2026
+        hoh_enrollment.update!(entry_date: report_end_date)
+
+        # 2. Add enrollments for 2025, 2024, 2023, 2022
+        [1, 2, 3, 4].each do |years_ago|
+          create_hiv_positive_enrollment(
+            client: hoh_client,
+            project: project,
+            entry_date: report_end_date - years_ago.years,
+            household_id: Hmis::Hud::Base.generate_uuid,
+          )
+        end
+        _, rows = run_and_extract_rows([project], 'Q3')
+        expect(rows.fetch('How many households received STRMU assistance during the last five consecutive eligibility periods?')).to eq(1)
       end
     end
   end
@@ -511,9 +537,9 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       # 2. Longevity - should sum to total
       longevity_labels = [
         'How many households have been served by STRMU for the first time this year?',
-        'How many households also received STRMU assistance during the previous year?',
-        'How many households received STRMU assistance more than twice during the previous five years?',
-        'How many households received STRMU assistance during the last five consecutive years?',
+        'How many households also received STRMU assistance during the previous STRMU eligibility period?',
+        'How many households received STRMU assistance more than twice during the previous five eligibility periods?',
+        'How many households received STRMU assistance during the last five consecutive eligibility periods?',
       ]
       longevity_sum = longevity_labels.sum { |label| rows.fetch(label).to_i }
       expect(longevity_sum).to eq(total_served)
@@ -526,6 +552,211 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
 
       outcome_sum = outcome_labels.sum { |label| rows.fetch(label).to_i }
       expect(outcome_sum).to eq(total_served)
+    end
+  end
+
+  describe 'Longevity (Frequency) reporting edge cases' do
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:client) { create(:hud_client, data_source: data_source) }
+    let!(:enrollment) do
+      e = create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+      )
+      # Must have a service in the period to be "served"
+      create(:hud_service, enrollment: e, record_type: hopwa_financial_assistance,
+                           type_provided: rental_assistance, fa_amount: 100,
+                           date_provided: e.entry_date, data_source: data_source)
+      e
+    end
+
+    def run_longevity
+      _, rows = run_and_extract_rows([project], 'Q3')
+      {
+        first_time: rows.fetch('How many households have been served by STRMU for the first time this year?'),
+        previous: rows.fetch('How many households also received STRMU assistance during the previous STRMU eligibility period?'),
+        more_than_twice: rows.fetch('How many households received STRMU assistance more than twice during the previous five eligibility periods?'),
+        consecutive: rows.fetch('How many households received STRMU assistance during the last five consecutive eligibility periods?'),
+        total: rows.fetch('Longevity for Households Served by this Activity'),
+      }
+    end
+
+    it 'ignores prior enrollments from other HOPWA activities (Funder Isolation)' do
+      # Create a TBRA project and a prior enrollment in it
+      tbra_funder = HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+      tbra_project = create_hopwa_project(funder: tbra_funder)
+      create_hiv_positive_enrollment(
+        client: client,
+        project: tbra_project,
+        entry_date: report_start_date - 1.year,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+
+      results = run_longevity
+      expect(results[:first_time]).to eq(1)
+      expect(results[:previous]).to eq(0)
+    end
+
+    it 'excludes enrollments from 6+ years ago (Five-year window cutoff)' do
+      create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_end_date - 6.years,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+
+      results = run_longevity
+      expect(results[:first_time]).to eq(1)
+      expect(results[:more_than_twice]).to eq(0)
+    end
+
+    it 'deduplicates multiple enrollments in the same year' do
+      # 2 prior enrollments in the same year (2 years ago)
+      # 1 current enrollment
+      # Total distinct years = 2. Should be "previous_year"
+      [730, 740].each do |days_ago|
+        create_hiv_positive_enrollment(
+          client: client,
+          project: project,
+          entry_date: report_start_date - days_ago.days,
+          household_id: Hmis::Hud::Base.generate_uuid,
+        )
+      end
+
+      results = run_longevity
+      expect(results[:previous]).to eq(1)
+      expect(results[:more_than_twice]).to eq(0)
+    end
+
+    it 'correctly handles the boundary between "more than twice" and "consecutive" (4 vs 5 years)' do
+      # Set current enrollment to 2026 to ensure we have room for 5 years back to 2022
+      enrollment.update!(entry_date: report_end_date)
+
+      # 4 distinct years (including current) -> more_than_twice
+      # years: 2026 (current), 2025, 2024, 2023
+      (1..3).each do |years_ago|
+        create_hiv_positive_enrollment(
+          client: client,
+          project: project,
+          entry_date: report_end_date - years_ago.years,
+          household_id: Hmis::Hud::Base.generate_uuid,
+        )
+      end
+      results = run_longevity
+      expect(results[:more_than_twice]).to eq(1)
+      expect(results[:consecutive]).to eq(0)
+
+      # Add one more year (total 5) -> consecutive
+      # years: 2026, 2025, 2024, 2023, 2022
+      create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_end_date - 4.years,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      results = run_longevity
+      expect(results[:more_than_twice]).to eq(0)
+      expect(results[:consecutive]).to eq(1)
+    end
+
+    it 'excludes enrollments exactly 5 years and 1 day before report_end_date' do
+      # Window is (end_date - 5.years)..end_date
+      # Let's say report_end_date is 2026-09-30
+      # 5 years ago is 2021-09-30
+      # 5 years and 1 day ago is 2021-09-29
+      outside_window = report_end_date - 5.years - 1.day
+
+      # Client is served this year (already created in 'enrollment')
+
+      # Add an enrollment exactly 5 years and 1 day ago
+      create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: outside_window,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+
+      results = run_longevity
+      # Total count should be 1 (the current enrollment)
+      expect(results[:total]).to eq(1)
+      # Should be "first_time" because the other enrollment is outside the window
+      expect(results[:first_time]).to eq(1)
+      expect(results[:previous]).to eq(0)
+    end
+
+    it 'includes enrollments exactly 5 years before report_end_date' do
+      # Exactly 5 years ago is inside the window
+      inside_window = report_end_date - 5.years
+
+      # Client is served this year (already created in 'enrollment')
+
+      # Add an enrollment exactly 5 years ago
+      create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: inside_window,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+
+      results = run_longevity
+      expect(results[:total]).to eq(1)
+      # Should be "previous" because we have 2 distinct years in the window (this year and 5 years ago)
+      expect(results[:first_time]).to eq(0)
+      expect(results[:previous]).to eq(1)
+    end
+
+    it 'deduplicates multiple enrollments in the same calendar year for frequency count' do
+      # 2026: enrollment
+      # 2025: two enrollments
+      # Total distinct years = 2
+      [365, 370].each do |days_ago|
+        create_hiv_positive_enrollment(
+          client: client,
+          project: project,
+          entry_date: report_end_date - days_ago.days,
+          household_id: Hmis::Hud::Base.generate_uuid,
+        )
+      end
+
+      results = run_longevity
+      # Should be "previous_year" (<= 2 distinct years)
+      expect(results[:previous]).to eq(1)
+      expect(results[:more_than_twice]).to eq(0)
+    end
+
+    it 'verifies mutual exclusivity with mixed clients' do
+      # 1. First time client (already created as 'enrollment')
+
+      # 2. Previous year client
+      client2 = create(:hud_client, data_source: data_source)
+      e2 = create_hiv_positive_enrollment(client: client2, project: project, entry_date: report_start_date + 2.days, household_id: Hmis::Hud::Base.generate_uuid)
+      create(:hud_service, enrollment: e2, record_type: hopwa_financial_assistance, type_provided: rental_assistance, fa_amount: 100, date_provided: e2.entry_date, data_source: data_source)
+      create_hiv_positive_enrollment(client: client2, project: project, entry_date: report_start_date - 1.year, household_id: Hmis::Hud::Base.generate_uuid)
+
+      # 3. More than twice client (3 years total)
+      client3 = create(:hud_client, data_source: data_source)
+      e3 = create_hiv_positive_enrollment(client: client3, project: project, entry_date: report_start_date + 3.days, household_id: Hmis::Hud::Base.generate_uuid)
+      create(:hud_service, enrollment: e3, record_type: hopwa_financial_assistance, type_provided: rental_assistance, fa_amount: 100, date_provided: e3.entry_date, data_source: data_source)
+      [1, 2].each do |years_ago|
+        create_hiv_positive_enrollment(client: client3, project: project, entry_date: report_start_date - years_ago.years, household_id: Hmis::Hud::Base.generate_uuid)
+      end
+
+      # 4. Consecutive client (5 years total)
+      client4 = create(:hud_client, data_source: data_source)
+      e4 = create_hiv_positive_enrollment(client: client4, project: project, entry_date: report_end_date, household_id: Hmis::Hud::Base.generate_uuid)
+      create(:hud_service, enrollment: e4, record_type: hopwa_financial_assistance, type_provided: rental_assistance, fa_amount: 100, date_provided: e4.entry_date, data_source: data_source)
+      [1, 2, 3, 4].each do |years_ago|
+        create_hiv_positive_enrollment(client: client4, project: project, entry_date: report_end_date - years_ago.years, household_id: Hmis::Hud::Base.generate_uuid)
+      end
+
+      results = run_longevity
+      expect(results[:first_time]).to eq(1)
+      expect(results[:previous]).to eq(1)
+      expect(results[:more_than_twice]).to eq(1)
+      expect(results[:consecutive]).to eq(1)
+      expect(results[:total]).to eq(4)
     end
   end
 end
