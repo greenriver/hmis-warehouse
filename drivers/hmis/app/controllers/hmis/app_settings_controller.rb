@@ -31,7 +31,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       # for appName, return the 'Open Path HMIS' translation if it exists, otherwise return the data source name.
       # This ensures backwards compatibility for existing single-OP-HMIS installations that rely on Translations,
       # while adding support for multi-OP-HMIS installations with distinct names.
-      appName: Translation.translate_if_present('Open Path HMIS') || current_data_source.name,
+      appName: Translation.translate_if_present('Open Path HMIS') || current_data_source.hmis_name,
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
