@@ -718,6 +718,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  def hmis_name
+    name if hmis?
+  end
+
   def hmis_link_available?
     hmis? || external_hmis_configuration&.active?
   end
