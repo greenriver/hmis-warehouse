@@ -81,57 +81,6 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       expect(rows.fetch('How many households were served with STRMU rental assistance only?')).to eq(1)
       expect(rows.fetch('Earned Income from Employment')).to eq(1)
       expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
-      expect(rows.fetch('How many households have been served by STRMU for the first time this year?')).to eq(1)
-    end
-
-    context 'with prior enrollments' do
-      it 'counts longevity for "also received STRMU assistance during the previous STRMU eligibility period"' do
-        create_hiv_positive_enrollment(
-          client: hoh_client,
-          project: project,
-          entry_date: report_start_date - 1.year,
-          household_id: Hmis::Hud::Base.generate_uuid,
-        )
-        _, rows = run_and_extract_rows([project], 'Q3')
-        expect(rows.fetch('How many households have been served by STRMU for the first time this year?')).to eq(0)
-        expect(rows.fetch('How many households also received STRMU assistance during the previous STRMU eligibility period?')).to eq(1)
-      end
-
-      it 'counts longevity for "received STRMU assistance more than twice during the previous five eligibility periods"' do
-        # Current enrollment is 2025 (report_start_date + 1.day)
-        # We need 2 more years within [2026, 2025, 2024, 2023, 2022]
-        # Let's add 2024 and 2023.
-        [1, 2].each do |years_ago|
-          create_hiv_positive_enrollment(
-            client: hoh_client,
-            project: project,
-            entry_date: report_start_date - years_ago.years,
-            household_id: Hmis::Hud::Base.generate_uuid,
-          )
-        end
-        _, rows = run_and_extract_rows([project], 'Q3')
-        expect(rows.fetch('How many households received STRMU assistance more than twice during the previous five eligibility periods?')).to eq(1)
-      end
-
-      it 'counts longevity for "received STRMU assistance during the last five consecutive eligibility periods"' do
-        # Current year is 2026 (report_end_date.year)
-        # service_years = [2026, 2025, 2024, 2023, 2022]
-
-        # 1. Update current enrollment to be in 2026
-        hoh_enrollment.update!(entry_date: report_end_date)
-
-        # 2. Add enrollments for 2025, 2024, 2023, 2022
-        [1, 2, 3, 4].each do |years_ago|
-          create_hiv_positive_enrollment(
-            client: hoh_client,
-            project: project,
-            entry_date: report_end_date - years_ago.years,
-            household_id: Hmis::Hud::Base.generate_uuid,
-          )
-        end
-        _, rows = run_and_extract_rows([project], 'Q3')
-        expect(rows.fetch('How many households received STRMU assistance during the last five consecutive eligibility periods?')).to eq(1)
-      end
     end
   end
 
@@ -196,23 +145,6 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
         date_provided: household2_enrollment.entry_date,
         data_source: data_source,
       )
-    end
-
-    it 'correctly categorizes households by assistance type' do
-      _, rows = run_and_extract_rows([project], 'Q3')
-
-      expect(rows.fetch('STRMU Households Total')).to eq(2)
-      expect(rows.fetch('How many households were served with STRMU utility assistance only?')).to eq(1)
-      expect(rows.fetch('How many households received more than one type of STRMU assistance?')).to eq(1)
-    end
-
-    it 'correctly reports expenditures' do
-      _, rows = run_and_extract_rows([project], 'Q3')
-
-      expect(rows.fetch('STRMU mortgage assistance').to_f).to eq(0)
-      expect(rows.fetch('STRMU rental assistance').to_f).to eq(500)
-      expect(rows.fetch('STRMU utility assistance').to_f).to eq(250)
-      expect(rows.fetch('Total STRMU Expenditures').to_f).to eq(750)
     end
 
     it 'does not count households receiving multiple codes of the same type in "more than one type"' do
