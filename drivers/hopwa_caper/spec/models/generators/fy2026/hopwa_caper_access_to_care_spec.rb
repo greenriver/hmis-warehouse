@@ -386,7 +386,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
     end
 
     let(:st_tfbh_project) do
-      create_hopwa_project(funder: st_tfbh_funder).tap { |p| p.update!(HousingType: 2) }
+      create_hopwa_project(funder: st_tfbh_funder).tap { |p| p.update!(HousingType: 1) }
     end
 
     let(:fbh_hoh) { create(:hud_client, data_source: data_source) }

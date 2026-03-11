@@ -82,6 +82,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
       expect(rows.fetch('How many HOPWA-eligible individuals served with TBRA this year have ever been prescribed Anti-Retroviral Therapy?')).to eq(1)
       expect(rows.fetch('How many HOPWA-eligible persons served with TBRA have shown an improved viral load or achieved viral suppression?')).to eq(1)
+      expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(1)
     end
 
     context 'with income sources on non-HoH member' do
