@@ -7,13 +7,11 @@ class CreateImportCsvMonitors < ActiveRecord::Migration[7.0]
       t.string :csv_file_name, null: false
       t.integer :count_increase_threshold
       t.integer :count_decrease_threshold
-      t.decimal :percent_increase_threshold, precision: 5, scale: 2
-      t.decimal :percent_decrease_threshold, precision: 5, scale: 2
+      t.integer :min_additions_threshold
+      t.integer :max_removals_threshold
       t.boolean :active, null: false, default: true
       t.timestamps
       t.timestamp :deleted_at
-
-      t.index [:data_source_id, :csv_file_name], unique: true, where: 'deleted_at IS NULL'
     end
   end
 end

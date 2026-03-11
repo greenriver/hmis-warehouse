@@ -8,31 +8,26 @@
     .col
       = f.input :count_increase_threshold,
                 label: 'Count increase threshold',
-                hint: 'Alert when rows added exceeds this (optional)',
+                hint: 'Alert when net row increase exceeds this (optional)',
                 input_html: { style: 'width: 8em' }
     .col
       = f.input :count_decrease_threshold,
                 label: 'Count decrease threshold',
-                hint: 'Alert when rows removed exceeds this (optional)',
+                hint: 'Alert when net row decrease exceeds this (optional)',
                 input_html: { style: 'width: 8em' }
   .row
     .col
-      = f.input :percent_increase_threshold,
-                label: 'Percent increase threshold (%)',
-                hint: 'Alert when % increase exceeds this (optional)',
+      = f.input :min_additions_threshold,
+                label: 'Min additions threshold',
+                hint: 'Alert when added rows are fewer than this (e.g. expect 500 new services/day)',
                 input_html: { style: 'width: 8em' }
     .col
-      = f.input :percent_decrease_threshold,
-                label: 'Percent decrease threshold (%)',
-                hint: 'Alert when % decrease exceeds this (optional)',
+      = f.input :max_removals_threshold,
+                label: 'Max removals threshold',
+                hint: 'Alert when removed rows exceed this (e.g. alert if >100 enrollments deleted)',
                 input_html: { style: 'width: 8em' }
   = f.input :active, as: :pretty_boolean, label: 'Active'
-  = f.input :notification_user_ids,
-              collection: User.active.not_system.order(:last_name, :first_name),
-              label_method: :name_with_email,
-              value_method: :id,
-              as: :select_two,
-              input_html: { multiple: true },
-              label: 'Notify these users',
-              hint: 'Who receives alerts when thresholds are exceeded'
+  - if import_csv_monitor.persisted?
+    %p.text-muted
+      Add notification recipients in the Notifications section below to receive email alerts when thresholds are exceeded.
   = f.submit import_csv_monitor.persisted? ? 'Update Monitor' : 'Create Monitor', class: 'btn btn-primary'

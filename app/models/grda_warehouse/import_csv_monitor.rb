@@ -7,30 +7,20 @@
 # frozen_string_literal: true
 
 # Per-CSV import monitoring: alerts when row counts for a specific CSV file change
-# beyond configured thresholds (by raw count or percent).
+# beyond configured numeric thresholds.
 # @see docs/features/import-csv-monitoring.md
 module GrdaWarehouse
   class ImportCsvMonitor < GrdaWarehouseBase
-    attr_accessor :notification_user_ids
-
     belongs_to :data_source
-    has_many :notification_configurations,
-             as: :source,
-             dependent: :destroy,
-             class_name: 'GrdaWarehouse::NotificationConfiguration'
 
     validates :csv_file_name, presence: true, inclusion: { in: ->(_) { allowed_csv_files } }
     validates :count_increase_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
     validates :count_decrease_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-    validates :percent_increase_threshold,
-              numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 },
-              allow_nil: true
-    validates :percent_decrease_threshold,
-              numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 },
-              allow_nil: true
+    validates :min_additions_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+    validates :max_removals_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
     validate :at_least_one_threshold
 
-    NOTIFICATION_SLUG = 'csv_change_threshold_exceeded'
+    NOTIFICATION_SLUG = 'csv_import_threshold_exceeded'
 
     def self.allowed_csv_files
       version = HudHelper.current_version
@@ -45,83 +35,70 @@ module GrdaWarehouse
 
     # @param current [Hash] { pre_processed:, added:, removed: } from current import
     # @param previous [Hash, nil] same shape from previous import
-    # @return [Boolean] true if threshold exceeded and notification should be sent
+    # @return [false, Hash] false if not exceeded, or hash with reason:, change_count:, etc.
     def threshold_exceeded?(current:, previous:)
-      return false if previous.blank?
+      # Delta (net change) detection - requires previous
+      if count_increase_threshold.present? || count_decrease_threshold.present?
+        result = GrdaWarehouse::Monitoring::MetricCalculators::ImportFileDeltaCalculator.exceeded?(
+          monitor: self,
+          current: current,
+          previous: previous,
+        )
+        return result if result
+      end
 
-      change_count = (current[:pre_processed].to_i - previous[:pre_processed].to_i)
-      return false unless direction_matches?(change_count)
+      # Addition/removal detection - does not require previous
+      if min_additions_threshold.present? || max_removals_threshold.present?
+        result = GrdaWarehouse::Monitoring::MetricCalculators::ImportFileAdditionRemovalDetectionCalculator.exceeded?(
+          monitor: self,
+          current: current,
+        )
+        return result if result
+      end
 
-      count_exceeded = count_threshold_exceeded?(change_count)
-      percent_exceeded = percent_threshold_exceeded?(current: current, previous: previous, change_count: change_count)
-
-      count_exceeded || percent_exceeded
+      false
     end
 
-    def notification_configurations_for_slug
-      notification_configurations.where(
+    def csv_import_notifications
+      @csv_import_notifications ||= GrdaWarehouse::NotificationConfiguration.where(
         notification_slug: NOTIFICATION_SLUG,
-      ).where(active: true)
+        source: self,
+      ).preload(:user).to_a
+    end
+
+    def csv_import_notification_user_ids
+      csv_import_notifications.select(&:active).map(&:user_id).compact.uniq
+    end
+
+    # Active notification configs (for count display)
+    def active_notification_count
+      csv_import_notifications.count(&:active)
+    end
+
+    # User names for active notifications (for tooltip)
+    def active_notification_recipient_names
+      csv_import_notifications.select(&:active).filter_map { |c| c.user&.name_with_email }.uniq
     end
 
     def items_for(slug)
-      return [] unless slug == NOTIFICATION_SLUG
-
-      notification_configurations.where(notification_slug: slug)
+      slug == NOTIFICATION_SLUG ? csv_import_notifications : []
     end
 
     # Human-readable label for which directions this monitor checks (derived from which thresholds are set)
     def alert_direction_label
-      has_increase = count_increase_threshold.present? || percent_increase_threshold.present?
-      has_decrease = count_decrease_threshold.present? || percent_decrease_threshold.present?
-      case [has_increase, has_decrease]
-      when [true, false] then 'Only when row count increases'
-      when [false, true] then 'Only when row count decreases'
-      when [true, true] then 'When row count increases or decreases'
-      else '—'
-      end
+      parts = []
+      parts << 'Row count increase' if count_increase_threshold.present?
+      parts << 'Row count decrease' if count_decrease_threshold.present?
+      parts << 'Minimum additions' if min_additions_threshold.present?
+      parts << 'Maximum removals' if max_removals_threshold.present?
+      parts.any? ? parts.join(', ') : '—'
     end
 
     private def at_least_one_threshold
       return if count_increase_threshold.present? || count_decrease_threshold.present? ||
-                percent_increase_threshold.present? || percent_decrease_threshold.present?
+                min_additions_threshold.present? || max_removals_threshold.present?
 
-      errors.add(:base, 'At least one threshold (count or percent) must be set')
-    end
-
-    private def direction_matches?(change_count)
-      if change_count.positive?
-        count_increase_threshold.present? || percent_increase_threshold.present?
-      elsif change_count.negative?
-        count_decrease_threshold.present? || percent_decrease_threshold.present?
-      else
-        false
-      end
-    end
-
-    private def count_threshold_exceeded?(change_count)
-      if change_count.positive?
-        count_increase_threshold.present? && change_count >= count_increase_threshold
-      elsif change_count.negative?
-        count_decrease_threshold.present? && change_count.abs >= count_decrease_threshold
-      else
-        false
-      end
-    end
-
-    private def percent_threshold_exceeded?(current:, previous:, change_count:) # rubocop:disable Lint/UnusedMethodArgument
-      prev = previous[:pre_processed].to_i
-      return false if prev.zero?
-
-      percent_change = (change_count.abs.to_f / prev) * 100
-
-      if change_count.positive?
-        percent_increase_threshold.present? && percent_change >= percent_increase_threshold
-      elsif change_count.negative?
-        percent_decrease_threshold.present? && percent_change >= percent_decrease_threshold
-      else
-        false
-      end
+      errors.add(:base, 'At least one numeric threshold must be set')
     end
   end
 end

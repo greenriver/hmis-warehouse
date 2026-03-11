@@ -66,7 +66,8 @@ module GrdaWarehouse::Monitoring::Tasks
         create_new_snapshot(metric_def, current_value)
       end
 
-      notify_monitor_exceeded(monitor, current: current, previous: previous) if monitor.threshold_exceeded?(current: current, previous: previous)
+      alert_result = monitor.threshold_exceeded?(current: current, previous: previous)
+      notify_monitor_exceeded(monitor, current: current, previous: previous, alert_result: alert_result) if alert_result
     end
 
     private def metric_definition_for(csv_file_name)
@@ -113,10 +114,12 @@ module GrdaWarehouse::Monitoring::Tasks
       )
     end
 
-    private def notify_monitor_exceeded(monitor, current:, previous:)
-      change_count = current[:pre_processed].to_i - previous[:pre_processed].to_i
-      user_ids = monitor.notification_configurations_for_slug.pluck(:user_id).uniq
+    private def notify_monitor_exceeded(monitor, current:, previous:, alert_result:)
+      user_ids = recipient_user_ids(monitor)
       return if user_ids.empty?
+
+      change_count = alert_result[:change_count]
+      change_count ||= 0
 
       import_log_id = @import_log&.id
 
@@ -127,11 +130,17 @@ module GrdaWarehouse::Monitoring::Tasks
           data_source: @data_source,
           csv_file_name: monitor.csv_file_name,
           current: current,
-          previous: previous,
+          previous: previous || {},
           change_count: change_count,
           import_log_id: import_log_id,
+          alert_reason: alert_result[:reason],
+          alert_detail: alert_result,
         ).csv_change_threshold_exceeded.deliver_later
       end
+    end
+
+    private def recipient_user_ids(monitor)
+      monitor.csv_import_notification_user_ids
     end
   end
 end

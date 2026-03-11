@@ -3,8 +3,7 @@
 
 %p
   %strong #{@csv_file_name}:
-  Row count changed from #{@previous[:pre_processed]} to #{@current[:pre_processed]}
-  (#{@change_count.positive? ? '+' : ''}#{@change_count} rows).
+  = @body_message
 
 %p
   - if @import.present?

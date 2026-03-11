@@ -100,9 +100,10 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::CsvImportMonitorCollector do
         )
 
         user = create(:user)
-        GrdaWarehouse::NotificationConfiguration.create!(
+        create(
+          :notification_configuration_import_threshold,
+          :csv_import_notification_event,
           source: monitor,
-          notification_slug: monitor.class::NOTIFICATION_SLUG,
           user: user,
           active: true,
         )
@@ -113,6 +114,77 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::CsvImportMonitorCollector do
             importer_log: importer_log,
           )
         end.to have_enqueued_job(ActionMailer::MailDeliveryJob).exactly(:once)
+      end
+
+      context 'with min_additions_threshold monitor' do
+        let!(:monitor) do
+          create(
+            :grda_warehouse_import_csv_monitor,
+            data_source: data_source,
+            csv_file_name: 'Client.csv',
+            min_additions_threshold: 150,
+            count_increase_threshold: nil,
+            count_decrease_threshold: nil,
+          )
+        end
+
+        it 'sends notification when added is below threshold' do
+          importer_log.summary['Client.csv']['added'] = 100
+          importer_log.summary['Client.csv']['pre_processed'] = 1100
+          importer_log.save!
+
+          user = create(:user)
+          create(
+            :notification_configuration_import_threshold,
+            :csv_import_notification_event,
+            source: monitor,
+            user: user,
+            active: true,
+          )
+
+          expect do
+            described_class.run!(
+              data_source: data_source,
+              importer_log: importer_log,
+            )
+          end.to have_enqueued_job(ActionMailer::MailDeliveryJob).exactly(:once)
+        end
+      end
+
+      context 'with max_removals_threshold monitor' do
+        let!(:monitor) do
+          create(
+            :grda_warehouse_import_csv_monitor,
+            data_source: data_source,
+            csv_file_name: 'Client.csv',
+            max_removals_threshold: 50,
+            count_increase_threshold: nil,
+            count_decrease_threshold: nil,
+          )
+        end
+
+        it 'sends notification when removed exceeds threshold' do
+          importer_log.summary['Client.csv']['added'] = 0
+          importer_log.summary['Client.csv']['removed'] = 75
+          importer_log.summary['Client.csv']['pre_processed'] = 925
+          importer_log.save!
+
+          user = create(:user)
+          create(
+            :notification_configuration_import_threshold,
+            :csv_import_notification_event,
+            source: monitor,
+            user: user,
+            active: true,
+          )
+
+          expect do
+            described_class.run!(
+              data_source: data_source,
+              importer_log: importer_log,
+            )
+          end.to have_enqueued_job(ActionMailer::MailDeliveryJob).exactly(:once)
+        end
       end
     end
   end

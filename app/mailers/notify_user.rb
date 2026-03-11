@@ -266,12 +266,39 @@ class NotifyUser < DatabaseMailer
     @current = params[:current] || {}
     @previous = params[:previous] || {}
     @change_count = params[:change_count] || 0
+    @alert_reason = params[:alert_reason]
+    @alert_detail = params[:alert_detail] || {}
     @import = params[:import_log_id].present? ? GrdaWarehouse::ImportLog.find_by(id: params[:import_log_id]) : nil
+    @body_message = body_message_for_csv_alert
 
-    direction = @change_count.positive? ? 'increased' : 'decreased'
-    subject = "#{@data_source.name}: #{@csv_file_name} row count #{direction} by #{@change_count.abs}"
+    subject = subject_for_csv_alert
 
     mail(to: @user.email, subject: subject)
+  end
+
+  private def body_message_for_csv_alert
+    case @alert_reason
+    when :min_additions
+      "Expected at least #{@alert_detail[:threshold]} new rows; received #{@alert_detail[:added]}."
+    when :max_removals
+      "Expected no more than #{@alert_detail[:threshold]} rows removed; #{@alert_detail[:removed]} were removed."
+    else
+      "Row count changed from #{@previous[:pre_processed]} to #{@current[:pre_processed]} (#{@change_count.positive? ? '+' : ''}#{@change_count} rows)."
+    end
+  end
+
+  private def subject_for_csv_alert
+    case @alert_reason
+    when :min_additions
+      "#{@data_source.name}: #{@csv_file_name} fewer additions than expected (#{@alert_detail[:added]} < #{@alert_detail[:threshold]})"
+    when :max_removals
+      "#{@data_source.name}: #{@csv_file_name} more removals than expected (#{@alert_detail[:removed]} > #{@alert_detail[:threshold]})"
+    when :delta_increase, :delta_decrease
+      direction = @change_count.positive? ? 'increased' : 'decreased'
+      "#{@data_source.name}: #{@csv_file_name} row count #{direction} by #{@change_count.abs}"
+    else
+      "#{@data_source.name}: #{@csv_file_name} threshold exceeded"
+    end
   end
 
   def metric_threshold_crossed(user_id:, alert_code:, crossings:, calculation_date:)

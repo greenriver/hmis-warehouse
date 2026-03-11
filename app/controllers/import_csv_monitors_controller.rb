@@ -22,22 +22,11 @@ class ImportCsvMonitorsController < ApplicationController
   end
 
   def create
-    params_with_notifications = import_csv_monitor_params
-    user_ids = Array(params_with_notifications.delete(:notification_user_ids)).reject(&:blank?)
-    @import_csv_monitor = data_source.import_csv_monitors.build(params_with_notifications)
+    @import_csv_monitor = data_source.import_csv_monitors.build(import_csv_monitor_params)
     if @import_csv_monitor.save
-      user_ids.each do |user_id|
-        GrdaWarehouse::NotificationConfiguration.create!(
-          source: @import_csv_monitor,
-          user_id: user_id,
-          notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG,
-          active: true,
-        )
-      end
       redirect_to data_source_import_threshold_path(data_source),
                   notice: 'Monitor created.'
     else
-      @import_csv_monitor.notification_user_ids = user_ids
       render :new
     end
   end
@@ -81,10 +70,9 @@ class ImportCsvMonitorsController < ApplicationController
       :csv_file_name,
       :count_increase_threshold,
       :count_decrease_threshold,
-      :percent_increase_threshold,
-      :percent_decrease_threshold,
+      :min_additions_threshold,
+      :max_removals_threshold,
       :active,
-      notification_user_ids: [],
     )
   end
 end

@@ -613,9 +613,7 @@ Rails.application.routes.draw do
       resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy]
     end
     resources :import_csv_monitors, only: [:index, :new, :create, :edit, :update, :destroy] do
-      resources :notification_configurations,
-                only: [:new, :edit, :create, :update, :destroy],
-                controller: 'import_csv_monitors/notification_configurations'
+      resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy], controller: 'import_csv_monitors/notification_configurations'
     end
     resource :external_hmis_configuration, only: [:show, :update]
   end
