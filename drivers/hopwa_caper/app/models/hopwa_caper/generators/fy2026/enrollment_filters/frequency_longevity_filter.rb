@@ -10,14 +10,8 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
   # Buckets enrollments by number of distinct service years in the 5-year window ending at end_date.
   # Intended for STRMU frequency reporting, where each service event is a separate enrollment.
   #
-  # "Years of service" are approximated by calendar year (EXTRACT(YEAR FROM entry_date)), not
-  # reporting periods. Since HOPWA reporting periods are federal fiscal years (Oct–Sep), calendar
-  # years are an inherent approximation regardless of window boundaries. The (end_date - 5.years)
-  # window is the natural anchor and consistent with how clients/funders reason about history.
-  #
   # Per-row GREATEST(entry_date, funder.start_date) avoids crediting service years that predate
-  # HOPWA funding for that enrollment, unlike EnrollmentLongevityFilter which uses a single
-  # aggregate GREATEST(MIN(entry_date), MIN(start_date)) across a client's full history.
+  # HOPWA funding for that enrollment
   FrequencyLongevityFilter = Data.define(:label, :criterion, :end_date, :start_date, :funder_codes, :reference_scope) do
     def apply(scope)
       return scope if criterion.nil?

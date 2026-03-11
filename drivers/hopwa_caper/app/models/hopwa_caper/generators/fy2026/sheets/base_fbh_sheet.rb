@@ -19,17 +19,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
       program_filter.apply(@report.hopwa_caper_enrollments)
     end
 
-    # query the live hud data as we don't snapshot projects
+    # projects are not snapshotted, so we query them live
     def project_scope
-      # which projects have a relevant funder in the report range
-      project_ids = GrdaWarehouse::Hud::Funder.
+      project_ids = @report.hopwa_caper_funders.
         within_range(@report.report_range).
-        joins(:project).
-        where(Funder: program_filter.codes).
-        where(arel.p_t[:id].in(@report.project_ids)).
-        distinct.select(arel.p_t[:id])
+        where(code: program_filter.codes).
+        select(:project_id)
 
-      # intersection of projects
       GrdaWarehouse::Hud::Project.
         where(arel.p_t[:HousingType].in([1, 2])).
         where(id: project_ids)

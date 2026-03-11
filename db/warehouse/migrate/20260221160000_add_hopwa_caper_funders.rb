@@ -59,6 +59,7 @@ class AddHopwaCaperFunders < ActiveRecord::Migration[7.0]
       FROM hopwa_caper_enrollments hce
       JOIN "Enrollment" e ON e.id = hce.enrollment_id
       JOIN "Funder" f ON f."ProjectID" = e."ProjectID" AND f.data_source_id = e.data_source_id
+      WHERE hce.project_id IS NOT NULL
       ON CONFLICT (funder_id, report_instance_id) DO NOTHING;
     SQL
   end
