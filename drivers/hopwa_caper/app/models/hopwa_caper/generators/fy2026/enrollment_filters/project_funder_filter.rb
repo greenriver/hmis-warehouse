@@ -56,5 +56,26 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
     def self.tbra_or_php_hopwa(range: nil)
       IncludeFilter.new(filters: [tbra_hopwa(range: range), php_hopwa(range: range)])
     end
+
+    def self.st_tfbh(range: nil)
+      new(
+        label: 'ST-TFBH',
+        range: range,
+        types: [
+          'HUD: HOPWA - Short-Term Supportive Facility',
+          'HUD: HOPWA - Transitional Housing (facility based or TBRA)',
+        ],
+      )
+    end
+
+    def self.p_fbh(range: nil)
+      new(
+        label: 'P-FBH',
+        range: range,
+        types: [
+          'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
+        ],
+      )
+    end
   end
 end

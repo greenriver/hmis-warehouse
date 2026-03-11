@@ -28,7 +28,7 @@ module HudReports
       first_row = 2
       metadata = {
         header_row: header_row,
-        row_labels: builder.rows.map(&:label),
+        row_labels: builder.rows.map { |r| r&.label || '' },
         first_column: 'B',
         last_column: builder.headers.keys.max,
         first_row: first_row,
@@ -37,6 +37,8 @@ module HudReports
       # future optimization: could use bulk insert here
       update_metadata(metadata)
       builder.rows.each.with_index(first_row) do |row, row_idx|
+        next unless row
+
         row.cell_members.each do |column_letter, members|
           update_cell_members(cell: [column_letter, row_idx], members: members)
         end
@@ -92,6 +94,13 @@ module HudReports
       row = QuestionSheetRowBuilder.new(label: label)
       yield(row) if block_given?
       rows.push(row)
+    end
+
+    def set_row(index, label:)
+      row = QuestionSheetRowBuilder.new(label: label)
+      yield(row) if block_given?
+      rows[index] = row
+      row
     end
 
     # def with_column(label: )
