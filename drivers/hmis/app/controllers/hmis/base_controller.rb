@@ -44,12 +44,10 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_data_source
-    @current_data_source ||= begin
-      data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
-      raise "HMIS data source not configured: #{current_hmis_host}" unless data_source.present?
+    data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
+    raise "HMIS data source not configured: #{current_hmis_host}" unless data_source.present?
 
-      data_source
-    end
+    data_source
   end
 
   # Binds the current request to an HMIS data source using the request host
