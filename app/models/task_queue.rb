@@ -101,5 +101,10 @@ class TaskQueue < ApplicationRecord
       GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
     end
+
+    # Green River staff account report for tech-ops (Slack notification)
+    config.queued_tasks[:gr_staff_report_q1_2026] = -> do
+      GrdaWarehouse::Tasks::GrStaffReport.run!
+    end
   end
 end

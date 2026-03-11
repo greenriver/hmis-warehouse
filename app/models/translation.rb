@@ -9,6 +9,7 @@
 class Translation < ApplicationRecord
   include NotifierConfig
 
+  # @return [String] the translation if it exists, otherwise the original text
   def self.translate(text)
     # The cache is updated via BuildTranslationCacheJob, but without an expiration is uses the default
     # expiration of 5 minutes in development, 8 hours in production
@@ -20,6 +21,13 @@ class Translation < ApplicationRecord
       translation.text
     end
     translated.presence || text
+  end
+
+  # @return [String, nil] the translation if it exists, otherwise nil
+  def self.translate_if_present(text)
+    Rails.cache.fetch(cache_key(text), expires_in: 8.hours) do
+      where(key: text).order(:id).first&.text
+    end
   end
 
   def self.cache_key(text)
