@@ -35,7 +35,7 @@ module GrdaWarehouse::Monitoring
       previous_log = HmisCsvImporter::Importer::ImporterLog.
         where(data_source_id: data_source.id).
         where(status: 'complete').
-        where.not(id: exclude_importer_log_id).
+        where(id: ...exclude_importer_log_id).
         order(completed_at: :desc).
         first
 

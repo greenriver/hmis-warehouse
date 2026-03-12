@@ -20,8 +20,8 @@ Detect significant changes at the individual CSV level during HUD CSV imports. C
 2. `CsvImportMonitorCollector` runs for the data source
 3. `MetricDefinition.maintain_csv_metrics!` ensures MetricDefinitions exist with `subtype` set per CSV file
 4. For each active monitor: compare current counts to previous (from MetricSnapshot or prior ImporterLog)
-5. Create/update MetricSnapshot with current value for next comparison
-6. If threshold exceeded (per direction and count/percent rules): send email to configured users
+5. If threshold exceeded: create new MetricSnapshot; otherwise update existing snapshot
+6. Notifications: sent by the daily MetricSnapshotCollector / CollectClientMetricsJob (same as other metric alerts)
 
 ## Configuration
 
@@ -34,7 +34,8 @@ Detect significant changes at the individual CSV level during HUD CSV imports. C
 
 ## Location
 
-- **Import Thresholds** page (`/data_sources/:id/import_threshold`): Embedded "Per-CSV Import Monitors" section with list of monitors; Add Monitor, Edit, Remove
+- **Import Thresholds** page (`/data_sources/:id/import_threshold`): Embedded "Per-CSV Import Monitors" section with list of monitors; Add Monitor, Edit, View chart (for users with warehouse alerts permission), Remove
+- **Admin Metric Definitions** (`/admin/metric_definitions`): CSV import metrics are excluded from the main list; a "CSV Import Thresholds (by Data Source)" section links to each data source's Import Thresholds page
 
 ## Architecture
 
@@ -44,9 +45,9 @@ Detect significant changes at the individual CSV level during HUD CSV imports. C
 - **MetricDefinition** (csv_import): One per CSV file; `subtype` identifies the file (e.g., Client.csv); created/updated by `maintain_csv_metrics!` (called at start of each collection)
 - **MetricSnapshot**: Stores current row count per data source per CSV for comparison
 - **CsvRowCountCalculator**: Extracts current/previous values from import summaries
-- **CsvImportMonitorCollector**: Runs post-import; updates snapshots, delegates to calculators; uses NotificationConfiguration for recipients
-- **NotificationConfiguration** (source: ImportCsvMonitor, slug: csv_import_threshold_exceeded): Recipients configured per monitor on each monitor's Edit page
-- **NotifyUser.csv_change_threshold_exceeded**: Email template for alerts (supports delta, min_additions, max_removals)
+- **CsvImportMonitorCollector**: Runs post-import; creates/updates MetricSnapshots; delegates to calculators for threshold checks
+- **NotificationConfiguration** (source: ImportCsvMonitor, slug: csv_import_threshold_exceeded): Recipients configured per monitor on each monitor's Edit page; used by NotifyMetricThresholdCrossingsJob when it runs
+- **NotifyMetricThresholdCrossingsJob**: Invoked by the daily MetricSnapshotCollector / CollectClientMetricsJob; sends emails via NotifyUser.metric_threshold_crossed (supports delta, min_additions, max_removals)
 
 ## Related
 

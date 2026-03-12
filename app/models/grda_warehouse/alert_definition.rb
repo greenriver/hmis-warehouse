@@ -118,7 +118,7 @@ module GrdaWarehouse
         {
           code: 'csv_import_threshold_exceeded',
           name: 'CSV Import Threshold Exceeded',
-          email_subject: 'CSV Import: Threshold Exceeded',
+          email_subject: 'Import threshold monitoring alert',
           category: 'system',
           description: 'Notification when per-CSV import monitors detect threshold crossings (e.g. min additions, max removals, delta change)',
           visibility_check: ->(_user) { defined?(GrdaWarehouse::ImportCsvMonitor) && GrdaWarehouse::ImportCsvMonitor.exists? },

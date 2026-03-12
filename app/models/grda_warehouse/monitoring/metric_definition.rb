@@ -93,7 +93,7 @@ module GrdaWarehouse::Monitoring
           calculator_class: calculator_class,
           category: 'csv_import',
           subtype: csv_file_name,
-          active: false,
+          active: true,
         )
         metric.save!
       end
@@ -102,20 +102,24 @@ module GrdaWarehouse::Monitoring
     # Get chart data showing threshold crossings over time
     # Returns array of [date_string, count] for days where entities crossed threshold
     # Excludes initial observations (first snapshot for each entity/metric)
-    def threshold_crossing_data(days_back:)
+    # @param entity_id [Integer, nil] optional - when set (e.g. for csv_import), scope to this entity only
+    def threshold_crossing_data(days_back:, entity_id: nil)
       start_date = days_back.days.ago.to_date
       end_date = Date.current
 
       snapshot_table = GrdaWarehouse::Monitoring::MetricSnapshot.arel_table
 
+      scope = metric_snapshots
+      scope = scope.where(entity_id: entity_id) if entity_id.present?
+
       # Find initial snapshot IDs (first snapshot for each entity/metric combination)
-      initial_snapshot_ids = metric_snapshots.
+      initial_snapshot_ids = scope.
         select(snapshot_table[:id].minimum).
         group(:entity_type, :entity_id, :metric_definition_id)
 
       # Get non-initial snapshots created in the date range
       # Group by creation date and count entities
-      crossings = metric_snapshots.
+      crossings = scope.
         where(created_at: start_date.beginning_of_day..end_date.end_of_day).
         where.not(id: initial_snapshot_ids).
         group(Arel.sql('DATE(created_at)')).

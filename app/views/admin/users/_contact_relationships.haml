@@ -1,7 +1,8 @@
 -# Display all alert contact relationships for a user
 -# Shows system contact and all project/organization contacts with their subscriptions
 -# Uses preloaded @user_contacts from controller to avoid N+1 queries
-- if @user_contacts.any?
+- has_any_subscriptions = @user_contacts&.any? || @import_csv_monitor_configs&.any?
+- if has_any_subscriptions
   .contact-relationships.mt-4.mb-4
     %h3 Other Subscriptions
     .card
@@ -52,3 +53,21 @@
                     = link_to edit_project_contact_path(contact.entity, contact), target: :_blank do
                       Edit Contact
                       %span.icon-link-ext
+
+        - if @import_csv_monitor_configs&.any?
+          %h5.mt-3 Import CSV Monitors
+          %table.table.table-sm.table-striped
+            %thead
+              %tr
+                %th Data Source
+                %th CSV File
+                %th.text-end Actions
+            %tbody
+              - @import_csv_monitor_configs.each do |config|
+                - monitor = config.source
+                - if monitor.is_a?(GrdaWarehouse::ImportCsvMonitor)
+                  %tr
+                    %td= monitor.data_source&.name
+                    %td= monitor.csv_file_name
+                    %td.text-end
+                      = link_to 'Edit Monitor', edit_data_source_import_csv_monitor_path(monitor.data_source, monitor), target: :_blank, class: 'btn btn-sm btn-secondary'

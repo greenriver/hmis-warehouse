@@ -25,7 +25,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         log = HmisCsvImporter::Importer::ImporterLog.
           where(data_source_id: data_source.id).
           where(status: 'complete').
-          where('completed_at <= ?', calculation_date.end_of_day).
+          where(completed_at: ..calculation_date.end_of_day).
           order(completed_at: :desc).
           first
 
@@ -50,6 +50,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         category: 'csv_import',
         subtype: nil,
         active: false,
+        alert_code: 'csv_import_threshold_exceeded',
       }
     end
   end

@@ -8,7 +8,8 @@ export default class extends Controller {
     data: Array,
     metricName: String,
     entityLabel: String,
-    metricId: Number
+    metricId: Number,
+    entityId: Number
   }
 
   connect() {
@@ -107,7 +108,10 @@ export default class extends Controller {
     }
 
     try {
-      const url = `/admin/metric_definitions/${this.metricIdValue}/crossings_for_date?date=${dateString}`;
+      let url = `/admin/metric_definitions/${this.metricIdValue}/crossings_for_date?date=${dateString}`;
+      if (this.hasEntityIdValue && this.entityIdValue) {
+        url += `&entity_id=${this.entityIdValue}`;
+      }
       const response = await fetch(url);
       const jsonData = await response.json();
 
