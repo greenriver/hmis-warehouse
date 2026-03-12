@@ -61,7 +61,6 @@ RSpec.describe GrdaWarehouse::Monitoring::CsvRowCountCalculator do
     end
 
     it 'returns values from the most recent prior completed import' do
-      current_log = create(:hmis_csv_importer_log, data_source: data_source, status: 'complete')
       create(
         :hmis_csv_importer_log,
         data_source: data_source,
@@ -71,6 +70,7 @@ RSpec.describe GrdaWarehouse::Monitoring::CsvRowCountCalculator do
           'Client.csv' => { 'pre_processed' => 1400, 'added' => 0, 'removed' => 0 },
         },
       )
+      current_log = create(:hmis_csv_importer_log, data_source: data_source, status: 'complete')
       result = described_class.previous_value(
         data_source: data_source,
         csv_file_name: 'Client.csv',
