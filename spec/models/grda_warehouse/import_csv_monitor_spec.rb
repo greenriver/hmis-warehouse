@@ -12,7 +12,10 @@ RSpec.describe GrdaWarehouse::ImportCsvMonitor, type: :model do
         csv_file_name: 'Client.csv',
       )
       expect(monitor).not_to be_valid
-      expect(monitor.errors[:base]).to include('At least one numeric threshold must be set')
+      message = 'At least one numeric threshold must be set'
+      described_class::THRESHOLD_ATTRS.each do |attr|
+        expect(monitor.errors[attr]).to include(message)
+      end
     end
 
     it 'is valid with count_increase_threshold' do

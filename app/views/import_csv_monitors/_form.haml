@@ -1,4 +1,9 @@
-= simple_form_for import_csv_monitor, url: import_csv_monitor.persisted? ? data_source_import_csv_monitor_path(data_source, import_csv_monitor) : data_source_import_csv_monitors_path(data_source), method: import_csv_monitor.persisted? ? :patch : :post do |f|
+- import_csv_monitor ||= @import_csv_monitor
+- persisted = import_csv_monitor&.persisted?
+- url = persisted ? data_source_import_csv_monitor_path(data_source, import_csv_monitor) : data_source_import_csv_monitors_path(data_source)
+- method = persisted ? :patch : :post
+
+= simple_form_for import_csv_monitor, url: url, method: method do |f|
   .row
     .col
       = f.input :csv_file_name,
@@ -31,10 +36,10 @@
                 hint: 'Alert when removed rows exceed this (e.g. alert if >100 enrollments deleted)',
                 input_html: { style: 'width: 8em' }
 
-  - if import_csv_monitor.persisted?
+  - if persisted
     %p.text-muted
       Add notification recipients in the Notifications section below to receive email alerts when thresholds are exceeded.
   .form-actions.d-flex.justify-content-between
-    - unless import_csv_monitor.persisted?
+    - unless persisted
       = link_to 'Cancel', data_source_import_threshold_path(data_source), class: 'btn btn-secondary mt-3'
-    = f.submit import_csv_monitor.persisted? ? 'Update Monitor' : 'Create Monitor', class: 'btn btn-primary mt-3'
+    = f.submit persisted ? 'Update Monitor' : 'Create Monitor', class: 'btn btn-primary mt-3'

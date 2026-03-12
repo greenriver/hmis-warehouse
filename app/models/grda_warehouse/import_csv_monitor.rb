@@ -97,11 +97,18 @@ module GrdaWarehouse
       parts.any? ? parts.join(', ') : '—'
     end
 
-    private def at_least_one_threshold
-      return if count_increase_threshold.present? || count_decrease_threshold.present? ||
-                min_additions_threshold.present? || max_removals_threshold.present?
+    THRESHOLD_ATTRS = [
+      :count_increase_threshold,
+      :count_decrease_threshold,
+      :min_additions_threshold,
+      :max_removals_threshold,
+    ].freeze
 
-      errors.add(:base, 'At least one numeric threshold must be set')
+    private def at_least_one_threshold
+      return if THRESHOLD_ATTRS.any? { |attr| send(attr).present? }
+
+      message = 'At least one numeric threshold must be set'
+      THRESHOLD_ATTRS.each { |attr| errors.add(attr, message) }
     end
   end
 end

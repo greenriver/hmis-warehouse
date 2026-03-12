@@ -24,9 +24,9 @@ class ImportCsvMonitorsController < ApplicationController
   def create
     @import_csv_monitor = data_source.import_csv_monitors.build(import_csv_monitor_params)
     if @import_csv_monitor.save
-      redirect_to data_source_import_threshold_path(data_source),
-                  notice: 'Monitor created.'
+      redirect_to data_source_import_threshold_path(data_source), notice: 'Monitor created.'
     else
+      flash[:error] = @import_csv_monitor.errors.messages.values.flatten.uniq.join('<br />').html_safe
       render :new
     end
   end
@@ -36,17 +36,16 @@ class ImportCsvMonitorsController < ApplicationController
 
   def update
     if import_csv_monitor.update(import_csv_monitor_params)
-      redirect_to data_source_import_threshold_path(data_source),
-                  notice: 'Monitor updated.'
+      redirect_to data_source_import_threshold_path(data_source), notice: 'Monitor updated.'
     else
+      flash[:error] = import_csv_monitor.errors.messages.values.flatten.uniq.join('<br />').html_safe
       render :edit
     end
   end
 
   def destroy
     import_csv_monitor.destroy!
-    redirect_to data_source_import_threshold_path(data_source),
-                notice: 'Monitor removed.'
+    redirect_to data_source_import_threshold_path(data_source), notice: 'Monitor removed.'
   end
 
   private def data_source
