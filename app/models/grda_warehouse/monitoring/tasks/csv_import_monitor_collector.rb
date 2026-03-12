@@ -67,24 +67,26 @@ module GrdaWarehouse::Monitoring::Tasks
         # If today's snapshot has an initial_observation_date of today, something earlier crossed a threshold, do nothing
         return false if snapshot && snapshot.initial_observation_date == Date.current
 
-        # Today's days snaphot was created previously,
+        # Today's snapshot was created previously,
         # need to create a new snapshot to indicate we have crossed a threshold
         create_new_snapshot(metric_def, current_value)
 
-        true
-      else
-        # If a snapshot already existed that was updated today, don't overwrite it
-        return false if snapshot && snapshot.current_observation_date == Date.current
-
-        # If we have a snapshot, but it hasn't been updated today, updated it
-        if snapshot
-          update_snapshot(snapshot, current_value)
-          return false
-        end
-
-        # First ever observation
-        create_new_snapshot(metric_def, current_value)
+        return true
       end
+
+      # At this point, we have not crossed a threshold
+      # If a snapshot already existed that was updated today, don't overwrite it
+      return false if snapshot && snapshot.current_observation_date == Date.current
+
+      # If we have a snapshot, but it hasn't been updated today, updated it
+      if snapshot
+        update_snapshot(snapshot, current_value)
+        return false
+      end
+
+      # First ever observation
+      create_new_snapshot(metric_def, current_value)
+      false
     end
 
     private def metric_definition_for(csv_file_name)
@@ -108,7 +110,7 @@ module GrdaWarehouse::Monitoring::Tasks
           entity_id: @data_source.id,
           metric_definition_id: metric_def.id,
         ).
-        order(initial_observation_date: :desc).
+        order(initial_observation_date: :desc, id: :desc).
         first
     end
 

@@ -114,6 +114,52 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::CsvImportMonitorCollector do
         expect(snapshot.current_value).to eq(1100)
       end
 
+      it 'does nothing when threshold crossed again same day (snapshot already has initial_observation_date today)' do
+        metric_def = GrdaWarehouse::Monitoring::MetricDefinition.find_by(
+          entity_type: 'GrdaWarehouse::DataSource',
+          subtype: 'Client.csv',
+        )
+        GrdaWarehouse::Monitoring::MetricSnapshot.create!(
+          entity: data_source,
+          metric_definition: metric_def,
+          initial_observation_date: Date.current,
+          current_observation_date: Date.current,
+          initial_value: 1000,
+          current_value: 1100,
+          calculation_version: '1.0.0',
+        )
+
+        importer_log.summary['Client.csv']['pre_processed'] = 1200
+        importer_log.save!
+
+        expect do
+          described_class.run!(data_source: data_source, importer_log: importer_log)
+        end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+
+      it 'does nothing when already updated today (snapshot already has current_observation_date today)' do
+        metric_def = GrdaWarehouse::Monitoring::MetricDefinition.find_by(
+          entity_type: 'GrdaWarehouse::DataSource',
+          subtype: 'Client.csv',
+        )
+        GrdaWarehouse::Monitoring::MetricSnapshot.create!(
+          entity: data_source,
+          metric_definition: metric_def,
+          initial_observation_date: 1.day.ago,
+          current_observation_date: Date.current,
+          initial_value: 1000,
+          current_value: 1020,
+          calculation_version: '1.0.0',
+        )
+
+        importer_log.summary['Client.csv']['pre_processed'] = 1025
+        importer_log.save!
+
+        expect do
+          described_class.run!(data_source: data_source, importer_log: importer_log)
+        end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+
       context 'with min_additions_threshold monitor' do
         let!(:monitor) do
           create(
