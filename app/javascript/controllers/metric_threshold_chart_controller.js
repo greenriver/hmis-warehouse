@@ -9,7 +9,8 @@ export default class extends Controller {
     metricName: String,
     entityLabel: String,
     metricId: Number,
-    entityId: Number
+    entityId: Number,
+    detailsHelpText: String
   }
 
   connect() {
@@ -49,6 +50,8 @@ export default class extends Controller {
       },
       axis: {
         x: {
+          clipPath: false,
+          padding: 100,
           type: 'timeseries',
           tick: {
             format: '%Y-%m-%d',
@@ -88,11 +91,13 @@ export default class extends Controller {
         pattern: ['#288be4']
       },
       padding: {
-        bottom: 20
+        bottom: 40
       }
     };
 
     this.chart = bb.generate(chartConfig);
+    const svg = this.chartTarget.querySelector('svg');
+    if (svg) svg.style.overflow = 'visible';
   }
 
   async handleBarClick(d) {
@@ -133,8 +138,10 @@ export default class extends Controller {
     }
 
     const entityLabel = this.entityLabelValue || 'Client';
+    const helpText = this.hasDetailsHelpTextValue ? this.detailsHelpTextValue : '';
     const tableHTML = `
       <h4>Threshold Crossings on ${data.date}</h4>
+      ${helpText ? `<p>${helpText}</p>` : ''}
       <table class="table table-striped">
         <thead>
           <tr>

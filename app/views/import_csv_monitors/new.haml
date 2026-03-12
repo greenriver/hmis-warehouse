@@ -1,7 +1,6 @@
-= render 'data_sources/breadcrumbs', data_source: data_source
+= render 'breadcrumbs', data_source: data_source
 - content_for :title, 'Add Per-CSV Monitor'
 %h1= content_for :title
 
-= render 'form'
-
-= link_to 'Cancel', data_source_import_threshold_path(data_source), class: 'btn btn-secondary mt-3'
+.well
+  = render 'form'

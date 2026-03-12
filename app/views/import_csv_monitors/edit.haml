@@ -1,4 +1,4 @@
-= render 'data_sources/breadcrumbs', data_source: data_source
+= render 'breadcrumbs', data_source: data_source
 - content_for :title, "Edit Monitor: #{import_csv_monitor.csv_file_name}"
 %h1= content_for :title
 
@@ -13,7 +13,7 @@
   %div{ class: slug.parameterize }
     - if import_csv_monitor.items_for(slug).any?
       = render 'import_csv_monitors/notification_table', import_csv_monitor: import_csv_monitor, data_source: data_source, slug: slug
-  .none-found
+  .text-center.mt-3
     = link_to new_data_source_import_csv_monitor_notification_configuration_path(data_source, import_csv_monitor, notification_slug: slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
       %i.icon-plus
       Add Notification

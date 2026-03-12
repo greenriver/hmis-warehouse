@@ -1,8 +1,8 @@
+%h2 Per-CSV Import Monitors
+%p
+  Configure alerts for specific CSV files (e.g., Client.csv, Services.csv).
+  When row counts change beyond your thresholds, notifications are sent to users configured on each monitor's Edit page.
 .well
-  %h2 Per-CSV Import Monitors
-  %p
-    Configure alerts for specific CSV files (e.g., Client.csv, Services.csv).
-    When row counts change beyond your thresholds, notifications are sent to users configured on each monitor's Edit page.
   = link_to 'Add Monitor', new_data_source_import_csv_monitor_path(data_source), class: 'btn btn-secondary btn-sm mb-3'
   - if import_csv_monitors.any?
     %table.table.table-striped
