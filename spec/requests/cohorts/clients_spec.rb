@@ -122,4 +122,69 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       end
     end
   end
+
+  describe 'POST /cohorts/:cohort_id/cohort_clients (create)' do
+    let!(:client1) { create(:grda_warehouse_hud_client, data_source_id: warehouse_data_source.id) }
+    let!(:client2) { create(:grda_warehouse_hud_client, data_source_id: warehouse_data_source.id) }
+    let(:create_params) { { grda_warehouse_cohort: { client_ids: "#{client1.id},#{client2.id}" } } }
+
+    context 'when logged out' do
+      it 'redirects to the login page' do
+        post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      end
+    end
+
+    context 'when logged in with insufficient permissions' do
+      let(:unauthorized_user) { create(:acl_user) }
+      before { sign_in unauthorized_user }
+
+      it 'redirects with an authorization error' do
+        post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to include('Sorry you are not authorized to do that')
+      end
+    end
+
+    context 'when logged in with sufficient permissions' do
+      before { sign_in user }
+
+      it 'adds clients to the cohort' do
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to change { cohort.cohort_clients.count }.by(2)
+
+        expect(cohort.cohort_clients.pluck(:client_id)).to contain_exactly(client1.id, client2.id)
+        expect(response).to redirect_to(cohort_path(cohort))
+        expect(flash[:notice]).to include('2 Clients added')
+      end
+
+      it 'enqueues AddCohortClientsJob to populate client data' do
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to have_enqueued_job(AddCohortClientsJob).with(cohort.id, "#{client1.id},#{client2.id}", user.id)
+      end
+
+      it 'skips clients already in the cohort' do
+        cohort.cohort_clients.create!(client_id: client1.id)
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to change { cohort.cohort_clients.count }.by(1)
+
+        expect(cohort.cohort_clients.pluck(:client_id)).to contain_exactly(client1.id, client2.id)
+      end
+
+      it 'restores previously deleted clients when their IDs are included' do
+        cohort_client = cohort.cohort_clients.create!(client_id: client1.id)
+        cohort_client.destroy!
+        expect(cohort.cohort_clients.with_deleted.count).to eq(1)
+
+        expect do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end.to change { cohort.cohort_clients.count }.from(0).to(2)
+
+        expect(cohort_client.reload.deleted?).to be false
+      end
+    end
+  end
 end
