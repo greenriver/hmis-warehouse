@@ -136,7 +136,6 @@ module HmisUtil
             'value' => 'VA: GPD' },
           { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
-          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       c3_youth_education_status: { stages: ['INTAKE', 'EXIT'],
                                    data_collected_about: 'HOH',
@@ -248,8 +247,6 @@ module HmisUtil
                   { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
                 ] },
             ] },
-
-          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       # disability table (note: requiring at annual even though HUD doesn't because of hopwa_disability questions)
       #
@@ -329,8 +326,6 @@ module HmisUtil
             'variable' => 'projectFunderComponents',
             'operator' => 'INCLUDE',
             'value' => 'HHS: RHY' },
-
-          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       # enrollment coc
       q_3_16: { stages: ['INTAKE'], data_collected_about: 'HOH', rule: nil },
@@ -430,7 +425,6 @@ module HmisUtil
             'value' => 'VA: GPD' },
           { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
-          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       # 4.02 Income and Sources
       income_and_sources: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
@@ -531,7 +525,6 @@ module HmisUtil
             'value' => 'VA: GPD' },
           { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
-          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       non_cash_benefits: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
                            data_collected_about: 'HOH_AND_ADULTS',
@@ -634,7 +627,6 @@ module HmisUtil
             'value' => 'VA: GPD' },
           { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
-          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       P4_1: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
               data_collected_about: 'HOH_AND_ADULTS',
