@@ -58,11 +58,9 @@ class ImportCsvMonitorsController < ApplicationController
   helper_method :data_source
 
   private def import_csv_monitor
-    @import_csv_monitor ||= if params[:id].present?
-      data_source.import_csv_monitors.find(params[:id])
-    elsif ['new', 'create'].include?(params[:action])
-      data_source.import_csv_monitors.build
-    end
+    return unless params[:id].present?
+
+    @import_csv_monitor ||= data_source.import_csv_monitors.find(params[:id])
   end
 
   private def import_csv_monitor_params

@@ -7,7 +7,10 @@
 # frozen_string_literal: true
 
 # Sends emails when metric thresholds are crossed. Invoked after threshold collection (e.g. by
-# CsvImportMonitorCollector). Recipients differ by alert type:
+# CsvImportMonitorCollector). Each user receives a single email per job run covering all alert types
+# they are subscribed to.
+#
+# Recipients differ by alert type:
 #
 # - CSV import: thresholds are per-data-source, per-CSV-file (ImportCsvMonitor). Each monitor has
 #   its own config and recipients. NotificationConfiguration (source: ImportCsvMonitor) stores who
@@ -24,140 +27,139 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
   def perform(calculation_date = Date.current)
     lock_name = 'notify_metric_threshold_crossings_job'
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
-      # Get threshold crossings grouped by alert code
       crossings_by_alert = GrdaWarehouse::Monitoring::MetricDefinition.
         active.
         threshold_crossings_for_alerts(calculation_date)
 
       return if crossings_by_alert.empty?
 
-      # For each alert code, send notifications to subscribed users
+      # Build a single user_id => { metric_id => crossing_info } map across ALL alert types
+      all_user_crossings = Hash.new { |h, k| h[k] = {} }
+
       crossings_by_alert.each do |alert_code, crossings_by_metric|
-        # CSV import alerts use per-monitor NotificationConfiguration; others use ContactAlertSubscription
         if alert_code == CSV_IMPORT_ALERT_CODE
-          notify_csv_import_crossings(crossings_by_metric, calculation_date)
+          merge_csv_import_user_crossings(all_user_crossings, crossings_by_metric)
         else
-          notify_contact_subscribers(alert_code, crossings_by_metric, calculation_date)
+          merge_contact_subscriber_crossings(all_user_crossings, alert_code, crossings_by_metric)
         end
+      end
+
+      return if all_user_crossings.empty?
+
+      # Batch-load users once, then send one email per user
+      users_by_id = User.where(id: all_user_crossings.keys).active.index_by(&:id)
+
+      all_user_crossings.each do |user_id, crossings|
+        user = users_by_id[user_id]
+        next unless user&.active?
+
+        NotifyUser.metric_threshold_crossed(
+          user_id: user.id,
+          crossings: crossings,
+          calculation_date: calculation_date,
+        ).deliver_now
       end
     end
   end
 
   private
 
-  # CSV import: recipients come from NotificationConfiguration on each ImportCsvMonitor.
-  # Users only receive crossings for monitors they're subscribed to.
-  def notify_csv_import_crossings(crossings_by_metric, calculation_date)
-    return if crossings_by_metric.empty?
+  # CSV import: merges crossings into all_user_crossings based on NotificationConfiguration on
+  # each ImportCsvMonitor. Uses batch queries to avoid N+1.
+  def merge_csv_import_user_crossings(all_user_crossings, crossings_by_metric)
     return unless defined?(GrdaWarehouse::ImportCsvMonitor)
+    return if crossings_by_metric.empty?
 
-    # Build user_id => { metric_id => { display_name:, data:, ... } } with only crossings for monitors
-    # that each user is subscribed to
-    user_crossings = build_csv_import_user_crossings(crossings_by_metric)
+    # Batch-load all needed MetricDefinitions
+    metric_defs_by_id = GrdaWarehouse::Monitoring::MetricDefinition.
+      where(id: crossings_by_metric.keys).
+      index_by(&:id)
 
-    user_crossings.each do |user_id, crossings|
-      user = User.find_by(id: user_id)
-      next unless user&.active?
+    # Collect data_source_id + csv_file_name pairs from all crossings
+    entity_id_and_file_pairs = crossings_by_metric.flat_map do |metric_id, snapshot_info|
+      metric_def = metric_defs_by_id[metric_id]
+      next [] unless metric_def&.subtype.present?
 
-      NotifyUser.metric_threshold_crossed(
-        user_id: user.id,
-        alert_code: CSV_IMPORT_ALERT_CODE,
-        crossings: crossings,
-        calculation_date: calculation_date,
-      ).deliver_now
-    end
-  end
+      (snapshot_info[:data] || []).map { |c| [c[:entity_id], metric_def.subtype] }
+    end.uniq
 
-  # Maps raw crossings (grouped by metric) to user-centric crossings. For each crossing, finds the
-  # ImportCsvMonitor (data_source + csv_file), collects users subscribed via NotificationConfiguration,
-  # and adds the crossing to each user's hash. Users only see crossings for monitors they follow.
-  def build_csv_import_user_crossings(crossings_by_metric)
-    user_crossings = Hash.new { |h, k| h[k] = {} }
+    return if entity_id_and_file_pairs.empty?
+
+    # Batch-load monitors
+    data_source_ids = entity_id_and_file_pairs.map(&:first).uniq
+    csv_file_names = entity_id_and_file_pairs.map(&:last).uniq
+    monitors_by_key = GrdaWarehouse::ImportCsvMonitor.
+      where(data_source_id: data_source_ids, csv_file_name: csv_file_names, active: true).
+      index_by { |m| [m.data_source_id, m.csv_file_name] }
+
+    return if monitors_by_key.empty?
+
+    # Batch-load notification configs for all monitors
+    user_ids_by_monitor_id = GrdaWarehouse::NotificationConfiguration.
+      where(
+        source_type: 'GrdaWarehouse::ImportCsvMonitor',
+        source_id: monitors_by_key.values.map(&:id),
+        notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG,
+        active: true,
+      ).
+      group_by(&:source_id).
+      transform_values { |configs| configs.filter_map(&:user_id).uniq }
 
     crossings_by_metric.each do |metric_id, snapshot_info|
-      metric_def = GrdaWarehouse::Monitoring::MetricDefinition.find_by(id: metric_id)
+      metric_def = metric_defs_by_id[metric_id]
       next unless metric_def&.subtype.present?
 
       csv_file_name = metric_def.subtype
-      data = snapshot_info[:data] || []
 
-      data.each do |crossing|
-        entity_id = crossing[:entity_id] # data_source_id for csv_import
-        monitor = GrdaWarehouse::ImportCsvMonitor.find_by(
-          data_source_id: entity_id,
-          csv_file_name: csv_file_name,
-          active: true,
-        )
+      (snapshot_info[:data] || []).each do |crossing|
+        monitor = monitors_by_key[[crossing[:entity_id], csv_file_name]]
         next unless monitor
 
-        user_ids = GrdaWarehouse::NotificationConfiguration.
-          where(
-            source: monitor,
-            notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG,
-            active: true,
-          ).
-          pluck(:user_id).
-          compact.
-          uniq
-
-        user_ids.each do |user_id|
-          user_crossings[user_id][metric_id] ||= {
+        (user_ids_by_monitor_id[monitor.id] || []).each do |user_id|
+          all_user_crossings[user_id][metric_id] ||= {
             display_name: snapshot_info[:display_name],
             data: [],
             total_count: 0,
             truncated: snapshot_info[:truncated],
             entity_label: metric_def.entity_label,
           }
-          user_crossings[user_id][metric_id][:data] << crossing
-          user_crossings[user_id][metric_id][:total_count] += 1
+          all_user_crossings[user_id][metric_id][:data] << crossing
+          all_user_crossings[user_id][metric_id][:total_count] += 1
         end
       end
     end
-
-    user_crossings
   end
 
-  # Non-CSV alerts (e.g. client metrics): recipients come from ContactAlertSubscription on the
-  # AlertDefinition. All subscribed users receive the full crossings_by_metric (no per-user filtering).
-  def notify_contact_subscribers(alert_code, crossings_by_metric, calculation_date)
+  # Non-CSV alerts: merges crossings into all_user_crossings for all users subscribed via
+  # ContactAlertSubscription on the AlertDefinition.
+  def merge_contact_subscriber_crossings(all_user_crossings, alert_code, crossings_by_metric)
     alert_definition = GrdaWarehouse::AlertDefinition.find_by(code: alert_code)
     return unless alert_definition
 
-    # Get user IDs from contact_alert_subscriptions (warehouse database)
+    subscribed_users = subscribed_active_users_for_alert(alert_definition)
+    return if subscribed_users.empty?
+
+    subscribed_users.each do |user|
+      crossings_by_metric.each do |metric_id, snapshot_info|
+        all_user_crossings[user.id][metric_id] = snapshot_info
+      end
+    end
+  end
+
+  def subscribed_active_users_for_alert(alert_definition)
     contact_ids = GrdaWarehouse::ContactAlertSubscription.
       active.
       where(alert_definition_id: alert_definition.id).
       pluck(:contact_id)
 
-    return if contact_ids.empty?
+    return [] if contact_ids.empty?
 
-    # Load Contact::User records (warehouse database) - load into memory for deduplication
-    subscribed_contacts = GrdaWarehouse::Contact::User.
+    GrdaWarehouse::Contact::User.
       where(id: contact_ids).
       preload(:user).
-      to_a
-
-    return if subscribed_contacts.empty?
-
-    # Filter to contacts with active users and deduplicate by email
-    subscribed_users = subscribed_contacts.
-      select { |contact| contact.user&.active? }.
-      map(&:user).
-      compact.
+      filter_map { |contact| contact.user if contact.user&.active? }.
       index_by(&:email).
       values
-
-    return if subscribed_users.empty?
-
-    # Send notification to each unique subscribed user
-    subscribed_users.each do |user|
-      NotifyUser.metric_threshold_crossed(
-        user_id: user.id,
-        alert_code: alert_code,
-        crossings: crossings_by_metric,
-        calculation_date: calculation_date,
-      ).deliver_now
-    end
   end
 
   def priority

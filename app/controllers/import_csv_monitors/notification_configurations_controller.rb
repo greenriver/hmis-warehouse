@@ -61,7 +61,7 @@ module ImportCsvMonitors
     end
     helper_method :import_csv_monitor
 
-    def notification_configuration
+    private def notification_configuration
       @notification_configuration ||= if params[:id].present?
         GrdaWarehouse::NotificationConfiguration.find_safely(params[:id])
       else

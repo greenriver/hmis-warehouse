@@ -46,4 +46,4 @@
             Add Notification
       .d-flex.justify-content-end= f.submit 'Update Thresholds', class: 'btn btn-primary'
 %hr
-= render 'import_csv_monitors/monitors_section', import_csv_monitors: @import_csv_monitors, data_source: data_source
+= render 'import_csv_monitors/monitors_section', import_csv_monitors: @import_csv_monitors, data_source: data_source, metric_defs_by_subtype: @metric_defs_by_subtype

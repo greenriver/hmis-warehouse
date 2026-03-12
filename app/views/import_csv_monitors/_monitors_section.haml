@@ -34,7 +34,7 @@
               - else
                 —
             %td
-              - metric_def = GrdaWarehouse::Monitoring::MetricDefinition.find_by(entity_type: 'GrdaWarehouse::DataSource', subtype: monitor.csv_file_name)
+              - metric_def = metric_defs_by_subtype[monitor.csv_file_name]
               - items = [{ link_to: { path: edit_data_source_import_csv_monitor_path(data_source, monitor) }, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :pencil, label: 'Edit' }]
               - items << { link_to: { path: admin_metric_definition_path(metric_def, entity_id: data_source.id), target: :_blank }, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :'chart-bar', label: 'View chart' } if metric_def
               - items << { link_to: { path: data_source_import_csv_monitor_path(data_source, monitor), method: :delete, data: { confirm: 'Remove this monitor?' } }, class: ['btn', 'btn-sm', 'btn-danger'], label: 'Remove' }

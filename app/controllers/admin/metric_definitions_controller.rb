@@ -12,17 +12,18 @@ module Admin
     before_action :load_metric_definition, only: [:show, :edit, :update, :crossings_for_date]
 
     def index
-      # Ensure definitions are up-to-date
-      GrdaWarehouse::Monitoring::MetricDefinition.maintain!
-      # Ensure alert definitions are seeded
-      GrdaWarehouse::AlertDefinition.maintain!
-
       @metric_definitions = metric_definition_scope.
         where.not(category: 'csv_import').
         order(:category, :name)
 
       # Data sources with ImportCsvMonitors (for Import CSV Monitors section)
-      @import_csv_data_sources = data_sources_with_import_csv_monitors if defined?(GrdaWarehouse::ImportCsvMonitor)
+      return unless defined?(GrdaWarehouse::ImportCsvMonitor)
+
+      @import_csv_data_sources = data_sources_with_import_csv_monitors
+      monitor_csv_file_names = GrdaWarehouse::ImportCsvMonitor.distinct.pluck(:csv_file_name)
+      @metric_defs_by_subtype = GrdaWarehouse::Monitoring::MetricDefinition.
+        where(entity_type: 'GrdaWarehouse::DataSource', subtype: monitor_csv_file_names).
+        index_by(&:subtype)
     end
 
     def show

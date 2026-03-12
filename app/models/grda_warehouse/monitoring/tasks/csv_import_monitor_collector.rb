@@ -104,7 +104,10 @@ module GrdaWarehouse::Monitoring::Tasks
     end
 
     private def latest_snapshot(metric_def)
-      GrdaWarehouse::Monitoring::MetricSnapshot.
+      @snapshot_cache ||= {}
+      return @snapshot_cache[metric_def.id] if @snapshot_cache.key?(metric_def.id)
+
+      @snapshot_cache[metric_def.id] = GrdaWarehouse::Monitoring::MetricSnapshot.
         where(
           entity_type: @data_source.class.name,
           entity_id: @data_source.id,

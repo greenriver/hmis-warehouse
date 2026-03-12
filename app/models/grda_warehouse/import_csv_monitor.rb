@@ -11,9 +11,12 @@
 # @see docs/features/import-csv-monitoring.md
 module GrdaWarehouse
   class ImportCsvMonitor < GrdaWarehouseBase
+    acts_as_paranoid
+
     belongs_to :data_source
 
     validates :csv_file_name, presence: true, inclusion: { in: ->(_) { allowed_csv_files } }
+    validates :csv_file_name, uniqueness: { scope: :data_source_id }
     validates :count_increase_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
     validates :count_decrease_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
     validates :min_additions_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true

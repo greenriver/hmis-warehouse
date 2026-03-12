@@ -28,7 +28,7 @@
                 %th Actions
             %tbody
               - data_source.import_csv_monitors.order(:csv_file_name).each do |monitor|
-                - metric_def = GrdaWarehouse::Monitoring::MetricDefinition.find_by(entity_type: 'GrdaWarehouse::DataSource', subtype: monitor.csv_file_name)
+                - metric_def = @metric_defs_by_subtype&.[](monitor.csv_file_name)
                 %tr
                   %td= link_to monitor.csv_file_name, admin_metric_definition_path(metric_def, entity_id: data_source.id)
                   %td= monitor.count_increase_threshold.presence || '—'
