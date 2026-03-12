@@ -127,7 +127,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(new_cded).to be_present
     expect(new_cded.attributes).to include(
       'field_type' => 'integer',
-      'key' => "#{fd1.identifier}_linkid_num",
+      'key' => 'linkid_num',
+      'reporting_key' => 'linkid_num',
       'label' => 'Ranking',
       'repeats' => false,
       'show_in_summary' => false,
@@ -139,7 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should ensure that the CustomDataElementDefinition key is unique' do
-    conflicting_cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: "#{fd1.identifier}_linkid_num", data_source: ds1)
+    conflicting_cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'linkid_num', data_source: ds1)
 
     expect do
       response, result = post_graphql(id: fd1.id) { mutation }

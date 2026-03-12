@@ -79,14 +79,38 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
   context 'Global policy' do
     let(:policy) { user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client) }
 
-    it 'grants can_merge_clients? if user has can_merge_clients anywhere' do
-      create_access_control(user, project, with_permission: [:can_view_clients, :can_merge_clients])
-      expect(policy.can_merge_clients?).to be true
+    context 'without any permissions' do
+      it 'denies can_create?' do
+        expect(policy.can_create?).to be false
+      end
+
+      it 'denies can_edit?' do
+        expect(policy.can_edit?).to be false
+      end
+
+      it 'denies can_merge_clients?' do
+        expect(policy.can_merge_clients?).to be false
+      end
     end
 
-    it 'denies can_merge_clients? if user lacks can_view_clients everywhere' do
-      create_access_control(user, project, with_permission: [:can_view_clients])
-      expect(policy.can_merge_clients?).to be false
+    context 'with can_edit_clients permission' do
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_edit_clients]) }
+
+      it 'grants can_create?' do
+        expect(policy.can_create?).to be true
+      end
+
+      it 'grants can_edit?' do
+        expect(policy.can_edit?).to be true
+      end
+    end
+
+    context 'with can_merge_clients permission' do
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_merge_clients]) }
+
+      it 'grants can_merge_clients?' do
+        expect(policy.can_merge_clients?).to be true
+      end
     end
   end
 end

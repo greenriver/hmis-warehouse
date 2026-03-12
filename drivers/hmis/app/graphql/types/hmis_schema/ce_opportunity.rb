@@ -26,14 +26,11 @@ module Types
     field :project_type, HmisSchema::Enums::ProjectType, null: false
     field :organization_name, String, null: false
 
-    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
-    field :stale, Boolean, null: false
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -98,23 +95,6 @@ module Types
     def date_available
       # TODO(#7537) - implement "available after date". Always returns date the referral was created, for now
       object.created_at
-    end
-
-    def eligibility_requirements
-      revivified_rules.filter(&:eligibility_requirement?)
-    end
-
-    def priority_schemes
-      Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
-    end
-
-    def revivified_rules
-      @revivified_rules ||= object.assignment_rules.map do |attrs|
-        record = Hmis::Ce::Match::Rule.new(attrs)
-        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
-        record.freeze
-        record
-      end
     end
 
     def categories

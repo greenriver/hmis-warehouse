@@ -15,7 +15,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   before(:all) do
     ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true)
 
-    HmisUtil::JsonForms.new(env_key: 'allegheny', enable_cded_generation_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
+    # Seed client-specific Referral Step forms, and Enrollment form so it collects units
+    HmisUtil::JsonForms.new(env_key: 'allegheny', generate_cdeds: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
     workflow_builder.build_housing_workflow
@@ -284,8 +285,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
     let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group, unit_type: sro_type) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
-    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, name: unit.name) }
+    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes)) }
 
     before do
       referral.workflow_engine.start_workflow!(user: admin)

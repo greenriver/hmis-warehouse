@@ -165,6 +165,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
+  # Data sources that are OP HMIS installations ('hmis' attribute = domain).
+  # If 'user' provided, limits to the HMIS user's current HMIS data source.
+  # @see docs/architecture/multi-hmis-support.md
   scope :hmis, ->(user = nil) do
     scope = where.not(hmis: nil)
     scope = scope.where(id: user.hmis_data_source_id) if user.present?
@@ -710,8 +713,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  # True when this data source is an Open Path HMIS installation
+  # @see docs/architecture/multi-hmis-support.md
   def hmis?
     hmis.present?
+  end
+
+  def hmis_name
+    name if hmis?
   end
 
   def hmis_link_available?

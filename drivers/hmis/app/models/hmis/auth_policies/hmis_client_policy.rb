@@ -43,6 +43,14 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
   end
 
   class Global < Hmis::AuthPolicies::BasePolicy
+    def can_create?
+      global_permissions.include?(:can_edit_clients)
+    end
+
+    def can_edit?
+      global_permissions.include?(:can_edit_clients)
+    end
+
     def can_merge_clients?
       global_permissions.include?(:can_merge_clients)
     end

@@ -51,7 +51,7 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
     end
   end
 
-  describe 'for_entity scope' do
+  describe 'for_entity' do
     let!(:org_rule) { create(:hmis_ce_eligibility_requirement, owner: organization) }
     let!(:project_rule) { create(:hmis_ce_eligibility_requirement, owner: project1) }
     let!(:unit_group_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_1a.unit_group) }
@@ -142,6 +142,21 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
 
         expect { described_class.for_entity(project1) }.to make_database_queries(count: 4..10)
       end
+    end
+  end
+
+  describe 'eligibility_and_priority_rules_for_entity' do
+    let!(:unit_group) { create(:hmis_unit_group, project: project1) }
+    let!(:unit_group_rule_1) { create(:hmis_ce_priority_scheme, owner: unit_group, priority_rank: 1) }
+    let!(:unit_group_rule_2) { create(:hmis_ce_priority_scheme, owner: unit_group, priority_rank: 2) }
+    let!(:project_rule) { create(:hmis_ce_priority_scheme, owner: project1, priority_rank: 1) }
+
+    it 'returns all rules for the entity, with priority schemes filtered to the most specific rank per owner' do
+      unit_group_rules = described_class.eligibility_and_priority_rules_for_entity(unit_group)
+      expect(unit_group_rules).to contain_exactly(unit_group_rule_1, unit_group_rule_2)
+
+      project_rules = described_class.eligibility_and_priority_rules_for_entity(project1)
+      expect(project_rules).to contain_exactly(project_rule)
     end
   end
 end
