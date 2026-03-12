@@ -17,6 +17,7 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
     validate_end(record)
     validate_tasks_and_gateways(record)
     validate_nodes_reachable(record)
+    run_type_specific_validations(record)
   end
 
   private
@@ -56,5 +57,13 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
   def validate_nodes_reachable(record)
     unreachable = record.graph.unreachable_nodes
     record.errors.add(:base, "The following nodes are unreachable: #{unreachable.map(&:name).join(', ')}") if unreachable.any?
+  end
+
+  # Delegates to template-type-specific validators for additional validation rules
+  def run_type_specific_validations(record)
+    case record.template_type
+    when 'ce_referral'
+      Hmis::Ce::ReferralWorkflowTemplateValidator.new.validate(record)
+    end
   end
 end

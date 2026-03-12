@@ -32,8 +32,11 @@ module HudReports
       end
 
       # Determines chronic status for a member or PIT snapshot based on household inheritance rules.
-      # Per HUD Glossary: Status is determined at the earliest project start for the household.
-      # If ANY adult or minor HoH is CH, the entire household (and children) are considered CH.
+      #
+      # CH at Project Start (chronic_status): ANY member present at project start can cause other household
+      # members to be considered CH — no HoH/adult restriction.
+      # CH at Point in Time (pit_chronic_status): at least one adult or minor head of household must be CH.
+      # Both modes require the qualifying member to share the HoH's entry date (present at project start).
       def calculate_chronic_status(hh_members, current_member, hoh, chronic_status_key: :chronic_status)
         return nil if hh_members.empty?
 
@@ -45,31 +48,30 @@ module HudReports
         hoh_entry_date = hoh&.[](:entry_date)
         detail_key = chronic_status_key == :pit_chronic_status ? :pit_chronic_detail : :chronic_detail
 
-        # Rule: Inheritance from HoH if they are CH and entered together
-        return { status: true, detail: hoh[detail_key] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
+        if chronic_status_key == :chronic_status
+          # CH at Project Start: any member present at start can cause the household to be CH
+          chronic_member = hh_members.detect { |hm| hm[chronic_status_key] && hm[:entry_date] == hoh_entry_date }
+          return { status: true, detail: chronic_member[detail_key] } if chronic_member
+        else
+          # CH at Point in Time: check HoH first, then any adult present at start
+          return { status: true, detail: hoh[detail_key] } if hoh && hoh[chronic_status_key] && hoh_entry_date == current_member_entry_date
 
-        # Rule: If the HoH is not chronically homeless, check if any other adult is
-        chronic_adult = hh_members.detect do |hm|
-          next false unless hm[:age]
+          chronic_adult = hh_members.detect do |hm|
+            next false unless hm[:age]
 
-          adult_is_chronic = hm[:age] >= 18 && hm[chronic_status_key]
-          adult_matches_entry_date = hm[:entry_date] == hoh_entry_date
-          adult_is_chronic && adult_matches_entry_date
+            hm[:age] >= 18 && hm[chronic_status_key] && hm[:entry_date] == hoh_entry_date
+          end
+          return { status: true, detail: chronic_adult[detail_key] } if chronic_adult
         end
 
-        return { status: true, detail: chronic_adult[detail_key] } if chronic_adult
-
-        # Rule: Adults use their own status if no other adult in the household is CH
+        # Shared fallback: adults use their own status; children inherit from HoH
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if current_member[:age] && current_member[:age] >= 18
 
-        # Fallback: Use self if HoH is missing (data quality issue)
+        # Use self if HoH is missing (data quality issue)
         return { status: current_member[chronic_status_key], detail: current_member[detail_key] } if hoh.blank?
 
-        # Rule: Children inherit HoH status if HoH or Child has indeterminate (DK/R/Missing) data.
-        # This ensures children aren't penalized for missing data when an HoH's status might be known or indeterminate.
+        # Children inherit HoH status if HoH or child has indeterminate (DK/R/Missing) data
         return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if hoh[detail_key].to_s.in?(['dk_or_r', 'missing'])
-
-        # Rule: if we have an indeterminate response for the child, use the hoh
         return { status: hoh[chronic_status_key], detail: hoh[detail_key] } if current_member[detail_key].to_s.in?(['dk_or_r', 'missing'])
 
         { status: current_member[chronic_status_key], detail: current_member[detail_key] }

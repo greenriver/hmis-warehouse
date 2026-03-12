@@ -1,1 +1,4 @@
-SELECT * FROM "lookups_genders"
+SELECT id,
+    value,
+    text
+   FROM lookups_genders

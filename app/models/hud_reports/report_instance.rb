@@ -202,6 +202,7 @@ module HudReports
     # @param question [String] the question name (e.g., 'Question 1')
     def complete(question)
       universe(question).update!(status: 'Completed')
+      @preload_answers&.delete(question) # Clear memoized cells for this question
       complete_report if remaining_questions.empty?
     end
 

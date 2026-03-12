@@ -142,7 +142,12 @@ module HudReports
           merge(report_cell_source.universe.where(question: @question))
       end
       @reports = apply_view_filters(@reports).order(created_at: :desc)
-      @pagy, @reports = pagy(@reports)
+
+      # use the 'history' action for relative URLs in pagination. This keeps our
+      # crude status polling from breaking pagination links (app/views/hud_reports/_list_refresher.haml)
+      pagy_opts = {}
+      pagy_opts[:request_path] = url_for(action: :history) if request.xhr?
+      @pagy, @reports = pagy(@reports, **pagy_opts)
     end
 
     def apply_view_filters(reports)

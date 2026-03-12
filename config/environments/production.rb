@@ -115,7 +115,7 @@ Rails.application.configure do
       ssl: cache_ssl,
       namespace: cache_namespace,
       pool: { size: 10, timeout: 5 },
-    },
+    }.merge(ENV['CACHE_AUTH_TOKEN'].present? ? { password: ENV['CACHE_AUTH_TOKEN'] } : {}),
   )
   config.cache_store = :redis_cache_store, redis_config
 

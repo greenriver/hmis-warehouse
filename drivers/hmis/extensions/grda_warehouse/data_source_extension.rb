@@ -15,6 +15,7 @@ module Hmis::GrdaWarehouse
       has_many :custom_service_types, class_name: 'Hmis::Hud::CustomServiceType'
       has_many :hmis_project_groups, class_name: 'Hmis::ProjectGroup'
       has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
+      has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
     end
   end
 end

@@ -108,6 +108,7 @@ module HudSpmReport::Generators::Fy2026
     end
     private_constant :HdxColumn
 
+    # Column definitions must match those from "System Performance Measures (SPM) Comma Separated Value (CSV) Export Specifications", published on hudexchange
     COLUMNS = [
       # Metadata fields
       { column_letter: 'A', variable_name: 'CocCode', source_type: :metadata, source_table: 'CocCode', data_type: :string, max_length: 6 },
@@ -120,20 +121,20 @@ module HudSpmReport::Generators::Fy2026
       { column_letter: 'H', variable_name: 'SourceContactEmail', source_type: :metadata, source_table: 'SourceContactEmail', data_type: :string, max_length: 50 },
 
       # Measure 1a fields
-      { column_letter: 'I', variable_name: 'ESSHUniverse_1A', source_type: :spm, source_table: '1a', source_cell: :B1, data_type: :integer },
-      { column_letter: 'J', variable_name: 'ESSHAvgTime_1A', source_type: :spm, source_table: '1a', source_cell: :D1, data_type: :decimal },
-      { column_letter: 'K', variable_name: 'ESSHMedianTime_1A', source_type: :spm, source_table: '1a', source_cell: :G1, data_type: :decimal },
-      { column_letter: 'L', variable_name: 'ESSHTHUniverse_1A', source_type: :spm, source_table: '1a', source_cell: :B2, data_type: :integer },
-      { column_letter: 'M', variable_name: 'ESSHTHAvgTime_1A', source_type: :spm, source_table: '1a', source_cell: :D2, data_type: :decimal },
-      { column_letter: 'N', variable_name: 'ESSHTHMedianTime_1A', source_type: :spm, source_table: '1a', source_cell: :G2, data_type: :decimal },
+      { column_letter: 'I', variable_name: 'ESSHUniverse_1A', source_type: :spm, source_table: '1a', source_cell: :B2, data_type: :integer },
+      { column_letter: 'J', variable_name: 'ESSHAvgTime_1A', source_type: :spm, source_table: '1a', source_cell: :D2, data_type: :decimal },
+      { column_letter: 'K', variable_name: 'ESSHMedianTime_1A', source_type: :spm, source_table: '1a', source_cell: :G2, data_type: :decimal },
+      { column_letter: 'L', variable_name: 'ESSHTHUniverse_1A', source_type: :spm, source_table: '1a', source_cell: :B3, data_type: :integer },
+      { column_letter: 'M', variable_name: 'ESSHTHAvgTime_1A', source_type: :spm, source_table: '1a', source_cell: :D3, data_type: :decimal },
+      { column_letter: 'N', variable_name: 'ESSHTHMedianTime_1A', source_type: :spm, source_table: '1a', source_cell: :G3, data_type: :decimal },
 
       # Measure 1b fields
-      { column_letter: 'O', variable_name: 'ESSHUniverse_1B', source_type: :spm, source_table: '1b', source_cell: :B1, data_type: :integer },
-      { column_letter: 'P', variable_name: 'ESSHAvgTime_1B', source_type: :spm, source_table: '1b', source_cell: :D1, data_type: :decimal },
-      { column_letter: 'Q', variable_name: 'ESSHMedianTime_1B', source_type: :spm, source_table: '1b', source_cell: :G1, data_type: :decimal },
-      { column_letter: 'R', variable_name: 'ESSHTHUniverse_1B', source_type: :spm, source_table: '1b', source_cell: :B2, data_type: :integer },
-      { column_letter: 'S', variable_name: 'ESSHTHAvgTime_1B', source_type: :spm, source_table: '1b', source_cell: :D2, data_type: :decimal },
-      { column_letter: 'T', variable_name: 'ESSHTHMedianTime_1B', source_type: :spm, source_table: '1b', source_cell: :G2, data_type: :decimal },
+      { column_letter: 'O', variable_name: 'ESSHUniverse_1B', source_type: :spm, source_table: '1b', source_cell: :B2, data_type: :integer },
+      { column_letter: 'P', variable_name: 'ESSHAvgTime_1B', source_type: :spm, source_table: '1b', source_cell: :D2, data_type: :decimal },
+      { column_letter: 'Q', variable_name: 'ESSHMedianTime_1B', source_type: :spm, source_table: '1b', source_cell: :G2, data_type: :decimal },
+      { column_letter: 'R', variable_name: 'ESSHTHUniverse_1B', source_type: :spm, source_table: '1b', source_cell: :B3, data_type: :integer },
+      { column_letter: 'S', variable_name: 'ESSHTHAvgTime_1B', source_type: :spm, source_table: '1b', source_cell: :D3, data_type: :decimal },
+      { column_letter: 'T', variable_name: 'ESSHTHMedianTime_1B', source_type: :spm, source_table: '1b', source_cell: :G3, data_type: :decimal },
 
       # Measure 2 fields
       { column_letter: 'U', variable_name: 'SOExitPH_2', source_type: :spm, source_table: '2a and 2b', source_cell: :B2, data_type: :integer },
@@ -261,6 +262,14 @@ module HudSpmReport::Generators::Fy2026
       end
     end
 
+    def run!
+      super
+    ensure
+      # The sub-reports generated for DQ are only needed for the CSV generation.
+      # Clear them explicitly to free up memory
+      @reports = nil
+    end
+
     def metadata(column)
       case column
       when 'CocCode'
@@ -339,6 +348,7 @@ module HudSpmReport::Generators::Fy2026
       dq_generator.source_report_id_for_contexts = @report.id
       dq_generator.run!(email: false, manual: false)
 
+      @report.check_halt_status!
       report
     end
 

@@ -242,6 +242,40 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "14ea9dd6d7b1196626264bf32e91cd0f2f42bf4d9924501a27a9ff138431e887",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/sdh_case_management_notes/edit.haml",
+      "line": 7,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "Health::QualifyingActivity::VERSIONS.map(&:js_model).join(\", \").html_safe",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::SdhCaseManagementNotesController",
+          "method": "edit",
+          "line": 45,
+          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
+          "rendered": {
+            "name": "health/sdh_case_management_notes/edit",
+            "file": "app/views/health/sdh_case_management_notes/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/sdh_case_management_notes/edit"
+      },
+      "user_input": "Health::QualifyingActivity::VERSIONS.map(&:js_model)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "150ecb715f71e17ac9457b3b0a5a938f6c8023af3e2199132fce57d1e6c60309",
@@ -472,40 +506,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "2c52fbd98e05293f2f2634b3f07b0c2c41d76dc1554bcdcae3df3b4405ffaa4f",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/sdh_case_management_notes/edit.haml",
-      "line": 7,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model).join(\", \").html_safe",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::SdhCaseManagementNotesController",
-          "method": "edit",
-          "line": 45,
-          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
-          "rendered": {
-            "name": "health/sdh_case_management_notes/edit",
-            "file": "app/views/health/sdh_case_management_notes/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/sdh_case_management_notes/edit"
-      },
-      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "2d5a0735c8eef436174e943c26f2f3107fdbe465dd46e480ad60ed6b43b29b5b",
@@ -581,7 +581,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 375,
+      "line": 374,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`No Definition found for System form #{role}`",
       "render_path": null,
@@ -1100,29 +1100,6 @@
       "confidence": "Weak",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5bc404c91fe46e9bbcfd3cd9bdca6c45a1bd7fb89281f8a8fda56fc1da2ff876",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 108,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "s(:self).check_that_you_pushed_to_remote!"
-      },
-      "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -1685,29 +1662,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "85e335c4575b12b61263ca6d933cb810fe5f86ad44c5f53e83e8558af7897a58",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 107,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "s(:self).check_that_you_pushed_to_remote!"
-      },
-      "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "85e6d1964af4de89c14a1b048ab9c823589736524f1ed2cec0be25b3734b0e43",
@@ -2097,34 +2051,11 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "ae156e7b878e467c35a7e29b2e0159c51373ca7bf3455845d45aef91abd4979a",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/performance_measurement/app/models/performance_measurement/equity_analysis/data.rb",
-      "line": 219,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "scope.where(\"#{period}_age\" => (age_params.map do\n Filters::FilterBase.age_range(d)\n end))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "PerformanceMeasurement::EquityAnalysis::Data",
-        "method": "apply_params"
-      },
-      "user_input": "period",
-      "confidence": "Weak",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "b16f9b9fa5ec6ee98d24cc67ae42abf131bc179999e5d2a49491b67783f32dce",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 901,
+      "line": 906,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2949,5 +2880,5 @@
       "note": ""
     }
   ],
-  "brakeman_version": "7.1.2"
+  "brakeman_version": "8.0.2"
 }

@@ -22,7 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: candidate_pool) }
   let!(:unit) { create(:hmis_unit, project: p1, unit_group: unit_group) }
-  let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: candidate_pool, unit: unit }
+  let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
 
   describe 'ceOpportunity candidates query' do
     let(:query) do
@@ -90,7 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     # One of the candidates has been declined from another opportunity in the same unit group
     let!(:other_unit) { create(:hmis_unit, project: p1, unit_group: unit_group) }
-    let!(:other_opportunity) { create(:hmis_ce_opportunity, candidate_pool: candidate_pool, unit: other_unit) }
+    let!(:other_opportunity) { create(:hmis_ce_opportunity, unit: other_unit) }
     let!(:declined_referral) { create(:hmis_ce_referral, data_source: ds1, client: client_1, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago) }
 
     it 'returns candidates in prioritized order' do
@@ -139,7 +139,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has no candidates' do
       let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: nil) }
-      let!(:opportunity) { create :hmis_ce_opportunity, candidate_pool: nil, unit: unit }
+      let!(:opportunity) { create :hmis_ce_opportunity, unit: unit }
 
       it 'returns an empty candidates array' do
         response, result = post_graphql(**variables) { query }
@@ -173,7 +173,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
       let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
       let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: candidate_pool_with_anonymous) }
-      let(:opportunity) { create :hmis_ce_opportunity, candidate_pool: candidate_pool_with_anonymous, unit: create(:hmis_unit, project: p1, unit_group: unit_group) }
+      let(:opportunity) { create :hmis_ce_opportunity, unit: create(:hmis_unit, project: p1, unit_group: unit_group) }
 
       let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
       let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
@@ -265,7 +265,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client.destination_client, priority_score: 50)
 
             other_unit = create(:hmis_unit, project: p1, unit_group: unit_group)
-            other_opportunity = create(:hmis_ce_opportunity, candidate_pool: candidate_pool, unit: other_unit)
+            other_opportunity = create(:hmis_ce_opportunity, unit: other_unit)
             create(:hmis_ce_referral, data_source: ds1, client: client, opportunity: other_opportunity, status: 'rejected', completed_at: 1.day.ago)
 
             # re-assess half of them
@@ -283,6 +283,128 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
             expect(candidates.size).to eq(12) # 2 original clients from fixtures + 10 clients who were declined but reassessed
           end.to make_database_queries(count: 30..40)
+        end
+      end
+    end
+
+    describe 'filtering by search_term' do
+      let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'Anderson') }
+      let!(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Bob', last_name: 'Brown') }
+      let!(:client3) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Charlie', last_name: 'Chaplin') }
+
+      let!(:candidate1) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client1.destination_client,
+          priority_score: 90,
+        )
+      end
+
+      let!(:candidate2) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client2.destination_client,
+          priority_score: 85,
+        )
+      end
+
+      let!(:candidate3) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client3.destination_client,
+          priority_score: 80,
+        )
+      end
+
+      context 'when searching by destination client ID' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: client1.destination_client.id.to_s },
+          }
+        end
+
+        it 'returns the matching candidate' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(1)
+          expect(candidates[0]['id']).to eq(candidate1.id.to_s)
+        end
+      end
+
+      context 'when searching by source client ID' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: client2.id.to_s },
+          }
+        end
+
+        it 'returns the matching candidate' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(1)
+          expect(candidates[0]['id']).to eq(candidate2.id.to_s)
+        end
+      end
+
+      context 'when searching by client name' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: 'Alice' },
+          }
+        end
+
+        it 'returns candidates matching the client name' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(1)
+          expect(candidates[0]['id']).to eq(candidate1.id.to_s)
+        end
+      end
+
+      context 'when search term matches no candidates' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: 'Nonexistent' },
+          }
+        end
+
+        it 'returns empty results' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates).to be_empty
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(0)
+        end
+      end
+
+      context 'when search term is empty string' do
+        let(:variables) do
+          {
+            opportunityId: opportunity.id,
+            filters: { searchTerm: '' },
+          }
+        end
+
+        it 'returns all candidates' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.size).to eq(3)
         end
       end
     end

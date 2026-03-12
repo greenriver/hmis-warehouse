@@ -21,6 +21,7 @@ module Hmis::WorkflowDefinition
     validates :name, presence: true
     validates :status, presence: true
     validates :version, presence: true
+    validates :version, uniqueness: { scope: :identifier }
     validate :unique_status_per_identifier
 
     state_machine_config column: 'status' do
@@ -40,6 +41,15 @@ module Hmis::WorkflowDefinition
     scope :viewable_by, ->(user) { where(data_source_id: user.hmis_data_source_id) }
     scope :ce, -> { where(template_type: 'ce_referral') }
     scope :published, -> { where(status: 'published') }
+
+    scope :used_in_projects, ->(project_ids) do
+      identifiers = Hmis::UnitGroup.
+        where(project_id: project_ids).
+        pluck(:workflow_template_identifier, :direct_referral_workflow_template_identifier).
+        flatten.compact.uniq
+
+      where(identifier: identifiers)
+    end
 
     scope :latest_versions, -> do
       # Returns the most recent Template version per identifier

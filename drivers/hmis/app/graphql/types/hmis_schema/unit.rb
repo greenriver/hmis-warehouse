@@ -12,13 +12,6 @@ module Types
       arg :unit_type, [ID]
       arg :unit_group, [ID]
       arg :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus
-      arg :status, [
-        Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
-          # FIXME standardize names "Assigned/Empty"
-          value 'AVAILABLE', description: 'Available' # Vacant
-          value 'FILLED', description: 'Filled' # Occupied
-        end,
-      ], deprecation_reason: 'Use `occupancyStatus` instead'
     end
 
     field :id, ID, null: false
@@ -137,38 +130,11 @@ module Types
     end
 
     def eligibility_requirements
-      # If the current opportunity is active and stale, return the eligibility requirements as they were
-      # when the opportunity was created.
-      return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
-      return [] unless unit_group
-
       Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
     end
 
     def priority_schemes
-      # If the current opportunity is active and stale, return the priority rules as they were
-      # when the opportunity was created, filtered to the most specific owner level and ordered by [priority_rank, id].
-      return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
-      return [] unless unit_group
-
       Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
-    end
-
-    private
-
-    # These rules are loaded from the state of the current Opportunity when it was assigned to its pool,
-    # ensuring historical accuracy. For "stale" Opportunities, these are the rules that are currently in effect
-    # for matching, so we display them on the Unit page (rather than displaying the current Unit Group rules.)
-    #
-    # Future UI improvement would be to resolve a flag indicating the the Unit's current Opportunity is stale,
-    # with an action to "refresh" it (destroy and recreate opportunity) if it doesn't have an open referral.
-    def revivified_rules
-      @revivified_rules ||= latest_opportunity.assignment_rules.map do |attrs|
-        record = Hmis::Ce::Match::Rule.new(attrs)
-        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
-        record.freeze
-        record
-      end
     end
   end
 end

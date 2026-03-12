@@ -24,24 +24,71 @@ class Hmis::AuthPolicies::UserContext
     raise ArgumentError, 'Must be tied to an HMIS data source' unless user.hmis_data_source_id.present?
 
     @user = user
+    # Current data source (set by the controller based on which HMIS the request is coming from)
+    @data_source_id = user.hmis_data_source_id
   end
 
-  # Global user permissions (across all projects/entities)
-  memoize def potential_permissions
-    user.roles.flat_map(&:granted_permissions).to_set.freeze
+  # Set of permissions that the user has for some entity in the current data source
+  # Examples:
+  # - User has can_view_project for a Project in this data source => global_permissions includes can_view_project
+  # - User has can_view_project for a Project in another data source => global_permissions does not include can_view_project
+  memoize def global_permissions
+    data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+
+    # All access groups that grant any permission on any entity in the data source
+    access_group_ids = ::Hmis::GroupViewableEntity.
+      includes_any_entity_in_data_source(data_source).
+      pluck(:collection_id)
+    permission_loader.for_access_group_ids(access_group_ids)
   end
 
-  # Project-specific permissions
+  # Set of permissions that the user has for the given project
   def project_permissions(project_id)
+    return EMPTY_SET if project_id.blank?
     return EMPTY_SET unless project_belongs_to_current_data_source?(project_id)
 
     access_group_ids = project_access_group_loader.get(project_id)
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
+  # Set of permissions that the user has for the given organization.
+  # Unlike for Project, where we built loaders to ensure efficient queries against multiple projects,
+  # we can just load all permissions for the given organization directly,
+  # because the organization policy methods are only ever checked against one organization at a time.
+  # We can update this internally without changing the HmisOrganizationPolicy's interface if that changes.
+  def organization_permissions(organization)
+    return EMPTY_SET unless organization_belongs_to_current_data_source?(organization)
+
+    access_group_ids = Hmis::GroupViewableEntity.includes_organization(organization).pluck(:collection_id).to_set
+    permission_loader.for_access_group_ids(access_group_ids)
+  end
+
   def preload_project_dependencies(project_ids)
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
+  end
+
+  def preload_client_dependencies(client_ids)
+    client_project_loader.preload(client_ids)
+    project_ids = client_project_loader.cached_project_ids
+    project_data_source_loader.preload(project_ids)
+    project_access_group_loader.preload(project_ids)
+  end
+
+  # Client permissions are based on the user's permissions at projects they are enrolled in.
+  # If they have no enrollments, it's based on the user's global permissions.
+  def client_permissions(client_id)
+    project_ids = client_project_loader.get(client_id)
+
+    if project_ids.empty?
+      # Client has no enrollments - use global permissions
+      global_permissions
+    else
+      # Client has enrollments - union permissions from all enrolled projects
+      project_data_source_loader.preload(project_ids)
+      project_access_group_loader.preload(project_ids)
+      project_ids.flat_map { |id| project_permissions(id).to_a }.to_set.freeze
+    end
   end
 
   def preload_referral_dependencies(referral_ids)
@@ -89,6 +136,17 @@ class Hmis::AuthPolicies::UserContext
     false
   end
 
+  def organization_belongs_to_current_data_source?(organization)
+    return true if organization.data_source_id == user.hmis_data_source_id
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Organization #{organization.id} (DS: #{organization.data_source_id})",
+    )
+
+    false
+  end
+
   # Context loaders (memoized for request-level caching)
   memoize def project_data_source_loader
     Hmis::AuthPolicies::ContextLoaders::ProjectDataSourceLoader.new
@@ -112,5 +170,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def ce_referral_source_project_loader
     Hmis::AuthPolicies::ContextLoaders::CeReferralSourceProjectLoader.new
+  end
+
+  memoize def client_project_loader
+    Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
   end
 end

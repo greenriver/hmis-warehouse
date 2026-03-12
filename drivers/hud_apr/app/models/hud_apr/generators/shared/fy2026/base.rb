@@ -252,17 +252,21 @@ module HudApr::Generators::Shared::Fy2026
       @with_service.include?(enrollment.id)
     end
 
+    # Per AAQ response, date of engagement `prior to` here should include the report end date
+    # https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=EEE88B5C-17B7-4C2E-B6D667BF7F53A48D
     private def engaged?(enrollment)
       return true unless enrollment.so?
       return false if enrollment.enrollment.DateOfEngagement.blank?
 
-      enrollment.enrollment.DateOfEngagement < @report.end_date
+      enrollment.enrollment.DateOfEngagement <= @report.end_date
     end
 
+    # Per AAQ response, date of engagement `prior to` here should include the report end date
+    # https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=EEE88B5C-17B7-4C2E-B6D667BF7F53A48D
     private def engaged_clause
       a_t[:project_type].not_eq(4).or(
         a_t[:project_type].eq(4).
-        and(a_t[:date_of_engagement].lt(@report.end_date).
+        and(a_t[:date_of_engagement].lteq(@report.end_date).
         and(a_t[:date_of_engagement].not_eq(nil))),
       )
     end

@@ -71,7 +71,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       )
   end
 
-  context 'enrollment with export ids' do
+  describe '#clear_enrollment_export_ids!' do
     before(:each)  { GrdaWarehouse::Hud::Enrollment.update_all(ExportID: 'XYZ') }
 
     it 'clears the exports' do
@@ -88,7 +88,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'enrollments without HouseholdIDs' do
+  describe '#assign_missing_household_ids!' do
     before(:each) { GrdaWarehouse::Hud::Enrollment.update_all(HouseholdID: nil) }
     it 'assigns HouseholdIDs to HMIS records' do
       HmisDataCleanup::Util.assign_missing_household_ids!
@@ -106,7 +106,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'single-person households with no HoH' do
+  describe '#make_sole_member_hoh!' do
     before(:each) do
       e1.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
       e2.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
@@ -131,7 +131,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'enrollments without DisablingCondition' do
+  describe '#fix_disabling_condition_nils!' do
     before(:each) do
       # use update_columns to bypass before_save hook
       e1.update_columns(disabling_condition: nil)
@@ -158,7 +158,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'clients with badly formatted race/gender data' do
+  describe '#fix_race_gender_99s!' do
     let!(:race_fields) { HudHelper.util.races.keys.excluding('RaceNone') }
     let!(:gender_fields) { HudHelper.util.gender_fields.excluding(:GenderNone) }
 
@@ -314,7 +314,26 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'records with incorrect PersonalID references' do
+  describe '#fix_incorrect_personal_id_references!' do
+    let(:related_record_factories) do
+      [
+        :hmis_hud_service,
+        :hmis_income_benefit,
+        :hmis_health_and_dv,
+        :hmis_youth_education_status,
+        :hmis_employment_education,
+        :hmis_disability,
+        :hmis_hud_exit,
+        :hmis_current_living_situation,
+        :hmis_hud_assessment,
+        :hmis_assessment_question,
+        :hmis_assessment_result,
+        :hmis_hud_event,
+        :hmis_custom_service, # custom HUD-style table, uses PersonalID+EnrollmentID association
+        :hmis_custom_assessment, # custom HUD-style table, uses PersonalID+EnrollmentID association
+        :hmis_hud_custom_case_note, # custom HUD-style table, uses PersonalID+EnrollmentID association
+      ]
+    end
     let!(:records_with_bad_references) do
       records = []
       shared_attributes = {
@@ -324,18 +343,9 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         DateCreated: last_year,
         DateUpdated: last_year,
       }
-      records << create(:hmis_hud_service, :skip_validate, **shared_attributes)
-      records << create(:hmis_income_benefit, :skip_validate, **shared_attributes)
-      records << create(:hmis_health_and_dv, :skip_validate, **shared_attributes)
-      records << create(:hmis_youth_education_status, :skip_validate, **shared_attributes)
-      records << create(:hmis_employment_education, :skip_validate, **shared_attributes)
-      records << create(:hmis_disability, :skip_validate, **shared_attributes)
-      records << create(:hmis_hud_exit, :skip_validate, **shared_attributes)
-      records << create(:hmis_current_living_situation, :skip_validate, **shared_attributes)
-      records << create(:hmis_hud_assessment, :skip_validate, **shared_attributes)
-      records << create(:hmis_assessment_question, :skip_validate, **shared_attributes)
-      records << create(:hmis_assessment_result, :skip_validate, **shared_attributes)
-      records << create(:hmis_hud_event, :skip_validate, **shared_attributes)
+      related_record_factories.each do |factory|
+        records << create(factory, :skip_validate, **shared_attributes)
+      end
       records
     end
 
@@ -348,19 +358,9 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         DateCreated: last_year,
         DateUpdated: last_year,
       }
-      records << create(:hmis_hud_service, **shared_attributes)
-      records << create(:hmis_income_benefit, **shared_attributes)
-      records << create(:hmis_health_and_dv, **shared_attributes)
-      records << create(:hmis_youth_education_status, **shared_attributes)
-      records << create(:hmis_employment_education, **shared_attributes)
-      records << create(:hmis_disability, **shared_attributes)
-      records << create(:hmis_hud_exit, **shared_attributes)
-      records << create(:hmis_current_living_situation, **shared_attributes)
-      records << create(:hmis_hud_assessment, **shared_attributes)
-      records << create(:hmis_assessment_question, **shared_attributes)
-      records << create(:hmis_assessment_result, **shared_attributes)
-      records << create(:hmis_hud_event, **shared_attributes)
-      records
+      related_record_factories.each do |factory|
+        records << create(factory, **shared_attributes)
+      end
     end
 
     it 'works for services' do
@@ -394,6 +394,27 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
 
       records_with_bad_references.each(&:reload)
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
+    end
+
+    context 'with enrollment scope' do
+      let!(:bad_service_e1) { create(:hmis_hud_service, :skip_validate, enrollment: e1, PersonalID: 'wrong-id-1', data_source: hmis_ds) }
+      let!(:bad_service_e2) { create(:hmis_hud_service, :skip_validate, enrollment: e2, PersonalID: 'wrong-id-2', data_source: hmis_ds) }
+      let!(:bad_income_e1) { create(:hmis_income_benefit, :skip_validate, enrollment: e1, PersonalID: 'wrong-id-1', data_source: hmis_ds) }
+      let!(:bad_income_e2) { create(:hmis_income_benefit, :skip_validate, enrollment: e2, PersonalID: 'wrong-id-2', data_source: hmis_ds) }
+
+      it 'only fixes records for enrollments in the scope' do
+        enrollment_scope = Hmis::Hud::Enrollment.where(id: e1.id)
+
+        HmisDataCleanup::Util.fix_incorrect_personal_id_references!(enrollment_scope: enrollment_scope)
+
+        [bad_service_e1, bad_service_e2, bad_income_e1, bad_income_e2].each(&:reload)
+        # Records for e1 should be fixed
+        expect(bad_service_e1.personal_id).to eq(e1.personal_id)
+        expect(bad_income_e1.personal_id).to eq(e1.personal_id)
+        # Records for e2 should NOT be fixed
+        expect(bad_service_e2.personal_id).to eq('wrong-id-2')
+        expect(bad_income_e2.personal_id).to eq('wrong-id-2')
+      end
     end
   end
 

@@ -497,7 +497,7 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    # Search for users by name or email using prefix matching
+    # Search for users by name (prefix) or email (substring, e.g. domain).
     #
     # @param text [String] the search query
     # @param sort_by_best_match [Boolean] whether to order results by similarity to query
@@ -514,9 +514,10 @@ module UserConcern
       return none if terms.empty?
 
       scope = terms.map do |term|
-        prefix_condition = arel_table[:first_name].matches("#{term}%").
-          or(arel_table[:last_name].matches("#{term}%")).
-          or(arel_table[:email].matches("#{term}%"))
+        escaped = sanitize_sql_like(term)
+        prefix_condition = arel_table[:first_name].matches("#{escaped}%").
+          or(arel_table[:last_name].matches("#{escaped}%")).
+          or(arel_table[:email].matches("%#{escaped}%"))
 
         where(prefix_condition)
       end.inject(&:or)

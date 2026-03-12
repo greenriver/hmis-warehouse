@@ -74,17 +74,21 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       }
     end
 
-    before do
+    def perform_mutation
+      response, result = post_graphql(**variables) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'assignReferralParticipants', 'referral')
+    end
+
+    before(:each) do
       referral.workflow_engine.start_workflow!(user: hmis_user)
     end
     let(:step) { referral.workflow_engine.active_steps.sole }
 
     it 'creates referral participants' do
       expect do
-        response, result = post_graphql(**variables) { mutation }
-        expect(response.status).to eq(200), result.inspect
-
-        referral_swimlanes = result.dig('data', 'assignReferralParticipants', 'referral', 'swimlanes')
+        referral_data = perform_mutation
+        referral_swimlanes = referral_data['swimlanes']
         expect(referral_swimlanes).to contain_exactly(
           a_hash_including(
             'id' => case_manager_swimlane.id.to_s,
@@ -112,8 +116,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
     it 'creates step assignments on active steps' do
       expect do
-        response, result = post_graphql(**variables) { mutation }
-        expect(response.status).to eq(200), result.inspect
+        perform_mutation
         step.reload
       end.to change(step.assignments, :count).from(0).to(1).
         and change(Hmis::WorkflowExecution::StepAssignment, :count).by(1)
@@ -125,8 +128,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
       it 'does not try to create duplicate assignees' do
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
+          perform_mutation
           step.reload
         end.to not_change(step.assignments, :count).from(1)
         expect(step.assignments.sole.user).to eq(hmis_user)
@@ -138,8 +140,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
       it 'removes old assignee and assigns new user' do
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
+          perform_mutation
           step.reload
         end.to change { step.assignments.map(&:user) }.from([hmis_user2]).to([hmis_user])
 
@@ -152,8 +153,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         end
         it 'does not remove old assignee' do
           expect do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
+            perform_mutation
             step.reload
           end.to not_change { step.assignments.map(&:user) }.from([hmis_user2])
 
@@ -167,8 +167,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
       it 'does not create duplicate participants' do
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
+          perform_mutation
           existing_participant.reload
         end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(2).
           and not_change(existing_participant, :updated_at)
@@ -184,8 +183,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
         it 'deletes removed participants' do
           expect do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
+            perform_mutation
           end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(0)
         end
       end
@@ -204,8 +202,10 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         }
       end
 
-      it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
+      it 'does not assign invalid user' do
+        expect do
+          perform_mutation
+        end.not_to change(Hmis::Ce::ReferralParticipant, :count)
       end
     end
 
@@ -223,7 +223,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       end
 
       it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
+        expect_gql_error(post_graphql(**variables) { mutation }, message: /Failed to assign to swimlanes/)
       end
     end
 
@@ -235,11 +235,26 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       end
     end
 
-    context 'when the assigned user does not have permission' do
+    context 'when some participants are not in scope (inactive or lack permission)' do
+      # hmis_user2 has no referral-task permission; only hmis_user is authorized
       let!(:hmis_user2_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
 
-      it 'raises an error' do
-        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
+      it 'drops ineligible users, succeeds with the rest, and reports to Sentry' do
+        allow(Sentry).to receive(:capture_message)
+
+        referral_data = perform_mutation
+        expect(referral_data).to be_present
+
+        referral_swimlanes = referral_data['swimlanes']
+        case_mgr_swimlane = referral_swimlanes.find { |s| s['id'] == case_manager_swimlane.id.to_s }
+        provider_swimlane_result = referral_swimlanes.find { |s| s['id'] == provider_swimlane.id.to_s }
+        expect(case_mgr_swimlane['participants'].map { |p| p['id'] }).to eq([hmis_user.id.to_s])
+        expect(provider_swimlane_result['participants']).to be_empty
+
+        expect(Sentry).to have_received(:capture_message).with(
+          a_string_including('Referral assignment'),
+          hash_including(extra: hash_including(missing_user_ids: [hmis_user2.id])),
+        )
       end
     end
 

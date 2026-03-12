@@ -8,6 +8,9 @@
     },
     {
       "fragment": "#project_details"
+    },
+    {
+      "fragment": "#project_funding_and_participation"
     }
   ]
 }

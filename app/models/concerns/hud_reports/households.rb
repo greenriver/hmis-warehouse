@@ -79,9 +79,9 @@ module HudReports::Households
       @hoh_enrollments
     end
 
-    # Chronic status should come from the HoH if they are chronically homeless
-    # if not, use any other adult who is,
-    # if no adults are either yes or no, use  self for adults, and the HoH enrollment for children
+    # CH at Project Start (chronic_status): any household member present at start can cause the household to be CH.
+    # CH at Point in Time (pit_chronic_status): at least one adult or minor head of household must be CH.
+    # If no qualifying members are CH, use self for adults, and the HoH enrollment for children.
     # from glossary:
     # In cases where the head of household as well as all other adult household members have an indeterminate CH status (don’t know, refused, missing), any child household members should carry the same CH status as the head of household.
     # NOTE: Client CH status is only inherited if the client was present at the start of the enrollment.

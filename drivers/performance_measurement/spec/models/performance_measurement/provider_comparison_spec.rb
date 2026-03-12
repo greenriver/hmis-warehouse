@@ -10,7 +10,15 @@ require 'rails_helper'
 
 RSpec.describe PerformanceMeasurement::ProviderComparison, type: :model do
   let(:user) { create(:user) }
-  let(:report) { instance_double(PerformanceMeasurement::Report, detail_goal_direction: goal_direction, goal_config: goal_config) }
+  let(:report) do
+    instance_double(
+      PerformanceMeasurement::Report,
+      detail_goal_direction: goal_direction,
+      goal_config: goal_config,
+      using_static_spm_for_comparison?: using_static_spm,
+    )
+  end
+  let(:using_static_spm) { false }
   let(:goal_config) { instance_double(PerformanceMeasurement::Goal, approaching_threshold_fraction: threshold_fraction) }
   let(:threshold_fraction) { 0.05 }
   let(:goal_direction) { '> ' }
@@ -23,6 +31,8 @@ RSpec.describe PerformanceMeasurement::ProviderComparison, type: :model do
       goal: goal_value,
       primary_value: primary_value,
       primary_unit: '%',
+      comparison_primary_value: 6.0,
+      secondary_unit: '%',
     )
   end
 
@@ -83,6 +93,58 @@ RSpec.describe PerformanceMeasurement::ProviderComparison, type: :model do
       allow(result).to receive(:passed).and_return(false)
       allow(result).to receive(:primary_value).and_return(89.0)
       expect(pc.send(:decorator, result, :es_average_bed_utilization)).to include('danger')
+    end
+  end
+
+  describe '#display_value' do
+    context 'for increased income metrics' do
+      context 'when using static SPM for comparison' do
+        let(:using_static_spm) { true }
+
+        it 'omits the prior year value' do
+          expect(pc.send(:display_value, result, :increased_income_all_clients)).to eq('86.0%')
+        end
+      end
+
+      context 'when not using static SPM for comparison' do
+        let(:using_static_spm) { false }
+
+        it 'appends the prior year value' do
+          expect(pc.send(:display_value, result, :increased_income_all_clients)).to eq('86.0% (Prior Year: 6.0%)')
+        end
+      end
+    end
+
+    context 'for non-increased metrics' do
+      it 'does not append prior year value' do
+        expect(pc.send(:display_value, result, :es_average_bed_utilization)).to eq('86.0%')
+      end
+    end
+  end
+
+  describe '#detail_tooltip' do
+    context 'when using static SPM for comparison with increased income metric' do
+      let(:using_static_spm) { true }
+
+      it 'returns the static SPM tooltip message' do
+        expect(pc.send(:detail_tooltip, :increased_income_all_clients)).to eq('Using a static SPM, no prior year values are available.')
+      end
+    end
+
+    context 'when not using static SPM for comparison' do
+      let(:using_static_spm) { false }
+
+      it 'returns nil for increased income metric' do
+        expect(pc.send(:detail_tooltip, :increased_income_all_clients)).to be_nil
+      end
+    end
+
+    context 'for non-increased metrics' do
+      let(:using_static_spm) { true }
+
+      it 'returns nil' do
+        expect(pc.send(:detail_tooltip, :es_average_bed_utilization)).to be_nil
+      end
     end
   end
 end

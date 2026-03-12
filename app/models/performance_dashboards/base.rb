@@ -40,6 +40,7 @@ class PerformanceDashboards::Base
     @age_ranges = filter.age_ranges
     @length_of_times = filter.length_of_times
     @genders = filter.genders
+    @sexes = filter.respond_to?(:sexes) ? filter.sexes : nil
     @races = filter.races
     @veteran_statuses = filter.veteran_statuses
     @project_types = filter.project_type_ids || HudHelper.util.homeless_project_types
