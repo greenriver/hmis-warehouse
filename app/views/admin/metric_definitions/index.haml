@@ -6,16 +6,16 @@
   .col-sm-12
     %p.text-muted
       Threshold monitoring definitions are hard-coded, but you can modify thresholds, display names, and activation status to fit your community's needs.
+    %h2 Global Definitions
     = render_paginated_list(scope: @metric_definitions, item_name: 'threshold definition', list_partial: 'admin/metric_definitions/list')
 
     - if @import_csv_data_sources&.any?
+      %h2.mt-4 CSV Import Definitions (by Data Source)
       .well.mb-4
-        %h4 CSV Import Thresholds (by Data Source)
         %p.text-muted
           Per-CSV import thresholds are configured per data source. Manage monitors, thresholds, and notifications from each data source's Import Thresholds page.
         - @import_csv_data_sources.each do |data_source|
-          %h5.mt-3
-            = link_to data_source.name, data_source_import_threshold_path(data_source)
+          %h3.mt-3= link_to data_source.name, data_source_import_threshold_path(data_source)
           %table.table.table-sm.table-striped.mb-4
             %thead
               %tr
