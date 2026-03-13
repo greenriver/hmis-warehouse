@@ -58,6 +58,14 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    field :search_query, Types::HmisSchema::SearchQuery, 'Search query lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def search_query(id:)
+      # todo @martha - create & use a new HMIS model
+      GrdaWarehouse::ClientSearchQuery.find_by(id: id)
+    end
+
     clients_field :client_omni_search, 'Client omnisearch' do |field|
       field.argument :text_search, String, 'Omnisearch string', required: true
     end

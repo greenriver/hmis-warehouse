@@ -26,6 +26,8 @@ module Types
     field :nodes_count, Integer, null: false
     field :limit, Integer, null: false
     field :offset, Integer, null: false
+
+    field :search_query_id, String, null: true
   end
 
   # Empty class that enables us to explicitly state that a return type should use Array pagination rather than Scope
