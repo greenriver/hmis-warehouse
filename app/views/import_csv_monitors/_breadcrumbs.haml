@@ -1,0 +1,6 @@
+= content_for :crumbs do
+  = link_to data_source_path(data_source) do
+    &laquo; View
+    = data_source.name
+  = link_to data_source_import_threshold_path(data_source_id: data_source.id) do
+    &laquo; Configure Import Thresholds
