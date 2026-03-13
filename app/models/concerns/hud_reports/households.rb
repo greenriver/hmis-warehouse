@@ -87,7 +87,7 @@ module HudReports::Households
     # NOTE: Client CH status is only inherited if the client was present at the start of the enrollment.
     # per HUD guidance, the HoH should always be present for the entire stay, so we'll compare start dates to them
     # see AirTable Issue ID 30
-    private def calculate_household_chronic_status(hh_id, client_id, chronic_status: :chronic_status)
+    private def calculate_household_chronic_status(hh_id, client_id)
       household_members = households[hh_id]
       return false unless household_members.present?
 
@@ -128,7 +128,7 @@ module HudReports::Households
     end
 
     private def pit_household_chronic_status(hh_id)
-      calculate_household_chronic_status(hh_id, nil, chronic_status: :pit_chronic_status)
+      calculate_household_chronic_status(hh_id, nil)
     end
 
     private def calculate_hh_move_in_date(hh_id, she)
