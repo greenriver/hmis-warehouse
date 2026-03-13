@@ -10,6 +10,9 @@ module HudApr::Generators::Shared::Fy2026
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
+    HohEnrollmentProxy = Data.define(:entry_date, :first_date_in_program, :head_of_household?, :enrollment)
+    HohEnrollmentProxyInner = Data.define(:DateToStreetESSH) # rubocop:disable Naming/MethodName
+
     attr_reader :last_service_history_enrollment, :ctx, :source_client
 
     private def a_t
@@ -43,7 +46,7 @@ module HudApr::Generators::Shared::Fy2026
     def resolve_and_build
       resolve_primary_enrollment!
 
-      return { success: false } unless @last_service_history_enrollment && valid_coc?
+      return { success: false } unless @last_service_history_enrollment && resolve_enrollment_coc!
 
       raise ArgumentError, "Missing context for SHE #{@last_service_history_enrollment.id}" unless @ctx
       raise ArgumentError, "Missing source client for SHE #{@last_service_history_enrollment.id}" unless @source_client
@@ -88,7 +91,9 @@ module HudApr::Generators::Shared::Fy2026
             )
           end.last
 
-          # Re-fetch context if enrollment changed
+          # Try to get context for the newly selected enrollment. Fall back to the original
+          # @ctx if the new enrollment has no entry in the map (e.g. it falls outside the
+          # report universe but is the closest match for the CE assessment date).
           @ctx = @context_map[@last_service_history_enrollment.id] || @ctx if @last_service_history_enrollment
         end
       end
@@ -99,20 +104,19 @@ module HudApr::Generators::Shared::Fy2026
       @source_client = @enrollment&.client
     end
 
-    def valid_coc?
-      # ensure enrollment is in the correct CoC (step 6 of report universe for the CE APR)
-      # If the enrolment is in a project that only operates in one CoC, use the project's CoC
-      # Use the HoH's CoC (as CoC is only collected for the HoH)
+    # Resolves the effective CoC for the enrollment (step 6 of CE APR universe rules) and
+    # stores it in @calculated_enrollment_coc for use in map_standard_attributes.
+    # Returns true if the resolved CoC is in the report's chosen set (step 7), false otherwise.
+    def resolve_enrollment_coc!
+      # If the project only operates in one CoC, use that directly.
+      # Otherwise prefer the pre-computed HoH CoC from context, falling back to the
+      # HoH enrollment record, then the enrollment's own CoC field.
       @calculated_enrollment_coc = if @enrollment.project.project_cocs.one?
         @enrollment.project.project_cocs.first.coc_code
       else
         @ctx.hoh_coc || @hoh_enrollment&.enrollment&.enrollment_coc || @enrollment.EnrollmentCoC
       end
 
-      # Ignore any enrollment where the CoC is not in the chosen set
-      # Step 7. of the CE APR, but really all APR related should work this way.
-      # Filter the assessments/events, keeping only those where the CoC code assigned in step 6
-      # matches the CoC on which the report is being run.
       @calculated_enrollment_coc.in?(@report.coc_codes)
     end
 
@@ -158,12 +162,12 @@ module HudApr::Generators::Shared::Fy2026
       age = @ctx.age
       hoh_anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
       hoh_light = @hoh_enrollment || begin
-        hoh_enrollment_proxy = Struct.new(:DateToStreetESSH).new(@ctx.hoh_date_to_street) # rubocop:disable Naming/MethodName
-        Struct.new(:entry_date, :first_date_in_program, :head_of_household?, :enrollment).new(
-          hoh_entry_date,
-          hoh_entry_date,
-          true,
-          hoh_enrollment_proxy,
+        hoh_enrollment_proxy = HohEnrollmentProxyInner.new(@ctx.hoh_date_to_street)
+        HohEnrollmentProxy.new(
+          entry_date: hoh_entry_date,
+          first_date_in_program: hoh_entry_date,
+          "head_of_household?": true,
+          enrollment: hoh_enrollment_proxy,
         )
       end
 
@@ -340,8 +344,6 @@ module HudApr::Generators::Shared::Fy2026
 
     def map_ce_attributes
       {
-        other_clients_over_25: @ctx.has_other_clients_over_25,
-        parenting_youth: @ctx.is_parenting_youth,
         ce_assessment_date: @ce_latest_assessment&.AssessmentDate,
         ce_assessment_type: @ce_latest_assessment&.AssessmentType, # for Q9a
         ce_assessment_prioritization_status: @ce_latest_assessment&.PrioritizationStatus, # for Q9b, Q9d

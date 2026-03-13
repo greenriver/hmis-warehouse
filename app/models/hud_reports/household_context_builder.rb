@@ -68,11 +68,12 @@ module HudReports
           household_contexts = build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
           # Only keep contexts for SHEs that are part of the report universe
           contexts.concat(household_contexts.select { |c| universe_ids.include?(c.service_history_enrollment_id) })
-        end
 
-        if contexts.size >= import_batch_size
-          HudReports::HouseholdContext.import!(contexts)
-          contexts = []
+          # Flush per-household so a batch of large households can't exceed the import limit
+          if contexts.size >= import_batch_size
+            HudReports::HouseholdContext.import!(contexts)
+            contexts = []
+          end
         end
       end
 
@@ -192,6 +193,7 @@ module HudReports
       service_history_enrollments.map do |m|
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
         build_context_for_member(m, member_hash, hoh_data,
+                                 hh_member_hashes: hh_member_hashes,
                                  hoh_length_of_stay: hoh_length_of_stay,
                                  hoh_move_in_date: hoh_adjusted_move_in_date,
                                  hh_id: hh_id,
@@ -244,30 +246,21 @@ module HudReports
     end
 
     def find_anchor_hoh(hh_member_hashes)
-      # Select the "Anchor" HoH for inheritance:
+      # Select the "Anchor" HoH for inheritance, in priority order:
       # 1. Prefer HoH records active during the report period.
       # 2. Prefer the most recent enrollment (latest entry date).
       # 3. Prefer records with a move-in date.
       # 4. Deterministic tie-break via ID.
       hh_member_hashes.
         select { |m| m[:relationship_to_hoh] == 1 }.
-        min do |a, b|
-          # Active first
-          a_active = (a[:exit_date].nil? || a[:exit_date] >= @report.start_date) && a[:entry_date] <= @report.end_date
-          b_active = (b[:exit_date].nil? || b[:exit_date] >= @report.start_date) && b[:entry_date] <= @report.end_date
-          res = (a_active ? 0 : 1) <=> (b_active ? 0 : 1)
-          next res unless res.zero?
-
-          # Latest entry date first
-          res = (b[:entry_date] || Date.new(0)) <=> (a[:entry_date] || Date.new(0))
-          next res unless res.zero?
-
-          # Has move-in date first
-          res = (a[:move_in_date] ? 0 : 1) <=> (b[:move_in_date] ? 0 : 1)
-          next res unless res.zero?
-
-          # Deterministic tie-break (lowest ID first)
-          (a[:she_id] || 0) <=> (b[:she_id] || 0)
+        min_by do |m|
+          active = (m[:exit_date].nil? || m[:exit_date] >= @report.start_date) && m[:entry_date] <= @report.end_date
+          [
+            active ? 0 : 1, # active records first
+            -(m[:entry_date] || Date.new(0)).jd, # latest entry date first (negated)
+            m[:move_in_date] ? 0 : 1,                 # records with move-in first
+            m[:she_id] || 0,                          # lowest ID as tie-break
+          ]
         end
     end
 
@@ -299,10 +292,10 @@ module HudReports
       }
     end
 
-    def build_context_for_member(she, member_hash, hoh_data, hoh_length_of_stay:, hoh_move_in_date:, hh_id:, data_source_id:, active_hh_she_hashes:, hh_stats:, vet_stats:)
+    def build_context_for_member(she, member_hash, hoh_data, hh_member_hashes:, hoh_length_of_stay:, hoh_move_in_date:, hh_id:, data_source_id:, active_hh_she_hashes:, hh_stats:, vet_stats:)
       # Inherited values
-      chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(nil, member_hash, hoh_data)
-      pit_chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(nil, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)
+      chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data)
+      pit_chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)
       inherited_move_in_date = HudReports::HouseholdLogic.calculate_move_in_date(member_hash, hoh_data, report_end_date: @report.end_date)
 
       # SPM-specific: Calculate inherited date to street for Measure 1b

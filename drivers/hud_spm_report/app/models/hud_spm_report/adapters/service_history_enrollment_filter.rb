@@ -24,8 +24,7 @@ module HudSpmReport::Adapters
 
     # for older versions of the SPM, map back to enrollments. In 2026 we can just use SHE
     def enrollments
-      scope = service_history_enrollment_scope.joins(:enrollment)
-      GrdaWarehouse::Hud::Enrollment.where(id: scope.select(e_t[:id])).select(*enrollment_columns)
+      GrdaWarehouse::Hud::Enrollment.where(id: service_history_enrollment_scope.select(e_t[:id])).select(*enrollment_columns)
     end
 
     def service_history_enrollment_scope
@@ -39,7 +38,8 @@ module HudSpmReport::Adapters
 
       # ATTN: coc filter is needed for testkit
       scope = filter_for_cocs(scope)
-      @filter.apply_criteria(scope, tags: [:warehouse, :client])
+      scope = @filter.apply_criteria(scope, tags: [:warehouse, :client])
+      scope
     end
 
     # Limited columns to avoid pulling more data from the database than necessary

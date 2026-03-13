@@ -19,7 +19,7 @@ module HudSpmReport::Fy2026
 
     def build_attributes
       client = @enrollment.client
-      return nil unless client.present?
+      return unless client
 
       {
         report_instance_id: @report.id,
@@ -37,7 +37,7 @@ module HudSpmReport::Fy2026
 
         # Enrollment-specific
         entry_date: @enrollment.entry_date,
-        exit_date: @enrollment&.exit&.exit_date,
+        exit_date: @enrollment.exit&.exit_date,
         project_type: @enrollment.project.project_type,
         eligible_funding: eligible_funding?,
         destination: @enrollment.exit&.destination,
@@ -64,14 +64,18 @@ module HudSpmReport::Fy2026
 
     def eligible_funding?
       @enrollment.project.funders.any? do |funder|
-        funder.funder.in?(HudHelper.util('2026').spm_coc_funders.map(&:to_s)) &&
+        funder.funder.in?(spm_coc_funder_codes) &&
           (funder.end_date.nil? || funder.end_date >= @filter.start) &&
           (funder.start_date.nil? || funder.start_date <= @filter.end)
       end
     end
 
+    def spm_coc_funder_codes
+      @spm_coc_funder_codes ||= HudHelper.util('2026').spm_coc_funders.map(&:to_s).to_set
+    end
+
     def calculate_days_enrolled
-      exit_date = [@enrollment&.exit&.exit_date, @filter.end].compact.min
+      exit_date = [@enrollment.exit&.exit_date, @filter.end].compact.min
       (exit_date - @enrollment.entry_date).to_i + 1
     end
 

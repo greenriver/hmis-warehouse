@@ -10,7 +10,13 @@ module HudApr::Generators::Dq::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
 
-    attr_accessor :source_report_id_for_contexts
+    # When set, HouseholdContext records are copied from this report instead of being
+    # recomputed. Used by the SPM, which runs DQ sub-reports and passes its own report ID
+    # so that both reports share the same pre-computed household context.
+    def source_report_id_for_contexts
+      @source_report_id_for_contexts ||= report.options&.with_indifferent_access&.[](:source_report_id_for_contexts)
+    end
+    attr_writer :source_report_id_for_contexts
 
     def self.fiscal_year
       'FY 2026'

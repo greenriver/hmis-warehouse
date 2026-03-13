@@ -44,6 +44,9 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
     report
   end
 
+  # Runs the full report job rather than a single question to ensure prepare_report
+  # (which builds HouseholdContext records) is exercised. The question_class argument
+  # is accepted for call-site compatibility but ignored.
   def run_dq_question(report, _question_class = nil)
     Reporting::Hud::RunReportJob.new.perform(
       'HudApr::Generators::Dq::Fy2026::Generator',

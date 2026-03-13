@@ -67,6 +67,7 @@ module HudReports
         entry_date: member_entry_date,
         exit_date: member_exit_date,
         move_in_date: inherited_move_in_date,
+        effective_move_in_date: inherited_move_in_date,
       }.with_indifferent_access
     end
   end

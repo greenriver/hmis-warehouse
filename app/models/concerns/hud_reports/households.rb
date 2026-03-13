@@ -116,9 +116,9 @@ module HudReports::Households
       )
 
       {
-        chronic_status: res&.[](:status),
+        chronic_status: !!res&.[](:status),
         chronic_detail: res&.[](:detail),
-        pit_chronic_status: pit_res&.[](:status),
+        pit_chronic_status: !!pit_res&.[](:status),
         pit_chronic_detail: pit_res&.[](:detail),
       }.with_indifferent_access
     end

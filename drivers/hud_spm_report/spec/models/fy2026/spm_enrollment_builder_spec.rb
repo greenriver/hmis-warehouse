@@ -45,7 +45,7 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollmentBuilder, type: :model do
       expect(attributes[:age]).to eq(35)
       expect(attributes[:start_of_homelessness]).to eq(Date.parse('2019-12-01'))
       expect(attributes[:move_in_date]).to eq(Date.parse('2020-02-01'))
-      expect(attributes[:days_enrolled]).to be_present
+      expect(attributes[:days_enrolled]).to eq((Date.parse('2020-12-31') - Date.parse('2020-01-01')).to_i + 1)
     end
 
     it 'calculates days_enrolled correctly for active client' do
@@ -101,6 +101,56 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollmentBuilder, type: :model do
       expect(attributes[:current_total_income]).to eq(1500)
       expect(attributes[:current_earned_income]).to eq(1000)
       expect(attributes[:current_non_employment_income]).to eq(500)
+    end
+
+    describe 'eligible_funding?' do
+      it 'is true when project has an eligible funder in range' do
+        # Funder 2 is "HUD: CoC - Permanent Supportive Housing" in 2026 spec
+        create(:hud_funder, data_source: data_source, ProjectID: project.ProjectID, Funder: 2, StartDate: '2020-01-01')
+
+        attributes = described_class.build(
+          report: report,
+          enrollment: enrollment,
+          context: context,
+          filter: filter,
+          current_income: nil,
+          previous_income: nil,
+        )
+
+        expect(attributes[:eligible_funding]).to be true
+      end
+
+      it 'is false when project has no eligible funders' do
+        # Funder 1 is "HUD: CoC - Leasing" - also eligible, so let's use one that isn't
+        # Funder 21 is "HHS: PATH" - not in spm_coc_funders [2, 3, 4, 5, 6, 43, 44, 54, 55, 56]
+        create(:hud_funder, data_source: data_source, ProjectID: project.ProjectID, Funder: 21)
+
+        attributes = described_class.build(
+          report: report,
+          enrollment: enrollment,
+          context: context,
+          filter: filter,
+          current_income: nil,
+          previous_income: nil,
+        )
+
+        expect(attributes[:eligible_funding]).to be false
+      end
+
+      it 'is false when funder is outside report range' do
+        create(:hud_funder, data_source: data_source, ProjectID: project.ProjectID, Funder: 2, StartDate: '2021-01-01')
+
+        attributes = described_class.build(
+          report: report,
+          enrollment: enrollment,
+          context: context,
+          filter: filter,
+          current_income: nil,
+          previous_income: nil,
+        )
+
+        expect(attributes[:eligible_funding]).to be false
+      end
     end
   end
 end

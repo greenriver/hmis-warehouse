@@ -80,7 +80,8 @@ module HudApr::Generators::Shared::Fy2026
         # Must isolate by data_source_id to prevent PII leakage across vendors
         batch_hh_keys = contexts_by_she_id.values.map { |c| [c.household_id, c.data_source_id] }.uniq
         batch_households = if batch_hh_keys.any?
-          values = batch_hh_keys.map { |id, ds| "(#{ActiveRecord::Base.connection.quote(id)}, #{ds})" }.join(', ')
+          conn = ActiveRecord::Base.connection
+          values = batch_hh_keys.map { |id, ds| "(#{conn.quote(id)}, #{conn.quote(ds)})" }.join(', ')
           HudReports::HouseholdContext.where(
             report_instance_id: @report.id,
           ).where("(household_id, data_source_id) IN (#{values})").group_by { |c| [c.household_id, c.data_source_id] }.transform_values do |members|

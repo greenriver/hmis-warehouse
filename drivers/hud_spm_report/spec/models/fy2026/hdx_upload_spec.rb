@@ -121,5 +121,62 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
         end
       end
     end
+
+    context 'DQ context sharing via source_report_id_for_contexts' do
+      # Isolated setup: one ES project with one enrollment so that generate_dq
+      # produces at least one DQ sub-report (the :essh section covers project type 0).
+      before do
+        @ctx_project = create_project(project_type: 0) # ES-EE
+        @ctx_client  = create_client_with_warehouse_link
+        create_enrollment(
+          client: @ctx_client,
+          project: @ctx_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2023-01-15'.to_date,
+        )
+        @ctx_report = setup_report([@ctx_project.id], ['Measure 1', 'HDX Upload'])
+        run_measure(@ctx_report, HudSpmReport::Generators::Fy2026::MeasureOne)
+      end
+
+      it 'invokes HouseholdContextBuilder with source_report_id set to the SPM report' do
+        allow(HudReports::HouseholdContextBuilder).to receive(:call).and_call_original
+
+        run_measure(@ctx_report, HudSpmReport::Generators::Fy2026::HdxUpload)
+
+        expect(HudReports::HouseholdContextBuilder).to have_received(:call).with(
+          anything,
+          anything,
+          hash_including(source_report_id: @ctx_report.id),
+        ).at_least(:once)
+      end
+
+      it 'copies SPM contexts to DQ sub-reports rather than recomputing them' do
+        run_measure(@ctx_report, HudSpmReport::Generators::Fy2026::HdxUpload)
+
+        dq_reports = HudReports::ReportInstance.where(
+          report_name: HudApr::Generators::Dq::Fy2026::Generator.title,
+        )
+        expect(dq_reports).to be_present
+
+        spm_ctx_by_she_id = @ctx_report.household_contexts.index_by(&:service_history_enrollment_id)
+
+        # Every DQ context must have a matching SPM context for the same SHE,
+        # and the pre-computed values must be identical (proving copy, not recompute).
+        dq_reports.each do |dq_report|
+          next unless dq_report.household_contexts.any?
+
+          dq_report.household_contexts.each do |dq_ctx|
+            spm_ctx = spm_ctx_by_she_id[dq_ctx.service_history_enrollment_id]
+
+            expect(spm_ctx).to be_present,
+                               "DQ context for SHE #{dq_ctx.service_history_enrollment_id} has no matching SPM context"
+            expect(dq_ctx.age).to eq(spm_ctx.age)
+            expect(dq_ctx.household_type).to eq(spm_ctx.household_type)
+            expect(dq_ctx.inherited_chronic_status).to eq(spm_ctx.inherited_chronic_status)
+            expect(dq_ctx.inherited_move_in_date).to eq(spm_ctx.inherited_move_in_date)
+          end
+        end
+      end
+    end
   end
 end

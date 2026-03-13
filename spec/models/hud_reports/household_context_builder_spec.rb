@@ -630,5 +630,38 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         expect(report.household_contexts.first.service_history_enrollment_id).to eq(enrollment_hoh.id)
       end
     end
+
+    context 'when no member has RelationshipToHoH = 1 (missing HoH)' do
+      before do
+        # Both members are non-HoH; common data quality issue in real imports
+        hud_enrollment_hoh.update!(RelationshipToHoH: 3)
+        hud_enrollment_child.update!(RelationshipToHoH: 3)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+      end
+
+      it 'does not raise and still creates a context for each enrollment' do
+        expect { builder.call }.not_to raise_error
+        expect(report.reload.household_contexts.count).to eq(2)
+      end
+
+      it 'leaves all hoh_* fields nil' do
+        builder.call
+        report.reload.household_contexts.each do |ctx|
+          expect(ctx.is_hoh).to be false
+          expect(ctx.hoh_destination_client_id).to be_nil
+          expect(ctx.hoh_entry_date).to be_nil
+          expect(ctx.hoh_service_history_enrollment_id).to be_nil
+        end
+      end
+
+      it 'falls back to each member own chronic status' do
+        builder.call
+        report.reload.household_contexts.each do |ctx|
+          # With no HoH, hoh_entry_date is nil so no household-level inheritance can fire;
+          # each member falls back to their own raw chronic status.
+          expect(ctx.inherited_chronic_status).to eq(ctx.raw_chronic_status || false)
+        end
+      end
+    end
   end
 end
