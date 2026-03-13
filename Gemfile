@@ -200,6 +200,7 @@ gem 'x25519', require: false
 gem 'net-http'
 gem 'multipart-post'
 gem 'addressable' # normalize uris
+gem 'uri', '>= 1.0.4' # CVE-2025-61594
 gem 'redis-actionpack'
 
 gem 'ed25519'
