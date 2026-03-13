@@ -441,6 +441,9 @@ module HmisUtil
                        { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
                        { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
                      ] },
+          { '_comment' => 'HUD: CoC Builds - Collection required for all components',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE', 'value' => 56 },
           { 'operator' => 'ALL',
             '_comment' => 'HUD: ESG – Collection required for all components except ES-NbN',
             'parts' =>
