@@ -48,10 +48,28 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
+      if input.search_query_id.present?
+        query = GrdaWarehouse::ClientSearchQuery.find_by(id: input.search_query_id)
+        search_input = query.params.to_h.symbolize_keys
+        search_input[:text_search] = search_input.delete(:q) # todo @martha - avoid this once we use the HMIS table
+        search_input = OpenStruct.new(search_input.to_h.deep_dup)
+      else
+        params = input.to_h
+        params[:q] = params.delete(:text_search) # todo @martha - avoid this once we use the HMIS table
+        # todo @martha - validate/mistrust the params, similar to:
+        # safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+        query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(params, user: current_user)
+        raise query.errors.full_messages.join(', ') unless query.valid?
+
+        search_input = input.to_params
+      end
+
+      context[:search_query_id] = query.id
+
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
       search_scope = Hmis::Hud::Client.client_search(
-        input: input.to_params,
+        input: search_input,
         user: current_user,
         sorted: sorted,
       )
