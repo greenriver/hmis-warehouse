@@ -205,9 +205,12 @@ module HudReports::Households
       households[hh_id]&.detect { |household| household[:relationship_to_hoh] == 1 }.try(:[], :client_id)
     end
 
-    private def household_member_data(enrollment, _date = nil) # date is included for CE APR compatibility
-      # return nil unless enrollment[:head_of_household]
-
+    # Returns all household members for the given enrollment from the pre-built households cache.
+    # The _date parameter is accepted for backward compatibility with FY2020-FY2024 generators that
+    # pass a calculation date, but is intentionally ignored here. The CE APR question concern
+    # overrides this method with actual date-scoped filtering. In FY2026+, date-scoped household
+    # composition is handled upstream in AprClientBuilder#ce_scoped_household_members.
+    private def household_member_data(enrollment, _date = nil)
       households[enrollment.household_id] || []
     end
 

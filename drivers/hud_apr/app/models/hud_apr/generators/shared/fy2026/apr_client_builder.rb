@@ -342,8 +342,21 @@ module HudApr::Generators::Shared::Fy2026
     end
     # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
+    # Per CE APR spec, household composition is determined at the latest CE assessment date,
+    # not across the full report period. This overrides the standard household_members,
+    # household_type, other_clients_over_25, and parenting_youth set in map_standard_attributes.
+    #
+    # Age uses the standard HUD rule ([project_start, report_start].max), so we keep the
+    # pre-computed age from context rather than recomputing at the assessment date.
     def map_ce_attributes
+      ce_members = ce_scoped_household_members
+      member_hash = { age: @ctx.age, relationship_to_hoh: @ctx.relationship_to_hoh }
+
       {
+        household_members: ce_members,
+        household_type: HudReports::HouseholdLogic.calculate_household_type(ce_members.map { |m| m[:age] }),
+        other_clients_over_25: !HudReports::HouseholdLogic.only_youth?(ce_members),
+        parenting_youth: HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, ce_members),
         ce_assessment_date: @ce_latest_assessment&.AssessmentDate,
         ce_assessment_type: @ce_latest_assessment&.AssessmentType, # for Q9a
         ce_assessment_prioritization_status: @ce_latest_assessment&.PrioritizationStatus, # for Q9b, Q9d
@@ -353,6 +366,22 @@ module HudApr::Generators::Shared::Fy2026
         ce_event_referral_case_manage_after: @ce_latest_event&.ReferralCaseManageAfter,
         ce_event_referral_result: @ce_latest_event&.ReferralResult,
       }
+    end
+
+    # Returns the subset of household members who were active on the CE assessment date.
+    # Members are those whose enrollment spans the assessment date:
+    #   entry_date <= assessment_date AND (exit_date.nil? OR exit_date >= assessment_date)
+    # Falls back to the full member list if no assessment date is available.
+    def ce_scoped_household_members
+      all_members = @households[[@ctx.household_id, @ctx.data_source_id]] || []
+      assessment_date = @ce_latest_assessment&.AssessmentDate
+      return all_members unless assessment_date
+
+      all_members.select do |m|
+        entry = m[:entry_date]
+        exit  = m[:exit_date]
+        entry.present? && entry <= assessment_date && (exit.nil? || exit >= assessment_date)
+      end
     end
 
     # Assessments are only collected (and reported on) for HoH
