@@ -1,0 +1,95 @@
+# 5.5 CAS Legacy
+
+[← 5.4 Warehouse Application](05-4-warehouse-application.md) | [Table of Contents](../README.md) | [Next: 6 Runtime View →](../06-runtime/06-0-runtime-view.md)
+
+This document shows the internal components of the CAS (Coordinated Access System) container. CAS is a legacy application currently being evaluated for consolidation into the modern Warehouse codebase.
+
+## Technical Stack
+- **Framework**: Ruby on Rails
+- **Language**: Ruby 3.x
+- **Database**: PostgreSQL
+- **Background Processing**: Delayed Job
+
+## Component Diagrams
+### Functional Flow
+This view illustrates how users interact with the system and how matches move from initial evaluation through to notification.
+
+```mermaid
+flowchart TB
+        USERS["HMIS End Users, Agency staff, Housing providers"]
+        STAKEHOLDERS["Match stakeholders (Email / in-app)"]
+    
+
+    subgraph CAS_CORE["CAS Core Logic"]
+        CAS_UI["CAS Web UI"]
+        CAS_MATCHING["Matching Engine"]
+        CAS_RULES["Rules Engine"]
+        CAS_WORKFLOW["Workflow Engine"]
+        CAS_NOTIF["Notification System"]
+        CAS_REPORTS["Reporting"]
+    end
+
+    USERS -- "Manage matches" --> CAS_UI
+    CAS_UI -- "View matches & clients" --> CAS_MATCHING
+    CAS_UI -- "Stakeholder decisions" --> CAS_WORKFLOW
+    CAS_UI -- "Runs reports" --> CAS_REPORTS
+
+    CAS_MATCHING -- "Evaluates eligibility" --> CAS_RULES
+    CAS_MATCHING -- "Activates matches" --> CAS_WORKFLOW
+    
+    CAS_WORKFLOW -- "Step notifications" --> CAS_NOTIF
+    CAS_NOTIF -- "Email & in-app notifications" --> STAKEHOLDERS
+```
+
+### Data Integration & Infrastructure
+This view shows the system's external dependencies, background processes, and data persistence.
+
+```mermaid
+flowchart TB
+    subgraph integration ["Integration & Infrastructure"]
+        CAS_WH_INT["Warehouse Integration (Direct DB connection)"]
+        CAS_JOBS["Background Jobs (Delayed Job)"]
+    end
+
+    WH_DB[("Warehouse Database\n(PostgreSQL)")]
+    CAS_DB[("CAS Database\n(PostgreSQL)")]
+
+    CAS_WH_INT -- "Reads clients/assessments" --> WH_DB
+    CAS_WH_INT -- "Writes outcomes" --> WH_DB
+    CAS_WH_INT -- "Feeds data to" --> CAS_MATCHING["Matching Engine"]
+
+    CAS_JOBS -. "Triggers" .-> CAS_WH_INT
+    CAS_JOBS -. "Triggers" .-> CAS_MATCHING
+    CAS_JOBS -. "Triggers" .-> CAS_NOTIF["Notification System"]
+
+    CAS_MATCHING["Matching Engine"] -- "Reads/writes match state" --> CAS_DB
+    CAS_WORKFLOW["Workflow Engine"] -- "Reads/writes decision state" --> CAS_DB
+    CAS_REPORTS["Reporting"] -- "Reads" --> CAS_DB
+```
+
+## Components & Responsibilities
+| Component | Responsibilities | Source Location |
+| --- | --- | --- |
+| **CAS Web UI** | Interfaces for stakeholders to manage clients, opportunities, and referrals. Supports direct entry for non-HMIS clients. | `app/controllers/` |
+| **Matching Engine** | Rule-based algorithm that periodically pairs eligible clients with available housing vacancies. | `app/models/matching/` |
+| **Rules Engine** | Configurable eligibility logic (age, veteran status, etc.) used to prioritize clients. | `app/models/rules/` |
+| **Workflow Engine** | State machine managing the referral lifecycle through multi-stakeholder approval steps. | `app/models/match_routes/` |
+| **Notification System** | Email and in-app alerts for stakeholders at each step of the referral workflow. | `app/models/notifications/` |
+| **Reporting** | Internal reporting on matches, decisions, and system performance. | `app/models/reporting/` |
+| **Warehouse Integration** | Background sync of client/cohort data from the Warehouse and outcomes back. | `app/models/warehouse/` |
+
+**Primary Data Flow:**
+1. **Data Sync:** Client and cohort data are synced from the Warehouse Database via direct connection.
+2. **Matching:** The **Matching Engine** evaluates eligible clients using the **Rules Engine**.
+3. **Referral:** Matches progress through the **Workflow Engine**, with stakeholders alerted by the **Notification System**.
+4. **Outcome:** Placements and completions are written back to the Warehouse Database.
+
+## Key Component Details
+
+### Warehouse Integration
+CAS connects directly to the Warehouse Database (bypassing the API), creating a tight data-layer coupling. This is a primary driver for planned consolidation into the Warehouse Application's modern Coordinated Entry component.
+
+### Domain Engines
+- **Matching Engine**: Runs periodically via **Delayed Job** to evaluate all eligible clients against vacancies.
+- **Workflow Engine**: Uses configurable "match routes" to define referral pathways and stakeholder approval steps.
+- **Rules Engine**: Composable logic combined with AND/OR rules to determine program-specific eligibility.
