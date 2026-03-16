@@ -34,7 +34,8 @@ class Hmis::Hud::User < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   # Find or create the Hmis::Hud::User corresponding to the provided application user (Hmis::User)
-  # When an app user's name or email changes, `Hmis::SyncAppUserToHudUsers` syncs the changes to the corresponding HUD Users in HMIS data sources.
+  # When an app user's name or email changes, `User#sync_to_hud_users` syncs the changes to the
+  # corresponding HUD Users in HMIS data sources.
   def self.from_user(user)
     raise 'cannot create HUD User from application user with no data source' if user.hmis_data_source_id.nil?
 

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::SyncAppUserToHudUsers, type: :service do
+RSpec.describe User, type: :model do
   let!(:hmis_data_source) { create(:hmis_primary_data_source) }
   let!(:non_hmis_data_source) { create(:source_data_source) }
 
