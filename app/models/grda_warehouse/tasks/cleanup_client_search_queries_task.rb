@@ -23,18 +23,23 @@ module GrdaWarehouse::Tasks
       instrument_as_maintenance_task do |run|
         with_lock do
           GrdaWarehouse::ClientSearchQuery.transaction do
-            cleanup_old_queries
-            run.complete!
+            cleanup_old_queries(GrdaWarehouse::ClientSearchQuery)
           end
+
+          Hmis::ClientSearchQuery.transaction do
+            cleanup_old_queries(Hmis::ClientSearchQuery)
+          end
+
+          run.complete!
         end
       end
     end
 
     protected
 
-    def cleanup_old_queries
+    def cleanup_old_queries(klass)
       cutoff_date = Time.current - RETENTION_PERIOD
-      GrdaWarehouse::ClientSearchQuery.where(updated_at: ..cutoff_date).delete_all
+      klass.where(updated_at: ..cutoff_date).delete_all
     end
 
     def with_lock(&block)
