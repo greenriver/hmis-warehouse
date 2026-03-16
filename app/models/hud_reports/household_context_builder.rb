@@ -292,7 +292,19 @@ module HudReports
       }
     end
 
-    def build_context_for_member(she, member_hash, hoh_data, hh_member_hashes:, hoh_length_of_stay:, hoh_move_in_date:, hh_id:, data_source_id:, active_hh_she_hashes:, hh_stats:, vet_stats:)
+    def build_context_for_member( # rubocop:disable Metrics/ParameterLists
+      she,
+      member_hash,
+      hoh_data,
+      hh_member_hashes:,
+      hoh_length_of_stay:,
+      hoh_move_in_date:,
+      hh_id:,
+      data_source_id:,
+      active_hh_she_hashes:,
+      hh_stats:,
+      vet_stats:
+    )
       # Inherited values
       chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data)
       pit_chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)

@@ -156,6 +156,7 @@ module HudReports::Households
     end
 
     private def calculate_households
+      raise
       @hoh_enrollments ||= {}
       @households ||= {}
 
