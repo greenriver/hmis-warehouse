@@ -5,7 +5,7 @@
 #
 # Optionally, provide data source ID if there are multiple HMIS data sources:
 # rails driver:hmis:form_definition_psde_alignment_report[2024-01-01,3]
-desc 'CSV report for projects with PSDEs that are represented in the form definition due to filtering'
+desc 'CSV report for projects with PSDEs that are not represented in the form definition due to filtering'
 task :form_definition_psde_alignment_report, [:start_date, :data_source_id] => :environment do |_task, args|
   task_class = Class.new do
     attr_accessor :start_date

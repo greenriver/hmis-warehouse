@@ -46,7 +46,6 @@ module HmisUtil
       end.compact
 
       # ======== Export Form Definitions ========
-      # TODO(#6691): scope definitions by data_source_id
       config_object[:definitions] = Hmis::Form::Definition.where(role: FORM_ROLES_TO_EXPORT).map do |fd|
         fd.slice(:title, :identifier, :role, :version, :status, :definition)
       end
@@ -54,7 +53,6 @@ module HmisUtil
       # ======== Export Form Instances ========
       # Export all non-system instances, even ones for definitions that we didn't export. That lets us get
       # configuration for things like which projects collect CLS or Move-in Date.
-      # TODO(#6691): scope instances by data_source_id
       config_object[:instances] = Hmis::Form::Instance.active.not_system.map do |inst|
         next if inst.definition_identifier == 'service' # skip hud default rules
 

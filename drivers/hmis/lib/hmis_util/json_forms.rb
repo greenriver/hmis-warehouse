@@ -295,7 +295,6 @@ module HmisUtil
       apply_all_patches!(form_definition, identifier: identifier)
 
       # TODO(#6612, #6691): specify data source for seeding
-      # (#6690) note - skipping any changes here for now; should be addressed with #6691
       data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
 
       # Find or initialize the definition record

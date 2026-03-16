@@ -363,9 +363,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
+  # TODO(#6691): remove data_source_id argument once data_source_id column is added to FormDefinition
   def validate_json_form(data_source_id: nil)
     # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
-    # TODO(#6691): remove data_source_id argument once data_source_id column is added to FormDefinition
     Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?, data_source_id: data_source_id)
   end
 
