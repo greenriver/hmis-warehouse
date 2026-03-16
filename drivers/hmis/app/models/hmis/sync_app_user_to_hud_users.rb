@@ -8,7 +8,11 @@ module Hmis
     # @param app_user [User] The application user that changed
     # @param previous_email [String, nil] The user's previous email, if changed, for matching to HUD User records
     def self.call(app_user, previous_email: nil)
+      return unless HmisEnforcement.hmis_enabled?
+
       hmis_data_source_ids = ::GrdaWarehouse::DataSource.hmis.pluck(:id)
+      return unless hmis_data_source_ids.any?
+
       emails_to_match = [previous_email, app_user.email].compact.map(&:downcase)
       user_scope = Hmis::Hud::User.where(data_source_id: hmis_data_source_ids).where(user_email: emails_to_match)
 
