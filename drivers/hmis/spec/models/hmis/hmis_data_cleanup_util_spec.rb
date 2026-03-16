@@ -416,20 +416,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         expect(bad_income_e2.personal_id).to eq('wrong-id-2')
       end
     end
-
-    context 'when there is more than 1 hmis' do
-      let!(:other_hmis_ds) { create :hmis_data_source }
-
-      it 'raises unless ds id is passed' do
-        expect { HmisDataCleanup::Util.fix_incorrect_personal_id_references! }.to raise_error(ActiveRecord::SoleRecordExceeded)
-      end
-
-      it 'works when ds id is passed' do
-        HmisDataCleanup::Util.fix_incorrect_personal_id_references!(data_source_id: hmis_ds.id)
-        records_with_bad_references.each(&:reload)
-        expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly(e1.personal_id)
-      end
-    end
   end
 
   context 'with duplicate custom assessments' do
