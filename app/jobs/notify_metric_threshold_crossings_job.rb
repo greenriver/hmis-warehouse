@@ -62,6 +62,10 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
     end
   end
 
+  def priority
+    BULK_PROCESSING_PRIORITY_10
+  end
+
   private
 
   # CSV import: merges crossings into all_user_crossings based on NotificationConfiguration on
@@ -160,9 +164,5 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
       filter_map { |contact| contact.user if contact.user&.active? }.
       index_by(&:email).
       values
-  end
-
-  def priority
-    10
   end
 end
