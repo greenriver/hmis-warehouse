@@ -102,6 +102,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::File,
       GrdaWarehouse::Config,
       GrdaWarehouse::ImportThreshold,
+      GrdaWarehouse::ImportCsvMonitor,
       GrdaWarehouse::NotificationConfiguration,
       Hmis::Hud::CustomDataElementDefinition,
       Hmis::Hud::CustomDataElement,

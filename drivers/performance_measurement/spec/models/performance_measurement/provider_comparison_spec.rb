@@ -96,6 +96,80 @@ RSpec.describe PerformanceMeasurement::ProviderComparison, type: :model do
     end
   end
 
+  describe '#table' do
+    let(:my_project_id) { 1 }
+    let(:other_project_id) { 2 }
+
+    let(:my_hud_project) do
+      dbl = instance_double(GrdaWarehouse::Hud::Project, project_type: 1)
+      allow(dbl).to receive(:name).and_return('My Project (ES - NBN)')
+      dbl
+    end
+
+    let(:other_hud_project) do
+      dbl = instance_double(GrdaWarehouse::Hud::Project, project_type: 1)
+      allow(dbl).to receive(:name).and_return('Other Project (ES - NBN)')
+      dbl
+    end
+
+    let(:my_project_result) do
+      instance_double(
+        PerformanceMeasurement::Result,
+        hud_project: my_hud_project,
+        primary_value: 80.0,
+        primary_unit: '%',
+        passed: true,
+        goal: 75.0,
+      )
+    end
+
+    let(:other_project_result) do
+      instance_double(
+        PerformanceMeasurement::Result,
+        hud_project: other_hud_project,
+        primary_value: 60.0,
+        primary_unit: '%',
+        passed: true,
+        goal: 75.0,
+      )
+    end
+
+    let(:report) do
+      r = instance_double(
+        PerformanceMeasurement::Report,
+        goal_config: goal_config,
+        using_static_spm_for_comparison?: false,
+      )
+      allow(r).to receive(:detail_goal_direction).and_return('>')
+      allow(r).to receive(:detail_title_for).and_return('Title')
+      allow(r).to receive(:detail_category_for).and_return('Category')
+      allow(r).to receive(:result_for).and_return(nil)
+      allow(r).to receive(:my_projects).and_return({ my_project_id => my_project_result })
+      allow(r).to receive(:project_details).and_return(
+        { my_project_id => my_project_result, other_project_id => other_project_result },
+      )
+      r
+    end
+
+    context 'when active_project_list is :my_projects' do
+      subject(:pc) { described_class.new(report, user, active_project_list: :my_projects) }
+
+      it 'only includes my_projects in the table, including for retention_or_positive_destinations' do
+        table = pc.table('Emergency Shelters')
+        expect(table[:projects].keys).to contain_exactly(my_project_id)
+      end
+    end
+
+    context 'when active_project_list is :all_projects' do
+      subject(:pc) { described_class.new(report, user, active_project_list: :all_projects) }
+
+      it 'includes all projects in the table' do
+        table = pc.table('Emergency Shelters')
+        expect(table[:projects].keys).to contain_exactly(my_project_id, other_project_id)
+      end
+    end
+  end
+
   describe '#display_value' do
     context 'for increased income metrics' do
       context 'when using static SPM for comparison' do
