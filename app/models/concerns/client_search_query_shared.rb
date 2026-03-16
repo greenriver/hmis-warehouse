@@ -8,9 +8,9 @@
 
 module ClientSearchQueryShared
   extend ActiveSupport::Concern
-  included do
-    MAX_STRING_LENGTH = 100
+  MAX_STRING_LENGTH = 100
 
+  included do
     validate :validate_params
 
     def self.find_or_create_by_normalized_params(params, user:)
@@ -55,7 +55,7 @@ module ClientSearchQueryShared
         case value
         when String
           field = prefix ? "#{prefix}.#{key}" : key
-          errors.add(:params, "#{field} is too long (max #{self.class::MAX_STRING_LENGTH} characters)") if value.length > self.class::MAX_STRING_LENGTH
+          errors.add(:params, "#{field} is too long (max #{MAX_STRING_LENGTH} characters)") if value.length > MAX_STRING_LENGTH
         when Hash
           validate_string_lengths(value, prefix ? "#{prefix}.#{key}" : key)
         end
