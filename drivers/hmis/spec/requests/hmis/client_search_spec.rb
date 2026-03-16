@@ -11,12 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
   include_context 'hmis base setup'
 
   let!(:ds2) { create :hmis_data_source, hmis: nil }
@@ -403,6 +397,63 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         clients = result.dig('data', 'clientSearch', 'nodes')
         expect(clients).to contain_exactly(a_hash_including({ 'id' => client.id.to_s }))
       end
+    end
+  end
+
+  describe 'searching with search query tracking' do
+    let(:query) do
+      <<~GRAPHQL
+        query ClientSearch($input: ClientSearchInput!) {
+          clientSearch(
+            limit: 100,
+            offset: 0,
+            input: $input
+          ) {
+            searchQueryId
+            nodes {
+              id
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let!(:client1) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
+
+    # todo @martha- restructure this test, it's just proof of concept for me
+    it 'creates a new search query when a new search is performed, and reuses that query on future search' do
+      # 1. Query with new search params
+      query_id = nil
+      expect do
+        response, result = post_graphql(input: { text_search: 'Range' }) { query }
+        expect(response.status).to eq(200), result.inspect
+        query_id = result.dig('data', 'clientSearch', 'searchQueryId')
+        expect(query_id).not_to be_nil
+        results = result.dig('data', 'clientSearch', 'nodes')
+        expect(results).to contain_exactly(a_hash_including({ 'id' => client1.id.to_s }))
+      end.to change(Hmis::ClientSearchQuery, :count).by(1)
+
+      search_query = Hmis::ClientSearchQuery.find(query_id)
+      expect(search_query.params).to eq({ 'text_search' => 'Range' })
+      expect(search_query.created_by).to eq(hmis_user)
+
+      # 2. Query again with the same search params
+      expect do
+        response, result = post_graphql(input: { text_search: 'Range' }) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'clientSearch', 'searchQueryId')).to eq(query_id)
+        results = result.dig('data', 'clientSearch', 'nodes')
+        expect(results).to contain_exactly(a_hash_including({ 'id' => client1.id.to_s }))
+      end.not_to change(Hmis::ClientSearchQuery, :count)
+
+      # 3. query for that search query ID (without passing other params)
+      expect do
+        response, result = post_graphql(input: { search_query_id: query_id }) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'clientSearch', 'searchQueryId')).to eq(query_id)
+        results = result.dig('data', 'clientSearch', 'nodes')
+        expect(results).to contain_exactly(a_hash_including({ 'id' => client1.id.to_s }))
+      end.not_to change(Hmis::ClientSearchQuery, :count)
     end
   end
 end
