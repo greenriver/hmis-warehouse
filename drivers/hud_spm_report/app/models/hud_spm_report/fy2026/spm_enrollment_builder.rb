@@ -4,6 +4,8 @@ module HudSpmReport::Fy2026
   # Maps HouseholdContext + Enrollment -> SpmEnrollment attributes
   # Similar to AprClientBuilder pattern
   class SpmEnrollmentBuilder
+    SPM_COC_FUNDER_CODES = HudHelper.util('2026').spm_coc_funders.map(&:to_s).to_set.freeze
+
     def initialize(report:, enrollment:, context:, filter:, current_income:, previous_income:)
       @report = report
       @enrollment = enrollment
@@ -64,14 +66,10 @@ module HudSpmReport::Fy2026
 
     def eligible_funding?
       @enrollment.project.funders.any? do |funder|
-        funder.funder.in?(spm_coc_funder_codes) &&
+        funder.funder.in?(SPM_COC_FUNDER_CODES) &&
           (funder.end_date.nil? || funder.end_date >= @filter.start) &&
           (funder.start_date.nil? || funder.start_date <= @filter.end)
       end
-    end
-
-    def spm_coc_funder_codes
-      @spm_coc_funder_codes ||= HudHelper.util('2026').spm_coc_funders.map(&:to_s).to_set
     end
 
     def calculate_days_enrolled

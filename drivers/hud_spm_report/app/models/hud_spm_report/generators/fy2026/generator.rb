@@ -91,9 +91,7 @@ module HudSpmReport::Generators::Fy2026
     private
 
     def spm_enrollment_scope
-      # ensure only SPM-relevant projects are included
-      adapter = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report)
-      adapter.service_history_enrollment_scope.entry
+      HudSpmReport::Fy2026::SpmEnrollment.she_scope(report)
     end
   end
 end

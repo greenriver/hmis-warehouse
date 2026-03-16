@@ -134,13 +134,16 @@ module HudSpmReport::Fy2026
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
     # to an aggregation object that refers to enrollments in this set.
+    def self.she_scope(report_instance)
+      HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).service_history_enrollment_scope.entry
+    end
+
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
-      adapter = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance)
 
       # Iterate over ServiceHistoryEnrollment records directly to avoid re-mapping
       # for the HouseholdContext.
-      adapter.service_history_enrollment_scope.entry.
+      she_scope(report_instance).
         preload(enrollment: [:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders]).
         find_in_batches(batch_size: 500) do |batch|
         report_instance.check_halt_status!
@@ -156,7 +159,7 @@ module HudSpmReport::Fy2026
           next if enrollment&.client.blank?
 
           context = contexts_by_she_id[she.id]
-          raise ArgumentError, "Missing HouseholdContext for ServiceHistoryEnrollment #{she.id} in report #{@report.id}" unless context
+          raise ArgumentError, "Missing HouseholdContext for ServiceHistoryEnrollment #{she.id} in report #{report_instance.id}" unless context
 
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
@@ -170,7 +173,7 @@ module HudSpmReport::Fy2026
             previous_income: previous_income_benefits,
           )
 
-          members << attributes if attributes.present?
+          members << attributes if attributes
         end
 
         import!(members) if members.any?

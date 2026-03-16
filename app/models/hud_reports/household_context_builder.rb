@@ -30,10 +30,6 @@ module HudReports
 
     private
 
-    def universe_she_ids
-      enrollment_scope.pluck(:id).to_set
-    end
-
     def copy_contexts_from_source
       # Validate date ranges match
       source_report = HudReports::ReportInstance.find(@source_report_id)
@@ -44,8 +40,6 @@ module HudReports
 
       # Discover which SHE IDs this report needs
       needed_she_ids = enrollment_scope.pluck(:id)
-
-      return if needed_she_ids.empty?
 
       HudReports::HouseholdContext.copy_subset!(
         source_report_id: @source_report_id,
@@ -58,7 +52,7 @@ module HudReports
 
     def build_contexts_from_scratch
       contexts = []
-      universe_ids = universe_she_ids
+      universe_ids = enrollment_scope.pluck(:id).to_set
       each_household_batch do |batch|
         # batch is array of [hh_id, data_source_id]
         all_service_history_enrollments = load_unfiltered_service_history_enrollments(batch)
