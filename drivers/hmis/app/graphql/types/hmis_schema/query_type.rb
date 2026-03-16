@@ -49,6 +49,7 @@ module Types
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
       # todo @martha - only return search query for this user
+      # todo @martha - remove support for this, we no longer need it? we always do double-query
       if input.search_query_id.present?
         query = Hmis::ClientSearchQuery.find_by(id: input.search_query_id)
         search_input = OpenStruct.new(query.params.to_h.symbolize_keys)
@@ -78,8 +79,8 @@ module Types
       argument :id, ID, required: true
     end
     def search_query(id:)
-      # todo @martha - create & use a new HMIS model
-      GrdaWarehouse::ClientSearchQuery.find_by(id: id)
+      # todo @martha - restrict to only return search queries for this user
+      Hmis::ClientSearchQuery.find_by(id: id)
     end
 
     clients_field :client_omni_search, 'Client omnisearch' do |field|
