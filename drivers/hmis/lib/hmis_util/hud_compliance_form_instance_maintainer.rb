@@ -49,9 +49,9 @@ module HmisUtil
       ensure_assessment_system_instances!
 
       # Create required system instances for HUD Service form (identifier = 'service')
-      # TODO(#6691) when data source is guaranteed to be present during form seeding in test, we can remove this check.
       if Rails.env.test? && @data_source.blank?
         # Unable to set up service form instances without data source specified
+        # TODO(#6691) when data source is guaranteed to be present during form seeding in test, we can remove this.
         Rails.logger.info 'No data source found. Skipping service form system instances in test. FIXME(#6691)'
       else
         ensure_service_form_system_instances!
@@ -64,7 +64,7 @@ module HmisUtil
     private
 
     def definition_scope
-      # TODO(): add 'where(data_source: @data_source)'
+      # TODO(#6691): add 'where(data_source: @data_source)'
       Hmis::Form::Definition.published.managed_in_version_control
     end
 
@@ -130,15 +130,14 @@ module HmisUtil
       service_identifier = FORM_IDENTIFIERS[:service]
       raise "form not found: #{service_identifier}" unless definition_scope.where(identifier: service_identifier).exists?
 
-      # Ensure HUD Service Categories exist for the data source
-      unless Hmis::Hud::CustomServiceType.where(data_source_id: @data_source.id).exists?
+      # Ensure HUD Service Types and Categories exist for the data source
+      unless Hmis::Hud::CustomServiceType.hud.where(data_source: @data_source).exists?
         Rails.logger.info "No HUD Service Categories found for DS##{@data_source.id}. Seeding..."
         ::HmisUtil::ServiceTypes.seed_hud_service_types(@data_source.id)
-
       end
 
-      # { record_type => CustomServiceType } in the data source
-      custom_service_types = Hmis::Hud::CustomServiceType.where(data_source_id: @data_source.id).preload(:custom_service_category).index_by(&:hud_record_type)
+      # { record_type => CustomServiceType } in the data source for HUD Service Types
+      service_types = Hmis::Hud::CustomServiceType.hud.where(data_source: @data_source).preload(:custom_service_category).index_by(&:hud_record_type)
       # binding.pry
 
       # For each requirement, create Form Instance(s) for each combination of project type + funder
@@ -147,9 +146,9 @@ module HmisUtil
         project_types = config[:project_types] || [nil]
         funders = config[:funders] || [nil]
 
-        service_type = custom_service_types[record_type]
+        service_type = service_types[record_type]
         service_category = service_type&.custom_service_category
-        raise "HUD Service Type not found for record type #{record_type} in DS##{@data_source.id}. Did you run seed_service_types?" unless service_type && service_category
+        raise "HUD Service Type not found for record type #{record_type} in DS##{@data_source.id}. Did you run HmisUtil::ServiceTypes.seed_hud_service_types" unless service_type && service_category
 
         project_types.each do |project_type|
           funders.each do |funder|
