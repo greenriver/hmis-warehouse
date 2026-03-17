@@ -182,7 +182,6 @@ module HudReports
       end
 
       hh_stats = calculate_hh_stats(active_hh_she_hashes)
-      vet_stats = calculate_veteran_stats(active_hh_she_hashes)
 
       service_history_enrollments.map do |m|
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
@@ -193,8 +192,7 @@ module HudReports
                                  hh_id: hh_id,
                                  data_source_id: data_source_id,
                                  active_hh_she_hashes: active_hh_she_hashes,
-                                 hh_stats: hh_stats,
-                                 vet_stats: vet_stats)
+                                 hh_stats: hh_stats)
       end
     end
 
@@ -208,12 +206,11 @@ module HudReports
         # Determine report_date for chronic calculation
         report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
 
-        chronic_at_start = enrollment&.chronically_homeless_at_start
-        # Performance: Re-use entry-date calculation if PIT date is the same (avoiding expensive HUD logic tree)
-        if report_date.blank? || report_date == enrollment&.EntryDate
-          pit_chronic_at_start = chronic_at_start
+        # Use the PIT date if provided (e.g. PIT reports), otherwise use entry date
+        chronic_detail = if report_date.present? && report_date != enrollment&.EntryDate
+          enrollment&.chronically_homeless_at_start(date: report_date)
         else
-          pit_chronic_at_start = enrollment&.chronically_homeless_at_start(date: report_date)
+          enrollment&.chronically_homeless_at_start
         end
 
         {
@@ -226,10 +223,8 @@ module HudReports
           exit_date: m.last_date_in_program,
           age: age,
           dob: source_client&.DOB,
-          chronic_status: chronic_at_start == :yes,
-          pit_chronic_status: pit_chronic_at_start == :yes,
-          chronic_detail: chronic_at_start,
-          pit_chronic_detail: pit_chronic_at_start,
+          chronic_status: chronic_detail == :yes,
+          chronic_detail: chronic_detail,
           relationship_to_hoh: enrollment&.RelationshipToHoH,
           move_in_date: m.move_in_date,
           veteran_status: source_client&.VeteranStatus,
@@ -262,31 +257,13 @@ module HudReports
       hh_all_ages = active_hh_she_hashes.map { |m| m[:age] }
       hh_type = HudReports::HouseholdLogic.calculate_household_type(hh_all_ages)
 
-      hh_ages = hh_all_ages.compact
       {
         hh_type: hh_type,
-        hh_max_age: hh_ages.max || 0,
-        hh_member_count: active_hh_she_hashes.size,
-        hh_has_minor_children: active_hh_she_hashes.any? { |m| m[:relationship_to_hoh] == 2 && m[:age] && m[:age] < 18 },
-        hh_max_age_of_parents: active_hh_she_hashes.select { |m| [1, 3].include?(m[:relationship_to_hoh]) }.map { |m| m[:age] }.compact.max || 0,
+        hh_max_age: hh_all_ages.compact.max || 0,
       }
     end
 
-    def calculate_veteran_stats(active_hh_she_hashes)
-      # Veteran Stats (active SHEs only)
-      hh_adults = active_hh_she_hashes.select { |m| m[:age] && m[:age] >= 18 }
-      hh_veterans = hh_adults.select { |m| m[:veteran_status] == 1 }
-
-      {
-        hh_any_veteran_chronic: hh_veterans.any? { |m| m[:chronic_status] == true },
-        hh_any_veteran_non_chronic: hh_veterans.any? { |m| m[:chronic_status] == false },
-        hh_all_adult_non_veteran: hh_adults.present? && hh_adults.all? { |m| m[:veteran_status]&.zero? },
-        hh_any_adult_refused_veteran: hh_adults.any? { |m| [8, 9].include?(m[:veteran_status]) },
-        hh_any_adult_missing_veteran: hh_adults.any? { |m| m[:veteran_status] == 99 },
-      }
-    end
-
-    def build_context_for_member( # rubocop:disable Metrics/ParameterLists
+    def build_context_for_member(
       she,
       member_hash,
       hoh_data,
@@ -296,12 +273,10 @@ module HudReports
       hh_id:,
       data_source_id:,
       active_hh_she_hashes:,
-      hh_stats:,
-      vet_stats:
+      hh_stats:
     )
       # Inherited values
       chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data)
-      pit_chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data, chronic_status_key: :pit_chronic_status)
       inherited_move_in_date = HudReports::HouseholdLogic.calculate_move_in_date(member_hash, hoh_data, report_end_date: @report.end_date)
 
       # SPM-specific: Calculate inherited date to street for Measure 1b
@@ -340,30 +315,17 @@ module HudReports
         relationship_to_hoh: member_hash[:relationship_to_hoh],
         raw_chronic_status: member_hash[:chronic_status],
         raw_chronic_detail: member_hash[:chronic_detail],
-        raw_pit_chronic_status: member_hash[:pit_chronic_status],
-        raw_pit_chronic_detail: member_hash[:pit_chronic_detail],
-        pit_chronic_status: member_hash[:pit_chronic_status],
         household_type: hh_stats[:hh_type],
         is_parenting_youth: is_parenting_youth,
         has_other_clients_over_25: has_other_clients_over_25,
         inherited_chronic_status: chronic_source&.[](:status) || false,
         inherited_chronic_detail: chronic_source&.[](:detail),
-        inherited_pit_chronic_status: pit_chronic_source&.[](:status) || false,
-        inherited_pit_chronic_detail: pit_chronic_source&.[](:detail),
         inherited_move_in_date: inherited_move_in_date,
         member_entry_date: member_hash[:entry_date],
         member_exit_date: member_hash[:exit_date],
         member_date_to_street: member_hash[:date_to_street],
         inherited_date_to_street: inherited_date_to_street,
-        member_count: hh_stats[:hh_member_count],
         hh_max_age: hh_stats[:hh_max_age],
-        hh_has_minor_children: hh_stats[:hh_has_minor_children],
-        hh_max_age_of_parents: hh_stats[:hh_max_age_of_parents],
-        hh_any_veteran_chronic: vet_stats[:hh_any_veteran_chronic],
-        hh_any_veteran_non_chronic: vet_stats[:hh_any_veteran_non_chronic],
-        hh_all_adult_non_veteran: vet_stats[:hh_all_adult_non_veteran],
-        hh_any_adult_refused_veteran: vet_stats[:hh_any_adult_refused_veteran],
-        hh_any_adult_missing_veteran: vet_stats[:hh_any_adult_missing_veteran],
       )
     end
   end

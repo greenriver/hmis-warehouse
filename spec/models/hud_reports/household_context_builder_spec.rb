@@ -76,7 +76,6 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
       expect(contexts.count).to eq(2)
       expect(contexts.pluck(:household_type).uniq).to eq(['adults_and_children'])
-      expect(contexts.pluck(:member_count).uniq).to eq([2])
 
       # Verify new pre-computed fields
       contexts.each do |ctx|

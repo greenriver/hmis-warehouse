@@ -59,8 +59,6 @@ module HudReports
         dob: dob,
         age: age,
         veteran_status: veteran_status,
-        pit_chronic_status: raw_pit_chronic_status,
-        pit_chronic_detail: raw_pit_chronic_detail,
         chronic_status: raw_chronic_status,
         chronic_detail: raw_chronic_detail,
         relationship_to_hoh: relationship_to_hoh,
