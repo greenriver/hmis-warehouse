@@ -78,6 +78,9 @@ module HudReports
       end
 
       # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
+      #
+      # Note: Out-of-bounds dates (prior to entry, after exit, or after report end) are
+      # disregarded per HUD HMIS Reporting Glossary rules.
       def calculate_move_in_date(member, hoh, report_end_date: nil)
         # Rule: Disregard move-in dates outside of enrollment bounds or after report end
         # "Individuals with [housing move-in dates] prior to their [project start dates] or [after]
@@ -132,6 +135,15 @@ module HudReports
 
         # Otherwise no start of homelessness
         nil
+      end
+
+      # Computes the length of stay for a member, adjusting for HUD's convention for active stayers.
+      # Rule: "For clients who have not yet exited, the end date is the report end date plus one day."
+      def calculate_length_of_stay(member, report_end_date:)
+        return 0 unless member && member[:entry_date]
+
+        stayer_end_date = [member[:exit_date], report_end_date + 1.day].compact.min
+        (stayer_end_date - member[:entry_date]).to_i
       end
 
       # APR Q27: Parenting Youth.

@@ -306,7 +306,7 @@ module HudApr::Generators::Shared::Fy2026
         non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
         non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
         non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
-        other_clients_over_25: @ctx.has_other_clients_over_25,
+        other_clients_over_25: @ctx.non_youth_household,
         overlapping_enrollments: overlapping_enrollments(@raw_enrollments, @last_service_history_enrollment),
         parenting_youth: @ctx.is_parenting_youth,
         pit_enrollments: pit_enrollment_info(@raw_enrollments, @context_map),

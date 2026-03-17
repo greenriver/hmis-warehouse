@@ -441,7 +441,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         described_class.new(generator, report, enrollment_scope: generator.base_enrollment_scope).call
         youth_context = HudReports::HouseholdContext.find_by(service_history_enrollment_id: enrollment_youth.id)
         expect(youth_context.is_parenting_youth).to be false
-        expect(youth_context.has_other_clients_over_25).to be true
+        expect(youth_context.non_youth_household).to be true
       end
     end
 
@@ -658,7 +658,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         report.reload.household_contexts.each do |ctx|
           # With no HoH, hoh_entry_date is nil so no household-level inheritance can fire;
           # each member falls back to their own raw chronic status.
-          expect(ctx.inherited_chronic_status).to eq(ctx.raw_chronic_status || false)
+          expect(ctx.inherited_chronic_status).to eq(ctx.member_chronic_status || false)
         end
       end
     end

@@ -172,14 +172,8 @@ module HudReports
       end
 
       hoh_data = find_anchor_hoh(hh_member_hashes)
-      hoh_adjusted_move_in_date = (HudReports::HouseholdLogic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
-
-      hoh_stayer_end_date = [hoh_data&.[](:exit_date), @report.end_date + 1.day].compact.min
-      hoh_length_of_stay = if hoh_data && hoh_stayer_end_date
-        (hoh_stayer_end_date - hoh_data[:entry_date]).to_i
-      else
-        0
-      end
+      hoh_adjusted_move_in_date = (household_logic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
+      hoh_length_of_stay = household_logic.calculate_length_of_stay(hoh_data, report_end_date: @report.end_date)
 
       hh_stats = calculate_hh_stats(active_hh_she_hashes)
 
@@ -255,7 +249,7 @@ module HudReports
 
     def calculate_hh_stats(active_hh_she_hashes)
       hh_all_ages = active_hh_she_hashes.map { |m| m[:age] }
-      hh_type = HudReports::HouseholdLogic.calculate_household_type(hh_all_ages)
+      hh_type = household_logic.calculate_household_type(hh_all_ages)
 
       {
         hh_type: hh_type,
@@ -276,18 +270,18 @@ module HudReports
       hh_stats:
     )
       # Inherited values
-      chronic_source = HudReports::HouseholdLogic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data)
-      inherited_move_in_date = HudReports::HouseholdLogic.calculate_move_in_date(member_hash, hoh_data, report_end_date: @report.end_date)
+      chronic_source = household_logic.calculate_chronic_status(hh_member_hashes, member_hash, hoh_data)
+      inherited_move_in_date = household_logic.calculate_move_in_date(member_hash, hoh_data, report_end_date: @report.end_date)
 
       # SPM-specific: Calculate inherited date to street for Measure 1b
-      inherited_date_to_street = HudReports::HouseholdLogic.calculate_date_to_street(
+      inherited_date_to_street = household_logic.calculate_date_to_street(
         member_hash,
         hoh_data,
       )
 
       # Parenting youth logic (active SHEs only)
-      is_parenting_youth = HudReports::HouseholdLogic.calculate_is_parenting_youth(member_hash, active_hh_she_hashes)
-      has_other_clients_over_25 = !HudReports::HouseholdLogic.only_youth?(active_hh_she_hashes)
+      is_parenting_youth = household_logic.calculate_is_parenting_youth(member_hash, active_hh_she_hashes)
+      has_other_clients_over_25 = !household_logic.only_youth?(active_hh_she_hashes)
 
       HudReports::HouseholdContext.new(
         report_instance_id: @report.id,
@@ -310,14 +304,14 @@ module HudReports
         hoh_date_to_street: hoh_data&.[](:date_to_street),
         hoh_move_in_date: hoh_move_in_date,
         hoh_age: hoh_data&.[](:age),
-        hoh_veteran: hoh_data&.[](:veteran_status) == 1,
+        hoh_veteran_status: hoh_data&.[](:veteran_status),
         is_hoh: she.enrollment&.RelationshipToHoH == 1,
         relationship_to_hoh: member_hash[:relationship_to_hoh],
-        raw_chronic_status: member_hash[:chronic_status],
-        raw_chronic_detail: member_hash[:chronic_detail],
+        member_chronic_status: member_hash[:chronic_status],
+        member_chronic_detail: member_hash[:chronic_detail],
         household_type: hh_stats[:hh_type],
         is_parenting_youth: is_parenting_youth,
-        has_other_clients_over_25: has_other_clients_over_25,
+        non_youth_household: has_other_clients_over_25,
         inherited_chronic_status: chronic_source&.[](:status) || false,
         inherited_chronic_detail: chronic_source&.[](:detail),
         inherited_move_in_date: inherited_move_in_date,
@@ -327,6 +321,10 @@ module HudReports
         inherited_date_to_street: inherited_date_to_street,
         hh_max_age: hh_stats[:hh_max_age],
       )
+    end
+
+    def household_logic
+      HudReports::HouseholdLogic
     end
   end
 end

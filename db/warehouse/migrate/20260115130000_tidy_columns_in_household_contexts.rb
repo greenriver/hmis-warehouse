@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class RemoveUnusedColumnsFromHouseholdContexts < ActiveRecord::Migration[7.1]
+class TidyColumnsInHouseholdContexts < ActiveRecord::Migration[7.1]
   def change
     safety_assured do
       # remove extra fields that are either redundant or not needed for current reports
@@ -18,7 +18,13 @@ class RemoveUnusedColumnsFromHouseholdContexts < ActiveRecord::Migration[7.1]
         t.remove :hh_has_minor_children
         t.remove :hh_max_age_of_parents
         t.remove :member_count
+        t.remove :hoh_veteran
+        t.integer :hoh_veteran_status
       end
+
+      rename_column :hud_report_household_contexts, :has_other_clients_over_25, :non_youth_household
+      rename_column :hud_report_household_contexts, :raw_chronic_status, :member_chronic_status
+      rename_column :hud_report_household_contexts, :raw_chronic_detail, :member_chronic_detail
     end
   end
 end
