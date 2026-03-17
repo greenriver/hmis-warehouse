@@ -23,6 +23,7 @@ RSpec.describe User, type: :model do
       user.first_name = new_first_name
       user.last_name = new_last_name
       user.save!
+      user.sync_to_hud_users
       hmis_hud_user.reload
       other_hud_user.reload
     end.to change(hmis_hud_user, :user_first_name).to(new_first_name).
@@ -38,6 +39,7 @@ RSpec.describe User, type: :model do
       user.email = new_email
       user.save!
       user.confirm
+      user.sync_to_hud_users(previous_email: old_email)
       hmis_hud_user.reload
       other_hud_user.reload
     end.to change(hmis_hud_user, :user_email).to(new_email).
@@ -52,6 +54,7 @@ RSpec.describe User, type: :model do
       user.last_name = new_last_name
       user.save!
       user.confirm
+      user.sync_to_hud_users(previous_email: old_email)
       hmis_hud_user.reload
       other_hud_user.reload
     end.to change(hmis_hud_user, :user_email).to(new_email).

@@ -102,6 +102,8 @@ module Admin
       end
 
       existing_health_roles = @user.health_roles.to_a
+      email_before = @user.email
+
       begin
         User.transaction do
           @user.skip_reconfirmation!
@@ -142,6 +144,7 @@ module Admin
           end
           # END_ACL
         end
+        @user.sync_to_hud_users(previous_email: email_before) if HmisEnforcement.hmis_enabled?
       rescue Exception
         flash[:error] = 'Please review the form problems below'
         render :edit
