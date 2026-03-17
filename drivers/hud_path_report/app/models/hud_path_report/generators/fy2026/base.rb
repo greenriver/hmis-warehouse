@@ -348,7 +348,7 @@ module HudPathReport::Generators::Fy2026
 
       contacts += enrollment.current_living_situations.between(start_date: min_date, end_date: max_date).pluck(:InformationDate)
       contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfEngagement)
-      contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
+      contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
       contacts += enrollment.services.path_service.between(start_date: min_date, end_date: max_date).pluck(:DateProvided).uniq.reject { |d| d.in?(contacts) }
       contacts
     end
