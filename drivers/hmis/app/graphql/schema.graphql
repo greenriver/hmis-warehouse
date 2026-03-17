@@ -2004,11 +2004,6 @@ input ClientSearchInput {
   projects: [ID!]
 
   """
-  ID of existing search query
-  """
-  searchQueryId: ID
-
-  """
   Last 4 digits of SSN
   """
   ssnSerial: String

@@ -48,27 +48,19 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
-      # todo @martha - only return search query for this user
-      # todo @martha - remove support for this, we no longer need it? we always do double-query
-      if input.search_query_id.present?
-        query = Hmis::ClientSearchQuery.find_by(id: input.search_query_id)
-        search_input = OpenStruct.new(query.params.to_h.symbolize_keys)
-      else
-        params = input.to_h
-        # todo @martha - validate/mistrust and normalize the params, similar to:
-        # safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
-        query = Hmis::ClientSearchQuery.find_or_create_by_normalized_params(params, user: current_user)
-        raise query.errors.full_messages.join(', ') unless query.valid?
+      # Find or create a ClientSearchQuery for the given params.
+      # todo @martha - validate/mistrust and normalize the params, similar to:
+      # safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      query = Hmis::ClientSearchQuery.find_or_create_by_normalized_params(input.to_h, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
 
-        search_input = input.to_params
-      end
-
+      # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
       context[:search_query_id] = query.id
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
       search_scope = Hmis::Hud::Client.client_search(
-        input: search_input,
+        input: input.to_params,
         user: current_user,
         sorted: sorted,
       )
