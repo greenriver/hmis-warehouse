@@ -15,6 +15,8 @@ RSpec.configure do |config|
   config.after(:all, :manages_hmis_form_state) do
     Hmis::Form::Instance.delete_all
     Hmis::Form::Definition.delete_all
-    HmisUtil::JsonForms.seed_all
+    GrdaWarehouse::DataSource.hmis.pluck(:id).each do |data_source_id|
+      HmisUtil::JsonForms.seed_all(data_source_id: data_source_id)
+    end
   end
 end

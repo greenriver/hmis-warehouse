@@ -1009,4 +1009,106 @@ module HudUtility2026
       { funder: cls_funder_codes[:rhy_street_outreach] },
     ]
   end
+
+  # Returns the configuration that drives which HUD Service form (identifier = 'service') system
+  # form instances are created. Used by HudComplianceFormInstanceMaintainer to ensure compliance.
+  # Based on the FY2026 HUD HMIS Data Dictionary. For each service type, refer to the
+  # "Funder: Program-Component" section in the Data Dictionary to verify which funders and
+  # project types require collection.
+  #
+  # Each element has :record_type (HUD record type code), and optionally :project_types and/or
+  # :funders (arrays; nil means one rule with project_type/funder nil). The maintainer expands
+  # (project_types || [nil]) × (funders || [nil]) and creates one system instance per (category,
+  # project_type, funder) per data source.
+  def service_form_funder_applicability_requirements
+    # Record type 200 – Bed Night. Data Dictionary: Funder: Program-Component – required for ES NbN (project type 1).
+    bed_night = {
+      record_type: 200,
+      project_types: [1], # Emergency Shelter - Night-by-Night
+      funders: nil,
+    }
+
+    # Record type 141 – P1 Services Provided - PATH Funded. Data Dictionary: Funder: Program-Component – HHS: PATH (21).
+    p1_path_service = {
+      record_type: 141,
+      project_types: nil,
+      funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
+    }
+
+    # Record type 161 – P2 Referrals Provided - PATH. Data Dictionary: Funder: Program-Component – HHS: PATH (21).
+    p2_path_referral = {
+      record_type: 161,
+      project_types: nil,
+      funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
+    }
+
+    # Record type 142 – R14 RHY Service Connections. Data Dictionary: Funder: Program-Component –
+    # All HHS RHY funders except Street Outreach (25); plus YHDP (43).
+    rhy_funders = funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [25] + [43]
+    r14_rhy_service = {
+      record_type: 142,
+      project_types: nil,
+      funders: rhy_funders,
+    }
+
+    # Record type 143 – W1 Services Provided – HOPWA. Data Dictionary: Funder: Program-Component –
+    # All HUD: HOPWA funders. Collection can apply across project types; we require by funder only.
+    w1_hopwa_service = {
+      record_type: 143,
+      project_types: nil,
+      funders: funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
+    }
+
+    # Record type 151 – W2 Financial Assistance - HOPWA. Data Dictionary: Funder: Program-Component –
+    # All HUD: HOPWA funders.
+    w2_hopwa_financial = {
+      record_type: 151,
+      project_types: nil,
+      funders: funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
+    }
+
+    # Record type 144 – V2 Services Provided – SSVF. Data Dictionary: Funder: Program-Component –
+    # VA: SSVF; collection required for RRH (13) & HP (12), optional for other VA. We require for all VA funders.
+    v2_ssvf_service = {
+      record_type: 144,
+      project_types: nil,
+      funders: funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
+    }
+
+    # Record type 152 – V3 Financial Assistance – SSVF. Data Dictionary: Funder: Program-Component – VA funders.
+    v3_ssvf_financial = {
+      record_type: 152,
+      project_types: nil,
+      funders: funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
+    }
+
+    # Record type 210 – V8 HUD-VASH Voucher Tracking. Data Dictionary: Funder: Program-Component –
+    # Required for PSH (3) with HUD/VASH (20).
+    v8_hud_vash_voucher = {
+      record_type: 210,
+      project_types: [3], # PH - Permanent Supportive Housing
+      funders: [20], # HUD: HUD/VASH
+    }
+
+    # Record type 300 – C2 Moving On Assistance Provided. Data Dictionary: Funder: Program-Component –
+    # HUD: CoC - Permanent Supportive Housing (2).
+    c2_moving_on = {
+      record_type: 300,
+      project_types: nil,
+      funders: [2], # HUD: CoC - Permanent Supportive Housing
+    }
+
+    [
+      bed_night,
+      p1_path_service,
+      p2_path_referral,
+      r14_rhy_service,
+      w1_hopwa_service,
+      w2_hopwa_financial,
+      v2_ssvf_service,
+      v3_ssvf_financial,
+      v8_hud_vash_voucher,
+      c2_moving_on,
+    ]
+  end
 end

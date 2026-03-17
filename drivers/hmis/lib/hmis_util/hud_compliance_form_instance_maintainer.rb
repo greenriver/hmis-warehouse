@@ -17,6 +17,7 @@ module HmisUtil
       date_of_engagement: 'date_of_engagement',
       path_status: 'path_status',
       current_living_situation: 'current_living_situation',
+      service: 'service',
       base_intake: 'base-intake',
       base_exit: 'base-exit',
       base_update: 'base-update',
@@ -32,8 +33,10 @@ module HmisUtil
       FORM_IDENTIFIERS[:base_post_exit],
     ].freeze
 
-    def initialize(dry_run: false)
+    def initialize(dry_run: false, data_source_id: nil)
       @dry_run = dry_run
+      # TODO(#6691) require data source. Currently this class allows it to be missing because this gets run in rails helper before data sources are created.
+      @data_source = data_source_id ? GrdaWarehouse::DataSource.hmis.find(data_source_id) : GrdaWarehouse::DataSource.hmis.first
       @created = []  # OpenStruct(type:, definition_identifier:, project_type?, funder?) for reporting
       @updated = []  # same shape: existing instances changed to system/active
       setup_notifier('HUD Form Compliance')
@@ -44,13 +47,26 @@ module HmisUtil
       ensure_record_form_system_instances!
       # Create required system instances for assessments (Intake, Exit, etc)
       ensure_assessment_system_instances!
-      # TODO(#8874) ADD: ensure system instances exist for HUD Service form (Currently handled by HmisUtil::ServiceTypes)
+
+      # Create required system instances for HUD Service form (identifier = 'service')
+      # TODO(#6691) when data source is guaranteed to be present during form seeding in test, we can remove this check.
+      if Rails.env.test? && @data_source.blank?
+        # Unable to set up service form instances without data source specified
+        Rails.logger.info 'No data source found. Skipping service form system instances in test. FIXME(#6691)'
+      else
+        ensure_service_form_system_instances!
+      end
 
       # Report changes
       report_changes_if_any
     end
 
     private
+
+    def definition_scope
+      # TODO(): add 'where(data_source: @data_source)'
+      Hmis::Form::Definition.published.managed_in_version_control
+    end
 
     # Ensures all required system instances exist for HUD record forms: default system form roles,
     # move-in date, date of engagement, path status, and current living situation.
@@ -108,6 +124,47 @@ module HmisUtil
       end
     end
 
+    # Ensures required system instances exist for the HUD Service form
+    # Requirements come from HudHelper.util.service_form_funder_applicability_requirements.
+    def ensure_service_form_system_instances!
+      service_identifier = FORM_IDENTIFIERS[:service]
+      raise "form not found: #{service_identifier}" unless definition_scope.where(identifier: service_identifier).exists?
+
+      # Ensure HUD Service Categories exist for the data source
+      unless Hmis::Hud::CustomServiceType.where(data_source_id: @data_source.id).exists?
+        Rails.logger.info "No HUD Service Categories found for DS##{@data_source.id}. Seeding..."
+        ::HmisUtil::ServiceTypes.seed_hud_service_types(@data_source.id)
+
+      end
+
+      # { record_type => CustomServiceType } in the data source
+      custom_service_types = Hmis::Hud::CustomServiceType.where(data_source_id: @data_source.id).preload(:custom_service_category).index_by(&:hud_record_type)
+      # binding.pry
+
+      # For each requirement, create Form Instance(s) for each combination of project type + funder
+      HudHelper.util.service_form_funder_applicability_requirements.each do |config|
+        record_type = config[:record_type]
+        project_types = config[:project_types] || [nil]
+        funders = config[:funders] || [nil]
+
+        service_type = custom_service_types[record_type]
+        service_category = service_type&.custom_service_category
+        raise "HUD Service Type not found for record type #{record_type} in DS##{@data_source.id}. Did you run seed_service_types?" unless service_type && service_category
+
+        project_types.each do |project_type|
+          funders.each do |funder|
+            create_system_service_instance!(
+              identifier: service_identifier,
+              custom_service_category_id: service_category.id,
+              custom_service_category_name: service_category.name,
+              project_type: project_type,
+              funder: funder,
+            )
+          end
+        end
+      end
+    end
+
     def create_default_system_instance!(identifier:)
       instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
       was_new = instance.new_record?
@@ -132,7 +189,7 @@ module HmisUtil
 
     def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil)
       raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
-      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.managed_in_version_control.where(identifier: identifier).exists?
+      raise "form not found: #{identifier}" unless definition_scope.where(identifier: identifier).exists?
 
       attrs = {
         definition_identifier: identifier,
@@ -149,6 +206,34 @@ module HmisUtil
 
       instance.save! unless @dry_run
       payload = OpenStruct.new(type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder)
+      was_new ? @created << payload : @updated << payload
+    end
+
+    def create_system_service_instance!(identifier:, custom_service_category_id:, custom_service_category_name: nil, project_type: nil, funder: nil)
+      raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
+
+      attrs = {
+        definition_identifier: identifier,
+        custom_service_category_id: custom_service_category_id,
+        project_type: project_type,
+        funder: funder,
+        entity_type: nil,
+        entity_id: nil,
+        custom_service_type_id: nil,
+      }
+      instance = Hmis::Form::Instance.find_or_initialize_by(attrs)
+      was_new = instance.new_record?
+      instance.assign_attributes(active: true, system: true)
+      return unless instance.changed?
+
+      instance.save! unless @dry_run
+      payload = OpenStruct.new(
+        type: :service_rule,
+        definition_identifier: identifier,
+        custom_service_category_name: custom_service_category_name,
+        project_type: project_type,
+        funder: funder,
+      )
       was_new ? @created << payload : @updated << payload
     end
 
@@ -185,6 +270,7 @@ module HmisUtil
       entries.map do |entry|
         summary = [
           entry.definition_identifier,
+          entry.custom_service_category_name ? "category=#{entry.custom_service_category_name}" : nil,
           entry.project_type ? "project_type=#{entry.project_type}" : nil,
           entry.funder ? "funder=#{entry.funder}" : nil,
         ].compact.join(', ')

@@ -360,4 +360,41 @@ RSpec.describe HudUtility2026 do
       end
     end
   end
+
+  describe '#service_form_funder_applicability_requirements' do
+    it 'returns an array of config hashes with :record_type and optional :project_types and :funders' do
+      requirements = HudHelper.util('2026').service_form_funder_applicability_requirements
+      expect(requirements).to be_an(Array)
+      expect(requirements).not_to be_empty
+      requirements.each do |config|
+        expect(config).to be_a(Hash)
+        expect(config).to have_key(:record_type)
+        expect(config[:record_type]).to be_a(Integer)
+        expect(config).to have_key(:project_types) if config.key?(:project_types)
+        expect(config).to have_key(:funders) if config.key?(:funders)
+      end
+    end
+
+    it 'includes key HUD service record types (Bed Night, PATH, RHY, etc.)' do
+      requirements = HudHelper.util('2026').service_form_funder_applicability_requirements
+      record_types = requirements.map { |c| c[:record_type] }
+      expect(record_types).to include(200)  # Bed Night
+      expect(record_types).to include(141)  # P1 PATH Service
+      expect(record_types).to include(161) # P2 PATH Referral
+      expect(record_types).to include(142) # R14 RHY Service
+      expect(record_types).to include(143) # W1 HOPWA Service
+      expect(record_types).to include(144) # V2 SSVF Service
+      expect(record_types).to include(210) # V8 HUD-VASH
+      expect(record_types).to include(300) # C2 Moving On
+    end
+
+    it 'includes funder codes where required by Data Dictionary (e.g. PATH 21, HUD-VASH 20)' do
+      requirements = HudHelper.util('2026').service_form_funder_applicability_requirements
+      path_config = requirements.find { |c| c[:record_type] == 141 }
+      expect(path_config[:funders]).to eq([21])
+      v8_config = requirements.find { |c| c[:record_type] == 210 }
+      expect(v8_config[:funders]).to eq([20])
+      expect(v8_config[:project_types]).to eq([3])
+    end
+  end
 end
