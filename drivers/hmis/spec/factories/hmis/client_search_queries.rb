@@ -10,6 +10,6 @@ FactoryBot.define do
   factory :hmis_client_search_query, class: 'Hmis::ClientSearchQuery' do
     created_by { association :user }
     params { { 'text_search' => 'test' } }
-    fingerprint { GrdaWarehouse::ClientSearchQuery.generate_fingerprint(params) }
+    fingerprint { Hmis::ClientSearchQuery.generate_fingerprint(params, created_by) }
   end
 end

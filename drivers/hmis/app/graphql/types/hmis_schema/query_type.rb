@@ -51,7 +51,7 @@ module Types
       # Find or create a ClientSearchQuery for the given params.
       # todo @martha - validate/mistrust and normalize the params, similar to:
       # safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
-      query = Hmis::ClientSearchQuery.find_or_create_by_normalized_params(input.to_h, user: current_user)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
       raise query.errors.full_messages.join(', ') unless query.valid?
 
       # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
@@ -71,8 +71,8 @@ module Types
       argument :id, ID, required: true
     end
     def search_query(id:)
-      # todo @martha - restrict to only return search queries for this user
-      Hmis::ClientSearchQuery.find_by(id: id)
+      # Only return the requested search query if it is viewable by the current user
+      Hmis::ClientSearchQuery.viewable_by(current_user).find_by(id: id)
     end
 
     clients_field :client_omni_search, 'Client omnisearch' do |field|

@@ -13,26 +13,6 @@ module ClientSearchQueryShared
   included do
     validate :validate_params
 
-    def self.find_or_create_by_normalized_params(params, user:)
-      # Validate params first
-      instance = new(params: params)
-      instance.validate_params
-      return instance if instance.errors.any?
-
-      fingerprint = generate_fingerprint(params)
-      upsert(
-        { fingerprint: fingerprint, params: params, created_by_id: user.id },
-        unique_by: :fingerprint,
-        on_duplicate: Arel.sql('params = EXCLUDED.params, created_by_id = EXCLUDED.created_by_id'),
-      )
-
-      find_by!(fingerprint: fingerprint)
-    end
-
-    def self.generate_fingerprint(params)
-      Digest::SHA256.hexdigest(params.to_json)
-    end
-
     def validate_params
       return if params.blank?
 

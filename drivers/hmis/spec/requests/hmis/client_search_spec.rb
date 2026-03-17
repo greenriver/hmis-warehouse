@@ -448,15 +448,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    # context 'when there is an existing search query created by a different user' do
-    #   let!(:other_user) { create :hmis_user }
-    #   let!(:other_search_query) { create :hmis_client_search_query, created_by: other_user, params: { 'text_search' => 'Range' } }
+    context 'when there is an existing search query created by a different user' do
+      let!(:other_user) { create :hmis_user }
+      let!(:existing_query) { create :hmis_client_search_query, created_by: other_user, params: { 'text_search' => 'Range' } }
 
-    #   it 'creates a new search query when searching for the same params' do
-    #     response, result = post_graphql(input: { text_search: 'Range' }) { query }
-    #     expect(response.status).to eq(200), result.inspect
-    #   end
-    # end
+      it 'creates a new search query when searching for the same params' do
+        expect do
+          response, result = post_graphql(input: { text_search: 'Range' }) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'clientSearch', 'searchQueryId')).not_to eq(existing_query.id)
+        end.to change(Hmis::ClientSearchQuery, :count).by(1)
+      end
+    end
   end
 end
 
