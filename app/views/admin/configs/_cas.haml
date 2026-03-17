@@ -7,7 +7,7 @@
     .jCasSyncMonths
       = f.input :cas_sync_months, as: :select_two, collection: GrdaWarehouse::Config.available_cas_sync_months, label: 'Clients active within prior'
     .jCasSyncProjectGroup
-      = f.input :cas_sync_project_group_id, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), label: 'Project Group to sync', as: :select_two
+      = f.input :cas_sync_project_group_id, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), label: 'Project Group to sync', hint: 'Optional for Active clients within range (leave blank to include all homeless/CE projects including projects that act as homeless for CAS). Required for Project group and Boston.', as: :select_two
     = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', as: :select_two
     = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
     = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', as: :select_two, input_html: { multiple: true }

@@ -324,7 +324,8 @@ module AcHmis
     end
 
     def data_source
-      @data_source ||= GrdaWarehouse::DataSource.hmis.first!
+      # Expect exactly one HMIS data source
+      @data_source ||= GrdaWarehouse::DataSource.hmis.sole
     end
 
     def system_user
