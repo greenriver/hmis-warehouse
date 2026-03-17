@@ -124,19 +124,29 @@ module GrdaWarehouse
     end
 
     def self.encoded_logo
-      Base64.strict_encode64(active_theme.logo.download)
+      cached_encoded_attachment(active_theme.logo)
     end
 
     def self.encoded_print_logo
-      Base64.strict_encode64(active_theme.print_logo.download)
+      cached_encoded_attachment(active_theme.print_logo)
     end
 
     def self.encoded_careplan_logo
-      Base64.strict_encode64(active_theme.careplan_logo.download)
+      cached_encoded_attachment(active_theme.careplan_logo)
     end
 
     def self.encoded_hmis_logo
-      Base64.strict_encode64(active_theme.hmis_logo.download)
+      cached_encoded_attachment(active_theme.hmis_logo)
+    end
+
+    def self.cached_encoded_attachment(attachment)
+      return nil unless attachment.attached?
+
+      blob = attachment.blob
+      cache_key = "theme_encoded_logo/#{blob.checksum}"
+      Rails.cache.fetch(cache_key, expires_in: 24.hours) do
+        Base64.strict_encode64(attachment.download)
+      end
     end
 
     private def find_logo_path(logo_name)
