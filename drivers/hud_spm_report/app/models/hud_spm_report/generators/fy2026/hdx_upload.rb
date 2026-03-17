@@ -344,7 +344,9 @@ module HudSpmReport::Generators::Fy2026
 
       generator = HudApr::Generators::Dq::Fy2026::Generator
       report = ::HudReports::ReportInstance.from_filter(dq_filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
-      generator.new(report).run!(email: false, manual: false)
+      report.options[:source_report_id_for_contexts] = @report.id
+      dq_generator = generator.new(report)
+      dq_generator.run!(email: false, manual: false)
 
       @report.check_halt_status!
       report

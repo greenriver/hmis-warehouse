@@ -1732,6 +1732,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "8d62e2a4304e38d28ca94dcc34f2af5b20c439804f756884591801df067877c8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hud_spm_report/app/models/hud_spm_report/fy2026/spm_enrollment.rb",
+      "line": 152,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouse::ServiceHistoryEnrollment.entry.where(\"(enrollment_group_id, data_source_id) IN (#{batch.map do\n \"(#{GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)}, #{e.data_source_id})\"\n end.join(\",\")})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HudSpmReport::Fy2026::SpmEnrollment",
+        "method": "HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set"
+      },
+      "user_input": "GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)",
+      "confidence": "High",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "8f69630d4aa97334a2eaf60d1a93b9db30fc157587b803929e1c0716d830e21f",
       "check_name": "SQL",
       "message": "Possible SQL injection",
