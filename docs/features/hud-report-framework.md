@@ -65,10 +65,10 @@ Questions (or Measures in SPM) extend `HudReports::QuestionBase`. Each class cor
 
 1.  **Initialization**: Create a `ReportInstance` with parameters (date range, project selection)
 2.  **Queuing**: Generator queues `Reporting::Hud::RunReportJob`
-3.  **Execution**: Job instantiates the Generator and iterates through questions, tracking progress via checkpoints
-4.  **Data Gathering**: Questions fetch HMIS data (Enrollments, Clients, Services), filter by report parameters (CoC, Date Range), and calculate derived attributes (Age, Chronic Status)
-5.  **Snapshotting**: Some reports create intermediate snapshot records (e.g., `AprClient`, `SpmEnrollment`) that cache calculated values
-6.  **Aggregation**: Questions aggregate data into report format
+3.  **Execution**: Job instantiates the Generator and calls `prepare_report`, then iterates through questions, tracking progress via checkpoints
+4.  **Preparation** (`prepare_report`): some report generators build `HouseholdContext` records to cache common calculations (chronic inheritance, move-in dates, household type) before any questions run
+5.  **Snapshotting**: Some reports may build report-specific snapshots (e.g., `AprClient`, `SpmEnrollment`)
+6.  **Aggregation**: Questions filter and aggregate data into report format, linking the cell values to universe member snapshot
 7.  **Completion**: Results are saved to `ReportInstance`
 
 ## Progress Tracking
@@ -84,18 +84,27 @@ The framework uses three distinct layers of data denormalization to balance perf
 | Layer | Responsibility | Lifecycle | Scope |
 | :--- | :--- | :--- | :--- |
 | **Service History** | Flattens HUD enrollments into a queryable "daily" span. The base for all reporting. | Persistent (Nightly/On-change) | Global |
-| **Household Context** | **Logic Layer**. Pre-computes shared business rules like Chronic Inheritance and Household Typing. | Ephemeral (Per Report Run) | Shared across reports |
-| **Report Snapshots** | **Presentation Layer**. Denormalizes all attributes needed for a specific report (e.g. `AprClient`). | Ephemeral (Per Report Run) | Feature-Specific |
+| **Household Context** | **Logic Layer**. Pre-computes shared business rules like Chronic Inheritance and Household Typing. | Ephemeral (Per Report Run) | Per report run; optionally copied to sub-reports |
+| **Report Snapshots** | **Presentation Layer**. Denormalizes all attributes needed for a specific report (e.g. `AprClient`). | Durable Report | Feature-Specific |
 
 ### Pre-computed Logic Layers (Household Context)
 To optimize the creation of report snapshots (like `AprClient`), the framework uses `HudReports::HouseholdContext` to pre-compute shared household business rules (e.g. Chronic Inheritance, Move-in Date Inheritance, Household Typing).
 
-This logic is populated during the `prepare_report` phase of the generator. FY2026 reports use these pre-computed values when building their snapshot models to avoid expensive in-memory Ruby calculations.
+Pure business logic lives in `HudReports::HouseholdLogic` (a stateless class), and `HudReports::HouseholdContextBuilder` uses it to populate `HouseholdContext` records during `prepare_report`. FY2026 reports consume these pre-computed values when building their snapshot models, replacing expensive in-memory Ruby loops.
 
-The `HouseholdContextBuilder` requires an `enrollment_scope:` parameter. This allows different report types (APR, SPM) to use different enrollment discovery strategies while sharing the same context building logic.
+Currently only the APR family (APR, CAPER, CE APR, DQ) and SPM use this mechanism. Other reports (PIT, PATH, LSA, etc.) still compute household attributes inline.
+
+`HouseholdContextBuilder` requires an `enrollment_scope:` parameter. This allows different report types to use different enrollment discovery strategies (e.g., SPM uses a 7-year lookback) while sharing the same context-building logic. Context records are scoped per report run but can be shared with sub-reports (e.g., SPM passes its contexts to DQ sub-reports via `source_report_id_for_contexts`) to avoid redundant computation.
 
 ### Snapshot Models (Presentation Layer)
-Many reports create secondary snapshots (e.g., `AprClient`, `SpmEnrollment`) that bundle both raw data and pre-computed logic into a single table optimized for UI drill-down and CSV exports.
+Many reports create secondary snapshots that denormalize all attributes needed for a specific report into a single table, optimized for question calculations, UI drill-down, and CSV exports.
+
+Examples:
+- **APR/CAPER**: `AprClient` stores age, chronic status, household type, disability flags, income, etc.
+- **SPM**: `SpmEnrollment` normalizes enrollment data across project types, including inherited move-in and start-of-homelessness dates
+
+### Universes and Cells
+`HudReports::ReportCell` represents a single cell in a report output (e.g., "Question 5, Row 1, Column A") and links to underlying records via `HudReports::UniverseMember`, a polymorphic join model. `UniverseMember` connects cells to snapshot models (`AprClient`, `SpmEnrollment`) and caches PII for drill-down tables in the UI.
 
 ## Cell Drilldowns
 
