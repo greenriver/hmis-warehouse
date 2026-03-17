@@ -143,10 +143,20 @@ module GrdaWarehouse
       return nil unless attachment.attached?
 
       blob = attachment.blob
-      cache_key = "theme_encoded_logo/#{blob.checksum}"
-      Rails.cache.fetch(cache_key, expires_in: 24.hours) do
-        Base64.strict_encode64(attachment.download)
+      cache_path = encoded_logo_cache_path(blob.checksum)
+
+      if ::File.exist?(cache_path)
+        ::File.read(cache_path)
+      else
+        encoded = Base64.strict_encode64(attachment.download)
+        FileUtils.mkdir_p(::File.dirname(cache_path))
+        ::File.binwrite(cache_path, encoded)
+        encoded
       end
+    end
+
+    def self.encoded_logo_cache_path(checksum)
+      Rails.root.join('tmp', 'theme_encoded_logo', checksum)
     end
 
     private def find_logo_path(logo_name)
