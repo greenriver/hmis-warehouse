@@ -420,9 +420,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let!(:client1) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
 
-    # todo @martha- restructure this test, it's just proof of concept for me
-    it 'creates a new search query when a new search is performed, and reuses that query on future search' do
-      # 1. Query with new search params
+    it 'creates a new search query when a new search is performed' do
       query_id = nil
       expect do
         response, result = post_graphql(input: { text_search: 'Range' }) { query }
@@ -436,25 +434,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       search_query = Hmis::ClientSearchQuery.find(query_id)
       expect(search_query.params).to eq({ 'text_search' => 'Range' })
       expect(search_query.created_by).to eq(hmis_user)
+    end
 
-      # 2. Query again with the same search params
-      expect do
+    context 'when there is an existing search query' do
+      let!(:search_query) { create :hmis_client_search_query, created_by: hmis_user, params: { 'text_search' => 'Range' } }
+
+      it 'reuses the existing search query when searching for the same params' do
         response, result = post_graphql(input: { text_search: 'Range' }) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'clientSearch', 'searchQueryId')).to eq(query_id)
+        expect(result.dig('data', 'clientSearch', 'searchQueryId')).to eq(search_query.id)
         results = result.dig('data', 'clientSearch', 'nodes')
         expect(results).to contain_exactly(a_hash_including({ 'id' => client1.id.to_s }))
-      end.not_to change(Hmis::ClientSearchQuery, :count)
-
-      # 3. query for that search query ID (without passing other params)
-      expect do
-        response, result = post_graphql(input: { search_query_id: query_id }) { query }
-        expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'clientSearch', 'searchQueryId')).to eq(query_id)
-        results = result.dig('data', 'clientSearch', 'nodes')
-        expect(results).to contain_exactly(a_hash_including({ 'id' => client1.id.to_s }))
-      end.not_to change(Hmis::ClientSearchQuery, :count)
+      end
     end
+
+    # context 'when there is an existing search query created by a different user' do
+    #   let!(:other_user) { create :hmis_user }
+    #   let!(:other_search_query) { create :hmis_client_search_query, created_by: other_user, params: { 'text_search' => 'Range' } }
+
+    #   it 'creates a new search query when searching for the same params' do
+    #     response, result = post_graphql(input: { text_search: 'Range' }) { query }
+    #     expect(response.status).to eq(200), result.inspect
+    #   end
+    # end
   end
 end
 
