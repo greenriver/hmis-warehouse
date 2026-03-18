@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::MoveInAddressExport, type: :model do
-  let!(:ds) { create(:hmis_data_source) }
+  let!(:ds) { create(:hmis_primary_data_source) }
   let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds) }
   let!(:enrollment) { create(:hmis_hud_enrollment, data_source: ds, client: client) }
   let!(:address) { create(:hmis_move_in_address, data_source: ds, enrollment: enrollment, client: client) }
@@ -33,7 +33,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::MoveInAddressExport, type: :
 
   it 'excludes move-in addresses on WIP enrollments' do
     wip_enrollment = create(:hmis_hud_wip_enrollment, data_source: ds, client: client)
-    create(:hmis_move_in_address, client: client, enrollment: wip_enrollment)
+    create(:hmis_move_in_address, client: client, enrollment: wip_enrollment, data_source: ds)
 
     subject.run!
 
@@ -42,8 +42,8 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::MoveInAddressExport, type: :
   end
 
   it 'does not include other addresses' do
-    create(:hmis_hud_custom_client_address, client: client)
-    create(:hmis_hud_custom_client_address, client: client)
+    create(:hmis_hud_custom_client_address, client: client, data_source: ds)
+    create(:hmis_hud_custom_client_address, client: client, data_source: ds)
 
     subject.run!
 
@@ -59,7 +59,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::MoveInAddressExport, type: :
     # cruft
     create(:hmis_hud_wip_enrollment, data_source: ds, client: client)
     create(:hmis_hud_wip_enrollment, data_source: ds, client: client)
-    create(:hmis_hud_custom_client_address, client: client)
+    create(:hmis_hud_custom_client_address, client: client, data_source: ds)
 
     subject.run!
 
