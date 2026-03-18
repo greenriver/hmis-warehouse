@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Hmis
-  class TransferEnrollmentProjectJob < BaseJob
+  class TransferEnrollmentProjectJob < BaseJob # move to services/
     # Transfers a set of enrollments from their current project to a target project.
     # This is intended to be used to fulfill support requests to move enrollments between projects.
     # In the future, it may be used to back a user-facing admin tool to transfer enrollments (#5767).

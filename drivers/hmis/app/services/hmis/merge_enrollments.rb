@@ -9,17 +9,43 @@
 module Hmis
   # Merges enrollment_to_destroy into enrollment_to_retain: moves all related records
   # to the retained enrollment, then destroys the duplicate enrollment.
-  # Validates that both enrollments belong to the same client.
-  # Intake and exit assessments are not moved (only one per enrollment); they are
-  # destroyed with the enrollment being removed.
+  # Validates that both enrollments belong to the same client, same project, and same data source.
   #
-  # Usage:
-  #   merge_enrollments = Hmis::MergeEnrollments.new(enrollment_to_retain: enrollment_to_retain_id, enrollment_to_destroy: enrollment_to_destroy_id)
-  #   merge_enrollments.valid? # => true or false
-  #   merge_enrollments.run!(dry_run: true)
+  # === When to use
+  #
+  # Use only when you have confirmed duplicate enrollments for the same client in the same
+  # project (e.g. duplicate data entry) and you want to consolidate them into a single enrollment.
+  # This is a support/operational tool. May be extended to user-initiated application flows in the future (#5728).
+  #
+  # === WARNING — Use with caution
+  #
+  # This operation is **unsafe** and can cause data loss if used incorrectly. Use it **only**
+  # as a support operation after carefully reviewing both enrollments and their associated
+  # records. Always run with +dry_run: true+ first and verify the reported changes before
+  # performing a real merge.
+  #
+  # === Related Records
+  #
+  # This operation moves related records from the enrollment to destroy to the enrollment to retain.
+  # Review the associations listed in composite_association_names and integer_moves for the list of records that will be moved.
+  #
+  # === Intake and exit assessments
+  #
+  # Intake and exit assessments on enrollment_to_destroy are NOT moved, because only one Intake/Exit per
+  # enrollment is allowed. They are soft deleted when the enrollment is removed. Before merging,
+  # you must verify that enrollment_to_retain has all required intake/exit information; otherwise the data will be lost.
+  #
+  # === Usage
+  #
+  #   1. Always dry run first:
+  #      merge = Hmis::MergeEnrollments.new(enrollment_to_retain: retain_id, enrollment_to_destroy: destroy_id)
+  #      merge.valid?                    # => true or false
+  #      merge.run!(dry_run: true)        # Inspect output; confirm no surprises
+  #
+  #   2. Only after reviewing, perform the merge:
+  #      merge.run!(dry_run: false)
+  #
   class MergeEnrollments
-    class ValidationError < StandardError; end
-
     # Data collection stages for intake (1) and exit (3) - these are not moved
     INTAKE_STAGE = 1
     EXIT_STAGE = 3
@@ -38,36 +64,38 @@ module Hmis
         print_enrollment_summary
         apply_composite_key_moves(dry_run: true)
         apply_integer_enrollment_id_moves(dry_run: true)
-        puts "Would destroy enrollment #{enrollment_to_destroy.id} (#{enrollment_to_destroy.EnrollmentID})"
-        return enrollment_to_retain
+        Rails.logger.info "Would destroy enrollment #{enrollment_to_destroy.id}"
+        return
       end
       Hmis::Hud::Enrollment.transaction do
         apply_composite_key_moves(dry_run: false)
         apply_integer_enrollment_id_moves(dry_run: false)
         enrollment_to_destroy.destroy!
       end
-      enrollment_to_retain
+      Rails.logger.info "Merged enrollment #{enrollment_to_destroy.id} into enrollment #{enrollment_to_retain.id}"
     end
 
     def valid?
-      validate!
+      validate!(raise_on_error: false)
       errors.empty?
     end
 
     private
 
-    def validate!
+    def validate!(raise_on_error: true)
       @errors = []
       @errors << 'enrollment_to_retain and enrollment_to_destroy must be different enrollments' if enrollment_to_retain.id == enrollment_to_destroy.id
       @errors << 'both enrollments must belong to the same client' unless enrollment_to_retain.client.id.present? && enrollment_to_destroy.client.id.present? && enrollment_to_retain.client.id == enrollment_to_destroy.client.id
+      @errors << 'both enrollments must belong to the same HMIS project' unless enrollment_to_retain.project_pk == enrollment_to_destroy.project_pk
       @errors << 'both enrollments must belong to the same HMIS data source' unless enrollment_to_retain.data_source_id == enrollment_to_destroy.data_source_id && ::GrdaWarehouse::DataSource.hmis.exists?(id: enrollment_to_retain.data_source_id)
-      raise ValidationError, errors.join('; ') if errors.any? && caller.any? { |c| c.include?('run!') }
+      raise StandardError, errors.join('; ') if errors.any? && raise_on_error
     end
 
     def print_enrollment_summary
       [enrollment_to_retain, enrollment_to_destroy].each do |en|
-        exit_date = en.exit&.ExitDate
-        puts "Enrollment #{en.id} (#{en.EnrollmentID}): entry_date=#{en.EntryDate} exit_date=#{exit_date || 'none'}"
+        exit_date = en.exit&.exit_date
+        label = en.id == enrollment_to_retain.id ? 'RETAIN' : 'DESTROY'
+        Rails.logger.info "[#{label}] Enrollment #{en.id} (#{en.enrollment_id}): entry_date=#{en.entry_date} exit_date=#{exit_date || 'none'}"
       end
     end
 
@@ -82,7 +110,7 @@ module Hmis
       # Exit: only move if retain has no exit (there can only be one)
       if enrollment_to_retain.exit.blank? && enrollment_to_destroy.exit.present?
         if dry_run
-          puts 'Would move 1 exit to retained enrollment'
+          Rails.logger.info 'Would move 1 exit to retained enrollment'
         else
           enrollment_to_destroy.exit.update_columns(assign)
         end
@@ -94,7 +122,7 @@ module Hmis
         next if count.zero?
 
         if dry_run
-          puts "Would update #{count} #{name} to retained enrollment"
+          Rails.logger.info "Would update #{count} #{name} to retained enrollment"
         else
           scope.update_all(assign)
         end
@@ -106,7 +134,7 @@ module Hmis
       return unless count.positive?
 
       if dry_run
-        puts "Would update #{count} custom_assessments (non-intake/exit) to retained enrollment"
+        Rails.logger.info "Would update #{count} custom_assessments (non-intake/exit) to retained enrollment"
       else
         scope.update_all(assign)
       end
@@ -128,7 +156,7 @@ module Hmis
         next if count.zero?
 
         if dry_run
-          puts "Would update #{count} #{model} to retained enrollment"
+          Rails.logger.info "Would update #{count} #{model} to retained enrollment"
         else
           update_proc.call(scope, retain_id)
         end
