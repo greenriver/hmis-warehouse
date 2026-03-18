@@ -909,17 +909,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'SPM CoC funding for income metrics' do
-    let(:filter_with_comparison) do
-      Filters::HudFilterBase.new(
-        user_id: user.id,
-        start: test_start_date,
-        end: test_end_date,
-        coc_codes: [test_coc_code],
-        enforce_one_year_range: false,
-        comparison_pattern: :prior_year,
-      )
-    end
-
     describe 'spm_coc_funded?' do
       before do
         @psh_project = create_project(project_type: 3)
