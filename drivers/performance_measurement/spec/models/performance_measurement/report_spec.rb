@@ -155,6 +155,19 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
   describe 'when using a static SPM for the comparison period' do
     let(:filter) { default_filter }
 
+    before do
+      GrdaWarehouse::Hud::Project.find_each do |project|
+        create(
+          :hud_funder,
+          project: project,
+          funder: 2,
+          data_source: project.data_source,
+          start_date: Date.parse('2021-01-01'),
+          end_date: nil,
+        )
+      end
+    end
+
     # Static SPM records are CoC-wide (system-level), so any metric that uses Static SPM
     # values in its goal/passed calculation should not be calculated at the project level.
     it 'does not calculate project-level results for metrics that require Static SPM for success calculations' do
