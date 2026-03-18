@@ -90,12 +90,15 @@ module HmisExternalApis::AcHmis
           enrollment.household.enrollments.open_excluding_wip.each do |e|
             # Create a void assessment only if the client was in the provided list
             create_void_assessment(e) if enrollment_ids_to_void.include?(e.id)
-
-            # Exit the household member
-            create_exit(e)
-
             Rails.logger.info e.enrollment_id + (enrollment_ids_to_void.include?(e.id) ? '' : " (household member of #{enrollment.enrollment_id})")
           end
+
+          # Exit all household members via shared service (creates exit assessment, releases unit, closes referral)
+          Hmis::PerformAutoExit.call(
+            enrollment_id: enrollment.id,
+            exit_date: @current_date,
+            exit_household_members: true,
+          )
         end
       end
 
@@ -109,33 +112,6 @@ module HmisExternalApis::AcHmis
     end
 
     private
-
-    def create_exit(enrollment)
-      # Create an Exit record exiting the client from the CE project.
-      # TODO - This is copied from Auto Exit Job, and should be refactored to a shared place, that can also be used for bulk-exiting enrollments (#6917)
-      exit_record = Hmis::Hud::Exit.new(
-        personal_id: enrollment.personal_id,
-        enrollment_id: enrollment.enrollment_id,
-        data_source_id: enrollment.data_source_id,
-        user_id: @hud_system_user.user_id,
-        exit_date: @current_date,
-        destination: ::HudHelper.util.destination_no_exit_interview_completed,
-      )
-      exit_assessment = Hmis::Hud::CustomAssessment.new(
-        user_id: @hud_system_user.user_id,
-        assessment_date: @current_date,
-        data_collection_stage: 3,
-        data_source_id: enrollment.data_source_id,
-        personal_id: enrollment.personal_id,
-        enrollment_id: enrollment.enrollment_id,
-        created_by_hud_user: @hud_system_user,
-        updated_by_hud_user: @hud_system_user,
-      )
-      exit_assessment.build_form_processor(exit: exit_record)
-      raise ActiveRecord::RecordInvalid, exit_record if exit_record.invalid?
-
-      exit_assessment.save!
-    end
 
     def create_void_assessment(enrollment)
       assessment = Hmis::Hud::CustomAssessment.new(
