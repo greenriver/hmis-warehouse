@@ -18,7 +18,10 @@ RSpec.describe Hmis::AutoExitJob, type: :job do
       allow(Hmis::Hud::Project).to receive(:hmis).and_return([project])
 
       # Mock household with enrollments
-      enrollment = double('enrollment', id: 1, exit: nil)
+      enrollment = double('enrollment', id: 1, exit: nil, entry_date: 60.days.ago.to_date)
+      allow(enrollment).to receive(:is_a?).with(Hmis::Hud::Enrollment).and_return(true)
+      allow(enrollment).to receive(:is_a?).with(Hmis::Hud::Service).and_return(false)
+      allow(enrollment).to receive(:project).and_return(double('project', allows_same_day_exit?: true))
       household = double('household', enrollments: [enrollment, enrollment]) # 2 enrollments
       households_scope = double('households_scope')
 
