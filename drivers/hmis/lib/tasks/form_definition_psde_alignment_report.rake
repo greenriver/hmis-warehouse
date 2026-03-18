@@ -1,17 +1,23 @@
 # frozen_string_literal: true
 
+# Usage:
 # rails driver:hmis:form_definition_psde_alignment_report[2024-01-01]
-desc 'CSV report for projects with PSDEs that are represented in the form definition due to filtering'
-task :form_definition_psde_alignment_report, [:start_date] => :environment do |_task, args|
+#
+# Optionally, provide data source ID if there are multiple HMIS data sources:
+# rails driver:hmis:form_definition_psde_alignment_report[2024-01-01,3]
+desc 'CSV report for projects with PSDEs that are not represented in the form definition due to filtering'
+task :form_definition_psde_alignment_report, [:start_date, :data_source_id] => :environment do |_task, args|
   task_class = Class.new do
     attr_accessor :start_date
-    def initialize(start_date:)
+    def initialize(start_date:, data_source_id: nil)
       self.start_date = start_date
+      # if data_source_id is not provided, expect there to be exactly one HMIS data source
+      @data_source = data_source_id ? GrdaWarehouse::DataSource.hmis.find(data_source_id) : GrdaWarehouse::DataSource.hmis.sole
     end
 
     def perform
       # use warehouse project model which has direct associations to income_benefits, disabilities, etc
-      projects = GrdaWarehouse::Hud::Project.where(data_source: data_source)
+      projects = GrdaWarehouse::Hud::Project.where(data_source: @data_source)
       rows = projects.map do |project|
         row = project_row(project)
         check_psdes(row)
@@ -107,11 +113,7 @@ task :form_definition_psde_alignment_report, [:start_date] => :environment do |_
     def today
       @today ||= Date.current
     end
-
-    def data_source
-      @data_source ||= GrdaWarehouse::DataSource.hmis.first!
-    end
   end
 
-  task_class.new(start_date: args.start_date ? Date.parse(args.start_date) : nil).perform
+  task_class.new(start_date: args.start_date ? Date.parse(args.start_date) : nil, data_source_id: args.data_source_id).perform
 end

@@ -50,10 +50,8 @@ class Hmis::Form::SubmitFormRecordInitializer
   attr_reader :owner_class, :user
 
   def resolve_associations(input)
-    # skip viewable_by check for ReferralPosting (legacy) because sender doesn't need to have access to receiving project
-    dangerous_skip_project_viewability = owner_class.name == 'HmisExternalApis::AcHmis::ReferralPosting'
     {
-      project: dangerous_skip_project_viewability ? Hmis::Hud::Project.find(input.project_id) : find_viewable(Hmis::Hud::Project, input.project_id),
+      project: find_viewable(Hmis::Hud::Project, input.project_id),
       client: find_viewable(Hmis::Hud::Client, input.client_id),
       enrollment: find_viewable(Hmis::Hud::Enrollment, input.enrollment_id),
       organization: find_viewable(Hmis::Hud::Organization, input.organization_id),
@@ -90,10 +88,6 @@ class Hmis::Form::SubmitFormRecordInitializer
       build_hmis_service_record(associations)
     when *ENROLLMENT_RELATED_CLASSES
       build_enrollment_related_record(associations)
-    when 'HmisExternalApis::AcHmis::ReferralRequest'
-      raise 'ReferralRequest form submission is no longer supported'
-    when 'HmisExternalApis::AcHmis::ReferralPosting'
-      build_referral_posting_record(associations)
     when 'Hmis::File'
       build_file_record(associations)
     else
@@ -166,14 +160,6 @@ class Hmis::Form::SubmitFormRecordInitializer
       personal_id: enrollment.personal_id,
       enrollment_id: enrollment.enrollment_id,
       **ds,
-    )
-  end
-
-  def build_referral_posting_record(associations)
-    HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
-      enrollment: associations[:enrollment],
-      receiving_project: associations[:project],
-      user: user,
     )
   end
 

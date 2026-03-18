@@ -40,6 +40,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   has_one :hmis_import_config
   has_one :import_threshold
+  has_many :import_csv_monitors, class_name: 'GrdaWarehouse::ImportCsvMonitor'
   has_one :external_hmis_configuration
 
   accepts_nested_attributes_for :organizations
@@ -164,6 +165,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
+  # Data sources that are OP HMIS installations ('hmis' attribute = domain).
+  # If 'user' provided, limits to the HMIS user's current HMIS data source.
+  # @see docs/architecture/multi-hmis-support.md
   scope :hmis, ->(user = nil) do
     scope = where.not(hmis: nil)
     scope = scope.where(id: user.hmis_data_source_id) if user.present?
@@ -709,8 +713,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  # True when this data source is an Open Path HMIS installation
+  # @see docs/architecture/multi-hmis-support.md
   def hmis?
     hmis.present?
+  end
+
+  def hmis_name
+    name if hmis?
   end
 
   def hmis_link_available?

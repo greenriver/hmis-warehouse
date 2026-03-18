@@ -1,0 +1,9 @@
+- if notification_configuration.errors.any?
+  :plain
+    $('.notification-configuration').html "#{j render('notification_configurations/form', submit_label: 'Add Notification')}"
+- else
+  :plain
+    $('#ajax-modal').modal('hide')
+    html = "#{j render('import_csv_monitors/notification_table', import_csv_monitor: import_csv_monitor, data_source: data_source, slug: params[:notification_slug])}"
+    slug = "#{params[:notification_slug].parameterize}"
+    $("." + slug).html(html)

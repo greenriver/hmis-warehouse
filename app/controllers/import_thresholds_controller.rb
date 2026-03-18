@@ -13,6 +13,11 @@ class ImportThresholdsController < ApplicationController
   before_action :import_threshold
 
   def show
+    @import_csv_monitors = data_source.import_csv_monitors.order(:csv_file_name)
+    monitor_csv_file_names = @import_csv_monitors.map(&:csv_file_name)
+    @metric_defs_by_subtype = GrdaWarehouse::Monitoring::MetricDefinition.
+      where(entity_type: 'GrdaWarehouse::DataSource', subtype: monitor_csv_file_names).
+      index_by(&:subtype)
   end
 
   def update

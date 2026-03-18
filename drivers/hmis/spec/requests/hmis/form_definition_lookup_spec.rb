@@ -22,6 +22,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Form definition lookup for record-editing' do
+    # apply project form definition to p1
+    let(:default_project_form) { Hmis::Form::Definition.managed_in_version_control.find_by!(role: :PROJECT) }
+    let!(:instance) { create(:hmis_form_instance, system: true, entity: nil, definition: default_project_form) }
+
     let(:query) do
       <<~GRAPHQL
         query recordFormDefinition($projectId: ID, $role: RecordFormRole!) {

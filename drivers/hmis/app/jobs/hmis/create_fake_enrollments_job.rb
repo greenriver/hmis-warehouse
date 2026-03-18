@@ -48,6 +48,7 @@ module Hmis
       @data_source = if data_source_id
         ::GrdaWarehouse::DataSource.hmis.find(data_source_id)
       else
+        # Assume a single HMIS if no data_source_id is provided.
         ::GrdaWarehouse::DataSource.hmis.sole # 'sole' will raise if there are >1 HMIS data sources
       end
 

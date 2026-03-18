@@ -32,30 +32,38 @@ module HudReports::LengthOfStays
       a_t[:last_date_in_program].lteq(report_end_date)
     end
 
-    # Heads of households and adult stayers in the project 365 days or more (Row 16)
+    # Heads of households and adult stayers in the project 365 days or more
+    private def hoh_lts_stayer_ids
+      @hoh_lts_stayer_ids ||= lts_stayer_ids(clause: hoh_clause, id_field: :head_of_household_id)
+    end
+
+    # Adult stayers with 365+ days regardless of HoH stay length.
+    # Per HUD clarification: include adult stayers with 365+ days even when HoH has < 365 days.
+    private def adult_lts_stayer_ids
+      @adult_lts_stayer_ids ||= lts_stayer_ids(clause: adult_clause, id_field: a_t[:id])
+    end
+
+    # Per HMIS Glossary, ES-NBN (project_type 1) uses bed_nights, all others use length_of_stay
     # should include any adult stayer present when the head of household’s stay is 365 days or more,
     # even if that adult has not been in the household that long.
-    # Per HMIS Glossary, ES-NBN (project_type 1) uses bed_nights, all others use length_of_stay
-    private def hoh_lts_stayer_ids
-      @hoh_lts_stayer_ids ||= begin
-        # ES-NBN projects (project_type 1) use bed_nights
-        nbn_ids = universe.members.where(
-          hoh_clause.
-            and(a_t[:project_type].eq(1)).
-            and(a_t[:bed_nights].gteq(365)).
-            and(stayers_clause),
-        ).pluck(:head_of_household_id)
+    private def lts_stayer_ids(clause:, id_field:)
+      # ES-NBN projects (project_type 1) use bed_nights
+      nbn_ids = universe.members.where(
+        clause.
+          and(stayers_clause).
+          and(a_t[:project_type].eq(1)).
+          and(a_t[:bed_nights].gteq(365)),
+      ).pluck(id_field)
 
-        # All other project types use length_of_stay
-        other_ids = universe.members.where(
-          hoh_clause.
-            and(a_t[:project_type].not_eq(1)).
-            and(a_t[:length_of_stay].gteq(365)).
-            and(stayers_clause),
-        ).pluck(:head_of_household_id)
+      # All other project types use length_of_stay
+      other_ids = universe.members.where(
+        clause.
+          and(stayers_clause).
+          and(a_t[:project_type].not_eq(1)).
+          and(a_t[:length_of_stay].gteq(365)),
+      ).pluck(id_field)
 
-        (nbn_ids + other_ids).uniq
-      end
+      (nbn_ids + other_ids).uniq
     end
 
     private def hoh_entry_dates
