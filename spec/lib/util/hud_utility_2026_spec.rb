@@ -362,7 +362,7 @@ RSpec.describe HudUtility2026 do
   end
 
   describe '#service_form_funder_applicability_requirements' do
-    it 'returns an array of config hashes with :record_type and optional :project_types and :funders' do
+    it 'returns an array of config hashes with :record_type and :applicability_requirements' do
       requirements = HudHelper.util('2026').service_form_funder_applicability_requirements
       expect(requirements).to be_an(Array)
       expect(requirements).not_to be_empty
@@ -370,8 +370,12 @@ RSpec.describe HudUtility2026 do
         expect(config).to be_a(Hash)
         expect(config).to have_key(:record_type)
         expect(config[:record_type]).to be_a(Integer)
-        expect(config).to have_key(:project_types) if config.key?(:project_types)
-        expect(config).to have_key(:funders) if config.key?(:funders)
+        expect(config).to have_key(:applicability_requirements)
+        expect(config[:applicability_requirements]).to be_an(Array)
+        config[:applicability_requirements].each do |req|
+          expect(req).to be_a(Hash)
+          expect(req.keys & [:project_type, :funder]).not_to be_empty
+        end
       end
     end
 
@@ -391,10 +395,9 @@ RSpec.describe HudUtility2026 do
     it 'includes funder codes where required by Data Dictionary (e.g. PATH 21, HUD-VASH 20)' do
       requirements = HudHelper.util('2026').service_form_funder_applicability_requirements
       path_config = requirements.find { |c| c[:record_type] == 141 }
-      expect(path_config[:funders]).to eq([21])
+      expect(path_config[:applicability_requirements]).to eq([{ funder: 21 }])
       v8_config = requirements.find { |c| c[:record_type] == 210 }
-      expect(v8_config[:funders]).to eq([20])
-      expect(v8_config[:project_types]).to eq([3])
+      expect(v8_config[:applicability_requirements]).to eq([{ project_type: 3, funder: 20 }])
     end
   end
 end

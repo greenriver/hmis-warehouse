@@ -140,26 +140,22 @@ module HmisUtil
       service_types = Hmis::Hud::CustomServiceType.hud.where(data_source: @data_source).preload(:custom_service_category).index_by(&:hud_record_type)
       # binding.pry
 
-      # For each requirement, create Form Instance(s) for each combination of project type + funder
+      # For each record type, create Form Instance(s) per applicability requirement
       HudHelper.util.service_form_funder_applicability_requirements.each do |config|
         record_type = config[:record_type]
-        project_types = config[:project_types] || [nil]
-        funders = config[:funders] || [nil]
 
         service_type = service_types[record_type]
         service_category = service_type&.custom_service_category
         raise "HUD Service Type not found for record type #{record_type} in DS##{@data_source.id}. Did you run HmisUtil::ServiceTypes.seed_hud_service_types" unless service_type && service_category
 
-        project_types.each do |project_type|
-          funders.each do |funder|
-            create_system_service_instance!(
-              identifier: service_identifier,
-              custom_service_category_id: service_category.id,
-              custom_service_category_name: service_category.name,
-              project_type: project_type,
-              funder: funder,
-            )
-          end
+        config[:applicability_requirements].each do |requirement|
+          create_system_instance!(
+            data_collected_about: config[:data_collected_about],
+            identifier: service_identifier,
+            service_category: service_category,
+            project_type: requirement[:project_type],
+            funder: requirement[:funder],
+          )
         end
       end
     end
@@ -186,7 +182,7 @@ module HmisUtil
       end
     end
 
-    def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil)
+    def create_system_instance!(identifier:, data_collected_about:, project_type: nil, funder: nil, service_category: nil)
       raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
       raise "form not found: #{identifier}" unless definition_scope.where(identifier: identifier).exists?
 
@@ -197,6 +193,7 @@ module HmisUtil
         funder: funder,
         entity_type: nil,
         entity_id: nil,
+        custom_service_category_id: service_category&.id,
       }
       instance = Hmis::Form::Instance.find_or_initialize_by(attrs)
       was_new = instance.new_record?
@@ -204,35 +201,7 @@ module HmisUtil
       return unless instance.changed?
 
       instance.save! unless @dry_run
-      payload = OpenStruct.new(type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder)
-      was_new ? @created << payload : @updated << payload
-    end
-
-    def create_system_service_instance!(identifier:, custom_service_category_id:, custom_service_category_name: nil, project_type: nil, funder: nil)
-      raise 'must specify project_type and/or funder' if project_type.blank? && funder.blank?
-
-      attrs = {
-        definition_identifier: identifier,
-        custom_service_category_id: custom_service_category_id,
-        project_type: project_type,
-        funder: funder,
-        entity_type: nil,
-        entity_id: nil,
-        custom_service_type_id: nil,
-      }
-      instance = Hmis::Form::Instance.find_or_initialize_by(attrs)
-      was_new = instance.new_record?
-      instance.assign_attributes(active: true, system: true)
-      return unless instance.changed?
-
-      instance.save! unless @dry_run
-      payload = OpenStruct.new(
-        type: :service_rule,
-        definition_identifier: identifier,
-        custom_service_category_name: custom_service_category_name,
-        project_type: project_type,
-        funder: funder,
-      )
+      payload = OpenStruct.new(type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder, service_category: service_category&.name)
       was_new ? @created << payload : @updated << payload
     end
 
@@ -269,7 +238,7 @@ module HmisUtil
       entries.map do |entry|
         summary = [
           entry.definition_identifier,
-          entry.custom_service_category_name ? "category=#{entry.custom_service_category_name}" : nil,
+          entry.service_category ? "service_category='#{entry.service_category}'" : nil,
           entry.project_type ? "project_type=#{entry.project_type}" : nil,
           entry.funder ? "funder=#{entry.funder}" : nil,
         ].compact.join(', ')

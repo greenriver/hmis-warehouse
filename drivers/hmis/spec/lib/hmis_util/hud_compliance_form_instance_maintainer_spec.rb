@@ -92,14 +92,12 @@ RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer, :manages_hmis_form
         ).first&.custom_service_category
         next unless category
 
-        (config[:project_types] || [nil]).each do |project_type|
-          (config[:funders] || [nil]).each do |funder|
-            expected_specs << {
-              custom_service_category_id: category.id,
-              project_type: project_type,
-              funder: funder,
-            }
-          end
+        config[:applicability_requirements].each do |requirement|
+          expected_specs << {
+            custom_service_category_id: category.id,
+            project_type: requirement[:project_type],
+            funder: requirement[:funder],
+          }
         end
       end
 
