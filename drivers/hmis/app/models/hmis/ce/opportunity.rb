@@ -8,18 +8,23 @@ module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
     self.ignored_columns += [
       'project_id', # Stop using direct association to project, go through unit instead
+      'candidate_pool_id', # Resolve through unit_group now
+      'stale', # No longer tracked; opportunity is always up-to-date
+      'assignment_rules', # Rules now come from unit_group, and referrals save their rules at creation time
     ]
 
     acts_as_paranoid
     has_paper_trail
     include SimpleStateMachine
 
-    belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
     has_many :categories, through: :categorizations
+
     belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
+    has_one :candidate_pool, through: :unit_group, class_name: 'Hmis::Ce::Match::CandidatePool'
+
     has_one :project, through: :unit, class_name: 'Hmis::Hud::Project'
     has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
@@ -28,7 +33,6 @@ module Hmis::Ce
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit
-    validate :validate_candidate_pool_is_stable, on: :update
 
     state_machine_config column: 'status' do
       state :open, initial: true
@@ -52,7 +56,6 @@ module Hmis::Ce
     end
 
     scope :active, -> { where.not(status: 'closed') }
-    scope :stale, -> { where(stale: true) }
 
     # TODO(#7537) - implement "available_on_date". For now, return all
     scope :available_on_date, ->(_date) { all }
@@ -62,7 +65,7 @@ module Hmis::Ce
       eligible_pool_ids = client.destination_client&.as_warehouse&.ce_match_candidates&.select(:candidate_pool_id)
       return Hmis::Ce::Opportunity.none if eligible_pool_ids.blank?
 
-      scope = self.open.where(candidate_pool_id: eligible_pool_ids)
+      scope = self.open.joins(unit: :unit_group).where(hmis_unit_groups: { candidate_pool_id: eligible_pool_ids })
 
       exclude_ids = []
       # exclude opportunities where the client has already been referred
@@ -132,13 +135,6 @@ module Hmis::Ce
     end
 
     private
-
-    def validate_candidate_pool_is_stable
-      return unless candidate_pool_id_changed?
-      return if candidate_pool_id_was.nil?
-
-      errors.add(:candidate_pool_id, 'cannot be changed after initial assignment')
-    end
 
     def unique_opportunity_per_unit
       return if status.to_sym == :closed || unit.nil?
