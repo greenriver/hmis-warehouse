@@ -33,8 +33,9 @@ wb.add_worksheet(name: 'Report Summary') do |sheet|
 end
 
 # Build one worksheet per category mirroring the HTML provider comparisons table
-@provider_comparison.categories.each do |category_name, _definition|
+@provider_comparison.included_categories.each_key do |category_name|
   table = @provider_comparison.table(category_name)
+  next if table[:projects].empty?
 
   sheet_name = category_name.slice(0, 30)
   sheet_name = sheet_name.gsub(':', ' ')
