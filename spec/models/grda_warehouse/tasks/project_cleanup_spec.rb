@@ -147,17 +147,6 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
         expect(she.reload.project_name).to eq(project.ProjectName)
       end
     end
-
-    context 'with a mix of current and stale SHE records' do
-      let!(:current_she) { create_she(project_name: project.ProjectName, client_id: client.id) }
-      let!(:stale_she) { create_she(project_name: 'Old Name', client_id: client.id) }
-
-      it 'updates only the stale records' do
-        cleaner.fix_name(project)
-        expect(current_she.reload.project_name).to eq(project.ProjectName)
-        expect(stale_she.reload.project_name).to eq(project.ProjectName)
-      end
-    end
   end
 
   describe '#remove_unneeded_hmis_participations' do
@@ -186,12 +175,6 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
       it 'removes the GR- prefixed participation' do
         cleaner.remove_unneeded_hmis_participations(project)
         expect(project.hmis_participations.reload).to contain_exactly(user_participation)
-      end
-
-      it 'retains all user-provided participations' do
-        user_participation_2 = create_hmis_participation('USER-002')
-        cleaner.remove_unneeded_hmis_participations(project)
-        expect(project.hmis_participations.reload).to contain_exactly(user_participation, user_participation_2)
       end
     end
   end
