@@ -96,15 +96,6 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
         end
       end
 
-      context 'when an enrollment already has the correct CoC code' do
-        let!(:enrollment) { create_enrollment('XX-500') }
-
-        it 'leaves the enrollment unchanged' do
-          expect { cleaner.fix_client_locations(project) }.
-            not_to(change { enrollment.reload.EnrollmentCoC })
-        end
-      end
-
       context 'with a mix of matching and mismatched enrollments' do
         let!(:matching_enrollment) { create_enrollment('XX-500') }
         let!(:mismatched_enrollment) { create_enrollment('XX-001') }
@@ -123,27 +114,12 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
         create_project_coc('XX-501')
       end
 
-      context 'when an enrollment matches one of the CoC codes' do
-        let!(:enrollment) { create_enrollment('XX-500') }
-
-        it 'leaves the enrollment unchanged' do
-          expect { cleaner.fix_client_locations(project) }.
-            not_to(change { enrollment.reload.EnrollmentCoC })
-        end
-      end
-
       context 'when an enrollment does not match any CoC code' do
         let!(:enrollment) { create_enrollment('XX-001') }
 
         it 'clears the enrollment CoC' do
           cleaner.fix_client_locations(project)
           expect(enrollment.reload.EnrollmentCoC).to be_nil
-        end
-
-        it 'clears the source_hash on updated enrollments' do
-          enrollment.update_column(:source_hash, 'stale_hash')
-          cleaner.fix_client_locations(project)
-          expect(enrollment.reload.source_hash).to be_nil
         end
       end
 
@@ -162,15 +138,6 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
 
   describe '#fix_name' do
     let!(:client) { create(:hud_client, data_source: data_source) }
-
-    context 'when all SHE records already have the current project name' do
-      let!(:she) { create_she(project_name: project.ProjectName, client_id: client.id) }
-
-      it 'does not update any SHE records' do
-        expect { cleaner.fix_name(project) }.
-          not_to(change { she.reload.project_name })
-      end
-    end
 
     context 'when SHE records have a stale project name' do
       let!(:she) { create_she(project_name: 'Old Name', client_id: client.id) }

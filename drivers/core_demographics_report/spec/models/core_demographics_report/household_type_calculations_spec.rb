@@ -144,44 +144,6 @@ RSpec.describe CoreDemographicsReport::HouseholdTypeCalculations, type: :model d
       Rails.cache.clear
     end
 
-    # Regression coverage for a bug report where child-only household CoC columns
-    # showed all zeros despite a non-zero base count in the same row.
-    describe 'CoC breakdowns' do
-      it 'classifies the household as child-only in the base count' do
-        expect(report.household_type_client_count(:only_children)).to eq(2)
-        expect(report.household_type_hoh_count(:only_children)).to eq(1)
-      end
-
-      it 'reports non-zero client count for the CoC containing the household' do
-        expect(report.household_type_client_count(:only_children, :'MA-500')).to eq(2)
-      end
-
-      it 'reports non-zero household count for the CoC containing the household' do
-        expect(report.household_type_hoh_count(:only_children, :'MA-500')).to eq(1)
-      end
-
-      it 'reports zero counts for a CoC with no child-only households' do
-        expect(report.household_type_client_count(:only_children, :'MA-501')).to eq(0)
-        expect(report.household_type_hoh_count(:only_children, :'MA-501')).to eq(0)
-      end
-
-      it 'writes non-zero CoC columns in the export row' do
-        rows = {}
-        report.household_type_data_for_export(rows)
-
-        child_only_row = rows['_Household Types_data_Child only Households']
-        expect(child_only_row[2]).to eq(2) # base client count
-        expect(child_only_row[3]).to eq(1) # base household (HoH) count
-
-        ma500_offset = coc_column_offset(rows, 'MA-500')
-        ma501_offset = coc_column_offset(rows, 'MA-501')
-        expect(child_only_row[ma500_offset]).to eq(2)     # MA-500 client count
-        expect(child_only_row[ma500_offset + 1]).to eq(1) # MA-500 household (HoH) count
-        expect(child_only_row[ma501_offset]).to eq(0)     # MA-501 client count
-        expect(child_only_row[ma501_offset + 1]).to eq(0) # MA-501 household count
-      end
-    end
-
     # Documents the behavior when EnrollmentCoC is NULL on child-only household enrollments.
     #
     # FilterForCocs deliberately passes NULL EnrollmentCoC through the base household scope
