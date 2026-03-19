@@ -88,6 +88,11 @@ module PerformanceMeasurement
           new_count.goal_id = new_goal.id
           new_count.save!
         end
+        static_spms.each do |s|
+          new_spm = s.dup
+          new_spm.goal_id = new_goal.id
+          new_spm.save!
+        end
       end
       new_goal
     end
