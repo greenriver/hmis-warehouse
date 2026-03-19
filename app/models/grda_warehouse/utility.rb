@@ -76,6 +76,7 @@ class GrdaWarehouse::Utility
       UserGroup,
       AccessControl,
       User,
+      HudReports::ReportCheckpoint,
       HudReports::ReportInstance,
       HudReports::UniverseMember,
       HudReports::ReportCell,
