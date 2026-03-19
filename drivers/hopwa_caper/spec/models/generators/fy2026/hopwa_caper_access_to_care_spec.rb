@@ -371,4 +371,73 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       expect(total_assistance[1]).to eq(2)
     end
   end
+
+  context 'with FBH activity overlap' do
+    let(:p_fbh_funder) do
+      HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+    end
+
+    let(:st_tfbh_funder) do
+      HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Short-Term Supportive Facility')
+    end
+
+    let(:p_fbh_project) do
+      create_hopwa_project(funder: p_fbh_funder).tap { |p| p.update!(HousingType: 1) }
+    end
+
+    let(:st_tfbh_project) do
+      create_hopwa_project(funder: st_tfbh_funder).tap { |p| p.update!(HousingType: 1) }
+    end
+
+    let(:fbh_hoh) { create(:hud_client, data_source: data_source) }
+    let(:fbh_household_id) { Hmis::Hud::Base.generate_uuid }
+
+    let!(:p_fbh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: fbh_hoh,
+        project: p_fbh_project,
+        entry_date: report_start_date + 1.day,
+        household_id: fbh_household_id,
+      )
+    end
+
+    let!(:st_tfbh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: fbh_hoh,
+        project: st_tfbh_project,
+        entry_date: report_start_date + 10.days,
+        household_id: fbh_household_id,
+      )
+    end
+
+    it 'reports FBH activity counts and aggregates them correctly' do
+      report = create_report([p_fbh_project, st_tfbh_project])
+      run_report(report)
+
+      rows = question_as_rows(question_number: 'Q7', report: report)
+
+      total_households = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
+      # Column index: 1 is TBRA, 2 is P-FBH, 3 is ST-TFBH
+      expect(total_households[1]).to eq(1) # TBRA (overlaps with P-FBH)
+      expect(total_households[2]).to eq(1) # P-FBH
+      expect(total_households[3]).to eq(1) # ST-TFBH
+
+      housing_subsidy_total = row_for(
+        rows,
+        'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)',
+      )
+      # 1 TBRA + 1 P-FBH + 1 ST-TFBH = 3
+      expect(housing_subsidy_total[1]).to eq(3)
+
+      duplicated_households = row_for(
+        rows,
+        'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?',
+      )
+      # The same household is in TBRA, P-FBH, and ST-TFBH
+      expect(duplicated_households[1]).to eq(1)
+
+      unduplicated_households = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household Count')
+      expect(unduplicated_households[1]).to eq(1)
+    end
+  end
 end

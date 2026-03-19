@@ -9,11 +9,16 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Hud::Project, type: :model do
+RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
   let!(:data_source) { create :hmis_primary_data_source }
   let!(:project) { create :hmis_hud_project, data_source: data_source }
   let!(:client) { create :hmis_hud_client, data_source: data_source }
   let!(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
+
+  before(:all) do
+    # delete default instances to test from a clean slate (for data_collection_features and occurrence_point_form_instances tests)
+    Hmis::Form::Instance.delete_all
+  end
 
   describe '#destroy' do
     # Create dependent records to ensure they are destroyed when the project is destroyed
@@ -88,8 +93,8 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'returns none if form is draft' do
-      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft)
-      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'bad-referral-form')
+      create(:hmis_form_definition, role: role, identifier: 'draft-form', status: :draft)
+      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'draft-form')
       expect(selected_instances.size).to eq(0)
     end
 

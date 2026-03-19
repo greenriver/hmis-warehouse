@@ -25,8 +25,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_enrollments
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        tbra_hopwa(range: @report.report_range).
+        apply(@report.hopwa_caper_enrollments)
     end
 
     def households_served_sheet(sheet)
@@ -59,12 +60,18 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::TbraLongevityFilter.for_report(@report)
+      all_time = @report.hopwa_caper_enrollments.where(project_id: relevant_enrollments.select(:project_id))
+      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::EnrollmentLongevityFilter.all(
+        activity_label: 'TBRA',
+        end_date: @report.end_date,
+        reference_scope: all_time,
+        funder_codes: HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa.codes,
+      )
       filters.each do |filter|
         add_household_enrollments_row(
           sheet,
           label: filter.label,
-          enrollments: filter.apply(relevant_enrollments),
+          enrollments: filter.apply(relevant_enrollments.where(hopwa_eligible: true)),
         )
       end
     end
