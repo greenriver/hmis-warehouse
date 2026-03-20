@@ -66,5 +66,5 @@
     "url": "https://github.com/greenriver/hmis-warehouse/issues"
   },
   "homepage": "https://github.com/greenriver/hmis-warehouse#readme",
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.22"
 }
