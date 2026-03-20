@@ -248,6 +248,14 @@ RUN mkdir -p app/assets/stylesheets/theme/styles \
   && SECRET_KEY_BASE=dummysecretdummysecretdummysecretdummysecretdummysecret RAILS_ENV=production CLIENT=warehouse DATABASE_ADAPTER=postgresql DATABASE_HOST=postgres DATABASE_PASS=postgres DATABASE_USER=postgres DEFAULT_FROM=greenriver.testing@mailinator.com ENCRYPTION_KEY=strongEncryptionstrongEncryptionstrongEncryption HEALTH_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_HOST=postgres HEALTH_DATABASE_PASS=postgres HEALTH_DATABASE_USER=postgres REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_HOST=postgres REPORTING_DATABASE_PASS=postgres REPORTING_DATABASE_USER=postgres WAREHOUSE_DATABASE_ADAPTER=postgis WAREHOUSE_DATABASE_HOST=postgres WAREHOUSE_DATABASE_PASS=postgres WAREHOUSE_DATABASE_USER=postgres WAREHOUSE_DATABASE_DB=warehouse_db HEALTH_DATABASE_DB=health_db REPORTING_DATABASE_DB=reporting_db DISABLE_SPRING=1 bundle exec rails assets:precompile
 
 RUN rm -rf tmp/* \
-  && mkdir -p tmp/pids \
-  && rm -rf /usr/lib/node_modules/npm /usr/lib/node_modules/yarn \
+  && mkdir -p tmp/pids
+
+# Remove npm and yarn — they're only needed during asset compilation.
+# Node itself is kept for puppeteer (PDF generation via grover).
+# Trivy flags CVEs in npm's bundled node_modules (/usr/lib/node_modules/npm/node_modules),
+# which are unreachable at runtime, so we drop the whole package managers here.
+USER root
+RUN rm -rf /usr/lib/node_modules/npm /usr/lib/node_modules/yarn \
   && rm -f /usr/bin/npm /usr/bin/npx /usr/bin/yarn /usr/bin/yarnpkg
+
+USER ${USER_ID}
