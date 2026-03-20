@@ -36,7 +36,7 @@ ARG BUNDLER_VERSION=2.7.2
 ARG PG_MAJOR=17
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.4.5
+LABEL "ruby-version"=3.4.9
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
