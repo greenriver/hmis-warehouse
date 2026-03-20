@@ -98,8 +98,8 @@ module HmisExternalApis::AcHmis
           next
         end
 
-        # Iterate through each source client. If there are multiple source clients, they will
-        # get the same MCI Unique ID and be merged in the merge step.
+        # Iterate through each source client. If there are multiple source clients,
+        # they will get the same MCI Unique ID.
         clients.each do |client|
           external_id = external_ids[client.id] # mci unique id
 
@@ -127,6 +127,14 @@ module HmisExternalApis::AcHmis
       Rails.logger.info "Skipped #{unrecognized_destination_id_count} unrecognized Client IDs in response"
     end
 
+    # Finds HMIS clients that share the same MCI unique ID, and ensures they all point to the same
+    # warehouse destination client.
+    # For each duplicate set, the warehouse client with the lowest destination_id is chosen as the winner;
+    # all source clients in the set are merged into it via merge_from, unless they were previously split from the winner.
+    #
+    # NOTE: A previous version of this method performed a "hard merge" (via MergeClientsJob) for source clients
+    # that shared the same MCI unique ID but had different destination clients. This behavior was removed
+    # and replaced with the below "soft merge" (aka warehouse merge) behavior. GH#6239, Prod Deploy Date 02/26/2026.
     def merge_clients_by_mci_unique_id
       self.merge_sets = HmisExternalApis::ExternalId.
         joins(:client). # join to ensure we're not pulling in any ExternalIds for deleted clients

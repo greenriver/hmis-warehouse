@@ -37,12 +37,10 @@ module Hmis
         @hud_user = hud_user || Hmis::Hud::User.system_user(data_source_id: @data_source.id)
         @create_missing_mappings = create_missing_mappings
         @set_form_definition_identifier = set_form_definition_identifier
+        @reporting_keys_in_batch = Set.new # track reporting keys we have seen so far in this batch, to avoid conflicts when bulk-saving
       end
 
       def run
-        # Prefix all CDED keys with a slug of the form identifier
-        cded_key_prefix = @definition.identifier.parameterize.underscore
-
         cded_attributes = {
           form_definition_identifier: @set_form_definition_identifier ? @definition.identifier : nil,
           data_source: @data_source,
@@ -76,7 +74,15 @@ module Hmis
           # Determine the owner type for the CDED
           owner_type = determine_owner_type(item)
           # Use referenced key for CDED if present, otherwise generate a new unique key based on link_id
-          cded_key = custom_field_key || ensure_unique_key("#{cded_key_prefix}_#{item.link_id}", owner_type: owner_type)
+          cded_key = custom_field_key || ensure_unique_key(item.link_id, owner_type: owner_type)
+
+          # Generate reporting_key based on cded_key
+          reporting_key = self.class.generate_reporting_key(
+            item.link_id,
+            owner_type: owner_type,
+            unpersisted_reserved_keys: @reporting_keys_in_batch,
+          )
+          @reporting_keys_in_batch << [owner_type, reporting_key]
 
           @cdeds << Hmis::Hud::CustomDataElementDefinition.new(
             key: cded_key,
@@ -84,6 +90,7 @@ module Hmis
             repeats: item.repeats || false,
             field_type: infer_cded_field_type(item),
             owner_type: owner_type,
+            reporting_key: reporting_key,
             **cded_attributes,
           )
 
@@ -92,6 +99,41 @@ module Hmis
         end
 
         @cdeds
+      end
+
+      # Generate a valid, unique reporting_key from a given key.
+      # @param unpersisted_reserved_keys [Set<Array>] Optional set of [owner_type, reporting_key] pairs
+      # that are reserved but not yet persisted (so a call to `exists?` won't find them).
+      # @return [String] The generated reporting_key
+      def self.generate_reporting_key(base_key, owner_type:, unpersisted_reserved_keys: Set.new)
+        # Normalize base_key to ensure it meets reporting key requirements
+        # Note: link_id should almost meet these requirements from schema validation, but the requirements are not exactly the same.
+        normalized = base_key.downcase.gsub(/[^a-z0-9_]/, '_')
+        normalized = "k_#{normalized}" unless normalized.match?(/\A[a-z]/)
+        normalized = normalized[0..62]
+
+        return normalized unless reporting_key_exists?(normalized, owner_type, unpersisted_reserved_keys)
+
+        count = 1
+        max_attempts = 50
+
+        while count <= max_attempts
+          suffix = "_#{count}"
+          base_length = 63 - suffix.length
+          candidate = "#{normalized[0...base_length]}#{suffix}"
+
+          return candidate unless reporting_key_exists?(candidate, owner_type, unpersisted_reserved_keys)
+
+          count += 1
+        end
+
+        raise "Unique reporting_key generation failed after #{max_attempts} attempts for base key: #{base_key}"
+      end
+
+      def self.reporting_key_exists?(reporting_key, owner_type, unpersisted_reserved_keys = Set.new)
+        return true if unpersisted_reserved_keys.include?([owner_type, reporting_key])
+
+        Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, reporting_key: reporting_key)
       end
 
       private

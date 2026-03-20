@@ -9,8 +9,14 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Form::Definition, type: :model do
+RSpec.describe Hmis::Form::Definition, :manages_hmis_form_state, type: :model do
   include_context 'hmis base setup'
+
+  before(:all) do
+    # Start from a clean slate (gets reset after group by :manages_hmis_form_state)
+    Hmis::Form::Instance.delete_all
+    Hmis::Form::Definition.delete_all
+  end
 
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }

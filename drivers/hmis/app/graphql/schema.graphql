@@ -995,12 +995,10 @@ type CeOpportunity {
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
-  eligibilityRequirements: [CeMatchRule!] @deprecated(reason: "Resolve eligibility requirements from the unit group or the referral")
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
   organizationName: String!
-  prioritySchemes: [CeMatchRule!] @deprecated(reason: "Resolve priority schemes from the unit group or the referral")
   projectId: ID!
   projectName: String!
   projectType: ProjectType!
@@ -1009,7 +1007,6 @@ type CeOpportunity {
   Active or accepted referral
   """
   referral: CeReferral
-  stale: Boolean! @deprecated(reason: "Always false; rules now come from unit_group and are always current")
   status: CeOpportunityStatus!
   unit: Unit
 }
@@ -5217,11 +5214,6 @@ enum FormRole {
   Annual
   """
   ANNUAL
-
-  """
-  Auto exit config
-  """
-  AUTO_EXIT_CONFIG
 
   """
   Case note
@@ -12510,11 +12502,6 @@ type StartCeReferralStepPayload {
 Form Roles that are used for non-configurable forms. These types of forms are submitted using custom mutations.
 """
 enum StaticFormRole {
-  """
-  Auto exit config
-  """
-  AUTO_EXIT_CONFIG
-
   """
   Client alert
   """

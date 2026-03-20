@@ -1,0 +1,46 @@
+%h2 Per-CSV Monitoring Thresholds
+%p
+  Configure alerts for specific CSV files (e.g., Client.csv, Services.csv).
+  When row counts change beyond your thresholds, notifications are sent to users configured on each monitor's Edit page.
+.well
+  .d-flex.justify-content-end
+    = link_to new_data_source_import_csv_monitor_path(data_source), class: 'btn btn-secondary btn-sm mb-3' do
+      %i.icon-plus
+      Add Threshold Monitor
+  - if import_csv_monitors.any?
+    %table.table.table-striped
+      %thead
+        %tr
+          %th CSV File
+          %th Count Increase
+          %th Count Decrease
+          %th Min Additions
+          %th Max Removals
+          %th Active
+          %th Notifications
+          %th Actions
+      %tbody
+        - import_csv_monitors.each do |monitor|
+          %tr
+            %td= monitor.csv_file_name
+            %td= monitor.count_increase_threshold || '—'
+            %td= monitor.count_decrease_threshold || '—'
+            %td= monitor.min_additions_threshold || '—'
+            %td= monitor.max_removals_threshold || '—'
+            %td= checkmark_or_x(monitor.active)
+            %td
+              - count = monitor.active_notification_count
+              - if count.positive?
+                - tooltip_content = monitor.active_notification_recipient_names.map { |n| h(n) }.join('<br />').html_safe
+                %span{ data: { 'bs-toggle' => :tooltip, 'bs-html' => 'true', 'bs-title' => tooltip_content } }
+                  = count
+              - else
+                —
+            %td
+              - metric_def = metric_defs_by_subtype[monitor.csv_file_name]
+              - items = [{ link_to: { path: edit_data_source_import_csv_monitor_path(data_source, monitor) }, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :pencil, label: 'Edit' }]
+              - items << { link_to: { path: admin_metric_definition_path(metric_def, entity_id: data_source.id), target: :_blank }, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :'chart-bar', label: 'View chart' } if metric_def
+              - items << { link_to: { path: data_source_import_csv_monitor_path(data_source, monitor), method: :delete, data: { confirm: 'Remove this monitor?' } }, class: ['btn', 'btn-sm', 'btn-danger'], label: 'Remove' }
+              = action_menu_or_button(items: items)
+  - else
+    %p.text-muted No monitors configured. Add one to get started.

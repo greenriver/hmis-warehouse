@@ -28,60 +28,104 @@
         %dd.col-sm-8
           %code= @metric_definition.entity_type
 
+        - if @metric_definition.subtype.present?
+          %dt.col-sm-4 Subtype
+          %dd.col-sm-8
+            %code= @metric_definition.subtype
+
         %dt.col-sm-4 Calculator Class
         %dd.col-sm-8
           %code= @metric_definition.calculator_class
 
-        %dt.col-sm-4 Calculation Window
-        %dd.col-sm-8
-          - if @metric_definition.calculation_window_days
-            = "#{@metric_definition.calculation_window_days} days"
-          - else
-            %span.text-muted Not specified
+        - if @import_csv_monitor
+          %dt.col-sm-4 Count Increase Threshold
+          %dd.col-sm-8
+            - if @import_csv_monitor.count_increase_threshold.present?
+              = @import_csv_monitor.count_increase_threshold
+            - else
+              %span.text-muted Not configured
 
-        %dt.col-sm-4 Count Change Threshold
-        %dd.col-sm-8
-          - if @metric_definition.count_change_threshold
-            = @metric_definition.count_change_threshold
-          - else
-            %span.text-muted Not configured
+          %dt.col-sm-4 Count Decrease Threshold
+          %dd.col-sm-8
+            - if @import_csv_monitor.count_decrease_threshold.present?
+              = @import_csv_monitor.count_decrease_threshold
+            - else
+              %span.text-muted Not configured
 
-        %dt.col-sm-4 Percent Change Threshold
-        %dd.col-sm-8
-          - if @metric_definition.percent_change_threshold
-            = "#{@metric_definition.percent_change_threshold}%"
-          - else
-            %span.text-muted Not configured
+          %dt.col-sm-4 Min Additions Threshold
+          %dd.col-sm-8
+            - if @import_csv_monitor.min_additions_threshold.present?
+              = @import_csv_monitor.min_additions_threshold
+            - else
+              %span.text-muted Not configured
 
-        %dt.col-sm-4 Active
-        %dd.col-sm-8
-          - if @metric_definition.active
-            %span.badge.badge-success Active
-          - else
-            %span.badge.badge-secondary Inactive
+          %dt.col-sm-4 Max Removals Threshold
+          %dd.col-sm-8
+            - if @import_csv_monitor.max_removals_threshold.present?
+              = @import_csv_monitor.max_removals_threshold
+            - else
+              %span.text-muted Not configured
+
+          %dt.col-sm-4 Active
+          %dd.col-sm-8
+            - if @import_csv_monitor.active
+              %span.badge.text-bg-success Active
+            - else
+              %span.badge.text-bg-secondary Inactive
+        - else
+          %dt.col-sm-4 Calculation Window
+          %dd.col-sm-8
+            - if @metric_definition.calculation_window_days
+              = "#{@metric_definition.calculation_window_days} days"
+            - else
+              %span.text-muted Not specified
+
+          %dt.col-sm-4 Count Change Threshold
+          %dd.col-sm-8
+            - if @metric_definition.count_change_threshold
+              = @metric_definition.count_change_threshold
+            - else
+              %span.text-muted Not configured
+
+          %dt.col-sm-4 Percent Change Threshold
+          %dd.col-sm-8
+            - if @metric_definition.percent_change_threshold
+              = "#{@metric_definition.percent_change_threshold}%"
+            - else
+              %span.text-muted Not configured
+
+          %dt.col-sm-4 Active
+          %dd.col-sm-8
+            - if @metric_definition.active
+              %span.badge.text-bg-success Active
+            - else
+              %span.badge.text-bg-secondary Inactive
 
   .col-sm-4.text-right
-    = link_to 'Edit', edit_admin_metric_definition_path(@metric_definition), class: 'btn btn-primary mb-2'
+    - if @import_csv_monitor
+      = link_to 'Edit', edit_data_source_import_csv_monitor_path(@import_csv_monitor.data_source, @import_csv_monitor), class: 'btn btn-primary mb-2'
+    - else
+      = link_to 'Edit', edit_admin_metric_definition_path(@metric_definition), class: 'btn btn-primary mb-2'
 
 .row.mt-4
   .col-sm-12
     .well
       %h3 Threshold Crossings (Last 90 Days)
       %p.text-muted
-        This chart shows the number of #{@entity_label.pluralize.downcase} that crossed the configured threshold on each day.
-        Initial observations are excluded.
+        - if @metric_definition.category.to_s == 'csv_import'
+          This chart will have a bar on any day where the threshold is crossed.
+        - else
+          This chart shows the number of #{@entity_label.pluralize.downcase} that crossed the configured threshold on each day.
+          Initial observations are excluded.
         Click on a bar to see the details of the threshold crossings for that day.
 
       - if @chart_data.any?
-        .metric-threshold-chart{
-          data: {
-            controller: 'metric-threshold-chart',
-            metric_threshold_chart_data_value: @chart_data.to_json,
-            metric_threshold_chart_metric_name_value: @metric_definition.display_name,
-            metric_threshold_chart_entity_label_value: @entity_label,
-            metric_threshold_chart_metric_id_value: @metric_definition.id,
-          }
-        }
+        - help_text = 'For import CSV monitoring, only the first threshold crossing in a day is captured.'
+        - if @metric_definition.category.to_s == 'csv_import'
+          - help_text = 'For max additions and min removals, only the "New Value" is relevant.' + help_text
+        - chart_data_attrs = { controller: 'metric-threshold-chart', metric_threshold_chart_data_value: @chart_data.to_json, metric_threshold_chart_metric_name_value: @metric_definition.display_name, metric_threshold_chart_entity_label_value: @entity_label, metric_threshold_chart_metric_id_value: @metric_definition.id, metric_threshold_chart_details_help_text_value: help_text }
+        - chart_data_attrs[:metric_threshold_chart_entity_id_value] = @entity_id_filter if @entity_id_filter.present?
+        .metric-threshold-chart.pb-4{ data: chart_data_attrs }
           %div{data: { metric_threshold_chart_target: 'chart' }}
           .mt-4{data: { metric_threshold_chart_target: 'detailsContainer' }, style: 'display: none;'}
       - else

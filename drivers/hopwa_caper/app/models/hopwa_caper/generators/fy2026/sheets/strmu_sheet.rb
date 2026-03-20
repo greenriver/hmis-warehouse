@@ -24,11 +24,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def program_filter
-      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa(range: @report.report_range)
     end
 
     def base_enrollments
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      program_filter.apply(@report.hopwa_caper_enrollments)
     end
 
     def relevant_enrollments
@@ -36,7 +36,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       hoh_client_ids = @report.hopwa_caper_enrollments.
         head_of_household.
         where(report_household_id: relevant_services.select(:report_household_id)).
-        select(:destination_client_id)
+        pluck(:destination_client_id)
 
       @report.hopwa_caper_enrollments.
         head_of_household.
@@ -120,7 +120,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::StrmuLongevityFilter.for_report(@report)
+      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::FrequencyLongevityFilter.all(
+        activity_label: 'STRMU',
+        end_date: @report.end_date,
+        start_date: @report.start_date,
+        funder_codes: program_filter.codes,
+        reference_scope: @report.hopwa_caper_enrollments,
+      )
       filters.each do |filter|
         add_household_enrollments_row(
           sheet,
