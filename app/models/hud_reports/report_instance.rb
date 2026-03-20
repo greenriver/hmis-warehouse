@@ -340,5 +340,10 @@ module HudReports
 
       io.string
     end
+
+    # convenience method
+    def report_range
+      start_date..end_date
+    end
   end
 end

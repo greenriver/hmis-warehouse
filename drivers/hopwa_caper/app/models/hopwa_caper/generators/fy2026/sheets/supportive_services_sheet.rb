@@ -95,7 +95,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       hoh_client_ids = HopwaCaper::Enrollment.
         head_of_household.
         where(report_instance_id: @report.id, report_household_id: services.select(:report_household_id)).
-        select(:destination_client_id)
+        pluck(:destination_client_id)
 
       # Return the latest enrollment for each of those HOHs
       HopwaCaper::Enrollment.head_of_household.

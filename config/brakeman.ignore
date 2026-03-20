@@ -1104,29 +1104,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5f29070f834e4bef599dfa0165a10347dae5a8a2b965980ad3d6d60e8fcdd417",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 150,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`echo #{revision} > #{_assets_path}/REVISION`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_set_revision!"
-      },
-      "user_input": "revision",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "5f663e1330e1986e8d398745960c0bc7d3b81ecec41fbb3da180f7eed7495c70",
@@ -1782,7 +1759,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 94,
+      "line": 110,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -2042,6 +2019,40 @@
         "template": "messages/show"
       },
       "user_input": "current_user.messages.find(params.require(:id))",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "afd7f9ce76e93b3977595dd02b19aac9e72bc4512363958f23494aa064f1e3d6",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/import_csv_monitors/edit.haml",
+      "line": 13,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ImportCsvMonitorsController",
+          "method": "edit",
+          "line": 35,
+          "file": "app/controllers/import_csv_monitors_controller.rb",
+          "rendered": {
+            "name": "import_csv_monitors/edit",
+            "file": "app/views/import_csv_monitors/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "import_csv_monitors/edit"
+      },
+      "user_input": "GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize",
       "confidence": "Weak",
       "cwe_id": [
         79
@@ -2880,5 +2891,5 @@
       "note": ""
     }
   ],
-  "brakeman_version": "8.0.2"
+  "brakeman_version": "8.0.4"
 }

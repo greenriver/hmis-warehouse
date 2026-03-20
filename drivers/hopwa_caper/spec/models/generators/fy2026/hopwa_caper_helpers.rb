@@ -35,8 +35,8 @@ module HopwaCaperHelpers
   def create_hopwa_project(funder:)
     project = create(:hud_project, data_source: data_source, organization: organization)
     report_group.set_viewables({ projects: [project.id] })
-    create(:hud_project_coc, project: project, data_source_id: data_source.id, CoCCode: coc_code)
-    create(:hud_funder, project: project, funder: funder, data_source: data_source)
+    create(:hud_project_coc, project: project, ProjectID: project.ProjectID, data_source: data_source, CoCCode: coc_code)
+    create(:hud_funder, project: project, ProjectID: project.ProjectID, funder: funder, data_source: data_source)
     project
   end
 
@@ -134,6 +134,16 @@ module HopwaCaperHelpers
     report = create_report(projects)
     run_report(report)
     rows = question_as_rows(question_number: question_number, report: report).to_h
+    [report, rows]
+  end
+
+  # Run report and extract FBH rows (label => [values...])
+  def run_and_extract_fbh_rows(projects, question_number)
+    report = create_report(projects)
+    run_report(report)
+    rows = question_as_rows(question_number: question_number, report: report).map do |row|
+      [row.first, row[1..]]
+    end.to_h
     [report, rows]
   end
 
