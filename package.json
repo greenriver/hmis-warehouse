@@ -43,6 +43,7 @@
     "yarn-deduplicate": "^6.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.0.3",
     "prettier": "~2.0.2",
     "typescript": "^5.8.2"
