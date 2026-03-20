@@ -50,6 +50,7 @@
   },
   "resolutions": {
     "flatted": "3.4.2",
+    "tar": ">=7.5.11",
     "minimatch": "^10.2.3",
     "ws": "^8.17.1",
     "tar-fs": "^2.1.4",

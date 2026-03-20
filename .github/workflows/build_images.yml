@@ -192,6 +192,7 @@ jobs:
           cache-dir: .trivy
           skip-files: ${{ matrix.trivy_skip_files }}
           hide-progress: true
+          trivy-flags: --debug
 
       - name: Fix .trivy permissions
         run: sudo chown -R $(stat . -c %u:%g) .trivy
