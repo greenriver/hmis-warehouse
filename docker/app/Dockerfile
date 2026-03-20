@@ -76,7 +76,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends curl ca-certificates lsb-release gnupg \
   && sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
   && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
-  && curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y \
+  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash -s -- -y \
   && apt-get update \
   && apt-get remove -y nodejs \
   && rm -rf /var/lib/apt/lists/*
