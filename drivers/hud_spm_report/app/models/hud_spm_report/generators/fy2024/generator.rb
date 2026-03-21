@@ -8,69 +8,61 @@
 
 module HudSpmReport::Generators::Fy2024
   class Generator < ::HudReports::GeneratorBase
-    cattr_accessor :write_detail_path
-
-    def self.fiscal_year
-      'FY 2024'
-    end
-
-    def self.generic_title
-      'System Performance Measures'
-    end
-
-    def self.short_name
-      'SPM'
-    end
+    def self.fiscal_year = 'FY 2024'
+    def self.generic_title = 'System Performance Measures'
+    def self.short_name = 'SPM'
+    def self.filter_class = ::Filters::HudFilterBase
 
     def self.default_project_type_codes
       HudHelper.util('2024').residential_project_type_numbers_by_code.keys
     end
 
-    def url
-      hud_reports_spm_url(report, { host: ENV['FQDN'], protocol: 'https' })
-    end
-
-    def self.questions
-      [
-        HudSpmReport::Generators::Fy2024::MeasureOne,
-        HudSpmReport::Generators::Fy2024::MeasureTwo,
-        HudSpmReport::Generators::Fy2024::MeasureThree,
-        HudSpmReport::Generators::Fy2024::MeasureFour,
-        HudSpmReport::Generators::Fy2024::MeasureFive,
-        HudSpmReport::Generators::Fy2024::MeasureSix,
-        HudSpmReport::Generators::Fy2024::MeasureSeven,
-        HudSpmReport::Generators::Fy2024::HdxUpload,
-      ].map do |q|
-        [q.question_number, q]
-      end.to_h.freeze
-    end
-
-    def self.filter_class
-      ::Filters::HudFilterBase
-    end
-
-    def self.valid_question_number(question_number)
-      questions.keys.detect { |q| q == question_number } || questions.keys.first
-    end
-
-    def self.client_class(question)
-      questions[question].client_class
-    end
-
-    def self.client_scope(question)
-      questions[question].client_scope
-    end
+    def self.uploadable_version? = true
 
     def self.pii_columns
       ['enrollment.first_name', 'first_name', 'enrollment.last_name', 'last_name', 'dob', 'ssn']
     end
 
-    def self.detail_template
-      'hud_spm_report/cells/show'
+    def self.detail_template = 'hud_spm_report/cells/show'
+
+    def url
+      hud_reports_spm_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
-    def self.uploadable_version?
-      true
+    # Frozen snapshot of question metadata for historical report viewing/drilldowns.
+    LegacyQuestion = Data.define(:question_number, :_client_class, :_scope_proc) do
+      def client_class = _client_class
+
+      def client_scope = _scope_proc ? _scope_proc.call : _client_class.preload(enrollment: :project)
     end
+
+    def self.questions
+      @questions ||= [
+        LegacyQuestion.new(
+          question_number: 'Measure 1',
+          _client_class: HudSpmReport::Fy2024::Episode,
+          _scope_proc: -> { HudSpmReport::Fy2024::Episode.joins(:enrollments).preload(enrollments: { enrollment: :project }) },
+        ),
+        LegacyQuestion.new(
+          question_number: 'Measure 2',
+          _client_class: HudSpmReport::Fy2024::Return,
+          _scope_proc: -> {
+            HudSpmReport::Fy2024::Return.
+              left_outer_joins(:exit_enrollment, :return_enrollment).
+              preload(:exit_enrollment, :return_enrollment)
+          },
+        ),
+        LegacyQuestion.new(question_number: 'Measure 3', _client_class: HudSpmReport::Fy2024::SpmEnrollment, _scope_proc: nil),
+        LegacyQuestion.new(question_number: 'Measure 4', _client_class: HudSpmReport::Fy2024::SpmEnrollment, _scope_proc: nil),
+        LegacyQuestion.new(question_number: 'Measure 5', _client_class: HudSpmReport::Fy2024::SpmEnrollment, _scope_proc: nil),
+        LegacyQuestion.new(question_number: 'Measure 6', _client_class: HudSpmReport::Fy2024::SpmEnrollment, _scope_proc: nil),
+        LegacyQuestion.new(question_number: 'Measure 7', _client_class: HudSpmReport::Fy2024::SpmEnrollment, _scope_proc: nil),
+        LegacyQuestion.new(question_number: 'HDX Upload', _client_class: HudSpmReport::Fy2024::SpmEnrollment, _scope_proc: nil),
+      ].index_by(&:question_number).freeze
+    end
+
+    def self.valid_question_number(n) = questions.keys.detect { |q| q == n } || questions.keys.first
+    def self.client_class(question) = questions[question].client_class
+    def self.client_scope(question) = questions[question].client_scope
   end
 end

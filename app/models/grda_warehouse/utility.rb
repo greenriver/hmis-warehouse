@@ -118,11 +118,11 @@ class GrdaWarehouse::Utility
     tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
     if RailsDrivers.loaded.include?(:hud_spm_report)
       tables << HudSpmReport::Fy2020::SpmClient
-      tables << HudSpmReport::Fy2024::SpmEnrollment
-      tables << HudSpmReport::Fy2024::Episode
-      tables << HudSpmReport::Fy2024::BedNight
-      tables << HudSpmReport::Fy2024::EnrollmentLink
-      tables << HudSpmReport::Fy2024::Return
+      tables << HudSpmReport::Fy2026::SpmEnrollment
+      tables << HudSpmReport::Fy2026::Episode
+      tables << HudSpmReport::Fy2026::BedNight
+      tables << HudSpmReport::Fy2026::EnrollmentLink
+      tables << HudSpmReport::Fy2026::Return
     end
 
     if RailsDrivers.loaded.include?(:hud_data_quality_report)
