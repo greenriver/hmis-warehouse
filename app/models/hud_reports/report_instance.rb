@@ -71,10 +71,14 @@ module HudReports
       )
     end
 
-    def current_status
+    def current_status(include_error_details: true)
       # Sometimes the report attempts to run again and ends up in the Started state, short circuit if we know this
       # isn't going to run successfully
-      return "Failed: #{error_details}" if error_details.present?
+      if error_details.present?
+        return "Failed: #{error_details}" if include_error_details
+
+        return 'Failed'
+      end
 
       case state
       when 'Waiting'
@@ -105,7 +109,7 @@ module HudReports
           state
         end
       when 'Failed'
-        if error_details.present?
+        if error_details.present? && include_error_details
           "#{state}: #{error_details}"
         else
           state
@@ -338,6 +342,11 @@ module HudReports
       end
 
       io.string
+    end
+
+    # convenience method
+    def report_range
+      start_date..end_date
     end
   end
 end

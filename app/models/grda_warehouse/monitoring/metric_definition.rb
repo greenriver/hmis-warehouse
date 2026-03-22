@@ -10,7 +10,7 @@
 module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase
     include ArelHelper
-    VALID_CATEGORIES = ['client_services', 'household_calculations'].freeze
+    VALID_CATEGORIES = ['client_services', 'household_calculations', 'csv_import'].freeze
     COLLECTION_HOUR = 2 # Hour of day (0-23) to run daily metric collection
 
     has_many :metric_snapshots,
@@ -70,26 +70,56 @@ module GrdaWarehouse::Monitoring
             metric.assign_attributes(attrs.except(*non_database_attributes))
           end
         end
+        maintain_csv_metrics!
+      end
+    end
+
+    # Create metric definitions for each allowed CSV file (for per-CSV import monitoring)
+    def self.maintain_csv_metrics!
+      return unless defined?(GrdaWarehouse::ImportCsvMonitor)
+
+      csv_files = GrdaWarehouse::ImportCsvMonitor.allowed_csv_files
+      calculator_class = GrdaWarehouse::Monitoring::MetricCalculators::CsvRowCountMetricCalculator.name
+
+      csv_files.each do |csv_file_name|
+        metric_name = "csv_row_count_#{csv_file_name.gsub('.csv', '').parameterize.underscore}"
+        metric = find_or_initialize_by(
+          name: metric_name,
+          entity_type: 'GrdaWarehouse::DataSource',
+        )
+        metric.assign_attributes(
+          display_name: "#{csv_file_name} row count",
+          description: "Row count for #{csv_file_name} from import summary",
+          calculator_class: calculator_class,
+          category: 'csv_import',
+          subtype: csv_file_name,
+          active: true,
+        )
+        metric.save!
       end
     end
 
     # Get chart data showing threshold crossings over time
     # Returns array of [date_string, count] for days where entities crossed threshold
     # Excludes initial observations (first snapshot for each entity/metric)
-    def threshold_crossing_data(days_back:)
+    # @param entity_id [Integer, nil] optional - when set (e.g. for csv_import), scope to this entity only
+    def threshold_crossing_data(days_back:, entity_id: nil)
       start_date = days_back.days.ago.to_date
       end_date = Date.current
 
       snapshot_table = GrdaWarehouse::Monitoring::MetricSnapshot.arel_table
 
+      scope = metric_snapshots
+      scope = scope.where(entity_id: entity_id) if entity_id.present?
+
       # Find initial snapshot IDs (first snapshot for each entity/metric combination)
-      initial_snapshot_ids = metric_snapshots.
+      initial_snapshot_ids = scope.
         select(snapshot_table[:id].minimum).
         group(:entity_type, :entity_id, :metric_definition_id)
 
       # Get non-initial snapshots created in the date range
       # Group by creation date and count entities
-      crossings = metric_snapshots.
+      crossings = scope.
         where(created_at: start_date.beginning_of_day..end_date.end_of_day).
         where.not(id: initial_snapshot_ids).
         group(Arel.sql('DATE(created_at)')).

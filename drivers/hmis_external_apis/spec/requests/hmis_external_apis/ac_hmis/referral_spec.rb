@@ -189,7 +189,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       end
 
       context 'posting already exists' do
-        let(:existing_posting) { create(:hmis_external_api_ac_hmis_referral_posting, project: project) }
+        let(:existing_posting) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, data_source: ds1) }
 
         it 'returns success if referral posting already exists' do
           # Endpoint is idempotent on the posting ID
@@ -236,7 +236,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
       context 'posting to existing closed referral' do
         let(:referral) do
-          current_posting = create(:hmis_external_api_ac_hmis_referral_posting)
+          current_posting = create(:hmis_external_api_ac_hmis_referral_posting, data_source: ds1)
           current_posting.closed_status!
           referral = current_posting.referral
           household.each do |record|
