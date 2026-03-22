@@ -1,6 +1,6 @@
 # 6.1 Login Flow
 
-[← 6 Runtime View](06-0-runtime-view.md) | [Table of Contents](../README.md) | [Next: 6.2 Data Sync Flow →](06-2-data-sync.md)
+[← 6 Runtime View](06-0-runtime-view.md) | [Table of Contents](../README.md) | [Next: 6.2 HUD CSV Import →](06-2-data-sync.md)
 
 This scenario describes the process of a user authenticating with the Open Path Platform using the distributed identity layer.
 
@@ -9,9 +9,9 @@ A user attempts to access the HMIS Warehouse. The request is intercepted by the 
 
 ## Involved Building Blocks
 - **User (Browser)**: The client initiating the request.
-- **[Authentication Layer](../05-building-blocks/05-3-authentication-identity.md)**: OAuth2-Proxy and Dex working together to validate and broker identity.
-- **[Keycloak](../05-building-blocks/05-3-authentication-identity.md)**: The primary Identity Provider (IDP).
-- **[Warehouse Application](../05-building-blocks/05-4-warehouse-application.md)**: The Rails backend that authorizes the user based on the provided JWT claims.
+- **[Authentication Layer](../05-building-blocks/05-2-3-authentication.md)**: OAuth2-Proxy and Dex working together to validate and broker identity.
+- **[Keycloak](../05-building-blocks/05-2-3-authentication.md)**: The primary Identity Provider (IDP).
+- **[Warehouse Application](../05-building-blocks/05-2-1-warehouse.md)**: The Rails backend that authorizes the user based on the provided JWT claims.
 
 ## Sequence Diagram
 

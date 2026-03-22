@@ -2,7 +2,7 @@
 
 [← Previous: 4 Solution Strategy](../04-solution-strategy.md) | [Table of Contents](../README.md) | [Next: 6 Runtime View →](../06-runtime/06-0-runtime-view.md)
 
-## Whitebox Overall System
+## 5.1 Whitebox Overall System
 
 The Open Path Platform consists of independently deployable containers organized around four concerns: interactive data management, batch ingestion and analytics, authentication, and legacy housing coordination.
 
@@ -26,6 +26,7 @@ flowchart TB
     USERS --> SSO --> HMIS_FE & WAREHOUSE & CAS
     USERS -- "Dashboards" --> ANALYTICS
     HMIS_FE -- "GraphQL" --> WAREHOUSE
+    EXT["External Systems"] -- "REST / SFTP" --> WAREHOUSE
     WAREHOUSE --> WAREHOUSE_DB
     CAS -- "Direct DB" --> WAREHOUSE_DB
     UPSTREAM -- "HUD CSV" --> S3 --> WAREHOUSE
@@ -36,15 +37,25 @@ flowchart TB
 
 The platform separates interactive use (HMIS Frontend, Warehouse Web UI) from batch processing (data ingestion, reporting, analytics) so that bulk imports and report generation do not block real-time data entry. Authentication is externalized so identity providers can be swapped without application changes. CAS remains a separate deployment for historical reasons; it is being evaluated for consolidation into the Warehouse.
 
+### User Roles
+
+| Role | Primary Interface | Activities |
+| --- | --- | --- |
+| **HMIS End Users** | HMIS Frontend | Data entry, coordinated entry, assessments |
+| **HMIS Leads** | Warehouse Web UI | HUD reports, data oversight, operational dashboards |
+| **System Administrators** | Warehouse Web UI | System setup, access management, data source configuration |
+| **Vendor Staff** | Warehouse Web UI | Platform configuration, maintenance, deployments |
+| **Analysts & Researchers** | Superset | Community dashboards, operational analytics |
+
 ### Building Blocks
 
 | Building Block | Responsibility | Details |
 | --- | --- | --- |
-| **HMIS Frontend** | Interactive data entry and coordinated entry UI for end users. | [5.1 Core Operations](05-1-core-operations.md) |
-| **Warehouse Application** | Core monolith: GraphQL API, data ingestion, deduplication, HUD reporting, administration, and access control. | [5.4 Warehouse Application](05-4-warehouse-application.md) |
-| **CAS (Legacy)** | Rule-based housing matching and multi-stakeholder referral workflows. | [5.5 CAS Legacy](05-5-cas-legacy.md) |
-| **Authentication Layer** | Externalized identity brokering via OAuth2-Proxy, Dex, and Keycloak. | [5.3 Authentication & Identity](05-3-authentication-identity.md) |
-| **Analytics Stack** | ETL orchestration (Airflow), data transformation (DBT), and dashboards (Superset). | [5.2 Data Ingestion & Analytics](05-2-data-ingestion-analytics.md) |
+| **HMIS Frontend** | Interactive data entry and coordinated entry UI for end users. | [5.2.1 Warehouse](05-2-1-warehouse.md) (HMIS Module) |
+| **Warehouse Application** | Core monolith: GraphQL API, data ingestion, deduplication, HUD reporting, administration, and access control. | [5.2.1 Warehouse](05-2-1-warehouse.md) |
+| **CAS (Legacy)** | Rule-based housing matching and multi-stakeholder referral workflows. | [5.2.2 CAS](05-2-2-cas.md) |
+| **Authentication Layer** | Externalized identity brokering via OAuth2-Proxy, Dex, and Keycloak. | [5.2.3 Authentication](05-2-3-authentication.md) |
+| **Analytics Stack** | ETL orchestration (Airflow), data transformation (DBT), and dashboards (Superset). | [5.2.4 Analytics](05-2-4-analytics.md) |
 | **Warehouse Database** | Primary store for HMIS source tables and normalized warehouse records. | |
 | **S3 Storage** | Ingestion boundary for HUD CSV exports; hosting for public forms and reports. | |
 
@@ -55,24 +66,25 @@ The platform separates interactive use (HMIS Frontend, Warehouse Web UI) from ba
 | HMIS API | HMIS Frontend → Warehouse | GraphQL over HTTPS |
 | Auth flow | All UIs → Auth Layer → Applications | OAuth2 / OIDC with header-based trust |
 | Data ingestion | Upstream Partners → S3 → Warehouse | File deposit + scheduled import |
+| Inbound APIs | External Systems → Warehouse | REST / SFTP |
 | CAS data sync | CAS → Warehouse DB | Direct PostgreSQL connection (legacy) |
 | Analytics pipeline | Warehouse DB → DBT → Analytics DB → Superset | Scheduled SQL transformations |
 
-## Detailed Views
+## 5.2 Level 2
 
-The following sub-sections zoom into specific areas of the platform:
+The following sub-sections open selected containers from the diagram above:
 
-- **[5.1 Core Operations](05-1-core-operations.md)** — Container-level view of primary user interactions, application boundaries, and the CAS integration.
-- **[5.2 Data Ingestion & Analytics](05-2-data-ingestion-analytics.md)** — Container-level view of the ETL pipeline, supplemental data processing, and the analytics stack.
-- **[5.3 Authentication & Identity](05-3-authentication-identity.md)** — Component-level view of the authentication layer, identity brokering, and user management.
-- **[5.4 Warehouse Application](05-4-warehouse-application.md)** — Component-level view of the core Rails monolith's internal structure.
-- **[5.5 CAS Legacy](05-5-cas-legacy.md)** — Component-level view of the legacy matching system.
+- **[5.2.1 Warehouse Application](05-2-1-warehouse.md)** — Internal module groupings of the core Rails monolith, including the driver catalog.
+- **[5.2.2 CAS](05-2-2-cas.md)** — Internal components of the legacy matching system.
+- **[5.2.3 Authentication](05-2-3-authentication.md)** — Components of the authentication and identity brokering layer.
+- **[5.2.4 Analytics](05-2-4-analytics.md)** — The external analytics stack: Airflow, DBT, and Superset.
 
 ## Relationship to Feature Documentation
 
-Detailed implementation documentation for individual features lives in [`docs/features/`](../../features/). Those documents describe *how* specific capabilities work at the code level (data flows, class structures, processing pipelines). This building block view describes *what* the system's major structural elements are and how they relate to each other at an architectural level. The two are complementary: feature docs provide depth, building block views provide structural context.
+Detailed implementation documentation for individual features lives in [`docs/features/`](../../features/). Those documents describe *how* specific capabilities work at the code level (data flows, class structures, processing pipelines). This building block view describes *what* the system's major structural elements are and how they relate to each other at an architectural level. The two are complementary: feature docs provide depth, building block views provide structural context. Over time, feature docs may be migrated into Level 3 sub-sections of this view.
 
-## Section Notes
+## Notes
 
 - **Data Provenance:** The Warehouse Database tracks records back to their origin system. The Application normalizes these source records into a unified view while preserving source provenance.
 - **Legacy Integration:** CAS is a legacy system that bypasses the Warehouse API, connecting directly to the database. It is being evaluated for consolidation into the modern Warehouse codebase.
+- **TalentLMS:** The Warehouse syncs user training completion with TalentLMS — a minor SaaS integration, not a core architectural boundary.

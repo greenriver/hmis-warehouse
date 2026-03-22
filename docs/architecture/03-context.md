@@ -76,7 +76,7 @@ This table maps each external interface to its channel, protocol, and data forma
 | Upstream CSV Ingestion | S3 file deposit | HUD HMIS CSV | Partners deposit exports into designated S3 buckets; Warehouse imports on schedule. |
 | Supplemental Data Ingestion | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse pickup. |
 | Public Forms | S3-hosted static HTML → Warehouse | Form POST | Anonymous data collection (e.g., PIT counts) submitted back to the platform. |
-| Authentication | OAuth2 / OIDC | JWT | OAuth2-Proxy + Dex broker identity from upstream IDPs. See [5.3 Authentication](05-building-blocks/05-3-authentication-identity.md). |
+| Authentication | OAuth2 / OIDC | JWT | OAuth2-Proxy + Dex broker identity from upstream IDPs. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |
 | Analytics | SQL (internal network) | Tabular (PostgreSQL) | DBT transforms warehouse data; Superset queries the analytics database. |
-| CAS ↔ Warehouse | Direct PostgreSQL connection | SQL | Legacy integration; CAS reads/writes warehouse tables directly. See [5.5 CAS Legacy](05-building-blocks/05-5-cas-legacy.md). |
+| CAS ↔ Warehouse | Direct PostgreSQL connection | SQL | Legacy integration; CAS reads/writes warehouse tables directly. See [5.2.2 CAS](05-building-blocks/05-2-2-cas.md). |
 | TalentLMS | REST API over HTTPS | JSON | Sync user training status for compliance tracking. |

@@ -27,8 +27,8 @@ We use the [arc42](https://arc42.org/) template to provide a consistent structur
 ### C4 Model
 For visual documentation and diagramming, we follow the [C4 model](https://c4model.com/). This allows us to represent the system at different levels of abstraction:
 - [**Level 1 (System Context)**](03-context.md): The system as a "black box" in its environment.
-- [**Level 2 (Containers)**]: See [5.1 Core Operations](05-building-blocks/05-1-core-operations.md) and [5.2 Data Ingestion & Analytics](05-building-blocks/05-2-data-ingestion-analytics.md).
-- [**Level 3 (Components)**]: See [5.3 Authentication & Identity](05-building-blocks/05-3-authentication-identity.md), [5.4 Warehouse Application](05-building-blocks/05-4-warehouse-application.md), and [5.5 CAS Legacy](05-building-blocks/05-5-cas-legacy.md). Internal components of specific containers.
+- [**Level 2 (Containers)**](05-building-blocks/05-0-building-blocks.md): The overall system opened to show its major containers.
+- **Level 2 (Components)**: Individual containers opened to show internal structure. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md), [5.2.2 CAS](05-building-blocks/05-2-2-cas.md), [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md), and [5.2.4 Analytics](05-building-blocks/05-2-4-analytics.md).
 
 ## Other Documentation
 - [**Detailed Implementation Documentation**]: Refer to the respective `docs/features` directories in each repository.

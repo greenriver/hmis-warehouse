@@ -10,7 +10,7 @@ This section defines domain and technical terms used throughout the architecture
 | --- | --- |
 | **BNL** | By-Name List. A real-time list of individuals experiencing homelessness, used for prioritization and housing matching. |
 | **BOS** | Balance of State. A CoC that covers the geographic area of a state not included in other CoCs. |
-| **CAS** | Coordinated Access System. The legacy housing matching application within Open Path. See [5.5 CAS Legacy](05-building-blocks/05-5-cas-legacy.md). |
+| **CAS** | Coordinated Access System. The legacy housing matching application within Open Path. See [5.2.2 CAS](05-building-blocks/05-2-2-cas.md). |
 | **CE** | Coordinated Entry. A standardized process for assessing, prioritizing, and referring individuals to housing and services. |
 | **CLS** | Current Living Situation. An assessment type recorded during an enrollment to track a client's housing status over time. |
 | **CoC** | Continuum of Care. A regional or local planning body that coordinates housing and services funding for homeless families and individuals. |
@@ -43,7 +43,7 @@ These appear as the `ProjectType` field in the [HMIS Data Model](08-concepts/08-
 
 ### HUD Reports & Submissions
 
-These are the mandated reports referenced throughout the [Reporting components](05-building-blocks/05-4-warehouse-application.md).
+These are the mandated reports referenced throughout the [Reporting components](05-building-blocks/05-2-1-warehouse.md).
 
 | Term | Definition |
 | --- | --- |
