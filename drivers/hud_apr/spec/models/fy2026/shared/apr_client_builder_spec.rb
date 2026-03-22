@@ -87,20 +87,19 @@ RSpec.describe HudApr::Generators::Shared::Fy2026::AprClientBuilder, type: :mode
       expect(result).to eq({ success: false })
     end
 
-    it 'raises when no context exists for the enrollment (unexpected internal state)' do
+    it 'returns success: false when no context exists for the enrollment (unexpected internal state)' do
       _, dest_client, _, she = setup_enrollment(project)
 
-      expect do
-        described_class.build(
-          report: report,
-          client: dest_client,
-          enrollments: [she],
-          context_map: {},
-          hoh_enrollment_map: {},
-          needs_ce_assessments: false,
-          households: {},
-        )
-      end.to raise_error(ArgumentError, /Missing context/)
+      result = described_class.build(
+        report: report,
+        client: dest_client,
+        enrollments: [she],
+        context_map: {},
+        hoh_enrollment_map: {},
+        needs_ce_assessments: false,
+        households: {},
+      )
+      expect(result).to eq({ success: false })
     end
 
     context 'when the enrollment CoC is not in the report CoC list' do

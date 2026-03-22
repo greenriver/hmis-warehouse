@@ -159,7 +159,9 @@ module HudSpmReport::Fy2026
           next if enrollment&.client.blank?
 
           context = contexts_by_she_id[she.id]
-          raise ArgumentError, "Missing HouseholdContext for ServiceHistoryEnrollment #{she.id} in report #{report_instance.id}" unless context
+
+          # Skip enrollments that appeared after HouseholdContext was built (e.g. during a long report run)
+          next unless context
 
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
