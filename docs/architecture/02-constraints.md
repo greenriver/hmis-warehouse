@@ -30,7 +30,7 @@ This section describes the constraints that limit design and implementation free
 | **HUD CSV Schema as Source Tables** | Warehouse HUD data tables are 1:1 with the CSV exchange format, using HUD naming conventions. This ensures portability and simplifies compliance validation. |
 | **Source Data Integrity Policy** | Data collected through the platform's own HMIS is validated for HUD compliance at the point of entry. Data received from external HMISs is preserved as-is — the platform does not correct or sanitize imported records. Reports surface upstream data quality issues intentionally, giving HMIS Leads visibility into DQ problems at their source rather than masking them. |
 | **Data Source Provenance** | Every HUD record includes a data source identifier. Combined with the record ID, this forms a composite unique identity enabling multi-source deduplication. |
-| **Driver Module Pattern** | Large features (reports, CE workflows) are isolated in `/drivers/[module]` directories mirroring the Rails structure, keeping the core application clean. |
+| **Driver Module Pattern** | Large features are isolated as self-contained Rails engine modules under `/drivers/`. See [8.3 Driver Module Pattern](08-concepts/08-3-driver-module-pattern.md). |
 | **GraphQL API Boundary** | The HMIS React frontend communicates exclusively via GraphQL, enforcing a clean separation between presentation and business logic. |
 
 *Note: Component-specific technical constraints (e.g., language versions, framework versions) are documented in the [Building Block View](05-building-blocks/05-0-building-blocks.md) for each component.*

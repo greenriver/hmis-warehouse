@@ -14,14 +14,9 @@ Open Path Platform is an integrated platform for homeless services management, b
 
 ## 1.2 Quality Goals
 
-| Priority | Quality Goal | Scenario |
-| --- | --- | --- |
-| 1 | **Regulatory Compliance** | When HUD publishes updated Data Standards or reporting specifications, the platform can implement the changes and meet the published compliance deadline. |
-| 2 | **Data Integrity & Provenance** | When a report result is questioned, an auditor can trace any figure back to the exact source records and data source that contributed to it. |
-| 3 | **Security & Privacy** | Client PII is accessible only to users with an active Release of Information (ROI) or appropriate role-based permissions; unauthorized access is denied; access is logged and can be audited. |
-| 4 | **Scalability** | Additional CoCs can be onboarded without architectural changes, scaling from a single community to a statewide deployment. |
+The platform's top architectural priorities, in order, are: **Regulatory Compliance**, **Data Integrity & Provenance**, **Security & Privacy**, and **Scalability**. Three additional quality requirements — Modifiability, Operability, and Usability — are also tracked.
 
-See [Section 10 (Quality Requirements)](10-quality.md) for detailed quality scenarios.
+See [Section 10 (Quality Requirements)](10-quality.md) for definitions, labels, and detailed quality scenarios.
 
 ## 1.3 Stakeholders
 
@@ -34,4 +29,4 @@ See [Section 10 (Quality Requirements)](10-quality.md) for detailed quality scen
 | **Open Path Engineering Team** | Modular, well-documented codebase that supports independent feature development and safe deployments. |
 | **Upstream Data Partners** | Stable ingestion interfaces (S3, API) with clear data format contracts. |
 
-See [Context and Scope](03-context.md) for detailed user roles and system interfaces. See the [Open Path charter](https://docs.google.com/document/d/1Y8pHuWvb0CdUDf2v-y1sJKmjvZkFQ-dcitB35s9gwlI/edit?usp=sharing) for organizational governance.
+See [Context and Scope](03-context.md) for detailed user roles and system interfaces.

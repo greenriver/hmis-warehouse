@@ -6,7 +6,7 @@ This directory contains the architectural documentation for the **entire Open Pa
 
 1. [**1 Introduction and Goals**](01-introduction.md): Short description of the requirements and goals.
 2. [**2 Architecture Constraints**](02-constraints.md): System-wide constraints and limitations.
-3. [**3 Context and Scope**](03-context.md): External interfaces and communication partners.
+3. [**3 Context and Scope**](03-context.md): External interfaces and actors.
 4. [**4 Solution Strategy**](04-solution-strategy.md): Fundamental system-wide decisions and strategies.
 5. [**5 Building Block View**](05-building-blocks/05-0-building-blocks.md): Static decomposition into containers and components.
 6. [**6 Runtime View**](06-runtime/06-0-runtime-view.md): Behavior and interactions at runtime.
@@ -28,7 +28,7 @@ We use the [arc42](https://arc42.org/) template to provide a consistent structur
 For visual documentation and diagramming, we follow the [C4 model](https://c4model.com/). This allows us to represent the system at different levels of abstraction:
 - [**Level 1 (System Context)**](03-context.md): The system as a "black box" in its environment.
 - [**Level 2 (Containers)**](05-building-blocks/05-0-building-blocks.md): The overall system opened to show its major containers.
-- **Level 2 (Components)**: Individual containers opened to show internal structure. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md), [5.2.2 CAS](05-building-blocks/05-2-2-cas.md), [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md), and [5.2.4 Analytics](05-building-blocks/05-2-4-analytics.md).
+- **Level 3 (Components)**: Individual containers opened to show internal structure. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md), [5.2.2 CAS](05-building-blocks/05-2-2-cas.md), [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md), and [5.2.4 Analytics](05-building-blocks/05-2-4-analytics.md).
 
 ## Other Documentation
 - [**Detailed Implementation Documentation**]: Refer to the respective `docs/features` directories in each repository.

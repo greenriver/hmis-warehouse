@@ -2,19 +2,19 @@
 
 [← Previous: 9 Architecture Decisions](09-decisions.md) | [Table of Contents](README.md) | [Next: 11 Risks and Technical Debts →](11-risks.md)
 
-This section expands on the top quality goals defined in [Section 1.2](01-introduction.md) and captures additional quality requirements. Labels follow the [Q42 quality model](https://quality.arc42.org).
+This section defines the platform's quality goals and captures detailed scenarios for each. Labels follow the [Q42 quality model](https://quality.arc42.org).
 
 ## 10.1 Quality Requirements Overview
 
-| Category | Label | Description |
-| --- | --- | --- |
-| **Regulatory Compliance** | #compliant | The platform implements HUD HMIS Data Standards and reporting specifications on schedule. Data structures and outputs conform to published formats. |
-| **Data Integrity & Provenance** | #reliable | All data is traceable to its origin. Source records are preserved alongside normalized warehouse records. Report results can be audited against contributing data. |
-| **Security & Privacy** | #secure | Client PII is protected by role-based access control and Release of Information (ROI) rules. Multi-CoC deployments enforce data partitioning. Access is logged. |
-| **Scalability** | #efficient | The platform supports multi-CoC deployments and growing data volumes without architectural changes. Background processing handles large imports without blocking interactive use. |
-| **Modifiability** | #flexible | New HUD report types, form definitions, and data collection requirements can be added through configuration or isolated driver modules without modifying core domain models. |
-| **Operability** | #operable | System administrators can manage user access, data sources, and reference data through the administrative UI without code changes or deployments. |
-| **Usability** | #usable | Data entry workflows are responsive and do not impede front-line staff productivity. Report generation provides clear progress feedback. |
+| Priority | Category | Label | Description |
+| --- | --- | --- | --- |
+| 1 | **Regulatory Compliance** | #compliant | The platform implements HUD HMIS Data Standards and reporting specifications on schedule. Data structures and outputs conform to published formats. |
+| 2 | **Data Integrity & Provenance** | #reliable | All data is traceable to its origin. Source records are preserved alongside normalized warehouse records. Report results can be audited against contributing data. |
+| 3 | **Security & Privacy** | #secure | Client PII is protected by role-based access control and Release of Information (ROI) rules. Multi-CoC deployments enforce data partitioning. Access is logged. |
+| 4 | **Scalability** | #efficient | The platform supports multi-CoC deployments and growing data volumes without architectural changes. Background processing handles large imports without blocking interactive use. |
+| — | **Modifiability** | #flexible | New HUD report types, form definitions, and data collection requirements can be added through configuration or isolated driver modules without modifying core domain models. |
+| — | **Operability** | #operable | System administrators can manage user access, data sources, and reference data through the administrative UI without code changes or deployments. |
+| — | **Usability** | #usable | Data entry workflows are responsive and do not impede front-line staff productivity. Report generation provides clear progress feedback. |
 
 ## 10.2 Quality Scenarios
 

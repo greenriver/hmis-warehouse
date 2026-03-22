@@ -1,6 +1,6 @@
 # 5.2.1 Warehouse Application
 
-[← 5.1 Whitebox Overall System](05-0-building-blocks.md) | [Table of Contents](../README.md) | [Next: 5.2.2 CAS →](05-2-2-cas.md)
+[← 5.1 Overall System](05-0-building-blocks.md) | [Table of Contents](../README.md) | [Next: 5.2.2 CAS →](05-2-2-cas.md)
 
 This document opens the Warehouse Application container to show its internal module groupings.
 
@@ -141,7 +141,7 @@ flowchart TB
 
 ## Driver Catalog
 
-Each driver is a self-contained Rails module in `/drivers/[name]` with its own models, controllers, views, and specs. The table below groups all 88 drivers by functional area.
+Each driver is a self-contained Rails engine in `/drivers/[name]` with its own models, controllers, views, and specs. See [8.3 Driver Module Pattern](../08-concepts/08-3-driver-module-pattern.md) for the convention. The 88 drivers group into the functional areas below; architecturally significant drivers are listed individually, while the long tail is summarized.
 
 ### HMIS Module
 
@@ -155,24 +155,10 @@ Each driver is a self-contained Rails module in `/drivers/[name]` with its own m
 | Driver | Purpose |
 | --- | --- |
 | `hmis_csv_importer` | Primary HUD CSV import pipeline: loading, validation, and warehouse ingestion. |
-| `hmis_csv_twenty_twenty` | HUD CSV 2020 format support. |
-| `hmis_csv_twenty_twenty_two` | HUD CSV 2022 format support. |
-| `hmis_csv_twenty_twenty_four` | HUD CSV 2024 format support. |
-| `hmis_csv_twenty_twenty_six` | HUD CSV 2026 format support. |
 | `hmis_supplemental` | Ingestion of supplemental (non-HUD) data from Airflow pipelines. |
 | `hmis_data_quality_tool` | Data quality analysis and issue detection across imported data. |
-| `custom_imports_boston_*` | Boston-specific custom data imports (assessments, contacts, services, community of origin). |
-| `manual_hmis_data` | Manual data entry pipelines for non-CSV sources. |
-| `eccovia_data` | Integration with the Eccovia HMIS platform. |
-| `supplemental_enrollment_data` | Additional enrollment data from supplemental sources. |
 
-### HUD CSV Version Migration
-
-| Driver | Purpose |
-| --- | --- |
-| `hud_twenty_twenty_to_twenty_twenty_two` | Schema migration: HUD CSV 2020 → 2022. |
-| `hud_twenty_twenty_two_to_twenty_twenty_four` | Schema migration: HUD CSV 2022 → 2024. |
-| `hud_twenty_twenty_four_to_twenty_twenty_six` | Schema migration: HUD CSV 2024 → 2026. |
+~8 additional drivers provide HUD CSV format-specific support (2020 through 2026), schema migration between HUD CSV versions, and custom import pipelines for specific data partners.
 
 ### HUD Reporting
 
@@ -189,94 +175,19 @@ Each driver is a self-contained Rails module in `/drivers/[name]` with its own m
 
 ### Warehouse Reports & Dashboards
 
-| Driver | Purpose |
-| --- | --- |
-| `boston_project_scorecard` | Boston-specific project performance scorecard. |
-| `boston_reports` | Boston-specific operational reports. |
-| `project_scorecard` | General project performance scorecard. |
-| `performance_measurement` | CoC performance measurement dashboards. |
-| `performance_metrics` | System-wide performance metrics. |
-| `ce_performance` | Coordinated entry performance tracking. |
-| `system_pathways` | System pathway analysis and visualization. |
-| `longitudinal_spm` | Longitudinal SPM tracking across reporting periods. |
-| `all_neighbors_system_dashboard` | All Neighbors system-level dashboard. |
-| `built_for_zero_report` | Built for Zero community reporting. |
-| `homeless_summary_report` | Homelessness summary statistics. |
-| `destination_report` | Exit destination analysis. |
-| `disability_summary` | Disability demographics summary. |
-| `income_benefits_report` | Income and benefits tracking report. |
-| `prior_living_situation` | Prior living situation analysis. |
-| `core_demographics_report` | Core demographics reporting. |
-| `data_source_report` | Data source quality and coverage reporting. |
-| `start_date_dq` | Start date data quality analysis. |
-| `project_pass_fail` | Project data quality pass/fail scoring. |
-| `inactive_client_report` | Identification of inactive client records. |
-| `zip_code_report` | Geographic distribution by zip code. |
-| `census_tracking` | Census-based demographic tracking. |
-| `claims_reporting` | Claims and billing reporting. |
-| `client_documents_report` | Client document status reporting. |
-| `client_location_history` | Client location history tracking. |
-| `hap_report` | Housing Assistance Payments report. |
-| `override_summary` | Data override audit summary. |
-| `public_reports` | Publicly accessible report generation and S3 publishing. |
-| `analysis_tool` | Ad-hoc data analysis tools. |
-| `financial` | Financial reporting and tracking. |
+~30 drivers providing operational dashboards, performance scorecards, data quality analysis, demographic reporting, and community-specific reports. Includes state- and community-specific report variants. Some reports are published to S3 for public access.
 
 ### Sub-Populations
 
-| Driver | Purpose |
-| --- | --- |
-| `veterans_sub_pop` | Veteran client sub-population filtering and scoping. |
-| `non_veterans_sub_pop` | Non-veteran sub-population. |
-| `adults_with_children_sub_pop` | Adults with children household sub-population. |
-| `adults_with_children_twentyfive_plus_hoh_sub_pop` | Adults with children, HoH 25+ sub-population. |
-| `adults_with_children_youth_hoh_sub_pop` | Adults with children, youth HoH sub-population. |
-| `adult_only_households_sub_pop` | Adult-only household sub-population. |
-| `child_only_households_sub_pop` | Child-only household sub-population. |
-| `clients_sub_pop` | General client sub-population base. |
+8 filter modules that scope reports and analytics to specific client sub-populations (veterans, adults with children, child-only households, etc.). These are used as cross-cutting filters across multiple report drivers.
 
 ### Health Integration
 
-| Driver | Purpose |
-| --- | --- |
-| `health_comprehensive_assessment` | Comprehensive health assessment forms. |
-| `health_flexible_service` | Flexible health service tracking. |
-| `health_ip_followup_report` | IP follow-up health reporting. |
-| `health_pctp` | Patient-Centered Treatment Planning. |
-| `health_qa_factory` | Health module QA and test data generation. |
-| `health_thrive_assessment` | THRIVE health assessment. |
-| `medicaid_hmis_interchange` | Medicaid-HMIS data interchange. |
-
-### Massachusetts-Specific
-
-| Driver | Purpose |
-| --- | --- |
-| `ma_reports` | Massachusetts state-specific reports. |
-| `ma_yya_report` | MA Young Adult (YYA) report. |
-| `ma_yya_followup_report` | MA YYA follow-up report. |
-
-### Texas-Specific
-
-| Driver | Purpose |
-| --- | --- |
-| `tx_client_reports` | Texas-specific client reporting. |
+7 drivers providing health assessment forms, treatment planning, and Medicaid data interchange capabilities.
 
 ### Platform & Administration
 
-| Driver | Purpose |
-| --- | --- |
-| `access_logs` | User access and activity logging. |
-| `client_access_control` | Client-level access control rules. |
-| `cas_access` | CAS-specific access control integration. |
-| `cas_ce_data` | CAS coordinated entry data sync. |
-| `user_directory_report` | User directory and account reporting. |
-| `user_permission_report` | User permission audit reporting. |
-| `text_message` | SMS notification integration. |
-| `service_scanning` | Service scanning and barcode integration. |
-| `superset` | Superset analytics integration and configuration. |
-| `vispdats` | VI-SPDAT assessment integration. |
-| `synthetic_ce_assessment` | Synthetic CE assessment data generation. |
-| `datalab_testkit` | Test data generation toolkit. |
+~12 drivers for access logging, permission auditing, CAS data synchronization, SMS notifications, and integration utilities (Superset, VI-SPDAT, test data generation).
 
 ## Level 3 (Future)
 

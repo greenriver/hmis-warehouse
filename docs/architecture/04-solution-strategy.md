@@ -2,7 +2,7 @@
 
 [← Previous: 3 Context and Scope](03-context.md) | [Table of Contents](README.md) | [Next: 5 Building Block View →](05-building-blocks/05-0-building-blocks.md)
 
-This section summarizes the fundamental decisions and solution strategies that shape the Open Path Platform, organized by the [quality goals](01-introduction.md) they address.
+This section summarizes the fundamental decisions and solution strategies that shape the Open Path Platform, organized by the [quality goals](10-quality.md) they address.
 
 ## 4.1 Quality Goals → Solution Approaches
 
@@ -26,7 +26,7 @@ This section summarizes the fundamental decisions and solution strategies that s
 ## 4.3 Core Architectural Patterns
 
 - **Source-Preserving Warehouse**: All ingested data is stored in HUD-schema source tables before normalization into unified warehouse records. This preserves full provenance and supports re-processing without data loss.
-- **Modular Feature Drivers**: Large features (HUD reports, CE workflows) are isolated in `/drivers/[module]` directories mirroring the Rails structure, keeping core domain models clean and limiting the blast radius of changes.
+- **Modular Feature Drivers**: Large features are isolated as self-contained Rails engine modules. See [8.3 Driver Module Pattern](08-concepts/08-3-driver-module-pattern.md) and the [driver catalog](05-building-blocks/05-2-1-warehouse.md).
 - **Deduplication & Linking**: Cross-source fuzzy matching creates unified client identities while maintaining links to all contributing source records. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md).
 - **Data-Driven Forms & Workflows**: Configurable form definitions handle evolving HUD and custom data collection requirements. CE referral lifecycles are driven by configuration rather than code.
 - **Policy-Based Authorization**: Complex access control logic (ROI rules, role-based and relationship-based permissions, CoC-scoped visibility) is encapsulated in dedicated policy objects.

@@ -2,7 +2,7 @@
 
 [← Previous: 4 Solution Strategy](../04-solution-strategy.md) | [Table of Contents](../README.md) | [Next: 6 Runtime View →](../06-runtime/06-0-runtime-view.md)
 
-## 5.1 Whitebox Overall System
+## 5.1 Overall System
 
 The Open Path Platform consists of independently deployable containers organized around four concerns: interactive data management, batch ingestion and analytics, authentication, and legacy housing coordination.
 
@@ -39,13 +39,7 @@ The platform separates interactive use (HMIS Frontend, Warehouse Web UI) from ba
 
 ### User Roles
 
-| Role | Primary Interface | Activities |
-| --- | --- | --- |
-| **HMIS End Users** | HMIS Frontend | Data entry, coordinated entry, assessments |
-| **HMIS Leads** | Warehouse Web UI | HUD reports, data oversight, operational dashboards |
-| **System Administrators** | Warehouse Web UI | System setup, access management, data source configuration |
-| **Vendor Staff** | Warehouse Web UI | Platform configuration, maintenance, deployments |
-| **Analysts & Researchers** | Superset | Community dashboards, operational analytics |
+See [Section 3.1](../03-context.md) for full role definitions. HMIS End Users access the HMIS Frontend; Leads, Admins, and Vendor Staff use the Warehouse Web UI; Analysts use Superset.
 
 ### Building Blocks
 
@@ -85,6 +79,5 @@ Detailed implementation documentation for individual features lives in [`docs/fe
 
 ## Notes
 
-- **Data Provenance:** The Warehouse Database tracks records back to their origin system. The Application normalizes these source records into a unified view while preserving source provenance.
-- **Legacy Integration:** CAS is a legacy system that bypasses the Warehouse API, connecting directly to the database. It is being evaluated for consolidation into the modern Warehouse codebase.
+- **Data Provenance:** The Warehouse preserves all source records alongside normalized data. See [2.3 Conventions](../02-constraints.md) for the source data integrity policy.
 - **TalentLMS:** The Warehouse syncs user training completion with TalentLMS — a minor SaaS integration, not a core architectural boundary.

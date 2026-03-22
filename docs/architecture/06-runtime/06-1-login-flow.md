@@ -77,5 +77,5 @@ sequenceDiagram
 
 ## Notable Aspects
 1. **Header-Based Identity**: The Warehouse Application trusts the `X-Forwarded-User` and other headers because it is situated behind the OAuth2-Proxy, which is responsible for the cryptographic validation of the JWT.
-2. **Transparent Refresh**: (See Section 8.x for details) The OAuth2-Proxy can automatically refresh tokens before they expire, providing a seamless user experience.
+2. **Transparent Refresh**: The OAuth2-Proxy can automatically refresh tokens before they expire, providing a seamless user experience. See [8.2 Security](../08-concepts/08-2-security.md) for details.
 3. **Just-In-Time (JIT) Provisioning**: The Warehouse Application creates a local `User` record upon the first successful login if one does not already exist, using the claims provided in the JWT.

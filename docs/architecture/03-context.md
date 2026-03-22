@@ -2,7 +2,7 @@
 
 [← Previous: 2 Architecture Constraints](02-constraints.md) | [Table of Contents](README.md) | [Next: 4 Solution Strategy →](04-solution-strategy.md)
 
-This section delimits the Open Path Platform from all its communication partners (neighboring systems and users).
+This section defines the boundary between the Open Path Platform and its external actors — neighboring systems and users.
 
 ## 3.1 Business Context
 
@@ -39,7 +39,7 @@ flowchart TB
     HUD -. "Data standards & reporting specs" .-> OP
 ```
 
-### Communication Partners
+### External Actors
 
 | Partner | Inputs to Platform | Outputs from Platform |
 | --- | --- | --- |
