@@ -2,7 +2,7 @@
 
 [← 5.2.3 Authentication](05-2-3-authentication.md) | [Table of Contents](../README.md) | [Next: 6 Runtime View →](../06-runtime/06-0-runtime-view.md)
 
-This document opens the Analytics Stack to show how external data is ingested, transformed, and made available for community dashboards.
+This document opens the Analytics Stack to show how external data is ingested, transformed, and made available for community dashboards. The source repositories for this stack (Superset configuration, DBT models) are private.
 
 ```mermaid
 flowchart LR

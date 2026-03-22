@@ -6,6 +6,7 @@ This document opens the Warehouse Application container to show its internal mod
 
 ## Technical Stack
 
+- **Repository**: [greenriver/hmis-warehouse](https://github.com/greenriver/hmis-warehouse)
 - **Framework**: Ruby on Rails
 - **Language**: Ruby
 - **Database**: PostgreSQL

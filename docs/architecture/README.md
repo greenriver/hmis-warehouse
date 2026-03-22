@@ -30,6 +30,18 @@ For visual documentation and diagramming, we follow the [C4 model](https://c4mod
 - [**Level 2 (Containers)**](05-building-blocks/05-0-building-blocks.md): The overall system opened to show its major containers.
 - **Level 3 (Components)**: Individual containers opened to show internal structure. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md), [5.2.2 CAS](05-building-blocks/05-2-2-cas.md), [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md), and [5.2.4 Analytics](05-building-blocks/05-2-4-analytics.md).
 
+## Repositories
+
+The platform spans multiple repositories. This architecture documentation covers all of them.
+
+| Repository | Building Block | Visibility |
+| --- | --- | --- |
+| [greenriver/hmis-warehouse](https://github.com/greenriver/hmis-warehouse) | Warehouse Application (Rails monolith) | Public |
+| [greenriver/hmis-frontend](https://github.com/greenriver/hmis-frontend) | HMIS Frontend (React SPA) | Public |
+| [greenriver/boston-cas](https://github.com/greenriver/boston-cas) | CAS (legacy matching system) | Public |
+| *(private)* | Analytics Stack (Superset, DBT) | Private |
+| *(private)* | Deployment (ArgoCD) | Private |
+
 ## Other Documentation
-- [**Detailed Implementation Documentation**]: Refer to the respective `docs/features` directories in each repository.
-- [**Architecture Decisions (ADRs)**]: Refer to the respective `docs/adr` directories in each repository for low-level technical decisions.
+- **Detailed Implementation Documentation**: Refer to the respective `docs/features` directories in each repository.
+- **Architecture Decisions (ADRs)**: Refer to the respective `docs/adr` directories in each repository for low-level technical decisions.

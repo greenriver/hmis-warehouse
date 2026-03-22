@@ -6,6 +6,8 @@
 
 Open Path Platform is an integrated platform for homeless services management, built to help one or more **Continua of Care (CoC)** meet federal data collection and reporting requirements. The platform must support deployments ranging from a single municipality to an entire state.
 
+> **Scope:** This architecture documentation covers the entire Open Path Platform across all of its repositories. Individual building blocks are mapped to their source repositories in [Section 5](05-building-blocks/05-0-building-blocks.md).
+
 - **HMIS Data Entry** — Direct client data collection via a modern web interface, supporting configurable forms aligned with HUD HMIS Data Standards.
 - **Coordinated Entry** — Assessment, prioritization, and referral workflows for housing placements.
 - **Data Warehousing** — Ingestion, deduplication, and normalization of client records from multiple upstream HMIS vendors into a unified system of record.

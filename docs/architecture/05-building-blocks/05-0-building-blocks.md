@@ -45,7 +45,7 @@ See [Section 3.1](../03-context.md) for full role definitions. HMIS End Users ac
 
 | Building Block | Responsibility | Details |
 | --- | --- | --- |
-| **HMIS Frontend** | Interactive data entry and coordinated entry UI for end users. | [5.2.1 Warehouse](05-2-1-warehouse.md) (HMIS Module) |
+| **HMIS Frontend** | Interactive data entry and coordinated entry UI for end users. React SPA in [greenriver/hmis-frontend](https://github.com/greenriver/hmis-frontend); backend API documented in [5.2.1 Warehouse](05-2-1-warehouse.md) (HMIS Module). | |
 | **Warehouse Application** | Core monolith: GraphQL API, data ingestion, deduplication, HUD reporting, administration, and access control. | [5.2.1 Warehouse](05-2-1-warehouse.md) |
 | **CAS (Legacy)** | Rule-based housing matching and multi-stakeholder referral workflows. | [5.2.2 CAS](05-2-2-cas.md) |
 | **Authentication Layer** | Externalized identity brokering via OAuth2-Proxy, Dex, and Keycloak. | [5.2.3 Authentication](05-2-3-authentication.md) |
