@@ -410,7 +410,7 @@ module MaYyaReport
           section_label: 'A. Core Services',
           subsections: {
             'A1' => {
-              subsection_label: '1. Street Outreach/Colaboration',
+              subsection_label: '1. Street Outreach/Collaboration',
               cells: section_a1_cells,
             },
             'A2' => {
