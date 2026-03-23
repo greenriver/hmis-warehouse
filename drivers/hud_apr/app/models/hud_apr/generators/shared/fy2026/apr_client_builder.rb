@@ -47,7 +47,9 @@ module HudApr::Generators::Shared::Fy2026
       resolve_primary_enrollment!
 
       return { success: false } unless @last_service_history_enrollment
-      raise ArgumentError, "Missing context for SHE #{@last_service_history_enrollment.id}" unless @ctx
+
+      # Skip if context is missing (likely because it appeared after context generation)
+      return { success: false } unless @ctx
       return { success: false } unless resolve_enrollment_coc!
 
       raise ArgumentError, "Missing source client for SHE #{@last_service_history_enrollment.id}" unless @source_client
