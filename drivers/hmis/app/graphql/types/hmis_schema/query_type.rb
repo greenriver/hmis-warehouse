@@ -48,7 +48,7 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
-      # Find or create a ClientSearchQuery for the given params.
+      # Find or create a ClientSearchQuery for the given params and user.
       query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
       raise query.errors.full_messages.join(', ') unless query.valid?
 
