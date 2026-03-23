@@ -50,6 +50,12 @@ module Admin
         includes(:entity, :alert_definitions).
         order(type: :asc).
         to_a
+
+      # Import CSV Monitor notifications (user_id is cross-DB)
+      @import_csv_monitor_configs = GrdaWarehouse::NotificationConfiguration.
+        where(user_id: @user.id, source_type: 'GrdaWarehouse::ImportCsvMonitor', active: true).
+        includes(source: :data_source).
+        to_a
     end
 
     def unlock

@@ -41,7 +41,7 @@ jobs:
             hadolint_ignore: DL3008
             trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
-              BUILD_TAG=3.4.5-slim-bookworm
+              BUILD_TAG=3.4.9-slim-bookworm
               BUNDLER_VERSION=2.7.2
             tags: |
               type=sha,prefix=githash-
@@ -179,7 +179,7 @@ jobs:
       # https://github.com/aquasecurity/trivy-action
       - name: Run vulnerability scan
         id: vuln_scan
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         env:
           TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db:2"
           TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"
@@ -191,6 +191,8 @@ jobs:
           severity: "CRITICAL,HIGH"
           cache-dir: .trivy
           skip-files: ${{ matrix.trivy_skip_files }}
+          hide-progress: true
+          # trivy-flags: --debug
 
       - name: Fix .trivy permissions
         run: sudo chown -R $(stat . -c %u:%g) .trivy

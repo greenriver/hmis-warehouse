@@ -40,6 +40,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   has_one :hmis_import_config
   has_one :import_threshold
+  has_many :import_csv_monitors, class_name: 'GrdaWarehouse::ImportCsvMonitor'
   has_one :external_hmis_configuration
 
   accepts_nested_attributes_for :organizations

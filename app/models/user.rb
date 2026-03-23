@@ -11,6 +11,7 @@ class User < ApplicationRecord
   include Memery
   include UserConcern
   include RailsDrivers::Extensions
+  include DeviseUserPatch
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 

@@ -11,6 +11,8 @@ require 'csv'
 # Utility functions for cleaning up HMIS data during a migration.
 # Be careful, some functions modify data and don't leave a paper trail.
 #
+# TODO: Refactor this class to operate on one HMIS data source
+#
 # Usage: HmisDataCleanup::Util.assign_missing_household_ids!
 module HmisDataCleanup
   class Util

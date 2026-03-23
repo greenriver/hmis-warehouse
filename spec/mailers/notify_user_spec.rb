@@ -208,7 +208,6 @@ RSpec.describe NotifyUser, type: :mailer do
     let(:metric_mail) do
       NotifyUser.metric_threshold_crossed(
         user_id: user.id,
-        alert_code: 'metric_days_homeless_threshold',
         crossings: crossings,
         calculation_date: calculation_date,
       )
@@ -219,7 +218,7 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:user) { create(:user, active: true) }
 
       it 'sends email with correct subject' do
-        expect(metric_mail.subject).to include('Days Homeless Threshold Crossed')
+        expect(metric_mail.subject).to include('Metric Threshold Monitoring Alert')
       end
 
       it 'sends to user email' do
@@ -282,14 +281,13 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:metric_mail) do
         NotifyUser.metric_threshold_crossed(
           user_id: user.id,
-          alert_code: 'metric_household_size_threshold',
           crossings: crossings,
           calculation_date: calculation_date,
         )
       end
 
       it 'sends email with correct subject' do
-        expect(metric_mail.subject).to include('Household Size Threshold Crossed')
+        expect(metric_mail.subject).to include('Metric Threshold Monitoring Alert')
       end
 
       it 'includes metric name in body' do
@@ -318,7 +316,6 @@ RSpec.describe NotifyUser, type: :mailer do
       let(:metric_mail) do
         NotifyUser.metric_threshold_crossed(
           user_id: user.id,
-          alert_code: 'metric_household_size_threshold',
           crossings: crossings,
           calculation_date: calculation_date,
         )
