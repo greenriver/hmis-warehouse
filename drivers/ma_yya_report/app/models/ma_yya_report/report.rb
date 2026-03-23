@@ -161,14 +161,14 @@ module MaYyaReport
     ].freeze
 
     DETAIL_CELL_DESCRIPTIONS = {
-      A1a: 'Enrolled in Street Outreach or had a referral source of Outreach Project (7) and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
-      A1b: 'Referral source Outreach Project (7) and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335).',
-      A2a: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
-      A2b: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335).',
-      A3a: 'YYA with a entry date during the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
-      A3b: 'YYA with a entry date prior to the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date.',
-      A4a: 'YYA with a entry date during the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH).',
-      A4b: 'YYA with a entry date prior to the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date, or enrolled in a homeless project (ES, SH, SO, or TH).',
+      A1a: 'Enrolled in Street Outreach or had a referral source of Outreach Project (7) and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A1b: 'Referral source Outreach Project (7) and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A2a: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A2b: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A3a: 'YYA with an entry date during the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A3b: 'YYA with an entry date prior to the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date.',
+      A4a: 'YYA with an entry date during the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH).',
+      A4b: 'YYA with an entry date prior to the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date, and a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date, or enrolled in a homeless project (ES, SH, SO, or TH).',
       TotalYYAServedPrevention: 'Unduplicated of YYA in A1b, A2b, A3a, or A3b.',
       TotalYYAServedHomeless: 'Unduplicated of YYA in A1a, A2a, A4a, or A4b.',
       D1a: 'Of the Total YYA Served in Prevention, those who were under 18.',
