@@ -137,8 +137,10 @@ module HmisUtil
       end
 
       # { record_type => CustomServiceType } in the data source for HUD Service Types
-      service_types = Hmis::Hud::CustomServiceType.hud.where(data_source: @data_source).preload(:custom_service_category).index_by(&:hud_record_type)
-      # binding.pry
+      service_types = Hmis::Hud::CustomServiceType.hud.
+        where(data_source: @data_source).
+        preload(:custom_service_category).
+        index_by(&:hud_record_type)
 
       # For each record type, create Form Instance(s) per applicability requirement
       HudHelper.util.service_form_funder_applicability_requirements.each do |config|

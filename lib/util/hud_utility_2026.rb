@@ -987,26 +987,26 @@ module HudUtility2026
 
     [
       # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
-      { funder: cls_funder_codes[:coc_sso] },
+      { funder: cls_funder_codes.fetch(:coc_sso) },
       # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
-      { funder: cls_funder_codes[:coc_yhdp] },
+      { funder: cls_funder_codes.fetch(:coc_yhdp) },
       # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
-      { funder: cls_funder_codes[:esg_street_outreach] },
-      { funder: cls_funder_codes[:esg_emergency_shelter], project_type: pt[:es_nbn] },
+      { funder: cls_funder_codes.fetch(:esg_street_outreach) },
+      { funder: cls_funder_codes.fetch(:esg_emergency_shelter), project_type: pt.fetch(:es_nbn) },
       # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:street_outreach] },
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:coordinated_entry] },
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:es_nbn] },
+      { funder: cls_funder_codes.fetch(:esg_rush), project_type: pt.fetch(:street_outreach) },
+      { funder: cls_funder_codes.fetch(:esg_rush), project_type: pt.fetch(:coordinated_entry) },
+      { funder: cls_funder_codes.fetch(:esg_rush), project_type: pt.fetch(:es_nbn) },
       # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-      { funder: cls_funder_codes[:unsheltered_nofo], project_type: pt[:street_outreach] },
-      { funder: cls_funder_codes[:unsheltered_nofo], project_type: pt[:coordinated_entry] },
+      { funder: cls_funder_codes.fetch(:unsheltered_nofo), project_type: pt.fetch(:street_outreach) },
+      { funder: cls_funder_codes.fetch(:unsheltered_nofo), project_type: pt.fetch(:coordinated_entry) },
       # HUD: Rural Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-      { funder: cls_funder_codes[:rural_nofo], project_type: pt[:street_outreach] },
-      { funder: cls_funder_codes[:rural_nofo], project_type: pt[:coordinated_entry] },
+      { funder: cls_funder_codes.fetch(:rural_nofo), project_type: pt.fetch(:street_outreach) },
+      { funder: cls_funder_codes.fetch(:rural_nofo), project_type: pt.fetch(:coordinated_entry) },
       # HHS: PATH – Collection required for all components
-      { funder: cls_funder_codes[:path] },
+      { funder: cls_funder_codes.fetch(:path) },
       # HHS: RHY – Collection only required for Street Outreach
-      { funder: cls_funder_codes[:rhy_street_outreach] },
+      { funder: cls_funder_codes.fetch(:rhy_street_outreach) },
     ]
   end
 
@@ -1019,11 +1019,9 @@ module HudUtility2026
   # Each element has :record_type (HUD record type code) and :applicability_requirements, an array of
   # hashes with :project_type and/or :funder (same shape as current_living_situation_funder_applicability_requirements).
   def service_form_funder_applicability_requirements
-    # helper map for relevant project types
-    pt = {
-      es_nbn: 1, # Emergency Shelter - Night-by-Night
-      psh: 3,    # PH - Permanent Supportive Housing
-    }
+    # helper vars for relevant project types
+    es_nbn_project_type = 1 # Emergency Shelter - Night-by-Night
+    psh_project_type = 3    # PH - Permanent Supportive Housing
 
     # helper map for relevant funder codes (named entries used in applicability_requirements below)
     service_funder_codes = {
@@ -1037,7 +1035,7 @@ module HudUtility2026
       rural_nofo: funding_source('HUD: Rural Special NOFO', true, raise_on_missing: true),
       ssvf: funding_source('VA: Supportive Services for Veteran Families', true, raise_on_missing: true),
     }
-    rhy_funders_excluding_street_outreach = funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [service_funder_codes[:rhy_street_outreach]]
+    rhy_funders_excluding_street_outreach = funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [service_funder_codes.fetch(:rhy_street_outreach)]
     hopwa_funders = funder_components.fetch('HUD: HOPWA')
 
     [
@@ -1047,7 +1045,7 @@ module HudUtility2026
         data_collected_about: :ALL_CLIENTS,
         applicability_requirements: [
           # Required for ES NbN ("Applicability extends to all NbN type emergency shelters that participate in HMIS, regardless of funding source")
-          { project_type: pt[:es_nbn] },
+          { project_type: es_nbn_project_type },
         ],
       },
       # P1 Services Provided - PATH Funded
@@ -1056,7 +1054,7 @@ module HudUtility2026
         data_collected_about: :HOH_AND_ADULTS,
         applicability_requirements: [
           # Funder Program-Component: "HHS: PATH – Collection required for all components"
-          { funder: service_funder_codes[:path] },
+          { funder: service_funder_codes.fetch(:path) },
         ],
       },
 
@@ -1066,7 +1064,7 @@ module HudUtility2026
         data_collected_about: :HOH_AND_ADULTS,
         applicability_requirements: [
           # Funder Program-Component: "HHS: PATH – Collection required for all components"
-          { funder: service_funder_codes[:path] },
+          { funder: service_funder_codes.fetch(:path) },
         ],
       },
 
@@ -1115,7 +1113,7 @@ module HudUtility2026
         # Notes:
         # - We enable this record type for all SSVF-funded projects, despite HUD only requiring collection for RRH and Homelessness Prevention.
         # - Other VA-funded programs may optionally collect this, we don't include them here because collection is not required.
-        applicability_requirements: [{ funder: service_funder_codes[:ssvf] }],
+        applicability_requirements: [{ funder: service_funder_codes.fetch(:ssvf) }],
       },
 
       # V3 Financial Assistance – SSVF
@@ -1128,7 +1126,7 @@ module HudUtility2026
           # Notes:
           # - We enable this record type for all SSVF-funded projects, despite HUD only requiring collection for RRH and Homelessness Prevention.
           # - Other VA-funded programs may optionally collect this, we don't include them here because collection is not required.
-          { funder: service_funder_codes[:ssvf] },
+          { funder: service_funder_codes.fetch(:ssvf) },
         ],
       },
       # V8 HUD-VASH Voucher Tracking
@@ -1140,7 +1138,7 @@ module HudUtility2026
         data_collected_about: :HOH_AND_ADULTS,
         applicability_requirements: [
           # Funder Program-Component: "HUD: HUD-VASH – Collection required for HUD/VASH Collaborative Case Management"
-          { project_type: pt[:psh], funder: service_funder_codes[:hud_vash] },
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:hud_vash) },
         ],
       },
 
@@ -1150,15 +1148,15 @@ module HudUtility2026
         data_collected_about: :HOH,
         applicability_requirements: [
           #   HUD: CoC – Collection required for Permanent Supportive Housing
-          { project_type: pt[:psh], funder: service_funder_codes[:coc_psh] },
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:coc_psh) },
           #   HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for Permanent Supportive Housing
-          { project_type: pt[:psh], funder: service_funder_codes[:coc_yhdp] },
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:yhdp) },
           #   HUD: CoC Builds – Collection required for Permanent Supportive Housing
-          { project_type: pt[:psh], funder: service_funder_codes[:coc_builds] },
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:coc_builds) },
           #   HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing
-          { project_type: pt[:psh], funder: service_funder_codes[:unsheltered_nofo] },
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:unsheltered_nofo) },
           #   HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing
-          { project_type: pt[:psh], funder: service_funder_codes[:rural_nofo] },
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:rural_nofo) },
         ],
       },
     ]
