@@ -150,14 +150,25 @@ module Admin
           end
           # END_ACL
         end
-        @user.sync_to_hud_users(previous_email: email_before) if HmisEnforcement.hmis_enabled?
       rescue Exception
         flash[:error] = 'Please review the form problems below'
         render :edit
         return
       end
+
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
+
+      if HmisEnforcement.hmis_enabled?
+        begin
+          @user.sync_to_hud_users(previous_email: email_before)
+        rescue StandardError => e
+          Rails.logger.error("[HMIS] HUD user sync failed (user #{@user.id}): #{e.class}: #{e.message}")
+          redirect_to edit_admin_user_path(@user), alert: 'User updated, but HMIS sync failed. Your changes were saved.'
+          return
+        end
+      end
+
       respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
     end
 
