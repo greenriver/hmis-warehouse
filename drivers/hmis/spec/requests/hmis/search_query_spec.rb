@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       query SearchQuery($id: ID!) {
         searchQuery(id: $id) {
           id
-          params
+          textSearch
         }
       }
     GRAPHQL
@@ -37,7 +37,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(id: search_query.id) { query }
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'searchQuery', 'id')).to eq(search_query.id)
-      expect(result.dig('data', 'searchQuery', 'params')).to eq({ 'textSearch' => 'my test search' })
+      expect(result.dig('data', 'searchQuery', 'textSearch')).to eq('my test search')
     end
   end
 

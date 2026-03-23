@@ -11576,8 +11576,14 @@ enum SchoolStatus {
 }
 
 type SearchQuery {
+  dob: String
+  firstName: String
   id: ID!
-  params: JsonObject!
+  lastName: String
+  personalId: String
+  ssnSerial: String
+  textSearch: String
+  warehouseId: String
 }
 
 """

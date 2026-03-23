@@ -49,8 +49,6 @@ module Types
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
       # Find or create a ClientSearchQuery for the given params.
-      # todo @martha - validate/mistrust and normalize the params, similar to:
-      # safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
       query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
       raise query.errors.full_messages.join(', ') unless query.valid?
 
