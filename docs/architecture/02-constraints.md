@@ -10,15 +10,16 @@ This section describes the constraints that limit design and implementation free
 | --- | --- |
 | **HUD HMIS Data Standards** | Data models, collection forms, and reports must conform to HUD specifications. Published updates must be implemented by HUD's compliance deadlines. |
 | **Data Portability** | The platform must support HUD CSV import from external HMIS vendors and export for data migration, ensuring it does not become a data silo. |
-| **Multi-CoC Deployment** | A single deployment must support multiple Continua of Care with data partitioning between them, ruling out per-CoC isolation strategies. |
-| **PII Protection** | Client PII must be encrypted at rest and in transit. Access is governed by Release of Information (ROI) rules and role-based permissions. All access must be auditable. |
-| **Externalized Authentication** | Authentication is handled outside the application by an OAuth2-Proxy / Dex layer. The application trusts injected headers and does not manage credentials directly. |
+| **Multi-CoC Deployment** | Clients move between CoCs; cross-source deduplication requires a unified data store to correlate records across boundaries. A single deployment must support multiple Continua of Care with data partitioning for access control, ruling out per-CoC isolation strategies. |
+| **PII Protection** | Client PII must be encrypted at rest and in transit. Access is governed by Release of Information (ROI) rules and role-based permissions. All access must be auditable. See [Section 10 (#secure scenarios)](10-quality.md#security--privacy-secure) for verification criteria. |
+| **No In-App Credential Management** | The platform must integrate with existing community identity providers and must not store or manage user credentials directly. Authentication is delegated to an external layer. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |
+| **Existing Technology Stack** | The Warehouse is a Ruby on Rails monolith; the HMIS frontend is a React SPA. Codebase size and team expertise make changing core technologies impractical. New capabilities (e.g., analytics via DBT/Python) are introduced as separate applications rather than replacements. |
 
 ## 2.2 Organizational Constraints
 
 | Constraint | Consequence |
 | --- | --- |
-| **Open Source Core** | Core platform logic must be separable from community-specific customizations. Bespoke extensions use the driver module pattern to avoid forking the core. |
+| **Open Source Distribution** | The platform is developed and distributed as open-source software. Core platform logic must be separable from community-specific customizations. Bespoke extensions use the driver module pattern to avoid forking the core. |
 | **Federal & Local Privacy Regulations** | Client data handling must comply with applicable privacy regulations. Data sharing between organizations requires explicit consent tracking. |
 | **Accessibility (WCAG 2.1 AA)** | Public-facing and staff-facing interfaces must meet WCAG 2.1 Level AA standards to ensure usability for all users. |
 | **Small Engineering Team** | Architecture must favor convention and configuration over custom development. The modular driver pattern limits the blast radius of changes and allows parallel work. |
