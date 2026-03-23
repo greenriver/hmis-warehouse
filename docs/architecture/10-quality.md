@@ -8,23 +8,24 @@ This section defines the platform's quality goals and captures detailed scenario
 
 | Priority | Category | Label | Description |
 | --- | --- | --- | --- |
-| 1 | **Regulatory Compliance** | #compliant | The platform implements HUD HMIS Data Standards and reporting specifications on schedule. Data structures and outputs conform to published formats. |
+| 1 | **Regulatory Compliance** | #suitable #flexible | The platform implements HUD HMIS Data Standards and reporting specifications on schedule. Data structures and outputs conform to published formats. New or revised standards can be absorbed through configuration or isolated modules. |
 | 2 | **Data Integrity & Provenance** | #reliable | All data is traceable to its origin. Source records are preserved alongside normalized warehouse records. Report results can be audited against contributing data. |
 | 3 | **Security & Privacy** | #secure | Client PII is protected by role-based access control and Release of Information (ROI) rules. Multi-CoC deployments enforce data partitioning. Access is logged. |
 | 4 | **Scalability** | #efficient | The platform supports multi-CoC deployments and growing data volumes without architectural changes. Background processing handles large imports without blocking interactive use. |
-| — | **Modifiability** | #flexible | New HUD report types, form definitions, and data collection requirements can be added through configuration or isolated driver modules without modifying core domain models. |
+| — | **Modifiability** | #flexible | New HUD report types, custom forms, and local workflow variations (e.g., Coordinated Entry) can be added through configuration or isolated driver modules without modifying core domain models. |
+| — | **Interoperability** | #interoperable | The platform exports HUD-compliant CSV files that conform to published specifications and can be consumed by external systems without transformation. |
 | — | **Operability** | #operable | System administrators can manage user access, data sources, and reference data through the administrative UI without code changes or deployments. |
 | — | **Usability** | #usable | Data entry workflows are responsive and do not impede front-line staff productivity. Report generation provides clear progress feedback. |
 
 ## 10.2 Quality Scenarios
 
-### Regulatory Compliance (#compliant)
+### Regulatory Compliance (#suitable #flexible)
 
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
 | Q-1 | HUD publishes updated HMIS Data Standards (e.g., new CSV fields, revised project types). | Annual or mid-year standards release. | Changes are implemented and deployed before HUD's stated compliance deadline. |
 | Q-2 | HUD publishes a new or revised reporting specification (e.g., updated APR logic). | Federal fiscal year reporting cycle. | The updated report produces results that pass HUD's published validation rules. |
-| Q-3 | A community requires a custom data collection field not covered by HUD standards. | Local CoC policy change. | The field is added via form configuration without modifying application code. |
+| Q-3 | HUD adds a new required data element to the HMIS Data Standards. | Annual standards revision. | The field is added to the warehouse schema and mapped to source imports via data-source configuration without modifying application code. |
 
 ### Data Integrity & Provenance (#reliable)
 
@@ -47,8 +48,8 @@ This section defines the platform's quality goals and captures detailed scenario
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
 | Q-10 | A new CoC is onboarded to an existing deployment. | Statewide expansion. | The CoC is configured (data source, user groups, visibility rules) through administrative UI without code changes or architectural modification. |
-| Q-11 | A large upstream partner submits a CSV export containing 500k+ records. | Scheduled nightly import. | The import completes via background processing without degrading interactive application response times. |
-| Q-12 | An HMIS Lead generates a system-wide SPM report covering multiple CoCs. | Annual reporting period. | The report generates within a reasonable time frame and provides progress feedback to the user. |
+| Q-11 | A large upstream partner submits a CSV export containing 500k+ records. | Scheduled nightly import. | The import completes via background processing; p95 interactive response time remains under 2 seconds for the duration of the import. |
+| Q-12 | An HMIS Lead generates a system-wide SPM report covering multiple CoCs. | Annual reporting period. | The report executes as a background job, provides periodic progress feedback (percentage or phase), and completes within 4 hours for deployments up to 200k client records. The user can navigate away and is notified on completion. |
 
 ### Modifiability (#flexible)
 
@@ -57,9 +58,22 @@ This section defines the platform's quality goals and captures detailed scenario
 | Q-13 | A new HUD report type is required. | New federal reporting mandate. | The report is implemented as an isolated driver module without modifying core warehouse models or existing reports. |
 | Q-14 | A community needs a custom Coordinated Entry assessment workflow. | Local CE policy diverges from default. | The workflow is configured through form definitions and CE settings without forking application code. |
 
+### Interoperability (#interoperable)
+
+| ID | Stimulus | Context | Metric |
+| --- | --- | --- | --- |
+| Q-19 | An external system or migration tool consumes a HUD CSV export produced by the platform. | Data portability or system migration. | The exported CSV files conform to the published HUD CSV specification and pass validation by the receiving system. |
+
 ### Operability (#operable)
 
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
 | Q-15 | A system administrator needs to grant a new user access scoped to specific projects. | Staff onboarding. | Access is granted through the administrative UI with appropriate role and project scope; no developer intervention required. |
 | Q-16 | A background import job fails due to malformed source data. | Automated nightly processing. | The failure is logged with actionable detail; other queued jobs continue processing; the administrator is notified. |
+
+### Usability (#usable)
+
+| ID | Stimulus | Context | Metric |
+| --- | --- | --- | --- |
+| Q-17 | A case manager begins a new client intake (project enrollment, basic demographics, initial assessment). | Walk-in at an emergency shelter during peak hours. | The case manager completes the intake workflow and saves the record within 10 minutes using only the standard UI, without requiring help documentation or support. |
+| Q-18 | An HMIS Lead generates a standard HUD report for the first time. | New staff member with HMIS experience but no prior training on this platform. | The user locates the report interface, selects the correct parameters, and initiates generation within 5 minutes without external assistance. |

@@ -16,7 +16,7 @@ Open Path Platform is an integrated platform for homeless services management, b
 
 ## 1.2 Quality Goals
 
-The platform's top architectural priorities, in order, are: **Regulatory Compliance**, **Data Integrity & Provenance**, **Security & Privacy**, and **Scalability**. Three additional quality requirements — Modifiability, Operability, and Usability — are also tracked.
+The platform's top architectural priorities, in order, are: **Regulatory Compliance**, **Data Integrity & Provenance**, **Security & Privacy**, and **Scalability**. Four additional quality requirements — Modifiability, Interoperability, Operability, and Usability — are also tracked.
 
 See [Section 10 (Quality Requirements)](10-quality.md) for definitions, labels, and detailed quality scenarios.
 
