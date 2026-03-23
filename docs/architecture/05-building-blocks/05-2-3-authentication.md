@@ -4,6 +4,8 @@
 
 This document opens the Authentication Layer container to show its internal components.
 
+> **Transition note:** This section describes the target SSO architecture. Some deployments are still in the process of migrating from Devise-based local authentication to the Keycloak / Dex / OAuth2-Proxy stack described here. See [D-1 in Section 11](../11-risks.md) for status.
+
 ## Component Diagram
 
 ```mermaid

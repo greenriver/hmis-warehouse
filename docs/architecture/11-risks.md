@@ -19,6 +19,6 @@ This section lists identified architectural risks and technical debts, ordered b
 
 | # | Debt | Impact | Status |
 | --- | --- | --- | --- |
-|  | | | |
+| D-1 | **Devise-based local authentication.** Most deployments still manage user accounts locally via the Devise gem rather than through the target SSO architecture (Keycloak / Dex / OAuth2-Proxy). | Security posture varies across deployments depending on which authentication path is active. The target architecture described in [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md) cannot be fully enforced until migration is complete. | In progress. A long-running feature branch removes Devise entirely in favor of SSO. Deployments are migrated individually as the required infrastructure (auth proxy, IDP services) is provisioned per customer. |
 
 See the GitHub project board for additional issues labeled as technical debt.
