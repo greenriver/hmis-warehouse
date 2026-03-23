@@ -160,13 +160,10 @@ jobs:
 
       - name: Check trivy db sha
         id: trivy-db
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          endpoint='/orgs/aquasecurity/packages/container/trivy-db/versions'
-          headers='Accept: application/vnd.github+json'
-          jqFilter='.[] | select(.metadata.container.tags[] | contains("latest")) | .name | sub("sha256:";"")'
-          sha=$(gh api -H "${headers}" "${endpoint}" | jq --raw-output "${jqFilter}")
+          token=$(curl -s "https://ghcr.io/token?scope=repository:aquasecurity/trivy-db:pull" | jq -r '.token')
+          sha=$(curl -sI -H "Authorization: Bearer ${token}" -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+            "https://ghcr.io/v2/aquasecurity/trivy-db/manifests/latest" | grep -i docker-content-digest | awk '{print $2}' | tr -d '\r' | sed 's/sha256://')
           echo "Trivy DB sha256:${sha}"
           echo "sha=${sha}" >> $GITHUB_OUTPUT
 
