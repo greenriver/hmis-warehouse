@@ -43,7 +43,7 @@ module Hmis
     end
 
     def self.generate_fingerprint(params, user)
-      Digest::SHA256.hexdigest({ "params": params, "user": user }.to_json)
+      Digest::SHA256.hexdigest({ "params": params, "user_id": user.id }.to_json)
     end
   end
 end
