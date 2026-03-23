@@ -1,4 +1,6 @@
 .text-right
+  .md.mb-2
+    = render 'hud_reports/filter_data', filter_data: @view_filter if @view_filter.present?
   = render 'hud_reports/view_filter'
 - if @pagy.count.positive?
   .jReportListing

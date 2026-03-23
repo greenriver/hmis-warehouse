@@ -50,7 +50,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     this.showChartAndTable();
     // regenerate
     // eslint-disable-next-line no-undef
-    chart = bb.generate(config);
+    bb.generate(config);
   }
 
   updateTable(data, target) {

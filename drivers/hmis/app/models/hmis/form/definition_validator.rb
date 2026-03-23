@@ -14,8 +14,16 @@ class Hmis::Form::DefinitionValidator
   # @param [Hash] document is a form definition document {'item' => [{...}] }
   # @param [role] role of the form as string ('INTAKE', 'CLIENT', etc). If not provided, HUD rule validation will not occur.
   # @param [boolean] skip_cded_validation if true, skip validating CDEDs
-  def perform(document, role = nil, skip_cded_validation: false)
+  # @param [integer] data_source_id to use for CDED validation. If not provided,
+  #   and skip_cded_validation is true, expects a single HMIS data source and raises otherwise.
+  def perform(document, role = nil, skip_cded_validation: false, data_source_id: nil)
     @issues = HmisErrors::Errors.new
+
+    @data_source = if data_source_id
+      GrdaWarehouse::DataSource.hmis.find(data_source_id)
+    elsif !skip_cded_validation
+      GrdaWarehouse::DataSource.hmis.sole # 'sole' raises if there are >1 HMIS data sources
+    end # we don't need a data source ID if we are skipping CDED validation
 
     # Validate JSON shape against JSON Schema
     check_json_schema(document)
@@ -354,13 +362,9 @@ class Hmis::Form::DefinitionValidator
     RuntimeError.new("Item #{item['link_id']} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key.inspect}, owner_type = #{owner_type.inspect}")
   end
 
-  def data_source
-    GrdaWarehouse::DataSource.hmis.first
-  end
-
   def get_cded(item, role)
     @cdeds_by_owner_key ||= Hmis::Hud::CustomDataElementDefinition.order(:id).
-      where(data_source: data_source).
+      where(data_source: @data_source).
       index_by { |cded| [cded.owner_type, cded.key] }
 
     cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
