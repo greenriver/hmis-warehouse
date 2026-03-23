@@ -9,14 +9,14 @@
 require 'rails_helper'
 require_relative '../../../../../../spec/shared_contexts/hud_enrollment_builders'
 
-RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
+RSpec.shared_context 'HUD CE APR FY2026 setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
 
   let(:user) do
     User.setup_system_user
   end
 
-  let(:dq_filter) do
+  let(:ce_apr_filter) do
     Filters::HudFilterBase.new(
       user: user,
       start: Date.new(2025, 10, 1),
@@ -26,14 +26,14 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
     )
   end
 
-  def setup_dq_report(project_ids, questions = ['Question 2'])
-    filter = dq_filter.dup
-    filter.require_service_during_range = false
-    filter.update(project_ids: project_ids)
+  def setup_ce_apr_report(project_ids)
+    questions = HudApr::Generators::CeApr::Fy2026::Generator.questions.keys
+    filter = ce_apr_filter.dup
+    filter.update(project_ids: Array(project_ids))
 
     report = HudReports::ReportInstance.from_filter(
       filter,
-      HudApr::Generators::Dq::Fy2026::Generator.title,
+      HudApr::Generators::CeApr::Fy2026::Generator.title,
       build_for_questions: questions,
     )
     report.question_names = questions
@@ -41,18 +41,15 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
 
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 
-    generator = HudApr::Generators::Dq::Fy2026::Generator.new(report)
-    generator.prepare_report
-
     report
   end
 
-  def run_dq_question(report, question_class)
-    report.started_at ||= Time.current
-    report.save! if report.changed?
-
-    generator = HudApr::Generators::Dq::Fy2026::Generator.new(report)
-    question_class.new(generator, report).run!
+  def run_ce_apr_report(report)
+    Reporting::Hud::RunReportJob.new.perform(
+      'HudApr::Generators::CeApr::Fy2026::Generator',
+      report.id,
+      email: false,
+    )
     report.reload
   end
 end
