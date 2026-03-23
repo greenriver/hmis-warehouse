@@ -177,6 +177,11 @@ module Importing
         end
       end
 
+      run_maintenance_task('Prune HUD report data') do
+        HudReports::HouseholdContext.prune!
+        @notifier.ping('Pruned old household contexts')
+      end
+
       run_maintenance_task('System maintenance') do
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
