@@ -42,6 +42,8 @@ class Hmis::User < ApplicationRecord
   # @see docs/architecture/multi-hmis-support.md
   attr_accessor :hmis_data_source_id
 
+  # Returns application users who have some permissions in the given data source.
+  # Excludes the system user.
   scope :with_hmis_access_in_data_source, ->(data_source_id) do
     next none unless data_source_id.present?
 

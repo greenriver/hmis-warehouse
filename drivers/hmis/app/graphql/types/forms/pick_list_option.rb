@@ -274,10 +274,18 @@ module Types
 
     def self.user_picklist(current_user)
       return [] unless current_user
-      # currently picklist is only needed when filtering audit events, and when filtering client merge history
-      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients? || current_user.can_merge_clients?
 
-      Hmis::User.with_deleted.map do |user|
+      # User picklist is currently used:
+      # - when filtering audit events
+      # - when filtering client merge history
+      # - when selecting users in the form builder
+      # (Most other user picklists in the app use a more restricted list of users, such as eligible_staff_assignment_users, eligible_referral_step_assignment_users, etc.)
+      return [] unless current_user.permissions?(:can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients, mode: :any)
+
+      user_ids = Hmis::User.with_deleted.with_hmis_access_in_data_source(current_user.hmis_data_source_id).pluck(:id)
+      user_ids.append(Hmis::User.system_user.id)
+
+      Hmis::User.where(id: user_ids).map do |user|
         {
           code: user.id.to_s,
           label: user.full_name,
