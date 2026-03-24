@@ -29,6 +29,9 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def run_question!
+      # HDX 2.0 Upload CSV only supports single-CoC reports
+      return if @report.coc_codes.count > 1
+
       tables = [
         ['csv', :run_csv],
       ]
