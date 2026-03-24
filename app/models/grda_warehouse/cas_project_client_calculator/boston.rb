@@ -114,7 +114,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         hiv_positive: 'c_housing_HIV',
         income_maximization_assistance_requested: 'c_interest_income_max',
         sro_ok: 'c_singleadult_sro',
-        rrh_desired: 'c_interested_rrh',
         housing_barrier: 'c_pathways_barriers_yn',
       }.freeze
     end
@@ -170,6 +169,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :evicted,
         :days_homeless,
         :hmis_days_homeless_all_time,
+        :rrh_desired,
       ]
     end
     # memoize :pathways_questions
@@ -228,6 +228,17 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       # Otherwise unknown
       nil
+    end
+
+    # Everyone should be offered all residential options, for interested in RRH, if we didn't ask the question (or don't have an answer)
+    # indicate the client is interested in RRH.
+    private def rrh_desired(client)
+      answer = most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement('c_interested_rrh')&.AssessmentAnswer&.to_s
+
+      return true if answer.nil? || answer == '1'
+
+      false
     end
 
     private def service_need(client)
