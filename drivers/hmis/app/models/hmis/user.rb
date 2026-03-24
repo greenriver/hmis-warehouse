@@ -42,9 +42,25 @@ class Hmis::User < ApplicationRecord
   # @see docs/architecture/multi-hmis-support.md
   attr_accessor :hmis_data_source_id
 
-  scope :with_hmis_access, -> do
-    # Users that are a member of at least 1 HMIS User Group
-    not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+  scope :with_hmis_access_in_data_source, ->(data_source_id) do
+    next none unless data_source_id.present?
+
+    data_source = GrdaWarehouse::DataSource.hmis.find_by(id: data_source_id)
+    next none unless data_source
+
+    access_group_ids = Hmis::GroupViewableEntity.
+      includes_any_entity_in_data_source(data_source).
+      distinct.
+      pluck(:collection_id)
+    next none if access_group_ids.empty?
+
+    user_ids = Hmis::AccessControl.
+      where(access_group_id: access_group_ids).
+      joins(:users).
+      distinct.
+      select(Hmis::User.arel_table[:id])
+
+    not_system.where(id: user_ids)
   end
 
   # The session_limitable extension uses user.hmis_unique_session_id to restrict the current session.
