@@ -78,6 +78,11 @@ module Types
     end
 
     def client_omni_search(text_search:)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params({ 'text_search' => text_search }, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      context[:search_query_id] = query.id
+
       Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
         sort_by_option(:recently_added)
