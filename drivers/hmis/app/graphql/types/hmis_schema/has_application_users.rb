@@ -22,8 +22,7 @@ module Types
         end
       end
 
-      def resolve_application_users(scope, user: current_user, filters: nil)
-        scope = scope.with_hmis_access_in_data_source(user.hmis_data_source_id)
+      def resolve_application_users(scope, filters: nil)
         scope = scope.apply_filters(filters) if filters.present?
         scope
       end

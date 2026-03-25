@@ -359,8 +359,8 @@ module Types
     def application_users(**args)
       raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      # The shared resolver handles data source restriction
-      resolve_application_users(Hmis::User.active, **args)
+      user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      resolve_application_users(user_scope, **args)
     end
 
     field :user, Types::Application::User, 'User lookup', null: true do
