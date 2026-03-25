@@ -39,10 +39,6 @@ module GrdaWarehouse
       find_by!(fingerprint: fingerprint)
     end
 
-    def self.generate_fingerprint(params)
-      Digest::SHA256.hexdigest(params.to_json)
-    end
-
     def self.normalize_params(params)
       return {} if params.nil?
 

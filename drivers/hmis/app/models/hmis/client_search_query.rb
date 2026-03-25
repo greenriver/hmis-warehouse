@@ -30,20 +30,20 @@ module Hmis
       instance.validate_params
       return instance if instance.errors.any?
 
-      fingerprint = generate_fingerprint(params, user)
+      fingerprint = generate_fingerprint(params)
+
+      # `upsert` then `find_by!` ensures the write path is atomic across workers,
+      # compared to the Rails pattern of `find_or_create_by!`,
+      # which can hit duplicate-key errors when two workers try to create the same row.
       upsert(
-        { fingerprint: fingerprint, params: params, created_by_id: user.id },
-        unique_by: :fingerprint,
-        # finding a duplicate by fingerprint where the params and created_by_id differ is unexpected,
-        # because the fingerprint is generated based on params and created_by_id.
-        on_duplicate: Arel.sql('params = EXCLUDED.params, created_by_id = EXCLUDED.created_by_id'),
+        { fingerprint: fingerprint, params: params, created_by_id: user.id, data_source_id: user.hmis_data_source_id },
+        unique_by: [:data_source_id, :created_by_id, :fingerprint],
+        # If a row with this [data_source_id, created_by_id, fingerprint] already exists,
+        # refresh `params` to match the incoming request. (A mismatch would be unexpected because fingerprint is derived from params.)
+        on_duplicate: Arel.sql('params = EXCLUDED.params'),
       )
 
-      find_by!(fingerprint: fingerprint)
-    end
-
-    def self.generate_fingerprint(params, user)
-      Digest::SHA256.hexdigest({ "params": params, "user_id": user.id }.to_json)
+      find_by!(fingerprint: fingerprint, created_by_id: user.id, data_source_id: user.hmis_data_source_id)
     end
   end
 end

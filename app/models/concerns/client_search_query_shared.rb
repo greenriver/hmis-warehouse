@@ -41,5 +41,9 @@ module ClientSearchQueryShared
         end
       end
     end
+
+    def self.generate_fingerprint(params)
+      Digest::SHA256.hexdigest(params.to_json)
+    end
   end
 end
