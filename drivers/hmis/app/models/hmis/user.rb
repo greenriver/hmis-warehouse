@@ -62,6 +62,8 @@ class Hmis::User < ApplicationRecord
       distinct.
       select(Hmis::User.arel_table[:id])
 
+    # Explicitly exclude the system user. Probably not strictly necessary,
+    # since the system user is not typically included in any access groups anyway
     not_system.where(id: user_ids)
   end
 
