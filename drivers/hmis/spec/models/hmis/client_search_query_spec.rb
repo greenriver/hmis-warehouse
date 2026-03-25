@@ -101,24 +101,13 @@ RSpec.describe Hmis::ClientSearchQuery, type: :model do
         expect(result.params).to eq(canonical)
       end.not_to change(described_class, :count)
     end
-
-    it 'reuses the existing row when array values differ only by order' do
-      project_ids = ['10', '2', '1']
-      canonical = described_class.normalize_params({ 'projects' => project_ids })
-      existing = create(:hmis_client_search_query, created_by: hmis_user, params: canonical)
-
-      expect do
-        result = described_class.find_or_create_by_params({ 'projects' => project_ids.shuffle }, user: hmis_user)
-        expect(result.id).to eq(existing.id)
-        expect(result.params).to eq(canonical)
-      end.not_to change(described_class, :count)
-    end
   end
 
   describe '.normalize_params' do
     it 'sorts keys and array elements so equivalent inputs match' do
-      a = described_class.normalize_params({ 'last_name' => 'b', 'projects' => ['3', '1', '2'], 'first_name' => 'a' })
-      b = described_class.normalize_params({ 'first_name' => 'a', 'projects' => ['2', '3', '1'], 'last_name' => 'b' })
+      # `some_list` is not a supported param, but used only in this test to confirm normalization of arrays (in case of future array params)
+      a = described_class.normalize_params({ 'last_name' => 'b', 'some_list' => ['3', '1', '2'], 'first_name' => 'a' })
+      b = described_class.normalize_params({ 'first_name' => 'a', 'some_list' => ['2', '3', '1'], 'last_name' => 'b' })
       expect(a).to eq(b)
       expect(described_class.generate_fingerprint(a)).to eq(described_class.generate_fingerprint(b))
     end

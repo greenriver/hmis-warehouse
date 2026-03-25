@@ -1999,9 +1999,9 @@ input ClientSearchInput {
   """
   id: ID
   lastName: String
-  organizations: [ID!]
+  organizations: [ID!] @deprecated(reason: "Use the Client Filter instead")
   personalId: String
-  projects: [ID!]
+  projects: [ID!] @deprecated(reason: "Use the Client Filter instead")
 
   """
   Last 4 digits of SSN
@@ -2012,7 +2012,7 @@ input ClientSearchInput {
   Omnisearch string
   """
   textSearch: String
-  warehouseId: String
+  warehouseId: String @deprecated(reason: "Searching by warehouse_id is supported via free text search")
 }
 
 """
@@ -11583,7 +11583,6 @@ type SearchQuery {
   personalId: String
   ssnSerial: String
   textSearch: String
-  warehouseId: String
 }
 
 """

@@ -12,11 +12,6 @@ module Hmis
       'dob',
       'ssn_serial',
       'personal_id',
-      # The following search types are not currently used in the frontend,
-      # but supported by HmisSchema::ClientSearchInput and tested in rspec, so no harm in keeping them here
-      'warehouse_id',
-      'projects',
-      'organizations',
     ].freeze
 
     # For now, the current user can only view their own search queries.

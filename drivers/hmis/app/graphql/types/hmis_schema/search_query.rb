@@ -9,13 +9,12 @@ module Types
 
     # only used by advanced client search:
     field :personal_id, String, null: true
-    field :warehouse_id, String, null: true
     field :first_name, String, null: true
     field :last_name, String, null: true
     field :ssn_serial, String, null: true
     field :dob, String, null: true
 
-    [:text_search, :personal_id, :warehouse_id, :first_name, :last_name, :ssn_serial, :dob].each do |field|
+    [:text_search, :personal_id, :first_name, :last_name, :ssn_serial, :dob].each do |field|
       define_method field do
         object.params[field.to_s]
       end
