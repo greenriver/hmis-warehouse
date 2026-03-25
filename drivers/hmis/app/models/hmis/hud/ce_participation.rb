@@ -28,7 +28,7 @@ class Hmis::Hud::CeParticipation < Hmis::Hud::Base
 
   # "Project is a Coordinated Entry Access Point" = Yes (HUD)
   scope :access_point, -> do
-    where(arel_table[:AccessPoint].eq(1))
+    where(access_point: 1)
   end
 
   def ce_participation_services
