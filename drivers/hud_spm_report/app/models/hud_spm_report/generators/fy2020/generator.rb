@@ -39,7 +39,7 @@ module HudSpmReport::Generators::Fy2020
       ].map { |q| [q, Data.define(:question_number).new(question_number: q)] }.to_h.freeze
     end
 
-    def self.valid_question_number(n) = questions.keys.detect { |q| q == n } || questions.keys.first
+    def self.valid_question_number(num) = questions.keys.detect { |q| q == num } || questions.keys.first
 
     def self.client_class(_question)
       HudApr::Fy2020::SpmClient

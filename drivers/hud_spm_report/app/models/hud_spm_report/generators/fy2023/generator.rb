@@ -61,7 +61,7 @@ module HudSpmReport::Generators::Fy2023
       ].index_by(&:question_number).freeze
     end
 
-    def self.valid_question_number(n) = questions.keys.detect { |q| q == n } || questions.keys.first
+    def self.valid_question_number(num) = questions.keys.detect { |q| q == num } || questions.keys.first
     def self.client_class(question) = questions[question].client_class
     def self.client_scope(question) = questions[question].client_scope
   end
