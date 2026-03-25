@@ -4,36 +4,58 @@
 
 This document opens the Analytics Stack to show how external data is ingested, transformed, and made available for community dashboards. The source repositories for this stack (Superset configuration, DBT models) are private.
 
+## Data Ingestion & Collection
+
+This view focuses on the "Inbound" path. Data partners provide files or API access, which are then orchestrated by Airflow or the Warehouse Application and stored in raw formats or the initial warehouse database.
+
 ```mermaid
 flowchart LR
     UPSTREAM["Upstream Data Partners\n(HMIS, Referral, Bespoke)"]
 
+    %% Reordered to place Warehouse logic above Airflow logic
+    WAREHOUSE["Warehouse Application"]
+
     subgraph OP_INGEST ["Data Ingestion & Storage"]
-        AIRFLOW["Apache Airflow\n(ETL Orchestration)"]
         S3_INGEST["Ingestion Bucket\n(S3 CSV)"]
         S3_SUPP["Supplemental Bucket\n(S3 Bespoke)"]
+        AIRFLOW["Apache Airflow\n(ETL Orchestration)"]
     end
 
-    subgraph OP_TRANSFORM ["Transformation & Analytics"]
-        WAREHOUSE["Warehouse Application"]
-        DBT_LAYER["DBT\n(Data Transformation)"]
-        SUPERSET["Superset\n(Dashboards)"]
+    WAREHOUSE_DB[("Warehouse DB")]
+    ANALYTICS_DB[("Analytics DB\n(Analytics Store)")]
 
-        WAREHOUSE_DB[("Warehouse DB")]
-        ANALYTICS_DB[("Analytics DB")]
-    end
-
-    AR["Analysts & Researchers"]
-
-    UPSTREAM -- "HUD CSV exports" --> S3_INGEST
-    UPSTREAM -- "Raw bespoke data" --> AIRFLOW
+    %% Upstream Connections (Fanning out)
     UPSTREAM -- "Direct API data" --> WAREHOUSE
+    UPSTREAM -- "HUD CSV exports" --> S3_INGEST
+    UPSTREAM -- "Supplemental data" --> S3_SUPP
+    UPSTREAM -- "Raw bespoke data" --> AIRFLOW
 
-    AIRFLOW -- "Transforms & writes" --> S3_SUPP
-
+    %% Internal Processing (Minimized crossing)
     WAREHOUSE -- "Ingests CSV" --> S3_INGEST
     WAREHOUSE -- "Ingests Supplemental" --> S3_SUPP
     WAREHOUSE -- "Persists records" --> WAREHOUSE_DB
+
+    AIRFLOW -- "Transforms & writes" --> S3_SUPP
+    AIRFLOW -- "Writes processed data" --> ANALYTICS_DB
+```
+
+## Modeling & Analytics
+
+This view focuses on the "Outbound" path. Once data is in the internal databases, DBT transforms it into analytics-ready models, which are then visualized via Superset.
+
+```mermaid
+flowchart LR
+    subgraph STORAGE ["Internal Storage"]
+        WAREHOUSE_DB[("Warehouse DB")]
+        ANALYTICS_DB[("Analytics DB\n(Analytics Store)")]
+    end
+
+    subgraph TRANSFORMATION ["Analytics Layer"]
+        DBT_LAYER["DBT\n(Data Transformation)"]
+        SUPERSET["Superset\n(Dashboards)"]
+    end
+
+    AR["Analysts & Researchers"]
 
     DBT_LAYER -- "Transforms source" --> WAREHOUSE_DB
     DBT_LAYER -- "Writes modeled data" --> ANALYTICS_DB
@@ -46,13 +68,13 @@ flowchart LR
 
 | Component | Technology | Responsibilities |
 | --- | --- | --- |
-| **Apache Airflow** | Apache Airflow | Orchestrates ETL pipelines for supplemental (non-HMIS) data sources (e.g., criminal justice). |
+| **Apache Airflow** | Apache Airflow | Orchestrates ETL pipelines for supplemental (non-HMIS) data sources. |
 | **DBT** | dbt | Runs scheduled transformations of warehouse data into analytics-ready datasets. |
 | **Superset** | Apache Superset | Hosted dashboards for community-specific operational reporting. |
 | **Ingestion Bucket** | S3 | Shared boundary where external providers deposit HUD CSV exports. |
-| **Supplemental Bucket** | S3 | Storage for transformed non-HMIS data processed by Airflow. |
-| **Analytics Database** | PostgreSQL | Optimized store for Superset queries, populated by DBT. |
+| **Supplemental Bucket** | S3 | Storage for transformed non-HMIS data processed by Airflow or the warehouse. |
+| **Analytics Database** | PostgreSQL | Central hub for data flowing out of the ecosystem. Populated by DBT and Airflow. May also be referred to as the "Analytics Store" |
 
 ## Relationship to the Warehouse
 
-The Warehouse Application is the primary consumer of data from the ingestion and supplemental buckets — the import pipeline itself is a Warehouse module (see [5.2.1 Warehouse Application](05-2-1-warehouse.md), Data Ingestion section). This page focuses on the external infrastructure that surrounds that pipeline: Airflow for orchestration, DBT for transformation, and Superset for visualization.
+The Warehouse Application is the primary consumer of data from the ingestion and supplemental buckets. While the import pipeline is a Warehouse module, the external infrastructure (Airflow, DBT, Superset) provides the heavy lifting for non-standard data types and high-performance reporting.
