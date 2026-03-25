@@ -682,7 +682,10 @@ module Types
       Hmis::Hud::Project.where(id: project_ids).
         preload(:organization).
         sort_by_option(:organization_and_name).
-        map(&:to_pick_list_option)
+        map do |project|
+          # Codes are project names (not IDs) so that stored values are human-readable project name strings
+          project.to_pick_list_option.merge(code: project.project_name)
+        end
     end
 
     def self.projects_receiving_referrals(data_source_id)
