@@ -165,5 +165,21 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
         end
       end
     end
+
+    context 'when multiple CoCs are present in the report universe' do
+      before do
+        @multi_coc_report = setup_report(
+          [@es_project.id],
+          ['HDX Upload'],
+        )
+        @multi_coc_report.update!(coc_codes: ['MA-500', 'MA-501'])
+        run_measure(@multi_coc_report, HudSpmReport::Generators::Fy2026::HdxUpload)
+      end
+
+      it 'skips the HDX Upload question' do
+        # If skipped, the csv table will not be prepared and cells will not be populated
+        expect(@multi_coc_report.answer(question: 'csv', cell: 'A2').summary).to be_blank
+      end
+    end
   end
 end
