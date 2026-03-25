@@ -109,15 +109,11 @@ RSpec.describe 'PickList CE_ACCESS_POINT_PROJECT_NAMES', type: :request do
     response, result = post_graphql(pick_list_type: 'CE_ACCESS_POINT_PROJECT_NAMES') { query }
     expect(response.status).to eq(200)
 
-    # Picklist option codes are intentionally project names, NOT ids
     codes = result.dig('data', 'pickList').map { |o| o['code'] }
-    expect(codes).to contain_exactly(included_access_point_project.project_name)
-    expect(codes).not_to include(not_access_point_project.project_name)
-    expect(codes).not_to include(inactive_ce_status_project.project_name)
-    expect(codes).not_to include(inactive_project.project_name)
-    expect(codes).not_to include(unauthorized_project.project_name)
+    # Picklist option codes are intentionally "Project Name (ID)", not just ID.
+    # contain_exactly ensures that the other cruft projects defined in fixtures are not included.
+    expect(codes).to contain_exactly("#{included_access_point_project.project_name} (#{included_access_point_project.id})")
 
-    # Expect the label to also show project name
     expect(result.dig('data', 'pickList', 0, 'label')).to eq(included_access_point_project.project_name)
   end
 end

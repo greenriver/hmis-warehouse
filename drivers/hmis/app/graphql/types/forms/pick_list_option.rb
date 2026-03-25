@@ -683,8 +683,9 @@ module Types
         preload(:organization).
         sort_by_option(:organization_and_name).
         map do |project|
-          # Codes are project names (not IDs) so that stored values are human-readable project name strings
-          project.to_pick_list_option.merge(code: project.project_name)
+          # Codes are "Project Name (ID)" so that stored values are human-readable.
+          # Use case: collecting CE Assessment Location
+          project.to_pick_list_option.merge(code: "#{project.project_name} (#{project.id})")
         end
     end
 
