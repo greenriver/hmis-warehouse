@@ -9,7 +9,7 @@
 module Hmis
   class AutoExitJob < BaseJob
     # Automatically exits inactive HMIS enrollments based on project-specific Auto-Exit configuration.
-    # This job decides *who* to exit and *when* (exit_date); it delegates the actual exit creation to Hmis::PerformAutoExit.
+    # This job decides *who* to exit and *when* (exit_date); it delegates the actual exit creation to Hmis::CreateEnrollmentExit.
     #
     # Scoping and who gets exited:
     # - Runs against all HMIS projects by default; can be scoped by data_source or project_ids.
@@ -18,14 +18,17 @@ module Hmis
     #   a shared exit_date equal to the most recent contact across the household.
     # - Prevents auto-exit when any household member has an ACTIVE CE referral referencing that
     #   member's enrollment via source_enrollment_id OR target_enrollment_id.
-    # - Prevents auto-exit when any household member has an incomplete enrollment.
+    # - Only considers households with no incomplete (WIP) enrollments (`households.not_in_progress`;
+    #   the hmis_households view sets any_wip from member enrollments). If incomplete members were
+    #   present, Hmis::CreateEnrollmentExit would raise when exiting the household—this job avoids
+    #   that by never selecting those households.
     #
     # Most recent contact (used to compute exit_date)
     # - ES Night-by-Night: latest bed night with non-nil date_provided; if missing/invalid, enrollment entry.
     # - Other project types: latest of Service.date_provided, CustomService.date_provided,
     #   CurrentLivingSituation.information_date, CustomAssessment.assessment_date, or Enrollment (entry).
     #
-    # Exit Creation (delegated to Hmis::PerformAutoExit)
+    # Exit Creation (delegated to Hmis::CreateEnrollmentExit)
     # - Creates Hmis::Hud::Exit with destination "No exit interview completed" and timestamps auto_exited.
     # - Creates an Exit Assessment on the exit_date.
     # - Releases any assigned unit and closes any external referral.
@@ -91,7 +94,7 @@ module Hmis
           first_open_enrollment = household.enrollments.find { |e| e.exit.blank? }
           exit_date = compute_exit_date(most_recent_contact)
 
-          Hmis::PerformAutoExit.call(
+          Hmis::CreateEnrollmentExit.call(
             enrollment_id: first_open_enrollment.id,
             exit_date: exit_date,
             exit_household_members: true,

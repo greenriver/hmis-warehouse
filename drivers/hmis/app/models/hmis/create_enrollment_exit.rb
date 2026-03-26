@@ -9,6 +9,17 @@
 # Shared service that performs an exit for one or more HMIS enrollments. Callers supply
 # enrollment_id, exit_date, and options; this class creates the records and runs side effects.
 #
+# Used by: Hmis::AutoExitJob, HmisExternalApis::AcHmis::BulkVoider, and bulk-exit flows (e.g. #6917).
+# This is not used as part of typical application enrollment workflows (where exit is handled by exit assessment submission).
+#
+# Validation
+# - This class does NOT enforce extra business rules beyond what the Exit model validates.
+# (For example, it does not require that HoH exits first, or that ExitDate falls within the
+# project operating period). Callers are responsible for passing a valid `exit_date`.
+# - Raises `Cannot exit incomplete enrollments` if `exit_household_members` is true and any
+#   household member has an incomplete (WIP) enrollment, or if the single enrollment being
+#   exited is incomplete—partial household exit is not supported.
+#
 # What it does (per enrollment)
 # - Creates Hmis::Hud::Exit (default destination "No exit interview completed"; optional auto_exited timestamp).
 # - Creates an Exit Assessment. (Note: it does not generate associated records such as IncomeBenefit, see #8920)
@@ -16,32 +27,10 @@
 #
 # Options
 # - exit_household_members: when true, exits all open enrollments in the same household (same exit_date).
-# - acting_user_id: nil => system user; otherwise the Hmis::User who is acting.
-# - exit_destination: nil => default "No exit interview completed".
+# - exit_destination: HUD Exit Destination code, defaults to "No exit interview completed"
+# - acting_user_id: application user to record as the actor (Defaults to System User)
 # - auto_exited: optional DateTime (e.g. from Auto Exit Job); when set, stored on Exit.auto_exited.
-#
-# Used by: Hmis::AutoExitJob, HmisExternalApis::AcHmis::BulkVoider, and bulk-exit flows (e.g. #6917).
-#
-# @example Single enrollment
-#   Hmis::PerformAutoExit.call(enrollment_id: enrollment.id, exit_date: Date.current)
-#
-# @example Whole household with auto_exited timestamp (e.g. from Auto Exit Job)
-#   Hmis::PerformAutoExit.call(
-#     enrollment_id: enrollment.id,
-#     exit_date: Date.current,
-#     exit_household_members: true,
-#     auto_exited: DateTime.current,
-#   )
-#
-# @example With acting user and custom destination
-#   Hmis::PerformAutoExit.call(
-#     enrollment_id: enrollment.id,
-#     exit_date: Date.current,
-#     acting_user_id: current_user.id,
-#     exit_destination: 99,
-#   )
-#
-class Hmis::PerformAutoExit
+class Hmis::CreateEnrollmentExit
   def self.call(**args)
     new(**args).call
   end
@@ -49,10 +38,10 @@ class Hmis::PerformAutoExit
   def initialize(
     enrollment_id:,
     exit_date:,
-    exit_household_members: true, # Whether to exit the entire household
-    acting_user_id: nil, # User to act as for the exit (defaults to system user)
-    exit_destination: nil, # Destination for the exit (defaults to "No exit interview completed")
-    auto_exited: nil # Optional; when set (e.g. DateTime.current), Exit.auto_exited is set
+    exit_household_members: false, # Whether to exit the entire household
+    exit_destination: ::HudHelper.util.destination_no_exit_interview_completed,
+    acting_user_id: nil, # Optional actor, defaults to System User
+    auto_exited: nil # Optional timestamp to store on `Exit.auto_exited`
   )
     @enrollment_id = enrollment_id
     @exit_date = exit_date
@@ -68,12 +57,15 @@ class Hmis::PerformAutoExit
     else
       Hmis::Hud::Enrollment.where(id: @enrollment_id)
     end
+    # Raise if any enrollments are incomplete (WIP or not in progress), we shouldn't auto-exit those and we don't want to exit other members of the household and leave them dangling.
+    raise 'Cannot exit incomplete enrollments' if base_scope.in_progress.exists?
+
     # Drop exited and WIP enrollments
     enrollments_to_exit = base_scope.open_excluding_wip
     # Return early if nothing to exit. Idempotent behavior (e.g. BulkVoider may call for same household twice)
     return if enrollments_to_exit.empty?
 
-    raise 'PerformAutoExit invoked on non-HMIS enrollments' unless enrollments_to_exit.map(&:data_source).uniq.all?(&:hmis?)
+    raise 'CreateEnrollmentExit invoked on non-HMIS enrollments' unless enrollments_to_exit.map(&:data_source).uniq.all?(&:hmis?)
 
     Hmis::Hud::Base.transaction do
       enrollments_to_exit.each do |e|
@@ -113,7 +105,7 @@ class Hmis::PerformAutoExit
     exit_assessment.save!
 
     enrollment.release_unit!(@exit_date, user: acting_app_user)
-    enrollment.close_referral!(current_user: acting_app_user)
+    enrollment.close_referral!(current_user: acting_app_user) # close legacy referral. doesn't do anything for CE referrals
   end
 
   def data_source
