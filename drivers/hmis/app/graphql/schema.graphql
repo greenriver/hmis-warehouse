@@ -2015,6 +2015,16 @@ input ClientSearchInput {
   warehouseId: String @deprecated(reason: "Searching by warehouse_id is supported via free text search")
 }
 
+type ClientSearchParams {
+  dob: String
+  firstName: String
+  id: ID!
+  lastName: String
+  personalId: String
+  ssnSerial: String
+  textSearch: String
+}
+
 """
 HUD Client Sorting Options
 """
@@ -10310,6 +10320,11 @@ type Query {
   parsedFormDefinition(input: String!): FormDefinitionForJsonResult
 
   """
+  Persisted search params lookup
+  """
+  persistedClientSearchParams(id: ID!): ClientSearchParams
+
+  """
   Get list of options for pick list
   """
   pickList(clientId: ID, enrollmentId: ID, householdId: ID, pickListType: PickListType!, projectId: ID): [PickListOption!]!
@@ -10348,11 +10363,6 @@ type Query {
     role: RecordFormRole!
   ): FormDefinition
   referralPosting(id: ID!): ReferralPosting
-
-  """
-  Search query lookup
-  """
-  searchQuery(id: ID!): SearchQuery
 
   """
   Service lookup
@@ -11573,16 +11583,6 @@ enum SchoolStatus {
   (6) Suspended
   """
   SUSPENDED
-}
-
-type SearchQuery {
-  dob: String
-  firstName: String
-  id: ID!
-  lastName: String
-  personalId: String
-  ssnSerial: String
-  textSearch: String
 }
 
 """

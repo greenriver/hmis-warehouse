@@ -8,12 +8,11 @@
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative '../../support/hmis_base_setup'
 
 ##
-# Request spec for the searchQuery GraphQL endpoint.
+# Request spec for the persistedClientSearchParams GraphQL endpoint.
 # Covers:
-# - Basic test confirming the query is returned with the correct fields
+# - Basic test confirming the underlying ClientSearchQuery is returned with the correct fields
 # - Basic confirmation that user can't access queries created by other users
 RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:data_source) { create :hmis_primary_data_source }
@@ -26,8 +25,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query SearchQuery($id: ID!) {
-        searchQuery(id: $id) {
+      query GetPersistedClientSearchParams($id: ID!) {
+        persistedClientSearchParams(id: $id) {
           id
           textSearch
           personalId
@@ -54,9 +53,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'returns the search query' do
         response, result = post_graphql(id: search_query.id) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'searchQuery', 'id')).to eq(search_query.id)
+        expect(result.dig('data', 'persistedClientSearchParams', 'id')).to eq(search_query.id)
         params.each do |key, value|
-          expect(result.dig('data', 'searchQuery', key.camelize(:lower))).to eq(value)
+          expect(result.dig('data', 'persistedClientSearchParams', key.camelize(:lower))).to eq(value)
         end
       end
     end
@@ -69,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'returns nil' do
       response, result = post_graphql(id: search_query.id) { query }
       expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'searchQuery')).to be_nil
+      expect(result.dig('data', 'persistedSearchParams')).to be_nil
     end
   end
 end

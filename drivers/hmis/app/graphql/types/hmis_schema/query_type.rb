@@ -65,10 +65,10 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
-    field :search_query, Types::HmisSchema::SearchQuery, 'Search query lookup', null: true do
+    field :persisted_client_search_params, Types::HmisSchema::ClientSearchParams, 'Persisted search params lookup', null: true do
       argument :id, ID, required: true
     end
-    def search_query(id:)
+    def persisted_client_search_params(id:)
       # Only return the requested search query if it is viewable by the current user
       Hmis::ClientSearchQuery.viewable_by(current_user).find_by(id: id)
     end

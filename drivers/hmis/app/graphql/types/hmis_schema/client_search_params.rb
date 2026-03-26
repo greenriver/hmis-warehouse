@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::SearchQuery < Types::BaseObject
+  class HmisSchema::ClientSearchParams < Types::BaseObject
+    # underlying object is a Hmis::ClientSearchQuery
+
     field :id, ID, null: false
 
     # used for all use-cases that support free-text search:
