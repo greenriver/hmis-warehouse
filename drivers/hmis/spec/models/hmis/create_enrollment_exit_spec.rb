@@ -46,7 +46,8 @@ RSpec.describe Hmis::CreateEnrollmentExit, type: :model do
     expect do
       perform_exit(enrollment: e1)
     end.to change(Hmis::Hud::Exit, :count).by(1).
-      and change(Hmis::Hud::CustomAssessment, :count).by(1)
+      and change(Hmis::Hud::CustomAssessment, :count).by(1).
+      and change(Hmis::Form::FormProcessor, :count).by(1)
 
     e1.reload
     expect(e1.exit).to have_attributes(

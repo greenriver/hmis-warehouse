@@ -18,10 +18,7 @@ module Hmis
     #   a shared exit_date equal to the most recent contact across the household.
     # - Prevents auto-exit when any household member has an ACTIVE CE referral referencing that
     #   member's enrollment via source_enrollment_id OR target_enrollment_id.
-    # - Only considers households with no incomplete (WIP) enrollments (`households.not_in_progress`;
-    #   the hmis_households view sets any_wip from member enrollments). If incomplete members were
-    #   present, Hmis::CreateEnrollmentExit would raise when exiting the household—this job avoids
-    #   that by never selecting those households.
+    # - Only considers households with no incomplete (WIP) enrollments.
     #
     # Most recent contact (used to compute exit_date)
     # - ES Night-by-Night: latest bed night with non-nil date_provided; if missing/invalid, enrollment entry.
@@ -31,9 +28,8 @@ module Hmis
     # Exit Creation (delegated to Hmis::CreateEnrollmentExit)
     # - Creates Hmis::Hud::Exit with destination "No exit interview completed" and timestamps auto_exited.
     # - Creates an Exit Assessment on the exit_date.
-    # - Releases any assigned unit and closes any external referral.
+    # - Releases any assigned unit and closes any external legacy referral.
     # - Skips enrollments that already have an exit record.
-    # - Exits all household members
     include NotifierConfig
 
     def self.enabled?
