@@ -28,37 +28,17 @@ module Mutations
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
       raise HmisErrors::ApiError, "FormDefinition #{definition.id} status #{definition.status} is invalid" unless definition.valid_status_for_submit?
+      raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless definition.owner_class.present?
 
-      # Determine record class
-      klass = definition.owner_class
-      raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless klass.present?
+      action = input.record_id.present? ? Hmis::Form::Definition::EDIT : Hmis::Form::Definition::CREATE
 
-      # Find or create record
-      if input.record_id.present?
-        record = klass.viewable_by(current_user).find_by(id: input.record_id)
-        record = record.owner if record.is_a?(Hmis::Hud::HmisService)
-        record.lock_version = record_lock_version if record_lock_version
-        entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
+      if action == Hmis::Form::Definition::EDIT
+        record = find_record(owner_class: definition.owner_class, record_id: input.record_id, record_lock_version: record_lock_version)
       else
-        entity_for_permissions, record = permission_base_and_record(klass, input, current_user.hmis_data_source_id)
+        record = build_record(owner_class: definition.owner_class, input: input)
       end
 
-      raise HmisErrors::ApiError, 'Record not found' unless record.present?
-
-      # Check permission
-      perms_to_check = definition.record_editing_permissions
-      if definition.allowed_proc.present?
-        allowed = definition.allowed_proc.call(entity_for_permissions, current_user)
-      elsif perms_to_check.any? && entity_for_permissions.present?
-        allowed = current_user.permissions_for?(entity_for_permissions, *perms_to_check)
-      elsif perms_to_check.any?
-        # if there was no entity specified, perms are checked globally
-        allowed = current_user.permissions?(*perms_to_check)
-      else
-        # allow if no permission check defined
-        allowed = true
-      end
-      access_denied! unless allowed
+      raise "User not authorized to submit form to #{action} #{record.class.name.demodulize}##{record.id || 'new'}" unless authorized_to_submit?(definition: definition, record: record, action: action)
 
       # Use existing FormProcessor or build a new one. The FormProcessor handles validating + processing the values into the database,
       # updating any related record(s), and storing references to related records.
@@ -134,80 +114,41 @@ module Mutations
       }
     end
 
-    private def perform_side_effects(record)
+    private
+
+    # Find 'owner' record being edited with this form submission.
+    def find_record(owner_class:, record_id:, record_lock_version: nil)
+      record = owner_class.viewable_by(current_user).find_by(id: record_id)
+      record = record.owner if record.is_a?(Hmis::Hud::HmisService)
+      record.lock_version = record_lock_version if record_lock_version
+      raise "User not authorized to view #{owner_class.name}##{record_id} (record not found)" unless record
+
+      record
+    end
+
+    # Build new record for form submission, and associate it with related record passed in input
+    def build_record(owner_class:, input:)
+      Hmis::Form::SubmitFormRecordInitializer.build(owner_class: owner_class, input: input, user: current_user)
+    end
+
+    def authorized_to_submit?(definition:, record:, action:)
+      authorizer = Hmis::Form::SubmitFormAuthorizer.new(user: current_user, definition: definition)
+      case action
+      when Hmis::Form::Definition::EDIT
+        authorizer.authorized_to_edit?(record)
+      when Hmis::Form::Definition::CREATE
+        authorizer.authorized_to_create?(record)
+      else
+        raise "Invalid action: #{action}"
+      end
+    end
+
+    def perform_side_effects(record)
       case record
       when Hmis::Hud::Project
         # If a project was closed, close related Funders and Inventory
         project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?
         record.close_related_funders_and_inventory! if project_closed
-      end
-    end
-
-    # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
-    # as well the initial record, initialized with any related record attributes.
-    private def permission_base_and_record(klass, input, data_source_id)
-      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
-      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
-      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id) if input.enrollment_id.present?
-      organization = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: input.organization_id) if input.organization_id.present?
-      custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) if input.service_type_id.present?
-
-      ds = { data_source_id: data_source_id }
-      case klass.name
-      when 'Hmis::Hud::Client'
-        # 'nil' because there is no permission base for client creation; the permission is checked globally.
-        [nil, klass.new(ds)]
-      when 'Hmis::Hud::Organization'
-        # 'nil' because there is no permission base for organization creation; the permission is checked globally.
-        [nil, klass.new(ds)]
-      when 'Hmis::Hud::Project'
-        project = klass.new(
-          {
-            organization_id: organization&.organization_id,
-            **ds,
-            # Generate project ID upfront, so that related records created using nested attributes will be valid
-            project_id: klass.generate_uuid,
-          },
-        )
-        [organization, project]
-      when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory', 'Hmis::Hud::CeParticipation', 'Hmis::Hud::HmisParticipation'
-        [project, klass.new({ project_id: project&.project_id, **ds })]
-      when 'Hmis::Hud::Enrollment'
-        [project, klass.new({ project_id: project&.project_id, project_pk: project&.id, personal_id: client&.personal_id, **ds })]
-      when 'Hmis::Hud::CurrentLivingSituation'
-        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
-      when 'Hmis::Hud::HmisService'
-        raise 'cannot create service without custom service type' unless custom_service_type.present?
-
-        attrs = { enrollment_id: enrollment&.EnrollmentID, personal_id: enrollment&.PersonalID, **ds }
-        service = if custom_service_type.hud_service?
-          Hmis::Hud::Service.new(record_type: custom_service_type.hud_record_type, type_provided: custom_service_type.hud_type_provided, **attrs)
-        else
-          Hmis::Hud::CustomService.new(custom_service_type: custom_service_type, **attrs)
-        end
-        [enrollment, service]
-      when 'HmisExternalApis::AcHmis::ReferralRequest'
-        # DEPRECATED: ReferralRequest creation is no longer supported via form submission.
-        raise 'ReferralRequest form submission is no longer supported'
-      when 'HmisExternalApis::AcHmis::ReferralPosting'
-        # Look up the receiving project without `viewable_by` scope, since referrer may not have access to receiving project
-        receiving_project = Hmis::Hud::Project.find_by(id: input.project_id)
-        access_denied! unless enrollment.present? && receiving_project.present?
-
-        referral_posting = HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
-          enrollment: enrollment, # enrollment at the source project
-          receiving_project: receiving_project,
-          user: current_user,
-        )
-        # Evaluate permission (can manage outgoing referrals) against the source project, not the receiving project
-        source_project = enrollment.project
-        [source_project, referral_posting]
-      when 'Hmis::File'
-        [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
-      when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'
-        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
-      else
-        raise "No permission base specified for creating a new record of type #{klass.name}"
       end
     end
   end
