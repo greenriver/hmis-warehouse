@@ -11,9 +11,9 @@
 # - Hmis::ClientSearchQuery model - hmis_client_search_queries table
 #
 # These models are expected to have the following attributes:
-# - params
+# - params attribute
 # - ALLOWED_PARAMS
-# - ALLOWED_CLIENT_PARAMS if 'client' is an allowed param - todo @martha relates to other comment
+# - ALLOWED_CLIENT_PARAMS, if 'client' is an allowed param
 module ClientSearchQueryShared
   extend ActiveSupport::Concern
   MAX_STRING_LENGTH = 100
@@ -28,8 +28,8 @@ module ClientSearchQueryShared
       invalid_params = params.keys - self.class::ALLOWED_PARAMS
       errors.add(:params, "contains invalid parameters: #{invalid_params.join(', ')}") if invalid_params.any?
 
-      # Validate client parameters if present
-      if params['client'].present?
+      # Validate client parameters, if present
+      if self.class::ALLOWED_PARAMS.include?('client') && params['client'].present?
         invalid_client_params = params['client'].keys - self.class::ALLOWED_CLIENT_PARAMS
         errors.add(:params, "contains invalid client parameters: #{invalid_client_params.join(', ')}") if invalid_client_params.any?
       end
