@@ -9,7 +9,8 @@
 RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   include_context 'with paper trail'
 
-  let!(:ds1) { create :hmis_primary_data_source }
+  # data source is seeded in rails_helper.rb for performance reasons
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME) }
   let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }
   let(:u1) { create :hmis_hud_user, data_source: ds1 }
