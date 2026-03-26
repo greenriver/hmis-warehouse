@@ -6,6 +6,14 @@
 
 # frozen_string_literal: true
 
+# Shared concern used by:
+# - GrdaWarehouse::ClientSearchQuery model - client_search_queries table
+# - Hmis::ClientSearchQuery model - hmis_client_search_queries table
+#
+# These models are expected to have the following attributes:
+# - params
+# - ALLOWED_PARAMS
+# - ALLOWED_CLIENT_PARAMS if 'client' is an allowed param - todo @martha relates to other comment
 module ClientSearchQueryShared
   extend ActiveSupport::Concern
   MAX_STRING_LENGTH = 100
