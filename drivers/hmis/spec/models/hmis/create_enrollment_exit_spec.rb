@@ -126,6 +126,15 @@ RSpec.describe Hmis::CreateEnrollmentExit, type: :model do
     end
   end
 
+  describe 'Exit record validation' do
+    it 'raises when exit date is before the enrollment entry date (AR validation)' do
+      expect do
+        described_class.call(enrollment_id: e1.id, exit_date: e1.entry_date - 1.day)
+      end.to raise_error(ActiveRecord::RecordInvalid, /Exit date cannot be before entry date/).
+        and(not_change(Hmis::Hud::Exit, :count))
+    end
+  end
+
   context 'when a household member enrollment is WIP (incomplete)' do
     let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:household_id) { Hmis::Hud::Base.generate_uuid }
