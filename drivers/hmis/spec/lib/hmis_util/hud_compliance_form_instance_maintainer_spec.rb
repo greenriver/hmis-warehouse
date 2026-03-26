@@ -79,6 +79,38 @@ RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer, :manages_hmis_form
       expect(actual_specs).to eq(expected_specs.to_set)
     end
 
+    it 'creates system instances for service form that match HudHelper.util.service_form_funder_applicability_requirements per data source' do
+      HmisUtil::ServiceTypes.seed_hud_service_types(data_source.id)
+      Hmis::Form::Instance.system.where(definition_identifier: 'service').delete_all
+
+      requirements = HudHelper.util.service_form_funder_applicability_requirements
+      expected_specs = Set.new
+      requirements.each do |config|
+        category = Hmis::Hud::CustomServiceType.where(
+          data_source_id: data_source.id,
+          hud_record_type: config[:record_type],
+        ).first&.custom_service_category
+        next unless category
+
+        config[:applicability_requirements].each do |requirement|
+          expected_specs << {
+            custom_service_category_id: category.id,
+            project_type: requirement[:project_type],
+            funder: requirement[:funder],
+          }
+        end
+      end
+
+      described_class.new.ensure_all_system_instances_exist!
+
+      rules = Hmis::Form::Instance.active.system.where(definition_identifier: 'service')
+      expect(rules.count).to eq(expected_specs.size)
+      actual_specs = rules.map do |r|
+        { custom_service_category_id: r.custom_service_category_id, project_type: r.project_type, funder: r.funder }
+      end.to_set
+      expect(actual_specs).to eq(expected_specs)
+    end
+
     context 'with dry run' do
       it 'does not create records when instances are missing, but logs them in the summary' do
         # Delete some system instances so there are missing compliance instances
