@@ -34,6 +34,17 @@ module HudSpmReport::Generators::Fy2026
       hud_reports_spm_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
+    def prepare_report
+      super
+
+      HudReports::HouseholdContextBuilder.call(
+        self,
+        report,
+        enrollment_scope: spm_enrollment_scope,
+        lookback_years: 7,
+      )
+    end
+
     def self.questions
       [
         HudSpmReport::Generators::Fy2026::MeasureOne,
@@ -75,6 +86,12 @@ module HudSpmReport::Generators::Fy2026
 
     def self.uploadable_version?
       true
+    end
+
+    private
+
+    def spm_enrollment_scope
+      HudSpmReport::Fy2026::SpmEnrollment.she_scope(report)
     end
   end
 end
