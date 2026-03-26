@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
@@ -31,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  describe 'Form identifier query' do
+  describe 'Form identifiers query' do
     let(:query) do
       <<~GRAPHQL
         query GetFormIdentifiers(
@@ -89,6 +82,60 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq(200), result.inspect
       identifiers = result.dig('data', 'formIdentifiers', 'nodes')
       expect(identifiers.count).to eq(1)
+    end
+  end
+
+  describe 'Form identifier query' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetFormIdentifier($identifier: String!) {
+          formIdentifier(identifier: $identifier) {
+            id
+            identifier
+            publishedVersion {
+              id
+            }
+            draftVersion {
+              id
+            }
+            allVersions {
+              nodesCount
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'returns the form identifier for the given identifier (latest version per identifier, same shape as formIdentifiers)' do
+      response, result = post_graphql(identifier: 'identifier_1') { query }
+      expect(response.status).to eq(200), result.inspect
+      node = result.dig('data', 'formIdentifier')
+      expect(node).to be_present
+      expect(node['identifier']).to eq('identifier_1')
+      expect(node.dig('publishedVersion', 'id')).to eq(id1_published.id.to_s)
+      expect(node.dig('draftVersion', 'id')).to eq(id1_draft.id.to_s)
+      expect(node['allVersions']['nodesCount']).to eq(4)
+    end
+
+    it 'returns null when the identifier does not exist' do
+      response, result = post_graphql(identifier: 'no_such_identifier') { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'formIdentifier')).to be_nil
+    end
+
+    it 'returns null for admin-only form roles when user lacks can_administrate_config' do
+      create(
+        :hmis_form_definition,
+        identifier: 'external_form_identifier',
+        version: 1,
+        status: Hmis::Form::Definition::PUBLISHED,
+        title: 'External form',
+        role: 'EXTERNAL_FORM',
+      )
+      remove_permissions(access_control, :can_administrate_config)
+      response, result = post_graphql(identifier: 'external_form_identifier') { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'formIdentifier')).to be_nil
     end
   end
 end

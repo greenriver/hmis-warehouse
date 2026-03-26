@@ -20,7 +20,7 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
   let!(:data_source) { create(:data_source_fixed_id) }
   let!(:organization) { create(:hud_organization, data_source: data_source) }
-  let!(:project) { create(:hud_project, data_source: data_source, organization: organization, ProjectType: 1) } # ES-NBN
+  let!(:project) { create(:hud_project, data_source: data_source, organization: organization, ProjectType: 0) } # ES-Entry/Exit
 
   # Clients: HoH (Adult) + Child
   let(:client_hoh) { create_client_with_warehouse_link(dob: 40.years.ago) }
@@ -625,6 +625,128 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           # each member falls back to their own raw chronic status.
           expect(ctx.inherited_chronic_status).to eq(ctx.member_chronic_status || false)
         end
+      end
+    end
+
+    context 'NBN activity filtering (Method 2)' do
+      # Use a separate ES-NBN project (ProjectType: 1) for these tests.
+      let!(:nbn_project) { create(:hud_project, data_source: data_source, organization: organization, ProjectType: 1) }
+
+      let(:nbn_adult) { create_client_with_warehouse_link(dob: 30.years.ago) }
+      let(:nbn_child) { create_client_with_warehouse_link(dob: 8.years.ago) }
+
+      let!(:nbn_enrollment_adult) do
+        create(:hud_enrollment,
+               PersonalID: nbn_adult.PersonalID,
+               ProjectID: nbn_project.ProjectID,
+               HouseholdID: 'HH-NBN',
+               RelationshipToHoH: 1,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+      end
+
+      let!(:nbn_enrollment_child) do
+        create(:hud_enrollment,
+               PersonalID: nbn_child.PersonalID,
+               ProjectID: nbn_project.ProjectID,
+               HouseholdID: 'HH-NBN',
+               RelationshipToHoH: 2,
+               EntryDate: '2020-01-01',
+               data_source_id: data_source.id)
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(
+          id: [nbn_enrollment_adult.id, nbn_enrollment_child.id],
+        ).each(&:rebuild_service_history!)
+      end
+
+      let(:nbn_she_adult) { GrdaWarehouse::ServiceHistoryEnrollment.find_by(enrollment_group_id: nbn_enrollment_adult.EnrollmentID) }
+      let(:nbn_she_child) { GrdaWarehouse::ServiceHistoryEnrollment.find_by(enrollment_group_id: nbn_enrollment_child.EnrollmentID) }
+
+      let(:nbn_generator) do
+        instance_double(
+          HudReports::GeneratorBase,
+          client_scope: GrdaWarehouse::Hud::Client.where(
+            id: [nbn_adult.destination_client.id, nbn_child.destination_client.id],
+          ),
+          report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
+          base_enrollment_scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            where(client_id: GrdaWarehouse::Hud::Client.where(
+              id: [nbn_adult.destination_client.id, nbn_child.destination_client.id],
+            )).
+            merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+                    start_date: report.start_date,
+                    end_date: report.end_date,
+                  )),
+        )
+      end
+
+      def create_bed_night_for(she, date:)
+        GrdaWarehouse::ServiceHistoryService.create!(
+          service_history_enrollment_id: she.id,
+          client_id: she.client_id,
+          date: date,
+          record_type: 'service',
+          service_type: 200,
+          project_type: she.project_type,
+        )
+      end
+
+      it 'excludes an enrolled adult with no bed-night service from household composition' do
+        # Neither member has bed-night services or an exit, so both fail Method 2 → no active members → unknown.
+        described_class.new(nbn_generator, report, enrollment_scope: nbn_generator.base_enrollment_scope).call
+        contexts = HudReports::HouseholdContext.where(household_id: 'HH-NBN')
+        expect(contexts.pluck(:household_type).uniq).to eq(['unknown'])
+      end
+
+      it 'treats an adult who exited within the report range as active even without a bed-night service' do
+        # Exit during report range satisfies Method 2
+        create(:hud_exit,
+               data_source: data_source,
+               EnrollmentID: nbn_enrollment_adult.EnrollmentID,
+               PersonalID: nbn_enrollment_adult.PersonalID,
+               ExitDate: '2020-03-01')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(nbn_enrollment_adult.id).rebuild_service_history!
+        create_bed_night_for(nbn_she_child, date: '2020-06-15')
+
+        described_class.new(nbn_generator, report, enrollment_scope: nbn_generator.base_enrollment_scope).call
+        contexts = HudReports::HouseholdContext.where(household_id: 'HH-NBN')
+        expect(contexts.pluck(:household_type).uniq).to eq(['adults_and_children'])
+      end
+
+      it 'correctly identifies children_only when only child has a bed-night service' do
+        create_bed_night_for(nbn_she_child, date: '2020-06-15')
+        # Adult has no service → not active
+
+        described_class.new(nbn_generator, report, enrollment_scope: nbn_generator.base_enrollment_scope).call
+        contexts = HudReports::HouseholdContext.where(household_id: 'HH-NBN')
+        expect(contexts.pluck(:household_type).uniq).to eq(['children_only'])
+      end
+
+      it 'does not count a bed-night outside the report date range as active' do
+        # Bed-night is before report start (2020-01-01) → still fails Method 2
+        create_bed_night_for(nbn_she_adult, date: '2019-12-31')
+        create_bed_night_for(nbn_she_child, date: '2019-12-31')
+
+        described_class.new(nbn_generator, report, enrollment_scope: nbn_generator.base_enrollment_scope).call
+        contexts = HudReports::HouseholdContext.where(household_id: 'HH-NBN')
+        expect(contexts.pluck(:household_type).uniq).to eq(['unknown'])
+      end
+
+      it 'does not count an exit outside the report date range as active' do
+        # Exit before report start does not satisfy Method 2
+        create(:hud_exit,
+               data_source: data_source,
+               EnrollmentID: nbn_enrollment_adult.EnrollmentID,
+               PersonalID: nbn_enrollment_adult.PersonalID,
+               ExitDate: '2019-12-15')
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(nbn_enrollment_adult.id).rebuild_service_history!
+        create_bed_night_for(nbn_she_child, date: '2020-06-15')
+
+        described_class.new(nbn_generator, report, enrollment_scope: nbn_generator.base_enrollment_scope).call
+        contexts = HudReports::HouseholdContext.where(household_id: 'HH-NBN')
+        expect(contexts.pluck(:household_type).uniq).to eq(['children_only'])
       end
     end
   end
