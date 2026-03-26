@@ -57,6 +57,7 @@ module Types
     value 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', 'Users who can be assigned to referral steps in the specified project'
     value 'AUDITABLE_USERS', 'Current and historical user accounts'
     value 'CONTINUUM_PROJECTS', 'Continuum Projects'
+    value 'CE_ACCESS_POINT_PROJECT_NAMES', 'Projects with an active CE Participation record with Access Point = Yes'
     value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS', 'Templates for CE workflow definitions'
     value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED', 'Templates for CE workflow definitions, including fully retired workflows'
     value 'CE_REFERRAL_STATUSES'
