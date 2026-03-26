@@ -12,11 +12,18 @@
 - Generally speaking, the code for SPMs should be written in such a way that it is self contained with year-specific logic in the driver.  There are a variety of shared concerns for standard functionality that has historically stayed consistent year-over-year which can be used (households, ages, incomes, etc. -- see `models/concerns/hud_reports`) however if the logic for the SPM differs from the historic standard, code should be copied into the driver and altered in-situ rather than applying overrides to the shared components.
 
 ### Key Classes
-- **SpmEnrollment**: Denormalized enrollment records that capture client identity, age, project, destination, income history, homelessness status, and funding eligibility. These records back most measure universes and expose scopes for active method definitions and literal homelessness checks.
+- **SpmEnrollment**: Denormalized enrollment records that capture client identity, age, project, destination, income history, homelessness status, and funding eligibility. FY2026+ uses pre-computed HouseholdContext for household-level attributes (move-in date, start of homelessness) for performance and consistency with APR reports.
 - **Episode**: Derived time-series representation of homeless episodes built from enrollment bed nights. It uses `EpisodeBatch` to compute contiguous timelines and stores summary statistics (first date, last date, total days).
 - **EpisodeBatch**: Builds contiguous homelessness episodes, merging bed-night data, self-reported start dates, and PH adjustments before persisting `Episode` rows.
 - **Return**: Represents returns to homelessness after a permanent exit, combining the exit enrollment with a potential return enrollment to compute days-to-return and destination classifications.
 - **ServiceHistoryEnrollmentFilter**: Applies HUD filter options and guarantees only SPM-relevant projects feed the denormalization step.
+
+### Pre-computed Contexts (FY2026+)
+- SPM FY2026 uses `HudReports::HouseholdContext` to pre-compute household-level business rules before building the `SpmEnrollment` snapshot
+- Contexts are built in the `prepare_report` phase with SPM's 7-year lookback enrollment scope
+- Ensures consistency between SPM and APR for shared logic (move-in date inheritance)
+- SPM-specific logic (DateToStreetESSH inheritance to children under 17) implemented in shared `HouseholdLogic` class
+- `HouseholdContextBuilder` accepts enrollment scope directly, making it reusable across report types
 
 ### Calculation Flow
 - **Filtering**: `ServiceHistoryEnrollmentFilter` adapts the general HUD filter form to SPM-specific project types. It queries `ServiceHistoryEnrollment`, applies CoC and project filters, and returns the `Hud::Enrollment` rows needed for denormalization.
