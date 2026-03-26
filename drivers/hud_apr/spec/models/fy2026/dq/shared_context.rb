@@ -41,6 +41,9 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
 
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 
+    generator = HudApr::Generators::Dq::Fy2026::Generator.new(report)
+    generator.prepare_report
+
     report
   end
 
@@ -49,8 +52,7 @@ RSpec.shared_context 'HUD DQ FY2026 setup', shared_context: :metadata do
     report.save! if report.changed?
 
     generator = HudApr::Generators::Dq::Fy2026::Generator.new(report)
-    question = question_class.new(generator, report)
-    question.run_question!
+    question_class.new(generator, report).run!
     report.reload
   end
 end

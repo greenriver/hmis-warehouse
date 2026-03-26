@@ -101,14 +101,14 @@ class AppClientHistoryCalendar {
         .style('width', dayScale.bandwidth() + '%')
         .text((d) => d);
 
-      var week = this.container
+      this.container
         .selectAll(`.${this.prefixClass('week', `${i}`)}`)
         .data([weekData])
         .enter()
         .append('div')
         .attr('class', `${this.prefixClass('week', `${i}`)} ${this.prefixClass('week')}`);
 
-      week = this.container
+      var week = this.container
         .selectAll(`.${this.prefixClass('week', `${i}`)}`);
       // eslint-disable-next-line no-unused-vars
       var days = week.selectAll(`.${this.prefixClass('day')}`)
@@ -294,7 +294,7 @@ class AppClientHistoryCalendar {
           }
           if (includesEnd(d)) {
             if (this.getDateFromString(d.exit_date) == new Date()) {
-              // eslint-disable-next-line no-empty
+              // do nothing
             } else {
               classes.push(this.prefixClass('project', 'label-has-end'));
             }
@@ -332,7 +332,6 @@ class AppClientHistoryCalendar {
                 .append('span')
                 .attr('class', eventClass)
                 .append('i')
-                // eslint-disable-next-line no-undef
                 .attr('class', (eventsData[event] || {}).icon);
             },
             (update) => {

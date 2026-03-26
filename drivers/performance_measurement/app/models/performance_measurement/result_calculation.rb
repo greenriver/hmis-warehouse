@@ -1178,6 +1178,9 @@ module PerformanceMeasurement::ResultCalculation
       return unless project_operated_in_period?(:reporting, project&.project_id)
       return unless project_operated_in_period?(:comparison, project&.project_id)
 
+      # Income metrics in the SPM are only calculated for CoC Funded projects, don't calculate for non-CoC Funded projects
+      return if project.present? && !spm_coc_funded_in_both_periods?(project)
+
       # Don't calculate project-level metrics for this if we are using a static SPM
       # return if existing_static_comparison_spm.present? && project&.project_id.present?
 
@@ -1230,9 +1233,30 @@ module PerformanceMeasurement::ResultCalculation
       results.find_by(field: field, project_id: project_id)
     end
 
+    # SPM logic: project has CoC funding if any funder is in spm_coc_funders and overlaps the date range.
+    # Mirrors HudSpmReport::Fy2026::SpmEnrollment.eligible_funding?
+    def spm_coc_funded?(hud_project, start_date, end_date)
+      return false if hud_project.blank?
+
+      coc_funder_codes = HudHelper.util('2026').spm_coc_funders.map(&:to_s)
+      hud_project.funders.any? do |funder|
+        funder.funder.to_s.in?(coc_funder_codes) &&
+          (funder.end_date.nil? || funder.end_date >= start_date) &&
+          (funder.start_date.nil? || funder.start_date <= end_date)
+      end
+    end
+
+    def spm_coc_funded_in_both_periods?(project)
+      hud_project = project.hud_project
+      return false if hud_project.blank?
+
+      spm_coc_funded?(hud_project, filter.range.first, filter.range.last) &&
+        spm_coc_funded?(hud_project, filter.comparison_range.first, filter.comparison_range.last)
+    end
+
     def save_results
       results = detail_hash.map { |method, row| send(method, row) }
-      projects.preload(:hud_project).each do |project|
+      projects.preload(hud_project: :funders).each do |project|
         detail_hash.each do |method, row|
           next if row[:column] == :system
 
