@@ -4,6 +4,7 @@ module Hmis
   class ClientSearchQuery < GrdaWarehouseBase
     include ClientSearchQueryShared
     belongs_to :created_by, class_name: 'Hmis::User'
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     ALLOWED_PARAMS = [
       'text_search',

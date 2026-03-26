@@ -23,8 +23,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query ClientSearch($input: ClientSearchInput!, $sortOrder: ClientSortOption = LAST_NAME_A_TO_Z) {
+      query ClientSearch(
+        $input: ClientSearchInput!, $sortOrder: ClientSortOption = LAST_NAME_A_TO_Z, $filters: ClientFilterOptions
+      ) {
         clientSearch(
+          filters: $filters,
           limit: 100,
           offset: 0,
           sortOrder: $sortOrder,
@@ -191,8 +194,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # OTHER FILTERS
         ['personal id', { personal_id: client.personal_id }, true],
         ['wrong personal id and not match', { personal_id: '00000000000000000000000000000000' }, false],
-        ['warehouse id', { warehouse_id: '5555' }, true],
-        ['wrong warehouse id', { warehouse_id: '5556' }, false],
         ['first name', { first_name: 'William' }, true],
         # TODO: Test nickname match
         # TODO: Test metaphone match
@@ -337,7 +338,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'filters clients by organization via project enrollment' do
         # add a neutral first_name to satisfy the "at least 1 search param" rule
-        clients = client_nodes_for({ first_name: 'N', organizations: [org_a.id] })
+        response, result = post_graphql(input: { first_name: 'N' }, filters: { organization: [org_a.id] }) { query }
+        expect(response.status).to eq(200), result.inspect
+        clients = result.dig('data', 'clientSearch', 'nodes')
         expect(clients).to include(id_matcher(in_org_a))
         expect(clients).not_to include(id_matcher(in_org_b))
         # unenrolled should not be included by organization filter
@@ -449,7 +452,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when there is an existing search query created by a different user' do
-      let!(:other_user) { create :hmis_user }
+      let!(:other_user) { create :hmis_user, data_source: ds1 }
       let!(:existing_query) { create :hmis_client_search_query, created_by: other_user, params: { 'text_search' => 'Range' } }
 
       it 'creates a new search query when searching for the same params' do

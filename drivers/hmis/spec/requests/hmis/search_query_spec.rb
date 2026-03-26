@@ -42,7 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   context 'when the search query was created by a different user' do
-    let!(:other_user) { create :hmis_user }
+    let!(:other_user) { create :hmis_user, data_source: data_source }
     let!(:search_query) { create :hmis_client_search_query, created_by: other_user }
 
     it 'returns nil' do
