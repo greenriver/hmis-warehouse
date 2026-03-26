@@ -9,6 +9,8 @@
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 
+## System spec for the Client Search page.
+# Confirms desired behavior of searchQueryId in URL params
 RSpec.feature 'Client Search', type: :system do
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:user) { create(:user) }

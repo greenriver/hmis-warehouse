@@ -10,6 +10,17 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
+## Request spec for the clientSearch GraphQL endpoint.
+# Covers:
+# - Basic tests confirming the query returns clients the user can access.
+#   The model's viewable_by scope is more thoroughly tested in hmis/hud/client_access_spec.rb
+# - Tests possible inputs on ClientSearchInput object: text_search, first_name, dob, etc.
+#   These tests include confirmation that a ClientSearchQuery row (object recording search params so we don't put PII in the URL)
+#   is created and returned in the response, for each possible query.
+# - Basic tests confirming the ClientSearchQuery behavior when an existing row exists matching the input.
+#   This is tested more thoroughly in models/hmis/client_search_query_spec.rb
+# - In the future we should add more coverage in this file for Filters such as project and organization
+#   (as distinct from the ClientSearchInput object).
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
@@ -36,6 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           nodes {
             id
           }
+          searchQueryId
         }
       }
     GRAPHQL
@@ -211,8 +223,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # TODO: Organizations filter
       ].each do |desc, input, match|
         response, result = post_graphql(input: input) { query }
+
         aggregate_failures "checking #{desc}" do
           expect(response.status).to eq(200), "Failed: '#{desc}' #{result.inspect}"
+
+          # Confirm client search results
           clients = result.dig('data', 'clientSearch', 'nodes')
           matcher = include({ 'id' => client.id.to_s })
           if match
@@ -220,6 +235,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           else
             expect(clients).not_to matcher, "Failed: '#{desc}'"
           end
+
+          # Confirm ClientSearchQuery row was created
+          query_id = result.dig('data', 'clientSearch', 'searchQueryId')
+          expect(query_id).not_to be_nil
+          search_query = Hmis::ClientSearchQuery.find(query_id)
+          expect(search_query.params).to eq(input.deep_stringify_keys.transform_values(&:strip))
+          expect(search_query.created_by).to eq(hmis_user)
+          expect(search_query.data_source_id).to eq(ds1.id)
         end
       end
     end
@@ -404,40 +427,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'searching with search query tracking' do
-    let(:query) do
-      <<~GRAPHQL
-        query ClientSearch($input: ClientSearchInput!) {
-          clientSearch(
-            limit: 100,
-            offset: 0,
-            input: $input
-          ) {
-            searchQueryId
-            nodes {
-              id
-            }
-          }
-        }
-      GRAPHQL
-    end
-
     let!(:client1) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
-
-    it 'creates a new search query when a new search is performed' do
-      query_id = nil
-      expect do
-        response, result = post_graphql(input: { text_search: 'Range' }) { query }
-        expect(response.status).to eq(200), result.inspect
-        query_id = result.dig('data', 'clientSearch', 'searchQueryId')
-        expect(query_id).not_to be_nil
-        results = result.dig('data', 'clientSearch', 'nodes')
-        expect(results).to contain_exactly(a_hash_including({ 'id' => client1.id.to_s }))
-      end.to change(Hmis::ClientSearchQuery, :count).by(1)
-
-      search_query = Hmis::ClientSearchQuery.find(query_id)
-      expect(search_query.params).to eq({ 'text_search' => 'Range' })
-      expect(search_query.created_by).to eq(hmis_user)
-    end
 
     context 'when there is an existing search query' do
       let!(:search_query) { create :hmis_client_search_query, created_by: hmis_user, params: { 'text_search' => 'Range' } }

@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 
+# Model spec for the Hmis::ClientSearchQuery model, used for tracking user searches so we avoid putting PII in the URL.
 RSpec.describe Hmis::ClientSearchQuery, type: :model do
   let!(:ds1) { create :hmis_primary_data_source }
   let!(:ds2) { create :hmis_data_source }

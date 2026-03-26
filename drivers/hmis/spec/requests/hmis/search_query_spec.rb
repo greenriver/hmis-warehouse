@@ -10,6 +10,11 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
+##
+# Request spec for the searchQuery GraphQL endpoint.
+# Covers:
+# - Basic test confirming the query is returned with the correct fields
+# - Basic confirmation that user can't access queries created by other users
 RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:data_source) { create :hmis_primary_data_source }
   let!(:user) { create :user }
@@ -25,19 +30,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         searchQuery(id: $id) {
           id
           textSearch
+          personalId
+          firstName
+          lastName
+          ssnSerial
+          dob
         }
       }
     GRAPHQL
   end
 
-  context 'when the search query exists' do
-    let!(:search_query) { create :hmis_client_search_query, created_by: hmis_user, params: { 'text_search' => 'my test search' } }
+  [
+    { 'text_search' => 'my test search' },
+    { 'personal_id' => '1234567890' },
+    { 'first_name' => 'John' },
+    { 'last_name' => 'Doe' },
+    { 'ssn_serial' => '1234' },
+    { 'dob' => '1990-01-01' },
+  ].each do |params|
+    context "when the search query exists with #{params.keys.join(', ')}" do
+      let!(:search_query) { create :hmis_client_search_query, created_by: hmis_user, params: params }
 
-    it 'returns the search query' do
-      response, result = post_graphql(id: search_query.id) { query }
-      expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'searchQuery', 'id')).to eq(search_query.id)
-      expect(result.dig('data', 'searchQuery', 'textSearch')).to eq('my test search')
+      it 'returns the search query' do
+        response, result = post_graphql(id: search_query.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'searchQuery', 'id')).to eq(search_query.id)
+        params.each do |key, value|
+          expect(result.dig('data', 'searchQuery', key.camelize(:lower))).to eq(value)
+        end
+      end
     end
   end
 
