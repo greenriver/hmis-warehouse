@@ -426,7 +426,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'searching with search query tracking' do
+  # Search query tracking is tested for each input type above in the 'should search' examples.
+  # Here, just test the behavior when there is an existing search query.
+  describe 'searching with existing search query' do
     let!(:client1) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
 
     context 'when there is an existing search query' do
