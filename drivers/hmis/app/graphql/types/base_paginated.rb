@@ -9,12 +9,15 @@
 module Types
   class BasePaginated < BaseObject
     skip_activity_log
-    def self.build(node_class)
+    # @param include_search_query_id [Boolean] When true, exposes `searchQueryId` on the paginated type (e.g. for client search).
+    #   Opt in per node type by overriding `BaseObject.page_type` and passing `include_search_query_id: true`.
+    def self.build(node_class, include_search_query_id: false)
       dynamic_name = "#{node_class.graphql_name.pluralize}Paginated"
 
       klass = Class.new(self) do
         graphql_name(dynamic_name)
         field :nodes, [node_class], null: false
+        field :search_query_id, String, null: true if include_search_query_id
       end
       Object.const_set(dynamic_name, klass) unless Object.const_defined?(dynamic_name)
       klass
@@ -26,8 +29,6 @@ module Types
     field :nodes_count, Integer, null: false
     field :limit, Integer, null: false
     field :offset, Integer, null: false
-
-    field :search_query_id, String, null: true
   end
 
   # Empty class that enables us to explicitly state that a return type should use Array pagination rather than Scope
