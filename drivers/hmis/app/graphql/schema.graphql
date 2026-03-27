@@ -7885,7 +7885,7 @@ enum PickListType {
   UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL
 
   """
-  User accounts
+  User accounts. Returns all users, for use when filtering audit events
   """
   USERS
 }

@@ -52,7 +52,7 @@ module Types
     value 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
     value 'FORM_TYPES', 'Form Types'
     value 'STAFF_ASSIGNMENT_RELATIONSHIPS', 'Staff Assignment Relationships'
-    value 'USERS', 'User accounts'
+    value 'USERS', 'User accounts. Returns all users, for use when filtering audit events'
     value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Users who are eligible for staff assignment'
     value 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', 'Users who can be assigned to referral steps in the specified project'
     value 'AUDITABLE_USERS', 'Current and historical user accounts', deprecation_reason: 'No longer used'
