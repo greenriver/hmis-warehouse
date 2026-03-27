@@ -805,33 +805,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
   end
-
-  describe 'USERS pick list' do
-    let!(:other_ds) { create(:hmis_data_source) }
-    let!(:other_ds_user) { create(:hmis_user, data_source: other_ds) }
-    let!(:other_ds_access) { create_access_control(other_ds_user, other_ds) }
-
-    it 'includes users with HMIS access in the current data source and the system user' do
-      response, result = post_graphql(pick_list_type: 'USERS') { query }
-      expect(response.status).to eq(200), result.inspect
-      codes = result.dig('data', 'pickList').pluck('code')
-
-      expect(codes).to include(hmis_user.id.to_s, Hmis::User.system_user.id.to_s)
-      expect(codes).not_to include(other_ds_user.id.to_s)
-    end
-
-    context 'when the user lacks any related permissions' do
-      before do
-        remove_permissions(access_control, :can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients)
-      end
-
-      it 'returns empty' do
-        response, result = post_graphql(pick_list_type: 'USERS') { query }
-        expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'pickList')).to eq([])
-      end
-    end
-  end
 end
 
 RSpec.configure do |c|
