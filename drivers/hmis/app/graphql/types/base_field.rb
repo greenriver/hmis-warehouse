@@ -80,8 +80,8 @@ module Types
 
         resolved_object = yield(object, cleaned_arguments)
 
-        search_query_id = context[:search_query_id]
         search_query_id = context.delete(:search_query_id)
+        pagination_arguments[:search_query_id] = search_query_id
 
         if options[:is_array]
           result = Types::PaginatedArray.new(resolved_object, **pagination_arguments)
