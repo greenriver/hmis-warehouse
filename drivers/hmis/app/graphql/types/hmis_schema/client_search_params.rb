@@ -16,9 +16,9 @@ module Types
     field :ssn_serial, String, null: true
     field :dob, String, null: true
 
-    [:text_search, :personal_id, :first_name, :last_name, :ssn_serial, :dob].each do |field|
-      define_method field do
-        object.params[field.to_s]
+    [:text_search, :personal_id, :first_name, :last_name, :ssn_serial, :dob].each do |attr_name|
+      define_method attr_name do
+        object.params[attr_name.to_s]
       end
     end
   end
