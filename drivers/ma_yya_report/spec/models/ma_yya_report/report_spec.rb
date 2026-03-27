@@ -89,7 +89,7 @@ RSpec.describe MaYyaReport::Report do
       end
 
       it 'returns properly formatted subsection labels' do
-        expect(subsection_labels['A1']).to eq({ text: '1. Street Outreach/Colaboration' })
+        expect(subsection_labels['A1']).to eq({ text: '1. Street Outreach/Collaboration' })
         expect(subsection_labels['D1']).to eq({ text: '1. Age and Gender' })
         expect(subsection_labels['E1']).to eq({ text: '1. Age and Gender' })
         expect(subsection_labels['F1']).to eq({ text: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)' })
@@ -194,7 +194,7 @@ RSpec.describe MaYyaReport::Report do
 
     describe '#subsection_label' do
       it 'returns correct subsection labels' do
-        expect(report.subsection_label('A1')).to eq({ text: '1. Street Outreach/Colaboration' })
+        expect(report.subsection_label('A1')).to eq({ text: '1. Street Outreach/Collaboration' })
         expect(report.subsection_label('D1')).to eq({ text: '1. Age and Gender' })
         expect(report.subsection_label('F1')).to eq({ text: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)' })
       end
