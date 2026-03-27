@@ -9,8 +9,13 @@
 module HmisUtil
   # Encapsulates HUD compliance rules for form system instances. Creates (or in dry run, reports)
   # the system form instances required for record forms and assessments.
+  #
+  # @see docs/features/hmis-form-seeding.md
   class HudComplianceFormInstanceMaintainer
     include NotifierConfig
+
+    # Immutable summary row for notifier/logging (created/updated entries).
+    ComplianceChangePayload = Data.define(:type, :definition_identifier, :project_type, :funder, :service_category)
 
     FORM_IDENTIFIERS = {
       move_in_date: 'move_in_date',
@@ -37,7 +42,7 @@ module HmisUtil
       @dry_run = dry_run
       # TODO(#6691) require data source. Currently this class allows it to be missing because this gets run in rails helper before data sources are created.
       @data_source = data_source_id ? GrdaWarehouse::DataSource.hmis.find(data_source_id) : GrdaWarehouse::DataSource.hmis.first
-      @created = []  # OpenStruct(type:, definition_identifier:, project_type?, funder?) for reporting
+      @created = []  # ComplianceChangePayload entries for reporting
       @updated = []  # same shape: existing instances changed to system/active
       setup_notifier('HUD Form Compliance')
     end
@@ -136,19 +141,26 @@ module HmisUtil
         ::HmisUtil::ServiceTypes.seed_hud_service_types(@data_source.id)
       end
 
-      # { record_type => CustomServiceType } in the data source for HUD Service Types
-      service_types = Hmis::Hud::CustomServiceType.hud.
-        where(data_source: @data_source).
+      # { record_type => CustomServiceCategory } in the data source for HUD Services
+      record_type_to_service_category = Hmis::Hud::CustomServiceType.hud.where(data_source: @data_source).
         preload(:custom_service_category).
-        index_by(&:hud_record_type)
+        group_by(&:hud_record_type).
+        map do |record_type, service_types|
+          service_category = service_types.map(&:custom_service_category).uniq
+          raise "Misconfiguration: multiple CustomServiceCategories found for record type #{record_type} in DS##{@data_source.id}" if service_category.size > 1
 
-      # For each record type, create Form Instance(s) per applicability requirement
+          [record_type, service_category.sole]
+        end.to_h
+
+      # For each record type, create Form Instance(s) per applicability requirement.
+      # Each HUD "RecordType" is expected to have a corresponding CustomServiceCategory, which is used
+      # to group HUD TypeProvided options (represented in the db as CustomServiceTypes).
+      # The form rule is applied at the category level, since HUD Service applicability is defined per Record Type.
       HudHelper.util.service_form_funder_applicability_requirements.each do |config|
         record_type = config[:record_type]
 
-        service_type = service_types[record_type]
-        service_category = service_type&.custom_service_category
-        raise "HUD Service Type not found for record type #{record_type} in DS##{@data_source.id}. Did you run HmisUtil::ServiceTypes.seed_hud_service_types" unless service_type && service_category
+        service_category = record_type_to_service_category[record_type]
+        raise "Service category not found for RecordType #{record_type} in DS##{@data_source.id}. Did you run HmisUtil::ServiceTypes.seed_hud_service_types" unless service_category
 
         config[:applicability_requirements].each do |requirement|
           create_system_instance!(
@@ -169,7 +181,7 @@ module HmisUtil
       return unless instance.changed?
 
       instance.save! unless @dry_run
-      payload = OpenStruct.new(type: :default, definition_identifier: identifier)
+      payload = ComplianceChangePayload.new(type: :default, definition_identifier: identifier, project_type: nil, funder: nil, service_category: nil)
       was_new ? @created << payload : @updated << payload
     end
 
@@ -203,7 +215,13 @@ module HmisUtil
       return unless instance.changed?
 
       instance.save! unless @dry_run
-      payload = OpenStruct.new(type: :rule, definition_identifier: identifier, project_type: project_type, funder: funder, service_category: service_category&.name)
+      payload = ComplianceChangePayload.new(
+        type: :rule,
+        definition_identifier: identifier,
+        project_type: project_type,
+        funder: funder,
+        service_category: service_category&.name,
+      )
       was_new ? @created << payload : @updated << payload
     end
 
@@ -216,7 +234,7 @@ module HmisUtil
     end
 
     # One summary format for dry run (would create/update) and real run (created/updated). Entries
-    # are OpenStructs with type (:default or :rule), definition_identifier, and for rules project_type, funder.
+    # are ComplianceChangePayload with type (:default or :rule), definition_identifier, project_type, funder, service_category.
     def build_summary_lines
       return [] if @created.empty? && @updated.empty?
 

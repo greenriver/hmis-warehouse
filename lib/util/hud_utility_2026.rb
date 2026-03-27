@@ -1035,6 +1035,7 @@ module HudUtility2026
       rural_nofo: funding_source('HUD: Rural Special NOFO', true, raise_on_missing: true),
       ssvf: funding_source('VA: Supportive Services for Veteran Families', true, raise_on_missing: true),
     }
+    # All HHS RHY funders except Street Outreach (per Data Dictionary) plus YHDP (see R14 block below)
     rhy_funders_excluding_street_outreach = funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [service_funder_codes.fetch(:rhy_street_outreach)]
     hopwa_funders = funder_components.fetch('HUD: HOPWA')
 
