@@ -11,5 +11,6 @@ class Hmis::UserGroupMember < ApplicationRecord
   has_paper_trail
 
   belongs_to :user_group, class_name: '::Hmis::UserGroup'
+  belongs_to :user_group_with_deleted, -> { with_deleted }, class_name: '::Hmis::UserGroup', foreign_key: :user_group_id, inverse_of: false
   belongs_to :user, class_name: 'Hmis::User'
 end

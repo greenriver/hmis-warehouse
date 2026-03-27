@@ -284,10 +284,9 @@ module Types
       # (Most other user picklists in the app use a more restricted list of users, such as eligible_staff_assignment_users, eligible_referral_step_assignment_users, etc.)
       return [] unless current_user.permissions?(:can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients, mode: :any)
 
-      user_ids = Hmis::User.with_deleted.with_hmis_access_in_data_source(current_user.hmis_data_source_id).pluck(:id)
+      user_ids = Hmis::User.with_deleted.with_hmis_historic_access(current_user.hmis_data_source_id).pluck(:id)
 
       # The user picklist should include the System User, so tables (like audit events) can be filtered to show actions done by the system.
-      # with_hmis_access_in_data_source filters out the System User, so re-include it explicitly here
       user_ids.append(Hmis::User.system_user.id)
 
       Hmis::User.where(id: user_ids).map do |user|

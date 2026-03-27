@@ -12,6 +12,7 @@ class Hmis::UserGroup < ApplicationRecord
   include UserPermissionCache
 
   has_many :access_controls, inverse_of: :user_group
+  has_many :access_controls_with_deleted, -> { with_deleted }, class_name: '::Hmis::AccessControl', inverse_of: false
   has_many :user_group_members, class_name: '::Hmis::UserGroupMember', inverse_of: :user_group
   has_many :users, through: :user_group_members
 

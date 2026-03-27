@@ -79,6 +79,122 @@ RSpec.describe Hmis::User, type: :model do
     end
   end
 
+  describe '.with_hmis_historic_access' do
+    let!(:ds2) { create(:hmis_data_source) }
+
+    let!(:this_ds_user) { create(:hmis_user, data_source: ds1) }
+    let!(:other_ds_user) { create(:hmis_user, data_source: ds2) }
+    let!(:warehouse_only_user) { create(:user, first_name: 'Warehouse Only') }
+
+    before do
+      create_access_control(this_ds_user, ds1)
+      create_access_control(other_ds_user, ds2)
+    end
+
+    # The letters in each test description correspond to lettered cases in the block-comment description on the with_hmis_historic_access scope.
+    it 'includes current HMIS users for the data source and excludes unrelated users (A)' do
+      users = Hmis::User.with_hmis_historic_access(ds1.id)
+
+      expect(users).to include(this_ds_user)
+      expect(users).not_to include(other_ds_user)
+      expect(users).not_to include(warehouse_only_user)
+    end
+
+    it 'includes user who was removed from a user group (B)' do
+      removed_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(removed_user, ds1)
+      access_control.user_group.remove(removed_user)
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(removed_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(removed_user)
+    end
+
+    it 'includes user who had access through a user group that got deleted (C)' do
+      former_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(former_user, ds1)
+      access_control.user_group.destroy!
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(former_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(former_user)
+    end
+
+    it 'includes user who had access through an access control that got deleted (D)' do
+      former_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(former_user, ds1)
+      access_control.destroy!
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(former_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(former_user)
+    end
+
+    it 'includes user whose access control and user group were both deleted (C and D)' do
+      former_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(former_user, ds1)
+      access_control.user_group.destroy!
+      access_control.destroy!
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(former_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(former_user)
+    end
+
+    it 'includes user who previously had access but the data source was removed from the collection (E)' do
+      former_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(former_user, ds1)
+      gve = Hmis::GroupViewableEntity.find_by!(collection_id: access_control.access_group_id, entity: ds1)
+      gve.destroy!
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(former_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(former_user)
+    end
+
+    it 'includes user who was deleted (F)' do
+      former_user = create(:hmis_user, data_source: ds1)
+      create_access_control(former_user, ds1)
+      former_user.destroy!
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(former_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(former_user)
+    end
+
+    it 'includes user whose access control was updated and no longer points at this collection (G)' do
+      former_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(former_user, ds1)
+      other_collection = create(:hmis_access_group, with_entities: ds2)
+      access_control.update!(access_group: other_collection)
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(former_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(former_user)
+    end
+
+    it 'includes user whose access control was updated and no longer points at this user group (H)' do
+      ug1 = create(:hmis_user_group)
+      ug2 = create(:hmis_user_group)
+      reassigned_user = create(:hmis_user, data_source: ds1)
+      access_control = create_access_control(reassigned_user, ds1, user_group: ug1)
+      access_control.update!(user_group: ug2)
+
+      expect(Hmis::User.with_hmis_access_in_data_source(ds1.id)).not_to include(reassigned_user)
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).to include(reassigned_user)
+    end
+
+    it 'does not include users removed from a user group that was never tied to this data source' do
+      user = create(:hmis_user, data_source: ds1)
+      unrelated_group = create(:hmis_user_group)
+      unrelated_group.add(user)
+      unrelated_group.remove(user)
+
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).not_to include(user)
+    end
+
+    it 'does not include users whose only historic access control was unrelated to this data source' do
+      only_other_ds_user = create(:hmis_user, data_source: ds2)
+      other_ac = create_access_control(only_other_ds_user, ds2)
+      other_ac.destroy!
+
+      expect(Hmis::User.with_hmis_historic_access(ds1.id)).not_to include(only_other_ds_user)
+    end
+  end
+
   describe 'permission methods' do
     let!(:user_with_role) { create(:hmis_user, data_source: ds1) }
     let!(:user_without_role) { create(:hmis_user, data_source: ds1) }
