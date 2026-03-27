@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model do
   let(:today) { Date.current }
-  let!(:ds) { create(:hmis_data_source) }
+  let!(:ds) { create(:hmis_primary_data_source) }
   let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds, DateCreated: today) }
   let(:subject) { HmisExternalApis::AcHmis::Exporters::ClientExport.new }
   let(:output) do
@@ -31,8 +31,8 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
   end
 
   it 'includes most recently updated address' do
-    not_found = create(:hmis_hud_custom_client_address, client: client)
-    found = create(:hmis_hud_custom_client_address, client: client)
+    not_found = create(:hmis_hud_custom_client_address, client: client, data_source: ds)
+    found = create(:hmis_hud_custom_client_address, client: client, data_source: ds)
     subject.run!
     expect(output).to include(found.line1)
     expect(output).to_not include(not_found.line1)

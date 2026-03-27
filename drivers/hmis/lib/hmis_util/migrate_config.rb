@@ -25,11 +25,13 @@ module HmisUtil
       "var/hmis_config_#{Date.current.strftime('%Y-%m-%d')}.json"
     end
 
-    def write_config(filename = default_filename)
+    # @param filename [String] The name of the file to write the configuration to.
+    # @param data_source_id [Integer] The ID of the HMIS data source to export. If not provided, expects a sole HMIS data source.
+    def write_config(filename = default_filename, data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
       config_object = {}
 
       # ======== Export Service Types and Service Categories ========
-      config_object[:services] = Hmis::Hud::CustomServiceCategory.all.map do |csc|
+      config_object[:services] = Hmis::Hud::CustomServiceCategory.where(data_source_id: data_source_id).map do |csc|
         next unless csc.service_types.where(hud_record_type: nil).exists? # skip unless custom
 
         {
@@ -70,24 +72,28 @@ module HmisUtil
       end
     end
 
-    def load_config(filename = default_filename)
+    # @param filename [String] The name of the file to read the configuration from.
+    # @param data_source_id [Integer] The ID of the HMIS data source to import. If not provided, expects a sole HMIS data source.
+    def load_config(filename = default_filename, data_source_id: GrdaWarehouse::DataSource.hmis.sole.id)
       config = JSON.parse(File.read(filename))
 
       Hmis::Hud::Base.transaction do
         # ======== Import Service Types and Service Categories ========
         csc_name_to_id = {}
         cst_name_to_id = {}
-        data_source_id = GrdaWarehouse::DataSource.hmis.first.id
         default_attrs = {
-          data_source_id: data_source_id,
           UserID: Hmis::Hud::User.system_user(data_source_id: data_source_id).UserID,
         }
         config['services'].each do |csc|
-          category = Hmis::Hud::CustomServiceCategory.where(name: csc['name']).first_or_create!(default_attrs)
+          category = Hmis::Hud::CustomServiceCategory.
+            where(name: csc['name'], data_source_id: data_source_id).
+            first_or_create!(default_attrs)
           csc_name_to_id[category.name] = category.id
 
           csc['types'].each do |cst|
-            service_type = Hmis::Hud::CustomServiceType.where(name: cst['name'], custom_service_category_id: category.id).first_or_create!(default_attrs)
+            service_type = Hmis::Hud::CustomServiceType.
+              where(name: cst['name'], custom_service_category_id: category.id, data_source_id: data_source_id).
+              first_or_create!(default_attrs)
             service_type.supports_bulk_assignment = cst['supports_bulk_assignment']
             service_type.save!
             cst_name_to_id[service_type.name] = service_type.id

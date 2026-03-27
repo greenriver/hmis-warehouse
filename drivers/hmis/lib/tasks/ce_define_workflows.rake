@@ -13,7 +13,9 @@ task ce_define_workflows: [:environment] do
   ce_enabled.value = true
   ce_enabled.save! if ce_enabled.changed?
 
-  data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
+  # Expect one DS in client-specific env. Raise if we find more than one.
+  # This task should be adapted to accept a data source ID if we want to run it in a multi-OP-HMIS environment such as QA.
+  data_source = GrdaWarehouse::DataSource.hmis.sole
 
   CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
 

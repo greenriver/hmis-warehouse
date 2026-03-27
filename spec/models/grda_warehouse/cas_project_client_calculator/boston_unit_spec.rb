@@ -6,6 +6,86 @@ RSpec.describe GrdaWarehouse::CasProjectClientCalculator::Boston, type: :model d
   let(:calculator) { described_class.new }
   let(:client) { create :grda_warehouse_hud_client }
 
+  describe '#rrh_desired' do
+    let(:mock_assessment) { double('GrdaWarehouse::Hud::Assessment') }
+
+    before do
+      allow(calculator).to receive(:most_recent_pathways_or_transfer).with(client).and_return(mock_assessment)
+    end
+
+    it 'returns true when the client answered yes to RRH interest' do
+      allow(mock_assessment).to receive(:question_matching_requirement).with('c_interested_rrh').and_return(
+        double('AssessmentQuestion', AssessmentAnswer: '1'),
+      )
+      expect(calculator.send(:rrh_desired, client)).to be(true)
+    end
+
+    it 'returns false when the client explicitly declined RRH interest' do
+      allow(mock_assessment).to receive(:question_matching_requirement).with('c_interested_rrh').and_return(
+        double('AssessmentQuestion', AssessmentAnswer: '0'),
+      )
+      expect(calculator.send(:rrh_desired, client)).to be(false)
+    end
+
+    it 'returns true when the RRH interest question was not on the assessment' do
+      allow(mock_assessment).to receive(:question_matching_requirement).with('c_interested_rrh').and_return(nil)
+      expect(calculator.send(:rrh_desired, client)).to be(true)
+    end
+
+    it 'returns true when the question exists but has no answer' do
+      allow(mock_assessment).to receive(:question_matching_requirement).with('c_interested_rrh').and_return(
+        double('AssessmentQuestion', AssessmentAnswer: nil),
+      )
+      expect(calculator.send(:rrh_desired, client)).to be(true)
+    end
+
+    it 'returns the computed value from value_for_cas_project_client when a pathways assessment is present' do
+      allow(mock_assessment).to receive(:question_matching_requirement).with('c_interested_rrh').and_return(
+        double('AssessmentQuestion', AssessmentAnswer: '1'),
+      )
+      expect(calculator.value_for_cas_project_client(client: client, column: :rrh_desired)).to be(true)
+    end
+  end
+
+  describe 'boolean_lookups and #for_boolean' do
+    let(:mock_assessment) { double('GrdaWarehouse::Hud::Assessment') }
+
+    before do
+      allow(calculator).to receive(:most_recent_pathways_or_transfer).with(client).and_return(mock_assessment)
+    end
+
+    it 'boolean_lookups includes at least one item' do
+      expect(calculator.send(:boolean_lookups).keys.count).to be > 0
+    end
+
+    it 'maps question_matching_requirement(key, "1") to CAS booleans for each boolean_lookups column' do
+      # Stub return is what Hud::Assessment#question_matching_requirement returns after comparing the stored answer to "1".
+      answer_outcomes = {
+        '1' => [true, true],
+        '0' => [false, false],
+        nil => [nil, false],
+        'foo' => [false, false],
+      }
+
+      aggregate_failures do
+        calculator.send(:boolean_lookups).each do |column, question_key|
+          answer_outcomes.each do |label, (stub_return, expected)|
+            allow(mock_assessment).to receive(:question_matching_requirement).with(question_key, '1').and_return(stub_return)
+            actual = calculator.value_for_cas_project_client(client: client, column: column)
+            expect(actual).to eq(expected), "column #{column} (#{question_key}): expected #{expected} for answer #{label.inspect} (stub #{stub_return.inspect})"
+          end
+        end
+      end
+    end
+
+    it 'returns false from #for_boolean for every boolean question when there is no pathways or transfer assessment' do
+      allow(calculator).to receive(:most_recent_pathways_or_transfer).with(client).and_return(nil)
+      calculator.send(:boolean_lookups).each_value do |question_key|
+        expect(calculator.send(:for_boolean, client, question_key)).to be(false)
+      end
+    end
+  end
+
   describe 'string mutation operations' do
     describe '#pathways_days_homeless method += operations' do
       before do
