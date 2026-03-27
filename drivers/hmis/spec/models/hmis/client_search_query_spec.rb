@@ -34,12 +34,14 @@ RSpec.describe Hmis::ClientSearchQuery, type: :model do
     end
 
     it 'reuses the existing row for the same params, user, and data source' do
-      existing = create(:hmis_client_search_query, created_by: hmis_user, params: search_params)
+      existing = create(:hmis_client_search_query, created_by: hmis_user, params: search_params, created_at: 1.week.ago)
 
       expect do
         result = described_class.find_or_create_by_params(search_params, user: hmis_user)
+        existing.reload
         expect(result.id).to eq(existing.id)
-      end.not_to change(described_class, :count)
+      end.to change(existing, :updated_at). # update the updated_at timestamp
+        and not_change(described_class, :count)
     end
 
     it 'refreshes stored params when they were out of sync with fingerprint (unexpected)' do

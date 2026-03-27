@@ -37,7 +37,8 @@ module Hmis
         { fingerprint: fingerprint, params: norm, created_by_id: user.id, data_source_id: user.hmis_data_source_id },
         unique_by: [:data_source_id, :created_by_id, :fingerprint],
         # If a row with this [data_source_id, created_by_id, fingerprint] already exists,
-        # refresh `params` to match the incoming request. (A mismatch would be unexpected because fingerprint is derived from params.)
+        # - refresh `params` to match the incoming request. (A mismatch would be unexpected because fingerprint is derived from params.)
+        # - refresh `updated_at`, so old records will not be pruned if they are still in use.
         on_duplicate: Arel.sql('params = EXCLUDED.params, updated_at = NOW()'),
       )
 
