@@ -52,7 +52,9 @@ class Hmis::User < ApplicationRecord
 
     access_group_ids = Hmis::GroupViewableEntity.
       includes_any_entity_in_data_source(data_source).
-      select(:collection_id)
+      distinct.
+      pluck(:collection_id)
+    next none if access_group_ids.empty?
 
     user_ids = Hmis::AccessControl.
       where(access_group_id: access_group_ids).
