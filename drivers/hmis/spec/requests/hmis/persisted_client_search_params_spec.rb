@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'returns nil' do
       response, result = post_graphql(id: search_query.id) { query }
       expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'persistedSearchParams')).to be_nil
+      expect(result.dig('data', 'persistedClientSearchParams')).to be_nil
     end
   end
 end
