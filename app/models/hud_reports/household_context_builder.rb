@@ -38,13 +38,13 @@ module HudReports
         raise ArgumentError, "Cannot share contexts: date ranges don't match"
       end
 
-      # Discover which SHE IDs this report needs
-      needed_she_ids = enrollment_scope.pluck(:id)
+      enrollment_id_col = GrdaWarehouse::Hud::Enrollment.arel_table[:id]
+      needed_source_enrollment_ids = enrollment_scope.joins(:enrollment).pluck(enrollment_id_col)
 
       HudReports::HouseholdContext.copy_subset!(
         source_report_id: @source_report_id,
         target_report_id: @report.id,
-        service_history_enrollment_ids: needed_she_ids,
+        source_enrollment_ids: needed_source_enrollment_ids,
       )
     end
 

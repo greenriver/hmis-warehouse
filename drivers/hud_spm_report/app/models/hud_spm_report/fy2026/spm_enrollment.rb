@@ -141,27 +141,20 @@ module HudSpmReport::Fy2026
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
 
-      # Iterate over ServiceHistoryEnrollment records directly to avoid re-mapping
-      # for the HouseholdContext.
-      she_scope(report_instance).
-        preload(enrollment: [:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders]).
-        find_in_batches(batch_size: 500) do |batch|
+      # Iterate over HouseholdContext records
+      HudReports::HouseholdContext.where(report_instance_id: report_instance.id).find_in_batches(batch_size: 500) do |batch|
         report_instance.check_halt_status!
 
-        contexts_by_she_id = HudReports::HouseholdContext.
-          where(report_instance_id: report_instance.id, service_history_enrollment_id: batch.map(&:id)).
-          index_by(&:service_history_enrollment_id)
+        enrollments_by_id = GrdaWarehouse::Hud::Enrollment.
+          where(id: batch.map(&:source_enrollment_id)).
+          preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).
+          index_by(&:id)
 
         members = []
 
-        batch.each do |she|
-          enrollment = she.enrollment
+        batch.each do |context|
+          enrollment = enrollments_by_id[context.source_enrollment_id]
           next if enrollment&.client.blank?
-
-          context = contexts_by_she_id[she.id]
-
-          # Skip enrollments that appeared after HouseholdContext was built (e.g. during a long report run)
-          next unless context
 
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
