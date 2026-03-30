@@ -59,6 +59,8 @@ module Types
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
+      when 'CE_ACCESS_POINT_PROJECT_NAMES'
+        ce_access_point_project_names_picklist(user)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -666,6 +668,25 @@ module Types
       return [] unless project&.staff_assignments_enabled?
 
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
+    end
+
+    def self.ce_access_point_project_names_picklist(user)
+      project_ids = Hmis::Hud::Project.viewable_by(user).
+        open_on_date. # Projects that are currently active
+        joins(:ce_participations).
+        # project has an active CE Participation record where Access Point = Yes
+        merge(Hmis::Hud::CeParticipation.active_on_date.access_point).
+        distinct.
+        pluck(Hmis::Hud::Project.arel_table[:id]) # Pluck project IDs to avoid complexity from the join
+
+      Hmis::Hud::Project.where(id: project_ids).
+        preload(:organization).
+        sort_by_option(:organization_and_name).
+        map do |project|
+          # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
+          # Use case: collecting CE Assessment Location
+          project.to_pick_list_option.merge(code: "#{project.project_name} (#{project.id})")
+        end
     end
 
     def self.projects_receiving_referrals(data_source_id)

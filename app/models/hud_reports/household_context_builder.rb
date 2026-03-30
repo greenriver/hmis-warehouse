@@ -38,13 +38,13 @@ module HudReports
         raise ArgumentError, "Cannot share contexts: date ranges don't match"
       end
 
-      # Discover which SHE IDs this report needs
-      needed_she_ids = enrollment_scope.pluck(:id)
+      enrollment_id_col = GrdaWarehouse::Hud::Enrollment.arel_table[:id]
+      needed_source_enrollment_ids = enrollment_scope.joins(:enrollment).pluck(enrollment_id_col)
 
       HudReports::HouseholdContext.copy_subset!(
         source_report_id: @source_report_id,
         target_report_id: @report.id,
-        service_history_enrollment_ids: needed_she_ids,
+        source_enrollment_ids: needed_source_enrollment_ids,
       )
     end
 
@@ -159,6 +159,27 @@ module HudReports
 
         service_history_enrollments.concat(query.to_a.select { |m| m.enrollment.present? })
       end
+
+      # For NBN projects, pre-compute which SHEs are "active" per Method 2:
+      # must have a bed-night service OR an exit within the report date range.
+      nbn_she_ids = service_history_enrollments.select(&:nbn?).map(&:id)
+      @active_nbn_she_ids_in_batch = if nbn_she_ids.any?
+        with_service = GrdaWarehouse::ServiceHistoryService.bed_night.
+          service_excluding_extrapolated.
+          service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+          where(service_history_enrollment_id: nbn_she_ids).
+          pluck(:service_history_enrollment_id)
+
+        with_exit = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          where(id: nbn_she_ids).
+          exit_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+          pluck(:id)
+
+        (with_service + with_exit).to_set
+      else
+        Set.new
+      end
+
       service_history_enrollments
     end
 
@@ -167,9 +188,7 @@ module HudReports
 
       # For household composition and veteran stats, only consider SHEs active during the report period.
       # Historical SHEs (from lookback) are used for inheritance but should not affect the current report's household type.
-      active_hh_she_hashes = hh_member_hashes.select do |mh|
-        (mh[:exit_date].nil? || mh[:exit_date] >= @report.start_date) && mh[:entry_date] <= @report.end_date
-      end
+      active_hh_she_hashes = hh_member_hashes.select { |mh| mh[:is_active] }
 
       hoh_data = find_anchor_hoh(hh_member_hashes)
       hoh_adjusted_move_in_date = (household_logic.calculate_move_in_date(hoh_data, hoh_data, report_end_date: @report.end_date) if hoh_data)
@@ -224,6 +243,7 @@ module HudReports
           veteran_status: source_client&.VeteranStatus,
           enrollment_coc: enrollment&.EnrollmentCoC,
           date_to_street: enrollment&.DateToStreetESSH,
+          is_active: nbn_active?(m),
         }
       end
     end
@@ -237,9 +257,8 @@ module HudReports
       hh_member_hashes.
         select { |m| m[:relationship_to_hoh] == 1 }.
         min_by do |m|
-          active = (m[:exit_date].nil? || m[:exit_date] >= @report.start_date) && m[:entry_date] <= @report.end_date
           [
-            active ? 0 : 1, # active records first
+            m[:is_active] ? 0 : 1, # active records first
             -(m[:entry_date] || Date.new(0)).jd, # latest entry date first (negated)
             m[:move_in_date] ? 0 : 1,                 # records with move-in first
             m[:she_id] || 0,                          # lowest ID as tie-break
@@ -321,6 +340,17 @@ module HudReports
         inherited_date_to_street: inherited_date_to_street,
         hh_max_age: hh_stats[:hh_max_age],
       )
+    end
+
+    # Returns true if the enrollment should be counted as active for household composition.
+    # Non-NBN projects use Method 1 (date overlap only). NBN projects use Method 2:
+    # the member must also have a bed-night service or an exit within the report range.
+    def nbn_active?(she)
+      date_active = (she.last_date_in_program.nil? || she.last_date_in_program >= @report.start_date) &&
+                    she.first_date_in_program <= @report.end_date
+      return date_active unless she.nbn?
+
+      date_active && (@active_nbn_she_ids_in_batch || Set.new).include?(she.id)
     end
 
     def household_logic
