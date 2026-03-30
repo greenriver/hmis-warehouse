@@ -1,6 +1,9 @@
 desc 'Seed form definitions'
 task seed_definitions: [:environment, 'log:info_to_stdout'] do
-  ::HmisUtil::JsonForms.seed_all
+  GrdaWarehouse::DataSource.hmis.pluck(:id, :name).each do |data_source_id, name|
+    Rails.logger.info "Seeding form definitions for DS##{data_source_id} #{name}"
+    ::HmisUtil::JsonForms.seed_all(data_source_id: data_source_id)
+  end
 end
 
 desc 'Seed service types'
@@ -10,12 +13,6 @@ task seed_service_types: [:environment, 'log:info_to_stdout'] do
     # 1 CustomServiceType per HUD TypeProvided
     ::HmisUtil::ServiceTypes.seed_hud_service_types(data_source_id)
   end
-
-  # TODO(#6691): seed service form instances for each data source (move into the loop above)
-  # Create FormInstances specifying which Services are available per Project Type / Funder
-  # NOTE: This should be run once on setup, but we don't want to re-run on each deploy
-  # because each installation may need a different setup.
-  ::HmisUtil::ServiceTypes.seed_hud_service_form_instances
 end
 
 desc 'Kick off job to create CustomAssessments by grouping related records'

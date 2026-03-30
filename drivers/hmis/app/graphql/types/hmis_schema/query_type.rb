@@ -359,7 +359,8 @@ module Types
     def application_users(**args)
       raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      resolve_application_users(Hmis::User.active.with_hmis_access, **args)
+      user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      resolve_application_users(user_scope, **args)
     end
 
     field :user, Types::Application::User, 'User lookup', null: true do
@@ -368,7 +369,8 @@ module Types
     def user(id:)
       raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
+      user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      load_ar_scope(scope: user_scope, id: id)
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
@@ -459,7 +461,10 @@ module Types
     def form_identifier(identifier:)
       access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+      scope = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier)
+      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope.first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do

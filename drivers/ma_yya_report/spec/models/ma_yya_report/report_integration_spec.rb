@@ -92,7 +92,7 @@ RSpec.describe MaYyaReport::Report, 'integration' do
         expect(report.section_label('A')).to eq('A. Core Services')
         expect(report.section_label('D')).to eq('D. Prevention Demographics')
         expect(report.section_label('E')).to eq('E. Homeless/rehousing Demographics')
-        expect(report.subsection_label('A1')[:text]).to eq('1. Street Outreach/Colaboration')
+        expect(report.subsection_label('A1')[:text]).to eq('1. Street Outreach/Collaboration')
         expect(report.subsection_label('F1')[:text]).to eq('1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)')
       end
 

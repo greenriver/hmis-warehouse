@@ -7740,7 +7740,7 @@ enum PickListType {
   """
   Current and historical user accounts
   """
-  AUDITABLE_USERS
+  AUDITABLE_USERS @deprecated(reason: "No longer used")
   AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
@@ -7755,6 +7755,11 @@ enum PickListType {
   Unit types that have unoccupied units in the specified project
   """
   AVAILABLE_UNIT_TYPES
+
+  """
+  Projects with an active CE Participation record with Access Point = Yes
+  """
+  CE_ACCESS_POINT_PROJECT_NAMES
 
   """
   Grouped HUD CE Event types
@@ -7880,7 +7885,7 @@ enum PickListType {
   UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL
 
   """
-  User accounts. Deprecated in favor of AUDITABLE_USERS
+  User accounts. Returns all users, for use when filtering audit events
   """
   USERS
 }
