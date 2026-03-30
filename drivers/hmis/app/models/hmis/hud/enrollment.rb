@@ -410,7 +410,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_and_auto_enter!
-    # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
+    # Save as non-WIP and generate an empty intake.
     # In general, use save_new_enrollment! above to guard against duplicating synthetic assessments for an enrollment
     # that is already persisted. This is a special case used by the external form submission mutations; since the
     # Location table is related to both Client and Enrollment, by the time Client is saved, the Enrollment has also
