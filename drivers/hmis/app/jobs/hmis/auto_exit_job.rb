@@ -9,7 +9,7 @@
 module Hmis
   class AutoExitJob < BaseJob
     # Automatically exits inactive HMIS enrollments based on project-specific Auto-Exit configuration.
-    # This job decides *who* to exit and *when* (exit_date); it delegates the actual exit creation to Hmis::CreateEnrollmentExit.
+    # This job decides *who* to exit and *when* (exit_date); it delegates the actual exit creation to Hmis::EnrollmentExitCreator.
     #
     # Scoping and who gets exited:
     # - Runs against all HMIS projects by default; can be scoped by data_source or project_ids.
@@ -25,7 +25,7 @@ module Hmis
     # - Other project types: latest of Service.date_provided, CustomService.date_provided,
     #   CurrentLivingSituation.information_date, CustomAssessment.assessment_date, or Enrollment (entry).
     #
-    # Exit Creation (delegated to Hmis::CreateEnrollmentExit)
+    # Exit Creation (delegated to Hmis::EnrollmentExitCreator)
     # - Creates Hmis::Hud::Exit with destination "No exit interview completed" and timestamps auto_exited.
     # - Creates an Exit Assessment on the exit_date.
     # - Releases any assigned unit and closes any external legacy referral.
@@ -90,7 +90,7 @@ module Hmis
           first_open_enrollment = household.enrollments.find { |e| e.exit.blank? }
           exit_date = compute_exit_date(most_recent_contact)
 
-          Hmis::CreateEnrollmentExit.call(
+          Hmis::EnrollmentExitCreator.call(
             enrollment_id: first_open_enrollment.id,
             exit_date: exit_date,
             exit_household_members: true,

@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::CreateEnrollmentExit, type: :model do
+RSpec.describe Hmis::EnrollmentExitCreator, type: :model do
   let!(:ds1) { create(:hmis_data_source) }
   let!(:u1) { create :hmis_hud_user, data_source: ds1, user_email: 'test@example.com' }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
@@ -158,7 +158,7 @@ RSpec.describe Hmis::CreateEnrollmentExit, type: :model do
 
       expect do
         perform_exit(enrollment: wh_enrollment)
-      end.to raise_error(RuntimeError, 'CreateEnrollmentExit invoked on non-HMIS enrollments')
+      end.to raise_error(RuntimeError, 'Hmis::EnrollmentExitCreator invoked on non-HMIS enrollments')
     end
   end
 
