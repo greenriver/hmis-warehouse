@@ -130,12 +130,12 @@ module AcHmis
 
     def parse_row(row, col, row_num)
       mci = cell(row, col['MCI_UNIQ_ID'])
-      contact_date_time = cell(row, col['CONTACT_DATE'])
+      contact_date_time = date_time_cell(row, col['CONTACT_DATE']) # Provided as an excel serial
       contact_type_cell = cell(row, col['CONTACT_TYPE'])
       notes_cell = cell(row, col['NOTES'])
 
       raise "Row #{row_num}: MCI_UNIQ_ID is required" if mci.blank?
-      raise "Row #{row_num}: CONTACT_DATE is not a DateTime" unless contact_date_time.is_a?(DateTime)
+      raise "Date in unexpected year: #{contact_date_time.year}" if contact_date_time.year < 2020 || contact_date_time.year > 2026
 
       mci_s = mci.to_s.strip
       client_id = @mci_to_client_id[mci_s]
@@ -161,6 +161,11 @@ module AcHmis
 
     def cell(row, idx)
       row[idx]&.value
+    end
+
+    def date_time_cell(row, idx)
+      serial = row[idx].cell_value.to_f
+      Time.zone.at((serial - 25_569) * 86_400)
     end
 
     def process_batch!(rows)
