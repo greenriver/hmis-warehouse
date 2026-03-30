@@ -5,24 +5,6 @@ namespace :import do
     HmisExternalApis::AcHmis::WarehouseChangesJob.perform_now(actor_id: User.system_user.id)
   end
 
-  # Usage: rails driver:hmis_external_apis:import:ac_import_link_narrative[path/to/LinkNarrative.xlsx,project_id,true]
-  desc 'Import Link Narrative extract as Case Notes into Link project'
-  task :ac_import_link_narrative, [:file, :project_id, :dry_run] => [:environment] do |_task, args|
-    raise 'file required' unless args.file.present?
-    raise "file not found: #{args.file}" unless File.exist?(args.file)
-    raise 'project_id required' unless args.project_id.present?
-
-    dry_run = args.dry_run != 'false'
-
-    importer = HmisExternalApis::AcHmis::ImportLinkNarrative20260318.new(
-      args.file,
-      args.project_id.to_i,
-      dry_run: dry_run,
-    )
-    importer.perform
-    puts 'Dry run — no changes written.' if dry_run
-  end
-
   # Usage: rails driver:hmis_external_apis:import:ac_import_move_in_addresses_20231128[var/SampleMoveInAddr.csv,true]
   desc 'One-off import Move-in Addresses'
   task :ac_import_move_in_addresses_20231128, [:file, :dry_run] => [:environment] do |_task, args|
