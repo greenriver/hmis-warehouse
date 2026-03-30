@@ -31,11 +31,6 @@ module HudApr::Generators::CeApr::Fy2026
       hud_reports_ce_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
-    def prepare_report
-      super
-      HudReports::HouseholdContextBuilder.call(self, report, enrollment_scope: base_enrollment_scope)
-    end
-
     def self.default_project_type_codes
       HudHelper.util('2026').performance_reporting.keys
     end

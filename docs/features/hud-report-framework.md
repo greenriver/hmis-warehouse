@@ -92,9 +92,9 @@ To optimize the creation of report snapshots (like `AprClient`), the framework u
 
 Pure business logic lives in `HudReports::HouseholdLogic` (a stateless class), and `HudReports::HouseholdContextBuilder` uses it to populate `HouseholdContext` records during `prepare_report`. FY2026 reports consume these pre-computed values when building their snapshot models, replacing expensive in-memory Ruby loops.
 
-Currently only the APR family (APR, CAPER, CE APR, DQ) and SPM use this mechanism. Other reports (PIT, PATH, LSA, etc.) still compute household attributes inline.
+Currently only the SPM uses this mechanism. Other reports (APR, CAPER, DQ, PIT, PATH, LSA, etc.) still compute household attributes inline.
 
-`HouseholdContextBuilder` requires an `enrollment_scope:` parameter. This allows different report types to use different enrollment discovery strategies (e.g., SPM uses a 7-year lookback) while sharing the same context-building logic. Context records are scoped per report run but can be shared with sub-reports (e.g., SPM passes its contexts to DQ sub-reports via `source_report_id_for_contexts`) to avoid redundant computation.
+`HouseholdContextBuilder` requires an `enrollment_scope:` parameter. This allows different report types to use different enrollment discovery strategies (e.g., SPM uses a 7-year lookback) while sharing the same context-building logic. Context records are scoped per report run.
 
 ### Snapshot Models (Presentation Layer)
 Many reports create secondary snapshots that denormalize all attributes needed for a specific report into a single table, optimized for question calculations, UI drill-down, and CSV exports.
