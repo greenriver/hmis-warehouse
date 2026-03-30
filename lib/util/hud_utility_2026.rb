@@ -987,26 +987,179 @@ module HudUtility2026
 
     [
       # HUD: CoC – Collection required for SSO - Street Outreach, SSO - Coordinated Entry
-      { funder: cls_funder_codes[:coc_sso] },
+      { funder: cls_funder_codes.fetch(:coc_sso) },
       # HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for any project type serving clients who meet Category 2 or 3 of the homeless definition
-      { funder: cls_funder_codes[:coc_yhdp] },
+      { funder: cls_funder_codes.fetch(:coc_yhdp) },
       # HUD: ESG – Collection only required for Street Outreach, and NbN shelter
-      { funder: cls_funder_codes[:esg_street_outreach] },
-      { funder: cls_funder_codes[:esg_emergency_shelter], project_type: pt[:es_nbn] },
+      { funder: cls_funder_codes.fetch(:esg_street_outreach) },
+      { funder: cls_funder_codes.fetch(:esg_emergency_shelter), project_type: pt.fetch(:es_nbn) },
       # HUD: ESG RUSH – Collection required for Street Outreach, Coordinated Entry, and ES - NbN
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:street_outreach] },
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:coordinated_entry] },
-      { funder: cls_funder_codes[:esg_rush], project_type: pt[:es_nbn] },
+      { funder: cls_funder_codes.fetch(:esg_rush), project_type: pt.fetch(:street_outreach) },
+      { funder: cls_funder_codes.fetch(:esg_rush), project_type: pt.fetch(:coordinated_entry) },
+      { funder: cls_funder_codes.fetch(:esg_rush), project_type: pt.fetch(:es_nbn) },
       # HUD: Unsheltered Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-      { funder: cls_funder_codes[:unsheltered_nofo], project_type: pt[:street_outreach] },
-      { funder: cls_funder_codes[:unsheltered_nofo], project_type: pt[:coordinated_entry] },
+      { funder: cls_funder_codes.fetch(:unsheltered_nofo), project_type: pt.fetch(:street_outreach) },
+      { funder: cls_funder_codes.fetch(:unsheltered_nofo), project_type: pt.fetch(:coordinated_entry) },
       # HUD: Rural Special NOFO – Collection required for SSO – Street Outreach, SSO – Coordinated Entry
-      { funder: cls_funder_codes[:rural_nofo], project_type: pt[:street_outreach] },
-      { funder: cls_funder_codes[:rural_nofo], project_type: pt[:coordinated_entry] },
+      { funder: cls_funder_codes.fetch(:rural_nofo), project_type: pt.fetch(:street_outreach) },
+      { funder: cls_funder_codes.fetch(:rural_nofo), project_type: pt.fetch(:coordinated_entry) },
       # HHS: PATH – Collection required for all components
-      { funder: cls_funder_codes[:path] },
+      { funder: cls_funder_codes.fetch(:path) },
       # HHS: RHY – Collection only required for Street Outreach
-      { funder: cls_funder_codes[:rhy_street_outreach] },
+      { funder: cls_funder_codes.fetch(:rhy_street_outreach) },
+    ]
+  end
+
+  # Returns the configuration that drives which HUD Service form system rules are created.
+  # Used by HudComplianceFormInstanceMaintainer to ensure HUD compliance for HMIS application.
+  # Based on the FY2026 HUD HMIS Data Dictionary. For each service type, refer to the
+  # "Funder: Program-Component" section in the Data Dictionary to verify which funders and
+  # project types require collection.
+  #
+  # Each element has :record_type (HUD record type code) and :applicability_requirements, an array of
+  # hashes with :project_type and/or :funder (same shape as current_living_situation_funder_applicability_requirements).
+  def service_form_funder_applicability_requirements
+    # helper vars for relevant project types
+    es_nbn_project_type = 1 # Emergency Shelter - Night-by-Night
+    psh_project_type = 3    # PH - Permanent Supportive Housing
+
+    # helper map for relevant funder codes (named entries used in applicability_requirements below)
+    service_funder_codes = {
+      path: funding_source('HHS: PATH - Street Outreach & Supportive Services Only', true, raise_on_missing: true),
+      hud_vash: funding_source('HUD: HUD/VASH', true, raise_on_missing: true),
+      coc_psh: funding_source('HUD: CoC - Permanent Supportive Housing', true, raise_on_missing: true),
+      yhdp: funding_source('HUD: CoC - Youth Homeless Demonstration Program (YHDP)', true, raise_on_missing: true),
+      rhy_street_outreach: funding_source('HHS: RHY - Street Outreach Project', true, raise_on_missing: true),
+      coc_builds: funding_source('HUD: CoC Builds', true, raise_on_missing: true),
+      unsheltered_nofo: funding_source('HUD: Unsheltered Special NOFO', true, raise_on_missing: true),
+      rural_nofo: funding_source('HUD: Rural Special NOFO', true, raise_on_missing: true),
+      ssvf: funding_source('VA: Supportive Services for Veteran Families', true, raise_on_missing: true),
+    }
+    # All HHS RHY funders except Street Outreach (per Data Dictionary) plus YHDP (see R14 block below)
+    rhy_funders_excluding_street_outreach = funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [service_funder_codes.fetch(:rhy_street_outreach)]
+    hopwa_funders = funder_components.fetch('HUD: HOPWA')
+
+    [
+      # 4.14 Bed-Night Date
+      {
+        record_type: record_type('Bed Night', true, raise_on_missing: true),
+        data_collected_about: :ALL_CLIENTS,
+        applicability_requirements: [
+          # Required for ES NbN ("Applicability extends to all NbN type emergency shelters that participate in HMIS, regardless of funding source")
+          { project_type: es_nbn_project_type },
+        ],
+      },
+      # P1 Services Provided - PATH Funded
+      {
+        record_type: record_type('PATH Service', true, raise_on_missing: true),
+        data_collected_about: :HOH_AND_ADULTS,
+        applicability_requirements: [
+          # Funder Program-Component: "HHS: PATH – Collection required for all components"
+          { funder: service_funder_codes.fetch(:path) },
+        ],
+      },
+
+      # P2 Referrals Provided - PATH
+      {
+        record_type: record_type('PATH Referral', true, raise_on_missing: true),
+        data_collected_about: :HOH_AND_ADULTS,
+        applicability_requirements: [
+          # Funder Program-Component: "HHS: PATH – Collection required for all components"
+          { funder: service_funder_codes.fetch(:path) },
+        ],
+      },
+
+      # R14 RHY Service Connections
+      {
+        record_type: record_type('RHY Service Connections', true, raise_on_missing: true),
+        data_collected_about: :HOH_AND_ADULTS,
+        # Funder Program-Component: "HHS: RHY – Collection required for components – as outlined above"
+        #
+        # Notes:
+        # - RHY Street Outreach Project funder (25) is excluded because dictionary indicates it does not collect these services
+        # - YHDP funder (43) is excluded because YHDP Program Manual indicates that R14 is optional
+        # - All RHY Service Connections sub-types are made available to the applicable funders, even though the
+        #   HUD spec indicates particular subsets based on RHY funder. For example, "Home-based Services" type is
+        #   only required for RHY BCP (Funder 22) projects.
+        applicability_requirements: rhy_funders_excluding_street_outreach.map { |funder| { funder: funder } },
+      },
+
+      # W1 Services Provided – HOPWA
+      {
+        record_type: record_type('HOPWA Service', true, raise_on_missing: true),
+        data_collected_about: :ALL_CLIENTS,
+        # Funder Program-Component: "HUD: HOPWA – Collection required for all components"
+        applicability_requirements: hopwa_funders.map { |funder| { funder: funder } },
+      },
+
+      # W2 Financial Assistance – HOPWA
+      {
+        record_type: record_type('HOPWA Financial Assistance', true, raise_on_missing: true),
+        data_collected_about: :HOH,
+        # Funder Program-Component: "HUD: HOPWA – Collection required for PHP and STRMU only as indicated above"
+        #
+        # Notes:
+        # - We enable this record type for all HOPWA-funded projects, despite HUD only requiring collection for PHP and STRMU.
+        #   If a future customer wants these service types hidden from other HOPWA-funded projects (e.g. 'Housing Information' funder 14),
+        #   then we could make this more narrow to accommodate them.
+        applicability_requirements: hopwa_funders.map { |funder| { funder: funder } },
+      },
+
+      # V2 Services Provided – SSVF
+      {
+        record_type: record_type('SSVF Service', true, raise_on_missing: true),
+        data_collected_about: :ALL_CLIENTS,
+        # Funder Program-Component: "VA: SSVF – Collection required for RRH and Homelessness Prevention"
+        #
+        # Notes:
+        # - We enable this record type for all SSVF-funded projects, despite HUD only requiring collection for RRH and Homelessness Prevention.
+        # - Other VA-funded programs may optionally collect this, we don't include them here because collection is not required.
+        applicability_requirements: [{ funder: service_funder_codes.fetch(:ssvf) }],
+      },
+
+      # V3 Financial Assistance – SSVF
+      {
+        record_type: record_type('SSVF Financial Assistance', true, raise_on_missing: true),
+        data_collected_about: :ALL_CLIENTS,
+        applicability_requirements: [
+          # Funder Program-Component: "VA: SSVF – Collection required for RRH and Homelessness Prevention"
+          #
+          # Notes:
+          # - We enable this record type for all SSVF-funded projects, despite HUD only requiring collection for RRH and Homelessness Prevention.
+          # - Other VA-funded programs may optionally collect this, we don't include them here because collection is not required.
+          { funder: service_funder_codes.fetch(:ssvf) },
+        ],
+      },
+      # V8 HUD-VASH Voucher Tracking
+      #
+      # Note: Dictionary requires collection for 'Head of Household/Veteran', we make the service type available
+      # for all adults in the household to err on the side of enabling more data collection.
+      {
+        record_type: record_type('HUD-VASH OTH Voucher Tracking', true, raise_on_missing: true),
+        data_collected_about: :HOH_AND_ADULTS,
+        applicability_requirements: [
+          # Funder Program-Component: "HUD: HUD-VASH – Collection required for HUD/VASH Collaborative Case Management"
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:hud_vash) },
+        ],
+      },
+
+      # C2 Moving On Assistance Provided
+      {
+        record_type: record_type('Moving On Assistance', true, raise_on_missing: true),
+        data_collected_about: :HOH,
+        applicability_requirements: [
+          #   HUD: CoC – Collection required for Permanent Supportive Housing
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:coc_psh) },
+          #   HUD: CoC – Youth Homeless Demonstration Program (YHDP) – Collection required for Permanent Supportive Housing
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:yhdp) },
+          #   HUD: CoC Builds – Collection required for Permanent Supportive Housing
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:coc_builds) },
+          #   HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:unsheltered_nofo) },
+          #   HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing
+          { project_type: psh_project_type, funder: service_funder_codes.fetch(:rural_nofo) },
+        ],
+      },
     ]
   end
 end
