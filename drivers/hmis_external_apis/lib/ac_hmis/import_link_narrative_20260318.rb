@@ -325,7 +325,7 @@ module AcHmis
       enrollment.save_and_auto_enter!
 
       # Generate an Exit Assessment and Exit record for the enrollment
-      Hmis::CreateEnrollmentExit.call(
+      Hmis::EnrollmentExitCreator.call(
         enrollment_id: enrollment.id,
         exit_date: contact_date,
         auto_exited: Time.current,
