@@ -22,8 +22,8 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
   let!(:contact_method_cded) { create(:hmis_custom_data_element_definition, owner_type: Hmis::Hud::CustomCaseNote.name, key: described_class::CONTACT_METHOD_CDED_KEY, data_source: data_source) }
   let!(:system_user) { Hmis::Hud::User.system_user(data_source_id: data_source.id) }
 
-  let(:contact_date_str) { '1/3/2022 8:06:00 AM' }
-  let(:contact_date) { Time.zone.parse(contact_date_str).to_date }
+  let(:contact_date_time) { DateTime.parse('1/3/2022 8:06:00 AM') }
+  let(:contact_date) { contact_date_time.to_date }
 
   def build_xlsx_file(rows)
     path = Tempfile.new(['link_narrative', '.xlsx']).path
@@ -48,7 +48,7 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
       rows = [
         {
           mci: mci_uniq_external_id.value,
-          contact_date: contact_date_str,
+          contact_date: contact_date_time,
           contact_type: 'Phone',
           notes: 'Hello',
         },
@@ -71,7 +71,7 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
       rows = [
         {
           mci: mci_uniq_external_id.value,
-          contact_date: contact_date_str,
+          contact_date: contact_date_time,
           contact_type: 'Phone',
           notes: 'Same note',
         },
@@ -113,7 +113,7 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
         rows = [
           {
             mci: mci_uniq_external_id.value,
-            contact_date: contact_date_str,
+            contact_date: contact_date_time,
             contact_type: 'In Person',
             notes: 'Used existing enrollment',
           },
@@ -137,7 +137,7 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
         rows = [
           {
             mci: mci_uniq_external_id.value,
-            contact_date: contact_date_str,
+            contact_date: contact_date_time,
             contact_type: 'Email',
             notes: 'New enrollment path',
           },
@@ -167,7 +167,7 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
       rows = [
         {
           mci: mci_uniq_external_id.value,
-          contact_date: contact_date_str,
+          contact_date: contact_date_time,
           contact_type: 'Phone',
           notes: 'Case note body',
         },

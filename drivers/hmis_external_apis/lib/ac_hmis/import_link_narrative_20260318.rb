@@ -36,11 +36,9 @@ module AcHmis
       @stats = {
         rows_processed: 0,
         skipped_client_not_found: 0,
-        skipped_invalid_date: 0,
         enrollments_created: 0,
         case_notes_created: 0,
         cdes_created: 0,
-        errors: [],
       }
     end
 
@@ -126,68 +124,43 @@ module AcHmis
         GC.start
       end
       process_batch!(batch.compact) if batch.any?
+    ensure
+      xlsx&.close
     end
 
     def parse_row(row, col, row_num)
       mci = cell(row, col['MCI_UNIQ_ID'])
-      return nil if mci.blank?
+      contact_date_time = cell(row, col['CONTACT_DATE'])
+      contact_type_cell = cell(row, col['CONTACT_TYPE'])
+      notes_cell = cell(row, col['NOTES'])
 
-      client_id = @mci_to_client_id[mci.to_s]
+      raise "Row #{row_num}: MCI_UNIQ_ID is required" if mci.blank?
+      raise "Row #{row_num}: CONTACT_DATE is not a DateTime" unless contact_date_time.is_a?(DateTime)
+
+      mci_s = mci.to_s.strip
+      client_id = @mci_to_client_id[mci_s]
+      # Expected: not all MCI Unique IDs are in the system. Count and skip the row.
       unless client_id
         @stats[:skipped_client_not_found] += 1
         return nil
       end
 
       personal_id = @client_info[client_id]
-      unless personal_id
-        @stats[:skipped_client_not_found] += 1
-        return nil
-      end
-
-      date_raw = cell(row, col['CONTACT_DATE'])
-      contact_timestamp = parse_contact_timestamp(date_raw)
-      unless contact_timestamp
-        @stats[:skipped_invalid_date] += 1
-        return nil
-      end
-      contact_date = contact_timestamp.to_date
+      raise "Row #{row_num}: no PersonalID for client id #{client_id}" unless personal_id
 
       {
         row_num: row_num,
         client_id: client_id,
         personal_id: personal_id,
-        contact_date: contact_date,
-        contact_timestamp: contact_timestamp,
-        contact_type: cell(row, col['CONTACT_TYPE'])&.to_s&.strip.presence,
-        notes: cell(row, col['NOTES'])&.to_s&.strip.presence || '',
+        contact_date: contact_date_time.to_date,
+        contact_timestamp: contact_date_time,
+        contact_type: contact_type_cell&.to_s&.strip.presence,
+        notes: notes_cell&.to_s&.strip.presence || '',
       }
     end
 
     def cell(row, idx)
       row[idx]&.value
-    end
-
-    # Parses CONTACT_DATE from the spreadsheet cell: Excel serial (Float/Integer/BigDecimal), display string,
-    # or Time/Date as returned by Roo.
-    def parse_contact_timestamp(val)
-      return nil if val.nil?
-
-      case val
-      when Time, ActiveSupport::TimeWithZone
-        val.in_time_zone
-      when DateTime
-        val.in_time_zone
-      when Date
-        val.beginning_of_day.in_time_zone
-      when Numeric
-        # Excel serial days since 1899-12-30 (fractional day = time of day).
-        Time.zone.at((val.to_f - 25_569) * 86_400)
-      else
-        Time.zone.parse(val.to_s)
-      end
-    rescue ArgumentError, TypeError, RangeError => e
-      log("parse_contact_timestamp: error: #{e.message}")
-      nil
     end
 
     def process_batch!(rows)
@@ -207,7 +180,7 @@ module AcHmis
           next if enrollment_by_key[key]
 
           en = create_one_day_enrollment!(r[:personal_id], r[:contact_date])
-          enrollment_by_key[key] = en if en
+          enrollment_by_key[key] = en
         end
 
         import_case_notes_for_batch!(rows, enrollment_by_key, now)
@@ -220,7 +193,7 @@ module AcHmis
       rows.each do |r|
         key = [r[:client_id], r[:contact_date]]
         en = enrollment_by_key[key]
-        raise "Enrollment not found for: #{r[:client_id]}, #{r[:contact_date]}" unless en
+        raise "Enrollment not found for client_id=#{r[:client_id]}, contact_date=#{r[:contact_date]}" unless en
 
         case_notes << {
           CustomCaseNoteID: stable_case_note_id(en[:enrollment_id], r[:contact_date], r[:notes]),
@@ -257,7 +230,7 @@ module AcHmis
         en = enrollment_by_key.fetch(key)
         case_note_uuid = stable_case_note_id(en[:enrollment_id], r[:contact_date], r[:notes])
         owner_id = case_notes_by_uuid[case_note_uuid]
-        raise "Case note not found: #{r[:client_id]}, #{r[:contact_date]}" unless owner_id
+        raise "Case note not found after import for client_id=#{r[:client_id]}, contact_date=#{r[:contact_date]}" unless owner_id
 
         cde_records << {
           CustomDataElementID: stable_cde_id(case_note_uuid),
@@ -355,13 +328,10 @@ module AcHmis
 
       @stats[:enrollments_created] += 1
       { enrollment_id: enrollment.enrollment_id, personal_id: personal_id }
-    rescue StandardError => e
-      @stats[:errors] << "Row (personal_id=#{personal_id}, date=#{contact_date}): #{e.message}"
-      nil
     end
 
     def stats_summary
-      "processed=#{@stats[:rows_processed]} skipped_client=#{@stats[:skipped_client_not_found]} skipped_date=#{@stats[:skipped_invalid_date]} enrollments_created=#{@stats[:enrollments_created]} case_notes_created=#{@stats[:case_notes_created]} cdes_created=#{@stats[:cdes_created]} errors=#{@stats[:errors].size}"
+      "processed=#{@stats[:rows_processed]} skipped_client_not_found=#{@stats[:skipped_client_not_found]} enrollments_created=#{@stats[:enrollments_created]} case_notes_created=#{@stats[:case_notes_created]} cdes_created=#{@stats[:cdes_created]}"
     end
 
     def log(msg)
