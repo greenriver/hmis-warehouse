@@ -94,7 +94,7 @@ module HmisExternalApis::AcHmis
           end
 
           # Exit all household members via shared service (creates exit assessment, releases unit, closes referral)
-          Hmis::CreateEnrollmentExit.call(
+          Hmis::EnrollmentExitCreator.call(
             enrollment_id: enrollment.id,
             exit_date: @current_date,
             exit_household_members: true,

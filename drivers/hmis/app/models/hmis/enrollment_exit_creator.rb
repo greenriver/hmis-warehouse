@@ -30,7 +30,7 @@
 # - exit_destination: HUD Exit Destination code, defaults to "No exit interview completed"
 # - acting_user_id: application user to record as the actor (Defaults to System User)
 # - auto_exited: optional DateTime (e.g. from Auto Exit Job); when set, stored on Exit.auto_exited.
-class Hmis::CreateEnrollmentExit
+class Hmis::EnrollmentExitCreator
   def self.call(**args)
     new(**args).call
   end
@@ -65,7 +65,7 @@ class Hmis::CreateEnrollmentExit
     # Return early if nothing to exit. Idempotent behavior (e.g. BulkVoider may call for same household twice)
     return if enrollments_to_exit.empty?
 
-    raise 'CreateEnrollmentExit invoked on non-HMIS enrollments' unless enrollments_to_exit.map(&:data_source).uniq.all?(&:hmis?)
+    raise "#{self.class.name} invoked on non-HMIS enrollments" unless enrollments_to_exit.map(&:data_source).uniq.all?(&:hmis?)
 
     Hmis::Hud::Base.transaction do
       enrollments_to_exit.each do |e|

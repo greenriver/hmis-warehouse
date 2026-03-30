@@ -33,8 +33,8 @@ RSpec.describe Hmis::AutoExitJob, type: :job do
       allow(job).to receive(:get_most_recent_contact).and_return(enrollment)
       allow(Hmis::Hud::Enrollment).to receive(:contact_date_for_entity).and_return(60.days.ago.to_date)
 
-      # Mock the shared CreateEnrollmentExit service to avoid actual database operations
-      allow(Hmis::CreateEnrollmentExit).to receive(:call)
+      # Mock the shared EnrollmentExitCreator service to avoid actual database operations
+      allow(Hmis::EnrollmentExitCreator).to receive(:call)
 
       # Mock the notifier
       allow(job).to receive(:setup_notifier)
