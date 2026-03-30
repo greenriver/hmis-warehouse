@@ -34,6 +34,8 @@ module HudSpmReport::Generators::Fy2024
       def client_class = _client_class
 
       def client_scope = _scope_proc ? _scope_proc.call : _client_class.preload(enrollment: :project)
+
+      def table_descriptions = {}
     end
 
     def self.questions

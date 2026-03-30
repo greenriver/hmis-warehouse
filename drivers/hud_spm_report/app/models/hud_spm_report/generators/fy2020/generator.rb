@@ -40,6 +40,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.valid_question_number(num) = questions.keys.detect { |q| q == num } || questions.keys.first
+    def self.table_descriptions = {}
 
     def self.client_class(_question)
       HudApr::Fy2020::SpmClient
