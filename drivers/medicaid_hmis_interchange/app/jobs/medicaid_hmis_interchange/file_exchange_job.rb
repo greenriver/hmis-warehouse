@@ -105,6 +105,7 @@ module MedicaidHmisInterchange
           {
             keys: [file.path],
             keys_only: true,
+            append_all_supported_algorithms: true,
           },
         )
 
@@ -118,8 +119,9 @@ module MedicaidHmisInterchange
       end
 
       Net::SFTP.start(
-        credentials['host'],
-        credentials['username'],
+        credentials.host_name,
+        credentials.username,
+        port: credentials.port_number,
         **opts,
       ) do |connection|
         yield connection
