@@ -58,21 +58,24 @@ RSpec.describe Hmis::User, type: :model do
     end
   end
 
-  describe '.with_hmis_access' do
-    let!(:user_in_group) { create(:hmis_user) }
-    let!(:user_not_in_group) { create(:hmis_user) }
+  describe '.with_hmis_access_in_data_source' do
+    let!(:ds2) { create(:hmis_data_source) }
+
+    let!(:this_ds_user) { create(:hmis_user, data_source: ds1) }
+    let!(:other_ds_user) { create(:hmis_user, data_source: ds2) }
+    let!(:warehouse_only_user) { create(:user, first_name: 'Warehouse Only') }
 
     before do
-      group = create(:hmis_user_group)
-      group.add(user_in_group)
+      create_access_control(this_ds_user, ds1)
+      create_access_control(other_ds_user, ds2)
     end
 
-    it 'includes users with at least one HMIS user group' do
-      expect(Hmis::User.with_hmis_access).to include(user_in_group)
-    end
+    it 'includes only users with HMIS access in the requested data source' do
+      users = Hmis::User.with_hmis_access_in_data_source(ds1.id)
 
-    it 'excludes users with no HMIS user group membership' do
-      expect(Hmis::User.with_hmis_access).not_to include(user_not_in_group)
+      expect(users).to include(this_ds_user)
+      expect(users).not_to include(other_ds_user)
+      expect(users).not_to include(warehouse_only_user)
     end
   end
 
