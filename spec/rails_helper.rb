@@ -108,6 +108,18 @@ RSpec.configure do |config|
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     end
 
+    # Load HMIS form definitions and system form instances if we're testing the HMIS system tests.
+    # This is an overall performance improvement to our system test suite, since all system tests depend on these forms.
+    # (todo @martha - is that actually true that it's an overall performance improvement?)
+    if example_file_paths.grep(%r{/drivers/hmis/spec/system/hmis/}).any? && ENV['ENABLE_HMIS_API'] == 'true' # rubocop:disable Style/RegexpLiteral
+      data_source = GrdaWarehouse::DataSource.find_or_create_by!(
+        hmis: 'localhost',
+        name: 'HMIS', short_name:
+        'HMIS', authoritative: true
+      )
+      ::HmisUtil::JsonForms.seed_all(data_source_id: data_source.id)
+    end
+
     AccessGroup.maintain_system_groups
   end
 

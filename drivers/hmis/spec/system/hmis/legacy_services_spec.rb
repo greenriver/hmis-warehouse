@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 

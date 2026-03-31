@@ -17,7 +17,7 @@ RSpec.feature 'Join Households', type: :system do
   before(:each)  { freeze_time }
   after(:each) { travel_back }
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
 
   let!(:c1) { create :hmis_hud_client, data_source: ds1, first_name: 'Apple', last_name: 'Orange' }
   let!(:receiving_enrollment) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p1, entry_date: 2.weeks.ago }

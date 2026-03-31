@@ -21,7 +21,7 @@ end
 RSpec.feature 'HMIS Form Builder', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   before(:each) do

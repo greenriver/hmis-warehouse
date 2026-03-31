@@ -12,7 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
   include_context 'hmis base setup'
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Marlon', last_name: 'Harris' }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
   let!(:e1) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1 }

@@ -13,10 +13,11 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
   before(:all) do
-    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true)
+    ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
 
     # Seed client-specific Referral Step forms, and Enrollment form so it collects units
-    HmisUtil::JsonForms.new(env_key: 'allegheny', generate_cdeds: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
+    HmisUtil::JsonForms.new(data_source_id: ds1.id, env_key: 'allegheny', generate_cdeds: true).
+      seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
     workflow_builder.build_housing_workflow
@@ -24,21 +25,22 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   end
 
   after(:all) do
-    # Clean up data source and workflow definition related records, since they were created in before(:all) and not in fixtures.
+    # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
     # This helps avoid downstream issues in later tests.
     ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
     end
     Hmis::Ce::CustomReferralStatus.delete_all
-    GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost').delete
+
+    ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
 
     # Cleanup seeded referral step forms that were created in before(:all)
     forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
     forms.each { |form| form.custom_data_element_definitions.delete_all }
     forms.delete_all
 
-    # Return enrollment form to normal. (See comment about form cleanup in rails_helper.rb)
-    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
+    # Return enrollment form to normal. (See comment about form cleanup in rails_helper.rb) todo @martha
+    HmisUtil::JsonForms.new(data_source_id: ds1.id).seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
   # consistent time for avoid failures when run across day boundaries

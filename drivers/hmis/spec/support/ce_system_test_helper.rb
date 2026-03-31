@@ -11,8 +11,8 @@ require 'rails_helper'
 # Shared context for CE system tests.
 # Sets up a correctly configured target project and admin/provider users with example permissions.
 RSpec.shared_context 'ce system test helper' do
-  # Use find_or_create_by since some tests create the data source in a before(:all) block for performance reasons.
-  let!(:ds1) { GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true) }
+  # Use find_by! since rails_helper creates the data source in a before(:all) block for performance reasons.
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by!(hmis: 'localhost') }
 
   let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3, with_coc: true) } # PSH
   let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, supports_waitlist_referrals: true, receives_direct_referrals: true) }
