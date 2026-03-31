@@ -49,7 +49,8 @@
     "typescript": "^5.8.2"
   },
   "resolutions": {
-    "flatted": "3.4.2"
+    "flatted": "3.4.2",
+    "picomatch": "^2.3.2"
   },
   "scripts": {
     "lint": "eslint app/assets/javascripts",
