@@ -133,6 +133,18 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
     end
 
     context 'when no enrollment overlaps the contact date' do
+      # Enrollment that does not include the import contact date — importer must not attach the case note here.
+      let!(:non_overlapping_enrollment) do
+        create(
+          :hmis_hud_enrollment,
+          project: link_project,
+          client: client,
+          data_source: data_source,
+          entry_date: Date.new(2022, 2, 1),
+          exit_date: Date.new(2022, 2, 28),
+        )
+      end
+
       it 'creates a one-day enrollment with intake and exit assessments' do
         rows = [
           {
@@ -148,7 +160,8 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
           run_import!(xlsx)
         end.to change(Hmis::Hud::Enrollment, :count).by(1)
 
-        enrollment = Hmis::Hud::Enrollment.order(:id).last
+        enrollment = client.enrollments.find_by(entry_date: contact_date)
+        expect(enrollment).to be_present
         expect(enrollment.project).to eq(link_project)
         expect(enrollment.entry_date).to eq(contact_date)
         expect(enrollment.intake_assessment.assessment_date).to eq(contact_date)

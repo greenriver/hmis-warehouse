@@ -12,7 +12,7 @@ require 'roo'
 # One-time import: Link Narrative extract → Case Notes in the Link project.
 # File columns: MCI_UNIQ_ID, CONTACT_DATE, CONTACT_TYPE, NOTES
 # - Resolves client by MCI Unique ID; skips row if not found.
-# - Uses or creates a one-day enrollment in the Link project for the contact date.
+# - Uses an existing enrollment in the Link project if one overlaps the contact date; otherwise creates a one-day enrollment for that date.
 # - Creates CustomCaseNote; stores CONTACT_TYPE as a CDED (contact method key: CONTACT_METHOD_CDED_KEY). The CDED must exist (raises if not).
 #
 # When dry_run is true, NO database changes are made. When dry_run is false, writes run in one transaction per batch.
@@ -53,6 +53,7 @@ module AcHmis
         log 'DRY RUN — no database changes will be made.'
         stream_and_process_batches!
       else
+        # Skip version rows for performance reasons, the import is reconstructible from the file
         PaperTrail.request(enabled: false) do
           stream_and_process_batches!
         end
@@ -77,7 +78,7 @@ module AcHmis
         pluck(:value, :source_id).
         to_h { |value, id| [value.to_s, id] }
       # Lookup: source client id -> personal_id
-      @client_info = Hmis::Hud::Client.where(data_source_id: data_source.id).
+      @client_id_to_personal_id = Hmis::Hud::Client.where(data_source_id: data_source.id).
         where(id: @mci_to_client_id.values.uniq).
         pluck(:id, :personal_id).
         to_h
@@ -110,13 +111,13 @@ module AcHmis
       missing = EXPECTED_HEADERS - headers
       raise "Missing columns: #{missing.join(', ')}. Found: #{headers.inspect}" if missing.any?
 
-      col = headers.each_with_index.to_h
+      col_name_to_index = headers.each_with_index.to_h
       batch = []
       row_num = 1
 
       sheet.each_row_streaming(offset: 1, pad_cells: true) do |row|
         row_num += 1
-        batch << parse_row(row, col, row_num)
+        batch << parse_row(row, col_name_to_index, row_num)
         next unless batch.size >= BATCH_SIZE
 
         process_batch!(batch.compact)
@@ -128,11 +129,11 @@ module AcHmis
       xlsx&.close
     end
 
-    def parse_row(row, col, row_num)
-      mci = cell(row, col['MCI_UNIQ_ID'])
-      contact_date_time = date_time_cell(row, col['CONTACT_DATE']) # Provided as an excel serial
-      contact_type_cell = cell(row, col['CONTACT_TYPE'])
-      notes_cell = cell(row, col['NOTES'])
+    def parse_row(row, col_name_to_index, row_num)
+      mci = cell(row, col_name_to_index['MCI_UNIQ_ID'])
+      contact_date_time = date_time_cell(row, col_name_to_index['CONTACT_DATE']) # Provided as an excel serial
+      contact_type_cell = cell(row, col_name_to_index['CONTACT_TYPE'])
+      notes_cell = cell(row, col_name_to_index['NOTES'])
 
       raise "Row #{row_num}: MCI_UNIQ_ID is required" if mci.blank?
       raise "Date in unexpected year: #{contact_date_time.year}" if contact_date_time.year < 2020 || contact_date_time.year > 2026
@@ -145,7 +146,7 @@ module AcHmis
         return nil
       end
 
-      personal_id = @client_info[client_id]
+      personal_id = @client_id_to_personal_id[client_id]
       raise "Row #{row_num}: no PersonalID for client id #{client_id}" unless personal_id
 
       {
@@ -164,6 +165,8 @@ module AcHmis
     end
 
     def date_time_cell(row, idx)
+      # CONTACT_DATE is an Excel serial (days since Excel's epoch). Convert to Unix time for Time.zone:
+      # subtract 25_569 to get days since 1970-01-01, then multiply by 86_400 because Time.zone.at expects seconds.
       serial = row[idx].cell_value.to_f
       Time.zone.at((serial - 25_569) * 86_400)
     end
@@ -215,6 +218,7 @@ module AcHmis
 
       return if case_notes.empty?
 
+      # Idempotent: CustomCaseNoteIDs are deterministic per row; re-import skips rows already present.
       case_note_result = Hmis::Hud::CustomCaseNote.import!(
         case_notes,
         timestamps: false,
@@ -283,10 +287,10 @@ module AcHmis
         order(entry_date: :asc, id: :asc).
         group_by { |e| e.client.id }
 
-      out = {}
+      enrollment_by_key = {}
       rows.each do |r|
         key = [r[:client_id], r[:contact_date]]
-        next if out.key?(key) # already found
+        next if enrollment_by_key.key?(key) # already found
 
         client_enrollments = enrollments_by_client_id[r[:client_id]] || []
         # Find open enrollment that overlaps with the contact date
@@ -298,9 +302,9 @@ module AcHmis
         next unless found # No enrollment found for this client on this date
 
         # Use HUD EnrollmentID (UUID), not the table's primary key (id)
-        out[key] = { enrollment_id: found.enrollment_id, personal_id: found.client.personal_id }
+        enrollment_by_key[key] = { enrollment_id: found.enrollment_id, personal_id: found.client.personal_id }
       end
-      out
+      enrollment_by_key
     end
 
     def coc_code
