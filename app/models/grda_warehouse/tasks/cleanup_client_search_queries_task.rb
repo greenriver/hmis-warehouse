@@ -22,15 +22,11 @@ module GrdaWarehouse::Tasks
     def perform
       instrument_as_maintenance_task do |run|
         with_lock do
-          GrdaWarehouse::ClientSearchQuery.transaction do
+          GrdaWarehouseBase.transaction do
             cleanup_old_queries(GrdaWarehouse::ClientSearchQuery)
-          end
-
-          Hmis::ClientSearchQuery.transaction do
             cleanup_old_queries(Hmis::ClientSearchQuery)
+            run.complete!
           end
-
-          run.complete!
         end
       end
     end
