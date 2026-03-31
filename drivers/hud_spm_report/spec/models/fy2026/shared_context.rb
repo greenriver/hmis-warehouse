@@ -24,6 +24,7 @@ RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
       end: '2023-09-30'.to_date,
       coc_codes: ['MA-500'],
       enforce_one_year_range: false,
+      report_version: :fy2026,
     )
   end
 
