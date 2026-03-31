@@ -2,6 +2,7 @@
 
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
+# Hud LSA temporary RDS: drivers/hud_lsa/README.md
 
 # frozen_string_literal: true
 
@@ -186,8 +187,8 @@ class Rds
       auto_minor_version_upgrade: true,
       preferred_backup_window: '06:14-06:44',
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
-      # RDS being publicly available allows us to reach the database when running locally. This should always be false in deployed environments.
-      publicly_accessible: Rails.env.development? || Rails.env.test?,
+      # This should always be false - see drivers/hud_lsa/README.md#public-accessibility
+      publicly_accessible: false,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
       db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
