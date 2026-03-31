@@ -10,9 +10,9 @@ module HudApr::Generators::Dq::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
 
-    # When set, HouseholdContext records are copied from this report instead of being
-    # recomputed. Used by the SPM, which runs DQ sub-reports and passes its own report ID
-    # so that both reports share the same pre-computed household context.
+    # Read by the SPM (hdx_upload.rb) to pass its own report ID so that DQ sub-reports
+    # could share pre-computed household context. Currently a no-op: the DQ generator no
+    # longer calls HouseholdContextBuilder, so this value is read but never acted on.
     def source_report_id_for_contexts
       @source_report_id_for_contexts ||= report.options&.with_indifferent_access&.[](:source_report_id_for_contexts)
     end
@@ -40,11 +40,6 @@ module HudApr::Generators::Dq::Fy2026
 
     def url
       hud_reports_dq_url(report, { host: ENV['FQDN'], protocol: 'https' })
-    end
-
-    def prepare_report
-      super
-      HudReports::HouseholdContextBuilder.call(self, report, enrollment_scope: base_enrollment_scope, source_report_id: source_report_id_for_contexts)
     end
 
     def self.filter_class
