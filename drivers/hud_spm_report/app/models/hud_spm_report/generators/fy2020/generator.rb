@@ -8,20 +8,19 @@
 
 module HudSpmReport::Generators::Fy2020
   class Generator < ::HudReports::GeneratorBase
-    def self.fiscal_year
-      'FY 2020'
-    end
-
-    def self.generic_title
-      'System Performance Measures'
-    end
-
-    def self.short_name
-      'SPM'
-    end
+    def self.fiscal_year = 'FY 2020'
+    def self.generic_title = 'System Performance Measures'
+    def self.short_name = 'SPM'
+    def self.filter_class = ::Filters::HudFilterBase
 
     def self.default_project_type_codes
       HudHelper.util('2024').residential_project_type_numbers_by_code.keys
+    end
+
+    def self.uploadable_version? = false
+
+    def self.pii_columns
+      ['first_name', 'last_name', 'dob', 'ssn']
     end
 
     def url
@@ -29,26 +28,19 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.questions
-      [
-        HudSpmReport::Generators::Fy2020::MeasureOne,
-        HudSpmReport::Generators::Fy2020::MeasureTwo,
-        HudSpmReport::Generators::Fy2020::MeasureThree,
-        HudSpmReport::Generators::Fy2020::MeasureFour,
-        HudSpmReport::Generators::Fy2020::MeasureFive,
-        HudSpmReport::Generators::Fy2020::MeasureSix,
-        HudSpmReport::Generators::Fy2020::MeasureSeven,
-      ].map do |q|
-        [q.question_number, q]
-      end.to_h.freeze
+      @questions ||= [
+        'Measure 1',
+        'Measure 2',
+        'Measure 3',
+        'Measure 4',
+        'Measure 5',
+        'Measure 6',
+        'Measure 7',
+      ].map { |q| [q, Data.define(:question_number).new(question_number: q)] }.to_h.freeze
     end
 
-    def self.filter_class
-      ::Filters::HudFilterBase
-    end
-
-    def self.valid_question_number(question_number)
-      questions.keys.detect { |q| q == question_number } || questions.keys.first
-    end
+    def self.valid_question_number(num) = questions.keys.detect { |q| q == num } || questions.keys.first
+    def self.table_descriptions = {}
 
     def self.client_class(_question)
       HudApr::Fy2020::SpmClient
@@ -60,7 +52,7 @@ module HudSpmReport::Generators::Fy2020
 
     def self.question_fields(question)
       q_num = question[/\d+\z/]
-      column_names.select { |c| c.starts_with? "m#{q_num}" }.map(&:to_sym)
+      HudApr::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}" }.map(&:to_sym)
     end
 
     def self.common_fields
@@ -70,10 +62,6 @@ module HudSpmReport::Generators::Fy2020
         :first_name,
         :last_name,
       ]
-    end
-
-    def self.uploadable_version?
-      false
     end
   end
 end

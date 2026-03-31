@@ -2,7 +2,7 @@
 
 ### Introduction
 - For HUD’s official specification, see https://www.hudexchange.info/resource/4483/system-performance-measures-tools/.
-- Legacy generators for FY2020, FY2023, and FY2024 remain in the driver for backward compatibility, but FY2026 is the active implementation.
+- FY2026 is the active implementation. Legacy generators for FY2020, FY2023, and FY2024 are retained as read-only stubs supporting historical report viewing and cell drilldowns only — they cannot run new reports.
 - `HudSpmReport.current_generator` is generally fixed to point to the most-recent version, however during transition periods (usually September) it may point to the next fiscal year in some environments.
 
 ### Architecture
