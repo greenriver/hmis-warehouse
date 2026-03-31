@@ -13,6 +13,13 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   include_context 'hmis base setup'
 
+  before(:all) do
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME, name: 'HMIS', short_name: 'HMIS', authoritative: true)
+    HmisUtil::JsonForms.seed_all(data_source_id: ds1.id)
+  end
+
+  let(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: GraphqlHelpers::HMIS_HOSTNAME) }
+
   let(:fd) { Hmis::Form::Definition.find_by!(role: :INTAKE) }
   let(:fd_exit) { Hmis::Form::Definition.find_by!(role: :EXIT) }
   let(:fd_post_exit) { Hmis::Form::Definition.find_by!(role: :POST_EXIT) }

@@ -9,7 +9,12 @@
 require 'rails_helper'
 
 RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer, :manages_hmis_form_state do
-  let!(:data_source) { create(:hmis_data_source) }
+  before(:all) do
+    ds = GrdaWarehouse::DataSource.find_or_create_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME, name: 'HMIS', short_name: 'HMIS', authoritative: true)
+    HmisUtil::JsonForms.seed_all(data_source_id: ds.id)
+  end
+
+  let(:data_source) { GrdaWarehouse::DataSource.hmis.find_by(hmis: GraphqlHelpers::HMIS_HOSTNAME) }
 
   def maintainer(**opts)
     described_class.new(data_source_id: data_source.id, **opts)

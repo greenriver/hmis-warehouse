@@ -11,14 +11,14 @@ require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
+  include_context 'hmis base setup'
+
   before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME, name: 'HMIS', short_name: 'HMIS', authoritative: true)
+    HmisUtil::JsonForms.seed_all(data_source_id: ds1.id)
   end
 
-  include_context 'hmis base setup'
+  let(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: GraphqlHelpers::HMIS_HOSTNAME) }
 
   let(:today) { Date.current }
   let(:yesterday) { today - 1.day }
