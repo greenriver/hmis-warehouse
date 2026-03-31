@@ -1981,9 +1981,9 @@ input ClientSearchInput {
   """
   id: ID
   lastName: String
-  organizations: [ID!]
+  organizations: [ID!] @deprecated(reason: "Use the Client Filter instead")
   personalId: String
-  projects: [ID!]
+  projects: [ID!] @deprecated(reason: "Use the Client Filter instead")
 
   """
   Last 4 digits of SSN
@@ -1994,7 +1994,17 @@ input ClientSearchInput {
   Omnisearch string
   """
   textSearch: String
-  warehouseId: String
+  warehouseId: String @deprecated(reason: "Searching by warehouse_id is supported via free text search")
+}
+
+type ClientSearchParams {
+  dob: String
+  firstName: String
+  id: ID!
+  lastName: String
+  personalId: String
+  ssnSerial: String
+  textSearch: String
 }
 
 """
@@ -2050,6 +2060,7 @@ type ClientsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+  searchQueryId: String
 }
 
 """
@@ -10268,6 +10279,11 @@ type Query {
   organization(id: ID!): Organization
   organizations(filters: OrganizationFilterOptions, limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
   parsedFormDefinition(input: String!): FormDefinitionForJsonResult
+
+  """
+  Persisted search params lookup
+  """
+  persistedClientSearchParams(id: ID!): ClientSearchParams
 
   """
   Get list of options for pick list
