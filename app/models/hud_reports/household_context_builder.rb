@@ -59,9 +59,13 @@ module HudReports
         all_she_by_hh = all_service_history_enrollments.group_by { |she| [get_hh_id(she), she.data_source_id] }
 
         all_she_by_hh.each do |(hh_id, data_source_id), service_history_enrollments|
-          household_contexts = build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
-          # Only keep contexts for SHEs that are part of the report universe
-          contexts.concat(household_contexts.select { |c| universe_ids.include?(c.service_history_enrollment_id) })
+          household_contexts = build_contexts_for_household(
+            hh_id: hh_id,
+            data_source_id: data_source_id,
+            service_history_enrollments: service_history_enrollments,
+            universe_ids: universe_ids,
+          )
+          contexts.concat(household_contexts)
 
           # Flush per-household so a batch of large households can't exceed the import limit
           if contexts.size >= import_batch_size
@@ -168,7 +172,7 @@ module HudReports
       service_history_enrollments
     end
 
-    def build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
+    def build_contexts_for_household(hh_id:, data_source_id:, service_history_enrollments:, universe_ids:)
       hh_member_hashes = precalculate_member_data(service_history_enrollments)
 
       # For household composition and veteran stats, only consider SHEs active during the report period.
@@ -181,7 +185,11 @@ module HudReports
 
       hh_stats = calculate_hh_stats(active_hh_she_hashes)
 
-      service_history_enrollments.map do |m|
+      # Lookback SHEs (outside universe_ids) are needed for HoH detection and inherited values above,
+      # but we only persist contexts for SHEs that are part of the report universe.
+      service_history_enrollments.filter_map do |m|
+        next unless universe_ids.include?(m.id)
+
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
         build_context_for_member(m, member_hash, hoh_data,
                                  hh_member_hashes: hh_member_hashes,
