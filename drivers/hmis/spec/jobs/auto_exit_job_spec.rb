@@ -224,7 +224,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     end
   end
 
-  describe 'auto-exit is blocked by active CE referral' do
+  describe 'Enrollment with CE referral' do
     before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
 
     let(:project_type) { 1 }
@@ -245,6 +245,17 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
         # Active referral (status initialized) tied to source_enrollment blocks auto-exit
         create :hmis_ce_referral, data_source: ds1, project: p1, client: c1, source_enrollment: e1
         expect_no_auto_exit_for(e1)
+      end
+    end
+
+    context 'when referral is not active (rejected)' do
+      it 'does not block auto-exit for source_enrollment' do
+        create :hmis_ce_referral, data_source: ds1, project: p1, client: c1, source_enrollment: e1, status: 'rejected'
+
+        expect do
+          Hmis::AutoExitJob.perform_now
+          e1.reload
+        end.to change { e1.exit }.from(nil).to(be_present)
       end
     end
 
@@ -341,6 +352,22 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
         Hmis::AutoExitJob.perform_now(project_ids: [p2.id])
       end.to change { e2.reload.exit&.exit_date }.from(nil).to(be_present).
         and change(Hmis::Hud::Exit, :count).by(1)
+    end
+  end
+
+  describe 'projects without auto-exit config' do
+    let!(:p_no_config) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p_no_config, entry_date: Date.current - 2.months }
+
+    before do
+      create :hmis_custom_service, data_source: ds1, client: e1.client, enrollment: e1, date_provided: Date.current - 31.days
+    end
+
+    it 'does not auto-exit enrollments in that project' do
+      expect do
+        Hmis::AutoExitJob.perform_now(project_ids: [p_no_config.id])
+        e1.reload
+      end.not_to(change { e1.exit }.from(nil))
     end
   end
 end
