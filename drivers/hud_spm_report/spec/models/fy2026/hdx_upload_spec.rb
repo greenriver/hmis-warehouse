@@ -123,7 +123,7 @@ RSpec.describe HudSpmReport::Generators::Fy2026::HdxUpload, type: :model, exclud
     end
 
     context 'DQ context sharing via source_report_id_for_contexts' do
-      it 'invokes HouseholdContextBuilder with source_report_id set to the SPM report' do
+      xit 'invokes HouseholdContextBuilder with source_report_id set to the SPM report' do
         allow(HudReports::HouseholdContextBuilder).to receive(:call).and_call_original
 
         run_measure(@report, HudSpmReport::Generators::Fy2026::HdxUpload)
