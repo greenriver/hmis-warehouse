@@ -44,6 +44,7 @@ module Mutations
             error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
 
             record.enrollment.client.save!
+            # Enrollment is persisted once Client saves (shared associations), so we cannot use save_new_enrollment! here.
             record.enrollment.should_auto_enter? ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
           end
           record.form_processor.save!
