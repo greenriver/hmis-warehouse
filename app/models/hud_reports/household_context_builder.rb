@@ -78,26 +78,24 @@ module HudReports
       HudReports::HouseholdContext.import!(contexts) if contexts.any?
     end
 
-    # Snapshots the SHE universe IDs and unique household pairs in a single short
-    # REPEATABLE READ transaction so both reflect the same consistent DB state.
-    # Live SHE rebuilds do not impact reports.
-    # Falls back to no isolation when already in a transaction (e.g. test suite).
+    # REPEATABLE READ snapshot so concurrent SHE rebuilds can't skew the universe.
+    # Skips isolation when already in a transaction (e.g. test suite).
     def snapshot_universe!
-      she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-      read_pair = lambda do
-        [
-          enrollment_scope.pluck(:id).to_set,
-          enrollment_scope.distinct.
-            order(hh_id_expr, she_table[:data_source_id]).
-            pluck(hh_id_expr, she_table[:data_source_id]),
-        ]
-      end
-
       if GrdaWarehouseBase.connection.open_transactions > 0
-        read_pair.call
+        read_universe_snapshot
       else
-        GrdaWarehouseBase.transaction(isolation: :repeatable_read, &read_pair)
+        GrdaWarehouseBase.transaction(isolation: :repeatable_read) { read_universe_snapshot }
       end
+    end
+
+    def read_universe_snapshot
+      she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+      [
+        enrollment_scope.pluck(:id).to_set,
+        enrollment_scope.distinct.
+          order(hh_id_expr, she_table[:data_source_id]).
+          pluck(hh_id_expr, she_table[:data_source_id]),
+      ]
     end
 
     def batch_size
