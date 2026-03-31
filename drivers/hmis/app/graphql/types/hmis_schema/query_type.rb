@@ -48,6 +48,13 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
+      # Find or create a ClientSearchQuery for the given params and user.
+      query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
+      context[:search_query_id] = query.id
+
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
       search_scope = Hmis::Hud::Client.client_search(
@@ -58,11 +65,24 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    field :persisted_client_search_params, Types::HmisSchema::ClientSearchParams, 'Persisted search params lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def persisted_client_search_params(id:)
+      # Only return the requested search query if it is viewable by the current user
+      Hmis::ClientSearchQuery.viewable_by(current_user).find_by(id: id)
+    end
+
     clients_field :client_omni_search, 'Client omnisearch' do |field|
       field.argument :text_search, String, 'Omnisearch string', required: true
     end
 
     def client_omni_search(text_search:)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params({ 'text_search' => text_search }, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      context[:search_query_id] = query.id
+
       Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
         sort_by_option(:recently_added)
