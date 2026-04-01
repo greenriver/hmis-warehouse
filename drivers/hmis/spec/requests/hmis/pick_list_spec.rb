@@ -296,14 +296,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Resolving available Service Types for a Project' do
-    include_context 'hmis service setup'
-    let(:bednight_service_type) do
-      Hmis::Hud::CustomServiceType.where(hud_record_type: 200).first!
-    end
-    let(:bednight_service_category) { bednight_service_type.category }
-    let(:service_form_definition) do
-      Hmis::Form::Definition.where(role: :SERVICE).first
-    end
+    # This describe block does NOT seed HUD service types/projects; it tests from a blank slate, for clarity
+    let(:service_form_definition) { create(:hmis_form_definition, role: :SERVICE) }
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9 }
     let!(:o2) { create :hmis_hud_organization, data_source: ds1 }
     let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o2, project_type: 11 }
@@ -322,17 +316,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'works when instance is associated by service category and project type' do
-      # Instance: use this service definition for BedNights in ES projects
+      # Instance: use this service definition for csc1 (custom service category 1) in ES projects
       create(
         :hmis_form_instance,
         entity: nil,
         project_type: 1, # ES
         definition_identifier: service_form_definition.identifier,
-        custom_service_category_id: bednight_service_category.id,
+        custom_service_category_id: csc1.id,
       )
 
       # ES project
-      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p1)).to contain_exactly(cst1.id.to_s)
       # PH project
       expect(picklist_option_codes(p2)).to be_empty
     end
@@ -344,11 +338,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         entity: nil,
         funder: 43,
         definition_identifier: service_form_definition.identifier,
-        custom_service_category_id: bednight_service_category.id,
+        custom_service_category_id: csc1.id,
       )
 
       create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
-      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p1)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p2)).to be_empty
     end
 
@@ -360,7 +354,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project_type: 12,
         funder: 43,
         definition_identifier: service_form_definition.identifier,
-        custom_service_category_id: bednight_service_category.id,
+        custom_service_category_id: csc1.id,
       )
 
       p1.update(project_type: 12)
@@ -368,20 +362,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       p3.update(project_type: 12)
       create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
       create(:hmis_hud_funder, funder: 43, project: p2, data_source: p2.data_source)
-      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p1)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p2)).to be_empty # funder matches, type doesn't
       expect(picklist_option_codes(p3)).to be_empty # type matches, funder doesn't
     end
 
     it 'works when instance is associated by service category and project' do
-      # Instance: use this service definition for BedNights in this specific project (p2)
+      # Instance: use this service definition for csc1 (custom service category 1) in this specific project (p2)
       create(
         :hmis_form_instance,
         entity: p2,
         definition_identifier: service_form_definition.identifier,
-        custom_service_category_id: bednight_service_category.id,
+        custom_service_category_id: csc1.id,
       )
-      expect(picklist_option_codes(p2)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p2)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p1)).to be_empty
     end
 
