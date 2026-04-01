@@ -11,6 +11,7 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.feature 'Hmis Form Instance behavior', type: :model do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let(:role) { 'CUSTOM_ASSESSMENT' }
 

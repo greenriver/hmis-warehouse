@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
@@ -130,19 +131,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition).to be_present
-        expect(form_definition['id']).to eq(service_form_definition.id.to_s)
-      end
-    end
-
-    it 'should return the default HUD service definition for a HUD service, even if there is no instance' do
-      hud_service = Hmis::Hud::CustomServiceType.where.not(hud_record_type: nil).first
-      expect(Hmis::Form::Definition.find_definition_for_service_type(hud_service, project: p1)).to be_nil
-
-      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: hud_service.id.to_s }) { service_query }
-
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
       end
     end

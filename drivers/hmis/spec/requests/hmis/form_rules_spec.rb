@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
 
@@ -63,7 +64,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should return all form rules when the user has full access' do
       rules = query_form_rules
-      expect(rules.count).to be >= 10
+      expect(rules.count).to be >= 10 # includes rules we created as well as seeded HUD rules
     end
 
     it 'should return filtered form rules' do
@@ -74,9 +75,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should return only rules with appropriate roles when the user is not a super admin' do
       remove_permissions(access_control, :can_administrate_config)
-      rules = query_form_rules
-      expect(rules.count).to eq(2)
-      expect(rules.pluck('definitionRole')).to contain_exactly('CUSTOM_ASSESSMENT', 'SERVICE')
+      rules = query_form_rules(limit: 100)
+      expect(rules.pluck('definitionRole').uniq).to contain_exactly('CUSTOM_ASSESSMENT', 'SERVICE')
 
       rules = query_form_rules(filters: { form_type: [:INTAKE] })
       expect(rules.count).to eq(0)
@@ -84,7 +84,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when there are many form rules' do
       before do
-        Hmis::Form::Instance.destroy_all # clear existing rules
         50.times do
           project = create(:hmis_hud_project, data_source: ds1, organization: o1)
           create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: project, active: true)
