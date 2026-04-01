@@ -22,7 +22,9 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
   let(:today) { Date.current }
 
   let!(:flex_funds_service_type) { create :hmis_custom_service_type, data_source: ds1, name: 'Flex Funds' }
-  let!(:bed_nights_service_type) { create :hmis_custom_service_type_for_hud_service, data_source: ds1 }
+  # HUD service type already exists from seeding
+  # todo(#6691) - add data source ID to the find_by!
+  let!(:bed_nights_service_type) { Hmis::Hud::CustomServiceType.find_by!(hud_record_type: 200, hud_type_provided: 200) }
 
   before(:each) do
     sign_in(hmis_user)
