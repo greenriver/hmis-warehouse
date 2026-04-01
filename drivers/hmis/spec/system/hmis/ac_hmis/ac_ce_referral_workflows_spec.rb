@@ -13,7 +13,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
   before(:all) do
-    # A somewhat surprising gotcha: since rspec runs before(:all) before before(:each),
+    # A somewhat surprising system test gotcha: since rspec runs before(:all) before before(:each),
     # and we skip system tests using a before(:each) in e2e_setup.rb,
     # this code in the before(:all) will still execute during a regular, non-system test run on CI.
     # To prevent errors because ds1 doesn't exist yet, re-check for RUN_SYSTEM_TESTS and don't do anything if not set.

@@ -13,13 +13,9 @@
 #
 # This is a performance improvement that helps us avoid creating these forms in fixtures,
 # which would run per-test and be expensive.
-# Caution: before(all)
-#
-#    - [ ] Caution about before(:all) running for each describe block. Mention the tradeoff
 #
 # When used alongside 'hmis base setup', this context's `let(:ds1)` overrides the factory-based `ds1`.
 RSpec.shared_context 'hmis json forms seed', shared_context: :metadata do
-  # Seed forms in a before(:all) block to improve performance
   before(:all) do
     ds = GrdaWarehouse::DataSource.find_or_create_by!(
       hmis: GraphqlHelpers::HMIS_HOSTNAME,
@@ -37,13 +33,13 @@ RSpec.shared_context 'hmis json forms seed', shared_context: :metadata do
   after(:all) do
     # Clean up the data source so that other tests can create their own ds unimpeded
     ds = GrdaWarehouse::DataSource.find_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME)
-    # TODO(#6691) - destroy forms and instances by data source
-    Hmis::Form::Instance.destroy_all
+    # TODO(#6691) - delete forms and instances by data source
+    Hmis::Form::Instance.delete_all
     Hmis::Form::Definition.delete_all # bypass the before_destroy callback
-    Hmis::Hud::CustomDataElementDefinition.where(data_source: ds).destroy_all
-    Hmis::Hud::CustomDataElement.where(data_source: ds).destroy_all
-    Hmis::Hud::CustomServiceCategory.where(data_source: ds).destroy_all
-    Hmis::Hud::CustomServiceType.where(data_source: ds).destroy_all
+    Hmis::Hud::CustomDataElementDefinition.where(data_source: ds).delete_all
+    Hmis::Hud::CustomDataElement.where(data_source: ds).delete_all
+    Hmis::Hud::CustomServiceCategory.where(data_source: ds).delete_all
+    Hmis::Hud::CustomServiceType.where(data_source: ds).delete_all
     ds.destroy!
   end
 end
