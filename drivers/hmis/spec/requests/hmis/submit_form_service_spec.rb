@@ -14,14 +14,14 @@ require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for Service', type: :request do
   include_context 'hmis base setup'
-  include_context 'hmis service setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) { hmis_login(user) }
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2020-01-01' }
 
-  let(:service_type) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) } # created in the service setup context
+  let(:service_type) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) } # created in the json forms seed context
   let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
 
   let!(:service) { create :hmis_hud_service_bednight, data_source: ds1, client: c1, enrollment: e1, user: u1 }

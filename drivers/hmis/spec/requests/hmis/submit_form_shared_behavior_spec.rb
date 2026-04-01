@@ -13,6 +13,7 @@ require_relative '../../support/submit_form_spec_helpers'
 
 RSpec.describe 'SubmitForm shared behavior', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) { hmis_login(user) }
