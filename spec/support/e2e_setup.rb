@@ -15,8 +15,7 @@ end
 # from user factory
 DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
 
-# Suite-level HMIS JSON form seeding; invoked from drivers/hmis/spec/support/hmis_system_suite_seed.rb so it runs
-# after GrdaWarehouse::Utility.clear! in spec/rails_helper.rb (see E2E_TESTING_README or team docs).
+# Suite-level HMIS JSON form seeding
 module E2eSystemSuite
   def self.seed_hmis_json_forms!
     data_source = GrdaWarehouse::DataSource.find_or_create_by!(
