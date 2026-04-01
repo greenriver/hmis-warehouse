@@ -45,14 +45,34 @@ module GrdaWarehouse::Monitoring::Tasks
       GrdaWarehouse::Monitoring::MetricDefinition.maintain!
 
       run_record = create_run_record
-
-      metrics = load_metrics
+      all_metrics = load_metrics
       entities = load_entities
 
-      Rails.logger.info "Collecting #{metrics.count} metrics for #{entities.count} #{@entity_type} records"
+      # Check every metric's stability consecutively, then open the transaction
+      # immediately after. The window between the last check and the snapshot is
+      # minimal. Once inside REPEATABLE READ, any write that starts during
+      # collection is invisible to all metrics' reads — all share the same snapshot.
+      stable_metrics, skipped_metrics = all_metrics.partition do |metric|
+        metric.calculator_class.constantize.data_stable?
+      end
 
-      entities.find_in_batches(batch_size: BATCH_SIZE) do |entity_batch|
-        collect_batch(entity_batch, metrics)
+      skipped_metric_names = skipped_metrics.map(&:name)
+
+      if skipped_metric_names.any?
+        Rails.logger.warn(
+          "MetricSnapshotCollector: deferring #{skipped_metric_names.join(', ')} — " \
+          'data source not stable, will retry',
+        )
+      end
+
+      Rails.logger.info "Collecting #{stable_metrics.count} metrics for #{@entity_type} records"
+
+      if stable_metrics.any?
+        GrdaWarehouseBase.transaction(isolation: :repeatable_read) do
+          entities.find_in_batches(batch_size: BATCH_SIZE) do |entity_batch|
+            collect_batch(entity_batch, stable_metrics)
+          end
+        end
       end
 
       cleanup_old_snapshots
@@ -60,6 +80,9 @@ module GrdaWarehouse::Monitoring::Tasks
 
       # Trigger alert notifications for threshold crossings
       NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date)
+
+      # Return skipped metric names so the caller can schedule targeted retries
+      skipped_metric_names
     end
 
     private

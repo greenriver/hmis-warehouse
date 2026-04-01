@@ -44,6 +44,12 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         compact
     end
 
+    # hud_enrollments is written by HmisAutoMigrateJob while an import is running.
+    # Delayed::Job.running? checks locked_at IS NOT NULL AND failed_at IS NULL.
+    def self.data_stable?
+      !Delayed::Job.running?('HmisAutoMigrateJob')
+    end
+
     def self.metric_definition_attributes
       {
         name: 'min_household_size',

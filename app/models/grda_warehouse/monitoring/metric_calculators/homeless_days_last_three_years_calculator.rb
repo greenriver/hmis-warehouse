@@ -32,6 +32,17 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         to_h
     end
 
+    # warehouse_clients_processed is written by UpdateWarehouseClientsCachesJob.
+    # Try to acquire its advisory lock non-blocking; if we get it, no batch is
+    # actively writing right now and we release immediately.
+    def self.data_stable?
+      stable = false
+      GrdaWarehouseBase.with_advisory_lock(UpdateWarehouseClientsCachesJob::ADVISORY_LOCK_NAME, timeout_seconds: 0) do
+        stable = true
+      end
+      stable
+    end
+
     # Return metric definition attributes for this calculator
     def self.metric_definition_attributes
       {
