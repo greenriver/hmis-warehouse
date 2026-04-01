@@ -52,16 +52,20 @@ module HudReports
 
     def build_contexts_from_scratch
       contexts = []
-      universe_ids = enrollment_scope.pluck(:id).to_set
-      each_household_batch do |batch|
+      universe_ids, hh_pairs = snapshot_universe!
+      hh_pairs.each_slice(batch_size) do |batch|
         # batch is array of [hh_id, data_source_id]
         all_service_history_enrollments = load_unfiltered_service_history_enrollments(batch)
         all_she_by_hh = all_service_history_enrollments.group_by { |she| [get_hh_id(she), she.data_source_id] }
 
         all_she_by_hh.each do |(hh_id, data_source_id), service_history_enrollments|
-          household_contexts = build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
-          # Only keep contexts for SHEs that are part of the report universe
-          contexts.concat(household_contexts.select { |c| universe_ids.include?(c.service_history_enrollment_id) })
+          household_contexts = build_contexts_for_household(
+            hh_id: hh_id,
+            data_source_id: data_source_id,
+            service_history_enrollments: service_history_enrollments,
+            universe_ids: universe_ids,
+          )
+          contexts.concat(household_contexts)
 
           # Flush per-household so a batch of large households can't exceed the import limit
           if contexts.size >= import_batch_size
@@ -72,6 +76,26 @@ module HudReports
       end
 
       HudReports::HouseholdContext.import!(contexts) if contexts.any?
+    end
+
+    # REPEATABLE READ snapshot so concurrent SHE rebuilds can't skew the universe.
+    # Skips isolation when already in a transaction (e.g. test suite).
+    def snapshot_universe!
+      if GrdaWarehouseBase.connection.open_transactions > 0
+        read_universe_snapshot
+      else
+        GrdaWarehouseBase.transaction(isolation: :repeatable_read) { read_universe_snapshot }
+      end
+    end
+
+    def read_universe_snapshot
+      she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+      [
+        enrollment_scope.pluck(:id).to_set,
+        enrollment_scope.distinct.
+          order(hh_id_expr, she_table[:data_source_id]).
+          pluck(hh_id_expr, she_table[:data_source_id]),
+      ]
     end
 
     def batch_size
@@ -89,48 +113,17 @@ module HudReports
       she.household_id || "#{she.enrollment_group_id}*HH"
     end
 
-    def each_household_batch
-      # Get unique HH IDs + data_source_id for the report universe
-      hh_ids_query = enrollment_scope
-
+    def hh_id_expr
       she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-
-      # We drive batching using the same synthetic ID logic as get_hh_id.
-      # The '*HH' suffix ensures we don't conflate a real HouseholdID with a synthetic one
-      # derived from an EnrollmentID of the same value within the same data source.
-      hh_id_expr = Arel::Nodes::NamedFunction.new(
+      # Mirrors get_hh_id: the '*HH' suffix prevents collisions between real HouseholdIDs
+      # and synthetic ones derived from EnrollmentIDs within the same data source.
+      Arel::Nodes::NamedFunction.new(
         'COALESCE',
         [
           she_table[:household_id],
           Arel::Nodes::InfixOperation.new('||', she_table[:enrollment_group_id], Arel::Nodes.build_quoted('*HH')),
         ],
       )
-
-      base_query = hh_ids_query.
-        distinct.
-        order(hh_id_expr, she_table[:data_source_id])
-
-      last_hh_id = nil
-      last_ds_id = nil
-
-      loop do
-        query = base_query.limit(batch_size)
-
-        if last_hh_id
-          # Seek logic for composite order
-          condition = hh_id_expr.gt(last_hh_id).or(
-            hh_id_expr.eq(last_hh_id).and(she_table[:data_source_id].gt(last_ds_id)),
-          )
-          query = query.where(condition)
-        end
-
-        # We need both values
-        batch = query.pluck(hh_id_expr, she_table[:data_source_id])
-        break if batch.empty?
-
-        yield batch
-        last_hh_id, last_ds_id = batch.last
-      end
     end
 
     def load_unfiltered_service_history_enrollments(batch)
@@ -183,7 +176,7 @@ module HudReports
       service_history_enrollments
     end
 
-    def build_contexts_for_household(hh_id, data_source_id, service_history_enrollments)
+    def build_contexts_for_household(hh_id:, data_source_id:, service_history_enrollments:, universe_ids:)
       hh_member_hashes = precalculate_member_data(service_history_enrollments)
 
       # For household composition and veteran stats, only consider SHEs active during the report period.
@@ -196,7 +189,11 @@ module HudReports
 
       hh_stats = calculate_hh_stats(active_hh_she_hashes)
 
-      service_history_enrollments.map do |m|
+      # Lookback SHEs (outside universe_ids) are needed for HoH detection and inherited values above,
+      # but we only persist contexts for SHEs that are part of the report universe.
+      service_history_enrollments.filter_map do |m|
+        next unless universe_ids.include?(m.id)
+
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
         build_context_for_member(m, member_hash, hoh_data,
                                  hh_member_hashes: hh_member_hashes,
