@@ -39,7 +39,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     forms.each { |form| form.custom_data_element_definitions.delete_all }
     forms.delete_all
 
-    # Return enrollment form to normal. (See comment about form cleanup in rails_helper.rb) todo @martha
+    # Return enrollment form to normal.
     HmisUtil::JsonForms.new(data_source_id: ds1.id).seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
