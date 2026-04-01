@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer, :manages_hmis_form_state do
+RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer do
   include_context 'hmis json forms seed'
   let!(:data_source) { ds1 }
 

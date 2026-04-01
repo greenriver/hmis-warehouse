@@ -8,14 +8,8 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisUtil::JsonForms, :manages_hmis_form_state do
+RSpec.describe HmisUtil::JsonForms do
   let!(:data_source) { create(:hmis_data_source) }
-
-  # Start with a clean slate (gets reset after group by :manages_hmis_form_state)
-  before(:all) do
-    Hmis::Form::Definition.delete_all
-    Hmis::Form::Instance.delete_all
-  end
 
   RSpec.shared_context 'a seeded form' do |role:, identifier: role.to_s.downcase|
     it "creates a published form definition for #{role}" do
@@ -45,9 +39,7 @@ RSpec.describe HmisUtil::JsonForms, :manages_hmis_form_state do
   describe '#seed_all' do
     describe 'read-only validations for production-like options' do
       # could be optimized further, couldn't use before:all because of needing Rails.env mock
-      before(:all) do
-        described_class.new(env_key: 'myclient').seed_all
-      end
+      include_context 'hmis json forms seed' # seeds forms before(:all)
 
       # Each system role (PROJECT, ORGANIZATION, CLIENT, etc.) should have exactly 1 form and 1 default system instance
       Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
