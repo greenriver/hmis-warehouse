@@ -9,16 +9,11 @@
 require 'rails_helper'
 
 RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer, :manages_hmis_form_state do
-  let!(:data_source) { create(:hmis_data_source) }
+  include_context 'hmis json forms seed'
+  let!(:data_source) { ds1 }
 
   def maintainer(**opts)
     described_class.new(data_source_id: data_source.id, **opts)
-  end
-
-  before(:each) do
-    # Start all tests with the correct, HUD-compliant database state.
-    # In individual test setup, delete instances when testing re-creation behavior.
-    maintainer.ensure_all_system_instances_exist!
   end
 
   describe '#ensure_all_system_instances_exist!' do

@@ -13,34 +13,42 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
   before(:all) do
-    ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
+    # A somewhat surprising gotcha: since rspec runs before(:all) before before(:each),
+    # and we skip system tests using a before(:each) in e2e_setup.rb,
+    # this code in the before(:all) will still execute during a regular, non-system test run on CI.
+    # To prevent errors because ds1 doesn't exist yet, re-check for RUN_SYSTEM_TESTS and don't do anything if not set.
+    if ENV['RUN_SYSTEM_TESTS'] == 'true'
+      ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
 
-    # Seed client-specific Referral Step forms, and Enrollment form so it collects units
-    HmisUtil::JsonForms.new(data_source_id: ds1.id, env_key: 'allegheny', generate_cdeds: true).
-      seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
-    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
-    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
-    workflow_builder.build_housing_workflow
-    workflow_builder.build_admin_assign_workflow
+      # Seed client-specific Referral Step forms, and Enrollment form so it collects units
+      HmisUtil::JsonForms.new(data_source_id: ds1.id, env_key: 'allegheny', generate_cdeds: true).
+        seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
+      CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+      workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
+      workflow_builder.build_housing_workflow
+      workflow_builder.build_admin_assign_workflow
+    end
   end
 
   after(:all) do
-    # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
-    # This helps avoid downstream issues in later tests.
-    ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
+    if ENV['RUN_SYSTEM_TESTS'] == 'true'
+      # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
+      # This helps avoid downstream issues in later tests.
+      ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
+        CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
+      end
+      Hmis::Ce::CustomReferralStatus.delete_all
+
+      ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
+
+      # Cleanup seeded referral step forms that were created in before(:all)
+      forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
+      forms.each { |form| form.custom_data_element_definitions.delete_all }
+      forms.delete_all
+
+      # Return enrollment form to normal.
+      HmisUtil::JsonForms.new(data_source_id: ds1.id).seed_record_form_definitions(roles: [:ENROLLMENT])
     end
-    Hmis::Ce::CustomReferralStatus.delete_all
-
-    ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
-
-    # Cleanup seeded referral step forms that were created in before(:all)
-    forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
-    forms.each { |form| form.custom_data_element_definitions.delete_all }
-    forms.delete_all
-
-    # Return enrollment form to normal.
-    HmisUtil::JsonForms.new(data_source_id: ds1.id).seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
   # consistent time for avoid failures when run across day boundaries
