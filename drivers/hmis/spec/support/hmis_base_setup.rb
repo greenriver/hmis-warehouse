@@ -86,6 +86,12 @@ RSpec.shared_context 'hmis service setup', shared_context: :metadata do
 
   let!(:csc1) { create :hmis_custom_service_category, data_source: ds1, user: u1 }
   let!(:cst1) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, user: u1 }
+
+  after(:each) do
+    # Cleanup custom service types and categories that were created in before(:each)
+    Hmis::Hud::CustomServiceType.where(data_source: ds1).destroy_all
+    Hmis::Hud::CustomServiceCategory.where(data_source: ds1).destroy_all
+  end
 end
 
 RSpec.shared_context 'file upload setup', shared_context: :metadata do
