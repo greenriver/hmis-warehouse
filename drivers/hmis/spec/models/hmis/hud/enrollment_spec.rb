@@ -12,7 +12,6 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Hud::Enrollment, type: :model do
   include_context 'hmis base setup'
-  include_context 'hmis json forms seed'
 
   it 'detects date conflicts' do
     [

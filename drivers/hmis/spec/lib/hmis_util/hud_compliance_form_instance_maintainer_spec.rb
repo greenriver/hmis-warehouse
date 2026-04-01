@@ -9,9 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisUtil::HudComplianceFormInstanceMaintainer, :manages_hmis_form_state do
-  include_context 'hmis json forms seed'
-
-  let(:data_source) { ds1 }
+  let!(:data_source) { create(:hmis_data_source) }
 
   def maintainer(**opts)
     described_class.new(data_source_id: data_source.id, **opts)
