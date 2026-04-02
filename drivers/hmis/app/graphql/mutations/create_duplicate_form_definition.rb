@@ -15,7 +15,7 @@ module Mutations
     def resolve(identifier:)
       # Choose the most recent Published or Retired definition to duplicate
       definition_to_duplicate = Hmis::Form::Definition.
-        where(identifier: identifier).
+        where(identifier: identifier, data_source_id: current_user.hmis_data_source_id).
         published_or_retired.
         order(version: :desc).first
 
@@ -34,6 +34,7 @@ module Mutations
         version: 0,
         role: definition_to_duplicate.role,
         definition: cleaned_definition_json,
+        data_source_id: current_user.hmis_data_source_id,
       )
 
       definition.save!
@@ -54,11 +55,11 @@ module Mutations
     end
 
     def ensure_unique_identifier(key)
-      return key unless Hmis::Form::Definition.exists?(identifier: key)
+      return key unless Hmis::Form::Definition.exists?(identifier: key, data_source_id: current_user.hmis_data_source_id)
 
       count = 1
       possible_key = key
-      while Hmis::Form::Definition.exists?(identifier: possible_key)
+      while Hmis::Form::Definition.exists?(identifier: possible_key, data_source_id: current_user.hmis_data_source_id)
         count += 1
         possible_key = "#{key}_#{count}"
         raise 'count exceeded' if count > 50 # safety
