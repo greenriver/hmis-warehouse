@@ -20,14 +20,14 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
   let!(:form_definition) do
     definition = {
       "item": [
-        { "link_id": 'veteran_q', "mapping": { "custom_field_key": 'veteran_field' } },
+        # Definition factory creates a cded for veteran_field
+        { "link_id": 'veteran_q', "mapping": { "custom_field_key": 'veteran_field' }, 'type': 'CHOICE' },
         { "link_id": 'unmapped_q' },
       ],
     }
-    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_form', status: :published)
+    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_form', status: :published, data_source: ds1)
   end
 
-  let!(:veteran_cded) { create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: :veteran_field, data_source: ds1) }
   let!(:veteran_pool) { create :hmis_ce_match_candidate_pool, requirement_expression: '`cde.custom_assessment.veteran_field` = 1' }
   let!(:general_pool) { create :hmis_ce_match_candidate_pool, requirement_expression: 'current_age > 18' }
 
