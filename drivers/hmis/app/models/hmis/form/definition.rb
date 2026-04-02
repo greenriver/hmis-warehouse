@@ -39,12 +39,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   include Hmis::Hud::Concerns::HasEnums
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
-  validates_uniqueness_of :identifier, if: :managed_in_version_control?
+  validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
 
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
@@ -235,6 +237,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   scope :with_role, ->(role) { where(role: role) }
 
   scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
+
+  scope :for_data_source, ->(data_source_id) do
+    where(data_source_id: data_source_id)
+  end
 
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed

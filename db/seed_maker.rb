@@ -408,10 +408,9 @@ class SeedMaker
     return unless ENV['ENABLE_HMIS_API'] == 'true'
     return unless GrdaWarehouse::DataSource.hmis.exists? # data source must be added in the warehouse UI
 
-    ::HmisUtil::JsonForms.seed_all
-
-    # Ensure service type and category records exist for each HUD service type
+    # For each HMIS data source, seed JSON form definitions, HUD form instances, and HUD service type and category records
     GrdaWarehouse::DataSource.hmis.pluck(:id).each do |data_source_id|
+      ::HmisUtil::JsonForms.seed_all(data_source_id: data_source_id)
       ::HmisUtil::ServiceTypes.seed_hud_service_types(data_source_id)
     end
   end

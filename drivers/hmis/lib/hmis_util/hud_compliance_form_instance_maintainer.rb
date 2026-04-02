@@ -38,10 +38,9 @@ module HmisUtil
       FORM_IDENTIFIERS[:base_post_exit],
     ].freeze
 
-    def initialize(dry_run: false, data_source_id: nil)
+    def initialize(data_source_id:, dry_run: false)
       @dry_run = dry_run
-      # TODO(#6691) require data source. Currently this class allows it to be missing because this gets run in rails helper before data sources are created.
-      @data_source = data_source_id ? GrdaWarehouse::DataSource.hmis.find(data_source_id) : GrdaWarehouse::DataSource.hmis.first
+      @data_source = GrdaWarehouse::DataSource.hmis.find(data_source_id)
       @created = []  # ComplianceChangePayload entries for reporting
       @updated = []  # same shape: existing instances changed to system/active
       setup_notifier('HUD Form Compliance')
@@ -52,15 +51,8 @@ module HmisUtil
       ensure_record_form_system_instances!
       # Create required system instances for assessments (Intake, Exit, etc)
       ensure_assessment_system_instances!
-
       # Create required system instances for HUD Service form (identifier = 'service')
-      if Rails.env.test? && @data_source.blank?
-        # Unable to set up service form instances without data source specified
-        # TODO(#6691) when data source is guaranteed to be present during form seeding in test, we can remove this.
-        Rails.logger.info 'No data source found. Skipping service form system instances in test. FIXME(#6691)'
-      else
-        ensure_service_form_system_instances!
-      end
+      ensure_service_form_system_instances!
 
       # Report changes
       report_changes_if_any
@@ -69,8 +61,7 @@ module HmisUtil
     private
 
     def definition_scope
-      # TODO(#6691): add 'where(data_source: @data_source)'
-      Hmis::Form::Definition.published.managed_in_version_control
+      Hmis::Form::Definition.published.managed_in_version_control.for_data_source(@data_source.id)
     end
 
     # Ensures all required system instances exist for HUD record forms: default system form roles,
@@ -175,7 +166,7 @@ module HmisUtil
     end
 
     def create_default_system_instance!(identifier:)
-      instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
+      instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier, data_source_id: @data_source.id)
       was_new = instance.new_record?
       instance.assign_attributes(active: true, system: true)
       return unless instance.changed?
@@ -208,6 +199,7 @@ module HmisUtil
         entity_type: nil,
         entity_id: nil,
         custom_service_category_id: service_category&.id,
+        data_source_id: @data_source.id,
       }
       instance = Hmis::Form::Instance.find_or_initialize_by(attrs)
       was_new = instance.new_record?
@@ -238,7 +230,12 @@ module HmisUtil
     def build_summary_lines
       return [] if @created.empty? && @updated.empty?
 
-      title = @dry_run ? 'HUD Form Compliance (dry run) — instances that would be created or updated:' : 'HUD Form Compliance — changes applied:'
+      title = if @dry_run
+        "HUD Form Compliance (dry run) — instances that would be created or updated in DS##{@data_source.id}:"
+      else
+        "HUD Form Compliance — changes applied in DS##{@data_source.id}:"
+      end
+
       created_label = @dry_run ? "Would create (#{@created.size}):" : "Created (#{@created.size}):"
       updated_label = @dry_run ? "Would update (#{@updated.size}):" : "Updated (#{@updated.size}):"
 
