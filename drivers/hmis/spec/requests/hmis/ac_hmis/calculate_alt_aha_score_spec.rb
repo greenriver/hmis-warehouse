@@ -25,7 +25,7 @@ RSpec.describe Mutations::AcHmis::CalculateAltAhaScore, type: :request do
         { "link_id": 'optional_q', "type": 'STRING' },
       ],
     }
-    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_aha_form', status: :published)
+    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_aha_form', status: :published, data_source: ds1)
   end
 
   before(:each) do
