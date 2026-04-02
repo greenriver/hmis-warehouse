@@ -13,8 +13,11 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:fd1) { create :hmis_form_definition, status: Hmis::Form::Definition::PUBLISHED }
-  let!(:fd2) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT }
+  let!(:fd1) { create :hmis_form_definition, status: Hmis::Form::Definition::PUBLISHED, data_source: ds1, definition: { 'item': [] } }
+  let!(:fd2) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT, data_source: ds1, definition: { 'item': [] } }
+
+  # cruft: form with the same identifier exists in a different DS. should be ignored
+  let!(:cruft_form) { create(:hmis_form_definition, identifier: fd1.identifier, version: 5) }
 
   before(:each) do
     hmis_login(user)
@@ -66,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should error if the form is managed in version control' do
-    fd = create(:hmis_form_definition, managed_in_version_control: true)
+    fd = create(:hmis_form_definition, managed_in_version_control: true, data_source: ds1, definition: { 'item': [] })
     expect_access_denied post_graphql(identifier: fd.identifier) { mutation }
   end
 end

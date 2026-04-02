@@ -16,6 +16,7 @@ module Mutations
 
     def resolve(identifier:)
       definitions = Hmis::Form::Definition.
+        where(data_source_id: current_user.hmis_data_source_id).
         exclude_definition_from_select.
         order(version: :desc).
         where(identifier: identifier)
