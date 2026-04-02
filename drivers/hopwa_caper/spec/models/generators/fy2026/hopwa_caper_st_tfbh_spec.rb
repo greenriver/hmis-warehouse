@@ -63,6 +63,13 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet, type: :model
     expect(rows.fetch('How many households accessed or maintained access to the following sources of income in the past year?')).to eq(2)
   end
 
+  it 'renders a placeholder column when no facility-based projects are in scope' do
+    non_facility_project = create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
+    _, rows = run_and_extract_rows([non_facility_project], 'Q9')
+    expect(rows.fetch('What is the name of the housing facility?')).to eq('No facilities in scope')
+    expect(rows.fetch('Was the housing facility placed into service during this program year? Yes or No.')).to eq('No')
+  end
+
   it 'reports housing outcomes correctly' do
     _, rows = run_and_extract_rows([project], 'Q9')
     expect(rows.fetch('How many households exited to private housing?')).to eq(1)
