@@ -30,12 +30,31 @@ FactoryBot.define do
                 'assessment_date': true,
                 'mapping': { 'field_name': 'assessmentDate' },
               },
+              {
+                'type': 'INTEGER',
+                'link_id': 'linkid_required',
+                'required': true,
+                'warn_if_empty': false,
+                'brief_text': 'The Required Field',
+                'text': 'A required field',
+                'mapping': { 'custom_field_key': 'fieldOne' },
+              },
+              {
+                'type': 'CHOICE',
+                'link_id': 'linkid_choice',
+                'required': false,
+                'warn_if_empty': true,
+                'text': 'Choice field',
+                'pick_list_reference': 'NoYesMissing',
+                'mapping': { 'custom_field_key': 'fieldTwo' },
+              },
             ],
           },
         ],
       }
     end
     transient do
+      generate_cdeds { false }
       append_items { nil } # Items to append to FormDefinition content
     end
     after(:create) do |instance, evaluator|
@@ -46,7 +65,7 @@ FactoryBot.define do
         instance.save!
       end
 
-      next unless instance.published?
+      next unless instance.published? && evaluator.generate_cdeds
 
       # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
       Hmis::Form::CustomDataElementGenerator.new(

@@ -9,6 +9,8 @@ FactoryBot.define do
       form_definition { association(:hmis_form_definition) }
     end
     after(:build) do |task, evaluator|
+      # If form_definition was passed in to the factory, use that to set the task's form_definition_identifier.
+      # But if form_definition_identifier was explicitly passed in to the factory, don't overwrite it
       task.form_definition_identifier = evaluator.form_definition.identifier unless evaluator.form_definition_identifier.present?
     end
   end
