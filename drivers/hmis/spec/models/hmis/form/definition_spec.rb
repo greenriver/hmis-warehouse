@@ -12,6 +12,35 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::Form::Definition, type: :model do
   include_context 'hmis base setup'
 
+  describe 'identifier + data_source_id associations' do
+    let(:identifier) { 'composite-scoped-form' }
+    let!(:published_v1) { create(:hmis_form_definition, data_source: ds1, identifier: identifier, version: 1, status: :published) }
+    let!(:draft_v2) { create(:hmis_form_definition, data_source: ds1, identifier: identifier, version: 2, status: :draft) }
+    let!(:instance_ds1) { create(:hmis_form_instance, data_source: ds1, entity: p1, definition: published_v1) }
+    let!(:cded_ds1) { create(:hmis_custom_data_element_definition, data_source: ds1, form_definition_identifier: identifier) }
+
+    let!(:ds2) { create(:hmis_data_source) }
+    let!(:u2) { create(:hmis_hud_user, data_source: ds2) }
+    let!(:o2) { create(:hmis_hud_organization, data_source: ds2, user: u2) }
+    let!(:project_ds2) { create(:hmis_hud_project, data_source: ds2, organization: o2, user: u2) }
+    let!(:published_ds2) { create(:hmis_form_definition, data_source: ds2, identifier: identifier, version: 1, status: :published) }
+    let!(:instance_ds2) { create(:hmis_form_instance, data_source: ds2, entity: project_ds2, definition: published_ds2) }
+    let!(:cded_ds2) { create(:hmis_custom_data_element_definition, data_source: ds2, form_definition_identifier: identifier) }
+
+    it 'scopes instances, CDEDs, and version rows to the same identifier and data source' do
+      expect(published_v1.instances).to contain_exactly(instance_ds1)
+      expect(published_v1.custom_data_element_definitions).to include(cded_ds1)
+      expect(published_v1.custom_data_element_definitions).not_to include(cded_ds2)
+
+      expect(draft_v2.published_version).to eq(published_v1)
+      expect(published_v1.draft_version).to eq(draft_v2)
+      expect(published_v1.all_versions).to match_array([published_v1, draft_v2])
+
+      expect(published_ds2.instances).to contain_exactly(instance_ds2)
+      expect(published_ds2.custom_data_element_definitions).to contain_exactly(cded_ds2)
+    end
+  end
+
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 7 }

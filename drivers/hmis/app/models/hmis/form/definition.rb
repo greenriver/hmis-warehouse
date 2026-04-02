@@ -53,13 +53,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
 
-  # --- Relations by identifier ----
-  has_many :instances, foreign_key: 'definition_identifier', primary_key: 'identifier'
+  # --- Relations by identifier (scoped per HMIS data source) ----
+  has_many :instances, foreign_key: [:definition_identifier, :data_source_id], primary_key: [:identifier, :data_source_id], inverse_of: :definition
   has_many :custom_service_types, through: :instances, foreign_key: 'identifier', primary_key: 'form_definition_identifier'
-  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', primary_key: 'identifier', foreign_key: 'form_definition_identifier'
-  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', foreign_key: [:form_definition_identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_many :all_versions, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
