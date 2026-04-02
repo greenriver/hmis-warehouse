@@ -46,6 +46,8 @@ class AddDataSourceToHmisFormDefinitionsAndInstances < ActiveRecord::Migration[7
     remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_identifier'
     remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_draft_per_identifier'
     remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_published_per_identifier'
+    remove_index :CustomDataElementDefinitions, name: 'unique_index_ensuring_one_key_per_record_type'
+    remove_index :CustomDataElementDefinitions, name: 'index_cded_on_owner_type_and_reporting_key'
 
     safety_assured do
       # Re-add uniqueness indexes with data_source_id.
@@ -68,10 +70,19 @@ class AddDataSourceToHmisFormDefinitionsAndInstances < ActiveRecord::Migration[7
                 name: 'uidx_hmis_form_definitions_one_published_per_identifier'
 
       add_index :hmis_form_instances, [:data_source_id, :definition_identifier], name: 'uidx_hmis_form_instances_on_ds_and_identifier'
+
+      add_index :CustomDataElementDefinitions, [:data_source_id, :key, :owner_type], unique: true, name: 'unique_index_ensuring_one_key_per_record_type'
+      add_index :CustomDataElementDefinitions,
+                [:owner_type, :reporting_key, :data_source_id],
+                unique: true,
+                where: '"reporting_key" IS NOT NULL AND "DateDeleted" IS NULL',
+                name: 'index_cded_on_owner_type_and_reporting_key'
     end
   end
 
   def down
+    remove_index :CustomDataElementDefinitions, name: 'unique_index_ensuring_one_key_per_record_type'
+    remove_index :CustomDataElementDefinitions, name: 'index_cded_on_owner_type_and_reporting_key'
     remove_index :hmis_form_instances, name: 'uidx_hmis_form_instances_on_ds_and_identifier'
 
     remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_published_per_identifier'
@@ -98,6 +109,13 @@ class AddDataSourceToHmisFormDefinitionsAndInstances < ActiveRecord::Migration[7
               unique: true,
               where: "((status)::text = 'published'::text) AND (deleted_at IS NULL)",
               name: 'uidx_hmis_form_definitions_one_published_per_identifier'
+
+    add_index :CustomDataElementDefinitions, [:key, :owner_type], unique: true, name: 'unique_index_ensuring_one_key_per_record_type'
+    add_index :CustomDataElementDefinitions,
+              [:owner_type, :reporting_key],
+              unique: true,
+              where: '"reporting_key" IS NOT NULL AND "DateDeleted" IS NULL',
+              name: 'index_cded_on_owner_type_and_reporting_key'
 
     remove_reference :hmis_form_instances, :data_source
     remove_reference :hmis_form_definitions, :data_source
