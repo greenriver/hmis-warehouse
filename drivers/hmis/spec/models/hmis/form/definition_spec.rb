@@ -12,6 +12,10 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::Form::Definition, type: :model do
   include_context 'hmis base setup'
 
+  let(:c1) { create :hmis_hud_client, data_source: ds1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 7 }
+
   describe 'identifier + data_source_id associations' do
     let(:identifier) { 'composite-scoped-form' }
     let!(:published_v1) { create(:hmis_form_definition, data_source: ds1, identifier: identifier, version: 1, status: :published) }
@@ -41,9 +45,17 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 
-  let(:c1) { create :hmis_hud_client, data_source: ds1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 7 }
+  describe '#active' do
+    let!(:active_definition) { create(:hmis_form_definition, data_source: ds1, identifier: 'active-form') }
+    let!(:active_instance) { create(:hmis_form_instance, definition_identifier: active_definition.identifier, active: true, data_source: ds1) }
+    let!(:inactive_definition) { create(:hmis_form_definition, data_source: ds1, identifier: 'inactive-form') }
+    let!(:inactive_instance) { create(:hmis_form_instance, definition_identifier: inactive_definition.identifier, active: false, data_source: ds1) }
+    let!(:no_instance_definition) { create(:hmis_form_definition, data_source: ds1, identifier: 'no-instance-form') }
+
+    it 'returns only active definitions' do
+      expect(Hmis::Form::Definition.active).to contain_exactly(active_definition)
+    end
+  end
 
   describe 'finding the definition for a HUD Assessment' do
     let(:role) { :INTAKE }

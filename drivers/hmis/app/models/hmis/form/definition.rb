@@ -282,7 +282,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   scope :non_static, -> { where.not(role: STATIC_FORM_ROLES) }
 
   scope :active, -> do
-    where(identifier: Hmis::Form::Instance.active.select(:definition_identifier))
+    joins(:instances).merge(Hmis::Form::Instance.active).distinct
   end
 
   scope :for_service_type, ->(service_type) do
