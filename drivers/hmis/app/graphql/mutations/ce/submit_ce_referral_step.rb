@@ -24,7 +24,7 @@ module Mutations
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
       step = nil
       errors = HmisErrors::Errors.new
-      form_definition = Hmis::Form::Definition.find(form_definition_id)
+      form_definition = Hmis::Form::Definition.for_data_source(current_user.hmis_data_source_id).find(form_definition_id)
       raise unless form_definition.valid_status_for_submit?
 
       referral.opportunity.with_lock do
