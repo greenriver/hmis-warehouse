@@ -13,6 +13,7 @@ FactoryBot.define do
     role { 'UPDATE' }
     status { Hmis::Form::Definition::PUBLISHED }
     title { 'Form' }
+    data_source { association :hmis_data_source }
     definition do
       {
         'item': [
