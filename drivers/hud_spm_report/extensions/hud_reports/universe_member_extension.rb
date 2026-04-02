@@ -28,7 +28,7 @@ module HudSpmReport::HudReports
           enrollment_class_name = "HudSpmReport::#{active_version.to_s.camelize}::SpmEnrollment"
           where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq(enrollment_class_name))
         end,
-        class_name: 'HudSpmReport::Fy2024::SpmEnrollment', # NOTE: this doesn't match, but the SPM enrollments all use the same table, so should be safe
+        class_name: 'HudSpmReport::Fy2026::SpmEnrollment', # NOTE: this doesn't match, but the SPM enrollments all use the same table, so should be safe
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,
@@ -40,7 +40,7 @@ module HudSpmReport::HudReports
           return_class_name = "HudSpmReport::#{active_version.to_s.camelize}::Return"
           where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq(return_class_name))
         end,
-        class_name: 'HudSpmReport::Fy2024::Return', # NOTE: this doesn't match, but the SPM returns all use the same table, so should be safe
+        class_name: 'HudSpmReport::Fy2026::Return', # NOTE: this doesn't match, but the SPM returns all use the same table, so should be safe
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,

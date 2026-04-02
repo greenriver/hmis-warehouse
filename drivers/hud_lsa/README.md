@@ -51,6 +51,10 @@ The system supports two modes of operation:
    - Configured via `LSA_DB_HOST` environment variable
    - Database is dropped after report completion
 
+### Public accessibility
+
+Dynamic RDS instances are created with **`PubliclyAccessible` set to `false`** in `lib/rds_sql_server/rds.rb` (see `create_db_on_aws`). That should stay that way: the SQL Server must only be reachable from trusted network paths (for example the same VPC, VPN, or peering as the app workers), not from the public internet. For developers running the LSA locally, this should be accessible through Tailscale and assuming the correct role for AWS.
+
 ### S3 Integration
 
 For faster data imports, the system can use AWS RDS S3 integration:

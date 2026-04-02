@@ -23,7 +23,7 @@ module HudSpmReport
     private
 
     def report_version
-      (@report.options&.dig('report_version').presence || 'fy2024').to_sym
+      (@report.options&.dig('report_version').presence || 'fy2026').to_sym
     end
 
     def possible_generator_classes

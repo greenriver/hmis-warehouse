@@ -38,11 +38,11 @@ module Health
       GPGME::Key.import(secret_key) unless GPGME::Key.find(encryption_key_name).present?
     end
 
-    private def host_name
+    def host_name
       host.split(':').first
     end
 
-    private def port_number
+    def port_number
       _, port = host.split(':')
 
       if port.present?
