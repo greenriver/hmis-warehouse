@@ -144,17 +144,17 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   describe 'the latest_versions scope' do
     # id1 has 2 retired, 1 published, and 1 draft version
-    let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired' }
-    let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired' }
-    let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: 'published' }
-    let!(:id1_draft) { create :hmis_form_definition, identifier: 'identifier_1', version: 3, status: 'draft' }
+    let!(:id1_retired1) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_1', version: 0, status: 'retired') }
+    let!(:id1_retired2) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_1', version: 1, status: 'retired') }
+    let!(:id1_published) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_1', version: 2, status: 'published') }
+    let!(:id1_draft) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_1', version: 3, status: 'draft') }
 
     # id2 exists only in draft
-    let!(:id2_draft) { create :hmis_form_definition, identifier: 'identifier_2', version: 0, status: 'draft' }
+    let!(:id2_draft) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_2', version: 0, status: 'draft') }
 
     # id3 has 2 retired versions, no currently published or draft versions
-    let!(:id3_retired1) { create :hmis_form_definition, identifier: 'identifier_3', version: 0, status: 'retired' }
-    let!(:id3_retired2) { create :hmis_form_definition, identifier: 'identifier_3', version: 1, status: 'retired' }
+    let!(:id3_retired1) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_3', version: 0, status: 'retired') }
+    let!(:id3_retired2) { create(:hmis_form_definition, data_source: ds1, identifier: 'identifier_3', version: 1, status: 'retired') }
 
     it 'should have correct relationships when there are multiple retired, 1 published, and 1 draft' do
       latest = Hmis::Form::Definition.where(identifier: 'identifier_1').latest_versions
