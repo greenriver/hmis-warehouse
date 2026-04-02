@@ -42,15 +42,22 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   has_paper_trail
 
   belongs_to :entity, polymorphic: true, optional: true
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   # This belongs_to relationship is a bit confusing since now form identifiers can have multiple versions.
   # We should aim to gradually replace usages of :definition with the has_many :definitions relationship below,
   # so that we're explicit about which statuses of definition (draft, published, retired) we accept in a given situation.
   belongs_to :definition,
              -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
-             foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+             foreign_key: [:definition_identifier, :data_source_id],
+             primary_key: [:identifier, :data_source_id],
+             class_name: 'Hmis::Form::Definition',
+             inverse_of: :instances
 
-  has_many :definitions, primary_key: :definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
+  has_many :definitions,
+           primary_key: [:definition_identifier, :data_source_id],
+           foreign_key: [:identifier, :data_source_id],
+           class_name: 'Hmis::Form::Definition'
 
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
@@ -117,6 +124,10 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   SORT_OPTIONS = [:form_title, :form_type, :date_updated].freeze
+
+  scope :for_data_source, ->(data_source_id) do
+    where(data_source_id: data_source_id)
+  end
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
