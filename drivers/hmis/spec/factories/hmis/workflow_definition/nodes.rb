@@ -9,7 +9,7 @@ FactoryBot.define do
       form_definition { association(:hmis_form_definition) }
     end
     after(:build) do |task, evaluator|
-      task.form_definition_identifier = evaluator.form_definition.identifier
+      task.form_definition_identifier = evaluator.form_definition.identifier unless evaluator.form_definition_identifier.present?
     end
   end
 
