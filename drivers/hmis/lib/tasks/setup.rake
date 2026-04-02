@@ -1,7 +1,7 @@
 desc 'Seed form definitions'
 task seed_definitions: [:environment, 'log:info_to_stdout'] do
   GrdaWarehouse::DataSource.hmis.pluck(:id, :name).each do |data_source_id, name|
-    Rails.logger.info "Seeding form definitions for DS##{data_source_id} #{name}"
+    puts "Seeding form definitions for DS##{data_source_id} #{name}"
     ::HmisUtil::JsonForms.seed_all(data_source_id: data_source_id)
   end
 end
