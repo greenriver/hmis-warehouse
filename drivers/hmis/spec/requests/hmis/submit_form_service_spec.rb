@@ -21,7 +21,7 @@ RSpec.describe 'SubmitForm for Service', type: :request do
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2020-01-01' }
 
-  let(:service_type) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) } # created in the json forms seed context
+  let(:service_type) { ds1.custom_service_types.find_by(hud_record_type: 200) } # created in the json forms seed context
   let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
 
   let!(:service) { create :hmis_hud_service_bednight, data_source: ds1, client: c1, enrollment: e1, user: u1 }
