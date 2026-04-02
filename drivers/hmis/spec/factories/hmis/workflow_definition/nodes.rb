@@ -6,7 +6,8 @@ FactoryBot.define do
     trigger_config { [] }
     association(:template, factory: :hmis_workflow_definition_template)
     transient do
-      form_definition { association(:hmis_form_definition) }
+      data_source { association(:hmis_data_source) }
+      form_definition { association(:hmis_form_definition, data_source: data_source) }
     end
     after(:build) do |task, evaluator|
       # If form_definition was passed in to the factory, use that to set the task's form_definition_identifier.

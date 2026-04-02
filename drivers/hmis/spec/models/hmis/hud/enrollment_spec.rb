@@ -12,7 +12,6 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Hud::Enrollment, type: :model do
   include_context 'hmis base setup'
-  include_context 'hmis json forms seed'
 
   it 'detects date conflicts' do
     [
@@ -290,6 +289,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   end
 
   describe 'occurrence point form instances' do
+    include_context 'hmis json forms seed'
+
     let(:role) { :OCCURRENCE_POINT }
     let!(:definition) { create(:occurrence_point_form, data_source: ds1) }
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
@@ -304,12 +305,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     before(:all) do
-      # delete default instances to test from a clean slate
+      # delete default instances. These tests expect seeded form definitions, but clean slate of instances
       Hmis::Form::Instance.delete_all
-    end
-    after(:all) do
-      # reset to original state
-      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: ds1.id).ensure_all_system_instances_exist!
     end
 
     it 'does not return the form when no instance exists' do
