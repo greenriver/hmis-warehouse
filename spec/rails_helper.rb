@@ -108,7 +108,7 @@ RSpec.configure do |config|
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     end
 
-    # load hmis forms if we're testing the driver
+    # Load HMIS form definitions and system form instances if we're testing the HMIS driver.
     # This is an overall performance improvement to our test suite, since many tests depend on these forms.
     # However, it does mean that if individual tests modify the seeded forms, they are responsible for cleaning up
     # by restoring all forms to their original seeded state, *not* by using Hmis::Form::Definition.delete_all.

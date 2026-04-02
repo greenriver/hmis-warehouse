@@ -7,15 +7,26 @@
 # frozen_string_literal: true
 
 module HmisUtil
+  # Loads HMIS form definitions from version-controlled JSON files into the database.
+  #
+  # By default, ensures HUD-compliant system form instances exist using HudComplianceFormInstanceMaintainer. (create_instances option)
+  # Optionally ensures CDEDs for custom_field_key mappings exist (generate_cdeds; defaults to true except in test).
+  #
+  # Reads form JSON files from drivers/hmis/lib/form_data:
+  #   - Base definitions live under default/ (fragments, record forms, assessments, static admin forms)
+  #   - Environment-specific overrides are loaded from subdirs to override or extend the base definitions: e.g. test, qa_hmis, or ENV['CLIENT']
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException
 
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
-    def initialize(env_key: nil, enable_cded_generation_in_test: false)
-      @env_key = env_key if env_key.presence # allow override for testing
-      @enable_cded_generation_in_test = enable_cded_generation_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
+    attr_reader :env_key, :generate_cdeds, :create_instances
+
+    def initialize(env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?)
+      @env_key = env_key.presence || compute_default_env_key
+      @create_instances = create_instances
+      @generate_cdeds = generate_cdeds # default: generate CDEDs from custom_field_key mappings in non-test environments
     end
 
     def self.seed_all
@@ -23,31 +34,28 @@ module HmisUtil
     end
 
     def seed_all
-      # Load ALL the latest record definitions from JSON files.
-      # This also ensures that any system-level instances exist.
-      seed_record_form_definitions
-      # Load ALL the latest assessment definition from JSON files.
-      seed_assessment_form_definitions
-      seed_custom_assessment_form_definitions
-      # Load admin forms (not configurable)
-      seed_static_forms
+      Hmis::Hud::Base.transaction do
+        # Load the latest record definitions from JSON files. (Client, Project, Enrollment, etc.)
+        seed_record_form_definitions
+        # Load the latest assessment definitions from JSON files. (Intake, Exit, Update, Annual, Post-exit)
+        seed_assessment_form_definitions
+        # Load custom assessment definitions from JSON files. (Only for testing/QA, typically custom assessments are not managed in version control)
+        seed_custom_assessment_form_definitions
+        # Load static admin forms
+        seed_static_forms
+        # Ensure all system instances exist for HUD compliance. System instances cannot be removed in the admin UI.
+        HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist! if create_instances
+      end
     end
 
     protected
 
-    def enable_cded_generation_in_test?
-      @enable_cded_generation_in_test
-    end
+    def compute_default_env_key
+      return 'test' if Rails.env.test? # Load records from lib/form_data/test
+      return ENV['CLIENT'] if ENV['CLIENT'].present? # Load records from lib/form_data/ENV['CLIENT']
+      return 'qa_hmis' if Rails.env.development? # In development, load records from lib/form_data/qa_hmis
 
-    def env_key
-      @env_key ||= if Rails.env.test?
-        'test'
-      elsif ENV['CLIENT'].present?
-        ENV['CLIENT']
-      elsif Rails.env.development?
-        # default to QA environment in development to get forms with all possible questions enabled
-        'qa_hmis'
-      end
+      nil
     end
 
     def fragment_map
@@ -93,12 +101,12 @@ module HmisUtil
       end
     end
 
-    def client_override(file_path)
+    def path_with_env_override(file_path)
       return file_path unless env_key
 
-      client_override_fpath = file_path.gsub('/default/', "/#{env_key}/")
-      if File.exist?(client_override_fpath)
-        client_override_fpath
+      env_override_path = file_path.gsub('/default/', "/#{env_key}/")
+      if File.exist?(env_override_path)
+        env_override_path
       else
         file_path
       end
@@ -115,7 +123,7 @@ module HmisUtil
           role = identifier.upcase.to_sym
           raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.include?(role)
 
-          file_path = client_override(file_path)
+          file_path = path_with_env_override(file_path)
           # puts "Loading #{identifier} from #{file_path}"
           file = File.read(file_path)
           forms[role] ||= {}
@@ -141,7 +149,7 @@ module HmisUtil
           # Load client-specific
           Dir.glob("#{DATA_DIR}/#{env_key}/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            file_path = client_override(file_path)
+            file_path = path_with_env_override(file_path)
             # puts "Loading #{identifier} from #{file_path}"
             file = File.read(file_path)
             forms[role][identifier] = JSON.parse(file)
@@ -302,10 +310,7 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
-      # Generate and validate CDEDs if this isn't a test env, OR if it is a test env but enable_cded_generation_in_test flag is true.
-      should_generate_cdeds = !Rails.env.test? || enable_cded_generation_in_test?
-
-      if should_generate_cdeds
+      if generate_cdeds
         # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
         cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
@@ -321,65 +326,11 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        skip_cded_validation: !should_generate_cdeds, # skip validation if we didn't generate CDEDs
+        skip_cded_validation: !generate_cdeds, # skip validation if we didn't generate CDEDs
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
       record.save!
-    end
-
-    public def ensure_system_instances_exist!
-      Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
-        identifier = role.to_s.downcase
-        raise "No definition found for role: #{role}" unless Hmis::Form::Definition.where(identifier: identifier).exists?
-
-        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
-        default_instance.update(system: true, active: true)
-        default_instance.touch
-      end
-    end
-
-    # Create some default HUD occurrence point instances
-    public def create_default_occurrence_point_instances!
-      # Move-in Date
-      unless Hmis::Form::Instance.where(definition_identifier: 'move_in_date').exists?
-        HudHelper.util.permanent_housing_project_types.each do |ptype|
-          Hmis::Form::Instance.create!(
-            definition_identifier: 'move_in_date',
-            project_type: ptype,
-            data_collected_about: :HOH,
-            active: true,
-            system: false,
-          )
-        end
-      end
-
-      # Date of Engagement
-      unless Hmis::Form::Instance.where(definition_identifier: 'date_of_engagement').exists?
-        # Note: spec has funder components too, but by default we just show it for the project types.
-        HudHelper.util.doe_project_types.each do |ptype|
-          Hmis::Form::Instance.create!(
-            definition_identifier: 'date_of_engagement',
-            project_type: ptype,
-            data_collected_about: :HOH_AND_ADULTS,
-            active: true,
-            system: false,
-          )
-        end
-      end
-
-      # PATH Status
-      return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
-
-      HudHelper.util.path_funders.each do |funder|
-        Hmis::Form::Instance.create!(
-          definition_identifier: 'path_status',
-          funder: funder,
-          data_collected_about: :HOH_AND_ADULTS,
-          active: true,
-          system: false,
-        )
-      end
     end
 
     FORM_TITLES = {
@@ -395,13 +346,10 @@ module HmisUtil
 
     # Load form definitions for editing and creating records
     public def seed_record_form_definitions(roles: [])
-      added_identifiers = []
       record_forms_by_role.each do |role, definition_hash|
         next if roles.any? && !roles.map(&:to_s).include?(role.to_s)
 
         definition_hash.each do |identifier, form_definition|
-          # puts "Loading #{identifier} => #{role}"
-          added_identifiers << identifier
           load_definition(
             form_definition: form_definition,
             identifier: identifier,
@@ -410,14 +358,11 @@ module HmisUtil
           )
         end
       end
-      ensure_system_instances_exist!
-      # puts "Saved definitions with identifiers: #{added_identifiers.join(', ')}"
     end
 
     # Load form definitions for HUD assessments
     public def seed_assessment_form_definitions
       roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL, :POST_EXIT]
-      identifiers = []
       roles.each do |role|
         filename = "base_#{role.to_s.downcase}.json"
         begin
@@ -428,26 +373,14 @@ module HmisUtil
         file ||= File.read("#{DATA_DIR}/default/assessments/#{filename}")
         form_definition = JSON.parse(file)
 
-        # Load definition into database
         identifier = "base-#{role.to_s.downcase}"
-        identifiers << identifier
-
         load_definition(
           form_definition: form_definition,
           identifier: identifier,
           role: role,
           title: FORM_TITLES[identifier],
         )
-
-        # Don't create default instance for post-exit. Those are going to be configured per installation
-        next if role == :POST_EXIT
-
-        # Make this form the default instance for this role
-        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
-        default_instance.update!(system: true, active: true)
-        default_instance.touch
       end
-      # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
     def seed_custom_assessment_form_definitions

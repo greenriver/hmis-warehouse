@@ -19,7 +19,7 @@ RSpec.feature 'Hmis Form Instance behavior', type: :model do
   let!(:instance1) { create(:hmis_form_instance, role: role, project_type: 2, active: true, definition: assessment_definition) }
   let!(:instance2) { create(:hmis_form_instance, role: role, project_type: 3, active: true, definition: assessment_definition) }
 
-  let(:intake_form) { Hmis::Form::Definition.find_by(role: 'INTAKE') }
+  let(:intake_form) { Hmis::Form::Definition.managed_in_version_control.find_by!(role: 'INTAKE') }
   let!(:instance3) { create(:hmis_form_instance, role: 'INTAKE', project_type: 3, active: true, definition: intake_form) }
 
   describe 'with_role scope' do

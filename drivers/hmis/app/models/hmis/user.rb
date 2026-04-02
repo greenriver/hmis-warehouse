@@ -34,7 +34,11 @@ class Hmis::User < ApplicationRecord
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'
-  attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
+
+  # Request-scoped attribute storing the data_source_id of the current HMIS request for the current user.
+  # All HMIS access is scoped to this data source.
+  # @see docs/architecture/multi-hmis-support.md
+  attr_accessor :hmis_data_source_id
 
   scope :with_hmis_access, -> do
     # Users that are a member of at least 1 HMIS User Group

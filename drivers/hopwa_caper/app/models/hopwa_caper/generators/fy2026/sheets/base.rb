@@ -15,6 +15,10 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     protected
 
+    def arel
+      Hmis::ArelHelper.instance
+    end
+
     def question_sheet(question:)
       sheet = HudReports::QuestionSheet.new(report: @report, question: question)
       if block_given?
@@ -27,10 +31,6 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def report_enrollment_universe
       HopwaCaper::Enrollment
-    end
-
-    def overlapping_enrollments(scope)
-      scope.overlapping_range(start_date: @report.start_date, end_date: @report.end_date)
     end
 
     def heads_of_household_for(scope)

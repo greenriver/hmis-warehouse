@@ -121,6 +121,7 @@ module HmisUtil
 
     # Set up initial Form Instances exist for each HUD Service Type according to the configuration.
     # These are NOT system-level instances; they can be deleted or changed as needed.
+    # TODO(#8874): refactor and move this to HudComplianceFormInstanceMaintainer so it runs on deploy
     def self.seed_hud_service_form_instances
       HUD_SERVICE_INSTANCE_CONFIG.each do |config|
         (record_type, project_types, funders) = config.values_at(:record_type, :project_types, :funders)
@@ -137,7 +138,7 @@ module HmisUtil
               custom_service_category_id: custom_service_category&.id,
               project_type: project_type,
               funder: funder,
-              system: false, # These aren't system records, they can be deleted.
+              system: false, # TODO(#8874) change these to system rules so they cannot be deleted
               active: true,
             ).first_or_create
           end

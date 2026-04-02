@@ -99,7 +99,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Non-configurable forms. These are submitted using custom mutations.
   STATIC_FORM_ROLES = [
     :FORM_RULE,
-    :AUTO_EXIT_CONFIG,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
@@ -235,6 +234,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
+  scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
+
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed
     return if draft?
@@ -351,7 +352,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Raise an error if no definition was found for a system role (like CLIENT, PROJECT, etc).
     # System role forms are required for the HMIS to function. There should be system Instances that prevent this from happening.
-    raise `No Definition found for System form #{role}` if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
+    raise "No Definition found for System form #{role}" if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
 
     selected_definition
   end

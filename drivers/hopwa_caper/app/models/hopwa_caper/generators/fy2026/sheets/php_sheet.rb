@@ -22,8 +22,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_enrollments
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.php_hopwa
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        php_hopwa(range: @report.report_range).
+        apply(@report.hopwa_caper_enrollments)
     end
 
     def expenditures_sheet(sheet)

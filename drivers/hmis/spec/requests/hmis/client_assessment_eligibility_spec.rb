@@ -40,7 +40,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
 
   def run_query(enrollment:)
     response, result = post_graphql(enrollmentId: enrollment.id) { query }
-    expect(response.status).to eq(200)
+    expect(response.status).to eq(200), result.inspect
     result.dig('data', 'enrollment', 'assessmentEligibilities').map { |n| n['role'] }
   end
 
@@ -75,7 +75,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
 
     it 'only resolves published eligible custom assessment definition' do
       response, result = post_graphql(enrollmentId: e1.id) { query }
-      expect(response.status).to eq(200)
+      expect(response.status).to eq(200), result.inspect
       custom_assmt_eligibilities = result.dig('data', 'enrollment', 'assessmentEligibilities').filter { |n| n['role'] == 'CUSTOM_ASSESSMENT' }
       expect(custom_assmt_eligibilities).to contain_exactly(a_hash_including('formDefinitionId' => published_active_form.id.to_s))
     end

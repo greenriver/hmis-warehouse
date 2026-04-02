@@ -5216,11 +5216,6 @@ enum FormRole {
   ANNUAL
 
   """
-  Auto exit config
-  """
-  AUTO_EXIT_CONFIG
-
-  """
   Case note
   """
   CASE_NOTE
@@ -12507,11 +12502,6 @@ type StartCeReferralStepPayload {
 Form Roles that are used for non-configurable forms. These types of forms are submitted using custom mutations.
 """
 enum StaticFormRole {
-  """
-  Auto exit config
-  """
-  AUTO_EXIT_CONFIG
-
   """
   Client alert
   """

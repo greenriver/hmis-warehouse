@@ -20,7 +20,6 @@ SELECT id,
     pending_date_deleted,
     source_hash,
     "CLSSubsidyType",
-    "CurrentLivingSituation2022",
     verified_by_project_id
    FROM "CurrentLivingSituation"
   WHERE ("DateDeleted" IS NULL)
