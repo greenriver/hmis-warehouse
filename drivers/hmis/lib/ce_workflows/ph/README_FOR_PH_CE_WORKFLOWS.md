@@ -14,7 +14,7 @@ These 3 referrals have differing first steps, but the workflows are the same aft
 ### Usage
 These workflows are generated and updated using the `CeWorkflows::Ph::WorkflowBuilder` utility class. 
 
-These workflows expect client-specific forms to be available. The forms can be loaded with `CLIENT=client rails driver:hmis:seed_definitions` or `HmisUtil::JsonForms.new(env_key: 'client').seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])`
+These workflows expect client-specific forms to be available. The forms can be loaded with `CLIENT=client rails driver:hmis:seed_definitions` or `HmisUtil::JsonForms.new(env_key: 'client', data_source_id: 1).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])`
 
 #### Updates
 

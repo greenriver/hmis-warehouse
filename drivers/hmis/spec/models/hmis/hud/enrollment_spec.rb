@@ -309,7 +309,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
     after(:all) do
       # reset to original state
-      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
+      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: ds1.id).ensure_all_system_instances_exist!
     end
 
     it 'does not return the form when no instance exists' do
