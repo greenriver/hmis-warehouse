@@ -241,7 +241,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'deletion' do
-    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: :INTAKE, version: 3, status: :draft }
+    let!(:fd1) { create(:hmis_form_definition, data_source: ds1, identifier: 'p1-intake', role: :INTAKE, version: 3, status: :draft) }
     let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1, active: true }
 
     it 'should succeed if form is a draft' do
@@ -269,40 +269,40 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   describe 'supports_save_in_progress' do
     it 'returns false for non-assessments' do
-      fd = create :hmis_form_definition, role: :SERVICE
+      fd = create(:hmis_form_definition, data_source: ds1, role: :SERVICE)
       expect(fd.supports_save_in_progress?).to be false
     end
 
     it 'returns false if it contains an item type of FILE' do
-      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, append_items: [
-        {
-          'type': 'FILE',
-          'link_id': 'file_blob_id',
-          'text': 'Attachment',
-          'mapping': {
-            'field_name': 'fileBlobId',
-          },
-        },
-      ]
+      fd = create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, append_items: [
+                    {
+                      'type': 'FILE',
+                      'link_id': 'file_blob_id',
+                      'text': 'Attachment',
+                      'mapping': {
+                        'field_name': 'fileBlobId',
+                      },
+                    },
+                  ])
       expect(fd.supports_save_in_progress?).to be false
     end
 
     it 'returns false if it contains an item type of IMAGE' do
-      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, append_items: [
-        {
-          'type': 'IMAGE',
-          'link_id': 'photo',
-          'text': 'Photo',
-          'mapping': {
-            'field_name': 'photo',
-          },
-        },
-      ]
+      fd = create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, append_items: [
+                    {
+                      'type': 'IMAGE',
+                      'link_id': 'photo',
+                      'text': 'Photo',
+                      'mapping': {
+                        'field_name': 'photo',
+                      },
+                    },
+                  ])
       expect(fd.supports_save_in_progress?).to be false
     end
 
     it 'returns true for assessments that do not have any FILE or IMAGE items' do
-      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT
+      fd = create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT)
       expect(fd.supports_save_in_progress?).to be true
     end
   end
