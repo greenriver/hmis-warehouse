@@ -48,25 +48,25 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   describe 'finding the definition for a HUD Assessment' do
     let(:role) { :INTAKE }
     # Intake for p1
-    let!(:p1_intake_published) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 3, status: :published }
-    let!(:p1_intake_retired) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 2, status: :retired } # cruft: old version
-    let!(:p1_intake_rule) { create :hmis_form_instance, definition_identifier: 'p1-intake', entity: p1, active: true }
+    let!(:p1_intake_published) { create(:hmis_form_definition, data_source: ds1, identifier: 'p1-intake', role: role, version: 3, status: :published) }
+    let!(:p1_intake_retired) { create(:hmis_form_definition, data_source: ds1, identifier: 'p1-intake', role: role, version: 2, status: :retired) } # cruft: old version
+    let!(:p1_intake_rule) { create :hmis_form_instance, definition_identifier: 'p1-intake', entity: p1, active: true, data_source: ds1 }
 
     # Intake for all projects
-    let!(:default_intake_published) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 4, status: :published }
-    let!(:default_intake_retired) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 3, status: :draft } # cruft: old version
-    let!(:default_intake_rule) { create :hmis_form_instance, definition_identifier: 'default-intake', entity: nil, active: true }
+    let!(:default_intake_published) { create(:hmis_form_definition, data_source: ds1, identifier: 'default-intake', role: role, version: 4, status: :published) }
+    let!(:default_intake_retired) { create(:hmis_form_definition, data_source: ds1, identifier: 'default-intake', role: role, version: 3, status: :draft) } # cruft: old version
+    let!(:default_intake_rule) { create :hmis_form_instance, definition_identifier: 'default-intake', entity: nil, active: true, data_source: ds1 }
 
     # cruft: form has active rules but only has a draft version
-    let!(:draft_only_intake) { create :hmis_form_definition, identifier: 'draft-only-intake', role: role, version: 6, status: :draft }
-    let!(:draft_only_intake_rule) { create :hmis_form_instance, definition_identifier: 'draft-only-intake', entity: p1, active: true }
+    let!(:draft_only_intake) { create(:hmis_form_definition, data_source: ds1, identifier: 'draft-only-intake', role: role, version: 6, status: :draft) }
+    let!(:draft_only_intake_rule) { create :hmis_form_instance, definition_identifier: 'draft-only-intake', entity: p1, active: true, data_source: ds1 }
 
     # cruft: form only has inactive rules
-    let!(:inactive_intake) { create :hmis_form_definition, identifier: 'inactive-intake', role: role, version: 7, status: :published }
-    let!(:inactive_intake_rule) { create :hmis_form_instance, definition_identifier: 'inactive-intake', entity: p1, active: false }
+    let!(:inactive_intake) { create(:hmis_form_definition, data_source: ds1, identifier: 'inactive-intake', role: role, version: 7, status: :published) }
+    let!(:inactive_intake_rule) { create :hmis_form_instance, definition_identifier: 'inactive-intake', entity: p1, active: false, data_source: ds1 }
 
     def expect_definition(expected_fd, project: nil)
-      selected = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      selected = Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: ds1.id)
 
       # compare on a subset of attributes to make debugging easier
       comparison_attrs = [:id, :identifier, :version, :status]
@@ -83,7 +83,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should ignore inactive rules, even if they are more specific' do
-      create(:hmis_form_instance, definition_identifier: 'p1-intake', entity: p2, active: false)
+      create(:hmis_form_instance, definition_identifier: 'p1-intake', entity: p2, active: false, data_source: ds1)
       # chooses default-intake based on default rule, even though p1-intake has a more specific rule that is inactive
       expect_definition(default_intake_published, project: p2)
     end
@@ -103,8 +103,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     it 'should prefer non-system rule over system rule when choosing a default instance' do
       default_intake_rule.update!(system: true)
 
-      other_default_intake = create(:hmis_form_definition, identifier: 'custom-default-intake', role: role, version: 4, status: :published)
-      other_default_rule = create(:hmis_form_instance, definition: other_default_intake, entity: nil, active: true, system: false)
+      other_default_intake = create(:hmis_form_definition, data_source: ds1, identifier: 'custom-default-intake', role: role, version: 4, status: :published)
+      other_default_rule = create(:hmis_form_instance, definition: other_default_intake, entity: nil, active: true, system: false, data_source: ds1)
       expect_definition(other_default_intake, project: p2) # chooses definition referenced by non-system rule
       expect_definition(other_default_intake) # same if project is not passed
 
@@ -118,20 +118,20 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   describe 'finding the definition for an Enrollment form, with funder and project type instances' do
     it 'applies correct specificity (project > org > funder&ptype > funder > ptype)' do
-      p1 = create(:hmis_hud_project, project_type: 1)
-      p2 = create(:hmis_hud_project, project_type: 1, funders: [43])
-      p3 = create(:hmis_hud_project, project_type: 2, funders: [43])
-      p4 = create(:hmis_hud_project, project_type: 2) # matches default rule
-      p5 = create(:hmis_hud_project, project_type: 1, funders: [43])
-      p6 = create(:hmis_hud_project, project_type: 1, funders: [43])
+      p1 = create(:hmis_hud_project, project_type: 1, data_source: ds1)
+      p2 = create(:hmis_hud_project, project_type: 1, funders: [43], data_source: ds1)
+      p3 = create(:hmis_hud_project, project_type: 2, funders: [43], data_source: ds1)
+      p4 = create(:hmis_hud_project, project_type: 2, data_source: ds1) # matches default rule
+      p5 = create(:hmis_hud_project, project_type: 1, funders: [43], data_source: ds1)
+      p6 = create(:hmis_hud_project, project_type: 1, funders: [43], data_source: ds1)
 
       role = :CURRENT_LIVING_SITUATION
-      fi1 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: nil)
-      fi2 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43)
-      fi3 = create(:hmis_form_instance, role: role, entity: nil, project_type: nil, funder: 43)
-      fi4 = create(:hmis_form_instance, role: role, entity: p5)
-      fi5 = create(:hmis_form_instance, role: role, entity: p6.organization)
-      fi6 = create(:hmis_form_instance, role: role, entity: nil) # default rule
+      fi1 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: nil, data_source: ds1)
+      fi2 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43, data_source: ds1)
+      fi3 = create(:hmis_form_instance, role: role, entity: nil, project_type: nil, funder: 43, data_source: ds1)
+      fi4 = create(:hmis_form_instance, role: role, entity: p5, data_source: ds1)
+      fi5 = create(:hmis_form_instance, role: role, entity: p6.organization, data_source: ds1)
+      fi6 = create(:hmis_form_instance, role: role, entity: nil, data_source: ds1) # default rule
 
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p1)).to eq(fi1.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p2)).to eq(fi2.definition)
@@ -203,25 +203,25 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   describe 'find_definition_for_service_type' do
     let(:role) { :SERVICE }
-    it 'only service defintions for the specified service type are returned (regression test)' do
+    it 'only service definitions for the specified service type are returned (regression test)' do
       cst1 = create(:hmis_custom_service_type, name: 'My service', data_source: ds1)
-      p1 = create(:hmis_hud_project, project_type: 1)
-      p2 = create(:hmis_hud_project, project_type: 1, funders: [43])
-      p3 = create(:hmis_hud_project, project_type: 2)
+      p1 = create(:hmis_hud_project, project_type: 1, data_source: ds1)
+      p2 = create(:hmis_hud_project, project_type: 1, funders: [43], data_source: ds1)
+      p3 = create(:hmis_hud_project, project_type: 2, data_source: ds1)
 
-      create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43) # should never be chosen
+      create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43, data_source: ds1) # should never be chosen
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to be_nil
 
       # form by category
-      fd1 = create(:hmis_form_definition, identifier: 'custom-service-def', role: role)
-      create(:hmis_form_instance, role: role, definition: fd1, custom_service_category: cst1.category, entity: nil, project_type: nil, funder: nil)
+      fd1 = create(:hmis_form_definition, data_source: ds1, identifier: 'custom-service-def', role: role)
+      create(:hmis_form_instance, role: role, definition: fd1, custom_service_category: cst1.category, entity: nil, project_type: nil, funder: nil, data_source: ds1)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to eq(fd1)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p2)).to eq(fd1)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p3)).to eq(fd1)
 
       # form by type (more specific, so should be chosen over category form)
-      fd2 = create(:hmis_form_definition, identifier: 'custom-service-def2', role: role)
-      create(:hmis_form_instance, role: role, definition: fd2, custom_service_type: cst1, entity: nil, project_type: nil, funder: nil)
+      fd2 = create(:hmis_form_definition, data_source: ds1, identifier: 'custom-service-def2', role: role)
+      create(:hmis_form_instance, role: role, definition: fd2, custom_service_type: cst1, entity: nil, project_type: nil, funder: nil, data_source: ds1)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to eq(fd2)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p2)).to eq(fd2)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p3)).to eq(fd2)
