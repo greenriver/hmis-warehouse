@@ -257,7 +257,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.for_project(project:, role:, service_type: nil)
     # Consider all Active, Published Forms for this Role
     definition_scope = Hmis::Form::Definition.with_role(role).
-      for_data_source(project.data_source_id).
+      in_data_source(project.data_source_id).
       active. # Drop definitions that have no active rules
       published
 
@@ -333,7 +333,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Ensure that external_form_object_key is not reused across forms with different identifiers
     object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
-      for_data_source(data_source_id).
+      in_data_source(data_source_id).
       where.not(identifier: identifier).exists?
     errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
   end
@@ -351,7 +351,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       raise ArgumentError, 'data_source_id is required when project is not specified' unless data_source_id.present?
 
       # Project was not specified, so return the "default" FormDefinition for the role (if any)
-      scope = Hmis::Form::Definition.with_role(role).published.for_data_source(data_source_id)
+      scope = Hmis::Form::Definition.with_role(role).published.in_data_source(data_source_id)
       # Only consider forms that have an active "default" rule, meaning there is no project criteria on the rule
       scope = scope.joins(:instances).merge(Hmis::Form::Instance.defaults.active)
 

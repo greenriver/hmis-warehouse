@@ -125,7 +125,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   SORT_OPTIONS = [:form_title, :form_type, :date_updated].freeze
 
-  scope :for_data_source, ->(data_source_id) do
+  scope :in_data_source, ->(data_source_id) do
     where(data_source_id: data_source_id)
   end
 
