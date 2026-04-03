@@ -89,8 +89,8 @@ RSpec.shared_context 'hmis service setup', shared_context: :metadata do
 
   after(:each) do
     # Cleanup custom service types and categories that were created in before(:each)
-    Hmis::Hud::CustomServiceType.where(data_source: ds1).destroy_all
-    Hmis::Hud::CustomServiceCategory.where(data_source: ds1).destroy_all
+    ds1.custom_service_types.hud.destroy_all
+    ds1.custom_service_categories.hud_only.destroy_all
   end
 end
 
