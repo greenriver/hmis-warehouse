@@ -157,33 +157,28 @@ module Types
 
     field :image, HmisSchema::ClientImage, null: true
     field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
-    access_field do
-      can :view_partial_ssn
-      can :view_full_ssn
-      can :view_client_name
-      can :view_client_photo
-      can :view_dob
-      can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
-      can :delete_clients, field_name: :can_delete_client
-      can :edit_clients, field_name: :can_edit_client
-      can :manage_any_client_files
-      can :manage_own_client_files
-      can :view_any_nonconfidential_client_files
-      can :view_any_confidential_client_files
-      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
-      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
-      can :audit_clients
-      can :manage_scan_cards
-      root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
-      can :view_client_alerts
-      can :manage_client_alerts
-      root_can :can_view_client_eligible_opportunities
-      root_can :can_view_referrals
-      root_can :can_view_own_referrals
-      can :print_client_case_notes
+    access_field policy_type: :hmis_client do
+      policy_field :can_view_partial_ssn?
+      policy_field :can_view_full_ssn?
+      policy_field :can_view_client_name?, policy_method_name: :can_view_name?
+      policy_field :can_view_client_photo?
+      policy_field :can_view_dob?
+      policy_field :can_view_enrollment_details?, policy_method_name: :can_view_some_enrollment_details?
+      policy_field :can_delete_client?, policy_method_name: :can_destroy?
+      policy_field :can_edit_client?, policy_method_name: :can_edit?
+      policy_field :can_manage_any_client_files?, policy_method_name: :can_manage_all_viewable_client_files?
+      policy_field :can_manage_own_client_files?, policy_method_name: :can_manage_own_client_files?
+      policy_field :can_upload_client_files?, policy_method_name: :can_upload_client_files?
+      policy_field :can_view_any_files?, policy_method_name: :can_view_some_client_files?
+      policy_field :can_audit_clients?, policy_method_name: :can_audit?
+      policy_field :can_manage_scan_cards?, policy_method_name: :can_manage_scan_cards?
+      global_policy_field :can_merge_clients?
+      policy_field :can_view_client_alerts?, policy_method_name: :can_view_alerts?
+      policy_field :can_manage_client_alerts?, policy_method_name: :can_manage_alerts?
+      global_policy_field :can_view_client_eligible_opportunities?
+      global_policy_field :can_view_referrals?, policy_override: { resource: Hmis::Ce::Referral, policy_type: :ce_referral }
+      global_policy_field :can_view_own_referrals?, policy_override: { resource: Hmis::Ce::Referral, policy_type: :ce_referral }
+      policy_field :can_print_client_case_notes?, policy_method_name: :can_print_case_notes?
     end
 
     def external_ids

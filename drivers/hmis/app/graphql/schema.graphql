@@ -1581,11 +1581,8 @@ type Client {
 
 type ClientAccess {
   canAuditClients: Boolean!
-  canDeleteAssessments: Boolean!
   canDeleteClient: Boolean!
-  canDeleteEnrollments: Boolean!
   canEditClient: Boolean!
-  canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageClientAlerts: Boolean!
   canManageOwnClientFiles: Boolean!
@@ -1593,9 +1590,7 @@ type ClientAccess {
   canMergeClients: Boolean!
   canPrintClientCaseNotes: Boolean!
   canUploadClientFiles: Boolean!
-  canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
-  canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
   canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!

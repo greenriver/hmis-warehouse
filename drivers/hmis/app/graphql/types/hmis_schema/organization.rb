@@ -28,9 +28,9 @@ module Types
     field :description, String, null: true
     field :contact_information, String, null: true
     custom_data_elements_field
-    access_field do
-      can :delete_organization
-      can :edit_organization
+    access_field policy_type: :hmis_organization do
+      policy_field :can_delete_organization?, policy_method_name: :can_destroy?
+      policy_field :can_edit_organization?, policy_method_name: :can_edit?
     end
 
     def projects(**args)
