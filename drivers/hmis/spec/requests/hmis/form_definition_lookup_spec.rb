@@ -75,7 +75,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Service definition lookup' do
-    include_context 'hmis service setup'
     let(:service_query) do
       <<~GRAPHQL
         query GetServiceFormDefinition($serviceTypeId: ID!, $projectId: ID!) {
