@@ -1581,11 +1581,8 @@ type Client {
 
 type ClientAccess {
   canAuditClients: Boolean!
-  canDeleteAssessments: Boolean!
   canDeleteClient: Boolean!
-  canDeleteEnrollments: Boolean!
   canEditClient: Boolean!
-  canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageClientAlerts: Boolean!
   canManageOwnClientFiles: Boolean!
@@ -1593,9 +1590,7 @@ type ClientAccess {
   canMergeClients: Boolean!
   canPrintClientCaseNotes: Boolean!
   canUploadClientFiles: Boolean!
-  canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
-  canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
   canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
@@ -9808,30 +9803,21 @@ type Project {
 }
 
 type ProjectAccess {
-  canAssignReferralTasks: Boolean!
-  canDeleteAssessments: Boolean!
-  canDeleteEnrollments: Boolean!
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
   canEditProjectDetails: Boolean!
   canEnrollClients: Boolean!
-  canManageDeniedReferrals: Boolean!
   canManageExternalFormSubmissions: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageUnits: Boolean!
-  canPerformAnyReferralTasks: Boolean!
-  canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
   canStartReferrals: Boolean!
   canUpdateUnitAvailability: Boolean!
-  canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
-  canViewFullSsn: Boolean!
   canViewOutgoingReferralDetails: Boolean!
   canViewOutgoingReferralSummaries: Boolean!
   canViewOwnReferrals: Boolean!
-  canViewPartialSsn: Boolean!
   canViewPrioritizedClientLists: Boolean!
   canViewReferrals: Boolean!
   canViewUnits: Boolean!

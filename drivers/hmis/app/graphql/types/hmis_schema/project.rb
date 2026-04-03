@@ -100,14 +100,9 @@ module Types
     access_field do
       can :delete_project
       can :edit_project_details
-      can :view_partial_ssn
-      can :view_full_ssn
-      can :view_dob
       can :view_enrollment_details
       can :enroll_clients
       can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
       can :manage_units
       can :view_units
       can :manage_incoming_referrals
@@ -115,15 +110,11 @@ module Types
       can :view_outgoing_referral_details
       # TODO(#8067) - reduce duplication of logic with HmisProjectPolicy once we establish a frontend pattern for permission requirements
       composite_perm :can_view_outgoing_referral_summaries, permissions: [:manage_outgoing_referrals, :view_outgoing_referral_details], mode: :any
-      can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
       can :view_referrals
       can :view_own_referrals
       can :start_referrals
-      can :perform_any_referral_tasks
-      can :perform_own_referral_tasks
-      can :assign_referral_tasks
       can :update_unit_availability
       can :view_prioritized_client_lists
     end

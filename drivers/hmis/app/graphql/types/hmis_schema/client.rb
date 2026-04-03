@@ -164,15 +164,10 @@ module Types
       can :view_client_photo
       can :view_dob
       can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
       can :delete_clients, field_name: :can_delete_client
       can :edit_clients, field_name: :can_edit_client
       can :manage_any_client_files
       can :manage_own_client_files
-      can :view_any_nonconfidential_client_files
-      can :view_any_confidential_client_files
       composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
       composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
       can :audit_clients
