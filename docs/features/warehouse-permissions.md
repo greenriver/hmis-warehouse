@@ -1,10 +1,12 @@
 # Warehouse Permissions
 
-The warehouse uses an Access Control List (ACL) system to determine what actions users can perform and which entities those actions apply to. A parallel legacy system exists and is being phased out.
+The warehouse uses a scoped RBAC (Role-Based Access Control) system to determine what actions users can perform and which entities those actions apply to. Each permission grant combines a role (the actions), an entity scope (the targets), and a user group (the recipients). A parallel legacy system exists and is being phased out.
+
+The codebase refers to this as the "ACL" system (and the model is named `AccessControl`), but it is structurally RBAC with entity scoping — not an access control list in the traditional sense.
 
 ## Core Concepts
 
-The ACL system answers two questions for every permission check:
+The system answers two questions for every permission check:
 
 1. **What can this user do?** (defined by Roles)
 2. **Which entities does it apply to?** (defined by Collections)
@@ -41,7 +43,7 @@ Roles come in three flavors:
 - **System** — auto-managed (e.g., "System User Role"); hidden from normal admin views
 - **Health** — assigned via `user_roles` (the legacy join), not through AccessControls
 
-New permissions are added by defining them in `permissions_with_descriptions` and calling `Role.ensure_permissions_exist` in a migration.
+Permissions are stored as columns rather than as a separate join table. Adding a new permission requires a schema migration: define it in `permissions_with_descriptions` and call `Role.ensure_permissions_exist` in the migration to add the column.
 
 ### Collection
 
@@ -101,12 +103,14 @@ See also: [Warehouse Auth Policies](warehouse-auth-policies.md)
 
 `app/models/concerns/entity_access.rb`
 
-Used by `GrdaWarehouse::ProjectGroup` and `GrdaWarehouse::Cohort` to manage per-entity user access. For each entity, it auto-creates:
+Used by `GrdaWarehouse::ProjectGroup` and `GrdaWarehouse::Cohort` to manage per-entity user access. For each entity, it auto-creates system records:
 
 - A **system Collection** containing only that entity
 - A **viewable UserGroup** and an **editable UserGroup**
 - Corresponding **system Roles** with the appropriate permission flag
 - Two **AccessControls** binding the above together
+
+This means the permission tables grow in proportion to the number of Cohorts and ProjectGroups. These system-generated records are filtered out of admin views by the `system` / `user_managed` scopes — if you're querying these tables directly, filter accordingly.
 
 `replace_access(users, scope:)` swaps the membership of the viewer or editor UserGroup.
 
