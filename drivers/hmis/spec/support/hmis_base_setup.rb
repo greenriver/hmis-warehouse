@@ -79,6 +79,9 @@ RSpec.shared_context 'with paper trail', shared_context: :metadata do
   end
 end
 
+# Context to set up HUD CustomServiceTypes and CustomServiceCategories for primary HMIS data source.
+# Must be used in conjunction with 'hmis base setup' which defines ds1.
+# This is not needed if 'hmis json forms seed' is used, which also sets up HUD service types and categories (more efficiently using before:all instead of before:each)
 RSpec.shared_context 'hmis service setup', shared_context: :metadata do
   before(:each) do
     ::HmisUtil::ServiceTypes.seed_hud_service_types(ds1.id)
