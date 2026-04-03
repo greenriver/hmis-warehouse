@@ -61,7 +61,7 @@ module HmisUtil
     private
 
     def definition_scope
-      Hmis::Form::Definition.published.managed_in_version_control.for_data_source(@data_source.id)
+      Hmis::Form::Definition.published.managed_in_version_control.in_data_source(@data_source.id)
     end
 
     # Ensures all required system instances exist for HUD record forms: default system form roles,
