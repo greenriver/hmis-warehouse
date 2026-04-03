@@ -37,12 +37,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
   before(:all) do
     # Seed MCI-specific client forms
-    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
+    ::HmisUtil::JsonForms.new(env_key: 'allegheny', data_source_id: ds1.id).seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   after(:all) do
     # Return client forms to normal.
-    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
+    HmisUtil::JsonForms.new(data_source_id: ds1.id).seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   def enter_client_details

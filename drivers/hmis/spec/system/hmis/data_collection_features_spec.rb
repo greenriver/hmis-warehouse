@@ -37,7 +37,7 @@ RSpec.feature 'Data collection features', type: :system do
     end
     after(:all) do
       # re-seed CLS form instances to restore default behavior
-      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist! if ENV['RUN_SYSTEM_TESTS'] == 'true'
+      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: ds1.id).ensure_all_system_instances_exist! if ENV['RUN_SYSTEM_TESTS'] == 'true'
     end
     it 'should not show CLS in the project side nav' do
       visit "/projects/#{p1.id}/overview"
