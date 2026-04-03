@@ -238,7 +238,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
 
-  scope :for_data_source, ->(data_source_id) do
+  scope :in_data_source, ->(data_source_id) do
     where(data_source_id: data_source_id)
   end
 
