@@ -384,13 +384,14 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
       # Total served should now be 3 (enrollment_with_services, no_data_enrollment, no_income_enrollment)
       expect(rows.fetch('STRMU Households Total')).to eq(3)
 
-      # "No Income" should only be 1 (the one with explicit No)
-      # Before the fix, this would have been 2 (including the one with No Data)
+      # "No Income" is only the household with an explicit IncomeFromAnySource: 0 assessment;
+      # the no-data household has no income_benefit record so it doesn't match.
       expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
 
-      # "Any Income" (the total row for sources) should only be 1 (enrollment_with_services)
-      # Before the fix, this would have been 3 (including everyone with [])
-      expect(rows.fetch('How many households accessed or maintained access to the following sources of income in the past year?')).to eq(1)
+      # "Any Income" total includes households with income sources AND those with explicit "No Income"
+      # (2 = enrollment_with_services + no_income_enrollment). The no-data household is excluded
+      # because it has no income_benefit record at all, so household_income_benefit_source_types is [].
+      expect(rows.fetch('How many households accessed or maintained access to the following sources of income in the past year?')).to eq(2)
     end
   end
 
