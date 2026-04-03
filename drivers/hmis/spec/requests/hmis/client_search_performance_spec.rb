@@ -174,14 +174,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           canViewDob
           canViewFullSsn
           canViewPartialSsn
-          canEditEnrollments
-          canDeleteEnrollments
           canViewEnrollmentDetails
-          canDeleteAssessments
           canManageAnyClientFiles
           canManageOwnClientFiles
-          canViewAnyConfidentialClientFiles
-          canViewAnyNonconfidentialClientFiles
           __typename
         }
 
