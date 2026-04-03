@@ -10,11 +10,6 @@ module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasServices
-    include Types::HmisSchema::HasIncomeBenefits
-    include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasHealthAndDvs
-    include Types::HmisSchema::HasYouthEducationStatuses
-    include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCustomCaseNotes
@@ -81,7 +76,6 @@ module Types
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :alerts, [HmisSchema::ClientAlert], null: false
-    field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
@@ -105,11 +99,6 @@ module Types
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
     end
-    income_benefits_field
-    disabilities_field
-    health_and_dvs_field
-    youth_education_statuses_field
-    employment_educations_field
     current_living_situations_field
     assessments_field
     services_field
@@ -211,22 +200,6 @@ module Types
       )
     end
 
-    def income_benefits(**args)
-      resolve_income_benefits(**args)
-    end
-
-    def disabilities(**args)
-      resolve_disabilities(**args)
-    end
-
-    def disability_groups(**args)
-      resolve_disability_groups(**args)
-    end
-
-    def health_and_dvs(**args)
-      resolve_health_and_dvs(**args)
-    end
-
     def assessments(**args)
       resolve_assessments(**args)
     end
@@ -315,12 +288,6 @@ module Types
 
     private def can_view_name
       current_permission?(permission: :can_view_client_name, entity: object)
-    end
-
-    def contact_points
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
-
-      load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
