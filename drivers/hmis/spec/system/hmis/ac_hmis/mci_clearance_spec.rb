@@ -12,7 +12,7 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.feature 'Assessment definition selection', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:mci_cred) { create(:ac_hmis_mci_credential) }
 
@@ -37,12 +37,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
   before(:all) do
     # Seed MCI-specific client forms
-    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT])
+    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   after(:all) do
-    # Return client forms to normal. (See comment about form cleanup in rails_helper.rb)
-    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT])
+    # Return client forms to normal.
+    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   def enter_client_details

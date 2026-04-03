@@ -138,7 +138,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Service query' do
     include_context 'hmis service setup'
     # Set up service types (HUD and Custom)
-    let(:hud_service_type) { Hmis::Hud::CustomServiceType.where(hud_record_type: 141).first }
+    let(:hud_service_type) { ds1.custom_service_types.find_by(hud_record_type: 141) }
     let!(:custom_service_type) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, name: 'some service' }
 
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
