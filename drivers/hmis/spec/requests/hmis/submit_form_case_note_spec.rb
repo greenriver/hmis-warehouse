@@ -101,7 +101,7 @@ RSpec.describe 'SubmitForm for CaseNote', type: :request do
         ],
       }
     end
-    let!(:definition) { create :hmis_form_definition, role: :CASE_NOTE, definition: definition_json }
+    let!(:definition) { create :hmis_form_definition, role: :CASE_NOTE, definition: definition_json, data_source: ds1 }
     let(:hud_values) do
       {
         'content' => 'test',
