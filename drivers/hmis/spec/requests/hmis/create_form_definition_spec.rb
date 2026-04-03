@@ -90,7 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should fail to create a new form with a non-unique identifier' do
-    create(:hmis_form_definition, identifier: identifier, definition: { 'item': [] }, data_source: ds1)
+    create(:hmis_form_definition, identifier: identifier, data_source: ds1)
     input = {
       definition: '',
       role: 'SERVICE',
