@@ -11,28 +11,27 @@
 #
 class AddDataSourceToHmisFormDefinitionsAndInstances < ActiveRecord::Migration[7.2]
   def up
-    safety_assured do
-      # Add references to data source. Nullable at first since we need to back-populate existing rows.
-      add_reference :hmis_form_definitions, :data_source, null: true
-      add_reference :hmis_form_instances, :data_source, null: true
-    end
-
     oldest_id = GrdaWarehouse::DataSource.hmis.order(:created_at).limit(1).pick(:id)
     unless oldest_id
       # handle non-HMIS installations where no data source exists:
       # Raise only if there exist rows in the relevant tables.
       def_count = connection.select_value('SELECT COUNT(*) FROM hmis_form_definitions').to_i
       inst_count = connection.select_value('SELECT COUNT(*) FROM hmis_form_instances').to_i
-      raise ActiveRecord::MigrationError, 'No HMIS data source found; configure an HMIS data source before this migration.' if def_count.positive? || inst_count.positive?
+      raise ActiveRecord::MigrationError, 'Unexpected state: Environment has HMIS forms but no HMIS data source. Delete forms or configure HMIS data source before this migration can run' if def_count.positive? || inst_count.positive?
+    end
+
+    safety_assured do
+      # Add references to data source. Nullable at first since we need to back-populate existing rows.
+      add_reference :hmis_form_definitions, :data_source, null: true
+      add_reference :hmis_form_instances, :data_source, null: true
     end
 
     if oldest_id
       safety_assured do
         # Update the new DS column to point to the oldest existing HMIS data source
-        execute <<~SQL.squish
-          UPDATE hmis_form_definitions SET data_source_id = #{connection.quote(oldest_id)} WHERE data_source_id IS NULL;
-          UPDATE hmis_form_instances SET data_source_id = #{connection.quote(oldest_id)} WHERE data_source_id IS NULL;
-        SQL
+        quoted_id = connection.quote(oldest_id)
+        execute "UPDATE hmis_form_definitions SET data_source_id = #{quoted_id} WHERE data_source_id IS NULL"
+        execute "UPDATE hmis_form_instances SET data_source_id = #{quoted_id} WHERE data_source_id IS NULL"
       end
     end
 
@@ -43,9 +42,9 @@ class AddDataSourceToHmisFormDefinitionsAndInstances < ActiveRecord::Migration[7
     end
 
     # Remove existing uniqueness indexes
-    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_identifier'
-    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_draft_per_identifier'
-    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_published_per_identifier'
+    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_identifier', if_exists: true
+    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_draft_per_identifier', if_exists: true
+    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_published_per_identifier', if_exists: true
 
     safety_assured do
       # Re-add uniqueness indexes with data_source_id.
@@ -67,16 +66,16 @@ class AddDataSourceToHmisFormDefinitionsAndInstances < ActiveRecord::Migration[7
                 where: "status = 'published' AND deleted_at IS NULL",
                 name: 'uidx_hmis_form_definitions_one_published_per_identifier'
 
-      add_index :hmis_form_instances, [:data_source_id, :definition_identifier], name: 'uidx_hmis_form_instances_on_ds_and_identifier'
+      add_index :hmis_form_instances, [:data_source_id, :definition_identifier], name: 'index_hmis_form_instances_on_ds_and_identifier'
     end
   end
 
   def down
-    remove_index :hmis_form_instances, name: 'uidx_hmis_form_instances_on_ds_and_identifier'
+    remove_index :hmis_form_instances, name: 'index_hmis_form_instances_on_ds_and_identifier', if_exists: true
 
-    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_published_per_identifier'
-    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_draft_per_identifier'
-    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_ds_identifier_version'
+    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_published_per_identifier', if_exists: true
+    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_one_draft_per_identifier', if_exists: true
+    remove_index :hmis_form_definitions, name: 'uidx_hmis_form_definitions_ds_identifier_version', if_exists: true
 
     change_column_null :hmis_form_instances, :data_source_id, true
     change_column_null :hmis_form_definitions, :data_source_id, true
