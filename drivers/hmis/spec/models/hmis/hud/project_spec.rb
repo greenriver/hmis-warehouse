@@ -9,16 +9,11 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
+RSpec.describe Hmis::Hud::Project, type: :model do
   let!(:data_source) { create :hmis_primary_data_source }
   let!(:project) { create :hmis_hud_project, data_source: data_source }
   let!(:client) { create :hmis_hud_client, data_source: data_source }
   let!(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
-
-  before(:all) do
-    # delete default instances to test from a clean slate (for data_collection_features and occurrence_point_form_instances tests)
-    Hmis::Form::Instance.delete_all
-  end
 
   describe '#destroy' do
     # Create dependent records to ensure they are destroyed when the project is destroyed
@@ -224,6 +219,12 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     end
 
     it 'returns most specific instance per definition identifier' do
+      # Create these two forms manually instead of using the 'hmis json forms seed'.
+      # The seed context also creates default system instances,
+      # whereas this spec file wants to start from a clean slate of instances.
+      create(:hmis_form_definition, role: role, identifier: 'move_in_date')
+      create(:hmis_form_definition, role: role, identifier: 'date_of_engagement')
+
       mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date', data_collected_about: 'HOH')
       mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier, data_collected_about: 'HOH_AND_ADULTS')
 

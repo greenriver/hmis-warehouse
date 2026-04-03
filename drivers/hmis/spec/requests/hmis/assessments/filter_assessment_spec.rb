@@ -11,14 +11,8 @@ require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }

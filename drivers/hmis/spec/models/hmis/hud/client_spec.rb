@@ -140,7 +140,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     let!(:c2_e1_s2_custom) { create(:hmis_custom_service, date_provided: 1.week.ago, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: c2_e1) }
     let!(:c2_e1_s3_custom) { create(:hmis_custom_service, date_provided: 8.months.ago, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: c2_e1) }
 
-    let(:bed_night_cst) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) }
+    let(:bed_night_cst) { ds1.custom_service_types.find_by(hud_record_type: 200) }
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
 
     it 'should work' do
