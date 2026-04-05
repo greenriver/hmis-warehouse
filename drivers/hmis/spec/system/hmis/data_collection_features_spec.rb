@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Data collection features', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -33,11 +33,11 @@ RSpec.feature 'Data collection features', type: :system do
 
   context 'when no CLS is enabled in the project' do
     before(:all) do
-      Hmis::Form::Instance.with_role(:CURRENT_LIVING_SITUATION).each(&:destroy!)
+      Hmis::Form::Instance.with_role(:CURRENT_LIVING_SITUATION).each(&:destroy!) if ENV['RUN_SYSTEM_TESTS'] == 'true'
     end
     after(:all) do
       # re-seed CLS form instances to restore default behavior
-      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
+      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist! if ENV['RUN_SYSTEM_TESTS'] == 'true'
     end
     it 'should not show CLS in the project side nav' do
       visit "/projects/#{p1.id}/overview"
