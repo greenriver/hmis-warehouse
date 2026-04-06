@@ -76,6 +76,7 @@ module Types
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :alerts, [HmisSchema::ClientAlert], null: false
+    field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
@@ -288,6 +289,12 @@ module Types
 
     private def can_view_name
       current_permission?(permission: :can_view_client_name, entity: object)
+    end
+
+    def contact_points
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
+      load_ar_association(object, :contact_points)
     end
 
     def phone_numbers

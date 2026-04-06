@@ -1513,6 +1513,7 @@ type Client {
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   ceReferrals(filters: ClientCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
+  contactPoints: [ClientContactPoint!]!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
