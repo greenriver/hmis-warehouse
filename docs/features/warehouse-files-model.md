@@ -1,4 +1,4 @@
-# File Storage
+# Files Table
 
 The `files` table is a single-table inheritance (STI) model. The `type` column determines the subclass. It is used for client-associated documents (consent/ROI forms, housing release forms, headshot images, homeless history verifications, CE certifications, enrollment attachments) and some report output files. Other file storage mechanisms exist in the application (e.g. `GrdaWarehouse::DocumentExport`, `GrdaWarehouse::HmisExport`) and are not covered here.
 
