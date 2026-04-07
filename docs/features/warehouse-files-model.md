@@ -21,7 +21,7 @@ Three storage mechanisms exist across the codebase at different stages of migrat
 ### 1. Database (`content` bytea column)
 Raw file bytes stored directly in the database row. Still actively written by:
 - `GrdaWarehouse::PublicFile` — via `Admin::PublicFilesController#create`
-- `GrdaWarehouse::ReportResultFile` — via LSA report generators (`fy2019`, `fy2021`)
+- `GrdaWarehouse::ReportResultFile` — via LSA report generators (`fy2019`, `fy2021`), which are planned for deletion. No newer LSA generators exist, so no new rows will be written once those are removed.
 
 ### 2. CarrierWave (`file` varchar column)
 `FileUploader` mounts on several subclasses and stores to `Rails.root/tmp/uploads/`. No subclass currently uses this as its primary read/write path for persistent files:
@@ -38,8 +38,6 @@ Both include `ClientFileBase`, which declares `has_one_attached :client_file`.
 
 ## Migration State
 
-`GrdaWarehouse::ClientFile` contains a `copy_to_s3!` method that migrates existing `content` bytea records to ActiveStorage. The `unprocessed_s3_migration` scope identifies unmigrated records.
+`lib/tasks/storage.rake` (`storage:move_to_s3`) is the authoritative record of migration progress. It runs daily and its commented sections track which classes are complete, in progress, and not yet migrated.
 
-The `active_storage_url` column caches S3 pre-signed URLs to avoid repeated API calls. It is cleared on save (via `before_save :clear_active_storage_url`) and repopulated by the `maintain_urls` class method.
-
-`GrdaWarehouse::PublicFile` and `GrdaWarehouse::ReportResultFile` have not been migrated to ActiveStorage and continue to write to the `content` column.
+`GrdaWarehouse::ClientFile` contains a `copy_to_s3!` method that migrates existing `content` bytea records to ActiveStorage. The `unprocessed_s3_migration` scope identifies unmigrated records. The `active_storage_url` column caches S3 pre-signed URLs to avoid repeated API calls; it is cleared on save (via `before_save :clear_active_storage_url`) and repopulated by the `maintain_urls` class method.

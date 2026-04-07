@@ -135,6 +135,8 @@ The legacy system (marked with `START_ACL` / `END_ACL` comments throughout the c
 
 `User#using_acls?` (defined in `UserConcern`) checks `permission_context == 'acls'` to determine which path to use. The legacy path is being removed; `AccessGroup`, `UserRole`, and `AccessGroupMember` are deprecated.
 
+The key structural difference: in the legacy system, a user's effective permissions are the union of all permission flags across all their assigned roles, and those permissions apply uniformly to every entity the user can access through their access groups. There is no way to grant different permission levels per entity — you cannot give a user view access to one project and edit access to another.
+
 ## Cache Invalidation
 
 The `UserPermissionCache` concern is included by `AccessControl`, `Collection`, `UserGroup`, and `Role`. Any save on these models calls `User.clear_cached_permissions`, which invalidates all cached user permission data. Individual user permission state (`@permissions`, `@ids_for_relations`, etc.) is stored as instance variables and reset per-request.
