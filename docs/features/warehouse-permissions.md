@@ -85,19 +85,29 @@ Polymorphic join table linking entities to Collections (and, in the legacy syste
 
 `User` dynamically defines `can_<permission>` and `can_<permission>?` methods for every permission in `Role.permissions`. These methods merge the boolean flags from all Roles the user holds through their AccessControls (`load_effective_permissions`). Health permissions are loaded separately through the legacy `user_roles` join.
 
-The flag check answers "can this user do X anywhere?" without regard to entity scope.
+The flag check answers "can this user do X anywhere?" without regard to entity scope. `UserPermissions` (concern included by `UserConcern`) also defines composite methods that combine multiple flags (e.g., `can_view_or_search_clients`).
 
-### Entity-scoped checks
+### Policies (preferred)
 
 For resource-level authorization, `User#policy_for(resource)` returns a policy object from `GrdaWarehouse::AuthPolicies::`. Policies use a context object (`UserAclContext` or `UserLegacyContext`, selected by `User#using_acls?`) that resolves which entities the user can access for a given permission.
 
 Key method: `User#collections_for_permission(permission)` returns the Collection IDs from AccessControls whose Role has the given permission enabled. Entity IDs are then resolved from those Collections.
 
+Policies are the intended uniform API for authorization checks. New code should use `policy_for` rather than calling `can_*` directly on the User. Over time, direct boolean flag access from application code will be replaced by policy methods.
+
 See also: [Warehouse Auth Policies](warehouse-auth-policies.md)
 
-### Derived permissions
+### Controller authorization
 
-`UserPermissions` (concern included by `UserConcern`) defines composite permission methods that combine multiple flags (e.g., `can_view_or_search_clients`).
+Existing controllers check permissions with `before_action` callbacks that call `require_can_<permission>!` methods on `ApplicationController`. New controllers should inherit from `ApplicationControllerV2` (or include `ControllerAuthorizationV2`) and use the `authorize_with` class method instead:
+
+```ruby
+class MyController < ApplicationControllerV2
+  authorize_with { current_user.policy_for(@resource).can_view? }
+end
+```
+
+`ControllerAuthorizationV2` raises `AuthorizationNotPerformedError` in an `after_action` if no authorization block ran, preventing accidental unprotected actions.
 
 ## EntityAccess Concern
 
