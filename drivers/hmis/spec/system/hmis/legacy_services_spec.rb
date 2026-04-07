@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -22,7 +22,8 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
   let(:today) { Date.current }
 
   let!(:flex_funds_service_type) { create :hmis_custom_service_type, data_source: ds1, name: 'Flex Funds' }
-  let!(:bed_nights_service_type) { create :hmis_custom_service_type_for_hud_service, data_source: ds1 }
+  # HUD service type already exists from seeding
+  let!(:bed_nights_service_type) { ds1.custom_service_types.find_by!(hud_record_type: 200, hud_type_provided: 200) }
 
   before(:each) do
     sign_in(hmis_user)

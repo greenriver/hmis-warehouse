@@ -13,7 +13,7 @@ RSpec.feature 'HMIS Sign In', type: :system do
   include_context 'hmis base setup'
 
   # could parse CAPYBARA_APP_HOST
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
 
   context 'When not signed in' do
     it 'shows sign-in form' do

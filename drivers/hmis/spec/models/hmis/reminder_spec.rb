@@ -11,7 +11,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   include_context 'hmis base setup'
-  include_context 'hmis service setup'
+
   let(:today) do
     Date.current
   end

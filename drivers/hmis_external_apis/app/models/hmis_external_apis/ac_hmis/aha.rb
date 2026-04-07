@@ -40,7 +40,7 @@ module HmisExternalApis::AcHmis
       'OCS Staff',
       'OCS Admin',
       'Non-OCS Program Admin',
-      'DHS Admin',
+      'DHS Administration',
     ].freeze
     LOOKUP_REASON_ALLOWED_VALUES = [
       'Other',
