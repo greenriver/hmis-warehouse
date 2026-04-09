@@ -210,8 +210,9 @@ module Types
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
+      definition_scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id)
       record = if id
-        Hmis::Form::Definition.find(id)
+        definition_scope.find(id)
       else
         Hmis::Form::Definition.find_definition_for_role(role, project: project)
       end
@@ -219,7 +220,7 @@ module Types
       # If the frontend is making this query, it's trying to display some data using a form definition,
       # so we try to avoid returning nil. Even if we didn't find a good match (e.g., because the instance is inactive),
       # we return some default "best guess", enabling the application to display the data somehow instead of erroring.
-      record ||= Hmis::Form::Definition.published.where(role: role, managed_in_version_control: true).first
+      record ||= definition_scope.published.where(role: role, managed_in_version_control: true).first
 
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record

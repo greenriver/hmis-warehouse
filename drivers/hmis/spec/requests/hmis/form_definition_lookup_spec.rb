@@ -24,8 +24,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Form definition lookup for record-editing' do
     # apply project form definition to p1
-    let(:default_project_form) { Hmis::Form::Definition.managed_in_version_control.find_by!(role: :PROJECT) }
+    let(:default_project_form) { Hmis::Form::Definition.managed_in_version_control.in_data_source(ds1.id).find_by!(role: :PROJECT) }
     let!(:instance) { create(:hmis_form_instance, system: true, entity: nil, definition: default_project_form) }
+
+    # cruft: there is another data source that also has seeded forms
+    let!(:ds2) do
+      ds = create(:hmis_data_source)
+      HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
+      HmisUtil::JsonForms.seed_all(data_source_id: ds.id)
+      ds
+    end
 
     let(:query) do
       <<~GRAPHQL
@@ -46,6 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         form_definition = result.dig('data', 'recordFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['role']).to eq(role.to_s)
+        expect(form_definition['id']).to eq(default_project_form.id.to_s)
       end
     end
   end
