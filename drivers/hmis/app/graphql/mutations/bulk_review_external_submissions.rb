@@ -13,7 +13,7 @@ module Mutations
 
     def resolve(external_submission_ids:)
       submissions = HmisExternalApis::ExternalForms::FormSubmission.where(id: external_submission_ids)
-      definitions = Hmis::Form::Definition.where(id: submissions.pluck(:definition_id), data_source_id: current_user.hmis_data_source_id)
+      definitions = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).where(id: submissions.pluck(:definition_id))
 
       # Submissions could come from different definitions (versions), but should be all the same form identifier
       identifiers = definitions.pluck(:identifier).uniq

@@ -25,7 +25,7 @@ module Mutations
 
     def _resolve(input:, record_lock_version: nil)
       # Look up form definition by ID. Filtering by data source ID is a secondary guard
-      definition = Hmis::Form::Definition.find_by(id: input.form_definition_id, data_source_id: current_user.hmis_data_source_id)
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
       raise HmisErrors::ApiError, "FormDefinition #{definition.id} status #{definition.status} is invalid" unless definition.valid_status_for_submit?
       raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless definition.owner_class.present?

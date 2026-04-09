@@ -67,7 +67,7 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
   end
 
   it 'throws an error when submissions are from different forms' do
-    other_definition = create(:hmis_external_form_definition, definition: { "item": [] }, data_source: ds1)
+    other_definition = create(:hmis_external_form_definition, data_source: ds1)
     other_submission = create(:hmis_external_form_submission, definition: other_definition)
     expect_gql_error perform_mutation(ids: [s1.id, s2.id, other_submission.id])
   end
