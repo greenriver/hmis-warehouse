@@ -426,7 +426,7 @@ module Types
         preload(:project, :client, :organization)
     end
 
-    field :service_category, Types::HmisSchema::ServiceCategory, null: true do
+    field :service_category, Types::HmisSchema::ServiceCategory, null: true, deprecation_reason: 'No longer used by the frontend' do
       argument :id, ID, required: true
     end
     def service_category(id:)
@@ -435,7 +435,7 @@ module Types
       Hmis::Hud::CustomServiceCategory.find_by(id: id)
     end
 
-    field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
+    field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false, deprecation_reason: 'No longer used by the frontend'
     def service_categories
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
