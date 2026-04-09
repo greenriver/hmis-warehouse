@@ -483,7 +483,10 @@ module Types
     def form_identifier(identifier:)
       access_denied! unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier)
+      scope = Hmis::Form::Definition.
+        in_data_source(current_user.hmis_data_source_id).
+        non_static.latest_versions.where(identifier: identifier)
+
       # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
       scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope.first
@@ -495,7 +498,7 @@ module Types
     def form_identifiers(filters: nil)
       access_denied! unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.non_static.valid.latest_versions
+      scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).non_static.valid.latest_versions
       scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
