@@ -136,14 +136,16 @@ module CeWorkflows::Shared
       template.destroy!
     end
 
-    def self.delete_form_definitions(form_definition_identifiers)
+    def self.delete_form_definitions(form_definition_identifiers, data_source_id: nil)
       raise 'This method destroys data and should not be run in production' if Rails.env.production?
 
       puts "Deleting form definitions #{form_definition_identifiers.join(', ')}"
 
       # Temporarily disable the callback that prevents destroying published forms
       Hmis::Form::Definition.skip_callback(:destroy, :before, :can_be_destroyed)
-      Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: form_definition_identifiers).destroy_all
+      scope = Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: form_definition_identifiers)
+      scope = scope.in_data_source(data_source_id) if data_source_id.present?
+      scope.destroy_all
       Hmis::Form::Definition.set_callback(:destroy, :before, :can_be_destroyed) # re-enable callback
     end
 
