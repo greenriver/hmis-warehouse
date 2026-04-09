@@ -170,7 +170,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
 
-    let!(:form) { create :hmis_form_definition, identifier: 'form-def' }
+    let!(:form) { create :hmis_form_definition, identifier: 'form-def', data_source: ds1 }
 
     context 'when a project matches more than one rule' do
       # tests Project and Organization cases
@@ -202,7 +202,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when a rule specifies funder' do
       let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o1, funders: [43] }
-      let!(:form2) { create :hmis_form_definition, identifier: 'form-2' }
+      let!(:form2) { create :hmis_form_definition, identifier: 'form-2', data_source: ds1 }
       let!(:funder_instance) { create(:hmis_form_instance, definition: form2, entity: nil, funder: 43) }
 
       it 'should return the project with this funder' do
@@ -218,7 +218,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when a rule specifies project type' do
       let!(:p4) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 2 }
-      let!(:form3) { create :hmis_form_definition, identifier: 'form-3' }
+      let!(:form3) { create :hmis_form_definition, identifier: 'form-3', data_source: ds1 }
       let!(:project_type_instance) { create(:hmis_form_instance, definition: form3, entity: nil, project_type: 2) }
 
       it 'should return the project with this funder' do

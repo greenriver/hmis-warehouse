@@ -465,7 +465,7 @@ module Types
       # to the definition.
       access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.find(id)
+      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
     end
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
