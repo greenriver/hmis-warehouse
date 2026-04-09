@@ -33,15 +33,14 @@ module HmisExternalApis
     def authorize_request
       not_authorized!('No API key provided') unless request.headers['Authorization']
 
-      request.headers['Authorization'].match(/\A *bearer +([a-z0-9\-_\.]+) *\z/i) do |match|
-        api_key = match[1]
+      # String#match with a block only runs the block when the regex matches; non-Bearer schemes
+      # (e.g. Basic) must be rejected explicitly.
+      match_data = request.headers['Authorization'].match(/\A *bearer +([a-z0-9\-_\.]+) *\z/i)
+      not_authorized!('Authorization header not formatted correctly') unless match_data
 
-        not_authorized!('Authorization header not formatted correctly') unless api_key
-
-        valid = InboundApiConfiguration.validate(api_key: api_key, internal_system: internal_system)
-
-        not_authorized!('Invalid key or mismatched usage') unless valid
-      end
+      api_key = match_data[1]
+      valid = InboundApiConfiguration.validate(api_key: api_key, internal_system: internal_system)
+      not_authorized!('Invalid key or mismatched usage') unless valid
     end
 
     def request_log
