@@ -8,6 +8,17 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class BaseFbhSheet < Base
+    # Shown when no projects match the program filter, so the sheet always has
+    # at least one data column and doesn't appear broken to users.
+    NullFacility = Data.define(:position) do
+      def id = -1
+      def name = 'No facilities in scope'
+      def medically_assisted_living_facility? = nil
+      def placed_in_service_during_program_year? = false
+      def units_placed_into_service = nil
+    end
+    private_constant :NullFacility
+
     def relevant_services
       service_filter = HopwaCaper::Generators::Fy2026::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
       service_filter.apply(@report.hopwa_caper_services).
@@ -32,12 +43,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def facilities
-      @facilities ||= project_scope.order(:project_name, :id).map.with_index do |project, idx|
-        HopwaCaper::Facility.new(
-          project: project,
-          report: @report,
-          position: idx + 1,
-        )
+      @facilities ||= begin
+        result = project_scope.order(:project_name, :id).map.with_index do |project, idx|
+          HopwaCaper::Facility.new(project: project, report: @report, position: idx + 1)
+        end
+        result.presence || [NullFacility.new(position: 1)]
       end
     end
 
