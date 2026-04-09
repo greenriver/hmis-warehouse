@@ -10058,8 +10058,8 @@ type Query {
   formDefinition(id: ID!): FormDefinition
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
-  formRule(id: ID!): FormRule
-  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
+  formRule(id: ID!): FormRule @deprecated(reason: "No longer used by the frontend")
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated! @deprecated(reason: "No longer used by the frontend; form rules are queried by their FormDefinition")
 
   """
   Funder lookup

@@ -500,7 +500,7 @@ module Types
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
     end
 
-    form_rules_field
+    form_rules_field deprecation_reason: 'No longer used by the frontend; form rules are queried by their FormDefinition'
     def form_rules(**args)
       access_denied! unless current_user.can_configure_data_collection?
 
@@ -510,7 +510,7 @@ module Types
       resolve_form_rules(scope, **args)
     end
 
-    field :form_rule, Types::Admin::FormRule, null: true do
+    field :form_rule, Types::Admin::FormRule, null: true, deprecation_reason: 'No longer used by the frontend' do
       argument :id, ID, required: true
     end
     def form_rule(id:)
