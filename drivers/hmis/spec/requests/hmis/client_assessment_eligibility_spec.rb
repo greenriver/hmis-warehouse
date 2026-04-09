@@ -53,24 +53,24 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
   context 'with custom assessment definitions' do
     # Active published form that also has retired and draft versions. Only the published one should be considered eligible.
     let!(:published_active_form) do
-      fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, version: 2)
-      create(:hmis_form_instance, definition: fd, active: true, entity: e1.project)
+      fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, version: 2, data_source: ds1)
+      create(:hmis_form_instance, definition: fd, active: true, entity: e1.project, data_source: ds1)
       fd
     end
-    let!(:retired_form) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, identifier: published_active_form.identifier, status: :retired, version: 1 }
-    let!(:draft_form) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, identifier: published_active_form.identifier, status: :draft, version: 3 }
+    let!(:retired_form) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, identifier: published_active_form.identifier, status: :retired, version: 1, data_source: ds1 }
+    let!(:draft_form) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, identifier: published_active_form.identifier, status: :draft, version: 3, data_source: ds1 }
 
     # Ineligible because form instance is 'inactive'
     let!(:published_inactive_form) do
-      fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published)
-      create(:hmis_form_instance, definition: fd, active: false, entity: e1.project)
+      fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, data_source: ds1)
+      create(:hmis_form_instance, definition: fd, active: false, entity: e1.project, data_source: ds1)
       fd
     end
 
     # Ineligible because form is only active in a different project
     let!(:published_inactive_form) do
-      fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published)
-      create(:hmis_form_instance, definition: fd, active: true, entity: create(:hmis_hud_project, data_source: ds1))
+      fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, data_source: ds1)
+      create(:hmis_form_instance, definition: fd, active: true, entity: create(:hmis_hud_project, data_source: ds1), data_source: ds1)
       fd
     end
 
@@ -94,7 +94,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     context 'with project exit' do
       before(:each) do
         create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 3)
-        create(:hmis_form_instance, entity: e1.project, definition_identifier: 'base-post_exit')
+        create(:hmis_form_instance, entity: e1.project, definition_identifier: 'base-post_exit', data_source: ds1)
       end
       it 'resolves post-exit and annual' do
         records = run_query(enrollment: e1)
