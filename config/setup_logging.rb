@@ -87,7 +87,7 @@ class SetupLogging
         message: message,
         rails_env: Rails.env,
         request_time: time,
-        # application: 'BostonHmis::Application',
+        # application: 'OpenPath::Application',
       }.merge(STANDARD_TAGS).reverse_merge(@tags).to_json + "\r\n"
     end
   end

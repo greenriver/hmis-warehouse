@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope :hud_twenty_twenty_four_to_twenty_twenty_six do
     # TODO
     # get '/my_path', to: 'hud_twenty_twenty_four_to_twenty_twenty_six/my_controller'

@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :ma_reports do
     namespace :warehouse_reports do
       resources :monthly_project_utilizations do
