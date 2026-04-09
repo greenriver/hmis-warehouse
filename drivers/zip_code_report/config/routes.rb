@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope :zip_code_report do
     # TODO
     # get '/my_path', to: 'zip_code_report/my_controller'
