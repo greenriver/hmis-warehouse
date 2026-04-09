@@ -60,6 +60,8 @@ module Hmis::Ce::Match
       GrdaWarehouse::Hud::Client.joins(:ce_client_proxy).merge(proxy_scope)
     end
 
+    # Return a list of string form definition identifiers that are used in this candidate pool's priority/eligibility expressions.
+    # This can hypothetically return form definitions across data sources in a multi-hmis setup.
     def relevant_form_definition_identifiers
       # Gather relevant expressions for determining priority/eligibility in this candidate pool.
       # These look like: 'current_age > 18' or 'cde.custom_assessment.fieldname = 1'
