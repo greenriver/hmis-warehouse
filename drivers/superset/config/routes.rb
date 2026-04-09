@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :superset do
     namespace :warehouse_reports do
       resources :reports, only: [:index]

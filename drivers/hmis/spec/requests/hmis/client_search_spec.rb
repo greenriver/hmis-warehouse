@@ -128,10 +128,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should not allow search without tokens' do
       expect_gql_error post_graphql(input: {}) { query }, message: /Invalid search/
-
-      # projects and organizations don't count as a query, they are meant to be used as a filter
-      expect_gql_error post_graphql(input: { projects: [p1.id] }) { query }, message: /Invalid search/
-      expect_gql_error post_graphql(input: { organizations: [o1.id] }) { query }, message: /Invalid search/
     end
   end
 

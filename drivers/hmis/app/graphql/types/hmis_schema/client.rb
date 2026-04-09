@@ -10,11 +10,6 @@ module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasServices
-    include Types::HmisSchema::HasIncomeBenefits
-    include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasHealthAndDvs
-    include Types::HmisSchema::HasYouthEducationStatuses
-    include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCustomCaseNotes
@@ -105,11 +100,6 @@ module Types
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
     end
-    income_benefits_field
-    disabilities_field
-    health_and_dvs_field
-    youth_education_statuses_field
-    employment_educations_field
     current_living_situations_field
     assessments_field
     services_field
@@ -209,22 +199,6 @@ module Types
         project_id: project_id,
         open_on_date: open_on_date,
       )
-    end
-
-    def income_benefits(**args)
-      resolve_income_benefits(**args)
-    end
-
-    def disabilities(**args)
-      resolve_disabilities(**args)
-    end
-
-    def disability_groups(**args)
-      resolve_disability_groups(**args)
-    end
-
-    def health_and_dvs(**args)
-      resolve_health_and_dvs(**args)
     end
 
     def assessments(**args)

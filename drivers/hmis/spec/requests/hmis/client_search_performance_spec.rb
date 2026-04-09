@@ -177,6 +177,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           canViewEnrollmentDetails
           canManageAnyClientFiles
           canManageOwnClientFiles
+          canViewAnyFiles
           __typename
         }
 
