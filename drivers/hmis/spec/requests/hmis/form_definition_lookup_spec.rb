@@ -22,18 +22,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  # cruft: there is another data source that also has seeded forms, which should be ignored
+  let!(:ds2) do
+    ds = create(:hmis_data_source)
+    HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
+    HmisUtil::JsonForms.seed_all(data_source_id: ds.id)
+    ds
+  end
+
   describe 'Form definition lookup for record-editing' do
     # apply project form definition to p1
     let(:default_project_form) { Hmis::Form::Definition.managed_in_version_control.in_data_source(ds1.id).find_by!(role: :PROJECT) }
     let!(:instance) { create(:hmis_form_instance, system: true, entity: nil, definition: default_project_form) }
-
-    # cruft: there is another data source that also has seeded forms
-    let!(:ds2) do
-      ds = create(:hmis_data_source)
-      HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
-      HmisUtil::JsonForms.seed_all(data_source_id: ds.id)
-      ds
-    end
 
     let(:query) do
       <<~GRAPHQL
@@ -143,6 +143,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(form_definition).to be_present
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
       end
+    end
+  end
+
+  describe 'staticFormDefinition' do
+    let(:query) do
+      <<~GRAPHQL
+        query StaticFormDefinition($role: StaticFormRole!) {
+          staticFormDefinition(role: $role) {
+            id
+            role
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'returns the static form definition for the role in the current user data source' do
+      role = :FORM_RULE
+      expected = Hmis::Form::Definition.in_data_source(ds1.id).with_role(role).sole
+      response, result = post_graphql({ role: role.to_s }) { query }
+
+      expect(response.status).to eq(200), result.inspect
+      form_definition = result.dig('data', 'staticFormDefinition')
+      expect(form_definition).to be_present
+      expect(form_definition['id']).to eq(expected.id.to_s)
+      expect(form_definition['role']).to eq(role.to_s)
     end
   end
 

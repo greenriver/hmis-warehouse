@@ -289,7 +289,7 @@ module Types
     def static_form_definition(role:)
       # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
       # Assume that this is exactly 1 definition per static role
-      Hmis::Form::Definition.order(:id).with_role(role).first!
+      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).order(:id).with_role(role).first!
     end
 
     field :parsed_form_definition, Types::Forms::FormDefinitionForJsonResult, null: true do
