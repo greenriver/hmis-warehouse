@@ -5255,11 +5255,11 @@ type FormRule {
 
 input FormRuleFilterOptions {
   activeStatus: [ActiveStatus!]
-  appliedToProject: ID
-  definition: ID
-  formType: [FormRole!]
-  projectType: [ProjectType!]
-  systemForm: [SystemStatus!]
+  appliedToProject: ID @deprecated(reason: "No longer used by the frontend")
+  definition: ID @deprecated(reason: "No longer used by the frontend")
+  formType: [FormRole!] @deprecated(reason: "No longer used by the frontend")
+  projectType: [ProjectType!] @deprecated(reason: "No longer used by the frontend")
+  systemForm: [SystemStatus!] @deprecated(reason: "No longer used by the frontend")
 }
 
 input FormRuleInput {
