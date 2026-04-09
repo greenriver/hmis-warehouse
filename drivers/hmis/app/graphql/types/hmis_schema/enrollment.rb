@@ -16,11 +16,6 @@ module Types
     include Types::HmisSchema::HasCeAssessments
     include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
-    include Types::HmisSchema::HasIncomeBenefits
-    include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasHealthAndDvs
-    include Types::HmisSchema::HasYouthEducationStatuses
-    include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
@@ -130,14 +125,8 @@ module Types
     custom_case_notes_field
     files_field
     ce_assessments_field
-    income_benefits_field
-    disabilities_field
-    health_and_dvs_field
-    youth_education_statuses_field
-    employment_educations_field
     current_living_situations_field
     field :assessment_eligibilities, [HmisSchema::AssessmentEligibility], null: false
-    field :last_current_living_situation, Types::HmisSchema::CurrentLivingSituation, null: true
     custom_data_elements_field
     # 3.16.1
     field :enrollment_coc, String, null: true
@@ -305,10 +294,6 @@ module Types
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
     end
 
-    def last_current_living_situation
-      load_ar_association(object, :current_living_situations).max_by(&:information_date)
-    end
-
     def reminders
       # assumption is this is called on a single record; we aren't solving n+1 queries
       project = object.project
@@ -425,22 +410,6 @@ module Types
 
     def files(**args)
       resolve_files(**args)
-    end
-
-    def income_benefits(**args)
-      resolve_income_benefits(**args)
-    end
-
-    def disabilities(**args)
-      resolve_disabilities(**args)
-    end
-
-    def disability_groups(**args)
-      resolve_disability_groups(**args)
-    end
-
-    def health_and_dvs(**args)
-      resolve_health_and_dvs(**args)
     end
 
     def current_unit
