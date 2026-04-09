@@ -187,4 +187,32 @@ RSpec.describe User, type: :model do
       end
     end
   end
+
+  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
+    it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
+      attacker_email = 'attacker@example.com'
+      victim_email   = 'victim@example.com'
+
+      user = create(:user)
+      # First email change — clears dirty tracking; in-memory clean value is now attacker_email
+      user.update!(email: attacker_email)
+
+      # Simulate a concurrent request that stomps unconfirmed_email in the DB
+      # while the attacker's AR instance is still in memory
+      User.where(id: user.id).update_all(
+        unconfirmed_email: victim_email,
+        confirmation_token: 'injected_token',
+      )
+
+      # Second update with the same email — without the patch, AR considers
+      # unconfirmed_email unchanged (still 'attacker_email' in memory) and
+      # omits it from the UPDATE, leaving 'victim_email' in the DB
+      user.update!(email: attacker_email)
+
+      user.reload
+      # The patch ensures unconfirmed_email is always written, correcting the DB
+      expect(user.unconfirmed_email).to eq(attacker_email)
+      expect(user.confirmation_token).not_to eq('injected_token')
+    end
+  end
 end

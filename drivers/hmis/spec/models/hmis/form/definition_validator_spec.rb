@@ -18,7 +18,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     errors
   end
 
-  let(:data_source) { create(:hmis_data_source) }
+  let!(:data_source) { create(:hmis_data_source) }
 
   let(:valid_display_item) do
     {
@@ -26,6 +26,36 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       "type": 'DISPLAY',
       "text": 'text here',
     }.stringify_keys
+  end
+
+  context 'with valid form' do
+    let(:definition) do
+      { "item": [valid_display_item] }.deep_stringify_keys
+    end
+
+    it 'should succeed' do
+      expect_validation_errors(definition: definition, expected_errors: [])
+    end
+
+    context 'with multi-HMIS' do
+      let!(:data_source2) { create(:hmis_data_source) }
+
+      it 'fails if data_source_id is not provided' do
+        expect do
+          Hmis::Form::DefinitionValidator.perform(definition)
+        end.to raise_error(ActiveRecord::SoleRecordExceeded)
+      end
+
+      it 'succeeds if data_source_id is provided' do
+        errors = Hmis::Form::DefinitionValidator.perform(definition, data_source_id: data_source.id)
+        expect(errors).to be_empty
+      end
+
+      it 'succeeds even without data_source_id if skip_cded_validation is true' do
+        errors = Hmis::Form::DefinitionValidator.perform(definition, skip_cded_validation: true)
+        expect(errors).to be_empty
+      end
+    end
   end
 
   context 'with invalid json structure' do
@@ -344,13 +374,13 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     end
   end
 
-  describe 'Validating custom data element definitions on publish' do
-    let!(:definition) { create :hmis_form_definition, role: 'CUSTOM_ASSESSMENT' }
+  describe 'Validating custom data element definitions' do
+    let(:role) { :CUSTOM_ASSESSMENT }
     let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', data_source: data_source }
 
     context 'with a valid mapping' do
-      before(:each) do
-        definition.definition = {
+      let(:definition) do
+        {
           'item': [
             {
               'type': 'STRING',
@@ -360,25 +390,27 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
             },
           ],
         }
-        definition.save!
       end
 
       it 'should pass' do
-        expect(definition.validate_json_form).to be_empty
+        expect_validation_errors(definition: definition, role: role, expected_errors: [])
       end
+
       it 'should pass with CDED tied to HUD Service' do
-        definition.role = 'SERVICE'
+        role = :SERVICE
         create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Service', key: cded.key, data_source: data_source)
-        expect(definition.validate_json_form).to be_empty
+        expect_validation_errors(definition: definition, role: role, expected_errors: [])
       end
+
       it 'should pass with CDED tied to Custom Service' do
-        definition.role = 'SERVICE'
+        role = :SERVICE
         create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomService', key: cded.key, data_source: data_source)
-        expect(definition.validate_json_form).to be_empty
+        expect_validation_errors(definition: definition, role: role, expected_errors: [])
       end
     end
+
     it 'should fail when the CDED key does not exist' do
-      definition.definition = {
+      definition = {
         'item': [
           {
             'type': 'STRING',
@@ -387,16 +419,16 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
             'mapping': { 'custom_field_key': 'invalid_key' },
           },
         ],
-      }
+      }.deep_stringify_keys
 
       expect do
-        definition.validate_json_form
+        described_class.perform(definition, role)
       end.to raise_error(/CDED does not exist/)
     end
 
     it 'should fail when the CDED key exists but is associated with the wrong owner type for this form role' do
-      definition.role = 'SERVICE'
-      definition.definition = {
+      role = :SERVICE
+      definition = {
         'item': [
           {
             'type': 'STRING',
@@ -405,15 +437,15 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
             'mapping': { 'custom_field_key': cded.key },
           },
         ],
-      }
+      }.deep_stringify_keys
 
       expect do
-        definition.validate_json_form
+        described_class.perform(definition, role)
       end.to raise_error(/CDED does not exist/)
     end
 
     it 'should fail if the CDED field type is incompatible with the item type' do
-      definition.definition = {
+      definition = {
         'item': [
           {
             'type': 'BOOLEAN',
@@ -422,10 +454,10 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
             'mapping': { 'custom_field_key': cded.key },
           },
         ],
-      }
+      }.deep_stringify_keys
 
       expect do
-        definition.validate_json_form
+        described_class.perform(definition, role)
       end.to raise_error("Item a_bool has type BOOLEAN, but its custom field key #{cded.key} has an incompatible type string")
     end
   end

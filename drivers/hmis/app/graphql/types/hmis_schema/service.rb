@@ -62,7 +62,7 @@ module Types
       case object.owner_type
       when 'Hmis::Hud::Service'
         dataloader.with(Sources::CustomServiceTypeByHudTypeSource).
-          load([object.RecordType, object.TypeProvided])
+          load([object.RecordType, object.TypeProvided, object.data_source_id])
       when 'Hmis::Hud::CustomService'
         load_ar_scope(scope: custom_service_types_scope, id: object.custom_service_type_id)
       else

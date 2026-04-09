@@ -48,9 +48,10 @@
     "typescript": "^5.8.2"
   },
   "resolutions": {
-    "minimatch": "^10.2.1",
+    "minimatch": "^10.2.3",
     "ws": "^8.17.1",
-    "tar-fs": "^2.1.4"
+    "tar-fs": "^2.1.4",
+    "immutable": "^5.1.5"
   },
   "scripts": {
     "lint": "eslint app/assets/javascripts",

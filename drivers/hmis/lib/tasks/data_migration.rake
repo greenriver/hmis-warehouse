@@ -2,6 +2,7 @@ namespace :data_migration do
   # rails driver:hmis:data_migration:update_project_pk
   desc 'One time task to set Enrollment.project_pk'
   task :update_project_pk, [] => [:environment] do
+    # TODO(#6771,#6612) move to consolidated HMIS setup script; update to be run on a per-data source basis
     data_source = GrdaWarehouse::DataSource.hmis.first
     return unless data_source
 

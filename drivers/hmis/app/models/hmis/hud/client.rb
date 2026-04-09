@@ -104,6 +104,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
     scopes = []
+    # TODO(#8916) Replace the global permission check, `user.permissions?(*permissions, **kwargs)`,
+    # with a check for: "does the current user have any/all of these permissions at the *current* data source?"
     scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.permissions?(*permissions, **kwargs)
     scopes += [
       joins(:projects).where(p_t[:id].in(pids)),

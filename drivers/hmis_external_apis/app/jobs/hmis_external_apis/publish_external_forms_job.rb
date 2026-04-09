@@ -45,7 +45,7 @@ class HmisExternalApis::PublishExternalFormsJob
     raise 'form must be published in Form Builder first' unless definition.published? # must publish in Form Builder first
 
     # Validate the form structure and CDEDs
-    errors = Hmis::Form::DefinitionValidator.perform(definition.definition)
+    errors = Hmis::Form::DefinitionValidator.perform(definition.definition, data_source_id: data_source_id)
     raise "cannot publish form with errors: #{errors.full_messages.join(', ')}" if errors.any?
   end
 
@@ -54,6 +54,7 @@ class HmisExternalApis::PublishExternalFormsJob
   end
 
   def data_source_id
+    # TODO(#6691) - update this to use the FormDefinition's data source once that column is added
     @data_source_id ||= GrdaWarehouse::DataSource.hmis.first.id
   end
 

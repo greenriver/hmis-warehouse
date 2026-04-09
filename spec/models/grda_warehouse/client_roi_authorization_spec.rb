@@ -106,6 +106,18 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
         expect(authorization.matches_coc_codes?(['CODE3', 'CODE4'])).to be false
       end
     end
+
+    context 'when coc_codes include All CoCs' do
+      before { authorization.coc_codes = ['All CoCs'] }
+
+      it 'returns true when user coc codes are specific HUD codes (no literal overlap with All CoCs)' do
+        expect(authorization.matches_coc_codes?(['PA-501', 'PA-502'])).to be true
+      end
+
+      it 'returns true when user has no coc_codes' do
+        expect(authorization.matches_coc_codes?([])).to be true
+      end
+    end
   end
 
   describe 'when clients are merged' do

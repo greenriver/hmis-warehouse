@@ -23,6 +23,14 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
     expect(response.status).to eq 401
   end
 
+  it 'fails with a non-Bearer Authorization header' do
+    headers = { 'Authorization' => 'Basic abc' }
+
+    get hmis_external_apis_client_involvements_path, params: {}, headers: headers, as: :json
+
+    expect(response.status).to eq 401
+  end
+
   it 'fails with valid key that is for a different system' do
     conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals))
 
