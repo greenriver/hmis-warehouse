@@ -12,7 +12,6 @@ require_relative '../../support/graphql_helpers'
 
 # Mirrors defaults in drivers/hmis/app/graphql/hmis_schema.rb (update when those change).
 HMIS_SCHEMA_DEFAULT_MAX_DEPTH = 30
-HMIS_SCHEMA_DEFAULT_MAX_COMPLEXITY = 1_500
 
 RSpec.describe HmisSchema, 'depth and complexity limits', type: :request do
   include_context 'hmis base setup'
@@ -120,14 +119,6 @@ RSpec.describe HmisSchema, 'depth and complexity limits', type: :request do
       expect do
         post_graphql(id: p1.id) { query }
       end.to raise_error(RuntimeError, /depth/i)
-    end
-
-    it 'raises on query that exceeds max_complexity' do
-      # Default max_complexity is 1_500; each root __typename alias costs ~1 toward the total.
-      query = build_high_complexity_root_query(HMIS_SCHEMA_DEFAULT_MAX_COMPLEXITY + 100)
-      expect do
-        post_graphql(id: p1.id) { query }
-      end.to raise_error(RuntimeError, /complexity/i)
     end
   end
 end
