@@ -13,11 +13,9 @@ module Types
 
     available_filter_options do
       arg :active_status, [Types::HmisSchema::Enums::ActiveStatus]
-      arg :form_type, [Types::Forms::Enums::FormRole], deprecation_reason: 'No longer used by the frontend'
-      arg :system_form, [Types::HmisSchema::Enums::SystemStatus], deprecation_reason: 'No longer used by the frontend'
-      arg :project_type, [Types::HmisSchema::Enums::ProjectType], deprecation_reason: 'No longer used by the frontend'
-      arg :applied_to_project, ID, deprecation_reason: 'No longer used by the frontend'
-      arg :definition, ID, deprecation_reason: 'No longer used by the frontend'
+      arg :system_form, [Types::HmisSchema::Enums::SystemStatus]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :applied_to_project, ID
     end
 
     field :id, ID, null: false

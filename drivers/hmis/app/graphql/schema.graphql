@@ -5255,11 +5255,9 @@ type FormRule {
 
 input FormRuleFilterOptions {
   activeStatus: [ActiveStatus!]
-  appliedToProject: ID @deprecated(reason: "No longer used by the frontend")
-  definition: ID @deprecated(reason: "No longer used by the frontend")
-  formType: [FormRole!] @deprecated(reason: "No longer used by the frontend")
-  projectType: [ProjectType!] @deprecated(reason: "No longer used by the frontend")
-  systemForm: [SystemStatus!] @deprecated(reason: "No longer used by the frontend")
+  appliedToProject: ID
+  projectType: [ProjectType!]
+  systemForm: [SystemStatus!]
 }
 
 input FormRuleInput {
@@ -10058,8 +10056,6 @@ type Query {
   formDefinition(id: ID!): FormDefinition
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
-  formRule(id: ID!): FormRule @deprecated(reason: "No longer used by the frontend")
-  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated! @deprecated(reason: "No longer used by the frontend; form rules are queried by their FormDefinition")
 
   """
   Funder lookup
@@ -10145,8 +10141,6 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
-  serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated! @deprecated(reason: "No longer used by the frontend")
-  serviceCategory(id: ID!): ServiceCategory @deprecated(reason: "No longer used by the frontend")
 
   """
   Get most relevant form definition for the specified service type
@@ -11371,16 +11365,6 @@ type Service {
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided
   user: ApplicationUser
-}
-
-type ServiceCategoriesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [ServiceCategory!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 type ServiceCategory {
