@@ -33,7 +33,7 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
     hmis_login(user)
   end
 
-  let!(:definition) { create(:hmis_external_form_definition, data_source: ds1) } # creates cded for field `your_name`
+  let!(:definition) { create(:hmis_external_form_definition, data_source: ds1, generate_cdeds: true) } # creates cded for field `your_name`
   let!(:rule) { create :hmis_form_instance, definition_identifier: definition.identifier, entity: p1, active: true, data_source: ds1 }
   let!(:s1) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'your_name' => 'Abigail' }) }
   let!(:s2) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'your_name' => 'Cedric' }) }

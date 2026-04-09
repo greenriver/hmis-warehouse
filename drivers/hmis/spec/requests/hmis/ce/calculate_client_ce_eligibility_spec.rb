@@ -25,7 +25,7 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
         { "link_id": 'unmapped_q' },
       ],
     }
-    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_form', status: :published, data_source: ds1)
+    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_form', status: :published, data_source: ds1, generate_cdeds: true)
   end
 
   let!(:veteran_pool) { create :hmis_ce_match_candidate_pool, requirement_expression: '`cde.custom_assessment.veteran_field` = 1' }
