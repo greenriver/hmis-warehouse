@@ -12,7 +12,7 @@ class HmisSchema < GraphQL::Schema
 
   # Reject abusive queries during static analysis (before resolvers run), see https://graphql-ruby.org/queries/complexity_and_depth
   max_depth 30, count_introspection_fields: false # Don't count introspection fields which are only enabled in development
-  max_complexity 1_500
+  max_complexity 40_000 # Observed max 04/2026: 17k when viewing entry assessments for a 10-person household
 
   trace_with(GraphqlTraceBehavior)
   trace_with(GraphQL::Tracing::SentryTrace) if Sentry.configuration&.traces_sample_rate&.positive?
