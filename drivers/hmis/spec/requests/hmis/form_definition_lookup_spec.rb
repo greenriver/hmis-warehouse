@@ -94,7 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
     let(:service_form_definition) do
-      Hmis::Form::Definition.where(role: :SERVICE).first
+      Hmis::Form::Definition.in_data_source(ds1.id).where(role: :SERVICE).first
     end
 
     it 'should find no definitions if there are no service-specific instances' do
@@ -113,6 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project_type: p1.project_type,
         definition_identifier: service_form_definition.identifier,
         custom_service_type_id: cst1.id,
+        data_source: ds1,
       )
 
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
@@ -131,6 +132,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         entity: p1,
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: csc1.id,
+        data_source: ds1,
       )
 
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }

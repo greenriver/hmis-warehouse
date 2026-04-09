@@ -243,7 +243,7 @@ module Types
 
       if id
         # If ID is specified, we assume that it's correct for this project.
-        record = Hmis::Form::Definition.find(id)
+        record = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
       else
         record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
       end
@@ -265,10 +265,11 @@ module Types
       service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
+      definition_scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id)
       definition = if id
         # If ID is specified, fetch form directly. ID is only provided when editing existing services.
         # Note: It may be a retired form, or a form that is no longer enabled in the project.
-        Hmis::Form::Definition.with_role(:SERVICE).find(id)
+        definition_scope.with_role(:SERVICE).find(id)
       else
         # If ID is not specified, determine which form is specified for collecting this Service Type in this Project.
         Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
@@ -276,7 +277,7 @@ module Types
 
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
-      definition ||= Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
+      definition ||= definition_scope.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
       # Add filter context to apply project-specific filtering rules ("custom_rule")
       definition&.filter_context = { project: project }
       definition
