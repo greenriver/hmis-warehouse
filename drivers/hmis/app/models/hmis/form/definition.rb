@@ -298,7 +298,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   scope :latest_versions, -> do
-    # Returns the latest version per identifier
+    # Returns the latest version per identifier.
+    # Should be used in combination with `in_data_source`, since `identifier+version` is only guaranteed to be unique within a data source.
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
