@@ -211,7 +211,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'For exit assessment' do
     let(:today) { Date.current }
-    let(:fd1) { create(:hmis_exit_assessment_definition) }
+    let(:fd1) { create(:hmis_exit_assessment_definition, data_source: ds1) }
     let(:test_input) do
       {
         enrollment_id: e1.id.to_s,
