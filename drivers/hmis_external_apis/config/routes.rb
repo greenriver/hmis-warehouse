@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope(module: :hmis_external_apis) do
     scope(module: :ac_hmis) do
       post '/hmis_external_api/ac_hmis/referrals',

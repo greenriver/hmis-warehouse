@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :manual_hmis_data do
     resources :projects, only: [:none] do
       resources :funders, shallow: true, except: [:index, :show]

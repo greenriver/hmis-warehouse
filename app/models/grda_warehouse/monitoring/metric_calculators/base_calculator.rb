@@ -36,6 +36,13 @@ module GrdaWarehouse::Monitoring::MetricCalculators
       '1.0.0'
     end
 
+    # Returns true if the calculator's data source is currently stable enough to snapshot.
+    # Subclasses override this when their source table has a known concurrent writer.
+    # Called by MetricSnapshotCollector before opening the REPEATABLE READ transaction.
+    def self.data_stable?
+      true
+    end
+
     # Helper: get lookback window
     def lookback_window
       metric_definition&.calculation_window_days&.days || 3.years
