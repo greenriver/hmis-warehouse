@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope module: :hud_pit, path: :hud_reports, as: :hud_reports do
     resources :pits do
       get :running, on: :collection

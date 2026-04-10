@@ -94,7 +94,7 @@ module HopwaCaper::Generators::Fy2026::EnrollmentFilters
         types: [:NoIncomeSource],
       )
 
-      all_income_types = specific_filters.flat_map(&:types) + [:IncomeFromAnySource]
+      all_income_types = specific_filters.flat_map(&:types) + [:IncomeFromAnySource, :NoIncomeSource]
 
       total_filter = new(
         id: :any_income,

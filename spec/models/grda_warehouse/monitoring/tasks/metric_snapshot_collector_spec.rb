@@ -44,6 +44,17 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     )
   end
 
+  # RSpec wraps each example in a transaction for rollback-based cleanup.
+  # PostgreSQL does not allow setting isolation level inside a nested transaction,
+  # so we stub the REPEATABLE READ call to simply yield for all tests that do not
+  # specifically test transaction behavior. Tests that do care override this stub.
+  before do
+    allow(GrdaWarehouseBase).to receive(:transaction).and_call_original
+    allow(GrdaWarehouseBase).to receive(:transaction).
+      with(isolation: :repeatable_read).
+      and_yield
+  end
+
   describe '.run_daily_collection' do
     it 'creates metric calculation run record' do
       expect do
@@ -301,6 +312,104 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           expect(new_snapshot.initial_value).to eq(140)
           expect(new_snapshot.current_value).to eq(140)
         end
+      end
+    end
+  end
+
+  describe 'transaction isolation' do
+    it 'wraps all stable metrics in a single repeatable read transaction' do
+      allow(GrdaWarehouseBase).to receive(:transaction).and_call_original
+      # The test suite wraps everything in a transaction, so REPEATABLE READ
+      # isolation cannot actually be set in a nested call — stub it to just yield.
+      expect(GrdaWarehouseBase).to receive(:transaction).
+        with(isolation: :repeatable_read).
+        once.
+        and_yield
+
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id],
+        metric_names: ['test_metric'],
+      )
+    end
+  end
+
+  describe 'stability partitioning' do
+    before do
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+        to receive(:data_stable?).and_return(false)
+    end
+
+    it 'returns the skipped metric name' do
+      skipped = described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id],
+        metric_names: ['test_metric'],
+      )
+      expect(skipped).to eq(['test_metric'])
+    end
+
+    it 'does not create snapshots for skipped metrics' do
+      expect do
+        described_class.run_daily_collection(
+          entity_type: entity_type,
+          calculation_date: calculation_date,
+          entity_ids: [client1.id],
+          metric_names: ['test_metric'],
+        )
+      end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+    end
+
+    it 'does not open a transaction when all metrics are skipped' do
+      # maintain! and other internal calls may still use transaction; we only care
+      # that no REPEATABLE READ transaction is opened when all metrics are unstable
+      allow(GrdaWarehouseBase).to receive(:transaction).and_call_original
+      expect(GrdaWarehouseBase).not_to receive(:transaction).
+        with(isolation: :repeatable_read)
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id],
+        metric_names: ['test_metric'],
+      )
+    end
+
+    context 'when a second metric uses a stable calculator' do
+      let!(:second_metric_definition) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'second_metric',
+          entity_type: entity_type,
+          calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator',
+          count_change_threshold: 1,
+          active: true,
+        )
+      end
+
+      before do
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:data_stable?).and_return(true)
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:calculate_batch).and_return({ client1.id => 2 })
+        # The test suite runs inside a transaction, so REPEATABLE READ isolation
+        # cannot be set in a nested transaction. Stub the outer transaction to
+        # simply yield so the inner database writes are visible to assertions.
+        allow(GrdaWarehouseBase).to receive(:transaction).and_call_original
+        allow(GrdaWarehouseBase).to receive(:transaction).
+          with(isolation: :repeatable_read).
+          and_yield
+      end
+
+      it 'collects the stable metric and skips the unstable one' do
+        skipped = described_class.run_daily_collection(
+          entity_type: entity_type,
+          calculation_date: calculation_date,
+          entity_ids: [client1.id],
+        )
+        expect(skipped).to eq(['test_metric'])
+        expect(GrdaWarehouse::Monitoring::MetricSnapshot.count).to eq(1)
       end
     end
   end

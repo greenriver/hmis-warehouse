@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope :hud_twenty_twenty_two_to_twenty_twenty_four do
   end
 end

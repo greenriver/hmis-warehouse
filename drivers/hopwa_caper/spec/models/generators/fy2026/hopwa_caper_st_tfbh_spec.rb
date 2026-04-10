@@ -41,6 +41,35 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet, type: :model
     expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
   end
 
+  it 'includes no-income households in the income sources total' do
+    no_income_client = create(:hud_client, data_source: data_source)
+    no_income_enrollment = create_hiv_positive_enrollment(
+      client: no_income_client,
+      project: project,
+      entry_date: report_start_date + 1.day,
+      household_id: Hmis::Hud::Base.generate_uuid,
+    )
+    create(
+      :hud_income_benefit,
+      enrollment: no_income_enrollment,
+      information_date: report_start_date + 1.day,
+      IncomeFromAnySource: 0,
+      data_source: data_source,
+    )
+
+    _, rows = run_and_extract_rows([project], 'Q9')
+    expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
+    # Total should include households with income (hoh_client) AND without (no_income_client)
+    expect(rows.fetch('How many households accessed or maintained access to the following sources of income in the past year?')).to eq(2)
+  end
+
+  it 'renders a placeholder column when no facility-based projects are in scope' do
+    non_facility_project = create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
+    _, rows = run_and_extract_rows([non_facility_project], 'Q9')
+    expect(rows.fetch('What is the name of the housing facility?')).to eq('No facilities in scope')
+    expect(rows.fetch('Was the housing facility placed into service during this program year? Yes or No.')).to eq('No')
+  end
+
   it 'reports housing outcomes correctly' do
     _, rows = run_and_extract_rows([project], 'Q9')
     expect(rows.fetch('How many households exited to private housing?')).to eq(1)
