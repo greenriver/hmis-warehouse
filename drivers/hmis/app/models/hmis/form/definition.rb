@@ -347,7 +347,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       # Chooses the published FormDefinition that is "most relevant" for the Project (via an active FormInstance)
       Hmis::Form::Definition.for_project(project: project, role: role)
     else
-      # (This branch is currently not used anywhere except in tests)
       raise ArgumentError, 'data_source_id is required when project is not specified' unless data_source_id.present?
 
       # Project was not specified, so return the "default" FormDefinition for the role (if any)

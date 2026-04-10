@@ -213,7 +213,7 @@ module Types
       record = if id
         Hmis::Form::Definition.find(id)
       else
-        Hmis::Form::Definition.find_definition_for_role(role, project: project)
+        Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: current_user.hmis_data_source_id)
       end
 
       # If the frontend is making this query, it's trying to display some data using a form definition,
@@ -244,7 +244,7 @@ module Types
         # If ID is specified, we assume that it's correct for this project.
         record = Hmis::Form::Definition.find(id)
       else
-        record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+        record = Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: current_user.hmis_data_source_id)
       end
 
       # Set filter context, so that form rules are applied
