@@ -43,7 +43,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     before(:each) do
-      create(:hmis_form_instance, definition: definition, entity: p1) # enable the form in p1
+      create(:hmis_form_instance, definition: definition, entity: p1, data_source: ds1) # enable the form in p1
       sign_in(hmis_user)
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
