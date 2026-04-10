@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/warehouse-permissions.md
+#
 # AccessControl is part of the "new" permissions system
 #
 # An AccessControl includes:

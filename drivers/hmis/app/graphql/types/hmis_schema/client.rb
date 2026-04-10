@@ -10,11 +10,6 @@ module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasServices
-    include Types::HmisSchema::HasIncomeBenefits
-    include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasHealthAndDvs
-    include Types::HmisSchema::HasYouthEducationStatuses
-    include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCustomCaseNotes
@@ -105,11 +100,6 @@ module Types
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
     end
-    income_benefits_field
-    disabilities_field
-    health_and_dvs_field
-    youth_education_statuses_field
-    employment_educations_field
     current_living_situations_field
     assessments_field
     services_field
@@ -164,15 +154,10 @@ module Types
       can :view_client_photo
       can :view_dob
       can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
       can :delete_clients, field_name: :can_delete_client
       can :edit_clients, field_name: :can_edit_client
       can :manage_any_client_files
       can :manage_own_client_files
-      can :view_any_nonconfidential_client_files
-      can :view_any_confidential_client_files
       composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
       composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
       can :audit_clients
@@ -214,22 +199,6 @@ module Types
         project_id: project_id,
         open_on_date: open_on_date,
       )
-    end
-
-    def income_benefits(**args)
-      resolve_income_benefits(**args)
-    end
-
-    def disabilities(**args)
-      resolve_disabilities(**args)
-    end
-
-    def disability_groups(**args)
-      resolve_disability_groups(**args)
-    end
-
-    def health_and_dvs(**args)
-      resolve_health_and_dvs(**args)
     end
 
     def assessments(**args)

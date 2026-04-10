@@ -75,7 +75,7 @@ This table maps each external interface to its channel, protocol, and data forma
 | Warehouse Web UI | HTTPS | HTML (server-rendered) | Administrative interface for leads, admins, and the engineering team. |
 | Upstream CSV Ingestion | S3 file deposit | HUD HMIS CSV | Partners deposit exports into designated S3 buckets; Warehouse imports on schedule. |
 | Supplemental Data Ingestion | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse pickup. |
-| Public Forms | S3-hosted static HTML → Warehouse | Form POST | Anonymous data collection (e.g., PIT counts) submitted back to the platform. |
+| Public Forms | S3-hosted static HTML → Lambda → S3 → Warehouse | Form POST (JSON) | Static HTML/JS forms submit to a Lambda function that writes submissions to S3; Warehouse imports on schedule. Used for anonymous data collection (e.g., PIT counts, outreach). |
 | Authentication | OAuth2 / OIDC | JWT | OAuth2-Proxy + Dex broker identity from upstream IDPs. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |
 | Analytics | SQL (internal network) | Tabular (PostgreSQL) | DBT transforms warehouse data; Superset queries the analytics database. |
 | CAS ↔ Warehouse | Direct PostgreSQL connection | SQL | Legacy integration; CAS reads/writes warehouse tables directly. See [5.2.2 CAS](05-building-blocks/05-2-2-cas.md). |
