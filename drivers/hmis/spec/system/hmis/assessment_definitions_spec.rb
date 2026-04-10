@@ -29,7 +29,15 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'link_id': 'old_message',
         'text': 'Text on old form',
       }
-      create(:custom_assessment_with_custom_fields, title: 'Old Custom Assessment', append_items: old_item, data_source: ds1, version: 0, status: :retired)
+      create(
+        :custom_assessment_with_custom_fields,
+        title: 'Old Custom Assessment',
+        append_items: old_item,
+        data_source: ds1,
+        generate_cdeds: true,
+        version: 0,
+        status: :retired,
+      )
     end
 
     let!(:definition) do
@@ -39,7 +47,14 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'New question',
         'mapping': { 'custom_field_key': 'new_question_key' },
       }
-      create(:custom_assessment_with_custom_fields, identifier: old_definition.identifier, title: 'New Custom Assessment', append_items: new_item, data_source: ds1)
+      create(
+        :custom_assessment_with_custom_fields,
+        identifier: old_definition.identifier,
+        title: 'New Custom Assessment',
+        append_items: new_item,
+        data_source: ds1,
+        generate_cdeds: true,
+      )
     end
 
     before(:each) do
@@ -141,7 +156,15 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'Old question',
         'mapping': { 'custom_field_key': 'old_question_key' },
       }
-      create(:hmis_intake_assessment_definition, title: 'Old Special Intake', append_items: old_item, data_source: ds1, version: 0, status: :retired)
+      create(
+        :hmis_intake_assessment_definition,
+        title: 'Old Special Intake',
+        append_items: old_item,
+        data_source: ds1,
+        generate_cdeds: true,
+        version: 0,
+        status: :retired,
+      )
     end
 
     let!(:definition) do
@@ -151,7 +174,14 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'New question',
         'mapping': { 'custom_field_key': 'new_question_key' },
       }
-      create(:hmis_intake_assessment_definition, identifier: old_definition.identifier, title: 'New Special Intake', append_items: new_item, data_source: ds1)
+      create(
+        :hmis_intake_assessment_definition,
+        identifier: old_definition.identifier,
+        title: 'New Special Intake',
+        append_items: new_item,
+        data_source: ds1,
+        generate_cdeds: true,
+      )
     end
 
     # e1 (HoH): Intake was Submitted with old form
