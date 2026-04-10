@@ -14,7 +14,6 @@ module Types
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
     include Types::HmisSchema::HasHouseholds
-    include Types::HmisSchema::HasReferralRequests
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasServices
@@ -82,8 +81,6 @@ module Types
     hud_field :continuum_project, HmisSchema::Enums::Hud::NoYes, null: true
     hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYes, null: true
     field :residential_affiliation_project_ids, [ID], null: false
-    field :residential_affiliation_projects, [HmisSchema::Project], null: false
-    field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
     field :staff_assignments_enabled, Boolean, null: false, description: 'Whether staff assignment is enabled in this project', method: :staff_assignments_enabled?
     field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
@@ -94,20 +91,14 @@ module Types
     field :ce_swimlanes, [HmisSchema::CeSwimlane], null: false, description: 'Coordinated Entry swimlanes that are in templates used by this project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
-    referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
     referral_postings_field :outgoing_referral_postings
     access_field do
       can :delete_project
       can :edit_project_details
-      can :view_partial_ssn
-      can :view_full_ssn
-      can :view_dob
       can :view_enrollment_details
       can :enroll_clients
       can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
       can :manage_units
       can :view_units
       can :manage_incoming_referrals
@@ -115,15 +106,11 @@ module Types
       can :view_outgoing_referral_details
       # TODO(#8067) - reduce duplication of logic with HmisProjectPolicy once we establish a frontend pattern for permission requirements
       composite_perm :can_view_outgoing_referral_summaries, permissions: [:manage_outgoing_referrals, :view_outgoing_referral_details], mode: :any
-      can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
       can :view_referrals
       can :view_own_referrals
       can :start_referrals
-      can :perform_any_referral_tasks
-      can :perform_own_referral_tasks
-      can :assign_referral_tasks
       can :update_unit_availability
       can :view_prioritized_client_lists
     end
@@ -214,16 +201,8 @@ module Types
       resolve_services(**args, dangerous_skip_permission_check: true)
     end
 
-    def residential_affiliation_projects
-      load_ar_association(object, :residential_projects)
-    end
-
     def residential_affiliation_project_ids
-      residential_affiliation_projects.map(&:id)
-    end
-
-    def affiliated_projects
-      load_ar_association(object, :affiliated_projects)
+      load_ar_association(object, :residential_projects).map(&:id)
     end
 
     # Build OpenStructs to resolve as UnitTypeCapacity
@@ -264,12 +243,6 @@ module Types
       check_enrollment_details_access
 
       resolve_households(object.households, **args, dangerous_skip_permission_check: true)
-    end
-
-    def referral_requests(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
-
-      scoped_referral_requests(object.external_referral_requests, **args)
     end
 
     def incoming_referral_postings(**args)

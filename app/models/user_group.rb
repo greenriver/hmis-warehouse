@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/warehouse-permissions.md
+#
 # part of the "new" permission system
 #
 class UserGroup < ApplicationRecord
