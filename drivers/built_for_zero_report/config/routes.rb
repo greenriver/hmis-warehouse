@@ -11,7 +11,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :built_for_zero_report do
     namespace :warehouse_reports do
       resources :bfz, only: [:index] do

@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :project_pass_fail do
     namespace :warehouse_reports do
       resources :project_pass_fail, only: [:index, :show, :destroy, :create] do
