@@ -10,9 +10,6 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/graphql_helpers'
 
-# Mirrors defaults in drivers/hmis/app/graphql/hmis_schema.rb (update when those change).
-HMIS_SCHEMA_DEFAULT_MAX_DEPTH = 30
-
 RSpec.describe HmisSchema, 'depth and complexity limits', type: :request do
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, p1) }
@@ -95,7 +92,7 @@ RSpec.describe HmisSchema, 'depth and complexity limits', type: :request do
     end
 
     it 'rejects pathological depth against schema default max_depth' do
-      # Nested enough to exceed HMIS_SCHEMA_DEFAULT_MAX_DEPTH
+      # Nested enough to exceed default max_depth
       query = build_nested_project_query(10)
       result = HmisSchema.execute(
         query,

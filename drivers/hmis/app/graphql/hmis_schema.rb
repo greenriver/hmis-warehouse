@@ -66,26 +66,25 @@ class HmisSchema < GraphQL::Schema
     nil
   end
 
-  module QueryAnalysisLoggers
-    class Depth < GraphQL::Analysis::QueryDepth
-      def result
-        depth = super
-        Rails.logger.info("[HmisSchema] GraphQL query depth=#{depth}")
-        depth
-      end
-    end
-
-    class Complexity < GraphQL::Analysis::QueryComplexity
-      def result
-        complexity = super
-        Rails.logger.info("[HmisSchema] GraphQL query complexity=#{complexity}")
-        complexity
-      end
-    end
-  end
-
   # Set HMIS_GQL_LOG_DEPTH_COMPLEXITY=1 in `.env.development.local` to enable local logging, for tuning max_depth/max_complexity
   if Rails.env.development? && ENV['HMIS_GQL_LOG_DEPTH_COMPLEXITY'].present?
+    module QueryAnalysisLoggers
+      class Depth < GraphQL::Analysis::QueryDepth
+        def result
+          depth = super
+          Rails.logger.info("[HmisSchema] GraphQL query depth=#{depth}")
+          depth
+        end
+      end
+
+      class Complexity < GraphQL::Analysis::QueryComplexity
+        def result
+          complexity = super
+          Rails.logger.info("[HmisSchema] GraphQL query complexity=#{complexity}")
+          complexity
+        end
+      end
+    end
     query_analyzer(QueryAnalysisLoggers::Depth)
     query_analyzer(QueryAnalysisLoggers::Complexity)
   end
