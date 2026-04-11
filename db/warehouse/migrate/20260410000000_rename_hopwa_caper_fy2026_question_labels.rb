@@ -25,50 +25,45 @@ class RenameHopwaCaperFy2026QuestionLabels < ActiveRecord::Migration[7.2]
   }.freeze
 
   def up
-    fy2026_instance_ids = HudReports::ReportInstance.where(report_name: REPORT_NAME).select(:id)
+    fy2026_instance_ids = HudReports::ReportInstance.where(report_name: REPORT_NAME).pluck(:id)
 
     RENAMES.each do |old_label, new_label|
-      # Universe rows on report cells
       HudReports::ReportCell.where(report_instance_id: fy2026_instance_ids, question: old_label).
         update_all(question: new_label)
-
-      # JSON arrays on report instances — replace each old string in-place
-      HudReports::ReportInstance.where(id: fy2026_instance_ids).find_each do |instance|
-        changed = false
-
-        [:question_names, :build_for_questions, :remaining_questions].each do |col|
-          arr = instance.send(col)
-          next unless arr.is_a?(Array) && arr.include?(old_label)
-
-          instance.send(:"#{col}=", arr.map { |v| v == old_label ? new_label : v })
-          changed = true
-        end
-
-        instance.save!(validate: false) if changed
-      end
     end
+
+    rename_instance_json(fy2026_instance_ids, RENAMES)
   end
 
   def down
-    fy2026_instance_ids = HudReports::ReportInstance.where(report_name: REPORT_NAME).select(:id)
+    fy2026_instance_ids = HudReports::ReportInstance.where(report_name: REPORT_NAME).pluck(:id)
 
     RENAMES.each do |old_label, new_label|
       HudReports::ReportCell.where(report_instance_id: fy2026_instance_ids, question: new_label).
         update_all(question: old_label)
+    end
 
-      HudReports::ReportInstance.where(id: fy2026_instance_ids).find_each do |instance|
-        changed = false
+    rename_instance_json(fy2026_instance_ids, RENAMES.invert)
+  end
 
-        [:question_names, :build_for_questions, :remaining_questions].each do |col|
-          arr = instance.send(col)
-          next unless arr.is_a?(Array) && arr.include?(new_label)
+  private
 
-          instance.send(:"#{col}=", arr.map { |v| v == new_label ? old_label : v })
-          changed = true
-        end
+  def rename_instance_json(instance_ids, renames)
+    HudReports::ReportInstance.where(id: instance_ids).find_each do |instance|
+      changed = false
 
-        instance.save!(validate: false) if changed
+      [:question_names, :build_for_questions, :remaining_questions].each do |col|
+        arr = instance.public_send(col)
+        next unless arr.is_a?(Array)
+
+        renamed = arr.map { |v| renames.fetch(v, v) }
+        next if renamed == arr
+
+        instance.public_send(:"#{col}=", renamed)
+        changed = true
       end
+
+      instance.save!(validate: false) if changed
     end
   end
 end
