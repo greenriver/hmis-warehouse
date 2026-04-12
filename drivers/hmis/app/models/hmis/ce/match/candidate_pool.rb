@@ -61,7 +61,7 @@ module Hmis::Ce::Match
     end
 
     # Return a list of string form definition identifiers that are used in this candidate pool's priority/eligibility expressions.
-    # This can hypothetically return form definitions across data sources in a multi-hmis setup.
+    # This can hypothetically return form definitions across data sources in a multi-hmis setup. TODO(#9074)
     def relevant_form_definition_identifiers
       # Gather relevant expressions for determining priority/eligibility in this candidate pool.
       # These look like: 'current_age > 18' or 'cde.custom_assessment.fieldname = 1'

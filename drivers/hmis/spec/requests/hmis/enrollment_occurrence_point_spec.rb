@@ -110,7 +110,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'with occurrence point forms set up in multi-hmis' do
       let!(:ds2) { create(:hmis_data_source) }
       let!(:ds2_project) { create(:hmis_hud_project, data_source: ds2) }
-      # occurrence point form with the same identifier in another data source
+      # occurrence point form in another data source
       let!(:ds2_definition) { create(:hmis_form_definition, identifier: 'form_in_ds2', role: :OCCURRENCE_POINT, data_source: ds2) }
       # default rule (entity: nil), so it applies to all enrollments
       let!(:ds2_instance) { create(:hmis_form_instance, role: :OCCURRENCE_POINT, active: true, definition: ds2_definition, entity: nil, data_source: ds2) }
