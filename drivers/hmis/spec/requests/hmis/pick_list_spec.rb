@@ -626,7 +626,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
     let!(:unit_group) { create(:hmis_unit_group, project: receiving_project, name: 'Receiving Group') }
     let!(:non_ce_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
-    let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: receiving_project, receives_direct_referrals: true) }
+    let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: receiving_project, receives_direct_referrals: true, data_source: ds1) }
 
     before(:each) do
       allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -652,7 +652,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
     context 'when the sending project also receives' do
-      let!(:sending_config) { create(:hmis_project_ce_config, project: sending_project, receives_direct_referrals: true) }
+      let!(:sending_config) { create(:hmis_project_ce_config, project: sending_project, receives_direct_referrals: true, data_source: ds1) }
       let!(:sending_unit_group) { create(:hmis_unit_group, project: sending_project, name: 'Another Group') }
 
       it 'does not include that project' do
