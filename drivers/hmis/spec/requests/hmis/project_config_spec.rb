@@ -68,8 +68,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   context 'project configs query' do
     let!(:o2) { create :hmis_hud_organization, data_source: ds1 }
     let!(:p2) { create :hmis_hud_project, organization: o2, data_source: ds1 }
-    let!(:ds1_project_config1) { create :hmis_project_auto_enter_config, project: p1, data_source: ds1 }
-    let!(:ds1_project_config2) { create :hmis_project_auto_exit_config, organization: o2, data_source: ds1 }
+    let!(:ds1_project_config1) { create :hmis_project_auto_enter_config, project: p1 }
+    let!(:ds1_project_config2) { create :hmis_project_auto_exit_config, organization: o2 }
 
     let(:get_project_configs) do
       <<~GRAPHQL

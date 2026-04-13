@@ -13,7 +13,7 @@ class AddDataSourceIdToHmisProjectConfigs < ActiveRecord::Migration[7.2]
         )
       SQL
 
-      # If there are project configs but no HMIS data source, this raises ActiveRecord::NotNullViolation
+      # If there are project configs but no HMIS data source (which would be unexpected), this raises ActiveRecord::NotNullViolation
       change_column_null :hmis_project_configs, :data_source_id, false
     end
   end
