@@ -8,23 +8,27 @@
 
 FactoryBot.define do
   factory :hmis_project_auto_enter_config, class: 'Hmis::ProjectAutoEnterConfig' do
+    association :data_source, factory: :hmis_data_source
     created_at { Time.current }
     updated_at { Time.current }
   end
 
   factory :hmis_project_auto_exit_config, class: 'Hmis::ProjectAutoExitConfig' do
+    association :data_source, factory: :hmis_data_source
     created_at { Time.current }
     updated_at { Time.current }
     config_options { { 'length_of_absence_days': 30 }.to_json }
   end
 
   factory :hmis_project_staff_assignment_config, class: 'Hmis::ProjectStaffAssignmentConfig' do
+    association :data_source, factory: :hmis_data_source
     association :project, factory: :hmis_hud_project
     created_at { Time.current }
     updated_at { Time.current }
   end
 
   factory :hmis_project_ce_config, class: 'Hmis::ProjectCeConfig' do
+    association :data_source, factory: :hmis_data_source
     created_at { Time.current }
     updated_at { Time.current }
     enabled { true }
@@ -45,6 +49,7 @@ FactoryBot.define do
   end
 
   factory :hmis_project_sends_direct_ce_referrals_config, class: 'Hmis::ProjectSendsDirectCeReferralsConfig' do
+    association :data_source, factory: :hmis_data_source
     created_at { Time.current }
     updated_at { Time.current }
   end
