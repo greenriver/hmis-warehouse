@@ -9,6 +9,7 @@
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
   belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
   validate :exactly_one_of_project_org_type
@@ -37,16 +38,13 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
 
   validate :validate_config_options_json
+  validate :validate_consistent_data_source
 
   scope :viewable_by, ->(user) do
-    # Special case this, rather than using ProjectRelated concern, because project isn't a direct relationship.
-    # Project config can apply to a project, an organization, or a project type.
-    # Right now we have no way to gate viewability by data source for ProjectConfigs defined by project type - TODO(#6691)
-    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id)
-    organization_ids = Hmis::Hud::Organization.viewable_by(user).pluck(:id)
-    where(project_id: project_ids).
-      or(where(organization_id: organization_ids)).
-      or(where(project_id: nil, organization_id: nil))
+    # todo @martha - waiting for more discussion, should put in a policy?
+    return none unless user.policy_context.global_permissions.include?(:can_configure_data_collection)
+
+    where(data_source_id: user.hmis_data_source_id)
   end
 
   def validate_config_options_json
@@ -71,7 +69,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   scope :for_project, ->(project) do
-    where(
+    where(data_source_id: project.data_source_id).where(
       arel_table[:project_id].eq(project.id).
         or(arel_table[:organization_id].eq(project.organization.id)).
         or(arel_table[:project_type].eq(project.project_type)),
@@ -79,7 +77,12 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   scope :for_projects, ->(projects) do
-    where(
+    return none if projects.empty?
+
+    # Expect all projects to be from the same data source; raise otherwise
+    data_source_id = projects.pluck(:data_source_id).uniq.sole
+
+    where(data_source_id: data_source_id).where(
       arel_table[:project_id].in(projects.map(&:id)).
         or(arel_table[:organization_id].in(projects.map { |p| p.organization.id })).
         or(arel_table[:project_type].in(projects.map(&:project_type).uniq)),
@@ -123,6 +126,11 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   private
+
+  def validate_consistent_data_source
+    errors.add(:base, 'Data source must be the same as project') if project.present? && data_source != project.data_source
+    errors.add(:base, 'Data source must be the same as organization') if organization.present? && data_source != organization.data_source
+  end
 
   def set_config_option(key, value)
     new_options = { key => value }.stringify_keys
