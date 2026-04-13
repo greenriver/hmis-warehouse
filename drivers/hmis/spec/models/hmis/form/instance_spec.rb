@@ -55,4 +55,25 @@ RSpec.describe Hmis::Form::Instance, type: :model do
       expect(instance.reload.definitions).to eq([ds1_definition])
     end
   end
+
+  describe '#with_role' do
+    include_context 'hmis base setup'
+    include_context 'hmis json forms seed'
+
+    let(:role) { 'CUSTOM_ASSESSMENT' }
+
+    let!(:assessment_definition) { create :hmis_form_definition, identifier: 'my_custom_assessment', role: role, data_source: ds1 }
+    let!(:old_assessment_definition) { create :hmis_form_definition, identifier: 'my_custom_assessment', status: 'retired', version: 0, role: role, data_source: ds1 }
+    let!(:instance1) { create(:hmis_form_instance, role: role, project_type: 2, active: true, definition: assessment_definition, data_source: ds1) }
+    let!(:instance2) { create(:hmis_form_instance, role: role, project_type: 3, active: true, definition: assessment_definition, data_source: ds1) }
+
+    let(:intake_form) { Hmis::Form::Definition.managed_in_version_control.find_by!(role: 'INTAKE') }
+    let!(:instance3) { create(:hmis_form_instance, role: 'INTAKE', project_type: 3, active: true, definition: intake_form, data_source: ds1) }
+
+    it 'returns rules with the expected scope without duplicates (regression #8617)' do
+      scope = Hmis::Form::Instance.with_role(role)
+      expect(scope.count).to eq(2)
+      expect(scope).to contain_exactly(instance1, instance2)
+    end
+  end
 end
