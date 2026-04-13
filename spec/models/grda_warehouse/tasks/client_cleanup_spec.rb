@@ -1296,5 +1296,51 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
       end
     end
+
+    context 'when mismatched and correctly classified enrollments exist in different projects' do
+      let!(:project_b) { create_project(project_type: 1) }
+
+      let(:mismatched_hh_id) { Hmis::Hud::Base.generate_uuid }
+      let(:clean_hh_id) { Hmis::Hud::Base.generate_uuid }
+
+      # project (project_a): 2-person household that SH will misclassify as individual
+      let!(:mismatched_enrollments) do
+        [create_client_with_warehouse_link, create_client_with_warehouse_link].map do |client|
+          create_enrollment(client: client, project: project, entry_date: 1.month.ago, household_id: mismatched_hh_id)
+        end
+      end
+
+      # project_b: 2-person household that SH correctly classifies as family
+      let!(:clean_enrollments) do
+        [create_client_with_warehouse_link, create_client_with_warehouse_link].map do |client|
+          create_enrollment(client: client, project: project_b, entry_date: 1.month.ago, household_id: clean_hh_id)
+        end
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        # Only flip project_a's SH entries to individual, leaving project_b correct
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.where(project_id: project.ProjectID).
+          update_all(presented_as_individual: true)
+        mismatched_enrollments.each { |e| e.update_columns(processed_as: 'stale', processed_hash: 'stale') }
+        clean_enrollments.each { |e| e.update_columns(processed_as: 'current', processed_hash: 'current') }
+      end
+
+      it 'invalidates only the mismatched project enrollments' do
+        cleanup.invalidate_incorrect_family_enrollments
+
+        mismatched_enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to be_nil
+          expect(e.processed_hash).to be_nil
+        end
+
+        clean_enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to eq('current')
+          expect(e.processed_hash).to eq('current')
+        end
+      end
+    end
   end
 end
