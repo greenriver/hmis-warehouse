@@ -114,8 +114,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:ds2_project) { create :hmis_hud_project, data_source: ds2 }
       let!(:ds2_access_control) { create_access_control(hmis_user, ds2) }
       let!(:ds2_project_config) { create :hmis_project_auto_enter_config, project: ds2_project }
+      let!(:ds2_project_type_config) { create :hmis_project_auto_enter_config, project_type: 0, data_source: ds2 }
 
-      # todo @martha - how is this test passing on release-209?
       it 'should return only the configs in the current data source' do
         response, result = post_graphql { get_project_configs }
         expect(response.status).to eq(200), result.inspect
