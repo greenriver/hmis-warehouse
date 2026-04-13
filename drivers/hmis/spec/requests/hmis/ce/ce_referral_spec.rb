@@ -65,7 +65,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             swimlanes {
               id
               cacheKey
-              swimlaneId
               name
               participants {
                 id
@@ -278,14 +277,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             a_hash_including(
               'id' => case_manager_swimlane.id.to_s,
               'cacheKey' => "#{referral.id}:#{case_manager_swimlane.id}",
-              'swimlaneId' => case_manager_swimlane.id.to_s,
               'name' => case_manager_swimlane.name,
               'participants' => [],
             ),
             a_hash_including(
               'id' => provider_swimlane.id.to_s,
               'cacheKey' => "#{referral.id}:#{provider_swimlane.id}",
-              'swimlaneId' => provider_swimlane.id.to_s,
               'name' => provider_swimlane.name,
               'participants' => [],
             ),
@@ -308,7 +305,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               a_hash_including(
                 'id' => case_manager_swimlane.id.to_s,
                 'cacheKey' => "#{referral.id}:#{case_manager_swimlane.id}",
-                'swimlaneId' => case_manager_swimlane.id.to_s,
                 'name' => case_manager_swimlane.name,
                 'participants' => [
                   a_hash_including('id' => cm1.id.to_s, 'name' => cm1.name),
@@ -318,7 +314,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               a_hash_including(
                 'id' => provider_swimlane.id.to_s,
                 'cacheKey' => "#{referral.id}:#{provider_swimlane.id}",
-                'swimlaneId' => provider_swimlane.id.to_s,
                 'name' => provider_swimlane.name,
                 'participants' => [
                   a_hash_including('id' => provider.id.to_s, 'name' => provider.name),

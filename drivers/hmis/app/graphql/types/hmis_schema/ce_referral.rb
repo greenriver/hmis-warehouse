@@ -259,11 +259,9 @@ module Types
           users_by_id[participant.user_id]
         end
 
-        # Object is resolved as HmisSchema::CeReferralSwimlane
         OpenStruct.new(
-          id: swimlane.id, # unchanged for backwards compatibility
+          id: swimlane.id,
           cache_key: "#{object.id}:#{swimlane.id}",
-          swimlane_id: swimlane.id,
           name: swimlane.name,
           participants: participants,
         )

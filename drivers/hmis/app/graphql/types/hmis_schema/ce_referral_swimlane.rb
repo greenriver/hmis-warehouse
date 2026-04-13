@@ -15,11 +15,9 @@ module Types
     # See CeReferral.swimlanes for how this object is constructed.
 
     field :id, ID, null: false,
-                   description: 'Same as swimlaneId (unchanged for backwards compatibility). Can be updated to resolve cacheKey value once frontend is updated to send swimlaneId to assignReferralParticipants.'
+                   description: 'Swimlane id; client should pass this as assignReferralParticipants.swimlaneId'
     field :cache_key, ID, null: false,
-                          description: 'Referral-scoped key for Apollo cache to avoid collisions across referrals.'
-    field :swimlane_id, ID, null: false,
-                            description: 'Template swimlane id; same as id. Use as assignReferralParticipants.swimlaneId.'
+                          description: 'Referral-scoped key for Apollo cache to avoid collisions across referrals'
     field :name, String, null: false, description: 'Swimlane name'
     field :participants, [Application::User], null: false, description: 'Assigned users for this swimlane on this referral'
   end
