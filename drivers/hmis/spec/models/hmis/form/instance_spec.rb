@@ -29,6 +29,13 @@ RSpec.describe Hmis::Form::Instance, type: :model do
       expect(instance.reload.definition).to eq(published)
     end
 
+    it 'returns retired form only if no published form exists' do
+      retired = create(:hmis_form_definition, data_source: ds1, identifier: identifier, status: :retired, version: 1, role: :UPDATE)
+      instance = create(:hmis_form_instance, entity: p1, data_source: ds1, definition_identifier: identifier)
+
+      expect(instance.reload.definition).to eq(retired)
+    end
+
     it 'does not resolve a definition that only matches on identifier in a different data source' do
       create(:hmis_form_definition, identifier: identifier, status: :published, role: :UPDATE)
       ds1_definition = create(:hmis_form_definition, data_source: ds1, identifier: identifier, status: :draft, role: :UPDATE)
