@@ -29,7 +29,7 @@ class Hmis::Form::OccurrencePointFormCollection
 
   # Occurrence Point forms that are enabled in the Project. This is only used for purposes of displaying Project configuration.
   def for_project(project)
-    occurrence_point_definition_scope.map do |definition|
+    occurrence_point_definition_scope(data_source_id: project.data_source_id).map do |definition|
       # Choose the most specific Instance that enables this FormDefinition for this Project
       best_instance = definition.instances.active.order(updated_at: :desc).detect_best_instance_for_project(project: project)
       next unless best_instance
@@ -46,7 +46,7 @@ class Hmis::Form::OccurrencePointFormCollection
 
   # Occurrence Point forms that are enabled for this Enrollment via an active form instance
   def active_for_enrollment(enrollment)
-    occurrence_point_definition_scope.map do |definition|
+    occurrence_point_definition_scope(data_source_id: enrollment.data_source_id).map do |definition|
       # Choose the most specific Instance that enables this FormDefinition for this Enrollment
       best_instance = definition.instances.active.order(updated_at: :desc).detect_best_instance_for_enrollment(enrollment: enrollment)
       # If there was no active instance, that means this Occurrence Point form is not enabled. Skip it.
@@ -83,15 +83,16 @@ class Hmis::Form::OccurrencePointFormCollection
       # this field is already collected by an active enable form, skip
       next if active_forms.find { |s| collects_enrollment_field?(s.definition, field_name) }
 
-      definition = occurrence_point_definition_scope.find { |fd| fd.identifier == form_identifier.to_s && fd.managed_in_version_control? }
+      definition = occurrence_point_definition_scope(data_source_id: enrollment.data_source_id).
+        find { |fd| fd.identifier == form_identifier.to_s && fd.managed_in_version_control? }
       raise "Unexpected: #{field_name} present, but default form '#{form_identifier}' not found" unless definition
 
       create_form_struct(definition: definition, legacy: true)
     end.compact
   end
 
-  def occurrence_point_definition_scope
-    @occurrence_point_definition_scope ||= Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published
+  def occurrence_point_definition_scope(data_source_id:)
+    Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published.in_data_source(data_source_id)
   end
 
   def create_form_struct(definition:, legacy:, data_collected_about: nil)

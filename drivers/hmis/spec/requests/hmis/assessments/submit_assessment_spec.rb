@@ -15,14 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
-  let!(:fd1) do
-    # maybe can be replaced by:
-    # https://github.com/greenriver/hmis-warehouse/pull/4607/files#r1713723064
-    ['fieldOne', 'fieldTwo'].each do |key|
-      create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
-    end
-    create :hmis_form_definition
-  end
+  let!(:fd1) { create(:hmis_form_definition, data_source: ds1, generate_cdeds: true) }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do
@@ -218,7 +211,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'For exit assessment' do
     let(:today) { Date.current }
-    let(:fd1) { create(:hmis_exit_assessment_definition) }
+    let(:fd1) { create(:hmis_exit_assessment_definition, data_source: ds1) }
     let(:test_input) do
       {
         enrollment_id: e1.id.to_s,
