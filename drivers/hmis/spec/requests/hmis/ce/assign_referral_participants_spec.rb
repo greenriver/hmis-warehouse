@@ -35,6 +35,8 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
               id
               swimlanes {
                 id
+                cacheKey
+                swimlaneId
                 name
                 participants {
                   id
@@ -92,6 +94,8 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         expect(referral_swimlanes).to contain_exactly(
           a_hash_including(
             'id' => case_manager_swimlane.id.to_s,
+            'cacheKey' => "#{referral.id}:#{case_manager_swimlane.id}",
+            'swimlaneId' => case_manager_swimlane.id.to_s,
             'name' => case_manager_swimlane.name,
             'participants' => [
               a_hash_including(
@@ -102,6 +106,8 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
           ),
           a_hash_including(
             'id' => provider_swimlane.id.to_s,
+            'cacheKey' => "#{referral.id}:#{provider_swimlane.id}",
+            'swimlaneId' => provider_swimlane.id.to_s,
             'name' => provider_swimlane.name,
             'participants' => [
               a_hash_including(
@@ -246,8 +252,8 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         expect(referral_data).to be_present
 
         referral_swimlanes = referral_data['swimlanes']
-        case_mgr_swimlane = referral_swimlanes.find { |s| s['id'] == case_manager_swimlane.id.to_s }
-        provider_swimlane_result = referral_swimlanes.find { |s| s['id'] == provider_swimlane.id.to_s }
+        case_mgr_swimlane = referral_swimlanes.find { |s| s['cacheKey'] == "#{referral.id}:#{case_manager_swimlane.id}" }
+        provider_swimlane_result = referral_swimlanes.find { |s| s['cacheKey'] == "#{referral.id}:#{provider_swimlane.id}" }
         expect(case_mgr_swimlane['participants'].map { |p| p['id'] }).to eq([hmis_user.id.to_s])
         expect(provider_swimlane_result['participants']).to be_empty
 

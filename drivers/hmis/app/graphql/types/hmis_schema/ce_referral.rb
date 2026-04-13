@@ -260,7 +260,9 @@ module Types
         end
 
         OpenStruct.new(
-          id: swimlane.id,
+          id: swimlane.id.to_s,
+          cache_key: "#{object.id}:#{swimlane.id}",
+          swimlane_id: swimlane.id.to_s,
           name: swimlane.name,
           participants: participants,
         )
