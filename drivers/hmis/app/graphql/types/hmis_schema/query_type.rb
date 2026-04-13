@@ -428,23 +428,6 @@ module Types
         preload(:project, :client, :organization)
     end
 
-    field :service_category, Types::HmisSchema::ServiceCategory, null: true do
-      argument :id, ID, required: true
-    end
-    def service_category(id:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      Hmis::Hud::CustomServiceCategory.find_by(id: id)
-    end
-
-    field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
-    def service_categories
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      # TODO: add sort and filter capabilities
-      Hmis::Hud::CustomServiceCategory.all
-    end
-
     field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
       filters_argument HmisSchema::ServiceType
     end
@@ -503,25 +486,6 @@ module Types
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
-    end
-
-    form_rules_field
-    def form_rules(**args)
-      access_denied! unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Form::Instance.all
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
-
-      resolve_form_rules(scope, **args)
-    end
-
-    field :form_rule, Types::Admin::FormRule, null: true do
-      argument :id, ID, required: true
-    end
-    def form_rule(id:)
-      access_denied! unless current_user.can_configure_data_collection?
-
-      Hmis::Form::Instance.find_by(id: id)
     end
 
     field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false do
