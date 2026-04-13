@@ -15,6 +15,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, input:)
+      # TODO @martha - policy?
       record = Hmis::ProjectConfig.find(id)
       access_denied! unless current_user.can_configure_data_collection?
 
@@ -28,7 +29,7 @@ module Mutations
       end
 
       {
-        record: record,
+        project_config: record,
         errors: errors,
       }
     end
