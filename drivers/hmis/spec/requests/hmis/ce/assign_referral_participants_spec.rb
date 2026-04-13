@@ -249,8 +249,8 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         expect(referral_data).to be_present
 
         referral_swimlanes = referral_data['swimlanes']
-        case_mgr_swimlane = referral_swimlanes.find { |s| s['cacheKey'] == "#{referral.id}:#{case_manager_swimlane.id}" }
-        provider_swimlane_result = referral_swimlanes.find { |s| s['cacheKey'] == "#{referral.id}:#{provider_swimlane.id}" }
+        case_mgr_swimlane = referral_swimlanes.find { |s| s['id'] == case_manager_swimlane.id.to_s }
+        provider_swimlane_result = referral_swimlanes.find { |s| s['id'] == provider_swimlane.id.to_s }
         expect(case_mgr_swimlane['participants'].map { |p| p['id'] }).to eq([hmis_user.id.to_s])
         expect(provider_swimlane_result['participants']).to be_empty
 

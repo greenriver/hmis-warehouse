@@ -274,18 +274,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
           expect(swimlanes).to contain_exactly(
-            a_hash_including(
-              'id' => case_manager_swimlane.id.to_s,
-              'cacheKey' => "#{referral.id}:#{case_manager_swimlane.id}",
-              'name' => case_manager_swimlane.name,
-              'participants' => [],
-            ),
-            a_hash_including(
-              'id' => provider_swimlane.id.to_s,
-              'cacheKey' => "#{referral.id}:#{provider_swimlane.id}",
-              'name' => provider_swimlane.name,
-              'participants' => [],
-            ),
+            a_hash_including('id' => case_manager_swimlane.id.to_s, 'name' => case_manager_swimlane.name, 'participants' => []),
+            a_hash_including('id' => provider_swimlane.id.to_s, 'name' => provider_swimlane.name, 'participants' => []),
           )
         end
 
