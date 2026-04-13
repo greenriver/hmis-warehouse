@@ -29,7 +29,8 @@ RSpec.shared_context 'hmis json forms seed', shared_context: :metadata do
     HmisUtil::JsonForms.seed_all(data_source_id: ds.id)
   end
 
-  # Resolves the same row as `before(:all)`
+  # Use find_by! since we already created ds1 in before_all.
+  # If used after 'hmis base setup', this context's 'ds1' overrides the factory-based `ds1`.
   let(:ds1) { GrdaWarehouse::DataSource.hmis.find_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME) }
 
   after(:all) do
