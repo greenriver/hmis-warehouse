@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   extend HudReports::RouteConcerns
 
   scope module: :hud_apr, path: :hud_reports, as: :hud_reports do

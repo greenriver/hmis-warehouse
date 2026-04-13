@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   resources :clients, only: [:index, :show, :new], controller: 'client_access_control/clients' do
     member do
       get :appropriate

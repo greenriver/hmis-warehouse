@@ -10,6 +10,8 @@ if sentry_dsn
   Sentry.init do |config|
     config.dsn = sentry_dsn
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
+    # sending all the gems isn't that helpful in practice, it just adds noise
+    config.send_modules = false
 
     ENV['SENTRY_PERFORMANCE_TRACE_RATE'].presence.yield_self do |base_trace_rate|
       # enable performance monitoring on QA
