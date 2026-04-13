@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class SupportiveServicesSheet < Base
-    QUESTION_NUMBER = 'Q6: Supportive Services'
+    QUESTION_NUMBER = 'Supportive Services'
     QUESTION_NUMBERS = ['Q6'].freeze
     SHEET_TITLE = 'Complete for all households served with HOPWA funded Supportive Services by your organization in the reporting year.'
 
