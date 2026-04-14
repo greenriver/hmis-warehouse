@@ -41,8 +41,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   validate :validate_consistent_data_source
 
   scope :viewable_by, ->(user) do
-    # todo @martha - waiting for more discussion, should put in a policy?
-    return none unless user.policy_context.global_permissions.include?(:can_configure_data_collection)
+    return none unless user.policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_manage?
 
     where(data_source_id: user.hmis_data_source_id)
   end
