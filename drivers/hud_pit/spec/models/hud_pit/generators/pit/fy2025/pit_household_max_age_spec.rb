@@ -15,6 +15,21 @@ RSpec.describe HudPit::Generators::Pit::Fy2025::Base, type: :model do
 
     let(:es_project) { create_project(project_type: 0) }
     let(:question) { HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER }
+    let(:uy_question) { HudPit::Generators::Pit::Fy2025::UnaccompaniedYouth::QUESTION_NUMBER }
+
+    shared_examples 'excluded from unaccompanied youth universe' do
+      it 'is excluded from the unaccompanied youth question universe' do
+        report = run_report(questions: [uy_question])
+        expect(report.universe(uy_question).members.count).to eq(0)
+      end
+    end
+
+    shared_examples 'included in unaccompanied youth universe' do
+      it 'is included in the unaccompanied youth question universe' do
+        report = run_report(questions: [uy_question])
+        expect(report.universe(uy_question).members.count).to eq(1)
+      end
+    end
 
     context 'when one ES household has a single member with no DOB' do
       let!(:source_client) do
@@ -38,6 +53,8 @@ RSpec.describe HudPit::Generators::Pit::Fy2025::Base, type: :model do
         expect(pit_client.max_age).to be_nil
         expect(pit_client.household_member_count).to eq(1)
       end
+
+      it_behaves_like 'excluded from unaccompanied youth universe'
     end
 
     context 'when one ES household has a single member with a known DOB' do
@@ -65,6 +82,37 @@ RSpec.describe HudPit::Generators::Pit::Fy2025::Base, type: :model do
         expect(pit_client.max_age).to eq(expected_age)
         expect(pit_client.household_member_count).to eq(1)
       end
+
+      it_behaves_like 'excluded from unaccompanied youth universe'
+    end
+
+    context 'when one ES household has a single member under 25 with a known DOB' do
+      let(:dob_youth_20) { pit_date - 20.years }
+
+      let!(:source_client) do
+        hoh = create_client_with_warehouse_link(uid: 'pit_single_youth_known_dob', dob: dob_youth_20)
+        create_enrollment(
+          client: hoh,
+          project: es_project,
+          entry_date: pit_date,
+          relationship_to_ho_h: rel_hoh,
+          household_id: 'hh_pit_max_age_single_youth',
+        )
+        hoh
+      end
+
+      it 'persists max_age as that member age on PIT night' do
+        report = run_report(questions: [question])
+        pit_client = HudPit::Fy2025::PitClient.find_by!(
+          report_instance_id: report.id,
+          client_id: source_client.id,
+        )
+        expected_age = GrdaWarehouse::Hud::Client.age(date: pit_date, dob: dob_youth_20)
+        expect(pit_client.max_age).to eq(expected_age)
+        expect(pit_client.household_member_count).to eq(1)
+      end
+
+      it_behaves_like 'included in unaccompanied youth universe'
     end
 
     context 'when a household has two members with known DOBs' do
@@ -116,6 +164,8 @@ RSpec.describe HudPit::Generators::Pit::Fy2025::Base, type: :model do
         expect(pit_hoh.household_member_count).to eq(2)
         expect(pit_child.household_member_count).to eq(2)
       end
+
+      it_behaves_like 'excluded from unaccompanied youth universe'
     end
 
     context 'when a household has multiple members and the HoH has no DOB but another member does' do
@@ -156,6 +206,8 @@ RSpec.describe HudPit::Generators::Pit::Fy2025::Base, type: :model do
         expect(pit_spouse.max_age).to eq(expected_max)
         expect(pit_hoh.household_member_count).to eq(2)
       end
+
+      it_behaves_like 'excluded from unaccompanied youth universe'
     end
 
     context 'when a household has multiple members and one member has no DOB but others do' do
@@ -196,6 +248,8 @@ RSpec.describe HudPit::Generators::Pit::Fy2025::Base, type: :model do
         expect(pit_other.max_age).to eq(expected_max)
         expect(pit_hoh.household_member_count).to eq(2)
       end
+
+      it_behaves_like 'excluded from unaccompanied youth universe'
     end
   end
 end
