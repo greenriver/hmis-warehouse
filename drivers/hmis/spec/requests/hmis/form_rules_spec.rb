@@ -66,9 +66,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(rules.count).to eq(2)
     end
 
-    it 'should return all form rules when the user has full access' do
-      rules = query_form_rules
-      expect(rules.count).to be >= 10 # includes rules we created as well as seeded HUD rules
+    it 'should return all seeded form rules for a hud service' do
+      service_definition = Hmis::Form::Definition.in_data_source(ds1).with_role(:SERVICE).first
+      rules = query_form_rules(id: service_definition.id)
+      expect(rules.count).to be >= 10
     end
 
     it 'should filter form rules' do
