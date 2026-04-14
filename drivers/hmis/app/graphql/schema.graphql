@@ -1428,8 +1428,24 @@ type CeReferralStepsPaginated {
 }
 
 type CeReferralSwimlane {
+  """
+  Referral-scoped key for Apollo cache to avoid collisions across referrals
+  """
+  cacheKey: ID!
+
+  """
+  Swimlane id; client should pass this as assignReferralParticipants.swimlaneId
+  """
   id: ID!
+
+  """
+  Swimlane name
+  """
   name: String!
+
+  """
+  Assigned users for this swimlane on this referral
+  """
   participants: [ApplicationUser!]!
 }
 
