@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class PFbhSheet < BaseFbhSheet
-    QUESTION_NUMBER = 'Q10: P-FBH'
+    QUESTION_NUMBER = 'P-FBH'
     QUESTION_NUMBERS = ['Q10'].freeze
     SHEET_TITLE = 'Complete this section for all Households served with HOPWA Permanent Facility-Based Housing assistance by your organization in the reporting year. NOTE: Scattered-Site Facilities may be reported as one Facility.'
 
