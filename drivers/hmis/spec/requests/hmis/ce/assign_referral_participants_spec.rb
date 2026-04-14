@@ -35,6 +35,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
               id
               swimlanes {
                 id
+                cacheKey
                 name
                 participants {
                   id
@@ -92,6 +93,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         expect(referral_swimlanes).to contain_exactly(
           a_hash_including(
             'id' => case_manager_swimlane.id.to_s,
+            'cacheKey' => "#{referral.id}:#{case_manager_swimlane.id}",
             'name' => case_manager_swimlane.name,
             'participants' => [
               a_hash_including(
@@ -102,6 +104,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
           ),
           a_hash_including(
             'id' => provider_swimlane.id.to_s,
+            'cacheKey' => "#{referral.id}:#{provider_swimlane.id}",
             'name' => provider_swimlane.name,
             'participants' => [
               a_hash_including(
