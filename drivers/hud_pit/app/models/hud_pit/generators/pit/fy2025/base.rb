@@ -105,11 +105,14 @@ module HudPit::Generators::Pit::Fy2025
           # Note these should be the same across all household members and could be cached
           hh_id = get_hh_id(last_service_history_enrollment)
           household_type = household_types[hh_id]
+          hh_members = households[hh_id] || []
+          # Record max age for the household (from known DOBs) to determine if it's a youth household
+          # use nil if no DOB exists to prevent from being included in youth filters
+          hh_max_age = hh_members.filter_map { |m| GrdaWarehouse::Hud::Client.age(date: pit_date, dob: m['dob']) }.max
           hh_member_count = 0
-          hh_max_age = 0
           hh_has_minor_children = false
           hh_max_age_of_parents = 0
-          households[hh_id]&.each do |member|
+          hh_members.each do |member|
             hh_member_count += 1
 
             # age related hh calculations
@@ -117,8 +120,6 @@ module HudPit::Generators::Pit::Fy2025
             member_age = GrdaWarehouse::Hud::Client.age(date: pit_date, dob: member['dob'])
             next unless member_age
 
-            # Record max age for the household to determine if it's a youth household
-            hh_max_age = member_age if member_age > hh_max_age
             hh_has_minor_children = true if member_relationship_to_hoh == 2 && member_age < 18
             hh_max_age_of_parents = member_age if member_relationship_to_hoh.in?([1, 3]) && member_age > hh_max_age_of_parents
           end

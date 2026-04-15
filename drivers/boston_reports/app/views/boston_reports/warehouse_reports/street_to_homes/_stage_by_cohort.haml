@@ -39,8 +39,7 @@
         - @report.all_stages.each_key do |k|
           - td_class += if k.to_s.in?(['active', 'inactive', 'total']) then ['table-active'] else [] end
           %td.text-right{ class: td_class }
-            = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort, k.to_s])), target: :_blank do
-              = data[k.to_s]
+            = link_to_if @report.can_see_client_details?(current_user), data[k.to_s], polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort, k.to_s])), target: :_blank
 = content_for :page_js do
   :javascript
     let stage_by_cohort = #{stage_by_cohort.to_json.html_safe};
