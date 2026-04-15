@@ -14,7 +14,7 @@ module AnalysisTool::WarehouseReports
     include BaseFilters
     extend BackgroundRenderAction
 
-    before_action :require_can_view_clients, only: [:detail]
+    before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report
 
     background_render_action(:render_section, ::BackgroundRender::AnalysisToolJob) do
