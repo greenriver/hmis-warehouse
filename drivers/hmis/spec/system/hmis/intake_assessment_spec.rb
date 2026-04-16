@@ -67,6 +67,28 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
       assert_text(/Last saved [0-9] seconds? ago/)
     end
 
+    # Helper to submit all intake assessments for a household from the Summary tab
+    def submit_household_intakes(household_size:)
+      assert_text 'Complete Entry'
+
+      with_hidden { check('select all') }
+
+      row_numbers = (1..household_size).to_a
+      row_numbers.each do |row|
+        within(:xpath, "//table/tbody/tr[#{row}]") do
+          assert_text('In Progress')
+        end
+      end
+      click_button "Submit (#{household_size}) Intake Assessments"
+
+      click_button 'Confirm'
+      row_numbers.each do |row|
+        within(:xpath, "//table/tbody/tr[#{row}]") do
+          assert_text('Submitted')
+        end
+      end
+    end
+
     context 'with wip household' do
       it 'persists entry date when saved as WIP and shows it when reopening' do
         hoh_enrollment = c1.enrollments.in_progress.sole
@@ -107,9 +129,9 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
         click_button 'Next'
 
         mui_expect_selected_tab('#tab-summary')
-        with_hidden { check('select all') }
-        click_button 'Submit (2) Intake Assessments'
-        click_button 'Confirm'
+
+        # Submit both intakes and wait for submission to complete
+        submit_household_intakes(household_size: 2)
 
         # HoH enrollment entry date is updated
         expect(hoh_enrollment.reload.entry_date).to eq(new_entry_date.to_date)
@@ -153,22 +175,8 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
         expect(e1.reload.intake_assessment.wip).to eq(true)
         expect(e2.reload.intake_assessment.wip).to eq(true)
 
-        with_hidden { check('select all') }
-
-        row_numbers = [1, 2]
-        row_numbers.each do |row|
-          within(:xpath, "//table/tbody/tr[#{row}]") do
-            assert_text('In Progress')
-          end
-        end
-        click_button 'Submit (2) Intake Assessments'
-
-        click_button 'Confirm'
-        row_numbers.each do |row|
-          within(:xpath, "//table/tbody/tr[#{row}]") do
-            assert_text('Submitted')
-          end
-        end
+        # Submit both intakes and wait for submission to complete
+        submit_household_intakes(household_size: 2)
 
         # Enrollments are created as non-WIP
         expect(e1.reload.in_progress?).to eq(false)
