@@ -87,13 +87,6 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
       assert_text 'Ignore Warnings'
       click_button 'Confirm'
       assert_no_text 'Ignore Warnings'
-
-      # Confirm all intakes are submitted
-      row_numbers.each do |row|
-        within(:xpath, "//table/tbody/tr[#{row}]") do
-          assert_text('Submitted')
-        end
-      end
     end
 
     context 'with wip household' do
@@ -184,6 +177,13 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
 
         # Submit both intakes and wait for submission to complete
         submit_household_intakes(household_size: 2)
+
+        # Confirm all intakes are submitted
+        [1, 2].each do |row|
+          within(:xpath, "//table/tbody/tr[#{row}]") do
+            assert_text('Submitted')
+          end
+        end
 
         # Enrollments are created as non-WIP
         expect(e1.reload.in_progress?).to eq(false)
