@@ -459,7 +459,10 @@ module Types
     def form_identifier(identifier:)
       access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+      scope = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier)
+      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope.first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do

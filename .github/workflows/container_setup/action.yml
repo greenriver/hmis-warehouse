@@ -55,7 +55,7 @@ runs:
         sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
         # Install NodeJS repository
-        retry curl -fsSL https://deb.nodesource.com/setup_20.x | bash -s -- -y
+        retry curl -fsSL https://deb.nodesource.com/setup_24.x | bash -s -- -y
 
         retry apt-get update
 

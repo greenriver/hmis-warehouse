@@ -22,7 +22,12 @@ module HudSpmReport::Adapters
       @project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: spm_project_types, id: report_instance.project_ids).pluck(:id)
     end
 
+    # for older versions of the SPM, map back to enrollments. In 2026 we can just use SHE
     def enrollments
+      GrdaWarehouse::Hud::Enrollment.where(id: service_history_enrollment_scope.select(e_t[:id])).select(*enrollment_columns)
+    end
+
+    def service_history_enrollment_scope
       report_start_date = @filter.start
       report_end_date = @filter.end
       lookback_start_date = report_start_date - 7.years
@@ -34,8 +39,7 @@ module HudSpmReport::Adapters
       # ATTN: coc filter is needed for testkit
       scope = filter_for_cocs(scope)
       scope = @filter.apply_criteria(scope, tags: [:warehouse, :client])
-
-      GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id])).select(*enrollment_columns)
+      scope
     end
 
     # Limited columns to avoid pulling more data from the database than necessary

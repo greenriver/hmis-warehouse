@@ -31,6 +31,7 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    has_many :household_contexts, class_name: 'HudReports::HouseholdContext', foreign_key: 'report_instance_id', dependent: :delete_all
     has_many :checkpoints, class_name: 'HudReports::ReportCheckpoint', foreign_key: 'hud_report_instance_id', dependent: :destroy
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }

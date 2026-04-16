@@ -98,7 +98,7 @@ env:
 jobs:
   determine_matrix:
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     outputs:
       unit_matrix: ${{ steps.set-matrix.outputs.unit_matrix }}
@@ -147,7 +147,7 @@ jobs:
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
@@ -340,7 +340,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     services:
       postgres: *postgres
@@ -416,7 +416,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     services:
       postgres: *postgres

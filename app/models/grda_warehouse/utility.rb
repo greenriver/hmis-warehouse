@@ -78,6 +78,7 @@ class GrdaWarehouse::Utility
       User,
       HudReports::ReportCheckpoint,
       HudReports::ReportInstance,
+      HudReports::HouseholdContext,
       HudReports::UniverseMember,
       HudReports::ReportCell,
       GrdaWarehouse::WarehouseReports::ReportDefinition,

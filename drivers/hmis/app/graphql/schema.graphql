@@ -7757,6 +7757,11 @@ enum PickListType {
   AVAILABLE_UNIT_TYPES
 
   """
+  Projects with an active CE Participation record with Access Point = Yes
+  """
+  CE_ACCESS_POINT_PROJECT_NAMES
+
+  """
   Grouped HUD CE Event types
   """
   CE_EVENTS
