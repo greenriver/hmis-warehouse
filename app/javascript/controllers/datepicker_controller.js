@@ -13,14 +13,8 @@ export default class extends Controller {
     const modalContent =
       modal && (modal.querySelector('.modal-content') || modal);
 
-    let containerOptions = {};
-    if (dropdownMenu) {
-      containerOptions = { container: dropdownMenu };
-    } else if (modalContent) {
-      // Mount the widget inside the modal so it is clipped by .modal-content and Popper
-      // can keep it inside the same box (avoids floating over the page chrome).
-      containerOptions = { container: modalContent };
-    }
+    const container = dropdownMenu ? dropdownMenu : modalContent;  
+    const containerOptions = container ? { container: container } : {};
 
     // Default options, including our custom icons
     const defaultOptions = {
