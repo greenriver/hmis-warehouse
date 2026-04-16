@@ -10,7 +10,7 @@ require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.feature 'Intake assessment', type: :system do
+RSpec.feature 'Intake Assessment for Household', type: :system do
   include_context 'hmis base setup'
   # could parse CAPYBARA_APP_HOST
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
@@ -68,12 +68,61 @@ RSpec.feature 'Intake assessment', type: :system do
     end
 
     context 'with wip household' do
+      it 'persists entry date when saved as WIP and shows it when reopening' do
+        hoh_enrollment = c1.enrollments.in_progress.sole
+        new_entry_date = hoh_enrollment.entry_date - 3.days
+
+        visit "/client/#{c1.id}/enrollments/#{hoh_enrollment.id}/intake"
+
+        mui_expect_selected_tab('#tab-1')
+        mui_date_select 'Entry Date', date: new_entry_date
+        complete_individual_assessment
+
+        expect(hoh_enrollment.reload.intake_assessment).to be_present
+        expect(hoh_enrollment.intake_assessment.wip).to eq(true)
+        expect(hoh_enrollment.intake_assessment.form_processor.values['entry_date']).to eq(new_entry_date.strftime('%Y-%m-%d'))
+
+        visit "/client/#{c1.id}/enrollments/#{hoh_enrollment.id}/intake"
+
+        mui_expect_selected_tab('#tab-1')
+        expect(page).to have_field('Entry Date', with: new_entry_date.strftime('%m/%d/%Y'))
+      end
+
+      it 'updates HoH enrollment entry date when household intake is submitted' do
+        hoh_enrollment = c1.enrollments.in_progress.sole
+        hhm_enrollment = c2.enrollments.in_progress.sole
+
+        old_entry_date = hoh_enrollment.entry_date
+        new_entry_date = old_entry_date - 3.days
+
+        visit "/client/#{c1.id}/enrollments/#{hoh_enrollment.id}/intake"
+
+        mui_expect_selected_tab('#tab-1')
+        mui_date_select 'Entry Date', date: new_entry_date
+        complete_individual_assessment
+        click_button 'Next'
+
+        mui_expect_selected_tab('#tab-2')
+        complete_individual_assessment # Fill out other fields for Non-HoH enrollment, but don't change the Entry Date
+        click_button 'Next'
+
+        mui_expect_selected_tab('#tab-summary')
+        with_hidden { check('select all') }
+        click_button 'Submit (2) Intake Assessments'
+        click_button 'Confirm'
+
+        # HoH enrollment entry date is updated
+        expect(hoh_enrollment.reload.entry_date).to eq(new_entry_date.to_date)
+        # Non-HoH enrollment entry date is not updated
+        expect(hhm_enrollment.reload.entry_date).to eq(old_entry_date.to_date)
+      end
+
       it 'can submit an intake assessment' do
         # Confirm setup:
         expect(c1.enrollments.in_progress.count).to eq(1)
         expect(c2.enrollments.in_progress.count).to eq(1)
         e1 = c1.enrollments.in_progress.first
-        e2 = c1.enrollments.in_progress.first
+        e2 = c2.enrollments.in_progress.first
         expect(e1.intake_assessment).to be_nil
         expect(e2.intake_assessment).to be_nil
 
