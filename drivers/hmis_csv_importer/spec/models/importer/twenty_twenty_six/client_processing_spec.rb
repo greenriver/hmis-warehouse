@@ -57,9 +57,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         expect(GrdaWarehouse::Hud::Enrollment.pluck(:source_hash).compact.count).to eq(4)
       end
 
-      # Locks in mark_unchanged's NULL semantics: staging source_hash is non-NULL
-      # by construction, so `staging.source_hash = wh.source_hash` never matches a
-      # NULL warehouse row. Those rows must fall through to apply_updates.
+      # NULL warehouse rows fall through to apply_updates and are not marked unchanged
       it 'marks zero clients as unchanged' do
         expect(@loader.importer_log.summary['Client.csv']['unchanged'].to_i).to eq(0)
       end
@@ -79,9 +77,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           expect(GrdaWarehouse::Hud::Client.source.where(source_hash: 'aaa').count).to eq(0)
         end
 
-        # Complements the NULL case above: when staging and warehouse source_hashes
-        # agree, mark_unchanged counts the row as unchanged (and clears the stale
-        # pending_date_deleted flag without touching DateUpdated).
+        # When staging and warehouse hashes agree, rows are marked unchanged
         it 'marks both clients as unchanged' do
           expect(@loader.importer_log.summary['Client.csv']['unchanged']).to eq(2)
         end
@@ -111,8 +107,7 @@ RSpec.describe HmisCsvImporter, type: :model do
       end
     end
 
-    # Mixed case: one warehouse client has its source_hash nilled, the other is
-    # left intact. Exercises the per-row nature of mark_unchanged's semi-join.
+    # Mixed case: only one warehouse client has its source_hash nilled
     describe 'when re-importing with only one client\'s source_hash nilled' do
       before(:all) do
         HmisCsvImporter::Utility.clear!

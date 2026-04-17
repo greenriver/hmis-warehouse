@@ -246,22 +246,14 @@ module HmisCsvImporter::Importer
     # @return [void]
     #
     private def precalculate_change_counts
-      # Counts are computed in SQL as set differences on hud_key to avoid materializing
-      # large (hud_key) sets in Ruby — for state-wide imports the incoming/existing sides
-      # can each have millions of rows.
+      # Estimate change counts before processing to determine if the import should be paused.
       importable_files.each do |file, klass|
         importer_log.summary[file]['added'] = added_count(klass)
         importer_log.summary[file]['removed'] = klass.prevent_import_deletions? ? 0 : removed_count(klass)
       end
     end
 
-    # `where.not(col => subquery)` emits `NOT IN (subquery)`, which in Postgres returns
-    # zero rows for every outer row as soon as the subquery yields a single NULL (classic
-    # three-valued-logic trap). Some hud_key columns are nullable (e.g. InventoryID,
-    # AffiliationID, OrganizationID) and `NonBlank` only runs on pre-processed staging —
-    # the warehouse side can still legitimately hold NULLs from older data or cleanups.
-    # Filter NULLs out of the subquery so the anti-join behaves like the prior Ruby
-    # `Set` difference, where a NULL key on one side simply didn't match rows on the other.
+    # Filter NULLs from the subquery to prevent NOT IN 3-valued logic from dropping all records when a hud_key is nullable (e.g., InventoryID).
     private def added_count(klass)
       klass.incoming_data(importer_log_id: importer_log.id).
         where.not(klass.hud_key => existing_data_scope(klass).where.not(klass.hud_key => nil).select(klass.hud_key)).
@@ -340,9 +332,7 @@ module HmisCsvImporter::Importer
       end
     end
 
-    # Refresh planner statistics on warehouse tables after mark_tree_as_dead has bulk-updated
-    # pending_date_deleted on potentially large row sets. Stale stats here can push the planner
-    # toward poor plans for the subsequent mark_unchanged / mark_incoming_older semi-joins.
+    # Refresh statistics after bulk updating pending_date_deleted so the planner chooses optimal semi-join strategies.
     private def analyze_warehouse_tables
       importable_files.each_value do |klass|
         wh_klass = klass.warehouse_class
@@ -672,9 +662,7 @@ module HmisCsvImporter::Importer
         destination_class = klass.reflect_on_association(:destination_record).klass
         batch = []
 
-        # `new_data` performs the "incoming minus existing" anti-join in SQL, avoiding
-        # materializing every existing hud_key into a Ruby Set (which was ~O(existing rows)
-        # of memory and the dominant allocator on large state-wide imports).
+        # Fetch records present in the incoming data but not in the warehouse.
         new_data_scope = klass.new_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
@@ -777,9 +765,7 @@ module HmisCsvImporter::Importer
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
-          # Batch by primary key to avoid carrying the complex existing_destination_data_scope
-          # join into the UPDATE, and to avoid plucking every pending-delete id into Ruby
-          # (on state-wide imports that can be millions of ids).
+          # Batch by primary key to avoid carrying the complex existing_destination_data_scope join into the UPDATE.
           scope = existing_destination_data_scope(klass)
           update_scope = scope.klass.paranoid? ? scope.klass.with_deleted : scope.klass
           with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
@@ -1009,21 +995,9 @@ module HmisCsvImporter::Importer
       # Augmented data will always appear changed as the source hash won't match the destination source hash
       return if custom_augmentation?(klass)
 
-      # Run the intersection in SQL via a correlated EXISTS, avoiding the memory cost of
-      # plucking (hud_key, source_hash) tuples from both sides into Ruby.
-      #
-      # NULL-hash note: staging `source_hash` is non-NULL by construction — every
-      # should_import row has it set during pre-processing (see pre_process_class! →
-      # calculate_source_hash, and set_source_hash in the aggregated path). Warehouse
-      # `source_hash` CAN be NULL (see remove_pending_deletes, where it is intentionally
-      # nilled to flag records for re-evaluation on the next import). Because staging is
-      # never NULL, `staging.source_hash = wh.source_hash` behaves identically to the
-      # prior Ruby `[hud_key, source_hash]` tuple intersection — NULL warehouse rows
-      # never matched there either. If staging ever becomes nullable this comparison
-      # would need `IS NOT DISTINCT FROM` to preserve current semantics.
-      #
-      # Force a hash semi-join: for state-wide imports the planner can otherwise pick a
-      # nested-loop plan that degrades to O(N) index lookups over millions of outer rows.
+      # Staging source_hash is always non-NULL. Warehouse source_hash can be NULL to
+      # flag records for re-evaluation; equality safely ignores NULL warehouse rows.
+      # Force a hash semi-join to prevent nested-loop plans over millions of rows.
       staging_table = klass.arel_table
       wh_table = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id)
@@ -1063,16 +1037,10 @@ module HmisCsvImporter::Importer
 
       return if most_recent_export_for_ds?
 
-      # Match warehouse rows against staging rows with a strictly older DateUpdated (by calendar
-      # date, matching the prior Ruby `.to_date` comparison). Done in SQL via a correlated EXISTS
-      # to avoid plucking (hud_key, DateUpdated) tuples from both sides into Ruby.
-      # Both columns are `timestamp without time zone`, written via ActiveRecord under the same
-      # `Time.zone` (configured per-deployment to the community served), so CAST(... AS DATE)
-      # yields the same day boundary on both sides and preserves the prior `.to_date` semantics.
-      # Revisit this if DateUpdated ever becomes timestamptz or if staging/warehouse writes
-      # start using different zones.
-      # Force a hash semi-join: for state-wide imports the planner can otherwise pick a
-      # nested-loop plan that degrades to O(N) index lookups over millions of outer rows.
+      # Ignore rows without a DateUpdated or matching incoming record.
+      # If the incoming DateUpdated is strictly older than the existing one, trust the warehouse is correct.
+      # CAST to DATE preserves the same day boundary for comparison.
+      # Force a hash semi-join to prevent nested-loop plans over millions of rows.
       staging_table = klass.arel_table
       wh_table = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
