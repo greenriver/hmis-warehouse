@@ -255,15 +255,22 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # `where.not(col => subquery)` emits `NOT IN (subquery)`, which in Postgres returns
+    # zero rows for every outer row as soon as the subquery yields a single NULL (classic
+    # three-valued-logic trap). Some hud_key columns are nullable (e.g. InventoryID,
+    # AffiliationID, OrganizationID) and `NonBlank` only runs on pre-processed staging —
+    # the warehouse side can still legitimately hold NULLs from older data or cleanups.
+    # Filter NULLs out of the subquery so the anti-join behaves like the prior Ruby
+    # `Set` difference, where a NULL key on one side simply didn't match rows on the other.
     private def added_count(klass)
       klass.incoming_data(importer_log_id: importer_log.id).
-        where.not(klass.hud_key => existing_data_scope(klass).select(klass.hud_key)).
+        where.not(klass.hud_key => existing_data_scope(klass).where.not(klass.hud_key => nil).select(klass.hud_key)).
         distinct.count(klass.hud_key)
     end
 
     private def removed_count(klass)
       existing_data_scope(klass).
-        where.not(klass.hud_key => klass.incoming_data(importer_log_id: importer_log.id).select(klass.hud_key)).
+        where.not(klass.hud_key => klass.incoming_data(importer_log_id: importer_log.id).where.not(klass.hud_key => nil).select(klass.hud_key)).
         distinct.count(klass.hud_key)
     end
 
@@ -770,19 +777,15 @@ module HmisCsvImporter::Importer
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
-          # Do this in batches to avoid the complex join during the update
+          # Batch by primary key to avoid carrying the complex existing_destination_data_scope
+          # join into the UPDATE, and to avoid plucking every pending-delete id into Ruby
+          # (on state-wide imports that can be millions of ids).
           scope = existing_destination_data_scope(klass)
-          all_ids = nil
+          update_scope = scope.klass.paranoid? ? scope.klass.with_deleted : scope.klass
           with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
-            all_ids = scope.pluck(:id)
-          end
-          update_scope = if scope.klass.paranoid?
-            scope.klass.with_deleted
-          else
-            scope.klass
-          end
-          all_ids.each_slice(INSERT_BATCH_SIZE) do |ids|
-            update_scope.where(id: ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
+            scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
+              update_scope.where(id: batch.ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
+            end
           end
           note_processed(file_name, delete_count, 'removed')
         end
@@ -1007,9 +1010,18 @@ module HmisCsvImporter::Importer
       return if custom_augmentation?(klass)
 
       # Run the intersection in SQL via a correlated EXISTS, avoiding the memory cost of
-      # plucking (hud_key, source_hash) tuples from both sides into Ruby. NULL source_hash
-      # rows won't match (SQL = doesn't equate NULLs), which is correct — a NULL hash
-      # indicates an incomplete record that should be re-evaluated.
+      # plucking (hud_key, source_hash) tuples from both sides into Ruby.
+      #
+      # NULL-hash note: staging `source_hash` is non-NULL by construction — every
+      # should_import row has it set during pre-processing (see pre_process_class! →
+      # calculate_source_hash, and set_source_hash in the aggregated path). Warehouse
+      # `source_hash` CAN be NULL (see remove_pending_deletes, where it is intentionally
+      # nilled to flag records for re-evaluation on the next import). Because staging is
+      # never NULL, `staging.source_hash = wh.source_hash` behaves identically to the
+      # prior Ruby `[hud_key, source_hash]` tuple intersection — NULL warehouse rows
+      # never matched there either. If staging ever becomes nullable this comparison
+      # would need `IS NOT DISTINCT FROM` to preserve current semantics.
+      #
       # Force a hash semi-join: for state-wide imports the planner can otherwise pick a
       # nested-loop plan that degrades to O(N) index lookups over millions of outer rows.
       staging_table = klass.arel_table
