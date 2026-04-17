@@ -40,8 +40,20 @@ The ingestion phase reconciles the imported data with the existing warehouse sta
 The importer connects with:
 
 - **Data Sources**: Each import is associated with a `DataSource`, which defines configuration and thresholds for error reporting.
-- **Jobs**: Background jobs handle the execution and cleanup of imports.
+- **Jobs**: Background jobs handle the execution and cleanup of imports (see below).
 - **Notifications**: Specific thresholds (errors, record counts) trigger notifications to configured users.
+
+## Jobs
+
+Imports run asynchronously on the `long_running` Delayed Job queue.
+
+- `Importing::HudZip::HmisAutoMigrateJob` — entry point for user-uploaded imports. Holds a per-data-source advisory lock and re-queues if the lock is held.
+- `Importing::HudZip::FetchAndImportJob` — scheduled entry point that pulls zips from a data source's configured S3 bucket and imports them. Uses the same advisory lock as `HmisAutoMigrateJob`.
+- `Importing::HudZip::ResumeHmisImportJob` — resumes an import that was paused at a threshold check.
+- `Importing::HudZip::ResumeHmisTwentyTwentyJob` — same as `ResumeHmisImportJob`, but for imports paused while running the legacy `HmisCsvTwentyTwenty` driver.
+- `HmisCsvImporter::Cleanup::Expire*Job` — periodic cleanup of expired staging data.
+
+The importer does not wrap its run in a surrounding transaction. Only `start_import` and `complete_import` use transactions, and only for log metadata. Ingestion phases run at statement level so that session-scoped effects (`ANALYZE`, `SET enable_nestloop`) apply to subsequent queries in the same run.
 
 ## Validation
 

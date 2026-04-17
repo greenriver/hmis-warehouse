@@ -1054,6 +1054,11 @@ module HmisCsvImporter::Importer
       # Match warehouse rows against staging rows with a strictly older DateUpdated (by calendar
       # date, matching the prior Ruby `.to_date` comparison). Done in SQL via a correlated EXISTS
       # to avoid plucking (hud_key, DateUpdated) tuples from both sides into Ruby.
+      # Both columns are `timestamp without time zone`, written via ActiveRecord under the same
+      # `Time.zone` (configured per-deployment to the community served), so CAST(... AS DATE)
+      # yields the same day boundary on both sides and preserves the prior `.to_date` semantics.
+      # Revisit this if DateUpdated ever becomes timestamptz or if staging/warehouse writes
+      # start using different zones.
       # Force a hash semi-join: for state-wide imports the planner can otherwise pick a
       # nested-loop plan that degrades to O(N) index lookups over millions of outer rows.
       staging_table = klass.arel_table
