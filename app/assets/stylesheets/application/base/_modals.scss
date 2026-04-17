@@ -61,6 +61,33 @@
   overflow-y: visible;
 }
 
+// #ajax-modal loads filters and other tall forms via AjaxModal. Global rules above put
+// overflow: scroll on .modal-content and leave .modal-body visible, which differs from
+// Bootstrap's scrollable modal (body scrolls, content clips).
+#ajax-modal.modal .modal-dialog.modal-dialog-scrollable {
+  .modal-content {
+    overflow: hidden;
+  }
+
+  .modal-body {
+    overflow-y: auto;
+  }
+}
+
+// TempusDominus sets .tempus-dominus-widget { z-index: 9999 }, so the calendar sits above
+// the modal chrome. Keep it under the header/footer and the sticky filter actions bar
+#ajax-modal.modal {
+  .modal-header,
+  .modal-footer {
+    position: relative;
+    z-index: 5;
+  }
+
+  .tempus-dominus-widget {
+    z-index: 1 !important;
+  }
+}
+
 .modal-dialog {
   @include media-breakpoint-down(sm) {
     width: calc(100vw - 30px) !important;
