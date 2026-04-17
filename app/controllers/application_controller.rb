@@ -43,7 +43,6 @@ class ApplicationController < ActionController::Base
   before_action :enforce_2fa!
   before_action :require_compliance_agreement!
   before_action :require_training!
-  before_action :health_emergency?
 
   before_action :prepare_exception_notifier
 
