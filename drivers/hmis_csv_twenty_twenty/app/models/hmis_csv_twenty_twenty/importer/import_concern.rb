@@ -113,7 +113,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
-      ).select(hud_key)
+      ).select(hud_key).where.not(hud_key => nil)
       existing_keys = existing_keys.with_deleted if paranoid?
 
       where(importer_log_id: importer_log_id).should_import.where.not(hud_key => existing_keys)
