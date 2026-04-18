@@ -107,6 +107,40 @@ RSpec.describe HmisCsvImporter, type: :model do
       end
     end
 
+    # incoming_older_processing is identical to client_processing except:
+    #   Export.csv  — ExportDate set to 2018-01-01 (older than the 2021-05-25 established by
+    #                 the first import), so most_recent_export_for_ds? returns false and
+    #                 mark_incoming_older is not skipped.
+    #   Client.csv  — Client 1 DateUpdated set to 2015-01-01 (older than the warehouse value
+    #                 of 2018-12-02), Client 2 DateUpdated unchanged (equal, not strictly older).
+    describe 'when the incoming record has an older DateUpdated than the warehouse' do
+      before(:all) do
+        HmisCsvImporter::Utility.clear!
+        GrdaWarehouse::Utility.clear!
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing',
+          version: 'AutoMigrate',
+          run_jobs: false,
+          stop_version: '2026',
+        )
+        # Null both source_hashes so mark_unchanged (hash equality check) skips both clients
+        # and only mark_incoming_older can contribute to the unchanged count.
+        GrdaWarehouse::Hud::Client.source.update_all(source_hash: nil)
+        @loader = import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/incoming_older_processing',
+          version: 'AutoMigrate',
+          run_jobs: false,
+          stop_version: '2026',
+        )
+      end
+
+      # Client 1: incoming DateUpdated (2015-01-01) < warehouse DateUpdated (2018-12-02) → marked by mark_incoming_older
+      # Client 2: incoming DateUpdated (2021-05-15) == warehouse DateUpdated (2021-05-15) → not strictly older, not marked
+      it 'marks only the client with the older incoming DateUpdated as unchanged' do
+        expect(@loader.importer_log.summary['Client.csv']['unchanged']).to eq(1)
+      end
+    end
+
     # Mixed case: only one warehouse client has its source_hash nilled
     describe 'when re-importing with only one client\'s source_hash nilled' do
       before(:all) do

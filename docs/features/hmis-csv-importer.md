@@ -53,7 +53,7 @@ Imports run asynchronously on the `long_running` Delayed Job queue.
 - `Importing::HudZip::ResumeHmisTwentyTwentyJob` — same as `ResumeHmisImportJob`, but for imports paused while running the legacy `HmisCsvTwentyTwenty` driver.
 - `HmisCsvImporter::Cleanup::Expire*Job` — periodic cleanup of expired staging data.
 
-The importer does not wrap its run in a surrounding transaction. Only `start_import` and `complete_import` use transactions, and only for log metadata. Ingestion phases run at statement level so that session-scoped effects (`ANALYZE`, `SET enable_nestloop`) apply to subsequent queries in the same run.
+The importer does not wrap its run in a surrounding transaction. Only `start_import` and `complete_import` use transactions, and only for log metadata.
 
 ## Validation
 

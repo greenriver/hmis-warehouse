@@ -767,6 +767,8 @@ module HmisCsvImporter::Importer
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           # Batch by primary key to avoid carrying the complex existing_destination_data_scope join into the UPDATE.
           scope = existing_destination_data_scope(klass)
+          # update_scope may differ from scope for paranoid models, so we cannot call
+          # batch.update_all directly and must resolve IDs first via batch.ids.
           update_scope = scope.klass.paranoid? ? scope.klass.with_deleted : scope.klass
           with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
             scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
@@ -1013,6 +1015,8 @@ module HmisCsvImporter::Importer
 
       Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_count} unchanged"
 
+      # update_base may differ from unchanged_scope's base class for paranoid models,
+      # so batch.update_all cannot be used directly; batch.ids resolves the page of IDs first.
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
       unchanged_scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
@@ -1044,8 +1048,8 @@ module HmisCsvImporter::Importer
       wh_table = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
-      staging_date = Arel::Nodes::NamedFunction.new('CAST', [staging_table[:DateUpdated].as('DATE')])
-      wh_date = Arel::Nodes::NamedFunction.new('CAST', [wh_table[:DateUpdated].as('DATE')])
+      staging_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(staging_table[:DateUpdated], Arel.sql('DATE'))])
+      wh_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh_table[:DateUpdated], Arel.sql('DATE'))])
       exists_condition = incoming_scope.
         where(staging_table[klass.hud_key].eq(wh_table[klass.hud_key])).
         where(staging_date.lt(wh_date)).
@@ -1055,9 +1059,12 @@ module HmisCsvImporter::Importer
         where.not(DateUpdated: nil).
         where(exists_condition)
       unchanged_count = unchanged_scope.count
+      all_incoming_count = klass.should_import.where(importer_log_id: @importer_log.id).count
 
-      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_count} unchanged"
+      Rails.logger.info "Processing Incoming Older for #{file_name}: #{all_incoming_count} incoming, #{unchanged_count} unchanged"
 
+      # update_base may differ from unchanged_scope's base class for paranoid models,
+      # so batch.update_all cannot be used directly; batch.ids resolves the page of IDs first.
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
       unchanged_scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
