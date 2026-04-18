@@ -253,17 +253,34 @@ module HmisCsvImporter::Importer
       end
     end
 
-    # Filter NULLs from the subquery to prevent NOT IN 3-valued logic from dropping all records when a hud_key is nullable (e.g., InventoryID).
+    # Count of incoming hud_keys that do not yet exist in the warehouse.
     private def added_count(klass)
-      klass.incoming_data(importer_log_id: importer_log.id).
-        where.not(klass.hud_key => existing_data_scope(klass).where.not(klass.hud_key => nil).select(klass.hud_key)).
-        distinct.count(klass.hud_key)
+      anti_join_count(
+        klass.incoming_data(importer_log_id: importer_log.id),
+        existing_data_scope(klass),
+        klass.hud_key,
+      )
     end
 
+    # Count of warehouse hud_keys not present in the incoming data.
     private def removed_count(klass)
-      existing_data_scope(klass).
-        where.not(klass.hud_key => klass.incoming_data(importer_log_id: importer_log.id).where.not(klass.hud_key => nil).select(klass.hud_key)).
-        distinct.count(klass.hud_key)
+      anti_join_count(
+        existing_data_scope(klass),
+        klass.incoming_data(importer_log_id: importer_log.id),
+        klass.hud_key,
+      )
+    end
+
+    # COUNT DISTINCT keys in `scope` that have no matching key in `other_scope`,
+    # using NOT EXISTS to avoid NOT IN's 3-valued NULL semantics.
+    private def anti_join_count(scope, other_scope, key)
+      other_table = other_scope.arel.as('other')
+      exists = Arel::SelectManager.new.
+        from(other_table).
+        where(Arel.sql('other')[key].eq(scope.arel_table[key])).
+        project(1)
+
+      scope.where(exists.exists.not).distinct.count(key)
     end
 
     private def existing_data_scope(klass)
@@ -272,6 +289,34 @@ module HmisCsvImporter::Importer
         project_ids: involved_project_ids,
         date_range: date_range,
       )
+    end
+
+    # Materialize existing warehouse hud_keys into an indexed temp table so that
+    # the anti-join subquery in find_each is a cheap lookup instead of re-running
+    # the full involved_warehouse_scope on every cursor page.
+    # Yields a staging-table scope filtered to keys NOT IN the temp table.
+    private def with_existing_keys_temp_table(klass)
+      conn = klass.connection
+      key = klass.hud_key
+      temp = "tmp_existing_keys_#{klass.warehouse_class.table_name}"
+
+      existing_scope = existing_data_scope(klass)
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
+          SELECT DISTINCT #{conn.quote_column_name(key)} AS hud_key
+          FROM (#{existing_scope.select(key).where.not(key => nil).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (hud_key)")
+
+      temp_subquery = Arel::SelectManager.new.
+        from(Arel.sql(conn.quote_table_name(temp))).
+        project(Arel.sql('hud_key'))
+      new_data_scope = klass.incoming_data(importer_log_id: importer_log.id).
+        where(klass.arel_table[key].not_in(temp_subquery))
+      yield new_data_scope
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
     end
 
     ##
@@ -654,21 +699,12 @@ module HmisCsvImporter::Importer
       importable_files.each do |file_name, klass|
         file_count += 1
         Rails.logger.info "[#{file_count}/#{total_files}] Adding new data for #{file_name}..."
-        # Augmentation classes will always be updating existing records
         next if custom_augmentation?(klass)
 
         preload_custom_file_data(klass)
 
         destination_class = klass.reflect_on_association(:destination_record).klass
         batch = []
-
-        # Fetch records present in the incoming data but not in the warehouse.
-        new_data_scope = klass.new_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-          importer_log_id: importer_log.id,
-        )
 
         # NOTE: we allow upserts to handle the situation where data is in the warehouse with a HUD key
         # that for whatever reason doesn't fall within the involved scope.
@@ -677,15 +713,17 @@ module HmisCsvImporter::Importer
         # enrollments fall outside of the range, but are necessary to calculate the correctly
         # aggregated set.
         bm = Benchmark.measure do
-          with_sql_log(__method__, klass, name: 'new_data') do
-            new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
-              batch << row.as_destination_record
-              next unless batch.count == INSERT_BATCH_SIZE
+          with_existing_keys_temp_table(klass) do |new_data_scope|
+            with_sql_log(__method__, klass, name: 'new_data') do
+              new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+                batch << row.as_destination_record
+                next unless batch.count == INSERT_BATCH_SIZE
 
-              upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-              columns = batch.first.attributes.keys - ['id']
-              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
-              batch = []
+                upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
+                columns = batch.first.attributes.keys - ['id']
+                process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+                batch = []
+              end
             end
           end
           if batch.present?
@@ -770,10 +808,8 @@ module HmisCsvImporter::Importer
           # update_scope may differ from scope for paranoid models, so we cannot call
           # batch.update_all directly and must resolve IDs first via batch.ids.
           update_scope = scope.klass.paranoid? ? scope.klass.with_deleted : scope.klass
-          with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
-            scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
-              update_scope.where(id: batch.ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
-            end
+          scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
+            update_scope.where(id: batch.ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
           end
           note_processed(file_name, delete_count, 'removed')
         end
@@ -992,86 +1028,95 @@ module HmisCsvImporter::Importer
 
     # Compare source_hash new and old, if they are identical, we don't need to do anything
     private def mark_unchanged(klass, file_name)
-      # We always bring over Exports
       return if klass.hud_key == :ExportID
-      # Augmented data will always appear changed as the source hash won't match the destination source hash
       return if custom_augmentation?(klass)
 
-      # Staging source_hash is always non-NULL. Warehouse source_hash can be NULL to
-      # flag records for re-evaluation; equality safely ignores NULL warehouse rows.
-      # Force a hash semi-join to prevent nested-loop plans over millions of rows.
-      staging_table = klass.arel_table
-      wh_table = klass.warehouse_class.arel_table
+      staging = klass.arel_table
+      wh = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id)
-      exists_condition = incoming_scope.
-        where(staging_table[klass.hud_key].eq(wh_table[klass.hud_key])).
-        where(staging_table[:source_hash].eq(wh_table[:source_hash])).
-        select(1).arel.exists
 
-      unchanged_scope = existing_destination_data_scope(klass).
-        where.not(DateUpdated: nil).
-        where(exists_condition)
-      unchanged_count = unchanged_scope.count
-
-      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_count} unchanged"
-
-      # update_base may differ from unchanged_scope's base class for paranoid models,
-      # so batch.update_all cannot be used directly; batch.ids resolves the page of IDs first.
-      update_base = klass.warehouse_class
-      update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
-      unchanged_scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
-        ids = batch.ids
-        update_base.where(id: ids).update_all(pending_date_deleted: nil)
-        note_processed(file_name, ids.length, 'unchanged')
+      # Staging source_hash is always non-NULL; warehouse source_hash can be NULL
+      # to flag records for re-evaluation. SQL equality returns NULL (not true)
+      # for NULL warehouse rows, so they correctly fall through to apply_updates.
+      matched_scope = warehouse_rows_matching(klass) do
+        incoming_scope.
+          where(staging[klass.hud_key].eq(wh[klass.hud_key])).
+          where(staging[:source_hash].eq(wh[:source_hash]))
       end
+
+      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged"
+      batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
-    # Having already excluded unchanged records, compare DateUpdated,
-    # if the incoming record is older than the existing record,
-    # don't update the warehouse.
-    # NOTE: there is one exception, if the import is the most recently
-    # exported for this data source, then we can assume the data is
-    # more correct than anything we have
+    # Having already excluded unchanged records, compare DateUpdated.
+    # If the incoming record is strictly older than the existing one, trust the warehouse.
+    # Exception: if this is the most recent export for the data source, the incoming data
+    # is authoritative regardless of DateUpdated.
     private def mark_incoming_older(klass, file_name)
-      # Doesn't apply to Exports
       return if klass.hud_key == :ExportID
-      # Augmented data will always appear changed as the source hash won't match the destination source hash
       return if custom_augmentation?(klass)
-
       return if most_recent_export_for_ds?
 
-      # Ignore rows without a DateUpdated or matching incoming record.
-      # If the incoming DateUpdated is strictly older than the existing one, trust the warehouse is correct.
-      # CAST to DATE preserves the same day boundary for comparison.
-      # Force a hash semi-join to prevent nested-loop plans over millions of rows.
-      staging_table = klass.arel_table
-      wh_table = klass.warehouse_class.arel_table
+      staging = klass.arel_table
+      wh = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
-      staging_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(staging_table[:DateUpdated], Arel.sql('DATE'))])
-      wh_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh_table[:DateUpdated], Arel.sql('DATE'))])
-      exists_condition = incoming_scope.
-        where(staging_table[klass.hud_key].eq(wh_table[klass.hud_key])).
-        where(staging_date.lt(wh_date)).
-        select(1).arel.exists
 
-      unchanged_scope = existing_destination_data_scope(klass).
+      # CAST to DATE preserves the day-boundary comparison the old Ruby .to_date used.
+      staging_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(staging[:DateUpdated], Arel.sql('DATE'))])
+      wh_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh[:DateUpdated], Arel.sql('DATE'))])
+
+      matched_scope = warehouse_rows_matching(klass) do
+        incoming_scope.
+          where(staging[klass.hud_key].eq(wh[klass.hud_key])).
+          where(Arel::Nodes::InfixOperation.new('<', staging_date, wh_date))
+      end
+
+      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged"
+      batch_clear_pending_deletion(klass, matched_scope, file_name)
+    end
+
+    # Build a warehouse scope of delete-pending rows that have a correlated match
+    # in the staging table. The block must return an AR scope whose .arel.exists
+    # correlates the staging table with the outer warehouse query.
+    private def warehouse_rows_matching(klass)
+      existing_destination_data_scope(klass).
         where.not(DateUpdated: nil).
-        where(exists_condition)
-      unchanged_count = unchanged_scope.count
-      all_incoming_count = klass.should_import.where(importer_log_id: @importer_log.id).count
+        where(yield.select(1).arel.exists)
+    end
 
-      Rails.logger.info "Processing Incoming Older for #{file_name}: #{all_incoming_count} incoming, #{unchanged_count} unchanged"
+    # Materialize matched IDs into a temp table so the expensive semi-join runs once,
+    # then batch UPDATE from the temp table.
+    private def batch_clear_pending_deletion(klass, matched_scope, file_name)
+      conn = klass.warehouse_class.connection
+      temp = "tmp_unchanged_#{klass.warehouse_class.table_name}"
 
-      # update_base may differ from unchanged_scope's base class for paranoid models,
-      # so batch.update_all cannot be used directly; batch.ids resolves the page of IDs first.
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
+          SELECT id FROM (#{matched_scope.select(:id).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (id)")
+
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
-      unchanged_scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
-        ids = batch.ids
-        update_base.where(id: ids).update_all(pending_date_deleted: nil)
-        note_processed(file_name, ids.length, 'unchanged')
+
+      total = conn.select_value("SELECT count(*) FROM #{conn.quote_table_name(temp)}")
+      offset = 0
+      while offset < total
+        conn.execute(<<~SQL)
+          UPDATE #{update_base.quoted_table_name} SET pending_date_deleted = NULL
+          WHERE id IN (
+            SELECT id FROM #{conn.quote_table_name(temp)}
+            ORDER BY id LIMIT #{INSERT_BATCH_SIZE} OFFSET #{offset}
+          )
+        SQL
+        batch_size = [INSERT_BATCH_SIZE, total - offset].min
+        note_processed(file_name, batch_size, 'unchanged')
+        offset += INSERT_BATCH_SIZE
       end
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
     end
 
     private def track_dirty_enrollment(enrollment_id)
