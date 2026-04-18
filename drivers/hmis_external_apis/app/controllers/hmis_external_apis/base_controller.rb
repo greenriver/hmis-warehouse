@@ -67,7 +67,7 @@ module HmisExternalApis
         'X-Forwarded-For' => truncate_header_for_log(request.get_header('HTTP_X_FORWARDED_FOR')),
         'X-Forwarded-Host' => truncate_header_for_log(request.get_header('HTTP_X_FORWARDED_HOST')),
         'X-Forwarded-Proto' => truncate_header_for_log(request.get_header('HTTP_X_FORWARDED_PROTO')),
-        'X-Real-Ip' => truncate_header_for_log(request.get_header('HTTP_X_REAL_IP')),
+        'X-Real-IP' => truncate_header_for_log(request.get_header('HTTP_X_REAL_IP')),
       }.compact_blank
     end
 
