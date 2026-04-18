@@ -1006,20 +1006,19 @@ module HmisCsvImporter::Importer
         where(staging_table[:source_hash].eq(wh_table[:source_hash])).
         select(1).arel.exists
 
-      unchanged_ids = klass.warehouse_class.disable_nestloop do
-        existing_destination_data_scope(klass).
-          where.not(DateUpdated: nil).
-          where(exists_condition).
-          pluck(:id)
-      end
+      unchanged_scope = existing_destination_data_scope(klass).
+        where.not(DateUpdated: nil).
+        where(exists_condition)
+      unchanged_count = unchanged_scope.count
 
-      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_ids.count} unchanged"
+      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_count} unchanged"
 
-      unchanged_ids.each_slice(INSERT_BATCH_SIZE) do |batch_ids|
-        update_scope = klass.warehouse_class.where(id: batch_ids)
-        update_scope = update_scope.with_deleted if klass.warehouse_class.paranoid?
-        update_scope.update_all(pending_date_deleted: nil)
-        note_processed(file_name, batch_ids.count, 'unchanged')
+      update_base = klass.warehouse_class
+      update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
+      unchanged_scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
+        ids = batch.ids
+        update_base.where(id: ids).update_all(pending_date_deleted: nil)
+        note_processed(file_name, ids.length, 'unchanged')
       end
     end
 
@@ -1052,20 +1051,19 @@ module HmisCsvImporter::Importer
         where(staging_date.lt(wh_date)).
         select(1).arel.exists
 
-      unchanged_ids = klass.warehouse_class.disable_nestloop do
-        existing_destination_data_scope(klass).
-          where.not(DateUpdated: nil).
-          where(exists_condition).
-          pluck(:id)
-      end
+      unchanged_scope = existing_destination_data_scope(klass).
+        where.not(DateUpdated: nil).
+        where(exists_condition)
+      unchanged_count = unchanged_scope.count
 
-      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_ids.count} unchanged"
+      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{unchanged_count} unchanged"
 
-      unchanged_ids.each_slice(INSERT_BATCH_SIZE) do |batch_ids|
-        update_scope = klass.warehouse_class.where(id: batch_ids)
-        update_scope = update_scope.with_deleted if klass.warehouse_class.paranoid?
-        update_scope.update_all(pending_date_deleted: nil)
-        note_processed(file_name, batch_ids.count, 'unchanged')
+      update_base = klass.warehouse_class
+      update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
+      unchanged_scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
+        ids = batch.ids
+        update_base.where(id: ids).update_all(pending_date_deleted: nil)
+        note_processed(file_name, ids.length, 'unchanged')
       end
     end
 
