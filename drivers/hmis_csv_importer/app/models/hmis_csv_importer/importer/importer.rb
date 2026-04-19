@@ -255,8 +255,9 @@ module HmisCsvImporter::Importer
     private def precalculate_change_counts
       # Estimate change counts before processing to determine if the import should be paused.
       importable_files.each do |file, klass|
-        importer_log.summary[file]['added'] = added_count(klass)
-        importer_log.summary[file]['removed'] = klass.prevent_import_deletions? ? 0 : removed_count(klass)
+        importer_log.summary[file]['added']       = added_count(klass)
+        importer_log.summary[file]['removed']     = klass.prevent_import_deletions? ? 0 : removed_count(klass)
+        importer_log.summary[file]['total_count'] = existing_data_scope(klass).distinct.count(klass.hud_key)
       end
     end
 
@@ -346,14 +347,13 @@ module HmisCsvImporter::Importer
     #
     private def change_counts
       importer_log.summary.map do |file, data|
-        klass = importable_files[file]
-        to_add = data['added']
+        to_add    = data['added']
         to_remove = data['removed']
         [
           file,
           {
             change_count: (to_add - to_remove).abs,
-            total_count: existing_data_scope(klass).distinct.count(klass.hud_key),
+            total_count: data['total_count'].to_i,
           },
         ]
       end.to_h
@@ -817,7 +817,7 @@ module HmisCsvImporter::Importer
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
-          batch_soft_delete(klass, existing_destination_data_scope(klass), file_name)
+          batch_soft_delete(klass, existing_destination_data_scope(klass))
           note_processed(file_name, delete_count, 'removed')
         end
       end
@@ -1134,7 +1134,7 @@ module HmisCsvImporter::Importer
     end
 
     # Materialize delete-pending IDs into a temp table, then batch soft-delete.
-    private def batch_soft_delete(klass, scope, file_name)
+    private def batch_soft_delete(klass, scope)
       conn = klass.warehouse_class.connection
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
