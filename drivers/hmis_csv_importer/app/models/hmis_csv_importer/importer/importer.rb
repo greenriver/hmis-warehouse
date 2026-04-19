@@ -6,24 +6,31 @@
 
 # frozen_string_literal: true
 
-# Assumptions:
-# The import is authoritative for the date range specified in the Export.csv file
-# The import is authoritative for the projects specified in the Project.csv file
-# There's no reason to have client records with no enrollments
-# All tables that hang off a client also hang off enrollments
-
-# reload!; importer = HmisCsvImporter::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
-
-# Some notes on how to manually run imports where the delayed job expires or fails for non-data related issue
-# il = GrdaWarehouse::ImportLog.last
-# loader = HmisCsvImporter::Loader::LoaderLog.last
-# imp_log = HmisCsvImporter::Importer::ImporterLog.last
-# # NOTE: newing up an importer currently creates an ImporterLog, this should be deleted
-# imp = HmisCsvImporter::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
-# imp.importer_log = imp_log
-# il.update(import_errors: nil)
-# # at this point, you can call any of the various import methods, usually, the last one that was attempted
-# imp.log_timing(:process_existing)
+# Reconciles staged HUD CSV data (from the Loader) with the warehouse.
+#
+# The import is authoritative for the projects in Project.csv and the date
+# range in Export.csv. All warehouse rows within that scope are assumed
+# deleted unless the incoming data proves otherwise ("guilty until proven
+# innocent" via pending_date_deleted).
+#
+# Lifecycle:
+#   pre_process! → validate → aggregate → cleanup → ingest! → post_process
+#
+# Ingestion (ingest!) runs four passes per HUD file:
+#   0. mark_tree_as_dead   — flag all in-scope warehouse rows as pending deletion
+#   1. add_new_data        — insert staging rows whose hud_key is absent from warehouse
+#   2. process_existing    — for rows present in both staging and warehouse:
+#      a. mark_unchanged       — source_hash match → clear pending deletion
+#      b. mark_incoming_older  — staging DateUpdated < warehouse → clear pending deletion
+#      c. apply_updates        — everything still pending → overwrite warehouse from staging
+#   3. remove_pending_deletes — soft-delete anything still flagged
+#
+# @see docs/features/hmis-csv-importer.md for full data-flow documentation.
+#
+# Manual run:
+#   loader = HmisCsvImporter::Loader::LoaderLog.last
+#   imp = HmisCsvImporter::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
+#   imp.import!
 
 require 'memery'
 require 'zlib'
