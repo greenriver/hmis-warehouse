@@ -282,9 +282,10 @@ module HmisCsvImporter::Importer
     # using NOT EXISTS to avoid NOT IN's 3-valued NULL semantics.
     private def anti_join_count(scope, other_scope, key)
       other_table = other_scope.arel.as('other')
+      other_ref = Arel::Table.new('other')
       exists = Arel::SelectManager.new.
         from(other_table).
-        where(Arel.sql('other')[key].eq(scope.arel_table[key])).
+        where(other_ref[key].eq(scope.arel_table[key])).
         project(1)
 
       scope.where(exists.exists.not).distinct.count(key)
@@ -1103,19 +1104,22 @@ module HmisCsvImporter::Importer
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
 
-      total = conn.select_value("SELECT count(*) FROM #{conn.quote_table_name(temp)}")
-      offset = 0
-      while offset < total
-        conn.execute(<<~SQL)
-          UPDATE #{update_base.quoted_table_name} SET pending_date_deleted = NULL
-          WHERE id IN (
+      last_id = 0
+      loop do
+        result = conn.execute(<<~SQL)
+          UPDATE #{update_base.quoted_table_name} wh SET pending_date_deleted = NULL
+          FROM (
             SELECT id FROM #{conn.quote_table_name(temp)}
-            ORDER BY id LIMIT #{INSERT_BATCH_SIZE} OFFSET #{offset}
-          )
+            WHERE id > #{last_id}
+            ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
+          ) batch
+          WHERE wh.id = batch.id
+          RETURNING wh.id
         SQL
-        batch_size = [INSERT_BATCH_SIZE, total - offset].min
-        note_processed(file_name, batch_size, 'unchanged')
-        offset += INSERT_BATCH_SIZE
+        break if result.ntuples.zero?
+
+        last_id = result.last['id']
+        note_processed(file_name, result.ntuples, 'unchanged')
       end
     ensure
       conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
@@ -1138,20 +1142,24 @@ module HmisCsvImporter::Importer
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
       deleted_at = klass.warehouse_class.connection.quote(Time.current)
 
-      total = conn.select_value("SELECT count(*) FROM #{conn.quote_table_name(temp)}")
-      offset = 0
-      while offset < total
-        conn.execute(<<~SQL)
-          UPDATE #{update_base.quoted_table_name}
+      last_id = 0
+      loop do
+        result = conn.execute(<<~SQL)
+          UPDATE #{update_base.quoted_table_name} wh
           SET pending_date_deleted = NULL,
               "DateDeleted" = #{deleted_at},
               source_hash = NULL
-          WHERE id IN (
+          FROM (
             SELECT id FROM #{conn.quote_table_name(temp)}
-            ORDER BY id LIMIT #{INSERT_BATCH_SIZE} OFFSET #{offset}
-          )
+            WHERE id > #{last_id}
+            ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
+          ) batch
+          WHERE wh.id = batch.id
+          RETURNING wh.id
         SQL
-        offset += INSERT_BATCH_SIZE
+        break if result.ntuples.zero?
+
+        last_id = result.last['id']
       end
     ensure
       conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
