@@ -62,7 +62,7 @@ module HmisCsvImporter::Importer
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @debug = debug # no longer used for anything. instead we use logger.levels.
-      @updated_source_client_ids = []
+      @updated_source_client_ids = Set.new
 
       @deidentified = deidentified
       @project_cleanup = project_cleanup
@@ -301,7 +301,7 @@ module HmisCsvImporter::Importer
     # Materialize existing warehouse hud_keys into an indexed temp table so that
     # the anti-join subquery in find_each is a cheap lookup instead of re-running
     # the full involved_warehouse_scope on every cursor page.
-    # Yields a staging-table scope filtered to keys NOT IN the temp table.
+    # Yields a staging-table scope filtered to keys absent from the temp table.
     private def with_existing_keys_temp_table(klass)
       conn = klass.connection
       key = klass.hud_key
@@ -316,11 +316,15 @@ module HmisCsvImporter::Importer
       SQL
       conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (hud_key)")
 
-      temp_subquery = Arel::SelectManager.new.
-        from(Arel.sql(conn.quote_table_name(temp))).
-        project(Arel.sql('hud_key'))
+      # NOT EXISTS rather than NOT IN to avoid 3-valued NULL semantics —
+      # consistent with anti_join_count.
+      temp_table = Arel.sql(conn.quote_table_name(temp))
+      exists = Arel::SelectManager.new.
+        from(temp_table).
+        where(Arel.sql('hud_key').eq(klass.arel_table[key])).
+        project(1)
       new_data_scope = klass.incoming_data(importer_log_id: importer_log.id).
-        where(klass.arel_table[key].not_in(temp_subquery))
+        where(exists.exists.not)
       yield new_data_scope
     ensure
       conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
@@ -810,14 +814,7 @@ module HmisCsvImporter::Importer
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
-          # Batch by primary key to avoid carrying the complex existing_destination_data_scope join into the UPDATE.
-          scope = existing_destination_data_scope(klass)
-          # update_scope may differ from scope for paranoid models, so we cannot call
-          # batch.update_all directly and must resolve IDs first via batch.ids.
-          update_scope = scope.klass.paranoid? ? scope.klass.with_deleted : scope.klass
-          scope.in_batches(of: INSERT_BATCH_SIZE) do |batch|
-            update_scope.where(id: batch.ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
-          end
+          batch_soft_delete(klass, existing_destination_data_scope(klass), file_name)
           note_processed(file_name, delete_count, 'removed')
         end
       end
@@ -1014,9 +1011,7 @@ module HmisCsvImporter::Importer
     end
 
     private def track_updated_client(personal_id)
-      return if personal_id.blank?
-
-      @updated_source_client_ids << personal_id
+      @updated_source_client_ids << personal_id if personal_id.present?
     end
 
     private def augmentation_upsert_columns(klass)
@@ -1120,6 +1115,42 @@ module HmisCsvImporter::Importer
         SQL
         batch_size = [INSERT_BATCH_SIZE, total - offset].min
         note_processed(file_name, batch_size, 'unchanged')
+        offset += INSERT_BATCH_SIZE
+      end
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
+    end
+
+    # Materialize delete-pending IDs into a temp table, then batch UPDATE.
+    # Same pattern as batch_clear_pending_deletion but applies a soft-delete.
+    private def batch_soft_delete(klass, scope, file_name)
+      conn = klass.warehouse_class.connection
+      temp = "tmp_pending_deletes_#{klass.warehouse_class.table_name}"
+
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
+          SELECT id FROM (#{scope.select(:id).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (id)")
+
+      update_base = klass.warehouse_class
+      update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
+      deleted_at = klass.warehouse_class.connection.quote(Time.current)
+
+      total = conn.select_value("SELECT count(*) FROM #{conn.quote_table_name(temp)}")
+      offset = 0
+      while offset < total
+        conn.execute(<<~SQL)
+          UPDATE #{update_base.quoted_table_name}
+          SET pending_date_deleted = NULL,
+              "DateDeleted" = #{deleted_at},
+              source_hash = NULL
+          WHERE id IN (
+            SELECT id FROM #{conn.quote_table_name(temp)}
+            ORDER BY id LIMIT #{INSERT_BATCH_SIZE} OFFSET #{offset}
+          )
+        SQL
         offset += INSERT_BATCH_SIZE
       end
     ensure
@@ -1416,12 +1447,15 @@ module HmisCsvImporter::Importer
     end
 
     private def cleanup_dangling_enrollments
-      # Clean up any dangling enrollments for updated clients
-      updated_client_ids = GrdaWarehouse::Hud::Client.
-        joins(:warehouse_client_source).
-        where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
-        pluck(wc_t[:destination_id])
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+      return if @updated_source_client_ids.empty?
+
+      @updated_source_client_ids.each_slice(SELECT_BATCH_SIZE) do |personal_id_batch|
+        updated_client_ids = GrdaWarehouse::Hud::Client.
+          joins(:warehouse_client_source).
+          where(PersonalID: personal_id_batch, data_source_id: @data_source.id).
+          pluck(wc_t[:destination_id])
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+      end
     end
 
     private def queue_enrollment_processing
