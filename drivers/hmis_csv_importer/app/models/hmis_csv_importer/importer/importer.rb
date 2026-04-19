@@ -389,7 +389,9 @@ module HmisCsvImporter::Importer
       end
     end
 
-    # Refresh statistics after bulk updating pending_date_deleted so the planner chooses optimal semi-join strategies.
+    # Refresh statistics on all importable warehouse tables after mark_tree_as_dead
+    # bulk-writes pending_date_deleted, so the planner has accurate selectivity for
+    # the semi-join strategies used by mark_unchanged and mark_incoming_older.
     private def analyze_warehouse_tables
       importable_files.each_value do |klass|
         wh_klass = klass.warehouse_class
@@ -1088,81 +1090,77 @@ module HmisCsvImporter::Importer
         where(yield.select(1).arel.exists)
     end
 
+    # Creates a session-scoped temp table of IDs materialised from `scope`, builds
+    # an index on it, yields the quoted temp-table name for the caller to drive its
+    # own batched UPDATE, then drops the table in ensure.
+    private def with_temp_id_table(conn, name, scope)
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(name)} AS
+          SELECT id FROM (#{scope.select(:id).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(name)} (id)")
+      yield conn.quote_table_name(name)
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
+    end
+
     # Materialize matched IDs into a temp table so the expensive semi-join runs once,
     # then batch UPDATE from the temp table.
     private def batch_clear_pending_deletion(klass, matched_scope, file_name)
       conn = klass.warehouse_class.connection
-      temp = "tmp_unchanged_#{klass.warehouse_class.table_name}"
-
-      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
-      conn.execute(<<~SQL)
-        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
-          SELECT id FROM (#{matched_scope.select(:id).to_sql}) sub
-      SQL
-      conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (id)")
-
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
 
-      last_id = 0
-      loop do
-        result = conn.execute(<<~SQL)
-          UPDATE #{update_base.quoted_table_name} wh SET pending_date_deleted = NULL
-          FROM (
-            SELECT id FROM #{conn.quote_table_name(temp)}
-            WHERE id > #{last_id}
-            ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
-          ) batch
-          WHERE wh.id = batch.id
-          RETURNING wh.id
-        SQL
-        break if result.ntuples.zero?
+      with_temp_id_table(conn, "tmp_unchanged_#{klass.warehouse_class.table_name}", matched_scope) do |quoted_temp|
+        last_id = 0
+        loop do
+          result = conn.execute(<<~SQL)
+            UPDATE #{update_base.quoted_table_name} wh SET pending_date_deleted = NULL
+            FROM (
+              SELECT id FROM #{quoted_temp}
+              WHERE id > #{last_id}
+              ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
+            ) batch
+            WHERE wh.id = batch.id
+            RETURNING wh.id
+          SQL
+          break if result.ntuples.zero?
 
-        last_id = result.last['id']
-        note_processed(file_name, result.ntuples, 'unchanged')
+          last_id = result.map { |r| r['id'].to_i }.max
+          note_processed(file_name, result.ntuples, 'unchanged')
+        end
       end
-    ensure
-      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
     end
 
-    # Materialize delete-pending IDs into a temp table, then batch UPDATE.
-    # Same pattern as batch_clear_pending_deletion but applies a soft-delete.
+    # Materialize delete-pending IDs into a temp table, then batch soft-delete.
     private def batch_soft_delete(klass, scope, file_name)
       conn = klass.warehouse_class.connection
-      temp = "tmp_pending_deletes_#{klass.warehouse_class.table_name}"
-
-      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
-      conn.execute(<<~SQL)
-        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
-          SELECT id FROM (#{scope.select(:id).to_sql}) sub
-      SQL
-      conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (id)")
-
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
-      deleted_at = klass.warehouse_class.connection.quote(Time.current)
+      deleted_at = conn.quote(Time.current)
 
-      last_id = 0
-      loop do
-        result = conn.execute(<<~SQL)
-          UPDATE #{update_base.quoted_table_name} wh
-          SET pending_date_deleted = NULL,
-              "DateDeleted" = #{deleted_at},
-              source_hash = NULL
-          FROM (
-            SELECT id FROM #{conn.quote_table_name(temp)}
-            WHERE id > #{last_id}
-            ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
-          ) batch
-          WHERE wh.id = batch.id
-          RETURNING wh.id
-        SQL
-        break if result.ntuples.zero?
+      with_temp_id_table(conn, "tmp_pending_deletes_#{klass.warehouse_class.table_name}", scope) do |quoted_temp|
+        last_id = 0
+        loop do
+          result = conn.execute(<<~SQL)
+            UPDATE #{update_base.quoted_table_name} wh
+            SET pending_date_deleted = NULL,
+                "DateDeleted" = #{deleted_at},
+                source_hash = NULL
+            FROM (
+              SELECT id FROM #{quoted_temp}
+              WHERE id > #{last_id}
+              ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
+            ) batch
+            WHERE wh.id = batch.id
+            RETURNING wh.id
+          SQL
+          break if result.ntuples.zero?
 
-        last_id = result.last['id']
+          last_id = result.map { |r| r['id'].to_i }.max
+        end
       end
-    ensure
-      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
     end
 
     private def track_dirty_enrollment(enrollment_id)

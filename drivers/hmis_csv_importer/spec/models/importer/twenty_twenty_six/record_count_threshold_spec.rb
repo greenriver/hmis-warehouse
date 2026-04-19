@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Import record-count change thresholds', type: :model do
-  FIXTURE_PATH = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_test_files'
+  fixture_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_test_files'
 
   describe 'precalculate_change_counts executes without error' do
     before(:all) do
@@ -29,7 +29,7 @@ RSpec.describe 'Import record-count change thresholds', type: :model do
 
       travel_to Time.local(2017, 10, 3) do
         @loader = import_hmis_csv_fixture(
-          FIXTURE_PATH,
+          fixture_path,
           data_source: @data_source,
           version: 'AutoMigrate',
           run_jobs: false,
@@ -72,7 +72,7 @@ RSpec.describe 'Import record-count change thresholds', type: :model do
         ).first_or_create!
 
         import_hmis_csv_fixture(
-          FIXTURE_PATH,
+          fixture_path,
           data_source: @data_source,
           version: 'AutoMigrate',
           run_jobs: false,
@@ -101,7 +101,7 @@ RSpec.describe 'Import record-count change thresholds', type: :model do
       # Second import with thresholds active
       travel_to Time.local(2017, 10, 3) do
         @loader = import_hmis_csv_fixture(
-          FIXTURE_PATH,
+          fixture_path,
           data_source: @data_source,
           version: 'AutoMigrate',
           run_jobs: false,
