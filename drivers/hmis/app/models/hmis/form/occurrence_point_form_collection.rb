@@ -92,7 +92,8 @@ class Hmis::Form::OccurrencePointFormCollection
   end
 
   def occurrence_point_definition_scope(data_source_id:)
-    Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published.in_data_source(data_source_id)
+    @occurrence_point_definition_scope_by_data_source_id ||= {}
+    @occurrence_point_definition_scope_by_data_source_id[data_source_id] ||= Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published.in_data_source(data_source_id)
   end
 
   def create_form_struct(definition:, legacy:, data_collected_about: nil)

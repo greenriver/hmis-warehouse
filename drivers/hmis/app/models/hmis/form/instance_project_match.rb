@@ -42,8 +42,7 @@ class Hmis::Form::InstanceProjectMatch
 
   # match to project. Order is significant, should return the best ranked match
   memoize def match
-    # Guard: skip the rest of matching logic if the instance and project are not from the same data source
-    return nil if instance.data_source_id != project.data_source_id
+    raise 'Unexpected: InstanceProjectMatch called on an instance and project that are from different data sources' unless instance.data_source_id == project.data_source_id
 
     if instance.entity_type
       case instance.entity_type
