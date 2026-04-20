@@ -20,7 +20,7 @@ class Hmis::Form::SubmitFormAuthorizer
   PROJECT_RELATED_CLASSES = Hmis::Form::SubmitFormRecordInitializer::PROJECT_RELATED_CLASSES
 
   def initialize(user:, definition:)
-    raise 'access denied' unless user.hmis_data_source_id == definition.data_source_id
+    raise 'cannot submit form from another data source' unless user.hmis_data_source_id == definition.data_source_id
 
     @user = user
     @form_role = definition.role.to_sym
