@@ -37,6 +37,10 @@ module BostonReports
         viewable_by(user).exists?
     end
 
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
+    end
+
     def self.url
       'boston_reports/warehouse_reports/street_to_homes'
     end

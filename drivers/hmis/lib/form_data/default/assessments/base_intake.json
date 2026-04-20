@@ -16,12 +16,6 @@
           },
           "required": true,
           "assessment_date": true,
-          "initial": [
-            {
-              "initial_behavior": "OVERWRITE",
-              "value_local_constant": "$entryDate"
-            }
-          ],
           "bounds": [
             {
               "id": "max-entry",

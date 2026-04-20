@@ -354,7 +354,7 @@ module MaYyaReport
     end
 
     private def prevention_clause
-      a_t[:at_risk_of_homelessness].eq(true)
+      a1b_clause.or(a2b_clause).or(a3a_clause).or(a3b_clause)
     end
 
     # A1b: Outreach referral + at-risk
@@ -587,7 +587,7 @@ module MaYyaReport
       {
         TotalYYAServedPrevention: {
           # Explicit union of A1b, A2b, A3a, and A3b as per tooltip description
-          calculation: a1b_clause.or(a2b_clause).or(a3a_clause).or(a3b_clause),
+          calculation: prevention_clause,
           label: 'Number of unduplicated YYA served (update each quarter)',
         },
         TotalYYAServedHomeless: {
