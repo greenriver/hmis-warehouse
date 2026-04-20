@@ -100,4 +100,37 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(viewable_clients).to be_empty
     end
   end
+
+  describe 'files_viewable_by scope' do
+    let(:file_perms) do
+      [
+        :can_view_any_nonconfidential_client_files,
+        :can_view_any_confidential_client_files,
+        :can_view_clients,
+        :can_view_project,
+      ]
+    end
+
+    it 'is empty when user has no access' do
+      expect(Hmis::Hud::Client.files_viewable_by(user_with_no_access)).to be_empty
+    end
+
+    it 'is empty when user has can_view_clients but no file permissions' do
+      expect(Hmis::Hud::Client.files_viewable_by(user_with_access_to_p1_clients)).to be_empty
+    end
+
+    it 'includes enrolled and unenrolled clients when user has file permissions at a project' do
+      hmis_user = create(:hmis_user, data_source: ds1)
+      create_access_control(hmis_user, p1, with_permission: file_perms)
+
+      viewable = Hmis::Hud::Client.files_viewable_by(hmis_user)
+      expect(viewable).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    it 'is empty when user only has file permissions in a different data source' do
+      hmis_user = create(:hmis_user, data_source: ds1) # logged in at ds1
+      create_access_control(hmis_user, ds2, with_permission: file_perms)
+      expect(Hmis::Hud::Client.files_viewable_by(hmis_user)).to be_empty
+    end
+  end
 end

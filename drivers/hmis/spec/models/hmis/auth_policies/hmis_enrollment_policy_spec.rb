@@ -64,6 +64,64 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     end
   end
 
+  describe 'Global policy' do
+    let(:global_policy) { user.policy_for(Hmis::Hud::Enrollment, policy_type: :hmis_enrollment) }
+
+    it 'returns a Global policy instance when the resource is the class' do
+      expect(global_policy).to be_a(Hmis::AuthPolicies::HmisEnrollmentPolicy::Global)
+    end
+
+    describe '#can_view?' do
+      it 'is true when the user has both can_view_enrollment_details and can_view_project in the current data source' do
+        create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
+        expect(global_policy.can_view?).to be true
+      end
+
+      it 'is false when the user only has can_view_enrollment_details' do
+        create_access_control(user, project, with_permission: [:can_view_enrollment_details])
+        expect(global_policy.can_view?).to be false
+      end
+
+      it 'is false when the user only has can_view_project' do
+        create_access_control(user, project, with_permission: [:can_view_project])
+        expect(global_policy.can_view?).to be false
+      end
+
+      it 'is false when the user has no permissions' do
+        expect(global_policy.can_view?).to be false
+      end
+
+      it 'is false when the user has the permissions only in a different data source' do
+        other_ds = create(:hmis_data_source)
+        create_access_control(user, other_ds, with_permission: [:can_view_enrollment_details, :can_view_project])
+        expect(global_policy.can_view?).to be false
+      end
+    end
+
+    describe '#can_view_limited?' do
+      it 'is true when the user has can_view_limited_enrollment_details in the current data source' do
+        create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details])
+        expect(global_policy.can_view_limited?).to be true
+      end
+
+      it 'is false when the user has no permissions' do
+        expect(global_policy.can_view_limited?).to be false
+      end
+
+      it 'is false when the user has can_view_limited_enrollment_details only in a different data source' do
+        other_ds = create(:hmis_data_source)
+        create_access_control(user, other_ds, with_permission: [:can_view_limited_enrollment_details])
+        expect(global_policy.can_view_limited?).to be false
+      end
+
+      it 'is independent from can_view? (limited-only access does not grant can_view?)' do
+        create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details])
+        expect(global_policy.can_view?).to be false
+        expect(global_policy.can_view_limited?).to be true
+      end
+    end
+  end
+
   context 'when policy is scoped to a different data source than the enrollment' do
     let!(:ds2) { create(:hmis_data_source) }
     let!(:ds2_user) { create(:hmis_user, data_source: ds2) }

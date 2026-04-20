@@ -125,7 +125,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :files_viewable_by, ->(user) do
-    with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    viewable_by(user).with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
   end
 
   scope :searchable_to, ->(user) do

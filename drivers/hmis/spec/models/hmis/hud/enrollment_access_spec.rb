@@ -216,4 +216,45 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
   end
+
+  describe 'files_viewable_by scope' do
+    let!(:user) { create(:hmis_user, data_source: ds1) }
+    let(:file_perms) { [:can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, :can_view_clients] }
+    let(:enrollment_view_perms) { [:can_view_enrollment_details, :can_view_project] }
+
+    it 'is empty for a user with no access' do
+      expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to be_empty
+    end
+
+    it 'is empty if the user has enrollment access but no file permissions' do
+      create_access_control(user, p1, with_permission: enrollment_view_perms)
+      expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to be_empty
+    end
+
+    it 'returns only the enrollments at projects where the user has both enrollment and file permissions' do
+      create_access_control(user, p1, with_permission: enrollment_view_perms + file_perms)
+      create_access_control(user, p2, with_permission: enrollment_view_perms) # no file perms
+      expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to contain_exactly(e1)
+    end
+
+    it 'is empty if the user only has perms in a different data source' do
+      # logged in at ds1 but file access only at ds2
+      other_user = create(:hmis_user, data_source: ds1)
+      create_access_control(other_user, ds2, with_permission: enrollment_view_perms + file_perms)
+      expect(Hmis::Hud::Enrollment.files_viewable_by(other_user)).to be_empty
+    end
+
+    it 'does not include files from a different data source for a user with cross-DS access' do
+      # full access in both data sources, but scope must return only ds1 enrollments
+      create_access_control(user, ds1, with_permission: enrollment_view_perms + file_perms)
+      create_access_control(user, ds2, with_permission: enrollment_view_perms + file_perms)
+      expect(Hmis::Hud::Enrollment.files_viewable_by(user).map(&:data_source_id)).to all(eq(ds1.id))
+    end
+
+    it 'does not include WIP enrollments via a user with limited_enrollment_details access' do
+      # files_viewable_by should only expose "full access" enrollments, not limited-access ones
+      create_access_control(user, p1, with_permission: [:can_view_limited_enrollment_details] + file_perms)
+      expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to be_empty
+    end
+  end
 end
