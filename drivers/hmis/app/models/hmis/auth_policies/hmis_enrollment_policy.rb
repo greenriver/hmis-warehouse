@@ -37,4 +37,20 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
       ensure_arg_type!(arg, Hmis::Hud::Enrollment)
     end
   end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    # Whether the user can view some enrollments with full details
+    def can_view?
+      global_permissions.include?(:can_view_enrollment_details) && global_permissions.include?(:can_view_project)
+    end
+
+    # Whether the user can view some enrollments with limited details
+    def can_view_limited?
+      global_permissions.include?(:can_view_limited_enrollment_details)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Hud::Enrollment)
+  end
 end

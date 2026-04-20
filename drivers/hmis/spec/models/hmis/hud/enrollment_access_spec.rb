@@ -82,6 +82,16 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     user
   end
 
+  # cruft: another data source with enrollments/services that should not be returned in any of the below tests,
+  # even though user_with_full_access has access in ds2, because only enrollments in the currently-logged-in data source are returned
+  let!(:ds2) do
+    ds = create :hmis_data_source
+    p = create :hmis_hud_project, data_source: ds
+    e = create(:hmis_hud_enrollment, project: p, data_source: ds)
+    create(:hmis_hud_service, data_source: ds, enrollment: e)
+    create_access_control(user_with_full_access, ds)
+  end
+
   describe 'viewable_by scope' do
     it 'enrollments are empty if I have no access' do
       viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user_with_no_access)
