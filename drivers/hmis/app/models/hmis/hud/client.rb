@@ -95,29 +95,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   before_save :set_source_hash
 
   # Includes clients where..
-  #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
+  #  1. The Client has enrollment(s) at any Project where the User can view clients
   #     OR,
-  #  2. The Client has NO enrollments AND the User has these Permission(s) at _any_ project
+  #  2. The Client has NO enrollments AND the User can view clients at _any_ project
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
-  scope :with_access, ->(user, *permissions, **kwargs) do
-    # optimization: return early if the user has NO access for this permission(s) in the current data source
-    return none unless user.policy_context.global_permissions.intersect?(Array(permissions))
+  scope :visible_to, ->(user) do
+    # optimization: return early if the user has NO access to view clients in the current data source
+    global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
+    return none unless global_policy.can_view?
 
-    pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
+    pids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
 
     scopes = []
     scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
-    scopes += [
-      joins(:projects).where(p_t[:id].in(pids)),
-    ]
+    scopes << joins(:projects).where(p_t[:id].in(pids))
     sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
 
     where(c_t[:id].in(Arel.sql(sql)))
-  end
-
-  scope :visible_to, ->(user) do
-    with_access(user, :can_view_clients)
   end
 
   class << self
@@ -125,7 +120,23 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :files_viewable_by, ->(user) do
-    viewable_by(user).with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    # optimization: return early if the user has NO access to view clients in the current data source
+    global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
+    return none unless global_policy.can_view? && global_policy.can_view_some_files?
+
+    pids = Hmis::Hud::Project.
+      # User must be able to view clients at the project
+      with_access(user, :can_view_clients).
+      # User must be able to view some files, whether confidential or non-confidential. (with_access uses mode: :any by default)
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files).
+      pluck(:id)
+
+    scopes = []
+    scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
+    scopes << joins(:projects).where(p_t[:id].in(pids))
+    sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
+
+    viewable_by(user).where(c_t[:id].in(Arel.sql(sql)))
   end
 
   scope :searchable_to, ->(user) do
