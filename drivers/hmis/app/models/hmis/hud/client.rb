@@ -105,14 +105,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_view?
 
-    pids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
+    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    scopes = []
-    scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
-    scopes << joins(:projects).where(p_t[:id].in(pids))
-    sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
-
-    where(c_t[:id].in(Arel.sql(sql)))
+    where(c_t[:id].in(client_ids))
   end
 
   class << self
@@ -120,23 +116,32 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :files_viewable_by, ->(user) do
-    # optimization: return early if the user has NO access to view clients in the current data source
+    # optimization: return early if the user has NO access to view clients and files in the current data source
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_view? && global_policy.can_view_some_files?
 
-    pids = Hmis::Hud::Project.
+    project_ids = Hmis::Hud::Project.
       # User must be able to view clients at the project
       with_access(user, :can_view_clients).
       # User must be able to view some files, whether confidential or non-confidential. (with_access uses mode: :any by default)
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files).
       pluck(:id)
+    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    scopes = []
-    scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
-    scopes << joins(:projects).where(p_t[:id].in(pids))
+    where(c_t[:id].in(client_ids))
+  end
+
+  # Shared helper that returns a raw SQL UNION subquery (as Arel.sql) containing client IDs for:
+  #   1. Clients enrolled in any of the given projects
+  #   2. Unenrolled clients belonging to the given data source
+  # Callers must use `c_t[:id].in(result)` rather than `where(id: result)`
+  def self.client_ids_sql(project_ids:, data_source_id:)
+    scopes = [
+      unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.where(id: data_source_id)),
+      joins(:projects).where(p_t[:id].in(project_ids)),
+    ]
     sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
-
-    viewable_by(user).where(c_t[:id].in(Arel.sql(sql)))
+    Arel.sql(sql)
   end
 
   scope :searchable_to, ->(user) do
