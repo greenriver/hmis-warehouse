@@ -297,7 +297,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Resolving available Service Types for a Project' do
     # This describe block does NOT seed HUD service types/projects; it tests from a blank slate, for clarity
-    let(:service_form_definition) { create(:hmis_form_definition, role: :SERVICE) }
+    let(:service_form_definition) { create(:hmis_form_definition, role: :SERVICE, data_source: ds1) }
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9 }
     let!(:o2) { create :hmis_hud_organization, data_source: ds1 }
     let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o2, project_type: 11 }
@@ -323,6 +323,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project_type: 1, # ES
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: csc1.id,
+        data_source: ds1,
       )
 
       # ES project
@@ -339,6 +340,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         funder: 43,
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: csc1.id,
+        data_source: ds1,
       )
 
       create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
@@ -355,6 +357,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         funder: 43,
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: csc1.id,
+        data_source: ds1,
       )
 
       p1.update(project_type: 12)
@@ -374,6 +377,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         entity: p2,
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: csc1.id,
+        data_source: ds1,
       )
       expect(picklist_option_codes(p2)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p1)).to be_empty
@@ -386,6 +390,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         entity: o1,
         definition_identifier: service_form_definition.identifier,
         custom_service_type: cst1,
+        data_source: ds1,
       )
       expect(picklist_option_codes(p1)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p2)).to contain_exactly(cst1.id.to_s)
@@ -464,10 +469,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'EXTERNAL_FORM_TYPES_FOR_PROJECT' do
-    let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM }
+    let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM, data_source: ds1 }
 
     context 'when form rule applies to a project' do
-      let!(:rule) { create :hmis_form_instance, definition_identifier: 'test-external', entity: p1, active: true }
+      let!(:rule) { create :hmis_form_instance, definition_identifier: 'test-external', entity: p1, active: true, data_source: ds1 }
 
       it 'should return the external form for the project' do
         response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
@@ -478,7 +483,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'but form is in draft' do
-        let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM, status: :draft }
+        let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM, status: :draft, data_source: ds1 }
 
         it 'should not return the draft form' do
           response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
@@ -492,11 +497,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'PROJECTS_RECEIVING_REFERRALS' do
     let!(:referral_dest_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
-    let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: referral_dest_project }
+    let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: referral_dest_project, data_source: ds1 }
 
     let!(:non_dest_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
-    let!(:draft_referral_form) { create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft) }
-    let!(:draft_referral_instance) { create :hmis_form_instance, role: :REFERRAL, definition_identifier: 'bad-referral-form', entity: non_dest_project }
+    let!(:draft_referral_form) { create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft, data_source: ds1) }
+    let!(:draft_referral_instance) { create :hmis_form_instance, role: :REFERRAL, definition_identifier: 'bad-referral-form', entity: non_dest_project, data_source: ds1 }
 
     it 'should only return the project that has an active, non-draft instance' do
       response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_REFERRALS') { query }

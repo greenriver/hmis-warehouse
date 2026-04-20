@@ -121,7 +121,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     it 'chooses more specific instance (project type > default)' do
       create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
       create(:hmis_form_instance, role: role, entity: nil, active: false, data_source: data_source)
-      inst_for_project_type = create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
+      inst_for_project_type = create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_source: data_source)
 
       expect(selected_instances).to contain_exactly(inst_for_project_type)
     end
