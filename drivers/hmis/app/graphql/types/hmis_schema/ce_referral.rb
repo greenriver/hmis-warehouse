@@ -261,6 +261,7 @@ module Types
 
         OpenStruct.new(
           id: swimlane.id,
+          cache_key: "#{object.id}:#{swimlane.id}",
           name: swimlane.name,
           participants: participants,
         )

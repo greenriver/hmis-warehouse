@@ -16,14 +16,20 @@
     %tr
       - bg_color = @report.config.total_color
       %td.all-clients{ colspan: @report.summary_counts.count - 1, style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
-        .count= link_to number_with_delimiter(total_count), polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: ['Total'])), style: "color: #{@report.config.foreground_color(bg_color)};", class: 'font-size-md'
+        .count= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(total_count), polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: ['Total'])), style: "color: #{@report.config.foreground_color(bg_color)};", class: 'font-size-md'
         .label{style: "color: #{@report.config.foreground_color(@report.config.total_color)};"}= @report.summary_counts['total'][:label]
     %tr
       - @report.summary_counts.except('total').each.with_index do |(cohort, data), i|
         - bg_color = @report.config["breakdown_1_color_#{i}"]
         %td{ class: "cohort-#{i}", style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
           .count
-            = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort])), style: "color: #{@report.config.foreground_color(bg_color)};" do
+            - if @report.can_see_client_details?(current_user)
+              = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort])), style: "color: #{@report.config.foreground_color(bg_color)};" do
+                .d-flex
+                  .ml-auto.mr-auto.d-flex
+                    .font-size-md= number_with_delimiter(data[:count])
+                    .font-size-sm.mt-auto.mb-1.ml-2 (#{@report.percent(numerator: data[:count], denominator: total_count)}%)
+            - else
               .d-flex
                 .ml-auto.mr-auto.d-flex
                   .font-size-md= number_with_delimiter(data[:count])

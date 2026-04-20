@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class AccessToCareSheet < Base
-    QUESTION_NUMBER = 'Q7: Access To Care'
+    QUESTION_NUMBER = 'Access To Care'
     QUESTION_NUMBERS = ['Q7'].freeze
     SHEET_TITLE = 'Access to Care (ATC)'
 
