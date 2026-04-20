@@ -95,8 +95,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(viewable_clients).to contain_exactly(client_at_p1, client_at_p2, unenrolled_client)
     end
 
-    # TODO(#8916) - remove the 'xit' so this test is no longer skipped, once the bug in client.with_access scope is fixed
-    xit 'does not include unenrolled clients when I only have access in a different data source' do
+    it 'does not include unenrolled clients when I only have access in a different data source' do
       viewable_clients = Hmis::Hud::Client.viewable_by(user_with_ds1_and_ds2_access)
       expect(viewable_clients).to be_empty
     end

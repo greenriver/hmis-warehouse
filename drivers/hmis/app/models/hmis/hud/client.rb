@@ -101,12 +101,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
+    # optimization: return early if the user has NO access for this permission(s) in the current data source
+    return none unless user.policy_context.global_permissions.intersect?(Array(permissions))
+
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
     scopes = []
-    # TODO(#8916) Replace the global permission check, `user.permissions?(*permissions, **kwargs)`,
-    # with a check for: "does the current user have any/all of these permissions at the *current* data source?"
-    scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.permissions?(*permissions, **kwargs)
+    scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
     scopes += [
       joins(:projects).where(p_t[:id].in(pids)),
     ]
@@ -121,6 +122,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   class << self
     alias_method :viewable_by, :visible_to
+  end
+
+  scope :files_viewable_by, ->(user) do
+    with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
   end
 
   scope :searchable_to, ->(user) do
