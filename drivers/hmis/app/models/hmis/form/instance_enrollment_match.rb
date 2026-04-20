@@ -28,8 +28,7 @@ class Hmis::Form::InstanceEnrollmentMatch
 
   # enrollment match is binary but we may want ranks
   memoize def valid?
-    # Guard: skip the rest of matching logic if the instance and enrollment are not from the same data source
-    return false if instance.data_source_id != enrollment.data_source_id
+    raise 'Unexpected: InstanceEnrollmentMatch called on an instance and enrollment that are from different data sources' unless instance.data_source_id == enrollment.data_source_id
 
     case data_collected_about
     when ALL_MATCH
