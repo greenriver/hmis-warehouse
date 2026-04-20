@@ -197,4 +197,34 @@ RSpec.describe 'TotalYYAServedPrevention Integration', type: :model do
       end
     end
   end
+
+  describe 'prevention_clause used in downstream cells' do
+    # A3b clients have at_risk_of_homelessness: false but qualify via entry before
+    # period + non-homeless CLS during period. Before the fix, prevention_clause
+    # used only at_risk_of_homelessness, which excluded these clients from section D
+    # demographic cells, F1a, and other places using prevention_clause.
+    let!(:a3b_only_client) do
+      create(
+        :ma_yya_report_client,
+        :a3b,
+        gender: 1,
+      )
+    end
+
+    let(:prevention) { report.send(:prevention_clause) }
+
+    it 'includes A3b clients who are not flagged as at_risk_of_homelessness' do
+      expect(MaYyaReport::Client.where(prevention)).to include(a3b_only_client)
+    end
+
+    it 'passes A3b clients through to section D demographic cells' do
+      d1b_calculation = report.send(
+        :section_d1_e1_cells,
+        section: 'D',
+        clause: prevention,
+      )[:D1b][:calculation]
+
+      expect(MaYyaReport::Client.where(d1b_calculation)).to include(a3b_only_client)
+    end
+  end
 end

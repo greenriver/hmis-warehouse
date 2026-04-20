@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class TbraSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q2: TBRA'
+    QUESTION_NUMBER = 'TBRA'
     QUESTION_NUMBERS = ['Q2'].freeze
     SHEET_TITLE = 'Complete this section for all Households served with HOPWA Tenant-Based Rental Assistance (TBRA) by your organization in the reporting year.'
     CONTENTS = [

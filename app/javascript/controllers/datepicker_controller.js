@@ -7,7 +7,14 @@ export default class extends Controller {
 
   connect() {
     const dropdownMenu = this.element.closest('.dropdown-menu');
-    const containerOptions = dropdownMenu ? { container: dropdownMenu } : {};
+    // When the input lives in a Bootstrap modal (e.g. AjaxModal #ajax-modal), use the
+    // modal shell as the widget container so overflow clipping matches the dialog.
+    const modal = this.element.closest('.modal');
+    const modalContent =
+      modal && (modal.querySelector('.modal-content') || modal);
+
+    const container = dropdownMenu ? dropdownMenu : modalContent;  
+    const containerOptions = container ? { container: container } : {};
 
     // Default options, including our custom icons
     const defaultOptions = {
