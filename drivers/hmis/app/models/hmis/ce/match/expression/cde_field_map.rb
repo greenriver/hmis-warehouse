@@ -74,6 +74,56 @@ module Hmis::Ce::Match::Expression
       Array.wrap(value).map { |v| _format_for_display(field, v) }
     end
 
+    # Builds a correlated `EXISTS` SQL fragment (and bind values) for narrowing CE Client scopes.
+    #
+    # Added to support dynamic filtering on CE waitlists based on CDE values, using
+    # `cde.*` keys from `Hmis::Filter::CeClientFilter` / table configuration.
+    #
+    # The subquery is correlated to `ce_client_proxies.client_id` (destination warehouse client id).
+    # Values are compared as `column::text IN (...)` so HUD/UI string filter values behave predictably.
+    # `string_values` must be non-empty after stripping blanks; callers with nothing to match should skip.
+    #
+    # @return [String, Array] SQL string and bind arguments for `scope.where([sql, *binds])`
+    def self.sql_cde_value_exists_for_ce_client_proxy(resolved_cde_field, string_values)
+      string_values = Array.wrap(string_values).map(&:to_s).reject(&:blank?).uniq
+      raise ArgumentError, 'string_values must be non-empty' if string_values.empty?
+
+      conn = ActiveRecord::Base.connection
+      dcla = conn.quote_table_name(Hmis::DestinationClientLatestAssessment.table_name)
+      ca = conn.quote_table_name(Hmis::Hud::CustomAssessment.table_name)
+      cde_tbl = conn.quote_table_name(Hmis::Hud::CustomDataElement.table_name)
+      cde_alias = 'cde'
+      proxy = conn.quote_table_name(Hmis::Ce::ClientProxy.table_name)
+
+      # Get the CustomDataElementDefinition and determine the value column name (e.g. value_string)
+      cded = new.send(:parse_entity_type, resolved_cde_field)
+      value_col = conn.quote_column_name(cded.cde_arel_field.name.to_s)
+
+      # Create predicate for matching CustomDataElement values
+      # For example: (cde.value_string)::text IN (?, ?, ?)
+      placeholders = string_values.map { '?' }.join(', ')
+      value_predicate = "(#{cde_alias}.#{value_col})::text IN (#{placeholders})"
+
+      sql = <<~SQL
+        EXISTS (
+          SELECT 1
+          FROM #{dcla} dcla
+          INNER JOIN #{ca} ca ON ca.id = dcla.custom_assessment_id AND ca."DateDeleted" IS NULL
+          INNER JOIN #{cde_tbl} #{cde_alias} ON #{cde_alias}.owner_type = ?
+            AND #{cde_alias}.owner_id = ca.id
+            AND #{cde_alias}."DateDeleted" IS NULL
+            AND #{cde_alias}.data_element_definition_id = ?
+          WHERE dcla.destination_client_id = #{proxy}.client_id
+            AND dcla.form_identifier = ?
+            AND (#{value_predicate})
+        )
+      SQL
+
+      # Values to bind to the '?' placeholders in the SQL fragment
+      binds = [Hmis::Hud::CustomAssessment.name, cded.id, cded.form_definition_identifier] + string_values
+      [sql.squish, binds]
+    end
+
     private
 
     def _format_for_display(field, value)

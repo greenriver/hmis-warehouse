@@ -34,10 +34,27 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
 
   def with_dynamic_filters(scope)
     with_filter(scope, :dynamic_filters) do
-      scope = scope.join_latest_event_per_candidate_pool
+      # Safety: skip if there is a huge number of filters
+      return scope if input.dynamic_filters.size > 50
 
       input.dynamic_filters.each do |filter|
-        scope = scope.filter_by_attribute(key: filter.key, values: filter.values)
+        # Skip if no values to match
+        string_values = Array.wrap(filter.values).map(&:to_s).reject(&:blank?).uniq
+        next if string_values.empty?
+
+        # Validate key. Filtering not supported for non-CDE keys. Raise in dev, otherwise skip and report to Sentry.
+        field_type, = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
+        if field_type != Hmis::Ce::Match::Expression::FieldMap::CDE
+          msg = "CE client dynamic filters only support `cde.*` expression keys. Skipping filter on key: #{filter.key.inspect}"
+          raise ArgumentError, msg if Rails.env.development?
+
+          Sentry.capture_message(msg)
+          next
+        end
+
+        _, resolved = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
+        sql, binds = Hmis::Ce::Match::Expression::CdeFieldMap.sql_cde_value_exists_for_ce_client_proxy(resolved, string_values)
+        scope = scope.where([sql, *binds])
       end
 
       scope.distinct
