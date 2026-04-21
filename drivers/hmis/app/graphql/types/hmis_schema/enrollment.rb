@@ -265,6 +265,21 @@ module Types
       source_referral if policy.can_view_summary?
     end
 
+    # Override the auto-generated resolver from custom_data_elements_field to also inject synthetic CDEs
+    # for any calculated CDEDs referenced by the enrollment's active occurrence point form definitions.
+    # Not for batch anymore; causes n+1 on object.occurrence_point_forms.
+    # Other fields that use HasCustomDataElements out of the box can still query in batch though. Is that acceptable?
+    def custom_data_elements
+      # Only include active (non-legacy) forms since calculated CDEDs have no stored fallback value
+      active_form_identifiers = object.occurrence_point_forms.map { |opf| opf.definition.identifier }
+
+      # Single query for all calculated CDEDs across all relevant form definitions
+      calculated_cdeds_for_enrollment = Hmis::Hud::CustomDataElementDefinition.
+        calculated.where(form_definition_identifier: active_form_identifiers)
+
+      resolve_custom_data_elements(object, calculated_cdeds: calculated_cdeds_for_enrollment)
+    end
+
     # N+1, not performant for queries on collections
     def geolocations
       return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
