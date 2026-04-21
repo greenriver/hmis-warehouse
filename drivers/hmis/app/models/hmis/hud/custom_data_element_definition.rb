@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'dentaku'
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -42,6 +44,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
 
   validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
+  validate :calculation_expression_syntax, if: -> { calculation_expression.present? }
 
   scope :for_type, ->(owner_type) do
     where(owner_type: owner_type)
@@ -52,8 +55,13 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   scope :for_custom_services, -> { for_type(Hmis::Hud::CustomService.sti_name) }
   scope :for_hud_or_custom_services, -> { for_type([Hmis::Hud::Service.sti_name, Hmis::Hud::CustomService.sti_name]) }
   scope :for_clients, -> { for_type(Hmis::Hud::Client.sti_name) }
+  scope :calculated, -> { where.not(calculation_expression: nil) }
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
+
+  def calculated?
+    calculation_expression.present?
+  end
 
   def cde_arel_field
     cde_t = Hmis::Hud::CustomDataElement.arel_table
@@ -61,5 +69,13 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     raise ArgumentError, "Invalid field type: #{field_type}" unless column_name
 
     cde_t[column_name]
+  end
+
+  private
+
+  def calculation_expression_syntax
+    Dentaku::Calculator.new(case_sensitive: true).ast(calculation_expression)
+  rescue Dentaku::ParseError, Dentaku::TokenizerError, Dentaku::Error => e
+    errors.add(:calculation_expression, e.message)
   end
 end
