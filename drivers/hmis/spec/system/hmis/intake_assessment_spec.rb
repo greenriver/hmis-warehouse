@@ -134,7 +134,7 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
         submit_household_intakes(household_size: 2)
 
         # Confirm all intakes are submitted
-        # FIXME: seems like there is a frontend bug causing the page to sometimes
+        # FIXME(#9121): there is a frontend bug causing the page to sometimes
         # navigate to the submitted HoH's assessment, instead of staying on the summary
         # tab. That needs to be fixed on the frontend. This test uses the below assertion
         # to wait for submission to complete (rather than asserting on the Summary Tab
