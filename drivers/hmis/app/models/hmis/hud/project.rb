@@ -163,7 +163,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     # We do not check `viewable_by` because providers can refer to projects they can't otherwise view.
     # NOTE: is not optimized, could be refactored if performance is an issue. Used this approach to minimize
     # duplication of project_match logic.
-    referral_project_ids = Hmis::Hud::Project.in_data_source(data_source_id).open_on_date(Date.current).select do |project|
+    referral_project_ids = Hmis::Hud::Project.where(data_source_id: data_source_id).open_on_date(Date.current).select do |project|
       instance_scope.any? { |instance| instance.project_match(project) }
     end.map(&:id)
 
