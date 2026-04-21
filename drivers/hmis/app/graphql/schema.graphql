@@ -800,6 +800,11 @@ type CeClient {
   Unit groups that this client is a candidate for
   """
   eligibleUnitGroups(filters: CeEligibleUnitGroupFilterOptions, limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
+
+  """
+  Current values for the given expression keys (via FieldMap); same key format as table column keys.
+  """
+  expressionFieldValues(keys: [String!]!): JSON!
   externalIds: [ExternalIdentifier!]!
 
   """
