@@ -295,7 +295,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      instance_scope = Hmis::Form::Instance.with_role(role).active.published
+      instance_scope = Hmis::Form::Instance.in_data_source(data_source_id).with_role(role).active.published
       # Service instances must specify a service type or category.
       instance_scope = instance_scope.for_services if role == :SERVICE
 

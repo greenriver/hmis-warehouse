@@ -119,7 +119,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   scope :for_project_through_entities, ->(project) do
-    ids = all.map { |i| i.project_match(project) ? i.id : nil }.compact
+    ids = in_data_source(project.data_source_id).
+      map { |i| i.project_match(project) ? i.id : nil }.compact
     where(id: ids)
   end
 
@@ -169,13 +170,15 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   def self.detect_best_instance_for_project(project:)
-    matches = all.map { |i| i.project_match(project) }.compact
+    matches = in_data_source(project.data_source_id).
+      map { |i| i.project_match(project) }.compact
     # with_index for stable sort
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end
 
   def self.detect_best_instance_for_enrollment(enrollment:)
-    matches = all.map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
+    matches = in_data_source(enrollment.data_source_id).
+      map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
     # with_index for stable sort
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end
