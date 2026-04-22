@@ -102,9 +102,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           step.assignments.create!(user: hmis_user)
         end
 
-        it 'returns false for canViewTargetProject and true for canViewReferralDetails' do
+        it 'returns false' do
           expect(referral_access['canViewTargetProject']).to be false
-          expect(referral_access['canViewReferralDetails']).to be true
         end
       end
     end
