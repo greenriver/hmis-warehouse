@@ -133,12 +133,12 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
         # Submit both intakes and wait for submission to complete
         submit_household_intakes(household_size: 2)
 
-        # Confirm all intakes are submitted
         # FIXME(#9121): there is a frontend bug causing the page to sometimes
         # navigate to the submitted HoH's assessment, instead of staying on the summary
         # tab. That needs to be fixed on the frontend. This test uses the below assertion
         # to wait for submission to complete (rather than asserting on the Summary Tab
         # showing submitted status) to get around that bug.
+        page.driver.wait_for_network_idle
         expect(page).not_to have_button('Submit (2) Intake Assessments')
 
         # HoH enrollment entry date is updated
