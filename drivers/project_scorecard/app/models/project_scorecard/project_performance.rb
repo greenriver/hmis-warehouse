@@ -25,7 +25,7 @@ module ProjectScorecard
       end
 
       def utilization_score
-        score(utilization_percentage, 90..Float::INFINITY, 80..89)
+        nil
       end
 
       def unsuccessful_exits
@@ -43,27 +43,28 @@ module ProjectScorecard
 
       def exit_to_ph_score
         if key_project.psh? || key_project.sh?
-          score(exit_to_ph_percentage, 98..100, 90..97)
-        elsif key_project.rrh?
-          score(exit_to_ph_percentage, 95..100, 90..94)
+          score(exit_to_ph_percentage, 98..100, 90..97, high_points: 5, mid_points: 3)
         else
-          score(exit_to_ph_percentage, 95..100, 90..94)
+          # RRH and any other project type use the lower threshold
+          score(exit_to_ph_percentage, 95..100, 90..94, high_points: 5, mid_points: 3)
         end
       end
 
       def los_months
+        return nil if average_los_leavers.blank?
+
         average_los_leavers / 30
       end
 
       def leavers_los_score
-        score(los_months, 3..18, 19..24) if key_project.rrh?
+        score(los_months, 3..18, 19..24, high_points: 5, mid_points: 3) if key_project.rrh?
       end
 
       def increased_employment_income_score
         if key_project.psh? || key_project.sh?
-          score(percent_increased_employment_income_at_exit, 15..Float::INFINITY, 9..14)
+          score(percent_increased_employment_income_at_exit, 15..Float::INFINITY, 9..14, high_points: 15, mid_points: 10)
         elsif key_project.rrh?
-          score(percent_increased_employment_income_at_exit, 56..Float::INFINITY, 50..55)
+          score(percent_increased_employment_income_at_exit, 56..Float::INFINITY, 50..55, high_points: 15, mid_points: 10)
         end
       end
 
@@ -76,7 +77,7 @@ module ProjectScorecard
       end
 
       def returns_to_homelessness_score
-        score(percent_returns_to_homelessness, 0..5, 6..15)
+        score(percent_returns_to_homelessness, 0..5, 6..15, high_points: 15, mid_points: 10)
       end
     end
   end

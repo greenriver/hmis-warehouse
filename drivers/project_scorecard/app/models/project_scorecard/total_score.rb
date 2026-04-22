@@ -22,11 +22,13 @@ module ProjectScorecard
       end
 
       def project_performance_max
-        if returns_to_homelessness_score.blank?
-          40
-        else
-          50
-        end
+        base = key_project.rrh? ? 50 : 45
+        # SPM data (returns to homelessness) is an optional supplemental report that is
+        # commonly absent even for otherwise-complete scorecards, so we lower the denominator
+        # when it is missing. APR-sourced fields (LOS, exit to PH, etc.) are loaded as a
+        # batch; if any are missing the report is not yet complete and the denominator is moot.
+        base -= 15 if returns_to_homelessness_score.blank?
+        base
       end
 
       def project_performance_percentage
@@ -69,6 +71,7 @@ module ProjectScorecard
           spend_down_score,
           cost_efficiency_score,
           recaptured_score,
+          supportive_services_score,
           pit_participation_score,
           meetings_attended_score,
         ].compact.sum

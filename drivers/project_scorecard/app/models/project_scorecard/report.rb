@@ -92,13 +92,13 @@ module ProjectScorecard
       end
     end
 
-    private def score(value, ten_range, five_range = nil)
+    private def score(value, high_range, mid_range = nil, high_points: 10, mid_points: 5)
       return nil if value.blank?
 
-      if ten_range.include?(value)
-        10
-      elsif five_range.present? && five_range.include?(value)
-        5
+      if high_range.include?(value)
+        high_points
+      elsif mid_range.present? && mid_range.include?(value)
+        mid_points
       else
         0
       end
@@ -145,6 +145,7 @@ module ProjectScorecard
         :budget_plus_match,
         :prior_amount_awarded,
         :prior_funds_expended,
+        :supportive_services,
         :pit_participation,
         :coc_meetings,
         :coc_meetings_attended,
