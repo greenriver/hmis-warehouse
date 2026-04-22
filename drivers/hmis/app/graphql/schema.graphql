@@ -760,9 +760,14 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   """
-  Most recent snapshot of client attributes
+  Current values for the given expression keys
   """
-  clientAttributes: JSON!
+  clientAttributes(
+    """
+    Keys whose values should be returned. Same format as TableColumnConfig keys.
+    """
+    keys: [String!]
+  ): JSON!
 
   """
   Masked as "Candidate 123" unless the user has permission to view
@@ -790,9 +795,14 @@ ClientProxy. Underlying client record is Destination Client.
 """
 type CeClient {
   """
-  Aggregation of most recent snapshots from all candidate pools this client belongs to
+  Current values for the given expression keys
   """
-  clientAttributes: JSON!
+  clientAttributes(
+    """
+    Keys whose values should be returned. Same format as TableColumnConfig keys.
+    """
+    keys: [String!]
+  ): JSON!
   clientName: String!
   destinationClientId: ID!
 
@@ -800,11 +810,6 @@ type CeClient {
   Unit groups that this client is a candidate for
   """
   eligibleUnitGroups(filters: CeEligibleUnitGroupFilterOptions, limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
-
-  """
-  Current values for the given expression keys (via FieldMap); same key format as table column keys.
-  """
-  expressionFieldValues(keys: [String!]!): JSON!
   externalIds: [ExternalIdentifier!]!
 
   """
