@@ -88,8 +88,8 @@ module Types
       nil
     end
 
-    def self.access_field(name = :access, class_name: nil, policy_type: nil, **field_attrs, &block)
-      field(name, BaseAccess.build(self, class_name: class_name, policy_type: policy_type, &block), null: false, **field_attrs)
+    def self.access_field(name = :access, class_name: nil, **field_attrs, &block)
+      field(name, BaseAccess.build(self, class_name: class_name, &block), null: false, **field_attrs)
 
       define_method(name) do
         object

@@ -22,6 +22,18 @@ RSpec.describe Hmis::AuthPolicies::HmisOrganizationPolicy, type: :model do
 
       it 'grants can_edit?' do
         expect(policy.can_edit?).to be true
+        expect(policy.can_create_project?).to be false
+        expect(policy.can_destroy?).to be false
+      end
+    end
+
+    context 'with can_delete_organization permission' do
+      let!(:access_control) { create_access_control(user, organization, with_permission: :can_delete_organization) }
+
+      it 'grants can_destroy?' do
+        expect(policy.can_edit?).to be false
+        expect(policy.can_create_project?).to be false
+        expect(policy.can_destroy?).to be true
       end
     end
 
@@ -29,19 +41,19 @@ RSpec.describe Hmis::AuthPolicies::HmisOrganizationPolicy, type: :model do
       let!(:access_control) { create_access_control(user, organization, with_permission: [:can_view_project, :can_edit_project_details]) }
 
       it 'grants can_create_project?' do
+        expect(policy.can_edit?).to be false
         expect(policy.can_create_project?).to be true
+        expect(policy.can_destroy?).to be false
       end
     end
 
     context 'without permissions (even if permissions are granted at another organization)' do
-      let!(:access_control) { create_access_control(user, other_organization, with_permission: [:can_edit_organization, :can_view_project, :can_edit_project_details]) }
+      let!(:access_control) { create_access_control(user, other_organization) } # full perms at other org
 
-      it 'denies can_edit?' do
+      it 'denies all' do
         expect(policy.can_edit?).to be false
-      end
-
-      it 'denies can_create_project?' do
         expect(policy.can_create_project?).to be false
+        expect(policy.can_destroy?).to be false
       end
     end
   end
