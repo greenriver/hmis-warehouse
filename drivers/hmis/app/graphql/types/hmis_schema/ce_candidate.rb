@@ -27,8 +27,10 @@ module Types
       load_destination_client_name(destination_client: destination_client).presence || "Candidate #{object.id}"
     end
 
+    # Resolve provided keys on the destination client. Keys are in FieldMap format, e.g. 'cde.custom_assessment.my_score'
+    # If keys are not provided, infer set of possible keys from the CE clients table column configs (for backwards compatibility).
+    # Once frontend always passes keys, we can adjust this to require keys, remove inference, and return empty if keys are blank.
     def client_attributes(keys: nil)
-      # Infer keys if not provided. arg is nil for backwards compatibility.
       keys = keys.presence || inferred_all_possible_ce_candidate_column_keys
       return {} if keys.blank?
 

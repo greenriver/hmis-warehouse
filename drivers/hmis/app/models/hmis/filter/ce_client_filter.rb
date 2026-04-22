@@ -35,7 +35,13 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
   def with_dynamic_filters(scope)
     with_filter(scope, :dynamic_filters) do
       # Safety: skip if there is a huge number of filters
-      return scope if input.dynamic_filters.size > 50
+      if input.dynamic_filters.size > 50
+        msg = "CE client dynamic filters limit is 50, received #{input.dynamic_filters.size}. Skipping dynamic filters."
+        raise ArgumentError, msg if Rails.env.development? || Rails.env.test?
+
+        Sentry.capture_message(msg)
+        return scope
+      end
 
       input.dynamic_filters.each do |filter|
         # Skip if no values to match
