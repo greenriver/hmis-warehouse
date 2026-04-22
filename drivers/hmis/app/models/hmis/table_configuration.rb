@@ -78,6 +78,8 @@ class Hmis::TableConfiguration < Hmis::HmisBase
         find_by(owner: owner)
       return found if found.present?
     end
+
+    nil # no config found
   end
 
   private

@@ -24,7 +24,7 @@ module Sources
       # Create map to populate with values for each destination client
       # { destination_client_id => {} }
       destination_id_to_values = ids.index_with { |_id| {} }
-      return destination_id_to_values if @keys.empty?
+      return destination_id_to_values.values if @keys.empty? # return empty if no keys provided
 
       # Get clients to resolve expressions for
       clients = GrdaWarehouse::Hud::Client.where(id: ids)
