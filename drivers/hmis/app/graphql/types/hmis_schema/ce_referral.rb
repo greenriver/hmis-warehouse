@@ -66,9 +66,8 @@ module Types
         referral_policy.can_create_note?
       end
       bool_field(:can_view_target_project) do
-        project_id = load_ar_association(object, :target_project).id
-        project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
-        project.present? && policy_for(project, policy_type: :hmis_project).can_view?
+        target_project = load_ar_association(object, :target_project)
+        target_project.present? && policy_for(target_project, policy_type: :hmis_project).can_view?
       end
       bool_field(:can_view_source_enrollment_details) do
         object.source_enrollment_id.present? &&

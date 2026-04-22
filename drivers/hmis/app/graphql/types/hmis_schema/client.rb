@@ -157,7 +157,7 @@ module Types
       # Instance policy; resource is the loaded record
       bool_field(:can_view_client_name) { policy.can_view_name? }
 
-      # Global policy; resource is the class, checks what permissions the user has anywhere in the data source
+      # Global policy; resource is the class
       bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
 
       # Different policy type; these permissions defer to the global CeReferralPolicy

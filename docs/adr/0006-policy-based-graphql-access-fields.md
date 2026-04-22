@@ -8,13 +8,13 @@
 
 ## Context
 
-The HMIS GraphQL API exposes authorization for UI decisions through nested `access` objects (e.g. `client { access { canEditClient } }`). Historically these fields were built with `access_field` helpers that resolve **raw permissions** (`can`, `composite_perm`, `root_can`) or ad-hoc hashes (`def access` returning a `Hash`). That pushes composite rules and naming mismatches to the frontend and diverges from `Hmis::AuthPolicies::*`, where complex authorization is meant to live.
+The HMIS GraphQL API exposes authorization for UI decisions through nested `access` objects (e.g. `client { access { canEditClient } }`). Historically these fields were built with `access_field` helpers that resolve **raw permissions** (`can`, `composite_perm`, `root_can`) or ad-hoc hashes (`def access` returning a `Hash`). That pushes composite rules and naming mismatches to the frontend; diverges from `Hmis::AuthPolicies::*`, where complex authorization is meant to live; and exposes permissions across data sources, which we need to avoid as we build out support for multi-HMIS installations.
 
 We need a pattern that:
 
 1. Exposes rules that map cleanly to UI decisions where possible.
-2. Delegates to **policy predicates** instead of duplicating permission logic in GraphQL types.
-3. Can be adopted **gradually** next to existing `access_field` usage.
+2. Delegates to policy predicates.
+3. Can be adopted gradually next to existing `access_field` usage.
 4. Makes the mapping from policy methods to GraphQL fields obvious and maintainable.
 
 ## Decision
@@ -56,17 +56,16 @@ end
 
 ### Positive
 
-- We standardize around using policy classes for permission checks across the application.
+- Standardize around using policy classes for permission checks across the application.
 - Move away from faulty globally-scoped permissions, which aren't isolated across data sources.
-- Frontend can rely on fewer “if A and B then hide” combinations, since policies encapsulate this logic.
-- `bool_field` blocks allow simple policy checks, and are flexible to accommodate one-off complexity.
-- Performance: This approach adds a small number of additional database queries because permission checks are scoped by data source through `Hmis::AuthPolicies::UserContext` (e.g. loading the data source and group-viewable entities when resolving global permissions). That work is necessary for correct multi–data-source behavior. Additional `bool_field` definitions on the same access object should not multiply query count as long as policies reuse memoized `policy` / `global_policy` / `UserContext` data; cost stays flat when new predicates read from already-loaded context.
+- Stop duplicating permission logic in the frontend.
+- Accommodate both simple policy checks and more complex checks using `bool_field` blocks.
+- Performance: This approach adds a small number of additional database queries, because permission checks are scoped by data source through `Hmis::AuthPolicies::UserContext`. That change is necessary for correct multi–data-source behavior. Additional `bool_field` definitions on the same access object should not multiply query count as long as policies reuse memoized `policy` / `global_policy` / `UserContext` data; cost stays flat when new predicates read from already-loaded context.
 
 ### Negative / trade-offs
 
 - Some GraphQL access blocks will temporarily mix legacy helpers and `bool_field` until migration completes.
-- Developers must know which `policy_type` and resource to pass to `policy_for`.
-- Performance / N+1 risk: Policy predicates must stay “GraphQL-friendly”: prefer `UserContext` memoization and existing preload hooks; avoid ad hoc queries or per-field work that bypasses shared caches. This is something to watch out for in policy design, not inherent to the `bool_field` approach.
+- Performance / N+1 risk: Policy predicates must stay GraphQL-friendly: prefer `UserContext` memoization and existing preload hooks; avoid ad hoc queries or per-field work that bypasses shared caches. This is something to watch out for in policy design, not inherent to the `bool_field` approach.
 
 ## Alternatives Considered
 
@@ -74,7 +73,7 @@ end
   Useful in ecosystems that standardize on ActionPolicy end-to-end. Our stack uses custom `Hmis::AuthPolicies::*` and multi–data-source context; adopting the macro would not remove the need to bridge to our policies and naming, and GraphQL field naming conventions may not match without extra mapping.
 
 3. **`policy_field` / `global_policy_field` on `BaseAccess`**
-  Class-level macros that declare a Boolean field and resolve by calling a fixed `policy_for` pattern. Not chosen as the primary pattern: they are more declarative but less easily overrideable for fields that need AR loading, multiple policy types, or non-standard resources. `bool_field` with an explicit block stays flexible while still centralizing logic next to the field list.
+  Class-level macros that declare a Boolean field and resolve by calling a fixed `policy_for` pattern. Not chosen as the primary pattern: they are more declarative but less easily overrideable for fields that need AR loading, multiple policy types, or non-standard resources. `bool_field` with an explicit block stays flexible while still centralizing logic next to the field list. See draft: https://github.com/greenriver/hmis-warehouse/pull/6357
 
 ## Additional Info
 
