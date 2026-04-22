@@ -51,6 +51,10 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       global_permissions.include?(:can_view_any_nonconfidential_client_files) || global_permissions.include?(:can_view_any_confidential_client_files)
     end
 
+    def can_manage_own_client_files?
+      global_permissions.include?(:can_manage_own_client_files)
+    end
+
     def can_create?
       global_permissions.include?(:can_edit_clients)
     end
