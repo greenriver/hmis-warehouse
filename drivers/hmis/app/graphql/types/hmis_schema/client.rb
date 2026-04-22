@@ -147,28 +147,40 @@ module Types
 
     field :image, HmisSchema::ClientImage, null: true
     field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
-    access_field policy_type: :hmis_client do
-      policy_field :can_view_partial_ssn?
-      policy_field :can_view_full_ssn?
-      policy_field :can_view_client_name?, policy_method_name: :can_view_name?
-      policy_field :can_view_client_photo?
-      policy_field :can_view_dob?
-      policy_field :can_view_enrollment_details?, policy_method_name: :can_view_some_enrollment_details?
-      policy_field :can_delete_client?, policy_method_name: :can_destroy?
-      policy_field :can_edit_client?, policy_method_name: :can_edit?
-      policy_field :can_manage_any_client_files?, policy_method_name: :can_manage_all_viewable_client_files?
-      policy_field :can_manage_own_client_files?, policy_method_name: :can_manage_own_client_files?
-      policy_field :can_upload_client_files?, policy_method_name: :can_upload_client_files?
-      policy_field :can_view_any_files?, policy_method_name: :can_view_some_client_files?
-      policy_field :can_audit_clients?, policy_method_name: :can_audit?
-      policy_field :can_manage_scan_cards?, policy_method_name: :can_manage_scan_cards?
-      global_policy_field :can_merge_clients?
-      policy_field :can_view_client_alerts?, policy_method_name: :can_view_alerts?
-      policy_field :can_manage_client_alerts?, policy_method_name: :can_manage_alerts?
-      global_policy_field :can_view_client_eligible_opportunities?
-      global_policy_field :can_view_referrals?, policy_override: { resource: Hmis::Ce::Referral, policy_type: :ce_referral }
-      global_policy_field :can_view_own_referrals?, policy_override: { resource: Hmis::Ce::Referral, policy_type: :ce_referral }
-      policy_field :can_print_client_case_notes?, policy_method_name: :can_print_case_notes?
+
+    # TODO(#9004) Migrating the access field to use policies is in-progress, see ADR 0006.
+    access_field do
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_client) }
+      define_method(:global_policy) { @global_policy ||= policy_for(object.class, policy_type: :hmis_client) }
+      define_method(:ce_referral_policy) { @ce_referral_policy ||= policy_for(Hmis::Ce::Referral, policy_type: :ce_referral) }
+
+      # Instance policy; resource is the loaded record
+      bool_field(:can_view_client_name) { policy.can_view_name? }
+
+      # Global policy; resource is the class, checks what permissions the user has anywhere in the data source
+      bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
+
+      # Different policy type; these permissions defer to the global CeReferralPolicy
+      bool_field(:can_view_referrals)     { ce_referral_policy.can_view_referrals? }
+      bool_field(:can_view_own_referrals) { ce_referral_policy.can_view_own_referrals? }
+
+      can :view_partial_ssn
+      can :view_full_ssn
+      can :view_client_photo
+      can :view_dob
+      can :view_enrollment_details
+      can :delete_clients, field_name: :can_delete_client
+      can :edit_clients, field_name: :can_edit_client
+      can :manage_any_client_files
+      can :manage_own_client_files
+      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
+      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
+      can :audit_clients
+      can :manage_scan_cards
+      can :view_client_alerts
+      can :manage_client_alerts
+      root_can :can_view_client_eligible_opportunities
+      can :print_client_case_notes
     end
 
     def external_ids
