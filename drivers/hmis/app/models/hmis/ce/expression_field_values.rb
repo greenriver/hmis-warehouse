@@ -22,24 +22,22 @@ module Hmis::Ce
       clients = GrdaWarehouse::Hud::Client.where(id: ids)
       field_map = Hmis::Ce::Match::Expression::FieldMap.new
 
+      # Resolve values for each key, and store in the destination_id_to_values map
       keys.each do |key|
-        merge_key!(accumulator: destination_id_to_values, destination_ids: ids, field_map: field_map, clients: clients, key: key)
+        values = field_map.client_query(clients, key)
+        ids.each do |id|
+          destination_id_to_values[id][key] = values[id]
+        end
       end
 
       destination_id_to_values
     end
 
-    def self.normalize_keys(keys)
-      Array.wrap(keys).map(&:to_s).uniq.first(MAX_KEYS)
-    end
-
     def self.merge_key!(accumulator:, destination_ids:, field_map:, clients:, key:)
       values = field_map.client_query(clients, key)
       destination_ids.each do |id|
-        accumulator[id][key] = values[id] || values[id.to_s]
+        accumulator[id][key] = values[id]
       end
-    rescue ArgumentError # FIXME: do we want this to fail or report?
-      destination_ids.each { |destination_id| accumulator[destination_id][key] = nil }
     end
   end
 end
