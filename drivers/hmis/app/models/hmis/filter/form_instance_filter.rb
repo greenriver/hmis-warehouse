@@ -10,8 +10,6 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
     scope = ensure_scope(scope)
     scope.
-      yield_self(&method(:with_form_type)).
-      yield_self(&method(:with_definition)).
       yield_self(&method(:with_project_type)).
       yield_self(&method(:for_project)).
       yield_self(&method(:with_active_status)).
@@ -20,20 +18,6 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
   end
 
   protected
-
-  def with_form_type(scope)
-    with_filter(scope, :form_type) do
-      identifiers = Hmis::Form::Definition.where(role: input.form_type).pluck(:identifier)
-      scope.where(definition_identifier: identifiers)
-    end
-  end
-
-  def with_definition(scope)
-    with_filter(scope, :definition) do
-      identifier = Hmis::Form::Definition.find_by(id: input.definition)&.identifier
-      scope.where(definition_identifier: identifier)
-    end
-  end
 
   def with_project_type(scope)
     with_filter(scope, :project_type) { scope.where(project_type: input.project_type) }
