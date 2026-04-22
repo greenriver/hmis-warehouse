@@ -46,7 +46,7 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
         field_type, = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
         if field_type != Hmis::Ce::Match::Expression::FieldMap::CDE
           msg = "CE client dynamic filters only support `cde.*` expression keys. Skipping filter on key: #{filter.key.inspect}"
-          raise ArgumentError, msg if Rails.env.development?
+          raise ArgumentError, msg if Rails.env.development? || Rails.env.test?
 
           Sentry.capture_message(msg)
           next

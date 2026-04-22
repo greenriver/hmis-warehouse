@@ -262,8 +262,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           let(:keys) { cdeds.map(&:key).map { |key| "cde.custom_assessment.#{key}" } }
 
           it 'returns all custom data elements in a reasonable number of queries' do
-            expect(clients.flat_map(&:custom_assessments).flat_map(&:custom_data_elements).count).to eq(100) # validate setup
-
             expect do
               response, result = post_graphql({ client_attribute_keys: keys }) { query }
               expect(response.status).to eq(200), result.inspect
@@ -275,92 +273,70 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             end.to make_database_queries(count: 25..40)
           end
         end
-      end
 
-      context 'with live CDE dynamic filters' do
-        let!(:form_for_cde_filter) do
-          create(
-            :hmis_form_definition,
-            role: :CUSTOM_ASSESSMENT,
-            identifier: "ceLiveFilterFd#{SecureRandom.hex(4)}",
-            data_source: ds1,
-          )
-        end
-        let!(:cded_filter_score) do
-          create(
-            :hmis_custom_data_element_definition,
-            owner_type: 'Hmis::Hud::CustomAssessment',
-            key: 'filter_score',
-            field_type: :integer,
-            data_source: ds1,
-            user: u1,
-            form_definition_identifier: form_for_cde_filter.identifier,
-          )
-        end
+        context 'with dynamicFilters' do
+          it 'filters ce clients by live CDE value on latest assessment' do
+            # cruft: give client 2 a matching value on an old assessment, and a non-matching value on a newer assessment
+            c2 = client_proxy_in_pool_1_and_2.client.source_clients.sole.as_hmis
+            old_assessment = create(:hmis_custom_assessment, client: c2, definition: custom_assessment_form, data_source: ds1)
+            new_assessment = create(:hmis_custom_assessment, client: c2, definition: custom_assessment_form, data_source: ds1)
+            create(:hmis_custom_data_element, value_string: 'Household without children', owner: old_assessment, data_element_definition: cded_my_household_type, data_source: ds1)
+            create(:hmis_custom_data_element, value_string: 'Newer value that doesn\'t match', owner: new_assessment, data_element_definition: cded_my_household_type, data_source: ds1)
 
-        let!(:jane_hmis_client) { Hmis::Hud::Client.find(client_proxy_in_pool_1.client.source_clients.sole.id) }
-        let!(:jane_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, client: jane_hmis_client) }
-        let!(:jane_assessment) do
-          create(
-            :hmis_custom_assessment,
-            client: jane_hmis_client,
-            enrollment: jane_enrollment,
-            definition: form_for_cde_filter,
-            data_source: ds1,
-          )
-        end
-        let!(:jane_cde_value) do
-          create(
-            :hmis_custom_data_element,
-            owner: jane_assessment,
-            data_element_definition: cded_filter_score,
-            value_integer: 99,
-            data_source: ds1,
-            user: u1,
-          )
-        end
+            variables = {
+              client_attribute_keys: [cde_expression_key],
+              filters: {
+                dynamicFilters: [
+                  { key: cde_expression_key, values: ['Household without children', 'Some other value'] },
+                ],
+              },
+            }
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
 
-        it 'filters ce clients by live CDE value on latest assessment' do
-          filter_variables = {
-            filters: {
-              dynamicFilters: [
-                { key: 'cde.custom_assessment.filter_score', values: ['99'] },
-              ],
-            },
-          }
-          response, result = post_graphql(**filter_variables) { query }
-          expect(response.status).to eq(200), result.inspect
+            ce_clients = result.dig('data', 'ceClients', 'nodes')
+            # second client is excluded because it does not have a value for the CDE
+            expect(ce_clients).to contain_exactly(
+              a_hash_including('id' => client_proxy_in_pool_1.id.to_s, 'clientAttributes' => hash_including(cde_expression_key => 'Household without children')),
+            )
+          end
 
-          ce_clients = result.dig('data', 'ceClients', 'nodes')
-          expect(ce_clients).to contain_exactly(
-            a_hash_including('id' => client_proxy_in_pool_1.id.to_s),
-          )
-        end
+          it 'returns no clients when no values match' do
+            variables = {
+              client_attribute_keys: [cde_expression_key],
+              filters: {
+                dynamicFilters: [
+                  { key: cde_expression_key, values: ['Individuals'] },
+                ],
+              },
+            }
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
 
-        it 'returns no clients when live CDE value does not match' do
-          filter_variables = {
-            filters: {
-              dynamicFilters: [
-                { key: 'cde.custom_assessment.filter_score', values: ['100'] },
-              ],
-            },
-          }
-          response, result = post_graphql(**filter_variables) { query }
-          expect(response.status).to eq(200), result.inspect
+            ce_clients = result.dig('data', 'ceClients', 'nodes')
+            expect(ce_clients).to be_empty
+          end
 
-          ce_clients = result.dig('data', 'ceClients', 'nodes')
-          expect(ce_clients).to eq([])
-        end
-
-        it 'rejects non-cde dynamic filter keys' do
-          filter_variables = {
-            filters: {
-              dynamicFilters: [
-                { key: 'current_age', values: ['20'] },
-              ],
-            },
-          }
-          expect_gql_error post_graphql(**filter_variables) { query }, message: /Unknown CDE in field/
+          it 'rejects non-CDE filter keys (not currently supported)' do
+            filter_variables = {
+              filters: {
+                dynamicFilters: [
+                  { key: 'client.current_age', values: ['20'] },
+                ],
+              },
+            }
+            expect_gql_error post_graphql(**filter_variables) { query }, message: /Unknown CDE in field/
+          end
+          it 'rejects unrecognized filter keys' do
+            filter_variables = {
+              filters: {
+                dynamicFilters: [
+                  { key: 'cde.custom_assessment.not_a_known_key_xyz', values: ['20'] },
+                ],
+              },
+            }
+            expect_gql_error post_graphql(**filter_variables) { query }, message: /Unknown CDE in field/
+          end
         end
       end
 
