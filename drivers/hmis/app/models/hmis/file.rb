@@ -19,7 +19,8 @@ class Hmis::File < GrdaWarehouse::File
 
   acts_as_taggable
 
-  # These are not used, they're here so that we won't get an error trying to get/set the data source
+  # Warehouse files use `data_source_id`; HMIS files are always tied to a HUD Client record, so they don't persist `data_source_id`.
+  # These stubs exist so shared warehouse code can read/write the attribute without error.
   attr_accessor :data_source_id
   def data_source
     nil
@@ -69,7 +70,12 @@ class Hmis::File < GrdaWarehouse::File
       left_outer_joins(:enrollment).
       where(case_statement)
 
-    viewable_scope = viewable_scope.or(Hmis::File.where(user_id: user.id)) if user.can_manage_own_client_files?
+    # Users can see files they uploaded when they have can_manage_own_client_files for that client, even
+    # if they lack broader permissions.
+    manage_own_client_scope = Hmis::Hud::Client.own_files_viewable_by(user)
+    manage_own_client_scope = manage_own_client_scope.where(id: client_ids) if client_ids.present?
+    own_files_scope = Hmis::File.where(user_id: user.id).where(client_id: manage_own_client_scope.select(:id))
+    viewable_scope = viewable_scope.or(own_files_scope)
 
     where(id: viewable_scope.select(:id))
   end
