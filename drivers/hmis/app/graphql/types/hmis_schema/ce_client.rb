@@ -66,10 +66,6 @@ module Types
       load_destination_client_name(destination_client: destination_client).presence || "CE Client #{object.id}"
     end
 
-    def expression_field_values(keys:)
-      dataloader.with(Sources::CeExpressionFieldValuesSource, keys: keys).load(object.client_id)
-    end
-
     def client_attributes(keys: nil)
       # Infer keys if not provided. arg is nil for backwards compatibility.
       keys = keys.presence || inferred_ce_clients_table_column_keys
