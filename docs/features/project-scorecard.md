@@ -44,7 +44,7 @@ The `complete` and `rewind` member routes advance or reverse the workflow.
 Report generation auto-populates from three sources:
 
 - **HUD APR** — utilization, exits to permanent housing, income changes, data quality error rates. Requires the `:hud_apr` driver.
-- **HUD SPM** Measure 2 — returns to homelessness. Requires the `:hud_spm_report` driver.
+- **HUD SPM** Measure 2 — returns to homelessness. Run automatically during pre-fill; `percent_returns_to_homelessness` is nil only when no qualifying exits exist in the reporting period.
 - **HMIS VI-SPDAT** — client count and average score via `GrdaWarehouse::HmisForm`.
 
 Remaining fields (financials, PIT participation, CoC meetings, etc.) are entered manually.
@@ -54,7 +54,7 @@ Remaining fields (financials, PIT participation, CoC meetings, etc.) are entered
 - `belongs_to :project` (`GrdaWarehouse::Hud::Project`, optional)
 - `belongs_to :project_group` (`GrdaWarehouse::ProjectGroup`, optional)
 - `belongs_to :user` (report creator)
-- `belongs_to :apr` / `belongs_to :spm` (`HudReports::ReportInstance`, optional)
+- `belongs_to :apr` / `belongs_to :spm` (`HudReports::ReportInstance`) — both generated automatically during pre-fill
 - Contacts resolved through project and project group associations
 
 ## Field Locking

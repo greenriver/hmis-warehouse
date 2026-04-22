@@ -23,10 +23,9 @@ module ProjectScorecard
 
       def project_performance_max
         base = key_project.rrh? ? 50 : 45
-        # SPM data (returns to homelessness) is an optional supplemental report that is
-        # commonly absent even for otherwise-complete scorecards, so we lower the denominator
-        # when it is missing. APR-sourced fields (LOS, exit to PH, etc.) are loaded as a
-        # batch; if any are missing the report is not yet complete and the denominator is moot.
+        # The SPM is always run during pre-fill, but Measure 2 can return nil for a given
+        # project if there are no qualifying exits in the reporting period. In that case we
+        # lower the denominator to reflect the points actually achievable.
         base -= 15 if returns_to_homelessness_score.blank?
         base
       end
