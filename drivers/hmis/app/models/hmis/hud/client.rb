@@ -131,6 +131,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     where(c_t[:id].in(client_ids))
   end
 
+  # Clients for which the user has `can_manage_own_client_files`. Used to scope "own uploads"
+  scope :own_files_viewable_by, ->(user) do
+    global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
+    return none unless global_policy.can_manage_own_client_files?
+
+    project_ids = Hmis::Hud::Project.with_access(user, :can_manage_own_client_files).pluck(:id)
+    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+
+    where(c_t[:id].in(client_ids))
+  end
+
   # Shared helper that returns a raw SQL UNION subquery (as Arel.sql) containing client IDs for:
   #   1. Clients enrolled in any of the given projects
   #   2. Unenrolled clients belonging to the given data source
