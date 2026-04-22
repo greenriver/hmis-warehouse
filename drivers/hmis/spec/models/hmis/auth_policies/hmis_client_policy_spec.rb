@@ -7,7 +7,6 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-# require_relative '../../../requests/hmis/login_and_permissions'
 
 RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
