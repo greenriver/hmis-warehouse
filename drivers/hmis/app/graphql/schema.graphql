@@ -5272,8 +5272,6 @@ type FormRule {
 input FormRuleFilterOptions {
   activeStatus: [ActiveStatus!]
   appliedToProject: ID
-  definition: ID
-  formType: [FormRole!]
   projectType: [ProjectType!]
   systemForm: [SystemStatus!]
 }
@@ -10074,8 +10072,6 @@ type Query {
   formDefinition(id: ID!): FormDefinition
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
-  formRule(id: ID!): FormRule
-  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
   """
   Funder lookup
@@ -10161,8 +10157,6 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
-  serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
-  serviceCategory(id: ID!): ServiceCategory
 
   """
   Get most relevant form definition for the specified service type
@@ -11387,16 +11381,6 @@ type Service {
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided
   user: ApplicationUser
-}
-
-type ServiceCategoriesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [ServiceCategory!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 type ServiceCategory {
