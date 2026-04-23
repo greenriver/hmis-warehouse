@@ -395,6 +395,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     Hmis::Form::OccurrencePointFormCollection.new.for_enrollment(self)
   end
 
+  # Save a new Enrollment.
+  # If auto-enter is enabled for the project, save as non-WIP and generate an empty intake assessment.
+  # Otherwise, save as WIP.
   def save_new_enrollment!
     raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 
@@ -409,12 +412,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     project.should_auto_enter?
   end
 
+  # Save as non-WIP and generate an empty intake assessment.
+  #
+  # Note: Prefer save_new_enrollment! when starting a new enrollment from ordinary HMIS flows.
+  # This method is exposed for special cases where you need auto-enter outside of those guards
+  # (e.g. external form review where Client+Enrollment are already saved, or one-off imports that
+  # auto-enter in a project without auto-enter enabled).
   def save_and_auto_enter!
-    # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
-    # In general, use save_new_enrollment! above to guard against duplicating synthetic assessments for an enrollment
-    # that is already persisted. This is a special case used by the external form submission mutations; since the
-    # Location table is related to both Client and Enrollment, by the time Client is saved, the Enrollment has also
-    # already been persisted, but it's still guaranteed to be a new enrollment.
     save_not_in_progress!
     build_synthetic_intake_assessment.save!
   end

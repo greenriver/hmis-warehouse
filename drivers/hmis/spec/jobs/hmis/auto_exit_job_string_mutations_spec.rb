@@ -18,7 +18,10 @@ RSpec.describe Hmis::AutoExitJob, type: :job do
       allow(Hmis::Hud::Project).to receive(:hmis).and_return([project])
 
       # Mock household with enrollments
-      enrollment = double('enrollment', id: 1, exit: nil)
+      enrollment = double('enrollment', id: 1, exit: nil, entry_date: 60.days.ago.to_date)
+      allow(enrollment).to receive(:is_a?).with(Hmis::Hud::Enrollment).and_return(true)
+      allow(enrollment).to receive(:is_a?).with(Hmis::Hud::Service).and_return(false)
+      allow(enrollment).to receive(:project).and_return(double('project', allows_same_day_exit?: true))
       household = double('household', enrollments: [enrollment, enrollment]) # 2 enrollments
       households_scope = double('households_scope')
 
@@ -30,9 +33,8 @@ RSpec.describe Hmis::AutoExitJob, type: :job do
       allow(job).to receive(:get_most_recent_contact).and_return(enrollment)
       allow(Hmis::Hud::Enrollment).to receive(:contact_date_for_entity).and_return(60.days.ago.to_date)
 
-      # Mock the auto_exit method to avoid actual database operations
-      allow(job).to receive(:auto_exit)
-      allow(Hmis::Hud::Base).to receive(:transaction).and_yield
+      # Mock the shared EnrollmentExitCreator service to avoid actual database operations
+      allow(Hmis::EnrollmentExitCreator).to receive(:call)
 
       # Mock the notifier
       allow(job).to receive(:setup_notifier)
@@ -48,103 +50,41 @@ RSpec.describe Hmis::AutoExitJob, type: :job do
     end
   end
 
-  describe '#auto_exit method with += operations' do
-    it 'calls method that contains += operations for date calculation' do
-      # Test the += operations from lines 135, 137: exit_date += 1.day
-
+  describe '#compute_exit_date method with += operations' do
+    it 'adds 1 day when most recent contact was a bed night service (record_type 200)' do
+      # Test the += operation: exit_date += 1.day for bed night
       job = Hmis::AutoExitJob.new
-
-      # Create test data
-      enrollment = double(
-        'enrollment',
-        personal_id: 'PERSON123',
-        enrollment_id: 'ENROLL123',
-        data_source_id: 1,
-        entry_date: Date.current,
-      )
-
-      # Test bed night service (record_type 200) - should add 1 day
-      bed_night_service = double(
-        'service',
-        is_a?: true,
-        record_type: 200,
-      )
-      allow(bed_night_service).to receive(:is_a?).with(Hmis::Hud::Service).and_return(true)
-
-      project = double('project')
-      allow(project).to receive(:allows_same_day_exit?).and_return(false)
-
-      # Mock contact date calculation
       contact_date = Date.current
+      enrollment = double('enrollment', entry_date: Date.current)
+      project = double('project', allows_same_day_exit?: true)
+      allow(enrollment).to receive(:project).and_return(project)
+
+      bed_night_service = double('service', record_type: 200)
+      allow(bed_night_service).to receive(:is_a?).with(Hmis::Hud::Service).and_return(true)
+      allow(bed_night_service).to receive(:is_a?).with(Hmis::Hud::Enrollment).and_return(false)
+      allow(bed_night_service).to receive(:enrollment).and_return(enrollment)
       allow(Hmis::Hud::Enrollment).to receive(:contact_date_for_entity).and_return(contact_date)
 
-      # Mock user and record creation
-      user = double('user', user_id: 'USER123')
-      allow(Hmis::Hud::User).to receive(:system_user).and_return(user)
-      allow(job).to receive(:system_user).and_return(user)
+      exit_date = job.send(:compute_exit_date, bed_night_service)
 
-      exit_record = double('exit_record', invalid?: false)
-      allow(Hmis::Hud::Exit).to receive(:new).and_return(exit_record)
-
-      assessment = double('assessment')
-      allow(Hmis::Hud::CustomAssessment).to receive(:new).and_return(assessment)
-      allow(assessment).to receive(:build_form_processor)
-      allow(assessment).to receive(:save!)
-
-      allow(enrollment).to receive(:release_unit!)
-      allow(enrollment).to receive(:close_referral!)
-
-      # This will exercise the += operations for date calculation
-      expect { job.send(:auto_exit, enrollment, bed_night_service, project: project) }.not_to raise_error
-
-      # The method should have been called and the += operations executed
-      expect(Hmis::Hud::Exit).to have_received(:new)
+      expect(exit_date).to eq(contact_date + 1.day)
     end
 
-    it 'handles same-day exit scenario with += operation' do
-      # Test the += operation from line 137 when exit_date == enrollment.entry_date
-
+    it 'adds 1 day for same-day exit when project does not allow same-day exit' do
+      # Test the += operation when exit_date == enrollment.entry_date
       job = Hmis::AutoExitJob.new
       entry_date = Date.current
+      enrollment = double('enrollment', entry_date: entry_date)
+      allow(enrollment).to receive(:is_a?).with(Hmis::Hud::Service).and_return(false)
+      allow(enrollment).to receive(:is_a?).with(Hmis::Hud::Enrollment).and_return(true)
+      project = double('project', allows_same_day_exit?: false)
+      allow(enrollment).to receive(:project).and_return(project)
 
-      enrollment = double(
-        'enrollment',
-        personal_id: 'PERSON456',
-        enrollment_id: 'ENROLL456',
-        data_source_id: 1,
-        entry_date: entry_date,
-      )
-
-      # Mock a non-service contact (won't trigger first += operation)
-      most_recent_contact = double('contact')
-      allow(most_recent_contact).to receive(:is_a?).with(Hmis::Hud::Service).and_return(false)
-
-      project = double('project')
-      allow(project).to receive(:allows_same_day_exit?).and_return(false)
-
-      # Contact date equals entry date - should trigger second += operation
       allow(Hmis::Hud::Enrollment).to receive(:contact_date_for_entity).and_return(entry_date)
 
-      # Mock dependencies
-      user = double('user', user_id: 'USER456')
-      allow(Hmis::Hud::User).to receive(:system_user).and_return(user)
-      allow(job).to receive(:system_user).and_return(user)
+      exit_date = job.send(:compute_exit_date, enrollment)
 
-      exit_record = double('exit_record', invalid?: false)
-      allow(Hmis::Hud::Exit).to receive(:new).and_return(exit_record)
-
-      assessment = double('assessment')
-      allow(Hmis::Hud::CustomAssessment).to receive(:new).and_return(assessment)
-      allow(assessment).to receive(:build_form_processor)
-      allow(assessment).to receive(:save!)
-
-      allow(enrollment).to receive(:release_unit!)
-      allow(enrollment).to receive(:close_referral!)
-
-      # This will exercise the second += operation (exit_date += 1.day for same-day exit)
-      expect { job.send(:auto_exit, enrollment, most_recent_contact, project: project) }.not_to raise_error
-
-      expect(Hmis::Hud::Exit).to have_received(:new)
+      expect(exit_date).to eq(entry_date + 1.day)
     end
   end
 

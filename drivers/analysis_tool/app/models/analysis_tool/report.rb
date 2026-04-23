@@ -179,6 +179,10 @@ module AnalysisTool
       comparison_pattern != :no_comparison_period
     end
 
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
+    end
+
     # @return filtered scope
     def report_scope(all_project_types: false)
       filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)

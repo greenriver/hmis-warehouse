@@ -66,7 +66,7 @@ RSpec.describe HmisUtil::JsonForms, :manages_hmis_form_state do
         it_behaves_like 'a seeded form', role: role
       end
 
-      # The HUD Service form (SERVICE) should have exactly 1 form. No instances, as those are loaded separately (HmisUtil::ServiceTypes.seed_hud_service_form_instances)
+      # The HUD Service form (SERVICE) should have exactly 1 form. System instances are created by HudComplianceFormInstanceMaintainer (see hud_compliance_form_instance_maintainer_spec).
       it_behaves_like 'a seeded form', role: :SERVICE
 
       # The Current Living Situation form (CURRENT_LIVING_SITUATION) should have exactly 1 form and system rules for the default form

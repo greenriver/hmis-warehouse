@@ -15,6 +15,8 @@ module HmisUtil
   # Reads form JSON files from drivers/hmis/lib/form_data:
   #   - Base definitions live under default/ (fragments, record forms, assessments, static admin forms)
   #   - Environment-specific overrides are loaded from subdirs to override or extend the base definitions: e.g. test, qa_hmis, or ENV['CLIENT']
+  #
+  # @see docs/features/hmis-form-seeding.md
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException
@@ -23,14 +25,17 @@ module HmisUtil
 
     attr_reader :env_key, :generate_cdeds, :create_instances
 
-    def initialize(env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?)
+    def initialize(env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?, data_source_id: nil)
       @env_key = env_key.presence || compute_default_env_key
       @create_instances = create_instances
       @generate_cdeds = generate_cdeds # default: generate CDEDs from custom_field_key mappings in non-test environments
+      # TODO(#6691) require data source. Currently this class allows it to be missing because this gets run in rails helper before data sources are created.
+      @data_source = data_source_id ? GrdaWarehouse::DataSource.hmis.find(data_source_id) : GrdaWarehouse::DataSource.hmis.first
+      raise 'No HMIS data source found for JsonForms seeding' if @data_source.blank? && !Rails.env.test?
     end
 
-    def self.seed_all
-      new.seed_all
+    def self.seed_all(data_source_id: nil)
+      new(data_source_id: data_source_id).seed_all
     end
 
     def seed_all
@@ -44,11 +49,15 @@ module HmisUtil
         # Load static admin forms
         seed_static_forms
         # Ensure all system instances exist for HUD compliance. System instances cannot be removed in the admin UI.
-        HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist! if create_instances
+        instance_maintainer.ensure_all_system_instances_exist! if create_instances
       end
     end
 
     protected
+
+    def instance_maintainer
+      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: @data_source&.id)
+    end
 
     def compute_default_env_key
       return 'test' if Rails.env.test? # Load records from lib/form_data/test
@@ -294,9 +303,6 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
 
-      # TODO(#6612, #6691): specify data source for seeding
-      data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
-
       # Find or initialize the definition record
       record = Hmis::Form::Definition.where(
         identifier: identifier,
@@ -316,7 +322,7 @@ module HmisUtil
         cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
           create_missing_mappings: false,
-          data_source: data_source,
+          data_source: @data_source,
           set_form_definition_identifier: !record.hud_assessment?, # don't set for custom fields on HUD assessments because they are often repeated across data collection stages
         ).run
         cdeds.each(&:save!)
@@ -328,7 +334,7 @@ module HmisUtil
         form_definition,
         role,
         skip_cded_validation: !generate_cdeds, # skip validation if we didn't generate CDEDs
-        data_source_id: generate_cdeds ? data_source.id : nil,
+        data_source_id: @data_source&.id,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 

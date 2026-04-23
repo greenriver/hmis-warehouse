@@ -19,8 +19,8 @@ module Types
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
 
-    def self.page_type
-      @page_type ||= BasePaginated.build(self)
+    def self.page_type(include_search_query_id: false)
+      @page_type ||= BasePaginated.build(self, include_search_query_id: include_search_query_id)
     end
 
     def self.array_page_type
