@@ -325,7 +325,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 ],
               },
             }
-            expect_gql_error post_graphql(**filter_variables) { query }, message: /Unknown CDE in field/
+            expect_gql_error post_graphql(**filter_variables) { query }, message: /CE client dynamic filters only support `cde.*` expression keys/
           end
           it 'rejects unrecognized filter keys' do
             filter_variables = {
