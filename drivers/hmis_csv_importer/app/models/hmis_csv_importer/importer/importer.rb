@@ -585,8 +585,8 @@ module HmisCsvImporter::Importer
       # as pending deletion.  We'll remove the pending where appropriate
       log_timing :mark_tree_as_dead
 
-      # Refresh warehouse stats so mark_unchanged / mark_incoming_older see accurate
-      # pending_date_deleted selectivity when the planner chooses a semi-join strategy
+      # mark_tree_as_dead just bulk-updated pending_date_deleted across all in-scope
+      # rows; refresh planner statistics so subsequent queries see accurate estimates.
       log_timing :analyze_warehouse_tables
 
       # Add Export row
@@ -1031,7 +1031,7 @@ module HmisCsvImporter::Importer
       columns.uniq
     end
 
-    # Compare source_hash new and old, if they are identical, we don't need to do anything
+    # Clear pending deletion for warehouse rows whose source_hash matches the incoming data.
     private def mark_unchanged(klass, file_name)
       return if klass.hud_key == :ExportID
       return if custom_augmentation?(klass)
@@ -1067,7 +1067,7 @@ module HmisCsvImporter::Importer
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
 
-      # CAST to DATE preserves the day-boundary comparison the old Ruby .to_date used.
+      # CAST to DATE so the comparison is at day granularity (ignoring time-of-day).
       staging_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(staging[:DateUpdated], Arel.sql('DATE'))])
       wh_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh[:DateUpdated], Arel.sql('DATE'))])
 
