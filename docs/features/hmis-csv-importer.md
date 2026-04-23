@@ -85,6 +85,18 @@ Data quality is enforced via `HmisCsvValidation`. Two severity tiers:
 
 Cross-record validators (e.g. `UniqueHudKey`) run after pre-processing on the full staged dataset.
 
+## Log Models
+
+Each import run produces a chain of records that connect the UI to internal state:
+
+- `GrdaWarehouse::Upload` — the user-submitted ZIP file. Belongs to a `DataSource`, holds the attached file (`hmis_zip`), and tracks upload progress. Visible in the UI at `/uploads`.
+- `GrdaWarehouse::ImportLog` — top-level import record shown in the UI at `/imports/:id`. STI base class. Linked from `Upload` via `import_log`.
+- `HmisCsvImporter::ImportLog` — STI subclass that links to the loader and importer logs via `loader_log` and `importer_log` associations.
+- `HmisCsvImporter::Loader::LoaderLog` — tracks the loader phase: per-file row counts, timing, errors.
+- `HmisCsvImporter::Importer::ImporterLog` — tracks the importer phase: `status` (including `paused` / `resuming`), `summary` (per-file add/remove/unchanged counts), and `phase_metrics` (per-phase timing and query diagnostics).
+
+To trace a specific import from a Rails console: `GrdaWarehouse::ImportLog.find(1234).importer_log`.
+
 ## Jobs
 
 Imports run asynchronously on the `long_running` Delayed Job queue.
