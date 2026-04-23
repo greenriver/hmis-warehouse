@@ -18,12 +18,23 @@
 #
 # Ingestion (ingest!) runs four passes per HUD file:
 #   0. mark_tree_as_dead   — flag all in-scope warehouse rows as pending deletion
-#   1. add_new_data        — insert staging rows whose hud_key is absent from warehouse
+#   1. add_new_data        — upsert staging rows whose hud_key is absent from the
+#                            in-scope warehouse set (upsert handles keys that exist
+#                            outside the scope, e.g. from a prior date range)
 #   2. process_existing    — for rows present in both staging and warehouse:
 #      a. mark_unchanged       — source_hash match → clear pending deletion
 #      b. mark_incoming_older  — staging DateUpdated < warehouse → clear pending deletion
 #      c. apply_updates        — everything still pending → overwrite warehouse from staging
 #   3. remove_pending_deletes — soft-delete anything still flagged
+#
+# Terminology:
+#   "involved scope" / "in-scope" — the set of warehouse rows this import is
+#       authoritative over, defined by involved_warehouse_scope(data_source_id,
+#       project_ids, date_range). Each per-file model implements this scope.
+#   "aggregation" — optional enrollment combining for Night-by-Night ES projects
+#       (see CombineEnrollments). When active, the staging data may include
+#       enrollments outside the import date range so that contiguous stays can
+#       be merged correctly.
 #
 # @see docs/features/hmis-csv-importer.md for full data-flow documentation.
 #
@@ -300,11 +311,13 @@ module HmisCsvImporter::Importer
       )
     end
 
-    # Materialize existing warehouse hud_keys into an indexed temp table so that
-    # the anti-join subquery in find_each is a cheap lookup instead of re-running
-    # the full involved_warehouse_scope on every cursor page.
-    # Yields a staging-table scope filtered to keys absent from the temp table.
-    private def with_existing_keys_temp_table(klass)
+    # Snapshots the hud_keys already present in the warehouse (within the
+    # involved scope) into a temporary table, then yields a scope of staged
+    # rows whose keys are NOT in that snapshot — i.e., the genuinely new rows.
+    #
+    # Without the temp table, every batch fetched by find_each would re-evaluate
+    # the full involved_warehouse_scope query, which is expensive for large tables.
+    private def with_new_records_scope(klass)
       conn = klass.connection
       key = klass.hud_key
       temp = "tmp_existing_keys_#{klass.warehouse_class.table_name}"
@@ -318,8 +331,8 @@ module HmisCsvImporter::Importer
       SQL
       conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (hud_key)")
 
-      # NOT EXISTS rather than NOT IN to avoid 3-valued NULL semantics —
-      # consistent with anti_join_count.
+      # NOT EXISTS instead of NOT IN because NOT IN returns no rows when any
+      # value in the subquery is NULL (SQL three-valued logic).
       temp_table = Arel.sql(conn.quote_table_name(temp))
       exists = Arel::SelectManager.new.
         from(temp_table).
@@ -720,29 +733,32 @@ module HmisCsvImporter::Importer
         destination_class = klass.reflect_on_association(:destination_record).klass
         batch = []
 
-        # NOTE: we allow upserts to handle the situation where data is in the warehouse with a HUD key
-        # that for whatever reason doesn't fall within the involved scope.
-        # Also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect
-        # the entire history of enrollments for aggregated projects because some of the existing
-        # enrollments fall outside of the range, but are necessary to calculate the correctly
-        # aggregated set.
+        # Upsert (not plain insert) because a warehouse row may already exist
+        # with a matching hud_key that falls outside the involved scope — e.g.,
+        # the same EnrollmentID was imported previously under a different date
+        # range. Without upsert this would raise a uniqueness conflict.
+        #
+        # When enrollment aggregation is active (Night-by-Night ES projects),
+        # CombineEnrollments writes consolidated enrollments into the staging
+        # table that can span beyond the import's date range. This means the
+        # "added" count in the log may be larger than expected — it reflects the
+        # full aggregated enrollment history, not just the current import window.
+        upsert = !destination_class.name.in?(un_updateable_warehouse_classes)
+        columns = destination_class.column_names - ['id']
+
         bm = Benchmark.measure do
-          with_existing_keys_temp_table(klass) do |new_data_scope|
+          with_new_records_scope(klass) do |new_data_scope|
             with_sql_log(__method__, klass, name: 'new_data') do
               new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
                 batch << row.as_destination_record
                 next unless batch.count == INSERT_BATCH_SIZE
 
-                upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-                columns = batch.first.attributes.keys - ['id']
                 process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
                 batch = []
               end
             end
           end
           if batch.present?
-            upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-            columns = batch.first.attributes.keys - ['id']
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
           end
         end
