@@ -731,7 +731,6 @@ module HmisCsvImporter::Importer
         preload_custom_file_data(klass)
 
         destination_class = klass.reflect_on_association(:destination_record).klass
-        batch = []
 
         # Upsert (not plain insert) because a warehouse row may already exist
         # with a matching hud_key that falls outside the involved scope — e.g.,
@@ -747,31 +746,44 @@ module HmisCsvImporter::Importer
         columns = destination_class.column_names - ['id']
 
         bm = Benchmark.measure do
-          with_new_records_scope(klass) do |new_data_scope|
-            with_sql_log(__method__, klass, name: 'new_data') do
-              new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
-                batch << row.as_destination_record
-                next unless batch.count == INSERT_BATCH_SIZE
+          upsert_new_records_in_batches(klass, destination_class, file_name, columns: columns, upsert: upsert)
+        end
+        log_phase_stats(file_name, bm, type: 'added', destination_class: destination_class)
+      end
+    end
 
-                process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
-                batch = []
-              end
-            end
-          end
-          if batch.present?
+    # Iterates staged rows that have no matching hud_key in the warehouse and
+    # flushes them to the warehouse destination table in INSERT_BATCH_SIZE chunks.
+    private def upsert_new_records_in_batches(klass, destination_class, file_name, columns:, upsert:)
+      batch = []
+      with_new_records_scope(klass) do |new_data_scope|
+        with_sql_log(:add_new_data, klass, name: 'new_data') do
+          new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+            batch << row.as_destination_record
+            next unless batch.count == INSERT_BATCH_SIZE
+
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+            batch = []
           end
         end
-        records = summary_for(file_name, 'added') || 0
-        stats = {
-          add_secs: bm.real.round(3),
-          add_rps: ((records / bm.real).round(3) unless records.zero?),
-          add_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
-        }
-        importer_log.summary[file_name].merge!(stats)
-        Rails.logger.debug do
-          "  Added #{destination_class.table_name} #{hash_as_log_str({ added: records }.merge(stats).merge(log_ids))}"
-        end
+      end
+      process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) if batch.present?
+    end
+
+    # Records benchmark timings for a completed ingest phase into the importer
+    # log summary and emits a debug log line.
+    # +type+ is the summary key prefix (e.g., 'added', 'updated').
+    private def log_phase_stats(file_name, bm, type:, destination_class:)
+      records = summary_for(file_name, type) || 0
+      stat_prefix = type == 'added' ? 'add' : type
+      stats = {
+        :"#{stat_prefix}_secs" => bm.real.round(3),
+        :"#{stat_prefix}_rps"  => (records.zero? ? nil : (records / bm.real).round(3)),
+        :"#{stat_prefix}_cpu"  => "#{(bm.total * 100.0 / bm.real).round}%",
+      }.compact
+      importer_log.summary[file_name].merge!(stats)
+      Rails.logger.debug do
+        "  #{type.capitalize} #{destination_class.table_name} #{hash_as_log_str({ type.to_sym => records }.merge(stats).merge(log_ids))}"
       end
     end
 
