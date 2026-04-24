@@ -97,7 +97,7 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
 
   context 'when creating a SERVICE role rule' do
     let!(:service_definition) { create(:hmis_form_definition, identifier: 'test-service', role: :SERVICE, status: :published, data_source: ds1) }
-    let!(:service_category) { create(:hmis_custom_service_category, name: 'Test Category') }
+    let!(:service_category) { create(:hmis_custom_service_category, name: 'Test Category', data_source: ds1) }
 
     let(:input) do
       {
