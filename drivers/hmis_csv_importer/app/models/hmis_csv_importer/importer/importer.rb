@@ -743,10 +743,9 @@ module HmisCsvImporter::Importer
         # "added" count in the log may be larger than expected — it reflects the
         # full aggregated enrollment history, not just the current import window.
         upsert = !destination_class.name.in?(un_updateable_warehouse_classes)
-        columns = destination_class.column_names - ['id']
 
         bm = Benchmark.measure do
-          upsert_new_records_in_batches(klass, destination_class, file_name, columns: columns, upsert: upsert)
+          upsert_new_records_in_batches(klass, destination_class, file_name, upsert: upsert)
         end
         log_phase_stats(file_name, bm, type: 'added', destination_class: destination_class)
       end
@@ -754,20 +753,27 @@ module HmisCsvImporter::Importer
 
     # Iterates staged rows that have no matching hud_key in the warehouse and
     # flushes them to the warehouse destination table in INSERT_BATCH_SIZE chunks.
-    private def upsert_new_records_in_batches(klass, destination_class, file_name, columns:, upsert:)
+    #
+    # Columns are derived from the first record's attributes
+    private def upsert_new_records_in_batches(klass, destination_class, file_name, upsert:)
       batch = []
+      columns = nil
       with_new_records_scope(klass) do |new_data_scope|
         with_sql_log(:add_new_data, klass, name: 'new_data') do
           new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
             batch << row.as_destination_record
             next unless batch.count == INSERT_BATCH_SIZE
 
+            columns ||= batch.first.attributes.keys - ['id']
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
             batch = []
           end
         end
       end
-      process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) if batch.present?
+      if batch.present?
+        columns ||= batch.first.attributes.keys - ['id']
+        process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+      end
     end
 
     # Records benchmark timings for a completed ingest phase into the importer
