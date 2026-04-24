@@ -20,6 +20,9 @@ FactoryBot.define do
     after(:create) do |instance, evaluator|
       instance.definition.update(role: evaluator.role) if evaluator.role.present?
       instance.definition.update(status: evaluator.definition_status) if evaluator.definition_status.present?
+
+      # re-validate here after updating definition role
+      raise instance.errors.map(&:options).pluck(:full_message).join(', ') unless instance.valid?
     end
   end
 end

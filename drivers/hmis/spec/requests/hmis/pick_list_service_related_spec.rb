@@ -21,40 +21,30 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
           code
           label
           groupLabel
-          groupCode
         }
       }
     GRAPHQL
   end
 
-  it 'returns grouped service type pick list' do
-    response, result = post_graphql(pick_list_type: 'ALL_SERVICE_TYPES') { query }
-    expect(response.status).to eq(200), result.inspect
-    options = result.dig('data', 'pickList')
-    expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
-    opt = ds1.custom_service_types.order(:id).first.to_pick_list_option
-    expect(options).to include(
-      include(
-        'code' => opt[:code],
-        'label' => opt[:label],
-        'groupCode' => opt[:group_code],
-        'groupLabel' => opt[:group_label],
-      ),
-    )
+  # cruft: another data source with both custom and HUD service types/categories
+  before(:all) do
+    ds2 = create(:hmis_data_source, hmis: 'other-hmis')
+    HmisUtil::ServiceTypes.seed_hud_service_types(ds2.id)
+    HmisUtil::JsonForms.seed_all(data_source_id: ds2.id) # creates system form instances
+    ds2_csc = create(:hmis_custom_service_category, data_source: ds2, name: 'Other HMIS Custom Cat')
+    ds2_cst = create(:hmis_custom_service_type, custom_service_category: ds2_csc, data_source: ds2, name: 'Other HMIS Custom Type')
+    create(:hmis_form_instance, data_source: ds2, custom_service_category: ds2_csc, definition: create(:hmis_form_definition, identifier: 'service_1', data_source: ds2, role: :SERVICE))
+    create(:hmis_form_instance, data_source: ds2, custom_service_type: ds2_cst, definition: create(:hmis_form_definition, identifier: 'service_2', data_source: ds2, role: :SERVICE))
   end
 
-  it 'returns service category pick list' do
-    response, result = post_graphql(pick_list_type: 'ALL_SERVICE_CATEGORIES') { query }
-    expect(response.status).to eq(200), result.inspect
-    options = result.dig('data', 'pickList')
-    expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
-    opt = ds1.custom_service_categories.order(:id).first.to_pick_list_option
-    expect(options).to include(
-      include(
-        'code' => opt[:code],
-        'label' => opt[:label],
-      ),
-    )
+  after(:all) do
+    ds2 = GrdaWarehouse::DataSource.find_by!(hmis: 'other-hmis')
+    Hmis::Form::Definition.in_data_source(ds2.id).delete_all
+    Hmis::Form::Instance.in_data_source(ds2.id).delete_all
+    Hmis::Hud::CustomDataElementDefinition.where(data_source: ds2).delete_all
+    Hmis::Hud::CustomServiceCategory.where(data_source: ds2).delete_all
+    Hmis::Hud::CustomServiceType.where(data_source: ds2).delete_all
+    ds2.destroy!
   end
 
   describe 'service type and category pick lists' do
@@ -72,7 +62,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
-        expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
+        expect(options.length).to eq(Hmis::Hud::CustomServiceType.in_data_source(ds1.id).count)
         expect(options.pluck('code')).to include(custom_type_1.id.to_s, hud_type.id.to_s)
 
         # Verify structure includes group label
@@ -88,7 +78,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
-        expect(options.length).to eq(Hmis::Hud::CustomServiceType.custom.count)
+        expect(options.length).to eq(Hmis::Hud::CustomServiceType.in_data_source(ds1.id).custom.count)
         expect(options.pluck('code')).to include(custom_type_1.id.to_s, custom_type_2.id.to_s)
         expect(options.pluck('code')).not_to include(hud_type.id.to_s)
       end
@@ -100,7 +90,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
-        expect(options.length).to eq(Hmis::Hud::CustomServiceType.hud.count)
+        expect(options.length).to eq(Hmis::Hud::CustomServiceType.in_data_source(ds1.id).hud.count)
         expect(options.pluck('code')).to include(hud_type.id.to_s)
         expect(options.pluck('code')).not_to include(custom_type_1.id.to_s, custom_type_2.id.to_s)
       end
@@ -112,7 +102,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
-        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
+        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.in_data_source(ds1.id).count)
         expect(options.pluck('code')).to include(hud_only_category.id.to_s, custom_only_category.id.to_s)
 
         custom_option = options.find { |o| o['code'] == custom_only_category.id.to_s }
@@ -126,7 +116,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
-        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.custom_only.count)
+        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.in_data_source(ds1.id).custom_only.count)
         expect(options.pluck('code')).to include(custom_only_category.id.to_s)
         expect(options.pluck('code')).not_to include(hud_only_category.id.to_s)
       end
@@ -138,7 +128,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
-        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.hud_only.count)
+        expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.in_data_source(ds1.id).hud_only.count)
         expect(options.pluck('code')).to include(hud_only_category.id.to_s)
         expect(options.pluck('code')).not_to include(custom_only_category.id.to_s)
 
@@ -168,7 +158,6 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
       expect(picklist_option_codes(p2)).to be_empty
     end
 
-    # todo @martha - this one
     it 'works when instance is associated by service category and project type' do
       # Instance: use this service definition for csc1 (custom service category 1) in ES projects
       create(
