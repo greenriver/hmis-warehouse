@@ -372,7 +372,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     type_matches = cst_t[:id].in(ids.map(&:first))
     category_matches = cst_t[:custom_service_category_id].in(ids.map(&:last))
 
-    Hmis::Hud::CustomServiceType.where(type_matches.or(category_matches))
+    Hmis::Hud::CustomServiceType.in_data_source(data_source_id).where(type_matches.or(category_matches))
   end
 
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)

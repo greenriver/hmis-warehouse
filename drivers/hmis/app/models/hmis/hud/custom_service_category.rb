@@ -20,6 +20,9 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
 
   validates_presence_of :name, allow_blank: false
 
+  # @param data_source_id [Integer, nil] when blank, the scope returns no records
+  scope :in_data_source, ->(data_source_id) { where(data_source_id: data_source_id) }
+
   # Helper scope: non-empty categories that have at least one HUD service type (non-null hud_record_type)
   scope :with_hud_types, -> do
     joins(:service_types).where.not(service_types: { hud_record_type: nil }).distinct
