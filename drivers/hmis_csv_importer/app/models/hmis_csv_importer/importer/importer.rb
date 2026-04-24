@@ -1071,19 +1071,21 @@ module HmisCsvImporter::Importer
       return if custom_augmentation?(klass)
 
       staging = klass.arel_table
-      wh = klass.warehouse_class.arel_table
+      wh      = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id)
 
       # Staging source_hash is always non-NULL; warehouse source_hash can be NULL
       # to flag records for re-evaluation. SQL equality returns NULL (not true)
       # for NULL warehouse rows, so they correctly fall through to apply_updates.
-      matched_scope = warehouse_rows_matching(klass) do
-        incoming_scope.
-          where(staging[klass.hud_key].eq(wh[klass.hud_key])).
-          where(staging[:source_hash].eq(wh[:source_hash]))
-      end
+      exists = incoming_scope.
+        where(staging[klass.hud_key].eq(wh[klass.hud_key])).
+        where(staging[:source_hash].eq(wh[:source_hash])).
+        select(1).arel.exists
+      matched_scope = existing_destination_data_scope(klass).
+        where.not(DateUpdated: nil).
+        where(exists)
 
-      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged"
+      Rails.logger.info { "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged" }
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
@@ -1097,31 +1099,23 @@ module HmisCsvImporter::Importer
       return if most_recent_export_for_ds?
 
       staging = klass.arel_table
-      wh = klass.warehouse_class.arel_table
+      wh      = klass.warehouse_class.arel_table
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
 
       # CAST to DATE so the comparison is at day granularity (ignoring time-of-day).
       staging_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(staging[:DateUpdated], Arel.sql('DATE'))])
-      wh_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh[:DateUpdated], Arel.sql('DATE'))])
-
-      matched_scope = warehouse_rows_matching(klass) do
-        incoming_scope.
-          where(staging[klass.hud_key].eq(wh[klass.hud_key])).
-          where(Arel::Nodes::InfixOperation.new('<', staging_date, wh_date))
-      end
-
-      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged"
-      batch_clear_pending_deletion(klass, matched_scope, file_name)
-    end
-
-    # Build a warehouse scope of delete-pending rows that have a correlated match
-    # in the staging table. The block must return an AR scope whose .arel.exists
-    # correlates the staging table with the outer warehouse query.
-    private def warehouse_rows_matching(klass)
-      existing_destination_data_scope(klass).
+      wh_date      = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh[:DateUpdated], Arel.sql('DATE'))])
+      exists = incoming_scope.
+        where(staging[klass.hud_key].eq(wh[klass.hud_key])).
+        where(Arel::Nodes::InfixOperation.new('<', staging_date, wh_date)).
+        select(1).arel.exists
+      matched_scope = existing_destination_data_scope(klass).
         where.not(DateUpdated: nil).
-        where(yield.select(1).arel.exists)
+        where(exists)
+
+      Rails.logger.info { "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged" }
+      batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
     # Creates a session-scoped temp table of IDs materialised from `scope`, builds
