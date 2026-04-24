@@ -660,7 +660,7 @@ module Types
       # get all form rules for custom assessments (active and inactive)
       scope = Hmis::Form::Instance.with_role(:CUSTOM_ASSESSMENT)
       # filter down to rules that match this project, if project is specified
-      scope = scope.filter { |fi| fi.project_match(project) } if project
+      scope = scope.in_data_source(project.data_source_id).filter { |fi| fi.project_match(project) } if project
       # { code: definition.identifier, label: definition.title }
       custom_options = scope.map(&:to_pick_list_option).uniq.sort_by { |opt| opt[:label] }
       hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.
@@ -695,8 +695,7 @@ module Types
     end
 
     def self.projects_receiving_referrals(data_source_id)
-      Hmis::Hud::Project.where(data_source_id: data_source_id).
-        receiving_legacy_referrals.
+      Hmis::Hud::Project.receiving_legacy_referrals(data_source_id).
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)

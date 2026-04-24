@@ -505,7 +505,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should only return the project that has an active, non-draft instance' do
       response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_REFERRALS') { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       options = result.dig('data', 'pickList')
       expect(options.size).to eq(1)
       expect(options.first['code']).to eq(referral_dest_project.id.to_s)
