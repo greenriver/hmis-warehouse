@@ -434,7 +434,7 @@ module HmisCsvImporter::Importer
       scope = source_data_scope_for(file_name)
       # save some allocations be doing these only once
       pre_processed_at = Time.current
-      bm = Benchmark.measure do
+      bmk = Benchmark.measure do
         batch = []
         failures = []
         row_failures = []
@@ -470,9 +470,9 @@ module HmisCsvImporter::Importer
       end
       records = scope.count
       stats = {
-        pp_secs: bm.real.round(3),
-        pp_rps: ((records / bm.real).round(3) unless records.zero?),
-        pp_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        pp_secs: bmk.real.round(3),
+        pp_rps: ((records / bmk.real).round(3) unless records.zero?),
+        pp_cpu: "#{(bmk.total * 100.0 / bmk.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -721,6 +721,16 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Upsert staged rows whose hud_key doesn't yet exist in the warehouse
+    # (within the involved scope). This is step 1 of ingestion — it runs
+    # before process_existing, so any key already present in the warehouse is
+    # skipped here and handled later by mark_unchanged / mark_incoming_older /
+    # apply_updates.
+    #
+    # "New" is determined via a NOT EXISTS anti-join against a temp table
+    # snapshot of warehouse hud_keys (see with_new_records_scope). Uses upsert
+    # rather than plain insert because a matching hud_key may exist outside the
+    # involved scope (e.g., from a prior date range import).
     def add_new_data
       file_count = 0
       importable_files.each do |file_name, klass|
@@ -732,22 +742,16 @@ module HmisCsvImporter::Importer
 
         destination_class = klass.reflect_on_association(:destination_record).klass
 
-        # Upsert (not plain insert) because a warehouse row may already exist
-        # with a matching hud_key that falls outside the involved scope — e.g.,
-        # the same EnrollmentID was imported previously under a different date
-        # range. Without upsert this would raise a uniqueness conflict.
-        #
         # When enrollment aggregation is active (Night-by-Night ES projects),
         # CombineEnrollments writes consolidated enrollments into the staging
         # table that can span beyond the import's date range. This means the
-        # "added" count in the log may be larger than expected — it reflects the
-        # full aggregated enrollment history, not just the current import window.
+        # "added" count in the log may be larger than expected.
         upsert = !destination_class.name.in?(un_updateable_warehouse_classes)
 
-        bm = Benchmark.measure do
+        bmk = Benchmark.measure do
           upsert_new_records_in_batches(klass, destination_class, file_name, upsert: upsert)
         end
-        log_phase_stats(file_name, bm, type: 'added', destination_class: destination_class)
+        log_phase_stats(file_name, bmk, type: 'added', destination_class: destination_class)
       end
     end
 
@@ -770,22 +774,22 @@ module HmisCsvImporter::Importer
           end
         end
       end
-      if batch.present?
-        columns ||= batch.first.attributes.keys - ['id']
-        process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
-      end
+      return unless batch.present?
+
+      columns ||= batch.first.attributes.keys - ['id']
+      process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
     end
 
     # Records benchmark timings for a completed ingest phase into the importer
     # log summary and emits a debug log line.
     # +type+ is the summary key prefix (e.g., 'added', 'updated').
-    private def log_phase_stats(file_name, bm, type:, destination_class:)
+    private def log_phase_stats(file_name, bmk, type:, destination_class:)
       records = summary_for(file_name, type) || 0
       stat_prefix = type == 'added' ? 'add' : type
       stats = {
-        :"#{stat_prefix}_secs" => bm.real.round(3),
-        :"#{stat_prefix}_rps"  => (records.zero? ? nil : (records / bm.real).round(3)),
-        :"#{stat_prefix}_cpu"  => "#{(bm.total * 100.0 / bm.real).round}%",
+        "#{stat_prefix}_secs": bmk.real.round(3),
+        "#{stat_prefix}_rps": (records.zero? ? nil : (records / bmk.real).round(3)),
+        "#{stat_prefix}_cpu": "#{(bmk.total * 100.0 / bmk.real).round}%",
       }.compact
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -827,6 +831,15 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Final step of ingestion: soft-delete warehouse rows still flagged with
+    # pending_date_deleted. These are records that were in-scope but not
+    # accounted for by add_new_data, mark_unchanged, mark_incoming_older, or
+    # apply_updates — meaning the incoming CSV no longer contains them.
+    #
+    # Three special cases:
+    #   prevent_import_deletions? — some file types opt out of deletions entirely;
+    #   Client (PersonalID) — partial data sources may not include all clients;
+    #   Everything else — batched soft-delete (set DateDeleted, clear flag).
     def remove_pending_deletes
       importable_files.each do |file_name, klass|
         # Never delete Exports
@@ -890,7 +903,7 @@ module HmisCsvImporter::Importer
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
-      bm = Benchmark.measure do
+      bmk = Benchmark.measure do
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
 
@@ -944,9 +957,9 @@ module HmisCsvImporter::Importer
       end
       records = summary_for(file_name, 'updated') || 0
       stats = {
-        up_secs: bm.real.round(3),
-        up_rps: ((records / bm.real).round(3) unless records.zero?),
-        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        up_secs: bmk.real.round(3),
+        up_rps: ((records / bmk.real).round(3) unless records.zero?),
+        up_cpu: "#{(bmk.total * 100.0 / bmk.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -958,7 +971,7 @@ module HmisCsvImporter::Importer
     # These files only update existing records and never add new ones
     private def apply_augmentation_updates(klass, file_name)
       destination_class = klass.reflect_on_association(:destination_record).klass
-      bm = Benchmark.measure do
+      bmk = Benchmark.measure do
         batch = []
         upsert_columns = augmentation_upsert_columns(klass)
 
@@ -1000,9 +1013,9 @@ module HmisCsvImporter::Importer
 
       records = summary_for(file_name, 'updated') || 0
       stats = {
-        up_secs: bm.real.round(3),
-        up_rps: ((records / bm.real).round(3) unless records.zero?),
-        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        up_secs: bmk.real.round(3),
+        up_rps: ((records / bmk.real).round(3) unless records.zero?),
+        up_cpu: "#{(bmk.total * 100.0 / bmk.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -1065,7 +1078,13 @@ module HmisCsvImporter::Importer
       columns.uniq
     end
 
-    # Clear pending deletion for warehouse rows whose source_hash matches the incoming data.
+    # First pass of process_existing: clear pending_date_deleted on warehouse
+    # rows whose source_hash already matches the incoming staged row. These
+    # records haven't changed, so they don't need an update — just rescue them
+    # from the soft-delete that mark_tree_as_dead queued up.
+    #
+    # Rows that don't match here (hash mismatch or NULL warehouse source_hash)
+    # fall through to mark_incoming_older, then apply_updates.
     private def mark_unchanged(klass, file_name)
       return if klass.hud_key == :ExportID
       return if custom_augmentation?(klass)
@@ -1089,8 +1108,9 @@ module HmisCsvImporter::Importer
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
-    # Returns an Arel node that casts a UTC timestamp column to a DATE using
-    # the application's local timezone. This replicates Ruby's `.to_date`
+    # Arel node: CAST(col AT TIME ZONE 'UTC' AT TIME ZONE '<local>' AS DATE)
+    # The DB stores naive timestamps in UTC; this converts to the app's local
+    # timezone before extracting the date so day boundaries match
     private def local_date_cast_arel(conn, arel_column)
       tz = Time.zone.tzinfo.name
       utc_tz = Arel::Nodes::SqlLiteral.new("'UTC'")
@@ -1102,10 +1122,12 @@ module HmisCsvImporter::Importer
       Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(at_local, Arel.sql('DATE'))])
     end
 
-    # Having already excluded unchanged records, compare DateUpdated.
-    # If the incoming record is strictly older than the existing one, trust the warehouse.
-    # Exception: if this is the most recent export for the data source, the incoming data
-    # is authoritative regardless of DateUpdated.
+    # Clear pending deletion for warehouse rows where the incoming DateUpdated
+    # (by local-timezone date) is strictly older than the warehouse value.
+    # The warehouse copy is newer, so we keep it and skip the incoming row.
+    # Runs after mark_unchanged, so only hash-mismatched rows reach here.
+    # Skipped when this is the most recent export for the data source, because
+    # the latest export is authoritative regardless of DateUpdated.
     private def mark_incoming_older(klass, file_name)
       return if klass.hud_key == :ExportID
       return if custom_augmentation?(klass)
@@ -1242,6 +1264,18 @@ module HmisCsvImporter::Importer
       options
     end
 
+    # Flush an array of AR model instances to the database via activerecord-import.
+    # Three modes controlled by the caller:
+    #   update_only: true  → bulk UPDATE via VALUES list (augmentation files that
+    #                        only modify existing warehouse rows, never insert)
+    #   upsert: true       → INSERT ... ON CONFLICT UPDATE (the normal path for
+    #                        add_new_data and apply_updates)
+    #   upsert: false      → plain INSERT (Export and Client, which lack a usable
+    #                        uniqueness constraint for ON CONFLICT)
+    #
+    # On any ActiveRecord or PG error the entire batch is retried row-by-row so
+    # a single bad record doesn't block the rest; per-row failures are logged to
+    # import_errors.
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: importer_log.version), update_only: false)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do

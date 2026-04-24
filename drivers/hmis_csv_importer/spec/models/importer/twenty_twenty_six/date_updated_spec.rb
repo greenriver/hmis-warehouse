@@ -83,46 +83,33 @@ RSpec.describe 'HUD DateUpdated Tests', type: :model do
       end
     end
 
-    # Regression test for timezone-aware DateUpdated comparison in mark_incoming_older.
+    # Regression: mark_incoming_older compares DateUpdated as a local-timezone
+    # date, not a UTC date. The DB columns are `timestamp without time zone`
+    # holding UTC values (ActiveRecord.default_timezone = :utc). Near midnight
+    # UTC, two timestamps on the *same* local day land on *different* UTC days,
+    # so a naive CAST(... AS DATE) gives the wrong answer.
     #
-    # mark_incoming_older must compare dates at the application's local timezone
-    # granularity, not UTC. Rails stores timestamps as UTC, so two timestamps that
-    # fall on the same local day can appear to be on different UTC days near midnight.
+    # Setup (America/New_York, UTC-5 in February):
     #
-    # If the comparison uses a naive CAST(... AS DATE) in PostgreSQL (UTC day
-    # boundaries), the incoming record would be considered "older" (wrong), and
-    # mark_incoming_older would preserve the warehouse value — silently dropping a
-    # valid update.
+    #   Warehouse record  : 2010-02-01 21:00 ET  →  stored as 2010-02-02 02:00 UTC
+    #   Incoming (fixture): 2010-02-01 12:00 ET  →  stored as 2010-02-01 17:00 UTC
     #
-    # The correct fix uses AT TIME ZONE to shift both timestamps into the
-    # application's local timezone before extracting the date.
+    #   Both are Feb 1 in Eastern time.
     #
-    # Scenario (Rails timezone = America/New_York, UTC-5 in February):
+    #   Naive UTC date cast : Feb 1 < Feb 2 → incoming looks older → BUG
+    #   TZ-aware date cast  : Feb 1 = Feb 1 → same day, not older  → correct
     #
-    #   CSV timestamps are parsed by Time.zone.strptime, so they represent Eastern Time.
-    #   PostgreSQL stores them as UTC (timestamp without time zone).
-    #
-    #   Warehouse DateUpdated : 2010-02-01 21:00 Eastern → stored UTC: 2010-02-02 02:00 (Feb 2)
-    #   Incoming  DateUpdated : 2010-02-01 12:00 Eastern → stored UTC: 2010-02-01 17:00 (Feb 1)
-    #   (incoming is from the existing date_updated_newer fixture)
-    #
-    #   Naive CAST(... AS DATE) using stored UTC values:
-    #     Feb 1 < Feb 2  → true  → mark_incoming_older fires → unchanged count = 1 (BUG)
-    #
-    #   Timezone-aware CAST(... AT TIME ZONE 'UTC' AT TIME ZONE 'America/New_York' AS DATE):
-    #     Feb 1 Eastern == Feb 1 Eastern → false → apply_updates runs → unchanged count = 0 (correct)
+    # We also nil out source_hash so mark_unchanged (hash comparison) won't
+    # match the record, forcing the code path through mark_incoming_older.
+    # The fixture's ExportDate (2020-07-05) is older than the initial import's
+    # (2020-07-07), so most_recent_export_for_ds? is false and the date
+    # comparison actually runs.
     describe 'timezone boundary: same local day, different UTC day' do
       before(:all) do
-        # Push the warehouse DateUpdated to 21:00 ET (= 2010-02-02 02:00 UTC, UTC day Feb 2).
-        # Null source_hash so mark_unchanged (hash equality) passes through to mark_incoming_older.
         GrdaWarehouse::Hud::Client.first.update_columns(
           DateUpdated: Time.zone.parse('2010-02-01 21:00').utc,
           source_hash: nil,
         )
-        # Re-import date_updated_newer: DateUpdated = 12:00 ET (= 2010-02-01 17:00 UTC, UTC day Feb 1).
-        # Its ExportDate (2020-07-05) is older than the previous max (2020-07-07), so
-        # most_recent_export_for_ds? returns false and mark_incoming_older runs.
-        # Both timestamps fall on Eastern Feb 1, so mark_incoming_older must NOT fire.
         @tz_importer = import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_newer',
           data_source: @data_source,
