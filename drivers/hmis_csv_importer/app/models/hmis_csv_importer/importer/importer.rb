@@ -293,7 +293,7 @@ module HmisCsvImporter::Importer
     # COUNT DISTINCT keys in `scope` that have no matching key in `other_scope`,
     # using NOT EXISTS to avoid NOT IN's 3-valued NULL semantics.
     private def anti_join_count(scope, other_scope, key)
-      other_table = other_scope.arel.as('other')
+      other_table = other_scope.select(key).arel.as('other')
       other_ref = Arel::Table.new('other')
       exists = Arel::SelectManager.new.
         from(other_table).
