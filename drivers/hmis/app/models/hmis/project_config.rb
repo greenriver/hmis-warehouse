@@ -41,7 +41,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   validate :validate_consistent_data_source
 
   scope :viewable_by, ->(user) do
-    return none unless user.policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_manage?
+    return none unless user.policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_view?
 
     where(data_source_id: user.hmis_data_source_id)
   end

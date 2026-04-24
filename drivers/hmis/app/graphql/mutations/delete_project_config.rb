@@ -14,8 +14,8 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:)
-      access_denied! unless policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_manage?
       record = Hmis::ProjectConfig.find(id)
+      access_denied! unless policy_for(record, policy_type: :project_config).can_destroy?
       record.destroy!
 
       {
