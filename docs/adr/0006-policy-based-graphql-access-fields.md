@@ -2,7 +2,7 @@
 
 ## Status
 
-- Current Status: Proposed
+- Current Status: Accepted
 - Date of last update: 2026-04-22
 - Decision-makers: OP Engineering team
 

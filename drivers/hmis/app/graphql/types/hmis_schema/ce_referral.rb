@@ -57,6 +57,7 @@ module Types
     summary_field :active, Boolean, null: false, method: :active?
     summary_field :origin, HmisSchema::Enums::CeReferralOrigin, null: false, method: :referral_origin
 
+    # pass `authorize_with: nil` because this is a summary field. See comments above on `self.field`
     access_field authorize_with: nil do
       define_method(:referral_policy) { @referral_policy ||= policy_for(object, policy_type: :ce_referral) }
 
@@ -70,8 +71,10 @@ module Types
         target_project.present? && policy_for(target_project, policy_type: :hmis_project).can_view?
       end
       bool_field(:can_view_source_enrollment_details) do
-        object.source_enrollment_id.present? &&
-          load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id).present?
+        enrollment = load_ar_association(object, :source_enrollment)
+        return false unless enrollment
+
+        policy_for(enrollment, policy_type: :hmis_enrollment).can_view_details?
       end
     end
 

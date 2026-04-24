@@ -64,7 +64,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
-      context 'with a source enrollment but the user cannot view enrollment details' do
+      context 'with a source enrollment' do
         let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1, project_name: 'Source Project') }
         let!(:source_enrollment) { create(:hmis_hud_enrollment, client: client, project: source_project, data_source: ds1) }
         before { referral.update!(source_enrollment: source_enrollment) }
