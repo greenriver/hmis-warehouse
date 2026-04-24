@@ -86,7 +86,9 @@ module Types
 
     def inferred_all_possible_ce_candidate_column_keys
       cache_key = "inferred_ce_candidate_column_keys:#{current_user.hmis_data_source_id}"
-      context[cache_key] ||= Hmis::TableConfiguration.for_ce_clients_table.
+      return context[cache_key] if context.key?(cache_key)
+
+      context[cache_key] = Hmis::TableConfiguration.for_ce_clients_table.
         where(data_source_id: current_user.hmis_data_source_id).
         map(&:column_keys).flatten.uniq
     end

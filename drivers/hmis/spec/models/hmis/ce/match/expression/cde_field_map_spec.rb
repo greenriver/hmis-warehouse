@@ -151,10 +151,10 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
       expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
     end
 
-    it 'raises when string_values is empty' do
+    it 'raises when filter_values is empty' do
       expect do
         described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, [])
-      end.to raise_error(ArgumentError, /string_values must be non-empty/)
+      end.to raise_error(ArgumentError, /filter_values must be non-empty/)
     end
   end
 end

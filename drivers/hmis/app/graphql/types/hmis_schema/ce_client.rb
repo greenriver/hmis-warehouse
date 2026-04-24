@@ -88,8 +88,12 @@ module Types
 
     # Infer keys to resolve on `client_attributes` by checking global CE clients table column config.
     # This should be removed once every client passes `keys` explicitly.
+    # Memoize on the request context so resolving many `CeClient`s does not repeat the lookup.
     def inferred_ce_clients_table_column_keys
-      Hmis::TableConfiguration.detect_ce_clients_global_config(data_source_id: current_user.hmis_data_source_id)&.column_keys
+      cache_key = "inferred_ce_clients_global_column_keys:#{current_user.hmis_data_source_id}"
+      return context[cache_key] if context.key?(cache_key)
+
+      context[cache_key] = Hmis::TableConfiguration.detect_ce_clients_global_config(data_source_id: current_user.hmis_data_source_id)&.column_keys
     end
 
     def destination_client

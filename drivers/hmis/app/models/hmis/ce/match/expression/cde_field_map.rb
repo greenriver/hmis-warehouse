@@ -80,13 +80,19 @@ module Hmis::Ce::Match::Expression
     # `cde.*` keys from `Hmis::Filter::CeClientFilter` / table configuration.
     #
     # The subquery is correlated to `ce_client_proxies.client_id` (destination warehouse client id).
-    # Values are compared as `column::text IN (...)` so HUD/UI string filter values behave predictably.
-    # `string_values` must be non-empty after stripping blanks; callers with nothing to match should skip.
+    # Like {#client_query}, matching uses `Hmis::DestinationClientLatestAssessment` so only the
+    # latest assessment row per form (for that destination client) is considered.
     #
-    # @return [String, Array] SQL string and bind arguments for `scope.where([sql, *binds])`
-    def self.sql_cde_value_exists_for_ce_client_proxy(resolved_cde_field, string_values)
-      string_values = Array.wrap(string_values).map(&:to_s).reject(&:blank?).uniq
-      raise ArgumentError, 'string_values must be non-empty' if string_values.empty?
+    # Values are compared as `column::text IN (...)` so HUD/UI string filter values behave predictably.
+    # `filter_values` must be non-empty after stripping blanks; callers with nothing to match should skip.
+    #
+    # @param custom_assessment_field [String] CDE path in the shape accepted by {#parse_entity_type}
+    #   (e.g. `'custom_assessment.primary_language'`, the portion of a `cde.*` expression key after `cde.`)
+    # @param filter_values [Array<String,#to_s>] String values to match against  (e.g. ['English', 'Spanish'])
+    # @return [Array(String, Array)] SQL string and bind arguments for `scope.where([sql, *binds])`
+    def self.sql_cde_value_exists_for_ce_client_proxy(custom_assessment_field, filter_values)
+      filter_values = Array.wrap(filter_values).map(&:to_s).reject(&:blank?).uniq
+      raise ArgumentError, 'filter_values must be non-empty' if filter_values.empty?
 
       conn = ActiveRecord::Base.connection
       dcla = conn.quote_table_name(Hmis::DestinationClientLatestAssessment.table_name)
@@ -96,12 +102,12 @@ module Hmis::Ce::Match::Expression
       proxy = conn.quote_table_name(Hmis::Ce::ClientProxy.table_name)
 
       # Get the CustomDataElementDefinition and determine the value column name (e.g. value_string)
-      cded = new.send(:parse_entity_type, resolved_cde_field)
+      cded = new.send(:parse_entity_type, custom_assessment_field)
       value_col = conn.quote_column_name(cded.cde_arel_field.name.to_s)
 
       # Create predicate for matching CustomDataElement values
       # For example: (cde.value_string)::text IN (?, ?, ?)
-      placeholders = string_values.map { '?' }.join(', ')
+      placeholders = filter_values.map { '?' }.join(', ')
       value_predicate = "(#{cde_alias}.#{value_col})::text IN (#{placeholders})"
 
       sql = <<~SQL
@@ -120,7 +126,7 @@ module Hmis::Ce::Match::Expression
       SQL
 
       # Values to bind to the '?' placeholders in the SQL fragment
-      binds = [Hmis::Hud::CustomAssessment.name, cded.id, cded.form_definition_identifier] + string_values
+      binds = [Hmis::Hud::CustomAssessment.name, cded.id, cded.form_definition_identifier] + filter_values
       [sql.squish, binds]
     end
 

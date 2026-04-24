@@ -48,6 +48,20 @@ module Hmis::Ce
         where(Hmis::Hud::Project.arel_table[:project_type].in(Array.wrap(project_types)))
     end
 
+    # Narrow CE client proxies to those whose latest assessments have a CustomDataElement value
+    # matching any of the given filter values (same semantics as `CdeFieldMap#client_query`).
+    #
+    # Example: `scope.matching_dynamic_cde_filter('custom_assessment.language_preference', ['English'])`
+    scope :matching_dynamic_cde_filter, ->(custom_assessment_field, filter_values) do
+      filter_values = Array.wrap(filter_values).map(&:to_s).reject(&:blank?).uniq
+      if filter_values.empty?
+        all
+      else
+        sql, binds = Hmis::Ce::Match::Expression::CdeFieldMap.sql_cde_value_exists_for_ce_client_proxy(custom_assessment_field, filter_values)
+        where([sql, *binds])
+      end
+    end
+
     def self.apply_filters(input)
       Hmis::Filter::CeClientFilter.new(input).filter_scope(current_scope)
     end

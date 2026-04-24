@@ -49,7 +49,7 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
         next if string_values.empty?
 
         # Validate key. Filtering not supported for non-CDE keys. Raise in dev, otherwise skip and report to Sentry.
-        field_type, = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
+        field_type, custom_assessment_field = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
         if field_type != Hmis::Ce::Match::Expression::FieldMap::CDE
           msg = "CE client dynamic filters only support `cde.*` expression keys. Skipping filter on key: #{filter.key.inspect}"
           raise ArgumentError, msg if Rails.env.development? || Rails.env.test?
@@ -58,9 +58,7 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
           next
         end
 
-        _, resolved = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
-        sql, binds = Hmis::Ce::Match::Expression::CdeFieldMap.sql_cde_value_exists_for_ce_client_proxy(resolved, string_values)
-        scope = scope.where([sql, *binds])
+        scope = scope.matching_dynamic_cde_filter(custom_assessment_field, string_values)
       end
 
       scope.distinct

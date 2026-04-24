@@ -41,8 +41,11 @@ module Sources
       destination_id_to_values.values
     end
 
+    # By default, GraphQL::Dataloader buckets sources by constructor arguments. Override
+    # `batch_key_for` so the same logical field set batches together regardless of key
+    # order or String/Symbol element types (must stay aligned with `#initialize`).
     def self.batch_key_for(*_batch_args, keys:)
-      [Array.wrap(keys).map(&:to_s).sort]
+      [Array.wrap(keys).map(&:to_s).uniq.first(MAX_KEYS).sort]
     end
   end
 end
