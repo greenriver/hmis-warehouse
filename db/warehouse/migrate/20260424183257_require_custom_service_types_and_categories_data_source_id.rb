@@ -10,10 +10,8 @@ class RequireCustomServiceTypesAndCategoriesDataSourceId < ActiveRecord::Migrati
   end
 
   def down
-    safety_assured do
-      change_column_null 'CustomServiceTypes', :data_source_id, true
-      change_column_null 'CustomServiceCategories', :data_source_id, true
-    end
+    change_column_null 'CustomServiceTypes', :data_source_id, true
+    change_column_null 'CustomServiceCategories', :data_source_id, true
   end
 
   private
