@@ -1089,6 +1089,19 @@ module HmisCsvImporter::Importer
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
+    # Returns an Arel node that casts a UTC timestamp column to a DATE using
+    # the application's local timezone. This replicates Ruby's `.to_date`
+    private def local_date_cast_arel(conn, arel_column)
+      tz = Time.zone.tzinfo.name
+      utc_tz = Arel::Nodes::SqlLiteral.new("'UTC'")
+      local_tz = Arel::Nodes::SqlLiteral.new(conn.quote(tz))
+
+      at_utc = Arel::Nodes::InfixOperation.new('AT TIME ZONE', arel_column, utc_tz)
+      at_local = Arel::Nodes::InfixOperation.new('AT TIME ZONE', at_utc, local_tz)
+
+      Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(at_local, Arel.sql('DATE'))])
+    end
+
     # Having already excluded unchanged records, compare DateUpdated.
     # If the incoming record is strictly older than the existing one, trust the warehouse.
     # Exception: if this is the most recent export for the data source, the incoming data
@@ -1103,9 +1116,10 @@ module HmisCsvImporter::Importer
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
 
-      # CAST to DATE so the comparison is at day granularity (ignoring time-of-day).
-      staging_date = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(staging[:DateUpdated], Arel.sql('DATE'))])
-      wh_date      = Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(wh[:DateUpdated], Arel.sql('DATE'))])
+      conn = klass.connection
+      staging_date = local_date_cast_arel(conn, staging[:DateUpdated])
+      wh_date      = local_date_cast_arel(conn, wh[:DateUpdated])
+
       exists = incoming_scope.
         where(staging[klass.hud_key].eq(wh[klass.hud_key])).
         where(Arel::Nodes::InfixOperation.new('<', staging_date, wh_date)).
