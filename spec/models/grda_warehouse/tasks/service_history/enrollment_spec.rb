@@ -282,4 +282,40 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
       end
     end
   end
+
+  describe 'processing job tracking via service_history_processing_job_id' do
+    let(:project) { create :grda_warehouse_hud_project, data_source: data_source, organization: organization, project_type: 0 }
+    let(:client) { create_client_with_warehouse_link(dob: '2000-01-01') }
+    let!(:enrollment) do
+      create :grda_warehouse_hud_enrollment, data_source: data_source, project: project, client: client, entry_date: '2023-01-01'
+    end
+    let!(:exit_record) do
+      create :hud_exit, data_source_id: data_source.id, EnrollmentID: enrollment.EnrollmentID,
+             PersonalID: client.PersonalID, ExitDate: '2023-01-10'
+    end
+    let(:destination_client) { GrdaWarehouse::WarehouseClient.find_by(source_id: client.id).destination }
+
+    it 'stamps the DJ id on enrollments when queued and clears it after the job runs' do
+      expect(enrollment.reload.service_history_processing_job_id).to be_nil
+
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_clients(destination_client.id)
+
+      expect(enrollment.reload.service_history_processing_job_id).to be_present
+
+      # In the test environment, work_off processes the queued jobs synchronously
+      Delayed::Worker.new.work_off
+
+      expect(enrollment.reload.service_history_processing_job_id).to be_nil
+    end
+
+    it 'clients_still_processing? returns true while job is pending and false after completion' do
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_clients(destination_client.id)
+
+      expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: destination_client.id)).to be true
+
+      Delayed::Worker.new.work_off
+
+      expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: destination_client.id)).to be false
+    end
+  end
 end

@@ -18,10 +18,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     SO = HudHelper.util.residential_project_type_numbers_by_code[:so]
 
-    def self.batch_job_ids
-      builder_batch_job_scope.pluck(:id)
-    end
-
     def self.batch_process_unprocessed!(max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
       queue_batch_process_unprocessed!
       wait_for_processing(max_wait_seconds: max_wait_seconds)

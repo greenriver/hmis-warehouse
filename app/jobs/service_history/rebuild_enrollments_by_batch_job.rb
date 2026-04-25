@@ -25,14 +25,27 @@ module ServiceHistory
           where(id: id).
           each(&:rebuild_service_history!)
       end
+
+      clear_processing_job_id
     end
 
     def enqueue(job)
       job.priority = BaseJob::PRE_BULK_PROCESSING_PRIORITY_9
     end
 
+    def failure(_job)
+      clear_processing_job_id
+    end
+
     def max_attempts
       2
+    end
+
+    private
+
+    def clear_processing_job_id
+      GrdaWarehouse::Hud::Enrollment.where(id: @enrollment_ids).
+        update_all(service_history_processing_job_id: nil)
     end
   end
 end

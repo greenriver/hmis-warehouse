@@ -153,8 +153,11 @@ module ServiceHistory::Builder
       en_ids -= already_queued.to_a
       Rails.logger.info "Found #{en_ids.count} enrollments needing processing"
       en_ids.each_slice(400) do |batch|
-        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))
-        # GrdaWarehouse::Hud::Enrollment.where(id: batch).update_all(service_history_processing_job_id: job.id)
+        job = Delayed::Job.enqueue(
+          ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch),
+          queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
+        )
+        GrdaWarehouse::Hud::Enrollment.where(id: batch).update_all(service_history_processing_job_id: job.id)
       end
     end
   end
