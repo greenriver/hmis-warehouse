@@ -282,4 +282,147 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
       end
     end
   end
+
+  describe '#rebuild_service_history! for SO enrollments with extrapolation' do
+    # SO = project_type 4. street_outreach_acts_as_bednight? returns true when the project
+    # has any enrollment with current_living_situations (detected via EXISTS join). We stub
+    # the config and the predicate directly to keep tests fast and deterministic.
+    let(:project) { create :grda_warehouse_hud_project, data_source: data_source, organization: organization, project_type: 4 }
+    let!(:client) { create_client_with_warehouse_link(dob: '1990-01-01') }
+    let(:enrollment) do
+      en = create :grda_warehouse_hud_enrollment, data_source: data_source, project: project, client: client, entry_date: '2023-01-10'
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id)
+    end
+
+    # CLS contact on Jan 10 makes street_outreach_acts_as_bednight? return true
+    let!(:cls_jan10) do
+      create :hud_current_living_situation,
+             data_source_id: data_source.id,
+             EnrollmentID: enrollment.EnrollmentID,
+             PersonalID: client.PersonalID,
+             InformationDate: '2023-01-10'
+    end
+    let!(:exit_record) do
+      create :hud_exit, data_source_id: data_source.id,
+                        EnrollmentID: enrollment.EnrollmentID,
+                        PersonalID: client.PersonalID,
+                        ExitDate: '2023-01-31'
+    end
+
+    before do
+      allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+      allow(GrdaWarehouse::Config).to receive(:get).with(:so_day_as_month).and_return(true)
+    end
+
+    it 'first run triggers a full rebuild and writes extrapolated days' do
+      result = enrollment.rebuild_service_history!
+      expect(result).to eq(:update)
+
+      shs_scope = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+        where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID })
+
+      # The contact on Jan 10 should produce a service day AND extrapolated days filling the rest of January
+      expect(shs_scope.where(record_type: 'service').count).to eq(1)
+      expect(shs_scope.where(record_type: 'extrapolated').count).to be > 0
+    end
+
+    it 'second run on a closed enrollment with no source changes is a no-op' do
+      enrollment.rebuild_service_history!
+
+      initial_count = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+        where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID }).count
+
+      fresh = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment.id)
+      second_result = fresh.rebuild_service_history!
+
+      # Closed enrollment, hash still matches, no new days → nothing to do
+      expect(second_result).to be_nil
+
+      final_count = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+        where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID }).count
+
+      expect(final_count).to eq(initial_count)
+    end
+
+    context 'with an open enrollment (no exit)' do
+      let!(:open_enrollment) do
+        en = create :grda_warehouse_hud_enrollment, data_source: data_source, project: project, client: client, entry_date: '2023-01-10'
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id)
+      end
+      let!(:cls_for_open) do
+        create :hud_current_living_situation,
+               data_source_id: data_source.id,
+               EnrollmentID: open_enrollment.EnrollmentID,
+               PersonalID: client.PersonalID,
+               InformationDate: '2023-01-10'
+      end
+
+      it 'patches new extrapolated days on subsequent runs as the calendar advances' do
+        travel_to Date.new(2023, 1, 15) do
+          open_enrollment.rebuild_service_history!
+        end
+
+        extrapolated_jan15 = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+          where(service_history_enrollments: { enrollment_group_id: open_enrollment.EnrollmentID },
+                record_type: 'extrapolated').pluck(:date)
+        expect(extrapolated_jan15).not_to include(Date.new(2023, 1, 16))
+
+        result = travel_to Date.new(2023, 1, 16) do
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(open_enrollment.id).rebuild_service_history!
+        end
+
+        expect(result).to eq(:patch)
+
+        extrapolated_jan16 = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+          where(service_history_enrollments: { enrollment_group_id: open_enrollment.EnrollmentID },
+                record_type: 'extrapolated').pluck(:date)
+        expect(extrapolated_jan16).to include(Date.new(2023, 1, 16))
+      end
+    end
+
+    it 'new CLS contact triggers a full rebuild via hash mismatch' do
+      enrollment.rebuild_service_history!
+
+      # Add a new contact after first build
+      create :hud_current_living_situation,
+             data_source_id: data_source.id,
+             EnrollmentID: enrollment.EnrollmentID,
+             PersonalID: client.PersonalID,
+             InformationDate: '2023-01-20'
+
+      result = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment.id).rebuild_service_history!
+      expect(result).to eq(:update)
+
+      service_dates = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).where(
+        service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
+        record_type: 'service',
+      ).pluck(:date)
+
+      expect(service_dates).to include('2023-01-10'.to_date, '2023-01-20'.to_date)
+    end
+
+    it 'patch_service_history! regenerates missing extrapolated days' do
+      enrollment.rebuild_service_history!
+      enrollment.reload
+
+      # Add a new CLS contact in a different month — this changes the hash and triggers full rebuild
+      # but demonstrates patch_service_history! handles extrapolation when called directly
+      extra_enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment.id)
+
+      # Directly exercise patch_service_history! to confirm it emits extrapolated days
+      # by temporarily removing extrapolated rows and re-patching
+      GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+        where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
+              record_type: 'extrapolated').delete_all
+
+      result = extra_enrollment.patch_service_history!
+      expect(result).to eq(:patch)
+
+      extrapolated_count = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
+        where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
+              record_type: 'extrapolated').count
+
+      expect(extrapolated_count).to be > 0
+    end
+  end
 end

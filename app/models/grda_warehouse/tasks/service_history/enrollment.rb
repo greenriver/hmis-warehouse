@@ -71,9 +71,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_history_valid?
-      # Extrapolating SO is implemented in create_service_history!, just force rebuild
-      return false if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
-
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
 
@@ -97,6 +94,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def should_patch?
       # enrollment is still open
       return true if entry_exit_tracking? && self.exit&.ExitDate.blank?
+      # open SO/extrapolating enrollments need new extrapolated fill-in days added each day
+      return true if extrapolates_days? && self.exit&.ExitDate.blank?
 
       history_matches = build_for_dates.keys.sort == service_dates_from_service_history_for_enrollment.sort
       return false if history_matches
@@ -115,6 +114,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # should patch or rebuild, or do nothing.  If you need more fine grained control
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
+      reset_service_history_memos!
       return false if self.EntryDate < '1970-01-01'.to_date
       return false if destination_client.blank? || project.blank?
       return false if data_source.blank?
@@ -137,6 +137,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
         *service_dates_from_service_history_for_enrollment,
       ).each do |date, record_type|
         days << service_record(date, record_type)
+      end
+      if extrapolates_days?
+        record_type = build_for_dates.values.last
+        days += add_extrapolated_days(build_for_dates.keys, record_type)
       end
       return false unless days.any?
 
@@ -199,7 +203,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           build_for_dates.each do |d, record_type|
             days << service_record(d, record_type)
           end
-          if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
+          if extrapolates_days?
             record_type = build_for_dates.values.last
             days += add_extrapolated_days(build_for_dates.keys, record_type)
           end
@@ -236,6 +240,24 @@ module GrdaWarehouse::Tasks::ServiceHistory
       update(processed_as: calculate_hash)
 
       :update
+    end
+
+    # Clears ivars that depend on DB state (SHS/SHE rows), Date.current, or the
+    # source-data hash — all of which can change between successive calls on the
+    # same instance (e.g., repeated console calls, tests using travel_to).
+    # Household-composition ivars are intentionally left alone because they
+    # depend only on stable source enrollment data.
+    def reset_service_history_memos!
+      @calculate_hash = nil
+      @build_for_dates = nil
+      @build_from = nil
+      @build_until = nil
+      @service_dates_from_service_history_for_enrollment = nil
+      @extrapolated_dates_from_service_history_for_enrollment = nil
+      @entry_record_id = nil
+      @date_range = nil
+      @default_day = nil
+      @default_service_day = nil
     end
 
     def entry_record_id
@@ -345,10 +367,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def extrapolated_dates_from_service_history_for_enrollment
       return [] unless destination_client.present? && service_history_enrollment.present?
 
+      # Use beginning_of_month (not EntryDate) because add_extrapolated_days fills whole
+      # months, including days before EntryDate (e.g. Jan 1-9 when EntryDate is Jan 10).
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
           service_history_enrollment_id: entry_record_id,
-        ).where(shs_t[:date].gteq(self.EntryDate)).
+        ).where(shs_t[:date].gteq(self.EntryDate.beginning_of_month)).
         order(date: :asc).
         pluck(:date)
     end
@@ -725,6 +749,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def project_extrapolates_contacts?
       project.extrapolate_contacts
+    end
+
+    def extrapolates_days?
+      (street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)) || project_extrapolates_contacts?
     end
 
     def build_for_dates
