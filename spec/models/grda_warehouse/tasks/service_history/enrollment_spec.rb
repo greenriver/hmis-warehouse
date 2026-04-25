@@ -317,5 +317,12 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
 
       expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: destination_client.id)).to be false
     end
+
+    it 'does not enqueue duplicate jobs when queue_clients is called twice before any job runs' do
+      expect do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_clients(destination_client.id)
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_clients(destination_client.id)
+      end.to change(Delayed::Job, :count).by(1)
+    end
   end
 end
