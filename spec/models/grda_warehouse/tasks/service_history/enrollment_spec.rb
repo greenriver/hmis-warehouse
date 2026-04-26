@@ -291,7 +291,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
     end
     let!(:exit_record) do
       create :hud_exit, data_source_id: data_source.id, EnrollmentID: enrollment.EnrollmentID,
-             PersonalID: client.PersonalID, ExitDate: '2023-01-10'
+                        PersonalID: client.PersonalID, ExitDate: '2023-01-10'
     end
     let(:destination_client) { GrdaWarehouse::WarehouseClient.find_by(source_id: client.id).destination }
 
@@ -312,10 +312,12 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_clients(destination_client.id)
 
       expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: destination_client.id)).to be true
+      expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: [destination_client.id])).to be true
 
       Delayed::Worker.new.work_off
 
       expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: destination_client.id)).to be false
+      expect(GrdaWarehouse::Tasks::ServiceHistory::Enrollment.clients_still_processing?(client_ids: [destination_client.id])).to be false
     end
 
     it 'does not enqueue duplicate jobs when queue_clients is called twice before any job runs' do

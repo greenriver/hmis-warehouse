@@ -33,6 +33,10 @@ module ServiceHistory
       job.priority = BaseJob::PRE_BULK_PROCESSING_PRIORITY_9
     end
 
+    # DJ calls this only after all max_attempts are exhausted (failed_at is set at that point).
+    # Between retries, failed_at remains nil, so the job stays in the active_job_ids set
+    # used by wait_for_processing / clients_still_processing? — enrollment stamps are correctly
+    # treated as in-progress until the retry either succeeds or permanently fails.
     def failure(_job)
       clear_processing_job_id
     end

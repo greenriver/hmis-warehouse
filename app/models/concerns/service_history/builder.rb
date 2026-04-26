@@ -61,7 +61,12 @@ module ServiceHistory::Builder
         Delayed::Worker.new.work_off(2)
       else
         started = Time.current
-        while GrdaWarehouse::Hud::Enrollment.where.not(service_history_processing_job_id: nil).exists?
+        loop do
+          active_job_ids = Delayed::Job.where(failed_at: nil).
+            jobs_for_class('ServiceHistory::RebuildEnrollmentsByBatchJob').pluck(:id)
+          break unless active_job_ids.any? &&
+            GrdaWarehouse::Hud::Enrollment.where(service_history_processing_job_id: active_job_ids).exists?
+
           return if (Time.current - started) > max_wait_seconds
 
           sleep(interval)
@@ -115,9 +120,14 @@ module ServiceHistory::Builder
     def clients_still_processing?(client_ids:)
       client_ids = Array.wrap(client_ids)
 
+      active_job_ids = Delayed::Job.where(failed_at: nil).
+        jobs_for_class('ServiceHistory::RebuildEnrollmentsByBatchJob').pluck(:id)
+      return false if active_job_ids.empty?
+
       GrdaWarehouse::Hud::Enrollment.where(
         id: builder_client_enrollment_ids(client_ids),
-      ).where.not(service_history_processing_job_id: nil).exists?
+        service_history_processing_job_id: active_job_ids,
+      ).exists?
     end
 
     # Class method
@@ -135,14 +145,15 @@ module ServiceHistory::Builder
       # This recovers enrollments left stamped after a worker crash bypassed the failure callback.
       # Delayed::Job lives in the app DB; Enrollment is in the warehouse DB, so we must
       # materialize active job IDs in Ruby rather than using a cross-database subquery.
-      active_job_ids = Delayed::Job.where(failed_at: nil).pluck(:id)
-      scope.where.not(service_history_processing_job_id: nil)
-        .where.not(service_history_processing_job_id: active_job_ids)
-        .update_all(service_history_processing_job_id: nil)
+      active_job_ids = Delayed::Job.where(failed_at: nil).
+        jobs_for_class('ServiceHistory::RebuildEnrollmentsByBatchJob').pluck(:id)
+      scope.where.not(service_history_processing_job_id: nil).
+        where.not(service_history_processing_job_id: active_job_ids).
+        update_all(service_history_processing_job_id: nil)
 
-      en_ids = scope.distinct.joins(:project, :destination_client)
-        .where(service_history_processing_job_id: nil)
-        .order(:data_source_id).pluck(:id, :data_source_id).map(&:first).uniq
+      en_ids = scope.distinct.joins(:project, :destination_client).
+        where(service_history_processing_job_id: nil).
+        order(:data_source_id).pluck(:id, :data_source_id).map(&:first).uniq
 
       Rails.logger.info "Found #{en_ids.count} enrollments needing processing"
       en_ids.each_slice(400) do |batch|
