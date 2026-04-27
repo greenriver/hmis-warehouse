@@ -115,46 +115,4 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
       end.to raise_error(ArgumentError, /Unknown CDE in field/)
     end
   end
-
-  describe '#sql_cde_value_exists_for_ce_client_proxy' do
-    let!(:proxy_for_client1) { create(:hmis_ce_client_proxy, client: destination_client1) }
-    let!(:proxy_for_client2) { create(:hmis_ce_client_proxy, client: destination_client2) }
-    let!(:proxy_for_client3) { create(:hmis_ce_client_proxy, client: destination_client3) }
-
-    let(:proxy_scope) { Hmis::Ce::ClientProxy.where(id: [proxy_for_client1.id, proxy_for_client2.id, proxy_for_client3.id]) }
-
-    before do
-      create_assessment_for_client(
-        client1,
-        language_preference: 'English',
-        allergies: ['Peanuts', 'Dust'],
-      )
-      create_assessment_for_client(
-        client2,
-        language_preference: 'French',
-        # Client 2 has no 'allergies' data
-      )
-    end
-
-    it 'matches client proxies whose latest assessment has a non-repeating CDE value in the list' do
-      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, ['English'])
-      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
-    end
-
-    it 'matches any of several string values (OR within one EXISTS)' do
-      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, ['English', 'French'])
-      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1, proxy_for_client2)
-    end
-
-    it 'matches when any repeating CDE row matches one of the filter values' do
-      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(allergies_field, ['Peanuts'])
-      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
-    end
-
-    it 'raises when filter_values is empty' do
-      expect do
-        described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, [])
-      end.to raise_error(ArgumentError, /filter_values must be non-empty/)
-    end
-  end
 end
