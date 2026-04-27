@@ -20,6 +20,7 @@ module Hmis::Ce::Match::Expression
       cde_t = Hmis::Hud::CustomDataElement.arel_table
       values = Hmis::DestinationClientLatestAssessment.
         where(destination_client_id: client_ids).
+        where(data_source_id: cded.data_source_id).
         where(form_identifier: cded.form_definition_identifier).
         joins(custom_assessment: :custom_data_elements).
         where(cde_t[:data_element_definition_id].eq(cded.id)).
