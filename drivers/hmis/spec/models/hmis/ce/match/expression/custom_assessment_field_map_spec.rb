@@ -115,6 +115,23 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
         expect(result[destination_client2.id]).to be_nil # No intake assessment
       end
     end
+
+    # TODO(#9095): Update this test when the behavior is corrected
+    context 'with multiple forms that have the same identifier across data sources' do
+      let!(:hmis1) { create(:hmis_data_source) }
+      let!(:hmis2) { create(:hmis_data_source) }
+      let(:identifier) { 'my_assessment' }
+      let!(:form1) { create(:hmis_form_definition, identifier: identifier, data_source: hmis1) }
+      let!(:form2) { create(:hmis_form_definition, identifier: identifier, data_source: hmis2) }
+
+      before do
+        create_assessment_for_client(client1, form1, current_date - 2.days)
+        create_assessment_for_client(client1, form2, current_date - 1.day)
+
+        result = field_map.client_query(GrdaWarehouse::Hud::Client.where(id: destination_client1.id), 'my_assessment.assessment_date')
+        expect(result[destination_client1.id]).to eq(current_date - 1.day)
+      end
+    end
   end
 
   describe 'field labels and formatting' do
