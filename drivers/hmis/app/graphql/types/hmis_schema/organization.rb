@@ -31,8 +31,8 @@ module Types
     access_field do
       define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_organization) }
 
-      bool_field(:can_delete_organization?) { policy.can_destroy? }
-      bool_field(:can_edit_organization?) { policy.can_edit? }
+      bool_field(:can_delete_organization) { policy.can_destroy? }
+      bool_field(:can_edit_organization) { policy.can_edit? }
     end
 
     def projects(**args)
