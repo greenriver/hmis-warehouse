@@ -22,6 +22,7 @@ class AppResourceMonitor::GrowthAnalysis < AppResourceMonitor::S3Analysis
     super(prefix: prefix, database: database)
     @days_back = days_back.to_i
     @limit     = limit.to_i
+    raise ArgumentError, 'days_back must be a positive integer' unless @days_back.positive?
   end
 
   def run
@@ -38,7 +39,7 @@ class AppResourceMonitor::GrowthAnalysis < AppResourceMonitor::S3Analysis
     missing = [db_from_key, db_to_key, tbl_from_key, tbl_to_key].count(&:nil?)
     raise ConfigurationError, "Could not locate snapshot files under S3 prefix '#{s3_prefix}'. Has the collector run at least once?" if missing.positive?
 
-    resolved_db = resolve_database_name(db_to_key)
+    resolved_db = validate_database_name!(db_to_key)
 
     db_from  = rows_for(db_from_key, resolved_db)
     db_to    = rows_for(db_to_key, resolved_db)

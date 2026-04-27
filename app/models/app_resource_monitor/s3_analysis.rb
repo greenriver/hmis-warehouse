@@ -56,12 +56,12 @@ class AppResourceMonitor::S3Analysis
 
   def snapshot_time(key)
     match = File.basename(key).match(SNAPSHOT_FILENAME_RE)
-    return Time.at(0) unless match
+    raise ConfigurationError, "Unexpected S3 key filename — cannot parse timestamp: #{File.basename(key)}" unless match
 
     Time.strptime(match[1], TIMESTAMP_FORMAT)
   end
 
-  def resolve_database_name(db_key)
+  def validate_database_name!(db_key)
     all_rows = parse_csv(db_key)
     available = all_rows.map { |r| r['database'] }.uniq.compact
 
@@ -98,6 +98,6 @@ class AppResourceMonitor::S3Analysis
   end
 
   def format_pct(pct)
-    "#{pct >= 0 ? '+' : ''}#{pct}%"
+    "#{pct > 0 ? '+' : ''}#{pct}%"
   end
 end

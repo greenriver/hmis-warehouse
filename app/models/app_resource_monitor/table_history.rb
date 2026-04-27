@@ -31,6 +31,7 @@ class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Analysis
     @table       = table.to_s
     @days_back   = days_back.to_i
     @output_path = output_path.to_s
+    raise ArgumentError, 'days_back must be a positive integer' unless @days_back.positive?
   end
 
   def run
@@ -49,38 +50,36 @@ class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Analysis
     db_key = nearest_key('postgres_database_stats', to_time)
     raise ConfigurationError, "No postgres_database_stats snapshots found under '#{s3_prefix}'." if db_key.nil?
 
-    resolved_db = resolve_database_name(db_key)
+    resolved_db = validate_database_name!(db_key)
 
-    rows_written = 0
+    csv_rows = keys_in_range.sort_by { |key| snapshot_time(key) }.filter_map do |key|
+      row = rows_for(key, resolved_db).find { |r| r['tablename'] == table }
+      next unless row
 
-    CSV.open(output_path, 'w', headers: CSV_COLUMNS, write_headers: true) do |csv|
-      keys_in_range.each do |key|
-        row = rows_for(key, resolved_db).find { |r| r['tablename'] == table }
-        next unless row
+      table_size = row['table_size'].to_i
+      index_size = row['index_size'].to_i
 
-        table_size = row['table_size'].to_i
-        index_size = row['index_size'].to_i
-
-        csv << [
-          snapshot_time(key).strftime('%Y-%m-%d'),
-          table_size,
-          index_size,
-          table_size + index_size,
-          row['num_rows'],
-          row['live_tuples'],
-          row['dead_tuples'],
-          row['dead_tuple_ratio'],
-          row['last_vacuum'],
-          row['last_analyze'],
-        ]
-        rows_written += 1
-      end
+      [
+        snapshot_time(key).strftime('%Y-%m-%d'),
+        table_size,
+        index_size,
+        table_size + index_size,
+        row['num_rows'],
+        row['live_tuples'],
+        row['dead_tuples'],
+        row['dead_tuple_ratio'],
+        row['last_vacuum'],
+        row['last_analyze'],
+      ]
     end
 
-    if rows_written.zero?
+    if csv_rows.empty?
       puts "No data found for table '#{table}' in database '#{resolved_db}'. Check the table name."
     else
-      puts "Wrote #{rows_written} data point#{'s' if rows_written != 1} to #{output_path}"
+      CSV.open(output_path, 'w', headers: CSV_COLUMNS, write_headers: true) do |csv|
+        csv_rows.each { |r| csv << r }
+      end
+      puts "Wrote #{csv_rows.size} data point#{'s' if csv_rows.size != 1} to #{output_path}"
     end
   end
 end
