@@ -64,6 +64,23 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     end
   end
 
+  describe '#can_view_details?' do
+    it 'returns true if user can view details' do
+      create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
+      expect(policy.can_view_details?).to be true
+    end
+
+    it 'returns false if user cannot view the project (required for can_view_enrollment_details)' do
+      create_access_control(user, project, with_permission: [:can_view_enrollment_details])
+      expect(policy.can_view_details?).to be false
+    end
+
+    it 'returns false if user lacks can_view_enrollment_details, even if they can_view_limited_enrollment_details' do
+      create_access_control(user, project.data_source, with_permission: [:can_view_project, :can_view_limited_enrollment_details])
+      expect(policy.can_view_details?).to be false
+    end
+  end
+
   describe 'Global policy' do
     let(:global_policy) { user.policy_for(Hmis::Hud::Enrollment, policy_type: :hmis_enrollment) }
 
