@@ -79,7 +79,6 @@ module Hmis::Ce
     # @param filter_values [Array<String,#to_s>] values to match (e.g. ['English', 'Spanish'])
     # @return [Array(String, Array)] SQL string and bind arguments for `scope.where([sql, *binds])`
     def self.sql_cde_value_exists_for_ce_client_proxy(custom_assessment_field, filter_values)
-      filter_values = Array.wrap(filter_values).map(&:to_s).reject(&:blank?).uniq
       raise ArgumentError, 'filter_values must be non-empty' if filter_values.empty?
 
       conn = ActiveRecord::Base.connection
