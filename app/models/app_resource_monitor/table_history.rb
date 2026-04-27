@@ -21,7 +21,7 @@
 #     output_path: '/tmp/versions_history.csv',
 #   ).run
 #
-class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Report
+class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Analysis
   CSV_COLUMNS = %w[date table_size index_size total_size num_rows live_tuples dead_tuples dead_tuple_ratio last_vacuum last_analyze].freeze
 
   attr_reader :table, :days_back, :output_path
@@ -46,7 +46,10 @@ class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Report
 
     raise ConfigurationError, "No postgres_table_stats snapshots found under '#{s3_prefix}' in the last #{days_back} days." if keys_in_range.empty?
 
-    resolved_db = resolve_database_name(nearest_key('postgres_database_stats', to_time))
+    db_key = nearest_key('postgres_database_stats', to_time)
+    raise ConfigurationError, "No postgres_database_stats snapshots found under '#{s3_prefix}'." if db_key.nil?
+
+    resolved_db = resolve_database_name(db_key)
 
     rows_written = 0
 

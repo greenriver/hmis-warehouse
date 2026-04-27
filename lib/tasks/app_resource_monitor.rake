@@ -12,25 +12,25 @@ namespace :app_resource_monitor do
 
     Arguments (positional):
       prefix     - S3 sub-prefix identifying the target environment (e.g. "clientname-production")
+      database   - exact database name                 (e.g. "warehouse_production")
       days_back  - how many days to look back          (default: 7)
-      database   - substring of the database name      (default: warehouse)
       limit      - number of top tables to display     (default: 10)
 
     Examples:
-      rails "app_resource_monitor:growth_report[clientname-production]"
-      rails "app_resource_monitor:growth_report[clientname-production,14]"
-      rails "app_resource_monitor:growth_report[clientname-production,7,warehouse,20]"
+      rails "app_resource_monitor:growth_analysis[clientname-production,warehouse_production]"
+      rails "app_resource_monitor:growth_analysis[clientname-production,warehouse_production,14]"
+      rails "app_resource_monitor:growth_analysis[clientname-production,warehouse_production,7,20]"
 
     Requires an active GrdaWarehouse::RemoteCredentials::S3 row with slug 'app_stats'.
   DESC
-  task :growth_report, [:prefix, :days_back, :database, :limit] => [:environment] do |_task, args|
-    prefix    = args.fetch(:prefix) { abort 'prefix argument is required (e.g. "clientname-production")' }
+  task :growth_analysis, [:prefix, :database, :days_back, :limit] => [:environment] do |_task, args|
+    prefix    = args.fetch(:prefix)   { abort 'prefix argument is required (e.g. "clientname-production")' }
+    database  = args.fetch(:database) { abort 'database argument is required (e.g. "warehouse_production")' }
     days_back = (args[:days_back] || 7).to_i
-    database  = args[:database].presence || 'warehouse'
     limit     = (args[:limit] || 10).to_i
 
-    AppResourceMonitor::GrowthReport.new(prefix: prefix, days_back: days_back, database: database, limit: limit).run
-  rescue AppResourceMonitor::S3Report::ConfigurationError => e
+    AppResourceMonitor::GrowthAnalysis.new(prefix: prefix, days_back: days_back, database: database, limit: limit).run
+  rescue AppResourceMonitor::S3Analysis::ConfigurationError => e
     abort e.message
   end
 
@@ -58,7 +58,7 @@ namespace :app_resource_monitor do
     output_path = args[:output_path].presence || './table_history.csv'
 
     AppResourceMonitor::TableHistory.new(prefix: prefix, table: table, database: database, days_back: days_back, output_path: output_path).run
-  rescue AppResourceMonitor::S3Report::ConfigurationError => e
+  rescue AppResourceMonitor::S3Analysis::ConfigurationError => e
     abort e.message
   end
 end

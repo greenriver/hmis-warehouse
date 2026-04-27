@@ -8,13 +8,13 @@
 
 require 'csv'
 
-# == AppResourceMonitor::S3Report
+# == AppResourceMonitor::S3Analysis
 #
-# Base class for reports that read historical postgres stats CSVs from S3.
+# Base class for analyses that read historical postgres stats CSVs from S3.
 # Provides shared S3 connection, key listing, snapshot parsing, and
-# database name resolution. Subclasses implement `run`.
+# database name validation. Subclasses implement `run`.
 #
-class AppResourceMonitor::S3Report
+class AppResourceMonitor::S3Analysis
   class ConfigurationError < StandardError; end
 
   TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
@@ -34,7 +34,7 @@ class AppResourceMonitor::S3Report
   end
 
   def s3_config
-    @s3_config ||= GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'app_stats').sole
+    @s3_config ||= GrdaWarehouse::RemoteCredentials::S3.active.find_by(slug: 'app_stats')
   end
 
   def s3

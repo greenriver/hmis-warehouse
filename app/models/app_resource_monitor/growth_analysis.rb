@@ -6,16 +6,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# == AppResourceMonitor::GrowthReport
+# == AppResourceMonitor::GrowthAnalysis
 #
 # Fetches historical postgres stats from S3 and reports database and table
 # size growth between two snapshots. Requires an active RemoteCredentials::S3
 # row with slug 'app_stats'.
 #
 # Usage (from rake task):
-#   AppResourceMonitor::GrowthReport.new(prefix: 'clientname-production', database: 'warehouse_production', days_back: 7, limit: 10).run
+#   AppResourceMonitor::GrowthAnalysis.new(prefix: 'clientname-production', database: 'warehouse_production', days_back: 7, limit: 10).run
 #
-class AppResourceMonitor::GrowthReport < AppResourceMonitor::S3Report
+class AppResourceMonitor::GrowthAnalysis < AppResourceMonitor::S3Analysis
   attr_reader :days_back, :limit
 
   def initialize(prefix:, database:, days_back: 7, limit: 10)
@@ -78,23 +78,26 @@ class AppResourceMonitor::GrowthReport < AppResourceMonitor::S3Report
     puts ''
 
     tbl_from_index = tbl_from.index_by { |r| r['tablename'] }
-    tbl_deltas = tbl_to.filter_map do |row|
+    tbl_deltas = tbl_to.map do |row|
       name   = row['tablename']
       before = tbl_from_index[name]
-      next unless before
 
-      before_total = before['table_size'].to_i + before['index_size'].to_i
+      before_total = before ? before['table_size'].to_i + before['index_size'].to_i : 0
       after_total  = row['table_size'].to_i + row['index_size'].to_i
-      { name: name, delta: after_total - before_total, before: before_total, after: after_total }
+      { name: name, delta: after_total - before_total, before: before_total, after: after_total, new_table: before.nil? }
     end.sort_by { |r| -r[:delta] }.first(limit)
 
+    has_new_tables = tbl_deltas.any? { |r| r[:new_table] }
+
     puts "Top #{tbl_deltas.size} tables by total size growth:"
-    puts format('  %-4s %-45s %-18s %s', '#', 'Table', 'Size change', '% of DB growth')
+    puts format('  %-4s %-46s %-18s %s', '#', 'Table', 'Size change', '% of DB growth')
     puts "  #{'-' * 78}"
     tbl_deltas.each_with_index do |row, i|
       pct_of_total = db_delta != 0 ? (row[:delta].to_f / db_delta * 100).round(1) : 0.0
-      puts format('  %-4d %-45s %-18s %s', i + 1, row[:name], format_delta_bytes(row[:delta]), format_pct(pct_of_total))
+      label = row[:new_table] ? "#{row[:name]} *" : row[:name]
+      puts format('  %-4d %-46s %-18s %s', i + 1, label, format_delta_bytes(row[:delta]), format_pct(pct_of_total))
     end
+    puts "  * table did not exist at the start of the period" if has_new_tables
     puts ''
   end
 end
