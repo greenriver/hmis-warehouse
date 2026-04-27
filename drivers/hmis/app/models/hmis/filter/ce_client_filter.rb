@@ -44,10 +44,6 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
       end
 
       input.dynamic_filters.each do |filter|
-        # Skip if no values to match
-        string_values = Array.wrap(filter.values).map(&:to_s).reject(&:blank?).uniq
-        next if string_values.empty?
-
         # Validate key. Filtering not supported for non-CDE keys. Raise in dev, otherwise skip and report to Sentry.
         field_type, custom_assessment_field = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
         if field_type != Hmis::Ce::Match::Expression::FieldMap::CDE
@@ -58,7 +54,7 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
           next
         end
 
-        scope = scope.matching_dynamic_cde_filter(custom_assessment_field, string_values)
+        scope = scope.matching_dynamic_cde_filter(custom_assessment_field, filter.values)
       end
 
       scope.distinct
