@@ -23,34 +23,7 @@ We need a pattern that:
 
 2. **Caching policy instances in the access object**: Use `define_method` on the access subclass to memoize helpers (e.g. `policy`, `global_policy`, or a domain-specific name like `referral_policy`), so multiple fields share one `policy_for` resolution per access object.
 
-3. **Examples**: The following ruby sketch demonstrates the proposed shape.
-```ruby
-access_field do
-  # Memoize policies for reuse
-  define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_client) }
-  define_method(:global_policy) { @global_policy ||= policy_for(object.class, policy_type: :hmis_client) }
-
-  # Instance policy (resource is the loaded record)
-  bool_field(:can_view_client_name) { policy.can_view_name? }
-
-  # Global (data-source–scoped) policy
-  bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
-
-  # Different policy type
-  bool_field(:can_view_referrals) do
-    policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_view_referrals?
-  end
-
-  # Complex logic, such as using an instance policy of a related record, or checking multiple different policies
-  bool_field(:can_view_target_project) do
-    related_record = load_ar_association(object, :something_else)
-    another_policy = policy_for(related_record, policy_type: :something_else)
-    another_policy.can_view?
-  end
-end
-```
-
-4. **Coexistence**: Legacy `can`, `composite_perm`, and `root_can` remain valid during migration. No requirement to rewrite all `access_field` blocks at once.
+3. **Coexistence**: Legacy `can`, `composite_perm`, and `root_can` remain valid during migration. No requirement to rewrite all `access_field` blocks at once.
 
 ## Consequences
 
