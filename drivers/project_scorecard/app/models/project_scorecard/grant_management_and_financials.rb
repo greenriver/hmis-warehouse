@@ -64,8 +64,13 @@ module ProjectScorecard
         score(percentage_recaptured, 0..2, 3..5)
       end
 
+      def supportive_services_score
+        return 5 if supportive_services?
+        return 0 unless supportive_services.nil?
+      end
+
       def pit_participation_score
-        return 10 if pit_participation?
+        return 5 if pit_participation?
         return 0 unless pit_participation.nil?
       end
 
@@ -77,7 +82,7 @@ module ProjectScorecard
       end
 
       def meetings_attended_score
-        score(percentage_meetings_attended, 75..Float::INFINITY, 50..74)
+        score(percentage_meetings_attended, 70..Float::INFINITY, 50..69)
       end
     end
   end
