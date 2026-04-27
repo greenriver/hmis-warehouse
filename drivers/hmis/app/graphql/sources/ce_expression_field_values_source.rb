@@ -12,40 +12,44 @@ module Sources
   class CeExpressionFieldValuesSource < GraphQL::Dataloader::Source
     MAX_KEYS = 50
 
-    def initialize(keys:)
-      @keys = Array.wrap(keys).map(&:to_s).uniq.first(MAX_KEYS)
+    def self.normalize_keys!(keys)
+      arr = Array.wrap(keys).map(&:to_s).uniq.sort
+      raise ArgumentError, "CeExpressionFieldValuesSource accepts at most #{MAX_KEYS} expression keys (#{arr.size} given)" if arr.size > MAX_KEYS
+
+      arr
     end
 
-    # @return [Array<Hash{String => Object}}] of values for the given keys, one for each destination client id in the same order as the input
+    def initialize(keys:)
+      @keys = self.class.normalize_keys!(keys)
+    end
+
+    # @return [Array<Hash{String => Object}>] One hash per element of `destination_client_ids`, same order
     def fetch(destination_client_ids)
-      ids = Array.wrap(destination_client_ids).filter_map { |raw| raw.presence&.to_i }.uniq
-      return [] if ids.empty?
+      batch = Array.wrap(destination_client_ids)
+      return batch.map { {} } if @keys.empty?
 
-      # Create map to populate with values for each destination client
-      # { destination_client_id => {} }
-      destination_id_to_values = ids.index_with { |_id| {} }
-      return destination_id_to_values.values if @keys.empty? # return empty if no keys provided
-
-      # Get clients to resolve expressions for
-      clients = GrdaWarehouse::Hud::Client.where(id: ids)
+      ordered_ids = batch.map(&:to_i)
+      unique_ids = ordered_ids.uniq
+      clients = GrdaWarehouse::Hud::Client.where(id: unique_ids)
       field_map = Hmis::Ce::Match::Expression::FieldMap.new
 
-      # Resolve values for each key, and store in the destination_id_to_values map
+      # { destination_client_id => { key => value } }
+      id_to_values = unique_ids.index_with { {} }
+
       @keys.each do |key|
         values = field_map.client_query(clients, key)
-        ids.each do |id|
-          destination_id_to_values[id][key] = values[id]
-        end
+        unique_ids.each { |id| id_to_values[id][key] = values[id] }
       end
 
-      destination_id_to_values.values
+      # return in the same order as the input
+      ordered_ids.map { |id| id_to_values[id] || {} }
     end
 
     # By default, GraphQL::Dataloader buckets sources by constructor arguments. Override
     # `batch_key_for` so the same logical field set batches together regardless of key
-    # order or String/Symbol element types (must stay aligned with `#initialize`).
+    # order or String/Symbol element types (same normalization as `#initialize`).
     def self.batch_key_for(*_batch_args, keys:)
-      [Array.wrap(keys).map(&:to_s).uniq.first(MAX_KEYS).sort]
+      [normalize_keys!(keys)]
     end
   end
 end
