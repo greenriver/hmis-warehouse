@@ -15,7 +15,7 @@ require 'csv'
 # row with slug 'app_stats'.
 #
 # Usage (from rake task):
-#   AppResourceMonitor::GrowthReport.new(days_back: 7, database: 'warehouse', limit: 10).run
+#   AppResourceMonitor::GrowthReport.new(prefix: 'clientname-production', days_back: 7, database: 'warehouse', limit: 10).run
 #
 class AppResourceMonitor::GrowthReport
   class ConfigurationError < StandardError; end
@@ -23,9 +23,10 @@ class AppResourceMonitor::GrowthReport
   TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
   SNAPSHOT_FILENAME_RE = /(\d{14})\.csv\z/
 
-  attr_reader :days_back, :database, :limit
+  attr_reader :prefix, :days_back, :database, :limit
 
-  def initialize(days_back: 7, database: 'warehouse', limit: 10)
+  def initialize(prefix:, days_back: 7, database: 'warehouse', limit: 10)
+    @prefix    = prefix.to_s
     @days_back = days_back.to_i
     @database  = database.to_s
     @limit     = limit.to_i
@@ -45,13 +46,15 @@ class AppResourceMonitor::GrowthReport
     missing = [db_from_key, db_to_key, tbl_from_key, tbl_to_key].count(&:nil?)
     raise ConfigurationError, "Could not locate snapshot files under S3 prefix '#{s3_prefix}'. Has the collector run at least once?" if missing.positive?
 
-    db_from  = rows_for_database(db_from_key)
-    db_to    = rows_for_database(db_to_key)
-    warn_on_ambiguous_database(db_to)
-    tbl_from = rows_for_database(tbl_from_key)
-    tbl_to   = rows_for_database(tbl_to_key)
+    resolved_db = resolve_database_name(db_to_key)
+
+    db_from  = rows_for(db_from_key, resolved_db)
+    db_to    = rows_for(db_to_key, resolved_db)
+    tbl_from = rows_for(tbl_from_key, resolved_db)
+    tbl_to   = rows_for(tbl_to_key, resolved_db)
 
     print_report(
+      resolved_db: resolved_db,
       db_from: db_from.first,
       db_to: db_to.first,
       tbl_from: tbl_from,
@@ -71,18 +74,8 @@ class AppResourceMonitor::GrowthReport
     @s3 ||= s3_config.s3
   end
 
-  # Mirrors the prefix construction in CollectStatsJob#perform.
   def s3_prefix
-    @s3_prefix ||= [
-      s3_config.path,
-      [client_name, Rails.env].map(&:strip).join('-'),
-    ].join('/')
-  end
-
-  def client_name
-    ENV.fetch('CLIENT') do
-      raise ConfigurationError, 'ENV["CLIENT"] must be set to match the S3 prefix used by the stats collector.'
-    end
+    @s3_prefix ||= [s3_config.path, prefix].join('/')
   end
 
   def keys_for(file_prefix)
@@ -101,30 +94,33 @@ class AppResourceMonitor::GrowthReport
     Time.strptime(match[1], TIMESTAMP_FORMAT)
   end
 
-  def warn_on_ambiguous_database(rows)
-    names = rows.map { |r| r['database'] }.uniq
-    return if names.size <= 1
+  def resolve_database_name(db_key)
+    all_rows = parse_csv(db_key)
+    available = all_rows.map { |r| r['database'] }.uniq.compact
 
-    puts "WARNING: '#{database}' matched #{names.size} databases: #{names.join(', ')}"
-    puts "  Using '#{names.first}'. Pass a more specific name to disambiguate."
-    puts ''
-    rows.select! { |r| r['database'] == names.first }
+    raise ConfigurationError, "No database named '#{database}' found in snapshot. Available: #{available.join(', ')}" unless available.include?(database)
+
+    database
   end
 
-  def rows_for_database(key)
+  def rows_for(key, exact_db_name)
+    parse_csv(key).select { |r| r['database'] == exact_db_name }
+  end
+
+  def parse_csv(key)
     io = s3.get_as_io(key: key)
     io.rewind
-    CSV.parse(io.read, headers: true).map(&:to_h).select { |r| r['database']&.include?(database) }
+    CSV.parse(io.read, headers: true).map(&:to_h)
   end
 
-  def print_report(db_from:, db_to:, tbl_from:, tbl_to:, from_time:, to_time:)
+  def print_report(resolved_db:, db_from:, db_to:, tbl_from:, tbl_to:, from_time:, to_time:)
     puts ''
-    puts "Database Growth Report: #{database}"
+    puts "Database Growth Report: #{resolved_db}"
     puts "Period: #{from_time.strftime('%Y-%m-%d %H:%M')} → #{to_time.strftime('%Y-%m-%d %H:%M')} (#{days_back} days)"
     puts ''
 
     if db_from.nil? || db_to.nil?
-      puts "No rows found for database matching '#{database}'. Check that the database argument is a substring of the actual database name in the CSV."
+      puts "No rows found for database matching '#{database}' in one or both snapshots."
       return
     end
 
@@ -171,7 +167,7 @@ class AppResourceMonitor::GrowthReport
   end
 
   def format_delta_bytes(num)
-    "#{n >= 0 ? '+' : '-'}#{format_bytes(num)}"
+    "#{num >= 0 ? '+' : '-'}#{format_bytes(num)}"
   end
 
   def format_pct(pct)
