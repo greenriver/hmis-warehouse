@@ -114,6 +114,18 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
       global_permissions.include?(:can_administrate_coordinated_entry)
     end
 
+    # Whether the user has permission to view SOME Referrals in the current DataSource
+    # WARNING: use Instance policy to authorize access to a specific referral, not this method.
+    def can_view_referrals?
+      global_permissions.include?(:can_view_referrals)
+    end
+
+    # Whether the user has permission to view SOME of their own referrals in the Data Source.
+    # WARNING: use Instance policy to authorize access to a specific referral, not this method.
+    def can_view_own_referrals?
+      global_permissions.include?(:can_view_own_referrals)
+    end
+
     protected
 
     def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Ce::Referral)
