@@ -74,13 +74,13 @@
           %br
           PSH $9,000 - 11,000
           %br
-          RRH $2,500 - 4,500
+          RRH $2,500 - 5,400
         .mb-4
           Points: 0
           %br
           PSH >=$11,001
           %br
-          RRH >=$4,501
+          RRH >=$5,401
       %td.text-center
         - if (@report.key_project.psh? || @report.key_project.sh? || @report.key_project.rrh?) && ! @report.expansion_year
           = @report.cost_efficiency_score
@@ -125,29 +125,44 @@
       %td.text-center= @report.recaptured_score
     %tr
       %th
+        = Translation.translate('Supportive Services')
+      %th
+        = Translation.translate('Consistent and ongoing participant engagement in supportive services is verified during project monitoring.')
+      %td.text-center{colspan: 2}= f.input :supportive_services, label: false, as: :pretty_boolean, **@report.field_input_options(:supportive_services, current_user)
+      %th
+        .mb-4
+          Points: 5
+          %br
+          Yes
+        .mb-4
+          Points: 0
+          %br
+          No
+      %td.text-center= @report.supportive_services_score
+    %tr
+      %th
         = Translation.translate('PIT Count Participation')
       %th
         = Translation.translate('The measure indicates if agency is participating in CoC-related activities')
         %br
-        = Translation.translate('PIT Registration or PIT Data')
+        = Translation.translate('Active participation in conducting the PIT count')
       %td.text-center{colspan: 2}= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
       %th
         .mb-4
-          Points: 10
+          Points: 5
           %br
           Yes
-
         .mb-4
           Points: 0
           %br
           No
       %td.text-center= @report.pit_participation_score
     %tr
-      %th CoC General Meeting Attendance
+      %th= Translation.translate('Case Conferencing Attendance')
       %th
         = simple_format(Translation.translate('To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation.'))
         %br
-        = Translation.translate('TCHC Sign-In Sheets')
+        = Translation.translate('Sign-In Sheets')
       %td.p-0
         %table.table.mb-0
           %tbody
@@ -162,11 +177,11 @@
         .mb-4
           Points: 10
           %br
-          >= 75%
+          >= 70%
         .mb-4
           Points: 5
           %br
-          50 - 74%
+          50 - 69%
         .mb-4
           Points: 0
           %br
