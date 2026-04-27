@@ -1,7 +1,7 @@
 The icon font is generated at fontello.
 
 To recreate the icon font and add to it (recommended method):
-0. At https://fontello.com upload the existing icons.svg from this directory
+0. At https://fontello.com upload the existing fontello-config.json from this directory
 1. Select the characters/images in the Custom Icons section
 2. Add new characters/images
 3. Rename the font "icons"
