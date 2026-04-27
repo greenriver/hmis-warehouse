@@ -30,7 +30,35 @@ namespace :app_resource_monitor do
     limit     = (args[:limit] || 10).to_i
 
     AppResourceMonitor::GrowthReport.new(prefix: prefix, days_back: days_back, database: database, limit: limit).run
-  rescue AppResourceMonitor::GrowthReport::ConfigurationError => e
+  rescue AppResourceMonitor::S3Report::ConfigurationError => e
+    abort e.message
+  end
+
+  desc <<~DESC
+    Export a daily time-series CSV for a single table's size metrics.
+
+    Arguments (positional):
+      prefix      - S3 sub-prefix identifying the target environment (e.g. "clientname-production")
+      table       - exact table name to inspect (e.g. "versions")
+      database    - exact database name (e.g. "warehouse_production")
+      days_back   - how many days to look back                        (default: 30)
+      output_path - path for the output CSV file                      (default: ./table_history.csv)
+
+    Examples:
+      rails "app_resource_monitor:table_history[clientname-production,versions,warehouse_production]"
+      rails "app_resource_monitor:table_history[clientname-production,versions,warehouse_production,90,/tmp/versions.csv]"
+
+    Requires an active GrdaWarehouse::RemoteCredentials::S3 row with slug 'app_stats'.
+  DESC
+  task :table_history, [:prefix, :table, :database, :days_back, :output_path] => [:environment] do |_task, args|
+    prefix      = args.fetch(:prefix)   { abort 'prefix argument is required (e.g. "clientname-production")' }
+    table       = args.fetch(:table)    { abort 'table argument is required (e.g. "versions")' }
+    database    = args.fetch(:database) { abort 'database argument is required (e.g. "warehouse_production")' }
+    days_back   = (args[:days_back] || 30).to_i
+    output_path = args[:output_path].presence || './table_history.csv'
+
+    AppResourceMonitor::TableHistory.new(prefix: prefix, table: table, database: database, days_back: days_back, output_path: output_path).run
+  rescue AppResourceMonitor::S3Report::ConfigurationError => e
     abort e.message
   end
 end
