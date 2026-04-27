@@ -37,7 +37,7 @@ class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Analysis
   def run
     validate_config!
 
-    to_time   = Time.current
+    to_time   = as_of
     from_time = to_time - days_back.days
 
     keys_in_range = keys_for('postgres_table_stats').select do |key|

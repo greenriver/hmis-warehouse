@@ -28,7 +28,7 @@ class AppResourceMonitor::GrowthAnalysis < AppResourceMonitor::S3Analysis
   def run
     validate_config!
 
-    to_time   = Time.current
+    to_time   = as_of
     from_time = to_time - days_back.days
 
     db_from_key  = nearest_key('postgres_database_stats', from_time)

@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# Export a daily time-series CSV for a single table's size metrics.
+# Useful for charting whether a table grew suddenly or gradually over time.
+#
+# Requires an active GrdaWarehouse::RemoteCredentials::S3 row with slug 'app_stats'.
+#
+# Examples:
+#   bin/app_resource_monitor/table_history --prefix=clientname-production --database=warehouse_production --table=versions
+#   bin/app_resource_monitor/table_history --prefix=clientname-production --database=warehouse_production --table=versions --days-back=90
+#   bin/app_resource_monitor/table_history --prefix=clientname-production --database=warehouse_production --table=versions --days-back=90 --output=/tmp/versions.csv
+#   bin/app_resource_monitor/table_history --prefix=clientname-production --database=warehouse_production --table=versions --as-of=2025-01-31 --days-back=30
+
+require 'optparse'
+require 'date'
+
+options = { days_back: 30, output_path: './table_history.csv' }
+
+OptionParser.new do |o|
+  o.banner = 'Usage: bin/app_resource_monitor/table_history --prefix=PREFIX --database=DB --table=TABLE [options]'
+  o.separator ''
+  o.separator 'Required:'
+  o.on('--prefix=PREFIX',   'S3 sub-prefix for the target environment (e.g. "clientname-production")') { |v| options[:prefix]    = v }
+  o.on('--database=DB',     'Exact database name (e.g. "warehouse_production")')                       { |v| options[:database]  = v }
+  o.on('--table=TABLE',     'Exact table name to inspect (e.g. "versions")')                           { |v| options[:table]     = v }
+  o.separator ''
+  o.separator 'Optional:'
+  o.on('--days-back=N',  Integer, 'Number of days to look back (default: 30)')           { |v| options[:days_back]   = v }
+  o.on('--as-of=DATE',            'Anchor date in YYYY-MM-DD format (default: today)')  { |v| options[:as_of]       = Date.parse(v) }
+  o.on('--output=PATH',           'Output CSV path (default: ./table_history.csv)')     { |v| options[:output_path] = v }
+end.parse!
+
+abort 'Error: --prefix is required'   unless options[:prefix]
+abort 'Error: --database is required' unless options[:database]
+abort 'Error: --table is required'    unless options[:table]
+
+require_relative '../../config/environment'
+
+begin
+  AppResourceMonitor::TableHistory.new(**options).run
+rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError, Date::Error => e
+  abort "Error: #{e.message}"
+end

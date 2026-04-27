@@ -20,11 +20,12 @@ class AppResourceMonitor::S3Analysis
   TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
   SNAPSHOT_FILENAME_RE = /(\d{14})\.csv\z/
 
-  attr_reader :prefix, :database
+  attr_reader :prefix, :database, :as_of
 
-  def initialize(prefix:, database:)
+  def initialize(prefix:, database:, as_of: nil)
     @prefix   = prefix.to_s
     @database = database.to_s
+    @as_of    = as_of ? as_of.to_time.end_of_day : Time.current
   end
 
   private
