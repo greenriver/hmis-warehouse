@@ -32,7 +32,7 @@ OptionParser.new do |o|
   o.on('--table=TABLE',     'Exact table name to inspect (e.g. "versions")')                           { |v| options[:table]     = v }
   o.separator ''
   o.separator 'Optional:'
-  o.on('--days-back=N',  Integer, 'Number of days to look back (default: 30)')           { |v| options[:days_back]   = v }
+  o.on('--days-back=N', Integer, 'Number of days to look back (default: 30)') { |v| options[:days_back] = v }
   o.on('--as-of=DATE',            'Anchor date in YYYY-MM-DD format (default: today)')  { |v| options[:as_of]       = Date.parse(v) }
   o.on('--output=PATH',           'Output CSV path (default: ./table_history.csv)')     { |v| options[:output_path] = v }
 end.parse!
@@ -45,6 +45,6 @@ require_relative '../../config/environment'
 
 begin
   AppResourceMonitor::TableHistory.new(**options).run
-rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError, Date::Error => e
+rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError => e
   abort "Error: #{e.message}"
 end

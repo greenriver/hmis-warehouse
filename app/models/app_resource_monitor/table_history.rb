@@ -22,7 +22,7 @@
 #   ).run
 #
 class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Analysis
-  CSV_COLUMNS = %w[date table_size index_size total_size num_rows live_tuples dead_tuples dead_tuple_ratio last_vacuum last_analyze].freeze
+  CSV_COLUMNS = ['date', 'table_size', 'index_size', 'total_size', 'num_rows', 'live_tuples', 'dead_tuples', 'dead_tuple_ratio', 'last_vacuum', 'last_analyze'].freeze
 
   attr_reader :table, :days_back, :output_path
 

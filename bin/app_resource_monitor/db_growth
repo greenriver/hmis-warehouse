@@ -32,7 +32,7 @@ OptionParser.new do |o|
   o.separator 'Optional:'
   o.on('--days-back=N',  Integer, 'Number of days to look back (default: 7)')        { |v| options[:days_back] = v }
   o.on('--limit=N',      Integer, 'Top N tables to display (default: 10)')           { |v| options[:limit]     = v }
-  o.on('--as-of=DATE',            'Anchor date in YYYY-MM-DD format (default: today)') { |v| options[:as_of]     = Date.parse(v) }
+  o.on('--as-of=DATE',            'Anchor date in YYYY-MM-DD format (default: today)') { |v| options[:as_of] = Date.parse(v) }
 end.parse!
 
 abort 'Error: --prefix is required'   unless options[:prefix]
@@ -42,6 +42,6 @@ require_relative '../../config/environment'
 
 begin
   AppResourceMonitor::GrowthAnalysis.new(**options).run
-rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError, Date::Error => e
+rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError => e
   abort "Error: #{e.message}"
 end

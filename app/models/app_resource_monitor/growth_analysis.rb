@@ -98,7 +98,7 @@ class AppResourceMonitor::GrowthAnalysis < AppResourceMonitor::S3Analysis
       label = row[:new_table] ? "#{row[:name]} *" : row[:name]
       puts format('  %-4d %-46s %-18s %s', i + 1, label, format_delta_bytes(row[:delta]), format_pct(pct_of_total))
     end
-    puts "  * table did not exist at the start of the period" if has_new_tables
+    puts '  * table did not exist at the start of the period' if has_new_tables
     puts ''
   end
 end
