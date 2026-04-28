@@ -166,32 +166,42 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           let!(:hoh) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:member) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 2) }
 
-          it 'propagates NULL to members' do
+          it 'leaves member CoC unchanged' do
             cleaner.fix_client_locations(project)
-            expect(member.reload.EnrollmentCoC).to be_nil
+            expect(member.reload.EnrollmentCoC).to eq('XX-501')
           end
         end
 
         context 'when the household has no HoH (bad data)' do
-          let!(:member1) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
-          let!(:member2) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 3) }
+          let!(:member1) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 2) }
+          let!(:member2) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 3) }
 
-          it 'does not change any member CoC' do
+          it 'leaves member CoCs unchanged' do
             cleaner.fix_client_locations(project)
-            expect(member1.reload.EnrollmentCoC).to be_nil
-            expect(member2.reload.EnrollmentCoC).to be_nil
+            expect(member1.reload.EnrollmentCoC).to eq('XX-500')
+            expect(member2.reload.EnrollmentCoC).to eq('XX-501')
           end
         end
 
         context 'when the household has multiple HoHs (bad data)' do
-          # let! declares in order, so hoh1.id < hoh2.id — propagation picks hoh1 (lowest id)
           let!(:hoh1) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:hoh2) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
 
           it 'uses the HoH with the lowest id deterministically' do
+            expect(hoh1.id).to be < hoh2.id
             cleaner.fix_client_locations(project)
             expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when enrollment has NULL HouseholdID' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:solo) { create_enrollment('XX-501', HouseholdID: nil, RelationshipToHoH: 1) }
+
+          it 'does not propagate to enrollments without a HouseholdID' do
+            cleaner.fix_client_locations(project)
+            expect(solo.reload.EnrollmentCoC).to eq('XX-501')
           end
         end
 

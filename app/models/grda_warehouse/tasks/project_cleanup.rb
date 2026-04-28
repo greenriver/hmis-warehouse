@@ -208,24 +208,26 @@ module GrdaWarehouse::Tasks
     end
 
     # For each household in the project, copy the HoH's EnrollmentCoC to all
-    # non-HoH members whose CoC differs (including NULL). Uses DISTINCT ON to
-    # pick deterministically when bad data produces multiple HoH rows.
+    # non-HoH members whose CoC differs (including NULL). Skips households where
+    # the HoH has no CoC to avoid overwriting valid member data with NULL.
+    # Uses DISTINCT ON to pick deterministically when bad data produces multiple HoH rows.
     private def propagate_hoh_coc_to_household(project)
-      sql = GrdaWarehouse::Hud::Enrollment.sanitize_sql_array([<<~SQL, project.ProjectID, project.data_source_id, project.ProjectID])
+      sql = GrdaWarehouse::Hud::Enrollment.sanitize_sql([<<~SQL, { project_id: project.ProjectID, ds_id: project.data_source_id }])
         UPDATE "Enrollment" AS member
         SET "EnrollmentCoC" = hoh."EnrollmentCoC"
         FROM (
           SELECT DISTINCT ON (data_source_id, "HouseholdID")
                  data_source_id, "HouseholdID", "EnrollmentCoC"
           FROM "Enrollment"
-          WHERE "ProjectID" = ?
-            AND data_source_id = ?
+          WHERE "ProjectID" = :project_id
+            AND data_source_id = :ds_id
             AND "RelationshipToHoH" = 1
             AND "HouseholdID" IS NOT NULL
+            AND "EnrollmentCoC" IS NOT NULL
           ORDER BY data_source_id, "HouseholdID", id
         ) hoh
-        WHERE member."ProjectID" = ?
-          AND member.data_source_id = hoh.data_source_id
+        WHERE member."ProjectID" = :project_id
+          AND member.data_source_id = :ds_id
           AND member."HouseholdID" = hoh."HouseholdID"
           AND member."RelationshipToHoH" != 1
           AND (member."EnrollmentCoC" IS DISTINCT FROM hoh."EnrollmentCoC")
