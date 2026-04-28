@@ -209,22 +209,21 @@ module GrdaWarehouse::Tasks
 
     # For each household in the project, copy the HoH's EnrollmentCoC to all
     # non-HoH members whose CoC differs (including NULL). Skips households where
-    # the HoH has no CoC to avoid overwriting valid member data with NULL.
-    # Uses DISTINCT ON to pick deterministically when bad data produces multiple HoH rows.
+    # the HoH has no CoC or where multiple HoHs exist (bad data — no safe choice).
     private def propagate_hoh_coc_to_household(project)
       sql = GrdaWarehouse::Hud::Enrollment.sanitize_sql([<<~SQL, { project_id: project.ProjectID, ds_id: project.data_source_id }])
         UPDATE "Enrollment" AS member
         SET "EnrollmentCoC" = hoh."EnrollmentCoC"
         FROM (
-          SELECT DISTINCT ON (data_source_id, "HouseholdID")
-                 data_source_id, "HouseholdID", "EnrollmentCoC"
+          SELECT data_source_id, "HouseholdID", MAX("EnrollmentCoC") AS "EnrollmentCoC"
           FROM "Enrollment"
           WHERE "ProjectID" = :project_id
             AND data_source_id = :ds_id
             AND "RelationshipToHoH" = 1
             AND "HouseholdID" IS NOT NULL
             AND "EnrollmentCoC" IS NOT NULL
-          ORDER BY data_source_id, "HouseholdID", id
+          GROUP BY data_source_id, "HouseholdID"
+          HAVING COUNT(*) = 1
         ) hoh
         WHERE member."ProjectID" = :project_id
           AND member.data_source_id = :ds_id

@@ -188,10 +188,9 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           let!(:hoh2) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
 
-          it 'uses the HoH with the lowest id deterministically' do
-            expect(hoh1.id).to be < hoh2.id
+          it 'skips propagation for the household' do
             cleaner.fix_client_locations(project)
-            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+            expect(member.reload.EnrollmentCoC).to be_nil
           end
         end
 
