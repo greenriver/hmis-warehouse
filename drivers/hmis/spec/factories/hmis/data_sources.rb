@@ -9,7 +9,7 @@
 FactoryBot.define do
   factory :hmis_data_source, class: 'GrdaWarehouse::DataSource' do
     sequence(:authoritative, &:zero?)
-    sequence(:hmis) { |n| "#{GraphqlHelpers::HMIS_HOSTNAME}.#{n}" }
+    hmis { GraphqlHelpers::HMIS_HOSTNAME }
     name { 'HMIS' }
     short_name { 'HMIS' }
     # association :client, factory: :hmis_hud_client
