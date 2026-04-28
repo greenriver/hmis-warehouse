@@ -19,8 +19,8 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
     create(:hud_project_coc, ProjectID: project.ProjectID, data_source: data_source, CoCCode: coc_code)
   end
 
-  def create_enrollment(coc_code)
-    create(:hud_enrollment, ProjectID: project.ProjectID, data_source_id: data_source.id, EnrollmentCoC: coc_code)
+  def create_enrollment(coc_code, **attrs)
+    create(:hud_enrollment, ProjectID: project.ProjectID, data_source_id: data_source.id, EnrollmentCoC: coc_code, **attrs)
   end
 
   def create_hmis_participation(id)
@@ -131,6 +131,86 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           cleaner.fix_client_locations(project)
           expect(matching_enrollment.reload.EnrollmentCoC).to eq('XX-501')
           expect(non_matching_enrollment.reload.EnrollmentCoC).to be_nil
+        end
+      end
+
+      context 'household CoC propagation' do
+        let(:household_id) { 'test-household-1' }
+
+        context 'when HoH has a valid CoC and members have NULL CoC' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'propagates HoH CoC to member' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+
+          it 'does not change HoH CoC' do
+            cleaner.fix_client_locations(project)
+            expect(hoh.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when HoH has a valid CoC and members have a stale valid CoC' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'overwrites the member CoC with the HoH CoC' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when HoH has a NULL CoC' do
+          let!(:hoh) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'propagates NULL to members' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to be_nil
+          end
+        end
+
+        context 'when the household has no HoH (bad data)' do
+          let!(:member1) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+          let!(:member2) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 3) }
+
+          it 'does not change any member CoC' do
+            cleaner.fix_client_locations(project)
+            expect(member1.reload.EnrollmentCoC).to be_nil
+            expect(member2.reload.EnrollmentCoC).to be_nil
+          end
+        end
+
+        context 'when the household has multiple HoHs (bad data)' do
+          # let! declares in order, so hoh1.id < hoh2.id — propagation picks hoh1 (lowest id)
+          let!(:hoh1) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:hoh2) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'uses the HoH with the lowest id deterministically' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when another project has enrollments sharing the same HouseholdID' do
+          let!(:other_project) { create(:hud_project, data_source: data_source, ProjectType: 1) }
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:other_member) do
+            create(:hud_enrollment,
+                   ProjectID: other_project.ProjectID,
+                   data_source_id: data_source.id,
+                   EnrollmentCoC: nil,
+                   HouseholdID: household_id,
+                   RelationshipToHoH: 2)
+          end
+
+          it 'does not update enrollments in other projects' do
+            cleaner.fix_client_locations(project)
+            expect(other_member.reload.EnrollmentCoC).to be_nil
+          end
         end
       end
     end
