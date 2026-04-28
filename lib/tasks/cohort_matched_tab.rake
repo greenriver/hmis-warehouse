@@ -5,7 +5,7 @@
 # AND user_string_1 is present).
 #
 # Usage:
-#   rails "cohort:add_matched_tab[<cohort_id>]"
+#   rails cohort:add_matched_tab[<cohort_id>]
 #
 # The task is idempotent — it aborts cleanly if the "Matched" tab already exists.
 namespace :cohort do
@@ -51,7 +51,7 @@ namespace :cohort do
       active_tab.update!(rules: updated_active_rules)
 
       # Bump tabs currently at or beyond the insertion point to make room.
-      cohort.cohort_tabs.where('order >= ?', matched_order).find_each do |t|
+      cohort.cohort_tabs.where('"order" >= ?', matched_order).find_each do |t|
         t.update!(order: t.order + 1)
       end
 
@@ -70,8 +70,7 @@ namespace :cohort do
       puts "Active Clients SQL:\n  #{tab_instance.rule_query(nil, active_tab.reload.rules).to_sql}\n\n"
       puts "Matched SQL:\n  #{tab_instance.rule_query(nil, matched_tab.rules).to_sql}\n\n"
 
-      puts 'Verify the SQL above looks correct. If not, roll back with:'
-      puts '  rails db:rollback  (or restore from backup)'
+      puts 'Verify the SQL above looks correct.'
     end
   end
 end
