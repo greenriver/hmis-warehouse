@@ -136,6 +136,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       dates_to_build = build_for_dates.except(*service_dates_from_service_history_for_enrollment)
       days.concat(build_service_days(dates_to_build))
       if extrapolates_days?
+        # Pass all contact dates (not just new ones) so add_extrapolated_days can
+        # expand whole calendar months around every contact, then dedup internally.
         record_type = build_for_dates.values.last
         days += add_extrapolated_days(build_for_dates.keys, record_type)
       end
@@ -283,28 +285,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
       )
     end
 
-    def service_record(date, record_type)
-      default_service_day.merge(
-        date: date,
-        age: client_age_at(date),
-        service_type: record_type,
-        record_type: :service,
-        homeless: homeless?(date),
-        literally_homeless: literally_homeless?(date),
-      )
-    end
-
-    def extrapolated_record(date, record_type)
-      default_service_day.merge(
-        date: date,
-        age: client_age_at(date),
-        service_type: record_type,
-        record_type: :extrapolated,
-        homeless: homeless?(date),
-        literally_homeless: literally_homeless?(date),
-      )
-    end
-
     # Builds all service-day hashes for a date->service_type map in a tight loop.
     #
     # Hoists all per-enrollment invariants (DOB, project type, homeless lookup sets,
@@ -312,7 +292,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # no method dispatch through associations or HudHelper.
     #
     # record_type_value is :service for normal days, :extrapolated for SO fill-in days.
-    private def build_service_days(dates_hash, record_type_value = :service)
+    private def build_service_days(date_pairs, record_type_value = :service)
       base = default_service_day
       dob = destination_client.attributes['DOB']&.to_date
       pt = project.project_type
@@ -320,10 +300,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       lit_homeless_val = literally_homeless_for_project_type(pt)
       ph_pts = HudHelper.util.residential_project_type_numbers_by_code[:ph]
       mid = self.MoveInDate
-      # Only PH projects with a move-in date can flip homeless/lit_homeless to false per-date.
       date_dependent = ph_pts.include?(pt) && mid.present?
 
-      dates_hash.map do |date, service_type|
+      date_pairs.map do |date, service_type|
         if date_dependent && date > mid
           h = false
           lh = false
@@ -424,9 +403,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def reset_instance_variables
-      @extrapolated_dates_from_service_history_for_enrollment = nil
-      @service_dates_from_service_history_for_enrollment = nil
-      @calculate_hash = nil
+      reset_service_history_memos!
       @head_of_household_id = nil
       @household_birthdates = nil
       @other_clients_over_25 = nil
@@ -441,14 +418,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @individual_adult = nil
       @individual_elder = nil
       @presented_as_individual = nil
-      @default_day = nil
-      @entry_record_id = nil
       @street_outreach_acts_as_bednight = nil
       @entry_exit_tracking = nil
-      @build_until = nil
-      @build_for_dates = nil
-      @default_service_day = nil
-      @date_range = nil
     end
 
     def self.calculate_hash_for(id, project_type)
@@ -526,42 +497,19 @@ module GrdaWarehouse::Tasks::ServiceHistory
       }
     end
 
-    # Service is considered a homeless service if it is in ES, SO, SH or TH.
-    # Service is explicitly NOT homeless if it is in PH after the move-in date.
-    # All other service, Services Only, Other, Days Shelter, Coordinated Entry, and PH pre-move-in date is
-    # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
-    # or non_homeless scopes"?
-    def homeless?(date)
-      return true if HudHelper.util.homeless_project_types.include?(project.project_type)
-      return false if HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
-        self.MoveInDate.present? && date > self.MoveInDate
-
-      nil
-    end
-
-    # The day only counts as literally homeless if it's in ES, SO, SH.
-    # TH or PH after move-in date negates literally homeless
-    # Others don't negate it, but don't count as such
-    def literally_homeless? date
-      return true if HudHelper.util.chronic_project_types.include?(project.project_type)
-      return false if HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
-        self.MoveInDate.present? && date > self.MoveInDate
-      return false if HudHelper.util.residential_project_type_numbers_by_code[:th].include?(project.project_type)
-
-      nil
-    end
-
-    # Date-independent portion of homeless? — returns true/nil based solely on project type.
-    # The PH-after-move-in override (false) is date-dependent and handled in build_service_days.
+    # Homeless if ES, SO, SH, or TH. Explicitly NOT homeless if PH after move-in date.
+    # All other project types (Services Only, Other, Day Shelter, Coordinated Entry,
+    # PH pre-move-in) receive nil — they appear in neither homeless nor non_homeless scopes.
+    # The date-dependent PH-after-move-in override is applied in build_service_days.
     private def homeless_for_project_type(project_type)
       return true if HudHelper.util.homeless_project_types.include?(project_type)
 
       nil
     end
 
-    # Date-independent portion of literally_homeless? — returns true/false/nil based solely on
-    # project type. The PH-after-move-in override (false) is date-dependent and handled in
-    # build_service_days.
+    # Literally homeless if ES, SO, or SH (chronic project types).
+    # TH negates literally_homeless. PH after move-in date also negates it (date-dependent,
+    # applied in build_service_days). All other types receive nil.
     private def literally_homeless_for_project_type(project_type)
       return true if HudHelper.util.chronic_project_types.include?(project_type)
       return false if HudHelper.util.residential_project_type_numbers_by_code[:th].include?(project_type)
