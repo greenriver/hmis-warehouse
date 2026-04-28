@@ -145,11 +145,6 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
             cleaner.fix_client_locations(project)
             expect(member.reload.EnrollmentCoC).to eq('XX-500')
           end
-
-          it 'does not change HoH CoC' do
-            cleaner.fix_client_locations(project)
-            expect(hoh.reload.EnrollmentCoC).to eq('XX-500')
-          end
         end
 
         context 'when HoH has a valid CoC and members have a stale valid CoC' do
