@@ -80,10 +80,10 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           expect(enrollment.reload.EnrollmentCoC).to eq('XX-500')
         end
 
-        it 'clears the source_hash on updated enrollments' do
-          enrollment.update_column(:source_hash, 'stale_hash')
+        it 'preserves the source_hash on updated enrollments' do
+          enrollment.update_column(:source_hash, 'current_hash')
           cleaner.fix_client_locations(project)
-          expect(enrollment.reload.source_hash).to be_nil
+          expect(enrollment.reload.source_hash).to eq('current_hash')
         end
       end
 

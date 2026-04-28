@@ -89,6 +89,34 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
         end
       end
     end
+
+    describe '#can_view_referrals?' do
+      it 'returns false when user has no permission' do
+        expect(policy.can_view_referrals?).to be false
+      end
+
+      context 'when user has can_view_referrals in the data source' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_view_referrals]) }
+
+        it 'returns true' do
+          expect(policy.can_view_referrals?).to be true
+        end
+      end
+    end
+
+    describe '#can_view_own_referrals?' do
+      it 'returns false when user has no permission' do
+        expect(policy.can_view_own_referrals?).to be false
+      end
+
+      context 'when user has can_view_own_referrals at the data source' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_view_own_referrals]) }
+
+        it 'returns true' do
+          expect(policy.can_view_own_referrals?).to be true
+        end
+      end
+    end
   end
 
   describe 'Instance#can_view?' do

@@ -386,6 +386,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_enrollment_details: {
         description: 'When granted in conjunction with "Can View Project," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
+        requirements: [:can_view_project],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
