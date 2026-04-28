@@ -130,9 +130,24 @@ module GrdaWarehouse::Tasks::ServiceHistory
       action
     end
 
+    # Appends new service-day rows to an existing service history without
+    # deleting anything. Used when the enrollment's source data hasn't changed
+    # (hash matches) but new days need to be recorded — typically because an
+    # open enrollment has advanced past the last build date, or an SO/extrapolating
+    # enrollment needs fill-in days for the new calendar day.
+    #
+    # Determines which dates are missing by diffing build_for_dates against
+    # rows already in service_history_services. For SO/extrapolating enrollments,
+    # also expands contact dates into whole-month extrapolated day ranges and
+    # deduplicates against existing extrapolated rows.
+    #
+    # Bulk insert uses activerecord-import. on_duplicate_key_update is unavailable
+    # on the partitioned SHS table, so RecordNotUnique is rescued — the conflicting
+    # row already exists with identical data, making the error a safe no-op.
+    #
+    # Returns :patch on success, false if there are no new days to insert.
     def patch_service_history!
       days = []
-      # load the associated service history enrollment to get the id
       dates_to_build = build_for_dates.except(*service_dates_from_service_history_for_enrollment)
       days.concat(build_service_days(dates_to_build))
       if extrapolates_days?
@@ -182,13 +197,32 @@ module GrdaWarehouse::Tasks::ServiceHistory
       ]
     end
 
+    # Performs a full (destructive) rebuild of this enrollment's service history.
+    # Deletes all existing SHE entry/exit rows — the DB cascades this to SHS day
+    # rows via ON DELETE CASCADE on each yearly partition's FK — then regenerates
+    # everything from source data.
+    #
+    # Used when source data has changed (hash mismatch) or when should_patch?
+    # detects an inconsistency that requires a clean slate (e.g., fewer SHS rows
+    # than expected, suggesting a merge or data correction).
+    #
+    # The work is split across two scopes:
+    #   1. Transaction: deletes old SHE rows, inserts new entry SHE (capturing
+    #      its ID for SHS foreign keys), builds day hashes, and inserts exit SHE.
+    #   2. Outside transaction: bulk-inserts SHS day rows via activerecord-import.
+    #      This split is intentional — SHS inserts are large and the partitioned
+    #      table doesn't support on_duplicate_key_update, so failures are handled
+    #      by rescue rather than rollback. A crash between the two phases leaves
+    #      SHE rows committed but SHS rows missing.
+    #
+    # For SO/extrapolating enrollments, also generates extrapolated fill-in days
+    # that expand each contact date to cover its full calendar month.
+    #
+    # Returns :update on success, false if source data is unchanged (unless force)
+    # or the project is missing.
     def create_service_history! force = false
-      # Rails.logger.debug '===RebuildEnrollmentsJob=== Initiating create_service_history'
-      # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       return false unless force || source_data_changed?
 
-      # Rails.logger.debug '===RebuildEnrollmentsJob=== Checked for changes'
-      # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       days = []
       if project.present?
         date = self.EntryDate
@@ -197,22 +231,17 @@ module GrdaWarehouse::Tasks::ServiceHistory
           entry_day = entry_record(date)
           insert = build_service_history_enrollment_insert(entry_day)
           @entry_record_id = service_history_enrollment_source.connection.insert(insert.to_sql)
-          # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
-          # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
           days.concat(build_service_days(build_for_dates))
           if extrapolates_days?
             record_type = build_for_dates.values.last
             days += add_extrapolated_days(build_for_dates.keys, record_type)
           end
-          # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
-          # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
           if exit.present?
             date = exit.ExitDate
             insert = build_service_history_enrollment_insert(exit_record(date))
             service_history_enrollment_source.connection.insert(insert.to_sql)
           end
         end
-        # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
 
         if days.any?
@@ -222,15 +251,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
               days.map(&:values),
               validate: false,
               batch_size: 1_000,
-              # Because this is a partitioned table, this doesn't work currently
-              # on_duplicate_key_update: {
-              #   conflict_target: shs_conflict_target,
-              #   columns: shs_update_columns,
-              # },
+              # on_duplicate_key_update unavailable on partitioned table
             )
           rescue ActiveRecord::InvalidForeignKey
-            # sometimes we end up processing an enrollment when it's being rebuilt by a different task
-            # ignore the error if the enrollment record has been removed
+            # A concurrent task may have deleted the parent SHE; safe to ignore.
           end
         end
       end
@@ -285,13 +309,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
       )
     end
 
-    # Builds all service-day hashes for a date->service_type map in a tight loop.
+    # Builds an array of SHS attribute hashes from a date-keyed map.
     #
-    # Hoists all per-enrollment invariants (DOB, project type, homeless lookup sets,
-    # move-in date) out of the loop so each iteration is pure value computation with
-    # no method dispatch through associations or HudHelper.
+    # date_pairs: Hash or array of [date, service_type] pairs (e.g. from
+    #   build_for_dates, which maps Date => HUD service type like 200).
+    # record_type_value: :service for normal days, :extrapolated for SO fill-in days.
     #
-    # record_type_value is :service for normal days, :extrapolated for SO fill-in days.
+    # Per-enrollment invariants (DOB, project type, homelessness status, move-in
+    # date) are resolved once before the loop. The only date-dependent branch is
+    # PH-after-move-in, which flips homeless/literally_homeless to false.
     private def build_service_days(date_pairs, record_type_value = :service)
       base = default_service_day
       dob = destination_client.attributes['DOB']&.to_date
@@ -321,9 +347,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    # build out all days within the month
-    # don't build for any dates we already have
-    # never build past today, it makes counts and display very odd
+    # Generates synthetic "extrapolated" SHS day records from actual contact dates.
+    #
+    # Street Outreach contacts are typically sparse — a client might have one
+    # recorded contact on Jan 10. But for HUD reporting purposes, a single SO
+    # contact is treated as evidence of engagement for the entire calendar month.
+    # When so_day_as_month is enabled (or a project sets extrapolate_contacts),
+    # this method expands each contact date to fill its full calendar month,
+    # giving downstream reports and chronic-homeless calculations a continuous
+    # day-by-day timeline rather than isolated contact points.
+    #
+    # The month is the significant unit because that's the HUD reporting
+    # convention — one contact in a month = one month of engagement.
+    #
+    # Dedup rules (applied in order):
+    #   1. Remove the actual contact dates themselves (those are :service rows,
+    #      not :extrapolated).
+    #   2. Remove dates that already exist as :extrapolated rows in the DB
+    #      (from a prior build/patch).
+    #   3. Remove dates that already exist as :service rows in the DB.
+    #
+    # Never generates days past Date.current — future extrapolation would
+    # produce misleading counts in dashboards and reports.
     def add_extrapolated_days(dates, record_type)
       extrapolated_dates = dates.map do |date|
         stop_on = [date.end_of_month, Date.current].min
@@ -497,19 +542,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
       }
     end
 
-    # Homeless if ES, SO, SH, or TH. Explicitly NOT homeless if PH after move-in date.
-    # All other project types (Services Only, Other, Day Shelter, Coordinated Entry,
-    # PH pre-move-in) receive nil — they appear in neither homeless nor non_homeless scopes.
-    # The date-dependent PH-after-move-in override is applied in build_service_days.
+    # true for ES, SO, SH, TH; nil for everything else (including PH).
+    # nil means the service day appears in neither homeless nor non_homeless scopes.
     private def homeless_for_project_type(project_type)
       return true if HudHelper.util.homeless_project_types.include?(project_type)
 
       nil
     end
 
-    # Literally homeless if ES, SO, or SH (chronic project types).
-    # TH negates literally_homeless. PH after move-in date also negates it (date-dependent,
-    # applied in build_service_days). All other types receive nil.
+    # true for ES, SO, SH (chronic types); false for TH; nil for everything else.
     private def literally_homeless_for_project_type(project_type)
       return true if HudHelper.util.chronic_project_types.include?(project_type)
       return false if HudHelper.util.residential_project_type_numbers_by_code[:th].include?(project_type)
