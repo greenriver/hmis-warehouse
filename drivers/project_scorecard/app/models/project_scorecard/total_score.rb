@@ -22,12 +22,7 @@ module ProjectScorecard
       end
 
       def project_performance_max
-        base = key_project.rrh? ? 50 : 45
-        # The SPM is always run during pre-fill, but Measure 2 can return nil for a given
-        # project if there are no qualifying exits in the reporting period. In that case we
-        # lower the denominator to reflect the points actually achievable.
-        base -= 15 if returns_to_homelessness_score.blank?
-        base
+        50
       end
 
       def project_performance_percentage

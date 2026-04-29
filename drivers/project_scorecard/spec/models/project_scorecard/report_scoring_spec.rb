@@ -152,30 +152,14 @@ RSpec.describe ProjectScorecard::Report, 'scoring' do
   # --- Project Performance max ---------------------------------------------
 
   describe '#project_performance_max' do
-    context 'RRH project' do
-      before { allow(report).to receive(:key_project).and_return(rrh_project) }
+    it 'is always 50 regardless of project type or data availability' do
+      expect(report.project_performance_max).to eq(50)
 
-      it 'returns 50 when returns to homelessness is scored' do
-        report.percent_returns_to_homelessness = 3
-        expect(report.project_performance_max).to eq(50)
-      end
+      report.percent_returns_to_homelessness = nil
+      expect(report.project_performance_max).to eq(50)
 
-      it 'returns 35 when returns to homelessness data is unavailable' do
-        report.percent_returns_to_homelessness = nil
-        expect(report.project_performance_max).to eq(35)
-      end
-    end
-
-    context 'PSH project' do
-      it 'returns 45 when returns to homelessness is scored' do
-        report.percent_returns_to_homelessness = 3
-        expect(report.project_performance_max).to eq(45)
-      end
-
-      it 'returns 30 when returns to homelessness data is unavailable' do
-        report.percent_returns_to_homelessness = nil
-        expect(report.project_performance_max).to eq(30)
-      end
+      allow(report).to receive(:key_project).and_return(rrh_project)
+      expect(report.project_performance_max).to eq(50)
     end
   end
 

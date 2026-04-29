@@ -78,8 +78,10 @@ items that apply to only one project type are marked accordingly.
 
 ### Maximum points available
 
-| Project Type | Max Points | Breakdown |
-|--------------|------------|-----------|
+The denominator is always **50** regardless of project type or data availability.
+
+| Project Type | Achievable Points | Breakdown |
+|--------------|-------------------|-----------|
 | PSH / SH | 45 | 5 + 15 + 10 + 15 |
 | PSH / SH (no returns data) | 30 | 5 + 15 + 10 |
 | RRH | 50 | 5 + 5 + 15 + 10 + 15 |
@@ -176,11 +178,11 @@ Suppose a PSH project earns the following scores:
 
 | Category | Points Earned | Max Points | Weight | Percentage |
 |----------|---------------|------------|--------|------------|
-| Project Performance | 35 | 45 | 50% | (35 / 45) × 50 = **38.9%** |
-| Data Quality | 25 | 30 | 20% | (25 / 30) × 20 = **16.7%** |
+| Project Performance | 35 | 50 | 50% | (35 / 50) × 50 = **35.0%** |
+| Data Quality | 25 | 30 | 20% | (25 / 30) × 20 = **16.6%** |
 | CE Participation | 20 | 20 | 20% | (20 / 20) × 20 = **20.0%** |
 | Grant Mgmt & Financials | 40 | 50 | 10% | (40 / 50) × 10 = **8.0%** |
-| **Total** | | | | **83.6%** |
+| **Total** | | | | **79.6%** |
 
 Each category percentage is rounded to the nearest whole number before summing.
 
@@ -251,13 +253,13 @@ during expansion years.
 | Employment Income threshold (high) | ≥ 15% | ≥ 56% |
 | Other Cash Income threshold (high) | ≥ 61% | ≥ 21% |
 | Cost Efficiency threshold (high) | ≤ $8,999 | ≤ $2,499 |
-| Performance max points | 45 | 50 |
+| Performance max points | 50 (achievable: 45) | 50 |
 
 ## Appendix D: Special conditions
 
 | Condition | Effect |
 |-----------|--------|
 | **Expansion year** | Cost Efficiency automatically scores 0; Grant Mgmt max reduced from 50 to 40 |
-| **No SPM returns data** | Returns to Homelessness is excluded; Performance max reduced by 15 |
+| **No SPM returns data** | Returns to Homelessness scores 0; Performance max remains 50 |
 | **Safe Haven projects** | Scored identically to PSH in all categories |
 | **Other project types** | Use the RRH thresholds for Exit to PH; Employment Income, Other Cash Income, Cost Efficiency, and Avg LOS return no score. **However, the maximum points denominator is not reduced for these missing metrics**, so projects outside PSH/SH/RRH are scored against a maximum they cannot fully achieve |
