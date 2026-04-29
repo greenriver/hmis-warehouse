@@ -34,11 +34,11 @@ class Hmis::AuthPolicies::BasePolicy
   # sanity check, is the resource what we expect. must be implemented by child policy
   def validate_resource!(_arg) = raise NotImplementedError, 'must implement in subclass'
 
-  # validation helper for instances
+  # validation helper for instances.
+  # checks that resource has the correct class, and if it has a data source, that it belongs to the current user's data source
   def ensure_arg_type!(arg, klass)
-    return if arg.is_a?(klass)
-
-    raise ArgumentError, "Expected an instance of #{klass.name} got #{arg.class}"
+    raise ArgumentError, "Expected an instance of #{klass.name} got #{arg.class}" unless arg.is_a?(klass)
+    raise ArgumentError, "Expected instance #{arg.klass.name}#{arg.id} to belong to data source #{user.hmis_data_source_id}, got #{arg.data_source_id}" if arg.respond_to?(:data_source_id) && arg.data_source_id != user.hmis_data_source_id
   end
 
   # validation helper for classes
