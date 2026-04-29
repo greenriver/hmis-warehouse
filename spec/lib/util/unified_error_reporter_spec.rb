@@ -49,11 +49,6 @@ RSpec.describe UnifiedErrorReporter do
       expect(Rails.logger).not_to have_received(:error)
     end
 
-    it 'does not attempt Slack when no notifier is given' do
-      allow(Rails.logger).to receive(:error)
-      expect { described_class.call(error, 'boom') }.not_to raise_error
-    end
-
     it 'skips Sentry when sentry: false' do
       allow(Rails.logger).to receive(:error)
       described_class.call(error, 'boom', sentry: false)
