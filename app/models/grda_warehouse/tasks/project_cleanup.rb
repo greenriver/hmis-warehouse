@@ -199,10 +199,9 @@ module GrdaWarehouse::Tasks
       outside_cocs = base.where.not(EnrollmentCoC: coc_codes).or(base.where(EnrollmentCoC: nil))
 
       if coc_codes.count == 1
-        outside_cocs.update_all(EnrollmentCoC: coc_codes.first, source_hash: nil)
+        outside_cocs.update_all(EnrollmentCoC: coc_codes.first)
       else
-        # Exclude already-nil rows: setting nil→nil isn't a real change, so don't wipe source_hash
-        outside_cocs.where.not(EnrollmentCoC: nil).update_all(EnrollmentCoC: nil, source_hash: nil)
+        outside_cocs.update_all(EnrollmentCoC: nil)
       end
     end
 

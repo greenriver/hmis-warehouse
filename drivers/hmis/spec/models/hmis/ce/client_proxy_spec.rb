@@ -45,74 +45,101 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
     end
   end
 
-  describe 'join_latest_event_per_candidate_pool scope' do
-    let!(:client_proxy_1) { create(:hmis_ce_client_proxy) }
-    let!(:client_proxy_2) { create(:hmis_ce_client_proxy) }
-
-    let!(:candidate_pool_1) { create(:hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_1]) }
-    let!(:candidate_pool_2) { create(:hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_1, client_proxy_2]) }
-
-    # Client 1 updated in Pool 1
-    let!(:event_client1_pool1_1) { create(:hmis_ce_match_candidate_event, client_proxy: client_proxy_1, candidate_pool: candidate_pool_1, created_at: 1.day.ago, event_name: 'update', snapshot: { 'foo' => 'most recent', 'numeric_score' => 3 }) }
-    # Client 1 added to Pool 1
-    let!(:event_client1_pool1_2) { create(:hmis_ce_match_candidate_event, client_proxy: client_proxy_1, candidate_pool: candidate_pool_1, created_at: 2.days.ago, event_name: 'add', snapshot: { 'foo' => 'older' }) }
-    # Client 1 added to Pool 2
-    let!(:event_client1_pool2_1) { create(:hmis_ce_match_candidate_event, client_proxy: client_proxy_1, candidate_pool: candidate_pool_2, created_at: 3.days.ago, event_name: 'add', snapshot: { 'foo' => 'most recent for pool 2', 'bar' => 'most recent for pool 2' }) }
-    # Client 2 added to Pool 2
-    let!(:event_client2_pool2_1) { create(:hmis_ce_match_candidate_event, client_proxy: client_proxy_2, candidate_pool: candidate_pool_2, created_at: 2.days.ago, event_name: 'add', snapshot: { 'foo' => 'most recent for client 2', 'project_types' => [1, 2, 3] }) }
-    # Client 2 removed from to Pool 1
-    let!(:event_client2_pool1_1) { create(:hmis_ce_match_candidate_event, client_proxy: client_proxy_2, candidate_pool: candidate_pool_1, created_at: 1.day.ago, event_name: 'remove', snapshot: { 'foo' => 'most recent event but does not belong to pool' }) }
-
-    it 'returns client proxies with the latest event per candidate pool' do
-      result = described_class.join_latest_event_per_candidate_pool
-      expect(result).to contain_exactly(
-        have_attributes(id: client_proxy_1.id, candidate_pool_id: candidate_pool_1.id, latest_snapshot_for_candidate_pool: event_client1_pool1_1.snapshot),
-        have_attributes(id: client_proxy_1.id, candidate_pool_id: candidate_pool_2.id, latest_snapshot_for_candidate_pool: event_client1_pool2_1.snapshot),
-        have_attributes(id: client_proxy_2.id, candidate_pool_id: candidate_pool_2.id, latest_snapshot_for_candidate_pool: event_client2_pool2_1.snapshot),
-      )
-
-      snapshots = result.map(&:latest_snapshot_for_candidate_pool)
-      expect(snapshots).not_to include(event_client1_pool1_2) # Excluded because it is not the most recent event for Client 1 : Pool 1
-      expect(snapshots).not_to include(event_client2_pool1_1) # Excluded because client 2 no longer belongs to this pool
+  describe '#sql_cde_value_exists_for_ce_client_proxy' do
+    let(:current_date) { Date.new(2024, 12, 26) }
+    let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form') }
+    let(:string_cded) do
+      create(:hmis_custom_data_element_definition,
+             owner_type: 'Hmis::Hud::CustomAssessment',
+             key: 'language_preference',
+             field_type: 'string',
+             form_definition_identifier: 'test_form')
+    end
+    let(:repeating_cded) do
+      create(:hmis_custom_data_element_definition,
+             owner_type: 'Hmis::Hud::CustomAssessment',
+             key: 'allergies',
+             field_type: 'string',
+             repeats: true,
+             form_definition_identifier: 'test_form')
     end
 
-    describe '#filter_by_attribute' do
-      it 'returns matching client' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'foo', values: ['most recent'])
-        expect(result).to contain_exactly(client_proxy_1)
+    # Helper method to create assessment with custom data elements
+    def create_assessment_for_client(client, language_preference: nil, allergies: [], assessment_date: nil)
+      assessment_date ||= current_date - 1.week
+
+      assessment = create(:hmis_custom_assessment,
+                          client: client,
+                          data_source: client.data_source,
+                          assessment_date: assessment_date,
+                          definition: form_definition)
+
+      if language_preference
+        create(:hmis_custom_data_element,
+               owner: assessment,
+               data_element_definition: string_cded,
+               value_string: language_preference,
+               data_source: client.data_source)
       end
-      it 'returns matching client for attribute if matches most recent event for any pool' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'foo', values: ['most recent for pool 2'])
-        expect(result).to contain_exactly(client_proxy_1)
+
+      allergies.each do |allergy|
+        create(:hmis_custom_data_element,
+               owner: assessment,
+               data_element_definition: repeating_cded,
+               value_string: allergy,
+               data_source: client.data_source)
       end
-      it 'returns matching clients when multiple values are passed (OR)' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'foo', values: ['most recent', 'most recent for client 2', 'another term without match'])
-        expect(result).to contain_exactly(client_proxy_1, client_proxy_2)
-      end
-      it 'excludes client that matches a historical event but not the most recent' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'foo', values: ['older'])
-        expect(result).to be_empty
-      end
-      it 'returns matching clients when filtering on numeric array attribute (ANY)' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'project_types', values: [1, 2])
-        expect(result).to contain_exactly(client_proxy_2)
-      end
-      it 'returns matching clients when filtering on numeric array attribute when values are stringified' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'project_types', values: ['1', '2'])
-        expect(result).to contain_exactly(client_proxy_2)
-      end
-      it 'returns matching clients when filtering on numeric attribute' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'numeric_score', values: [3])
-        expect(result).to contain_exactly(client_proxy_1)
-      end
-      it 'returns matching clients when filtering on numeric attribute when value is stringified' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'numeric_score', values: ['3'])
-        expect(result).to contain_exactly(client_proxy_1)
-      end
-      it 'returns empty when filtering on array attribute (ANY) and none match' do
-        result = described_class.join_latest_event_per_candidate_pool.filter_by_attribute(key: 'project_types', values: ['6'])
-        expect(result).to be_empty
-      end
+
+      assessment
+    end
+    let(:client1) { create(:hmis_hud_client_with_warehouse_client) }
+    let(:destination_client1) { client1.destination_client }
+    let(:client2) { create(:hmis_hud_client_with_warehouse_client) }
+    let(:destination_client2) { client2.destination_client }
+    let(:client3_no_assessment) { create(:hmis_hud_client_with_warehouse_client) }
+    let(:destination_client3) { client3_no_assessment.destination_client }
+
+    let!(:proxy_for_client1) { create(:hmis_ce_client_proxy, client: destination_client1) }
+    let!(:proxy_for_client2) { create(:hmis_ce_client_proxy, client: destination_client2) }
+    let!(:proxy_for_client3) { create(:hmis_ce_client_proxy, client: destination_client3) }
+
+    let(:proxy_scope) { Hmis::Ce::ClientProxy.where(id: [proxy_for_client1.id, proxy_for_client2.id, proxy_for_client3.id]) }
+
+    let(:language_field) { 'custom_assessment.language_preference' }
+    let(:allergies_field) { 'custom_assessment.allergies' }
+
+    before do
+      create_assessment_for_client(
+        client1,
+        language_preference: 'English',
+        allergies: ['Peanuts', 'Dust'],
+      )
+      create_assessment_for_client(
+        client2,
+        language_preference: 'French',
+        # Client 2 has no 'allergies' data
+      )
+    end
+
+    it 'matches client proxies whose latest assessment has a non-repeating CDE value in the list' do
+      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, ['English'])
+      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
+    end
+
+    it 'matches any of several string values (OR within one EXISTS)' do
+      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, ['English', 'French'])
+      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1, proxy_for_client2)
+    end
+
+    it 'matches when any repeating CDE row matches one of the filter values' do
+      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(allergies_field, ['Peanuts'])
+      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
+    end
+
+    it 'raises when filter_values is empty' do
+      expect do
+        described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, [])
+      end.to raise_error(ArgumentError, /filter_values must be non-empty/)
     end
   end
 end
