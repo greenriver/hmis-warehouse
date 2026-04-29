@@ -11,7 +11,7 @@ module DataSources
     before_action :require_can_edit_data_sources!
     before_action :require_can_manage_config!
     before_action :set_data_source
-    before_action :set_config, only: [:show, :edit, :update, :destroy]
+    before_action :set_config, only: [:show, :edit, :update, :destroy, :download]
 
     def index
       @configs = config_scope
@@ -21,6 +21,20 @@ module DataSources
       @files = @config.import_type.constantize.where(config_id: @config.id).
         order(created_at: :desc)
       @pagy, @files = pagy(@files)
+    end
+
+    def download
+      object = @config.s3.list_objects(prefix: @config.s3_path).detect { |o| o.key == params[:key] }
+      if object.nil?
+        flash[:error] = 'File not found'
+        redirect_to edit_data_source_custom_import_path(@data_source, @config)
+      else
+        send_data(
+          @config.s3.get_as_io(key: object.key)&.read,
+          type: @config.s3.get_file_type(key: object.key),
+          filename: object.key,
+        )
+      end
     end
 
     def new

@@ -477,7 +477,7 @@ GEM
     ed25519 (1.4.0)
     email_check (1.0.2)
     encryptor (3.0.0)
-    erb (5.0.2)
+    erb (6.0.4)
     erubi (1.13.1)
     erubis (2.7.0)
     excon (0.112.0)
@@ -1515,7 +1515,7 @@ CHECKSUMS
   ed25519 (1.4.0) sha256=16e97f5198689a154247169f3453ef4cfd3f7a47481fde0ae33206cdfdcac506
   email_check (1.0.2) sha256=e1e57c76123289b2ab4c85ac92bc3160f2d7eb2f911bccd889d2a51bf4ec6481
   encryptor (3.0.0) sha256=abf23f94ab4d864b8cea85b43f3432044a60001982cda7c33c1cd90da8db1969
-  erb (5.0.2) sha256=d30f258143d4300fb4ecf430042ac12970c9bb4b33c974a545b8f58c1ec26c0f
+  erb (6.0.4) sha256=38e3803694be357fe2bfe312487c74beaf9fb4e5beb3e22498952fe1645b95d9
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   erubis (2.7.0) sha256=63653f5174a7997f6f1d6f465fbe1494dcc4bdab1fb8e635f6216989fb1148ba
   excon (0.112.0) sha256=daf9ac3a4c2fc9aa48383a33da77ecb44fa395111e973084d5c52f6f214ae0f0
