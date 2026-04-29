@@ -39,10 +39,10 @@ providers:
   - ADFSConfig: {}
     azureConfig:
       tenant: common
-    backendLogoutURL: "https://dex.dev.test/dex/auth/logout"
+    backendLogoutURL: ""
     bitbucketConfig: {}
     clientID: hmis-warehouse
-    clientSecret: "dtm0zv-OaNMLiq2V00I1IpIFv_ZCsP_m-V0FYubBpLg="
+    clientSecret: "${JWT_SECRET}"
     githubConfig: {}
     gitlabConfig: {}
     googleConfig: {}
@@ -54,7 +54,7 @@ providers:
         allow:
           - value: local
           - value: github_idp
-          - value: zitadel
+
     microsoftEntraIDConfig: {}
     name: Dex
     oidcConfig:
@@ -63,7 +63,7 @@ providers:
       emailClaim: email
       groupsClaim: groups
       insecureSkipNonce: true
-      issuerURL: https://dex.dev.test/dex
+      issuerURL: http://dex.dev.test:4443/dex
       userIDClaim: email
     provider: oidc
     scope: openid email profile federated:id offline_access
@@ -74,9 +74,9 @@ server:
 upstreamConfig:
   upstreams:
     - flushInterval: 1s
-      id: warehouse
+      id: /
       passHostHeader: true
       path: /
       proxyWebSockets: true
       timeout: 30s
-      uri: http://web:3000
+      uri: http://internal-warehouse.dev.test:3000

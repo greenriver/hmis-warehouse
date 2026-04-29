@@ -58,6 +58,10 @@ cp sample.env .env.development.local
 cp docs/sample_files/envrc.sample .envrc
 touch .env.local
 
+# Generate the oauth2-proxy config files from templates.
+# Re-run this if any file in docker/auth/templates/ changes.
+bash docker/auth/generate-dev-auth.sh
+
 # Configure direnv
 direnv allow .
 

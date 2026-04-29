@@ -1,14 +1,9 @@
 # Zitadel IDP
 
-The warehouse previously used the [devise](https://github.com/heartcombo/devise) gem for authentication. The application has fully migrated to an OAuth2 authentication system using [OAuth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of [Dex](https://dexidp.io) which proxies to any IDP. For installations where the community does not have an existing IDP, we use a stand-alone installation of [Zitadel](https://zitadel.com) to provide user management.
+> **Deprecated.** Zitadel has been replaced by Keycloak as the default IDP.
+> See [keycloak-idp.md](keycloak-idp.md) for current setup instructions.
 
-This document covers:
-- How JWT-based authentication works in the application
-- How to configure Zitadel, Dex, and OAuth2-proxy for development and production
-- How to migrate user data from the old Devise system
-- How to test with JWT authentication in RSpec
-
-This document does not cover installation of Zitadel itself.
+The warehouse has run since 2017 using the [devise](https://github.com/heartcombo/devise) gem for authentication.  We are now switching to an Oauth2 authentication system that includes [Oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of [Dex](https://dexidp.io) which proxies pretty much any IDP. For installations where the community does not have an existing IDP, we use a stand-alone installation of [Zitadel](https://zitadel.com) to provide user management.
 
 ## Local Development Setup
 

@@ -10,4 +10,5 @@
 # Using to_prepare ensures all models are loaded before registration
 Rails.application.config.to_prepare do
   Idp::ServiceFactory.register_idp_service('zitadel', Idp::ZitadelService)
+  Idp::ServiceFactory.register_idp_service('keycloak', Idp::KeycloakService)
 end
