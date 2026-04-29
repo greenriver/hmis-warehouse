@@ -332,9 +332,11 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
           where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID }).count
 
         fresh = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment.id)
+        hash_before = fresh.processed_as
         second_result = fresh.rebuild_service_history!
 
         expect(second_result).to be_nil
+        expect(fresh.reload.processed_as).to eq(hash_before)
 
         final_count = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
           where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID }).count
@@ -385,6 +387,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
           where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
                 record_type: 'extrapolated').pluck(:date)
         expect(extrapolated_jan15).not_to include(Date.new(2023, 1, 16))
+        expect(extrapolated_jan15).to include(Date.new(2023, 1, 15))
 
         result = travel_to Date.new(2023, 1, 16) do
           GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment.id).rebuild_service_history!
@@ -395,6 +398,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
         extrapolated_jan16 = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).
           where(service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
                 record_type: 'extrapolated').pluck(:date)
+        expect(extrapolated_jan16).to include(Date.new(2023, 1, 15))
         expect(extrapolated_jan16).to include(Date.new(2023, 1, 16))
       end
     end

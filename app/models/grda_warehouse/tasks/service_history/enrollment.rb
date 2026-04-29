@@ -16,7 +16,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     after_commit :force_validity_calculation
 
-    SO = HudHelper.util.residential_project_type_numbers_by_code[:so]
+    SO_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:so]
+    PH_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:ph]
+    TH_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:th]
 
     def self.batch_job_ids
       builder_batch_job_scope.pluck(:id)
@@ -150,11 +152,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
       days = []
       dates_to_build = build_for_dates.except(*service_dates_from_service_history_for_enrollment)
       days.concat(build_service_days(dates_to_build))
-      if extrapolates_days?
+      if extrapolates_days? && build_for_dates.any?
         # Pass all contact dates (not just new ones) so add_extrapolated_days can
         # expand whole calendar months around every contact, then dedup internally.
         record_type = build_for_dates.values.last
-        days += add_extrapolated_days(build_for_dates.keys, record_type)
+        days.concat(add_extrapolated_days(build_for_dates.keys, record_type))
       end
       return false unless days.any?
 
@@ -324,9 +326,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       pt = project.project_type
       homeless_val = homeless_for_project_type(pt)
       lit_homeless_val = literally_homeless_for_project_type(pt)
-      ph_pts = HudHelper.util.residential_project_type_numbers_by_code[:ph]
       mid = self.MoveInDate
-      date_dependent = ph_pts.include?(pt) && mid.present?
+      date_dependent = PH_PROJECT_TYPES.include?(pt) && mid.present?
 
       date_pairs.map do |date, service_type|
         if date_dependent && date > mid
@@ -553,7 +554,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # true for ES, SO, SH (chronic types); false for TH; nil for everything else.
     private def literally_homeless_for_project_type(project_type)
       return true if HudHelper.util.chronic_project_types.include?(project_type)
-      return false if HudHelper.util.residential_project_type_numbers_by_code[:th].include?(project_type)
+      return false if TH_PROJECT_TYPES.include?(project_type)
 
       nil
     end
@@ -888,7 +889,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           [c_t[col], '_']
         end
         # Only include living situations in SO, to avoid rebuilding everything
-        if SO.include?(project_type)
+        if SO_PROJECT_TYPES.include?(project_type)
           columns += living_situation_hash_columns.values.map do |col|
             [cls_t[col], '_']
           end
