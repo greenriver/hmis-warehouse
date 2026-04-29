@@ -33,7 +33,7 @@ RSpec.describe Curl, type: :model do
         SSLEnable: true,
         SSLCertificate: cert,
         SSLPrivateKey: key,
-        Logger: WEBrick::Log.new(File.open(File::NULL, 'w')),
+        Logger: WEBrick::Log.new(File::NULL, WEBrick::Log::FATAL),
         AccessLog: [],
       )
       @server.mount_proc('/') { |_req, res| res.body = 'OK' }
@@ -42,8 +42,8 @@ RSpec.describe Curl, type: :model do
     end
 
     after(:all) do
-      @server.shutdown
-      @server_thread.join
+      @server&.shutdown
+      @server_thread&.join
       FileUtils.remove_entry(@tmpdir)
     end
 
