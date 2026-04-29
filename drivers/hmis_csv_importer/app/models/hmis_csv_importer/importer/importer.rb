@@ -32,9 +32,11 @@
 #       authoritative over, defined by involved_warehouse_scope(data_source_id,
 #       project_ids, date_range). Each per-file model implements this scope.
 #   "aggregation" — optional enrollment combining for Night-by-Night ES projects
-#       (see CombineEnrollments). When active, the staging data may include
-#       enrollments outside the import date range so that contiguous stays can
-#       be merged correctly.
+#       (see CombineEnrollments). Accommodates vendors that submit NbN ES stays
+#       as a new Entry-Exit enrollment per night; aggregation merges those into a
+#       single continuous enrollment. When active, staging data may include
+#       enrollments outside the import date range so contiguous stays can be
+#       merged correctly.
 #
 # @see docs/features/hmis-csv-importer.md for full data-flow documentation.
 #
@@ -320,7 +322,7 @@ module HmisCsvImporter::Importer
     private def with_new_records_scope(klass)
       conn = klass.connection
       key = klass.hud_key
-      temp = "tmp_existing_keys_#{klass.warehouse_class.table_name}"
+      temp = tmp_table_name('existing_keys', klass.warehouse_class)
 
       existing_scope = existing_data_scope(klass)
       conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
@@ -736,6 +738,7 @@ module HmisCsvImporter::Importer
       importable_files.each do |file_name, klass|
         file_count += 1
         Rails.logger.info "[#{file_count}/#{total_files}] Adding new data for #{file_name}..."
+        # Augmentation classes will always be updating existing records
         next if custom_augmentation?(klass)
 
         preload_custom_file_data(klass)
@@ -1169,14 +1172,24 @@ module HmisCsvImporter::Importer
       conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
     end
 
+    # Temp tables are session-scoped, but we include a random suffix as a
+    # defensive measure against name collisions. The full name is truncated
+    # to PostgreSQL's 63-character identifier limit.
+    private def tmp_table_name(prefix, klass)
+      suffix = SecureRandom.hex(4) # 8 chars
+      base = "tmp_#{prefix}_#{klass.table_name}_"
+      "#{base.first(63 - suffix.length)}#{suffix}"
+    end
+
     # Materialize matched IDs into a temp table so the expensive semi-join runs once,
     # then batch UPDATE from the temp table.
     private def batch_clear_pending_deletion(klass, matched_scope, file_name)
       conn = klass.warehouse_class.connection
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
+      tmp_name = tmp_table_name('unchanged', klass.warehouse_class)
 
-      with_temp_id_table(conn, "tmp_unchanged_#{klass.warehouse_class.table_name}", matched_scope) do |quoted_temp|
+      with_temp_id_table(conn, tmp_name, matched_scope) do |quoted_temp|
         last_id = 0
         loop do
           result = conn.execute(<<~SQL)
@@ -1203,8 +1216,9 @@ module HmisCsvImporter::Importer
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
       deleted_at = conn.quote(Time.current)
+      tmp_name = tmp_table_name('pending_deletes', klass.warehouse_class)
 
-      with_temp_id_table(conn, "tmp_pending_deletes_#{klass.warehouse_class.table_name}", scope) do |quoted_temp|
+      with_temp_id_table(conn, tmp_name, scope) do |quoted_temp|
         last_id = 0
         loop do
           result = conn.execute(<<~SQL)

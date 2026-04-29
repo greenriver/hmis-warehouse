@@ -106,4 +106,5 @@ Imports run asynchronously on the `long_running` Delayed Job queue.
 - `Importing::HudZip::ResumeHmisImportJob` — resumes an import that was paused at a threshold check.
 - `HmisCsvImporter::Cleanup::Expire*Job` — periodic cleanup of expired staging data.
 
-The importer does not wrap its run in a surrounding transaction.
+The importer does not wrap its run in a surrounding transaction. Import jobs acquire a
+per-data-source advisory lock so that only one import runs at a time for a given data source.
