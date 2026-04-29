@@ -39,7 +39,7 @@ module Superset
       roles.reject! { |role| ignored_roles.include?(role) }
       return roles.presence || default_roles if Superset::Api.new.available?
     rescue Curl::Err::HostResolutionError, JSON::ParserError => e
-      Rails.logger.error("Error fetching Superset roles: #{e.message}, using default roles")
+      UnifiedErrorReporter.call(e, "Error fetching Superset roles: #{e.message}, using default roles")
     end
     # Fallback to the default roles if the API is not available
     default_roles
