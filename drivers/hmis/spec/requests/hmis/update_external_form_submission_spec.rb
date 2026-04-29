@@ -469,7 +469,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
 
         it 'should still work when auto enter is turned on in the project' do
-          Hmis::ProjectAutoEnterConfig.create!(project: p1)
+          Hmis::ProjectAutoEnterConfig.create!(project: p1, data_source: ds1)
           expect do
             response, result = post_graphql(input) { mutation }
             expect(response.status).to eq(200), result.inspect

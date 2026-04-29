@@ -9,13 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   let!(:ds1) { create :hmis_primary_data_source }
   let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }
@@ -30,7 +23,7 @@ RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
     expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p1)).to be_nil
 
     # Project type is least specific
-    aec2 = create(:hmis_project_auto_exit_config, project_type: p1.project_type)
+    aec2 = create(:hmis_project_auto_exit_config, project_type: p1.project_type, data_source: ds1)
     expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2)
     expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p1)).to eq(aec2)
     expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2)
@@ -66,7 +59,7 @@ RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
   end
 
   it 'should assign config values even when existing values are present' do
-    aec = Hmis::ProjectAutoExitConfig.create!(project: p1, options: { 'length_of_absence_days': 90, 'foo': 'bar' })
+    aec = Hmis::ProjectAutoExitConfig.create!(project: p1, options: { 'length_of_absence_days': 90, 'foo': 'bar' }, data_source: ds1)
     aec.length_of_absence_days = 30
     aec.save!
     expect(aec.length_of_absence_days).to eq(30)

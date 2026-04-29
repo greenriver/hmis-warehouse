@@ -90,6 +90,13 @@ module GrdaWarehouse
         rule_query(composed_query, rule['left']).and(rule_query(composed_query, rule['right']))
       when 'or'
         rule_query(composed_query, rule['left']).or(rule_query(composed_query, rule['right']))
+      when 'not'
+        # COALESCE ensures NULL inner expressions become FALSE so NOT NULL → TRUE (keeps the row).
+        # Without it, PostgreSQL three-valued logic would silently exclude rows where the inner
+        # expression evaluates to NULL (e.g. user_boolean_1 IS NULL).
+        inner = Arel::Nodes::Grouping.new(rule_query(composed_query, rule['operand']))
+        coalesced = Arel::Nodes::NamedFunction.new('COALESCE', [inner, Arel.sql('FALSE')])
+        Arel::Nodes::Not.new(coalesced)
       else
         raise "Unknown Operator #{rule['operator']}"
       end

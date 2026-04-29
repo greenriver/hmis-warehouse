@@ -15,8 +15,7 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::ProjectConfig.find(id)
-      access_denied! unless current_user.can_configure_data_collection?
-
+      access_denied! unless policy_for(record, policy_type: :project_config).can_destroy?
       record.destroy!
 
       {
