@@ -56,12 +56,14 @@ RSpec.describe Curl, type: :model do
     end
 
     it 'does not throw an error when curling over https with an explicit CA cert file' do
-      expect do
-        Curl::Easy.perform("https://localhost:#{@port}/") do |http|
-          http.cacert = @cacert_path
-          http.verbose = true
-        end
-      end.not_to raise_error
+      VCR.turned_off do
+        expect do
+          Curl::Easy.perform("https://localhost:#{@port}/") do |http|
+            http.cacert = @cacert_path
+            http.verbose = true
+          end
+        end.not_to raise_error
+      end
     end
   end
 end
