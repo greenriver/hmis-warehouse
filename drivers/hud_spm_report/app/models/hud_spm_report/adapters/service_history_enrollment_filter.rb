@@ -38,7 +38,7 @@ module HudSpmReport::Adapters
 
       # ATTN: coc filter is needed for testkit
       scope = filter_for_cocs(scope)
-      scope = @filter.apply_criteria(scope, tags: [:warehouse, :client])
+      scope = @filter.apply_criteria(scope, tags: [:warehouse, :client], report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry)
       scope
     end
 
