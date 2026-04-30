@@ -178,7 +178,7 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           end
         end
 
-        context 'when the household has multiple HoHs (bad data)' do
+        context 'when the household has multiple HoHs with conflicting CoCs (bad data)' do
           let!(:hoh1) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:hoh2) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
@@ -186,6 +186,59 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           it 'skips propagation for the household' do
             cleaner.fix_client_locations(project)
             expect(member.reload.EnrollmentCoC).to be_nil
+          end
+        end
+
+        context 'when the household has multiple HoHs but only one distinct CoC' do
+          let!(:hoh1) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:hoh2) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'propagates the unambiguous CoC to the member' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when some HoHs have a NULL CoC but one has a valid CoC' do
+          let!(:hoh_with_coc) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:hoh_without_coc) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'propagates the non-NULL CoC to the member' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when a conflicting HoH is soft-deleted' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:deleted_hoh) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 1, DateDeleted: Time.current) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'ignores the deleted HoH and propagates the active CoC' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to eq('XX-500')
+          end
+        end
+
+        context 'when a member is soft-deleted' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:deleted_member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2, DateDeleted: Time.current) }
+
+          it 'does not update the soft-deleted member' do
+            cleaner.fix_client_locations(project)
+            expect(deleted_member.reload.EnrollmentCoC).to be_nil
+          end
+        end
+
+        context 'when a member has a NULL RelationshipToHoH' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:null_rel_member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: nil) }
+
+          it 'propagates the HoH CoC to the member' do
+            cleaner.fix_client_locations(project)
+            expect(null_rel_member.reload.EnrollmentCoC).to eq('XX-500')
           end
         end
 
