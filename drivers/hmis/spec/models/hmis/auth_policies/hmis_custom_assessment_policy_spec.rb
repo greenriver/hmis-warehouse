@@ -34,6 +34,14 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
         create_access_control(user, other_project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
         expect(policy.can_delete?).to be false
       end
+
+      it 'returns false if user cannot view the record' do
+        # user's permissions were set up incorrectly: they can edit enrollments in this project, but they can't view enrollments (don't have dependent permissions)
+        create_access_control(user, project, with_permission: [:can_edit_enrollments])
+        # user has full permissions in a different project
+        create_access_control(user, other_project)
+        expect(policy.can_delete?).to be false
+      end
     end
 
     describe 'when assessment is intake and submitted (not wip)' do
