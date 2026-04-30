@@ -151,9 +151,8 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
         next if row[k].blank?
         next unless row[k].is_a?(String)
 
-        # Remove returns and non-breaking spaces (\u00A0); they are not counted correctly in the length calculation.
-        # sanitize_string_fields also handles \u00A0, but enforce_lengths may run independently.
-        row[k] = row[k].gsub("\n", ' ').gsub("\u00A0", ' ')
+        # Remove returns, they aren't counted correctly in the length calculation
+        row[k] = row[k].gsub("\n", ' ')
         next if row[k].length <= opts[:limit]
 
         row[k] = row[k][0...opts[:limit]]
@@ -176,10 +175,8 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       string_columns.each do |col, _|
         next unless row[col].is_a?(String)
 
-        # Remove forbidden characters and replace multiple spaces (including non-breaking spaces, \u00A0) with a
-        # single space. The CSV validator reads files as ISO-8859-1, which interprets the 2-byte UTF-8 encoding
-        # of \u00A0 as two characters, causing false over-length validation errors.
-        row[col] = row[col].gsub(/[<>\[\]{}]/, '').gsub(/[\s\u00A0]+/, ' ').strip
+        # Remove forbidden characters and replace multiple spaces with a single space
+        row[col] = row[col].gsub(/[<>\[\]{}]/, '').gsub(/\s+/, ' ').strip
       end
       row
     end

@@ -45,7 +45,9 @@ module GrdaWarehouse::Tasks
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
         if File.exist?(file_path)
-          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true, encoding: 'iso-8859-1:utf-8').each do |row|
+          # FY26+ exports are UTF-8; older versions may be ISO-8859-1
+          csv_encoding = @version >= '2026' ? 'utf-8' : 'iso-8859-1:utf-8'
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true, encoding: csv_encoding).each do |row|
             unique_keys << row[klass.hud_key.to_s.downcase]
             export_ids << row['exportid']
             self.export_id ||= row['exportid'] if filename == 'Export.csv'

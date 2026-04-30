@@ -101,21 +101,6 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::ExportConcern do
       expect(result[:OnlyForbidden]).to eq ''
     end
 
-    it 'normalizes non-breaking spaces (\u00A0) to regular spaces' do
-      nbsp = "\u00A0"
-      row = {
-        Field1: "Text#{nbsp}with#{nbsp}non-breaking#{nbsp}spaces",
-        Field2: "Multiple#{nbsp}#{nbsp}consecutive#{nbsp}spaces",
-        Field3: "Mixed#{nbsp} regular and#{nbsp}non-breaking",
-      }
-
-      result = instance.sanitize_string_fields(row)
-
-      expect(result[:Field1]).to eq 'Text with non-breaking spaces'
-      expect(result[:Field2]).to eq 'Multiple consecutive spaces'
-      expect(result[:Field3]).to eq 'Mixed regular and non-breaking'
-    end
-
     it 'preserves other special characters' do
       row = {
         SpecialChars: 'Text with !@#$%^&*()_+-=,./?;:\'"',

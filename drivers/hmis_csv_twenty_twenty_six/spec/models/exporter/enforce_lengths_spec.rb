@@ -73,15 +73,39 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::ExportConcern do
       expect(result[:LongField]).to eq ''
     end
 
-    it 'truncates correctly when non-breaking spaces ( ) are present' do
-      nbsp = "\u00A0"
-      # 12 chars total: 5 + NBSP + 6, exceeds limit of 10
-      row = { ShortField: "Hello#{nbsp}World!" }
+    context 'with non-breaking spaces ( )' do
+      let(:nbsp) { "\u00A0" }
 
-      result = instance.enforce_lengths(row)
+      it 'preserves non-breaking spaces in fields within the limit' do
+        value = "Hello#{nbsp}World"
+        row = { ShortField: value }
 
-      expect(result[:ShortField].length).to eq 10
-      expect(result[:ShortField]).to eq 'Hello Worl'
+        result = instance.enforce_lengths(row)
+
+        expect(result[:ShortField]).to eq value
+        expect(result[:ShortField]).to include(nbsp)
+      end
+
+      it 'counts non-breaking spaces as one character when truncating' do
+        # 11 chars with NBSP at position 5 — should truncate to 10, keeping the NBSP
+        value = "Hell#{nbsp}World!!"
+        row = { ShortField: value }
+
+        result = instance.enforce_lengths(row)
+
+        expect(result[:ShortField].length).to eq 10
+        expect(result[:ShortField]).to include(nbsp)
+      end
+
+      it 'truncates correctly when non-breaking spaces push a field over the limit' do
+        # 250 ASCII chars + 1 NBSP = 251 chars, must truncate to 250
+        value = ('A' * 250) + nbsp
+        row = { LongField: value }
+
+        result = instance.enforce_lengths(row)
+
+        expect(result[:LongField].length).to eq 250
+      end
     end
   end
 end
