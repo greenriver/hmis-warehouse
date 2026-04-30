@@ -381,6 +381,18 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       _, rows = run_and_extract_rows([null_housing_type_project], 'Q2')
       expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
     end
+
+    it 'includes projects where HousingType is 3 (Tenant-based – scattered site)' do
+      tbra_project = create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: 3) }
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([tbra_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+    end
   end
 
   context 'Longevity boundary conditions' do
