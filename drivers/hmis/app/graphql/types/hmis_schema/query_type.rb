@@ -325,10 +325,14 @@ module Types
     end
 
     access_field do
+      # TODO(#8995) - Access fields defined using the old pattern.
+      # Update these to match the new pattern (see below) and remove any that are unused by the frontend
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+
+      bool_field(:can_index_referrals) { policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index? }
     end
 
     def access
