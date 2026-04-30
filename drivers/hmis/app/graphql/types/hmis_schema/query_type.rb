@@ -601,9 +601,7 @@ module Types
 
     ce_referrals_field
     def ce_referrals(**args)
-      access_denied! unless current_user.can_administrate_coordinated_entry?
-
-      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false

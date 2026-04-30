@@ -12,7 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:workflow_template_1) { create(:hmis_workflow_definition_template, identifier: 'wft_1', data_source: ds1) }
   let!(:workflow_template_2) { create(:hmis_workflow_definition_template, identifier: 'wft_2', data_source: ds1) }
 
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  let!(:ds_access_control) { create_access_control(hmis_user, ds1) }
 
   describe 'admin ceReferrals query' do
     let(:query) do
@@ -66,9 +66,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    it 'raises if the user does not have permission' do
-      remove_permissions(access_control, :can_administrate_coordinated_entry)
-      expect_gql_error(post_graphql { query }, message: 'access denied')
+    def perform_referrals_query(**variables)
+      response, result = post_graphql(**variables) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'ceReferrals', 'nodes')
+    end
+
+    context 'without permission' do
+      let!(:ds_access_control) { create_access_control(hmis_user, ds1, without_permission: [:can_administrate_coordinated_entry, :can_view_referrals, :can_view_own_referrals, :can_view_outgoing_referral_details]) }
+
+      it 'returns no referrals' do
+        expect(perform_referrals_query).to be_empty
+      end
+    end
+
+    context 'with limited permissions' do
+      let!(:ds_access_control) { create_access_control(hmis_user, ds1, without_permission: [:can_administrate_coordinated_entry, :can_view_referrals, :can_view_own_referrals, :can_view_outgoing_referral_details]) }
+      let!(:project2) { create :hmis_hud_project, data_source: ds1 }
+      let!(:referral2) { create(:hmis_ce_referral, project: project2, data_source: ds1) }
+      let!(:p1_access_control) { create_access_control(hmis_user, project) } # full permission in project
+
+      it 'returns only referrals the user has permission to view' do
+        referrals = perform_referrals_query
+        expect(referrals.size).to eq(1)
+        expect(referrals.sole['id']).to eq(referral.id.to_s) # can't see referral2 without permission in project
+      end
     end
 
     context 'when referrals have varying statuses' do
@@ -77,19 +99,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:referral_rejected) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'rejected', updated_at: 1.day.ago) }
 
       it 'sorts referrals by status, then by date updated' do
-        response, result = post_graphql { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query
         expect(referrals.map { |r| r['status'] }).to eq(['in_progress', 'rejected', 'accepted'])
       end
 
       it 'supports filtering referrals by status' do
         variables = { filters: { referralStatus: ['accepted'] } }
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.first['status']).to eq('accepted')
       end
@@ -109,10 +125,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'returns only referrals with that workflow template' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(2)
         expect(referrals.map { |r| r['id'] }).to contain_exactly(referral.id.to_s, referral2.id.to_s)
       end
@@ -146,10 +159,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'filters correctly' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.dig(0, 'id')).to eq(referral.id.to_s)
       end
@@ -168,10 +178,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'filters correctly' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.dig(0, 'id')).to eq(referral.id.to_s) # referral2 is excluded
       end
@@ -185,20 +192,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'can search by client name' do
         variables = { filters: { searchTerm: 'Wonderland' } }
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.first['id']).to eq(referral1.id.to_s)
       end
 
       it 'can search by referral ID' do
         variables = { filters: { searchTerm: referral2.id.to_s } }
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.first['id']).to eq(referral2.id.to_s)
       end
@@ -224,10 +225,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'does not include ScriptTask in currentSteps, only UserTask' do
-        response, result = post_graphql { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        referrals = perform_referrals_query
         expect(referrals).to contain_exactly(a_hash_including('currentSteps' => [a_hash_including('name' => 'Client Acceptance')]))
       end
     end
