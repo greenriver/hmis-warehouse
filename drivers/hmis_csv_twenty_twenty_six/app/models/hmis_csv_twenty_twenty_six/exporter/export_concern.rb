@@ -151,8 +151,9 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
         next if row[k].blank?
         next unless row[k].is_a?(String)
 
-        # Remove returns, they aren't counted correctly in the length calculation
-        row[k] = row[k].gsub("\n", ' ')
+        # Remove returns and non-breaking spaces (\u00A0); they are not counted correctly in the length calculation.
+        # sanitize_string_fields also handles \u00A0, but enforce_lengths may run independently.
+        row[k] = row[k].gsub("\n", ' ').gsub("\u00A0", ' ')
         next if row[k].length <= opts[:limit]
 
         row[k] = row[k][0...opts[:limit]]
