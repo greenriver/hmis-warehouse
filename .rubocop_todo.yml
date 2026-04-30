@@ -1388,7 +1388,6 @@ Style/RedundantParentheses:
     - 'drivers/claims_reporting/app/models/claims_reporting/quality_measures_report.rb'
     - 'drivers/claims_reporting/app/models/hl7.rb'
     - 'drivers/claims_reporting/extensions/health/patient_extension.rb'
-    - 'drivers/hmis/spec/requests/hmis/client_alert_spec.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/loaders/base_loader.rb'
     - 'drivers/ma_reports/app/models/ma_reports/csg_engage/concerns/has_report_status.rb'
     - 'spec/models/grda_warehouse/cas_project_client_calculator/mdha_spec.rb'

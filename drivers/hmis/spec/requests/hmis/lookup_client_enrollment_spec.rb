@@ -53,36 +53,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::Enrollment)}
             }
           }
-          incomeBenefits {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::IncomeBenefit)}
-            }
-          }
-          disabilities {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::Disability)}
-            }
-          }
-          healthAndDvs {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::HealthAndDv)}
-            }
-          }
-          youthEducationStatuses {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::YouthEducationStatus)}
-            }
-          }
-          employmentEducations {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::EmploymentEducation)}
-            }
-          }
           currentLivingSituations {
             nodesCount
             nodes {
@@ -129,46 +99,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::Assessment)}
             }
           }
-          services {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::Service)}
-            }
-          }
-          incomeBenefits {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::IncomeBenefit)}
-            }
-          }
-          healthAndDvs {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::HealthAndDv)}
-            }
-          }
-          youthEducationStatuses {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::YouthEducationStatus)}
-            }
-          }
-          employmentEducations {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::EmploymentEducation)}
-            }
-          }
           currentLivingSituations {
             nodesCount
             nodes {
               #{scalar_fields(Types::HmisSchema::CurrentLivingSituation)}
-            }
-          }
-          disabilities {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::Disability)}
             }
           }
           currentUnit {
@@ -221,11 +155,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['id']).to eq(c1.id.to_s)
       expect(client['enrollments']['nodesCount']).to eq(0)
       expect(client['assessments']['nodesCount']).to eq(0)
-      expect(client['incomeBenefits']['nodesCount']).to eq(0)
-      expect(client['disabilities']['nodesCount']).to eq(0)
-      expect(client['healthAndDvs']['nodesCount']).to eq(0)
-      expect(client['youthEducationStatuses']['nodesCount']).to eq(0)
-      expect(client['employmentEducations']['nodesCount']).to eq(0)
       expect(client['currentLivingSituations']['nodesCount']).to eq(0)
       expect(client['services']['nodesCount']).to eq(0)
     end
@@ -237,11 +166,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['id']).to eq(c1.id.to_s)
       expect(client['enrollments']['nodesCount']).to eq(2)
       expect(client['assessments']['nodesCount']).to eq(1)
-      expect(client['incomeBenefits']['nodesCount']).to eq(1)
-      expect(client['disabilities']['nodesCount']).to eq(1)
-      expect(client['healthAndDvs']['nodesCount']).to eq(1)
-      expect(client['youthEducationStatuses']['nodesCount']).to eq(1)
-      expect(client['employmentEducations']['nodesCount']).to eq(1)
       expect(client['currentLivingSituations']['nodesCount']).to eq(1)
       expect(client['services']['nodesCount']).to eq(2)
     end
@@ -283,11 +207,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollment['services']['nodesCount']).to eq(2)
       expect(enrollment['events']['nodesCount']).to eq(1)
       expect(enrollment['assessments']['nodesCount']).to eq(1)
-      expect(enrollment['incomeBenefits']['nodesCount']).to eq(1)
-      expect(enrollment['disabilities']['nodesCount']).to eq(1)
-      expect(enrollment['healthAndDvs']['nodesCount']).to eq(1)
-      expect(enrollment['youthEducationStatuses']['nodesCount']).to eq(1)
-      expect(enrollment['employmentEducations']['nodesCount']).to eq(1)
       expect(enrollment['currentLivingSituations']['nodesCount']).to eq(1)
       expect(enrollment['currentUnit']).to be_nil
       expect(enrollment['numUnitsAssignedToHousehold']).to eq(0)

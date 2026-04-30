@@ -18,10 +18,10 @@ RSpec.feature 'Bulk Services behavior', type: :system do
   before(:each)  { freeze_time }
   after(:each) { travel_back }
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
-  let(:bednight_service_type) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) }
+  let(:bednight_service_type) { ds1.custom_service_types.find_by(hud_record_type: 200) }
   let(:service_form_definition) { Hmis::Form::Definition.where(role: :SERVICE).first }
   let!(:instance) { create(:hmis_form_instance, definition: service_form_definition, entity: p1, custom_service_type: bednight_service_type) }
 

@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/warehouse-permissions.md
+#
 # AccessGroup is part of the "legacy" permissions model
 #
 # Entities in an AccessGroup are the target for user role-permissions. The permission applied to an AccessGroup are

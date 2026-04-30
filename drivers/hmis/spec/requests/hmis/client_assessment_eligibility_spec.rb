@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   subject(:query) do
     <<~GRAPHQL

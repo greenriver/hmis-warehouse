@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :user_permission_report do
     namespace :warehouse_reports do
       resources :reports, only: [:index]
