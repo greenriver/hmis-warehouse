@@ -76,7 +76,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::ExportConcern do
     context 'with non-breaking spaces ( )' do
       let(:nbsp) { "\u00A0" }
 
-      it 'preserves non-breaking spaces in fields within the limit' do
+      it 'does not strip non-breaking spaces when truncating' do
         value = "Hello#{nbsp}World"
         row = { ShortField: value }
 
