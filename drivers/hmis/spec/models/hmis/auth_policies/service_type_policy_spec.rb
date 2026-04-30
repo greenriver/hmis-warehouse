@@ -11,22 +11,22 @@ RSpec.describe Hmis::AuthPolicies::ServiceTypePolicy, type: :model do
   let(:hud_service_type) { create(:hmis_hud_custom_service_type, hud_record_type: 141, hud_type_provided: 1, custom_service_category: category, data_source: data_source) }
   let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection]) }
 
-  describe 'Instance#can_destroy?' do
+  describe 'Instance#can_delete?' do
     it 'returns true when permitted' do
       expect(service_type.hud_service?).to be false
       policy = user.policy_for(service_type, policy_type: :service_type)
-      expect(policy.can_destroy?).to be true
+      expect(policy.can_delete?).to be true
     end
 
     it 'returns false for HUD-managed service types' do
       expect(hud_service_type.hud_service?).to be true
       policy = user.policy_for(hud_service_type, policy_type: :service_type)
-      expect(policy.can_destroy?).to be false
+      expect(policy.can_delete?).to be false
     end
 
     it 'returns false when not permitted' do
       remove_permissions(access_control, :can_configure_data_collection)
-      expect(user.policy_for(service_type, policy_type: :service_type).can_destroy?).to be false
+      expect(user.policy_for(service_type, policy_type: :service_type).can_delete?).to be false
     end
   end
 end

@@ -15,7 +15,7 @@ module Mutations
 
     def resolve(id:)
       service_type = Hmis::Hud::CustomServiceType.find(id)
-      access_denied! unless policy_for(service_type, policy_type: :service_type).can_destroy?
+      access_denied! unless policy_for(service_type, policy_type: :service_type).can_delete?
 
       # Can't delete service type that already has services
       if service_type.custom_services.exists?

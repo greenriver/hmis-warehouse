@@ -8,7 +8,7 @@
 
 class Hmis::AuthPolicies::ServiceTypePolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
-    def can_destroy?
+    def can_delete?
       # HUD-linked types are not deletable through the custom service type editor
       return false if resource.hud_service?
 
