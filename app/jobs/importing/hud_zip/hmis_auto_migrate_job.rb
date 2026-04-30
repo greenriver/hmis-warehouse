@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 module Importing::HudZip
+  # @see docs/features/hmis-csv-importer.md
   class HmisAutoMigrateJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     WAIT_MINUTES = 15
