@@ -82,7 +82,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::ExportConcern do
 
         result = instance.enforce_lengths(row)
 
-        expect(result[:ShortField]).to eq value
+        expect(result[:ShortField]).to eq "Hello#{nbsp}Worl"
         expect(result[:ShortField]).to include(nbsp)
       end
 
