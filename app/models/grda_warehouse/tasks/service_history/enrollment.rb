@@ -311,40 +311,37 @@ module GrdaWarehouse::Tasks::ServiceHistory
       )
     end
 
-    # Builds an array of SHS attribute hashes from a date-keyed map.
-    #
-    # date_pairs: Hash or array of [date, service_type] pairs (e.g. from
-    #   build_for_dates, which maps Date => HUD service type like 200).
-    # record_type_value: :service for normal days, :extrapolated for SO fill-in days.
-    #
-    # Per-enrollment invariants (DOB, project type, homelessness status, move-in
-    # date) are resolved once before the loop. The only date-dependent branch is
-    # PH-after-move-in, which flips homeless/literally_homeless to false.
+    # Builds SHS attribute hashes for each date. PH enrollments flip homeless
+    # flags to false after the move-in date; all other project types are constant.
     private def build_service_days(date_pairs, record_type_value = :service)
-      base = default_service_day
       dob = destination_client.attributes['DOB']&.to_date
       pt = project.project_type
-      homeless_val = homeless_for_project_type(pt)
-      lit_homeless_val = literally_homeless_for_project_type(pt)
+      homeless = homeless_for_project_type(pt)
+      literally_homeless = literally_homeless_for_project_type(pt)
       mid = self.MoveInDate
-      date_dependent = PH_PROJECT_TYPES.include?(pt) && mid.present?
+      base = default_service_day.merge(record_type: record_type_value)
 
-      date_pairs.map do |date, service_type|
-        if date_dependent && date > mid
-          h = false
-          lh = false
-        else
-          h = homeless_val
-          lh = lit_homeless_val
+      if PH_PROJECT_TYPES.include?(pt) && mid.present?
+        date_pairs.map do |date, service_type|
+          after_move_in = date > mid
+          base.merge(
+            date: date,
+            age: dob ? GrdaWarehouse::Hud::Client.age(date: date, dob: dob) : nil,
+            service_type: service_type,
+            homeless: after_move_in ? false : homeless,
+            literally_homeless: after_move_in ? false : literally_homeless,
+          )
         end
-        base.merge(
-          date: date,
-          age: dob ? GrdaWarehouse::Hud::Client.age(date: date, dob: dob) : nil,
-          service_type: service_type,
-          record_type: record_type_value,
-          homeless: h,
-          literally_homeless: lh,
-        )
+      else
+        date_pairs.map do |date, service_type|
+          base.merge(
+            date: date,
+            age: dob ? GrdaWarehouse::Hud::Client.age(date: date, dob: dob) : nil,
+            service_type: service_type,
+            homeless: homeless,
+            literally_homeless: literally_homeless,
+          )
+        end
       end
     end
 
