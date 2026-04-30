@@ -141,9 +141,10 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
 
-          it 'propagates HoH CoC to member' do
+          it 'propagates HoH CoC to member without modifying the HoH' do
             cleaner.fix_client_locations(project)
             expect(member.reload.EnrollmentCoC).to eq('XX-500')
+            expect(hoh.reload.EnrollmentCoC).to eq('XX-500')
           end
         end
 
@@ -252,21 +253,58 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           end
         end
 
-        context 'when another project has enrollments sharing the same HouseholdID' do
+        context 'when another project has a HoH for the same HouseholdID' do
           let!(:other_project) { create(:hud_project, data_source: data_source, ProjectType: 1) }
-          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
-          let!(:other_member) do
+          # Target project: HoH with NULL CoC, so no propagation should occur
+          let!(:hoh) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+          # Other project: HoH with a real CoC that must not leak into the target project
+          let!(:cross_project_hoh) do
             create(:hud_enrollment,
                    ProjectID: other_project.ProjectID,
                    data_source_id: data_source.id,
-                   EnrollmentCoC: nil,
+                   EnrollmentCoC: 'XX-500',
                    HouseholdID: household_id,
-                   RelationshipToHoH: 2)
+                   RelationshipToHoH: 1)
           end
 
-          it 'does not update enrollments in other projects' do
+          it 'does not use the foreign HoH CoC for propagation' do
             cleaner.fix_client_locations(project)
-            expect(other_member.reload.EnrollmentCoC).to be_nil
+            expect(member.reload.EnrollmentCoC).to be_nil
+          end
+        end
+
+        context 'when another data source has a HoH for the same ProjectID and HouseholdID' do
+          let!(:other_ds) { create(:source_data_source) }
+          # Target DS: HoH with NULL CoC, so no propagation should occur
+          let!(:hoh) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 2) }
+          # Other DS: HoH with a real CoC that must not leak into the target DS
+          let!(:cross_ds_hoh) do
+            create(:hud_enrollment,
+                   ProjectID: project.ProjectID,
+                   data_source_id: other_ds.id,
+                   EnrollmentCoC: 'XX-500',
+                   HouseholdID: household_id,
+                   RelationshipToHoH: 1)
+          end
+
+          it 'does not use the foreign HoH CoC for propagation' do
+            cleaner.fix_client_locations(project)
+            expect(member.reload.EnrollmentCoC).to be_nil
+          end
+        end
+
+        context 'with two households each having different HoH CoCs' do
+          let!(:hoh_a) { create_enrollment('XX-500', HouseholdID: 'household-a', RelationshipToHoH: 1) }
+          let!(:member_a) { create_enrollment(nil, HouseholdID: 'household-a', RelationshipToHoH: 2) }
+          let!(:hoh_b) { create_enrollment('XX-501', HouseholdID: 'household-b', RelationshipToHoH: 1) }
+          let!(:member_b) { create_enrollment(nil, HouseholdID: 'household-b', RelationshipToHoH: 2) }
+
+          it 'propagates each HoH CoC only to its own household' do
+            cleaner.fix_client_locations(project)
+            expect(member_a.reload.EnrollmentCoC).to eq('XX-500')
+            expect(member_b.reload.EnrollmentCoC).to eq('XX-501')
           end
         end
       end
