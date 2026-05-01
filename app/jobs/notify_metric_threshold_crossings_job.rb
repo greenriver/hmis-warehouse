@@ -24,7 +24,9 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
 
   CSV_IMPORT_ALERT_CODE = 'csv_import_threshold_exceeded'
 
-  def perform(calculation_date = Date.current)
+  # Send notifications for threshold crossings from the previous day to ensure all metrics are collected
+  # prior to sending notifications.
+  def perform(calculation_date = Date.yesterday)
     lock_name = 'notify_metric_threshold_crossings_job'
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
       crossings_by_alert = GrdaWarehouse::Monitoring::MetricDefinition.
