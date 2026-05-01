@@ -26,7 +26,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
 
     it 'denies unconfigured permissions' do
-      expect(policy.can_destroy?).to be false
+      expect(policy.can_delete?).to be false
       expect(policy.can_manage_alerts?).to be false
     end
   end
@@ -35,7 +35,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     it 'denies all permissions when user lacks access' do
       expect(policy.can_view?).to be false
       expect(policy.can_edit?).to be false
-      expect(policy.can_destroy?).to be false
+      expect(policy.can_delete?).to be false
       expect(policy.can_view_name?).to be false
       expect(policy.can_manage_alerts?).to be false
     end

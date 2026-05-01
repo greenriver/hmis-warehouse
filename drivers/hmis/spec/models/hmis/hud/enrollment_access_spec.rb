@@ -237,6 +237,12 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to contain_exactly(e1)
     end
 
+    it 'returns enrollments where the user can only view EITHER nonconfidential OR confidential files' do
+      create_access_control(user, p1, with_permission: enrollment_view_perms + [:can_view_any_nonconfidential_client_files, :can_view_clients])
+      create_access_control(user, p2, with_permission: enrollment_view_perms + [:can_view_any_confidential_client_files, :can_view_clients])
+      expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to contain_exactly(e1, e2)
+    end
+
     it 'is empty if the user only has perms in a different data source' do
       # logged in at ds1 but file access only at ds2
       other_user = create(:hmis_user, data_source: ds1)

@@ -153,13 +153,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # Enrollments that the user has full enrollment details access to (e.g. they can see the full Enrollment Dashboard)
   scope :enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).order(:id).pluck(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).select(:id)
     where(project_pk: project_ids)
   end
 
   # Enrollments that the user has limited enrollment details access to (e.g. they can see that the Enrollments exist on the Client dashboard)
   scope :limited_enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).order(:id).pluck(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).select(:id)
     where(project_pk: project_ids)
   end
 
@@ -178,13 +178,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       or(limited_enrollment_details_viewable_by(user))
   end
 
-  # Enrollments where this user has some access to the enrollment's files, whether confidential or not.
+  # Includes enrollments that are viewable by the user AND the user has some access to the enrollment's files
+  # (regardless if any files exist; regardless if the user has access to confidential or nonconfidential files).
+  # Does not include viewable enrollments where the user can only see their "own" files (can_manage_own_client_files),
+  # which is checked for separately by the File#viewable_by scope.
   scope :files_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.
-      # (with_access uses mode: :any by default)
-      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files).
-      order(:id).pluck(:id)
-    viewable_by(user).where(project_pk: project_ids)
+      # Projects where the user can see enrollment details
+      with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).
+      # Projects where the user has one of the listed file perms
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
+      select(:id)
+
+    where(project_pk: project_ids)
   end
 
   # Free-text search for Enrollment

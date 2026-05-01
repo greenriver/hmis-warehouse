@@ -14,6 +14,8 @@
 # See README.md for details.
 
 module HmisCsvTwentyTwentySix
+  def self.utf8_export? = true
+
   def self.table_name_prefix
     'hmis_csv_twenty_twenty_six_'
   end

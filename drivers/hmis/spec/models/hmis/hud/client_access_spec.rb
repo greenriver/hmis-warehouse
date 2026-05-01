@@ -99,6 +99,21 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       viewable_clients = Hmis::Hud::Client.viewable_by(user_with_ds1_and_ds2_access)
       expect(viewable_clients).to be_empty
     end
+
+    context 'with many clients' do
+      before do
+        30.times do |i|
+          c = create :hmis_hud_client, data_source: ds1
+          create :hmis_hud_enrollment, client: c, data_source: ds1, project: p1, entry_date: 1.month.ago if i.even? # half of them have enrollments
+        end
+      end
+
+      it 'makes a reasonable number of db queries' do
+        expect do
+          Hmis::Hud::Client.viewable_by(user_with_access_to_p1_clients)
+        end.to make_database_queries(count: 15..25)
+      end
+    end
   end
 
   describe 'files_viewable_by scope' do

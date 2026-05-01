@@ -101,12 +101,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :visible_to, ->(user) do
-    # optimization: return early if the user has NO access to view clients in the current data source
+    # Confirm that user has access to view clients *somewhere* in the current data source.
+    # This is not a pure optimization; we need to confirm this before we return unenrolled clients.
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_view?
 
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
-    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
     where(c_t[:id].in(client_ids))
   end
@@ -115,6 +116,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     alias_method :viewable_by, :visible_to
   end
 
+  # Includes clients that are viewable by the user AND the user has some access to the client's files
+  # (regardless if any files exist; regardless if the user has access to confidential or nonconfidential files).
+  # Does not include viewable clients where the user can only see their "own" files (can_manage_own_client_files),
+  # which is checked for separately by the File#viewable_by scope.
   scope :files_viewable_by, ->(user) do
     # optimization: return early if the user has NO access to view clients and files in the current data source
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
@@ -123,10 +128,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     project_ids = Hmis::Hud::Project.
       # User must be able to view clients at the project
       with_access(user, :can_view_clients).
-      # User must be able to view some files, whether confidential or non-confidential. (with_access uses mode: :any by default)
-      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files).
+      # User must be able to view some files, whether confidential or non-confidential.
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       pluck(:id)
-    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
     where(c_t[:id].in(client_ids))
   end
@@ -146,7 +151,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #   1. Clients enrolled in any of the given projects
   #   2. Unenrolled clients belonging to the given data source
   # Callers must use `c_t[:id].in(result)` rather than `where(id: result)`
-  def self.client_ids_sql(project_ids:, data_source_id:)
+  def self.union_sql_for_clients_in_projects_or_unenrolled(project_ids:, data_source_id:)
     scopes = [
       unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.where(id: data_source_id)),
       joins(:projects).where(p_t[:id].in(project_ids)),

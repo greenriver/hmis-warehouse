@@ -94,6 +94,13 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
         expect(global_policy.can_view?).to be true
       end
 
+      it 'is true when the user has both can_view_enrollment_details and can_view_project, even at different projects' do
+        # see comments on Hmis::AuthPolicies::UserContext#global_permissions
+        create_access_control(user, project, with_permission: [:can_view_project])
+        create_access_control(user, other_project, with_permission: [:can_view_enrollment_details])
+        expect(global_policy.can_view?).to be true
+      end
+
       it 'is false when the user only has can_view_enrollment_details' do
         create_access_control(user, project, with_permission: [:can_view_enrollment_details])
         expect(global_policy.can_view?).to be false
