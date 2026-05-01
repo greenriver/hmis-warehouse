@@ -106,7 +106,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return none unless global_policy.can_view?
 
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
-    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
     where(c_t[:id].in(client_ids))
   end
@@ -130,7 +130,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       # User must be able to view some files, whether confidential or non-confidential.
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       pluck(:id)
-    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
     where(c_t[:id].in(client_ids))
   end
@@ -139,7 +139,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #   1. Clients enrolled in any of the given projects
   #   2. Unenrolled clients belonging to the given data source
   # Callers must use `c_t[:id].in(result)` rather than `where(id: result)`
-  def self.client_ids_sql(project_ids:, data_source_id:)
+  def self.union_sql_for_clients_in_projects_or_unenrolled(project_ids:, data_source_id:)
     scopes = [
       unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.where(id: data_source_id)),
       joins(:projects).where(p_t[:id].in(project_ids)),
