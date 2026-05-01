@@ -118,7 +118,7 @@ RSpec.describe Hmis::File, type: :model do
     end
 
     context 'user has can_manage_own_client_files only in another data source' do
-      let!(:ds2) { create :hmis_primary_data_source }
+      let!(:ds2) { create :hmis_data_source }
       let!(:access_control) { create_access_control(hmis_user, ds2, with_permission: [:can_manage_own_client_files]) }
       let!(:file1) { create :file, client: c1, user: hmis_user, blob: blob }
 

@@ -138,11 +138,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Clients for which the user has `can_manage_own_client_files`. Used to scope "own uploads"
   scope :own_files_viewable_by, ->(user) do
+    # Similar to the visible_to scope above, since this scope returns unenrolled clients,
+    # we need to first confirm the user can manage their "own" files *somewhere* in the current data source.
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_manage_own_client_files?
 
     project_ids = Hmis::Hud::Project.with_access(user, :can_manage_own_client_files).pluck(:id)
-    client_ids = client_ids_sql(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
     where(c_t[:id].in(client_ids))
   end
