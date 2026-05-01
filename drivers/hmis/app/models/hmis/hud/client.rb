@@ -115,6 +115,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     alias_method :viewable_by, :visible_to
   end
 
+  # Includes clients that are viewable by the user AND the user has some access to the client's files (regardless if any files exist; regardless if the user has access to confidential or nonconfidential files)
+  # Does not include viewable clients where the user can only see their "own" files (can_manage_own_client_files)
   scope :files_viewable_by, ->(user) do
     # optimization: return early if the user has NO access to view clients and files in the current data source
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
