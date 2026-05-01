@@ -1,0 +1,30 @@
+[
+  {
+    "form_identifier": "funder",
+    "link_id": "q_1",
+    "append_items": [
+      {
+        "type": "CURRENCY",
+        "required": false,
+        "link_id": "daily_rate",
+        "text": "Daily Rate",
+        "mapping": {
+          "custom_field_key": "funder_daily_rate"
+        },
+        "enable_behavior": "ANY",
+        "enable_when": [
+          {
+            "question": "funder",
+            "operator": "EQUAL",
+            "answer_code": "HUD_HOPWA_PERMANENT_HOUSING"
+          },
+          {
+            "question": "funder",
+            "operator": "EQUAL",
+            "answer_code": "HUD_HOPWA_TRANSITIONAL_HOUSING"
+          }
+        ]
+      }
+    ]
+  }
+]
