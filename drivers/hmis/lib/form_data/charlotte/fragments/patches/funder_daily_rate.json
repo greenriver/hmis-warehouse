@@ -1,7 +1,7 @@
 [
   {
     "form_identifier": "funder",
-    "link_id": "q_1",
+    "link_id": "funder_grant_info",
     "append_items": [
       {
         "type": "CURRENCY",
