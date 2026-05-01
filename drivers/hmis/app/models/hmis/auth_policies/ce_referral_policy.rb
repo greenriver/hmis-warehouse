@@ -103,7 +103,7 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     # Whether the user has any referral task perform permission (broad or own) somewhere in the data source.
-    # Use in combination with `can_index?` when a screen requires the user to be able to view and act on some referrals.
+    # Use in combination with `can_index?` requiring the user to be able to both view and act on some referrals.
     def can_perform_some_referral_tasks?
       return false unless Hmis::Ce.configuration.enabled?
 
@@ -111,8 +111,8 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     # Whether the user is eligible to be assigned as a *data-source-wide* CE default contact.
-    # Restricted to users who have `can_perform_any_referral_tasks` globally. Users who only have
-    # `can_perform_own_referral_tasks` are not "admin-like" and should not be global default contacts.
+    # Restricted to users who have `can_perform_any_referral_tasks` somewhere in the data source.
+    # Users who only have `can_perform_own_referral_tasks` are not "admin-like" and should not be global default contacts.
     def can_be_global_default_contact?
       global_permissions.include?(:can_perform_any_referral_tasks)
     end

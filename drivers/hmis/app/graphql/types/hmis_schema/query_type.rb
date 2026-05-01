@@ -325,8 +325,7 @@ module Types
     end
 
     access_field do
-      # TODO(#8995) - Access fields defined using the old pattern.
-      # Update these to match the new pattern (see below) and remove any that are unused by the frontend
+      # TODO(#8995) - Update access fields to match the new pattern (see below) and remove any that are unused by the frontend
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
