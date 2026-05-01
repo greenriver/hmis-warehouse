@@ -16,7 +16,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_edit_clients)
     end
 
-    def can_destroy?
+    def can_delete?
       client_permissions.include?(:can_delete_clients)
     end
 

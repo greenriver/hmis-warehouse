@@ -74,6 +74,24 @@ module Hmis::Ce::Match::Expression
       Array.wrap(value).map { |v| _format_for_display(field, v) }
     end
 
+    # Parses a `custom_assessment.*` segment (portion of a `cde.*` expression key after `cde.`).
+    memoize def parse_entity_type(field)
+      entity_type, cde_key = field.split('.', 2)
+
+      klass = case entity_type
+      when 'custom_assessment'
+        Hmis::Hud::CustomAssessment
+      # TBD: add support for CDEs on other entities such as Enrollments and Client
+      else
+        raise ArgumentError, "Unknown entity in field \"#{field}\""
+      end
+
+      cded = cded_lookup.dig(klass.sti_name, cde_key)
+      raise ArgumentError, "Unknown CDE in field \"#{field}\"" unless cded
+
+      cded
+    end
+
     private
 
     def _format_for_display(field, value)
@@ -93,24 +111,6 @@ module Hmis::Ce::Match::Expression
 
     def arel
       Hmis::ArelHelper.instance
-    end
-
-    # parses a key of the format 'custom_assessment.xyz'
-    memoize def parse_entity_type(field)
-      entity_type, cde_key = field.split('.', 2)
-
-      klass = case entity_type
-      when 'custom_assessment'
-        Hmis::Hud::CustomAssessment
-      # TBD: add support for CDEs on other entities such as Enrollments and Client
-      else
-        raise ArgumentError, "Unknown entity in field \"#{field}\""
-      end
-
-      cded = cded_lookup.dig(klass.sti_name, cde_key)
-      raise ArgumentError, "Unknown CDE in field \"#{field}\"" unless cded
-
-      cded
     end
 
     # supports lookup by owner_type and field_name

@@ -16,7 +16,7 @@ class Hmis::AuthPolicies::HmisOrganizationPolicy < Hmis::AuthPolicies::ResourceP
       organization_permissions.include?(:can_edit_project_details)
     end
 
-    def can_destroy?
+    def can_delete?
       organization_permissions.include?(:can_delete_organization)
     end
 

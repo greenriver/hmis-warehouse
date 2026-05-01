@@ -74,9 +74,9 @@ class Weather::NoaaService
     url = "#{@endpoint}#{path}?#{query_args.to_param}"
     begin
       JSON.parse(RestClient.get(url, token: @token).body)
-    rescue StandardError
+    rescue StandardError => e
       setup_notifier('WeatherWarning')
-      @notifier.ping("Error contacting the weather API at #{url}") if @send_notifications
+      UnifiedErrorReporter.call(e, "Error contacting the weather API at #{url}", slack_notifier: @notifier)
     end
   end
 end
