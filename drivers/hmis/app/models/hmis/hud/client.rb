@@ -101,7 +101,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :visible_to, ->(user) do
-    # optimization: return early if the user has NO access to view clients in the current data source
+    # Confirm that user has access to view clients *somewhere* in the current data source.
+    # This is not a pure optimization; we need to confirm this before we return unenrolled clients.
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_view?
 
