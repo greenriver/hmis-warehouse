@@ -181,8 +181,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Enrollments where this user has some access to the enrollment's files, whether confidential or not.
   scope :files_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.
-      # (with_access uses mode: :any by default)
-      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files).
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       order(:id).pluck(:id)
     viewable_by(user).where(project_pk: project_ids)
   end
