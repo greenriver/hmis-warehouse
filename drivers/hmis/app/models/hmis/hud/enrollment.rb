@@ -178,7 +178,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       or(limited_enrollment_details_viewable_by(user))
   end
 
-  # Enrollments where this user has some access to the enrollment's files, whether confidential or not.
+  # Includes enrollments that are viewable by the user AND the user has some access to the enrollment's files
+  # (regardless if any files exist; regardless if the user has access to confidential or nonconfidential files).
+  # Does not include viewable enrollments where the user can only see their "own" files (can_manage_own_client_files),
+  # which is checked for separately by the File#viewable_by scope.
   scope :files_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
