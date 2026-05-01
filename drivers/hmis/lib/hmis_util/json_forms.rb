@@ -171,8 +171,9 @@ module HmisUtil
     # Apply applicable patches to the "tree" which is a top-level item in the form definition.
     # The patches passed may not apply to this tree. They are only applied if the `link_id` matches
     # an item in the tree.
+    # If a patch includes `form_identifier`, it only applies to that form definition.
     # Patches can override item attributes (such as "text") or append/prepend items to Group items.
-    def apply_item_patches(tree, patches)
+    def apply_item_patches(tree, patches, identifier:)
       nodes_by_id = {}
       result = tree.deep_dup
       walk_nodes(result) do |node|
@@ -182,11 +183,14 @@ module HmisUtil
       applied_patches = []
       patches.each do |patch|
         id = patch.fetch('link_id')
+        next if patch['form_identifier'].present? && patch['form_identifier'] != identifier
+
         node = nodes_by_id[id]
         next unless node.present? # ok to skip, just means that this form doesn't contain this link id
 
         applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
+        patch_to_apply = patch_to_apply.except('form_identifier')
 
         # if patch replaces references with options, remove the reference to avoid schema violation
         node.delete('pick_list_reference') if patch_to_apply.key?('pick_list_options')
@@ -231,7 +235,7 @@ module HmisUtil
 
         # Apply item-level patches (overriding item attributes, and appending/prepending items to groups)
         definition['item'].each do |item|
-          result, applied = apply_item_patches(item, item_patches)
+          result, applied = apply_item_patches(item, item_patches, identifier: identifier)
           item.replace(result)
           applied_patches.push(*applied)
         end
