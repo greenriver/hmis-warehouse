@@ -14,7 +14,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:ds_access_control) { create_access_control(hmis_user, ds1) }
 
-  describe 'admin ceReferrals query' do
+  describe 'ceReferrals query' do
     let(:query) do
       <<~GRAPHQL
         query GetCeReferrals($limit: Int = 25, $offset: Int = 0, $filters: CeReferralFilterOptions = null) {
