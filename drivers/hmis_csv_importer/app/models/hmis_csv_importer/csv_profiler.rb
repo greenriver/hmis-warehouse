@@ -78,6 +78,7 @@ module HmisCsvImporter
       row = rows.first
       @export = {
         export_id: row['ExportID'],
+        source_id: row['SourceID'],
         export_start_date: parse_date(row['ExportStartDate']),
         export_end_date: parse_date(row['ExportEndDate']),
       }

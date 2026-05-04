@@ -18,10 +18,12 @@ task :profile, [:dir] => [:environment] do |_, args|
   puts "Profiling HMIS CSV export at: #{dir}"
   print '  Analyzing (this may take a while for large exports)... '
   profiler = HmisCsvImporter::CsvProfiler.new(dir).run
-  puts "done (export: #{profiler.export[:export_id]}, #{profiler.export[:export_start_date]} - #{profiler.export[:export_end_date]})"
+  puts "done (export: #{profiler.export[:export_id]}, source: #{profiler.export[:source_id]}, #{profiler.export[:export_start_date]} - #{profiler.export[:export_end_date]})"
 
   export_id  = profiler.export[:export_id]
-  output_dir = Rails.root.join('docs', 'research', "hmis-csv-#{export_id}").to_s
+  source_id  = profiler.export[:source_id].presence
+  dir_name   = ['hmis-csv', source_id, export_id].compact.join('-')
+  output_dir = Rails.root.join('docs', 'research', dir_name).to_s
 
   puts "  Writing output to: #{output_dir}"
   HmisCsvImporter::CsvProfiler::ReportWriter.new(profiler, output_dir).write

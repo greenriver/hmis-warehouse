@@ -62,10 +62,13 @@ module HmisCsvImporter
       end
 
       def header_lines
-        [
+        lines = [
           '# HMIS CSV Profile Report',
           '',
           "**Export ID:** #{export[:export_id]}",
+        ]
+        lines << "**Source ID:** #{export[:source_id]}" if export[:source_id].present?
+        lines + [
           "**Export period:** #{export[:export_start_date]} - #{export[:export_end_date]}",
           '',
           '---',
