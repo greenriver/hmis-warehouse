@@ -102,7 +102,7 @@ RSpec.describe Hmis::File, type: :model do
     end
 
     context 'user has can_manage_own_client_files' do
-      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_own_client_files]) }
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_own_client_files, :can_view_clients]) }
 
       it 'does not return the file' do
         expect(Hmis::File.viewable_by(hmis_user)).to be_empty
@@ -119,7 +119,7 @@ RSpec.describe Hmis::File, type: :model do
 
     context 'user has can_manage_own_client_files only in another data source' do
       let!(:ds2) { create :hmis_data_source }
-      let!(:access_control) { create_access_control(hmis_user, ds2, with_permission: [:can_manage_own_client_files]) }
+      let!(:access_control) { create_access_control(hmis_user, ds2, with_permission: [:can_manage_own_client_files, :can_view_clients]) }
       let!(:file1) { create :file, client: c1, user: hmis_user, blob: blob }
 
       it 'does not return own files for clients in the current data source' do
@@ -133,7 +133,7 @@ RSpec.describe Hmis::File, type: :model do
       let!(:c_ds2) { create :hmis_hud_client, data_source: ds2 }
       let!(:e_ds2) { create :hmis_hud_enrollment, client: c_ds2, data_source: ds2, project: p_ds2 }
       let!(:file_ds2) { create :file, client: c_ds2, enrollment: e_ds2, blob: blob, user: hmis_user }
-      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_own_client_files]) }
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_own_client_files, :can_view_clients]) }
 
       before do
         # Grant hmis_user file access at ds2 as well, but hmis_user is logged in at ds1.

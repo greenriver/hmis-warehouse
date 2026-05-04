@@ -75,7 +75,7 @@ class Hmis::File < GrdaWarehouse::File
       own_scope = Hmis::File.
         left_outer_joins(:client). # same left_outer_joins as above, in order to pass structurally compatible relationship to #or
         left_outer_joins(:enrollment).
-        where(client: { data_source_id: user.hmis_data_source_id }).
+        merge(Hmis::Hud::Client.viewable_by(user)).
         where(user_id: user.id)
       viewable_scope = viewable_scope.or(own_scope)
     end
