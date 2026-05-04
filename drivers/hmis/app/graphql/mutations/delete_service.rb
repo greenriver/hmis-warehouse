@@ -15,17 +15,18 @@ module Mutations
     def resolve(id:)
       raise HmisErrors::ApiError, 'Invalid service ID' unless Hmis::Hud::HmisService.valid_id?(id)
 
+      # hmis_service is the HmisService view row representing this service.
       hmis_service = Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
-      result = default_delete_record(
-        record: hmis_service&.owner,
-        field_name: :service,
-        permissions: :can_edit_enrollments,
-      )
+      # owner is the actual service record, either a Hmis::Hud::Service or Hmis::Hud::CustomService.
+      owner = hmis_service&.owner
+      access_denied! unless hmis_service.present? && owner.present? && policy_for(owner.enrollment, policy_type: :hmis_enrollment).can_edit?
 
-      # Return the HmisService object
-      result[:service] = hmis_service
+      owner.destroy!
 
-      result
+      {
+        service: hmis_service,
+        errors: [],
+      }
     end
   end
 end
