@@ -117,6 +117,7 @@ module Types
         :open_enrollment_project_types,
         :open_enrollment_project_types_excluding_incomplete,
         :open_referral_project_types,
+        :cohorts, # skip because it exposes too much information
       ]
       object.resolve_match_rule_fields(excluded_fields: excluded_fields)
     end

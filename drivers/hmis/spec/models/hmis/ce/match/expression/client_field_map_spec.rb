@@ -69,6 +69,14 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
           )
           expect(result[destination_client_no_enrollments.id]).to eq([])
         end
+
+        it 'returns empty array for cohorts when not on any cohort' do
+          result = field_map.client_query(
+            GrdaWarehouse::Hud::Client.where(id: destination_client_no_enrollments.id),
+            'cohorts',
+          )
+          expect(result[destination_client_no_enrollments.id]).to eq([])
+        end
       end
     end
 
@@ -256,6 +264,33 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
         end
       end
     end
+
+    context 'for cohorts' do
+      let!(:cohort_a) { create(:cohort, name: 'Alpha List') }
+      let!(:cohort_b) { create(:cohort, name: 'Beta List') }
+
+      before do
+        create(:cohort_client, cohort: cohort_a, client: destination_client1, active: true)
+        create(:cohort_client, cohort: cohort_b, client: destination_client1, active: true)
+        create(:cohort_client, cohort: cohort_a, client: destination_client2, active: false)
+      end
+
+      it 'returns active cohort ids per client' do
+        result = field_map.client_query(all_destination_clients, 'cohorts')
+        expect(result[destination_client1.id]).to contain_exactly(cohort_a.id, cohort_b.id)
+        expect(result[destination_client2.id]).to eq([])
+      end
+    end
+  end
+
+  describe '#label_for' do
+    it 'uses humanized field name by default' do
+      expect(field_map.label_for('veteran_status')).to eq('Veteran status')
+    end
+
+    it 'uses configured label for cohorts' do
+      expect(field_map.label_for('cohorts')).to eq('Cohort membership')
+    end
   end
 
   describe '#format_for_display' do
@@ -268,6 +303,22 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
       formatted = field_map.format_for_display('open_enrollment_project_types', [2, 3])
       expected = [HudHelper.util.project_type(2), HudHelper.util.project_type(3)]
       expect(formatted).to eq(expected)
+    end
+
+    it 'formats cohort ids as cohort names in stable id order' do
+      cohort_second = create(:cohort, name: 'Second')
+      cohort_first = create(:cohort, name: 'First')
+      formatted = field_map.format_for_display('cohorts', [cohort_second.id, cohort_first.id])
+      ids_ordered = [cohort_second.id, cohort_first.id].sort
+      expected_names = ids_ordered.map do |id|
+        id == cohort_second.id ? 'Second' : 'First'
+      end
+      expect(formatted).to eq(expected_names)
+    end
+
+    it 'falls back for missing cohort id' do
+      formatted = field_map.format_for_display('cohorts', [99_999_999])
+      expect(formatted).to eq(['Cohort #99999999'])
     end
   end
 end

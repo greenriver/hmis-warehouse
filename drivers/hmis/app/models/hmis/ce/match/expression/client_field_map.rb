@@ -27,7 +27,7 @@ module Hmis::Ce::Match::Expression
 
     # Label for user-facing display of resolved field
     def label_for(field)
-      field.humanize
+      all.dig(field.to_sym, :label) || field.to_s.humanize
     end
 
     # Value for user-facing display of resolved field
@@ -52,6 +52,7 @@ module Hmis::Ce::Match::Expression
         open_enrollment_project_types: open_enrollment_project_types_field,
         open_enrollment_project_types_excluding_incomplete: open_enrollment_project_types_excluding_incomplete_field,
         open_referral_project_types: open_referral_project_types_field,
+        cohorts: cohorts_field,
       }
     end
 
@@ -95,6 +96,16 @@ module Hmis::Ce::Match::Expression
       }
     end
 
+    # Active cohort memberships for each destination client (cohort primary keys).
+    # Uses +CohortClient.active+ only so inactive rows on a cohort tab do not count.
+    def cohorts_field
+      {
+        label: 'Cohort membership',
+        query: ->(clients) { cohort_ids_query(clients) },
+        format_for_display: method(:format_cohort_ids),
+      }
+    end
+
     def open_referral_project_types_field
       {
         query: ->(clients) do
@@ -128,9 +139,30 @@ module Hmis::Ce::Match::Expression
       result
     end
 
+    # @return [Hash{Integer => Array<Integer>}] cohort ids per destination client id
+    def cohort_ids_query(clients)
+      client_ids = clients.pluck(:id)
+      values = GrdaWarehouse::CohortClient.active.
+        where(client_id: client_ids).
+        distinct.
+        pluck(:client_id, :cohort_id)
+
+      result = values.group_by(&:first).transform_values { |pairs| pairs.map(&:last).uniq.sort }
+      client_ids.each { |client_id| result[client_id] ||= [] }
+      result
+    end
+
     # display helpers
     def helpers = ApplicationController.helpers
     def format_days(days) = days.nil? ? nil : helpers.pluralize(days, 'day')
     def format_project_types(project_type_ids) = project_type_ids.uniq.map { |t| HudHelper.util('2026').project_type(t) }
+
+    def format_cohort_ids(cohort_ids)
+      ids = Array(cohort_ids).compact_blank.uniq.sort
+      return [] if ids.empty?
+
+      names_by_id = GrdaWarehouse::Cohort.where(id: ids).pluck(:id, :name).to_h
+      ids.map { |id| names_by_id[id].presence || "Cohort ##{id}" }
+    end
   end
 end

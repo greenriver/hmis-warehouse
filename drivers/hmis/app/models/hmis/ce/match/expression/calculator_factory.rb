@@ -4,6 +4,35 @@ require 'dentaku'
 
 module Hmis::Ce::Match::Expression
   module CalculatorFactory
+    # Resolves +identifier+ to a +GrdaWarehouse::Cohort+ id for match expressions (+COHORT+).
+    # Accepts a numeric id or an exact cohort name (string). Duplicate names use the lowest id and log a warning.
+    def self.resolve_cohort_id(identifier)
+      return nil if identifier.nil?
+
+      case identifier
+      when Integer
+        id = identifier
+      when Numeric
+        id = identifier.to_i
+      when String
+        rows = GrdaWarehouse::Cohort.where(name: identifier).order(:id).pluck(:id)
+        return nil if rows.empty?
+
+        if rows.size > 1
+          Rails.logger.warn(
+            "[CE COHORT] Multiple cohorts named #{identifier.inspect} (#{rows.size} rows); using id=#{rows.first}",
+          )
+        end
+        id = rows.first
+      else
+        return nil
+      end
+
+      return nil unless GrdaWarehouse::Cohort.where(id: id).exists?
+
+      id
+    end
+
     # calculator with custom functions
     def self.build
       calculator = Dentaku::Calculator.new(case_sensitive: true) # CDED keys are case sensitive, so Dentaku expressions should be too
@@ -32,6 +61,13 @@ module Hmis::Ce::Match::Expression
           return nil if identifier.nil?
 
           HudHelper.util.hmis_project_type_key(identifier, true)
+        end,
+      )
+      calculator.add_function(
+        :COHORT,
+        :numeric,
+        ->(identifier) do
+          Hmis::Ce::Match::Expression::CalculatorFactory.resolve_cohort_id(identifier)
         end,
       )
       calculator.add_function(

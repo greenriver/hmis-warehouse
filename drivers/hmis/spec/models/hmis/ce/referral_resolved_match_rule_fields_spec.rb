@@ -62,6 +62,26 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end
     end
 
+    context 'when resolving cohort membership field' do
+      let(:requirement_expression) { 'INCLUDES(cohorts, COHORT("Resolve Field Cohort"))' }
+      let!(:cohort_for_rule) { create(:cohort, name: 'Resolve Field Cohort') }
+
+      before do
+        destination = client.destination_client&.as_warehouse
+        create(:cohort_client, cohort: cohort_for_rule, client: destination, active: true)
+      end
+
+      it 'resolves cohort membership label and names' do
+        resolved_fields = referral.resolve_match_rule_fields
+        expect(resolved_fields).to include(
+          have_attributes(
+            field_name: 'Cohort membership',
+            field_values: ['Resolve Field Cohort'],
+          ),
+        )
+      end
+    end
+
     context 'when resolving expression with repeated fields' do
       let(:requirement_expression) { 'current_age > 18 AND current_age < 25 AND veteran_status = 1' }
 

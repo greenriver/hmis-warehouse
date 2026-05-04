@@ -375,6 +375,46 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
             expect(results).to be_empty
           end
         end
+
+        describe 'COHORT with NULL identifier' do
+          let(:requirement_expression) { 'INCLUDES(cohorts, COHORT(NULL))' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
+        end
+      end
+    end
+  end
+
+  context 'when evaluating cohort-based policies' do
+    include_context 'with enrolled test clients'
+
+    let!(:cohort_match) { create(:cohort, name: 'Match Engine Cohort') }
+
+    before do
+      dest_ce = GrdaWarehouse::Hud::Client.find(client_enrolled_in_ce.destination_client.id)
+      dest_es = GrdaWarehouse::Hud::Client.find(client_enrolled_in_es.destination_client.id)
+      create(:cohort_client, cohort: cohort_match, client: dest_ce, active: true)
+      create(:cohort_client, cohort: cohort_match, client: dest_es, active: false)
+    end
+
+    describe 'when requiring membership by cohort name' do
+      let(:requirement_expression) { 'INCLUDES(cohorts, COHORT("Match Engine Cohort"))' }
+
+      it 'includes clients with an active cohort_client row only' do
+        results = generate_candidates(pool)
+        expect(results).to eq([client_enrolled_in_ce.destination_client.id])
+      end
+    end
+
+    describe 'when requiring membership by cohort id' do
+      let(:requirement_expression) { "INCLUDES(cohorts, COHORT(#{cohort_match.id}))" }
+
+      it 'includes clients with an active cohort_client row only' do
+        results = generate_candidates(pool)
+        expect(results).to eq([client_enrolled_in_ce.destination_client.id])
       end
     end
   end
