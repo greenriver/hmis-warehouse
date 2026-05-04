@@ -40,10 +40,27 @@ module Mutations
         record.enrollment&.accept_referral!(current_user: current_user) if record.exit? && !is_wip
 
         # Deleting the Intake Assessment deletes the enrollment
-        record.enrollment&.destroy! if record.intake? && !record.enrollment&.intake_assessment&.present?
+        delete_household_enrollments(record: record) if record.intake?
 
         { assessment_id: record.id, errors: [] }
       end
+    end
+
+    def delete_household_enrollments(record:)
+      return unless record.intake? && record.enrollment.present?
+
+      # Don't delete the enrollment if it has any other intakes.
+      # (This would likely be a data issue from import, since our frontend does not allow creating multiple intakes)
+      return if record.enrollment.intake_assessment&.present?
+
+      enrollments_to_delete = [record.enrollment]
+
+      # If we're deleting the HoH enrollment, delete all household members' enrollments too.
+      # This avoids leaving a dangling household without a HoH.
+      enrollments_to_delete.concat(record.enrollment.household_members) if record.enrollment.head_of_household?
+
+      # Destroy all the enrollments. This is done in a transaction thanks to record.with_lock above
+      enrollments_to_delete.uniq.each(&:destroy!)
     end
   end
 end
