@@ -70,12 +70,9 @@ class Hmis::File < GrdaWarehouse::File
       left_outer_joins(:enrollment).
       where(case_statement)
 
-    # Users can see files they uploaded when they have can_manage_own_client_files for that client, even
-    # if they lack broader permissions.
-    manage_own_client_scope = Hmis::Hud::Client.own_files_viewable_by(user)
-    manage_own_client_scope = manage_own_client_scope.where(id: client_ids) if client_ids.present?
-    own_files_scope = Hmis::File.where(user_id: user.id).where(client_id: manage_own_client_scope.select(:id))
-    viewable_scope = viewable_scope.or(own_files_scope)
+    # Users can see files they uploaded if they have can_manage_own_client_files, even if they lack broader permissions.
+    client_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
+    viewable_scope = viewable_scope.or(Hmis::File.where(user_id: user.id)) if client_policy.can_manage_own_client_files?
 
     where(id: viewable_scope.select(:id))
   end
