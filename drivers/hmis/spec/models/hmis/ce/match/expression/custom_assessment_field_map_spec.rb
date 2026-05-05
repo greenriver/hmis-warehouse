@@ -116,20 +116,31 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
       end
     end
 
-    # TODO(#9095): Update this test when the behavior is corrected
     context 'with multiple forms that have the same identifier across data sources' do
-      let!(:hmis1) { create(:hmis_data_source) }
-      let!(:hmis2) { create(:hmis_data_source) }
       let(:identifier) { 'my_assessment' }
+
+      let!(:hmis1) { create(:hmis_data_source) }
+      let!(:project1) { create(:hmis_hud_project, data_source: hmis1) }
+      let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis1) }
       let!(:form1) { create(:hmis_form_definition, identifier: identifier, data_source: hmis1) }
+      let!(:enrollment1) { create(:hmis_hud_enrollment, project: project1, client: client1, data_source: hmis1) }
+      let!(:assessment1) { create(:hmis_custom_assessment, definition: form1, enrollment: enrollment1, data_source: hmis1, assessment_date: current_date - 2.days) }
+
+      let!(:hmis2) { create(:hmis_data_source) }
+      let!(:project2) { create(:hmis_hud_project, data_source: hmis2) }
       let!(:form2) { create(:hmis_form_definition, identifier: identifier, data_source: hmis2) }
+      let!(:client2) { create(:hmis_hud_client, data_source: hmis2) }
+      # link client2 to the same destination client as client1
+      let!(:client2_warehouse) { create(:warehouse_client, destination_id: destination_client1.id, source_id: client2.id) }
+      let!(:enrollment2) { create(:hmis_hud_enrollment, project: project2, client: client2, data_source: hmis2) }
+      let!(:assessment2) { create(:hmis_custom_assessment, definition: form2, enrollment: enrollment2, data_source: hmis2, assessment_date: current_date - 1.day) }
 
-      before do
-        create_assessment_for_client(client1, form1, current_date - 2.days)
-        create_assessment_for_client(client1, form2, current_date - 1.day)
-
-        result = field_map.client_query(GrdaWarehouse::Hud::Client.where(id: destination_client1.id), 'my_assessment.assessment_date')
-        expect(result[destination_client1.id]).to eq(current_date - 1.day)
+      it 'returns the most recent assessment for the form identifier, regardless of data source' do
+        dest = client1.destination_client
+        result = field_map.client_query(GrdaWarehouse::Hud::Client.where(id: dest.id), identifier + '.assessment_date')
+        # It chooses the assessment date from assessment2, since it's the same form identifier.
+        # TODO(#9095): Update this test when the behavior is corrected
+        expect(result[dest.id]).to eq(current_date - 1.day)
       end
     end
   end
