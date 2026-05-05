@@ -11,7 +11,7 @@ require_relative 'shared'
 
 RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
   include_context 'HmisCsvImporter cleanup context'
-  include_examples 'HmisCsvImporter cleanup record expiration'
+  it_behaves_like 'HmisCsvImporter cleanup record expiration'
 
   def records
     HmisCsvTwentyTwentyFour::Loader::Organization
@@ -38,6 +38,14 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
       models = job.send(:models)
       expect(models).not_to include(HmisCsvTwentyTwenty::Loader::Organization)
       expect(models).not_to include(HmisCsvTwentyTwentyTwo::Loader::Organization)
+    end
+
+    it 'never expires Export or Project tables' do
+      models = job.send(:models)
+      expect(models).not_to include(HmisCsvTwentyTwentyFour::Loader::Export)
+      expect(models).not_to include(HmisCsvTwentyTwentyFour::Loader::Project)
+      expect(models).not_to include(HmisCsvTwentyTwentySix::Loader::Export)
+      expect(models).not_to include(HmisCsvTwentyTwentySix::Loader::Project)
     end
 
     it 'raises if an active-version module does not implement expiring_loader_classes' do
