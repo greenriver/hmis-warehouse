@@ -17,7 +17,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   # Create a candidate pool that depends on a custom data element
   # custom_assessment_with_custom_fields definition factory generates cded "custom_question_1"
-  let!(:form_definition) { create(:custom_assessment_with_custom_fields, role: :CUSTOM_ASSESSMENT, status: :published, version: 1, generate_cdeds: true) }
+  let!(:form_definition) { create(:custom_assessment_with_custom_fields, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
+  let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'custom_question_1', form_definition: form_definition }
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool, priority_expression: 'cde.custom_assessment.custom_question_1' }
 
   let!(:unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: candidate_pool) }
