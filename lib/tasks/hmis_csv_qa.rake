@@ -42,14 +42,14 @@ end
 #   - id                  — surrogate PK, auto-assigned
 #   - data_source_id      — differs by design
 #   - ExportID            — references each source's own Export record
+#   - SourceID            — identifies the originating upload/system; differs
+#                           when imports come from separate HMIS installations
 #   - pending_date_deleted — transient import state, always NULL after import
 #   - DateDeleted         — timestamp checked as NULL vs non-NULL, not exact value
-#
-# source_hash IS included: it is a content fingerprint derived from HUD CSV
-# fields; identical inputs must produce identical hashes.
+#   - source_hash         — set asynchronously by post-import jobs; NULL until
+#                           reprocessing completes, so timing affects its value
 class HmisCsvQaComparison
   MAX_DIFFS_PER_TABLE = 20
-  CONTENT_BATCH = 5_000
 
   def initialize(ds_a_id:, ds_b_id:)
     @ds_a_id = ds_a_id
@@ -149,8 +149,18 @@ class HmisCsvQaComparison
       )
     SQL
 
-    # Keys present in both but with different content (source_hash mismatch)
-    # or differing deleted status.
+    # Keys present in both but with differing field values or deleted status.
+    # DateDeleted clause is omitted for tables that don't have the column
+    # (not all HUD types are soft-deletable).
+    date_deleted_clause = if wh_class.column_names.include?('DateDeleted')
+      %(OR (a."DateDeleted" IS NULL) != (b."DateDeleted" IS NULL))
+    else
+      ''
+    end
+
+    comparable_cols = comparable_columns(wh_class)
+    field_clauses = comparable_cols.map { |col| "a.#{conn.quote_column_name(col)} IS DISTINCT FROM b.#{conn.quote_column_name(col)}" }.join("\n          OR ")
+
     content_mismatch_keys = conn.execute(<<~SQL).map { |r| r[key.to_s] }
       SELECT a.#{key_col}
       FROM #{table} a
@@ -158,8 +168,8 @@ class HmisCsvQaComparison
         AND b.data_source_id = #{conn.quote(@ds_b_id)}
       WHERE a.data_source_id = #{conn.quote(@ds_a_id)}
         AND (
-          a.source_hash IS DISTINCT FROM b.source_hash
-          OR (a."DateDeleted" IS NULL) != (b."DateDeleted" IS NULL)
+          #{field_clauses}
+          #{date_deleted_clause}
         )
       LIMIT #{MAX_DIFFS_PER_TABLE + 1}
     SQL
@@ -183,12 +193,17 @@ class HmisCsvQaComparison
     only_in_a.first(MAX_DIFFS_PER_TABLE).each { |k| diffs << { type: :only_in_a, key: k } }
     only_in_b.first(MAX_DIFFS_PER_TABLE).each { |k| diffs << { type: :only_in_b, key: k } }
 
-    content_mismatch_keys.first(MAX_DIFFS_PER_TABLE).each do |k|
-      row_a = scope_a.find_by(key => k)
-      row_b = scope_b.find_by(key => k)
+    keys_to_diff = content_mismatch_keys.first(MAX_DIFFS_PER_TABLE)
+    rows_a = scope_a.where(key => keys_to_diff).index_by { |r| r[key.to_s] }
+    rows_b = scope_b.where(key => keys_to_diff).index_by { |r| r[key.to_s] }
+    cols = comparable_columns(wh_class)
+
+    keys_to_diff.each do |k|
+      row_a = rows_a[k]
+      row_b = rows_b[k]
       next unless row_a && row_b
 
-      col_diffs = comparable_columns(wh_class).filter_map do |col|
+      col_diffs = cols.filter_map do |col|
         val_a = row_a[col]
         val_b = row_b[col]
         { column: col, a: val_a, b: val_b } if val_a != val_b
@@ -208,14 +223,19 @@ class HmisCsvQaComparison
   end
 
   # HUD CSV fields that should be identical between two imports of the same data.
-  # Excludes ExportID (references each source's own Export record) and the hud_key
-  # itself (used for matching, not comparison). source_hash is appended as a
-  # single-value content fingerprint.
+  # Excludes ExportID and SourceID (upload/system identifiers), the hud_key
+  # itself (used for matching, not comparison), and source_hash (set async by
+  # post-import jobs — timing affects its value).
+  #
+  # Intersects with wh_class.column_names so that HUD spec names that don't
+  # exactly match the DB column (e.g. renamed or corrected typos) don't crash
+  # the SQL. Memoized per warehouse class.
   def comparable_columns(wh_class)
-    (wh_class.hud_csv_headers(version: version) - [wh_class.hud_key, :ExportID]).
-      map(&:to_s).
-      then { |cols| cols + ['source_hash'] }.
-      uniq
+    @comparable_columns_cache ||= {}
+    @comparable_columns_cache[wh_class] ||= begin
+      hud_headers = (wh_class.hud_csv_headers(version: version) - [wh_class.hud_key, :ExportID, :SourceID]).map(&:to_s)
+      hud_headers & wh_class.column_names
+    end
   end
 
   def format_result(file_name, wh_class, result)
