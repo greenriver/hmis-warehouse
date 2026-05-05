@@ -138,9 +138,9 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
       it 'returns the most recent assessment for the form identifier, regardless of data source' do
         dest = client1.destination_client
         result = field_map.client_query(GrdaWarehouse::Hud::Client.where(id: dest.id), identifier + '.assessment_date')
-        # It chooses the assessment date from assessment2, since it's the same form identifier.
-        # TODO(#9095): Update this test when the behavior is corrected
-        expect(result[dest.id]).to eq(current_date - 1.day)
+        # Since both forms use the same identifier, it assessment2.assessment_date, which is more recent.
+        # TODO(#9095): This test will need to be updated if the behavior changes
+        expect(result[dest.id]).to eq(assessment2.assessment_date)
       end
     end
   end
