@@ -99,7 +99,7 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
     def can_index?
       return false unless Hmis::Ce.configuration.enabled?
 
-      (global_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
+      (global_permissions & [:can_view_referrals, :can_view_own_referrals, :can_view_outgoing_referral_details]).any?
     end
 
     # Whether the user has any referral task perform permission (broad or own) somewhere in the data source.

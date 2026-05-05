@@ -48,6 +48,11 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
         expect(policy.can_index?).to be true
       end
 
+      it 'returns true if user can view outgoing referrals in a source project permission' do
+        create_access_control(user, project, with_permission: [:can_view_outgoing_referral_details, :can_view_project])
+        expect(policy.can_index?).to be true
+      end
+
       it 'returns false if user has no permissions' do
         expect(policy.can_index?).to be false
       end
