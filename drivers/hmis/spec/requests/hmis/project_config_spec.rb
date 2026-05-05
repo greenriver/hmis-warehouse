@@ -55,6 +55,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       project_config = Hmis::ProjectConfig.find(project_config_id)
       expect(project_config.class.name).to eq('Hmis::ProjectAutoEnterConfig')
       expect(project_config.project_type).to eq(0)
+      expect(project_config.data_source_id).to eq(ds1.id)
     end
 
     it 'should throw an error when the user does not have access' do
@@ -113,6 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:ds2_project) { create :hmis_hud_project, data_source: ds2 }
       let!(:ds2_access_control) { create_access_control(hmis_user, ds2) }
       let!(:ds2_project_config) { create :hmis_project_auto_enter_config, project: ds2_project }
+      let!(:ds2_project_type_config) { create :hmis_project_auto_enter_config, project_type: 0, data_source: ds2 }
 
       it 'should return only the configs in the current data source' do
         response, result = post_graphql { get_project_configs }

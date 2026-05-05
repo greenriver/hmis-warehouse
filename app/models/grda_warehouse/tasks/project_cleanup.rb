@@ -182,27 +182,57 @@ module GrdaWarehouse::Tasks
       !(homeless_status_correct?(project) && literally_homeless_status_correct?(project))
     end
 
-    # If the project only has one CoC Code, set all EnrollmentCoC to match
-    # If the project has more than one, clear out any EnrollmentCoC where isn't covered
+    # If the project only has one CoC Code, set all EnrollmentCoC to match.
+    # If the project has more than one CoC, clear any invalid CoCs, then propagate
+    # the HoH's EnrollmentCoC to household members (per HUD spec, only HoH is required
+    # to carry EnrollmentCoC; non-HoH members should inherit from their HoH).
     def fix_client_locations(project)
       return if skip_location_cleanup
 
-      # debug_log("Setting client locations for #{project.ProjectName}")
       coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
-        # Ensure the CoC codes are valid
         select { |code| HudHelper.util.valid_coc?(code) }
-      # Don't do anything if we don't know what CoC the project operates in
       return unless coc_codes.present?
 
       # where.not with a single value generates `!= value` which excludes NULLs, so OR explicitly
       base = project.enrollments
-      outside_cocs = base.where.not(EnrollmentCoC: coc_codes).or(base.where(EnrollmentCoC: nil))
 
       if coc_codes.count == 1
+        outside_cocs = base.where.not(EnrollmentCoC: coc_codes).or(base.where(EnrollmentCoC: nil))
         outside_cocs.update_all(EnrollmentCoC: coc_codes.first)
       else
-        outside_cocs.update_all(EnrollmentCoC: nil)
+        # Clear CoCs that aren't in the project's valid list; leave NULLs alone since
+        # they'll be filled in by propagation from the HoH below.
+        base.where.not(EnrollmentCoC: [*coc_codes, nil]).update_all(EnrollmentCoC: nil)
+        propagate_hoh_coc_to_household(project)
       end
+    end
+
+    # For each household in the project, copy the HoH's EnrollmentCoC to all
+    # active non-HoH members whose CoC differs (including NULL). Skips households where
+    # there is no valid CoC among the HoHs, or where multiple HoHs have conflicting CoCs.
+    private def propagate_hoh_coc_to_household(project)
+      sql = GrdaWarehouse::Hud::Enrollment.sanitize_sql([<<~SQL, { project_id: project.ProjectID, ds_id: project.data_source_id }])
+        UPDATE "Enrollment" AS member
+        SET "EnrollmentCoC" = hoh."EnrollmentCoC"
+        FROM (
+          SELECT data_source_id, "HouseholdID", MAX("EnrollmentCoC") AS "EnrollmentCoC"
+          FROM "Enrollment"
+          WHERE "ProjectID" = :project_id
+            AND data_source_id = :ds_id
+            AND "RelationshipToHoH" = 1
+            AND "HouseholdID" IS NOT NULL
+            AND "DateDeleted" IS NULL
+          GROUP BY data_source_id, "HouseholdID"
+          HAVING COUNT(DISTINCT "EnrollmentCoC") = 1
+        ) hoh
+        WHERE member."ProjectID" = :project_id
+          AND member.data_source_id = :ds_id
+          AND member."HouseholdID" = hoh."HouseholdID"
+          AND member."RelationshipToHoH" IS DISTINCT FROM 1
+          AND member."DateDeleted" IS NULL
+          AND (member."EnrollmentCoC" IS DISTINCT FROM hoh."EnrollmentCoC")
+      SQL
+      GrdaWarehouse::Hud::Enrollment.connection.execute(sql)
     end
 
     # If a project has user provided HMIS Participation records, than we don't need the 2022 -> 2024 migration generated
