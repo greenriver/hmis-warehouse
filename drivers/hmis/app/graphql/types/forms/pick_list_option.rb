@@ -90,7 +90,7 @@ module Types
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project, user: user)
       when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
-        projects_receiving_direct_ce_referrals(from_project: project)
+        projects_receiving_direct_ce_referrals(user: user, from_project: project)
       when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
         # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
         unit_groups_for_project_direct_ce_referral(project_id: project_id, user: user)
@@ -701,9 +701,11 @@ module Types
         map(&:to_pick_list_option)
     end
 
-    def self.projects_receiving_direct_ce_referrals(from_project:)
+    def self.projects_receiving_direct_ce_referrals(user:, from_project:)
       return [] unless Hmis::Ce.configuration.enabled?
-      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
+      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').
+        where(data_source_id: user.hmis_data_source_id).
+        any?
 
       # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
       project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).

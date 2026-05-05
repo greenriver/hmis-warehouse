@@ -4,3 +4,5 @@
   - options.each do |option|
     %option{value: option[:value], selected: option[:initial_selected]}= option[:label]
 .invalid-feedback This is required
+- if helper_text
+  .form-text.small.text-muted= helper_text

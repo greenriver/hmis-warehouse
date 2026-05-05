@@ -216,6 +216,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
         find_by_id('select_create_new_mci', visible: :all).set(true)
         expect do
           click_button 'Create & Enroll Client'
+          assert_text 'Incomplete' # the enrollment has been created and is incomplete
+          assert_text 'Household ID' # the household has been created and now has an ID
         end.to change(Hmis::Hud::Client, :count).by(1)
 
         expect(stub_mci).to have_received(:create_mci_id)

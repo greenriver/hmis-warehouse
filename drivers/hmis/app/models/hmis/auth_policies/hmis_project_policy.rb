@@ -16,7 +16,7 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_edit_project_details)
     end
 
-    def can_destroy?
+    def can_delete?
       project_permissions.include?(:can_delete_project)
     end
 
