@@ -66,5 +66,22 @@ RSpec.describe Users::InvitationsController, type: :controller do
         expect(assigns(:user).errors).not_to be_empty
       end
     end
+
+    context 'with duplicate email (existing active user)' do
+      let!(:existing_user) { create(:user, email: 'existing@example.com', agency: agency) }
+      let(:duplicate_email_params) do
+        valid_params.deep_merge(user: { email: existing_user.email })
+      end
+
+      it 're-renders new template without raising (partial lookup and @system_alerts)' do
+        expect do
+          post :create, params: duplicate_email_params, format: :html
+        end.not_to change(User, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(response).to render_template(:new)
+        expect(assigns(:user).errors).not_to be_empty
+      end
+    end
   end
 end

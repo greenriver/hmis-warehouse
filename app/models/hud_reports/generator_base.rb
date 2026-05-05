@@ -68,6 +68,15 @@ module HudReports
       Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id, email: email)
     end
 
+    def base_enrollment_scope(start_date: @report.start_date, end_date: @report.end_date)
+      report_scope_source.
+        where(client_id: client_scope(start_date: start_date, end_date: end_date)).
+        merge(report_scope_source.open_between(
+                start_date: start_date,
+                end_date: end_date,
+              ))
+    end
+
     # This selects just ids for the clients, to ensure uniqueness, but uses select instead of pluck
     # so that we can find in batches.
     def client_scope(start_date: @report.start_date, end_date: @report.end_date)

@@ -40,6 +40,32 @@ RSpec.describe AccountsController, type: :request do
       expect(response).to redirect_to edit_account_path
     end
 
+    context 'when HMIS is enabled' do
+      before(:each) do
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      end
+
+      it 'syncs HUD users when tracked account fields change' do
+        expect_any_instance_of(User).to receive(:sync_to_hud_users).with(no_args)
+
+        patch account_path, params: { user: changes }
+      end
+
+      it 'does not sync HUD users when nothing changed' do
+        expect_any_instance_of(User).not_to receive(:sync_to_hud_users)
+
+        patch account_path, params: {
+          user: {
+            first_name: user.first_name,
+            last_name: user.last_name,
+            phone: user.phone,
+            email_schedule: user.email_schedule,
+            credentials: user.credentials,
+          },
+        }
+      end
+    end
+
     context 'with specific changes' do
       it 'sets the flash notice for name changes' do
         user = create(:user, first_name: 'Original', last_name: 'Name', email_schedule: 'daily', phone: '1112223333', credentials: 'old')

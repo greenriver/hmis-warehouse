@@ -18,10 +18,12 @@ class AccountEmailsController < ApplicationController
   def update
     changed_notes = []
     changed_notes << 'Account email was updated, check your inbox for a confirmation link.' if @user.email != account_params[:email]
+    email_before = @user.email
 
     if @user.update_with_password(account_params)
       flash[:notice] = changed_notes.join(' ')
       bypass_sign_in(@user)
+      @user.sync_to_hud_users(previous_email: email_before) if HmisEnforcement.hmis_enabled?
     else
       flash[:alert] = 'Unable to change email address'
     end

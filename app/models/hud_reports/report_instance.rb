@@ -31,6 +31,7 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    has_many :household_contexts, class_name: 'HudReports::HouseholdContext', foreign_key: 'report_instance_id', dependent: :delete_all
     has_many :checkpoints, class_name: 'HudReports::ReportCheckpoint', foreign_key: 'hud_report_instance_id', dependent: :destroy
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
@@ -71,10 +72,14 @@ module HudReports
       )
     end
 
-    def current_status
+    def current_status(include_error_details: true)
       # Sometimes the report attempts to run again and ends up in the Started state, short circuit if we know this
       # isn't going to run successfully
-      return "Failed: #{error_details}" if error_details.present?
+      if error_details.present?
+        return "Failed: #{error_details}" if include_error_details
+
+        return 'Failed'
+      end
 
       case state
       when 'Waiting'
@@ -105,7 +110,7 @@ module HudReports
           state
         end
       when 'Failed'
-        if error_details.present?
+        if error_details.present? && include_error_details
           "#{state}: #{error_details}"
         else
           state
@@ -338,6 +343,11 @@ module HudReports
       end
 
       io.string
+    end
+
+    # convenience method
+    def report_range
+      start_date..end_date
     end
   end
 end

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/file-storage.md
 module GrdaWarehouse
   class File < GrdaWarehouseBase
     acts_as_paranoid

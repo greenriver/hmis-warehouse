@@ -84,7 +84,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   before_destroy :destroy_related_ce_referrals
 
   # hide previous declaration of :viewable_by, we'll use this one
-  # Includes any HMIS projects where the user has the can_view_projects permission
+  # Includes any HMIS projects where the user has the can_view_projects permission.
+  # Restricts to current data source (user.hmis_data_source_id), @see docs/architecture/multi-hmis-support.md
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])

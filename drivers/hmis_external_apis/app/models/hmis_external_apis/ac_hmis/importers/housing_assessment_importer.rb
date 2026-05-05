@@ -315,6 +315,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def hmis_data_source
+    # Expect exactly one HMIS data source
     @hmis_data_source ||= GrdaWarehouse::DataSource.hmis.sole
   end
 

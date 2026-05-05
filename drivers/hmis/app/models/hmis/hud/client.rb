@@ -104,6 +104,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
     scopes = []
+    # TODO(#8916) Replace the global permission check, `user.permissions?(*permissions, **kwargs)`,
+    # with a check for: "does the current user have any/all of these permissions at the *current* data source?"
     scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.permissions?(*permissions, **kwargs)
     scopes += [
       joins(:projects).where(p_t[:id].in(pids)),
@@ -207,13 +209,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     enrollments.any?
   end
 
-  def self.source_for(destination_id:, user:)
-    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id)&.source_id
-    return Hmis::Hud::Client.none unless source_id.present?
-
-    searchable_to(user).where(id: source_id)
-  end
-
   def warehouse_id
     warehouse_client_source&.destination_id
   end
@@ -244,7 +239,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user).where(id: input.id) if input.id.present?
     return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
-    return source_for(destination_id: input.warehouse_id, user: user) if input.warehouse_id
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
@@ -276,9 +270,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # TODO: nicks and/or metaphone searches?
     scope = scope.where(c_t[:SSN].matches("%#{input.ssn_serial}")) if input.ssn_serial.present?
     scope = scope.where(c_t[:DOB].eq(Date.parse(input.dob))) if input.dob.present?
-
-    scope = scope.joins(:projects).merge(Hmis::Hud::Project.viewable_by(user).where(id: input.projects)) if input.projects.present?
-    scope = scope.joins(projects: :organization).merge(Hmis::Hud::Organization.viewable_by(user).where(id: input.organizations)) if input.organizations.present?
 
     Hmis::Hud::Client.where(id: scope.select(:id))
   end

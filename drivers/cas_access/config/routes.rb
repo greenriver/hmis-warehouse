@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope :cas_access do
     # TODO
     # get '/my_path', to: 'cas_access/my_controller'

@@ -59,10 +59,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
-        skip: [
-          'B12', # expected '27.0000' (27), got '24.0000' (24)
-          'C12', # expected '27.0000' (27), got '24.0000' (24)
-        ],
       )
     end
 
@@ -448,12 +444,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
-        skip: [
-          'B2', # expected '27.0000' (27), got '24.0000' (24)
-          'D2', # expected '6.0000' (6), got '3.0000' (3)
-          'B3', # expected '70.0000' (70), got '73.0000' (73)
-          'D3', # expected '27.0000' (27), got '30.0000' (30)
-        ],
       )
     end
 
@@ -469,14 +459,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26d',
-        skip: [
-          'B2', # expected '4.0000' (4), got '2.0000' (2)
-          'D2', # expected '4.0000' (4), got '2.0000' (2)
-          'B4', # expected '3.0000' (3), got '2.0000' (2)
-          'D4', # expected '2.0000' (2), got '1.0000' (1)
-          'B11', # expected '27.0000' (27), got '24.0000' (24)'
-          'D11', # expected '6.0000' (6), got '3.0000' (3)'
-        ],
       )
     end
 

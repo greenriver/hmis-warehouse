@@ -35,7 +35,9 @@ module HopwaCaper
              class_name: 'HudReports::UniverseMember',
              foreign_key: :universe_membership_id
 
-    belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
+    belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment',
+                            foreign_key: [:enrollment_id, :report_instance_id],
+                            primary_key: [:enrollment_id, :report_instance_id]
 
     scope :hud_services, -> { where(service_source: HUD_SERVICE_SOURCE) }
     scope :custom_services, -> { where(service_source: CUSTOM_SERVICE_SOURCE) }

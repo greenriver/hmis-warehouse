@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   resources :data_sources, only: [:none] do
     namespace :hmis_supplemental do
       resources :data_sets do

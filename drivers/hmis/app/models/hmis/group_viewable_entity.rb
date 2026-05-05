@@ -25,7 +25,7 @@ module Hmis
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
     scope :project_groups, -> { where(entity_type: Hmis::ProjectGroup.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
-    scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
+    scope :data_sources, -> { where(entity_type: ::GrdaWarehouse::DataSource.sti_name) }
 
     scope :includes_project, ->(project) do
       joins(:projects).where(p_t[:id].eq(project.id))

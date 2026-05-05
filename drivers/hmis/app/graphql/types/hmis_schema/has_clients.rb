@@ -12,7 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def clients_field(name = :clients, description = nil, type: Types::HmisSchema::Client.page_type, filter_args: {}, **override_options, &block)
+        def clients_field(name = :clients, description = nil, type: Types::HmisSchema::Client.page_type(include_search_query_id: true), filter_args: {}, **override_options, &block)
           default_field_options = {
             type: type,
             null: false,

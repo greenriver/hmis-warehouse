@@ -44,9 +44,16 @@ module Types
     def client_search(input:, **args)
       # ensure that client search has sufficient search criteria, so as not to allow exposing all clients at once.
       # caller must use some search criteria, OR a service filter by project to limit results (used in Bulk Services)
-      has_search_term = input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+      has_search_term = input.to_h.values.compact_blank.any?
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
+
+      # Find or create a ClientSearchQuery for the given params and user.
+      query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
+      context[:search_query_id] = query.id
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
@@ -58,11 +65,24 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    field :persisted_client_search_params, Types::HmisSchema::ClientSearchParams, 'Persisted search params lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def persisted_client_search_params(id:)
+      # Only return the requested search query if it is viewable by the current user
+      Hmis::ClientSearchQuery.viewable_by(current_user).find_by(id: id)
+    end
+
     clients_field :client_omni_search, 'Client omnisearch' do |field|
       field.argument :text_search, String, 'Omnisearch string', required: true
     end
 
     def client_omni_search(text_search:)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params({ 'text_search' => text_search }, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      context[:search_query_id] = query.id
+
       Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
         sort_by_option(:recently_added)
@@ -359,7 +379,8 @@ module Types
     def application_users(**args)
       raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      resolve_application_users(Hmis::User.active.with_hmis_access, **args)
+      user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      resolve_application_users(user_scope, **args)
     end
 
     field :user, Types::Application::User, 'User lookup', null: true do
@@ -368,7 +389,8 @@ module Types
     def user(id:)
       raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
+      user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      load_ar_scope(scope: user_scope, id: id)
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
@@ -459,7 +481,10 @@ module Types
     def form_identifier(identifier:)
       access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+      scope = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier)
+      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope.first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do

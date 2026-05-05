@@ -1328,6 +1328,15 @@ module HmisCsvImporter::Importer
       log_timing :identify_duplicates
       log_timing :queue_enrollment_processing
       log_timing :maintain_ch_enrollments
+      log_timing :check_csv_monitors
+    end
+
+    private def check_csv_monitors
+      GrdaWarehouse::Monitoring::Tasks::CsvImportMonitorCollector.run!(
+        data_source: @data_source,
+        importer_log: importer_log,
+        import_log: @import_log,
+      )
     end
 
     private def project_cleanup

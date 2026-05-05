@@ -9,7 +9,8 @@
 module HmisExternalApis
   module TcHmis
     def self.data_source
-      ::GrdaWarehouse::DataSource.hmis.order(:id).first!
+      # Note: not set up to handle multiple HMIS data sources, since tc_hmis doesn't need it. Expect exactly one.
+      ::GrdaWarehouse::DataSource.hmis.sole
     end
   end
 end

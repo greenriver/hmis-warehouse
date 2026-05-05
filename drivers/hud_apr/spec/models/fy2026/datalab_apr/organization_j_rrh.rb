@@ -56,10 +56,6 @@ RSpec.shared_context 'datalab organization j rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
-        skip: [
-          'B12', # expected '20.0000' (20), got '17.0000' (17)
-          'C12', # expected '20.0000' (20), got '17.0000' (17)
-        ],
       )
     end
 
@@ -437,17 +433,11 @@ RSpec.shared_context 'datalab organization j rrh apr', shared_context: :metadata
       )
     end
 
-    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=15A12C3C-8308-4B95-982B015C693F7CEE
+    # Previous AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=15A12C3C-8308-4B95-982B015C693F7CEE
     it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
-        skip: [
-          'B2', # expected '20.0000' (20), got '17.0000' (17)
-          'D2', # expected '4.0000' (4), got '1.0000' (1)
-          'B3', # expected '29.0000' (29), got '32.0000' (32)
-          'D3', # expected '13.0000' (13), got '16.0000' (16)
-        ],
       )
     end
 
@@ -463,14 +453,6 @@ RSpec.shared_context 'datalab organization j rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26d',
-        skip: [
-          'B2', # expected '3.0000' (3), got '1.0000' (1)
-          'D2', # expected '3.0000' (3), got '1.0000' (1)
-          'B4', # expected '2.0000' (2), got '1.0000' (1)
-          'D4', # expected '1.0000' (1), got '0.0000' (0)
-          'B11', # expected '20.0000' (20), got '17.0000' (17)
-          'D11', # expected '4.0000' (4), got '1.0000' (1)
-        ],
       )
     end
 

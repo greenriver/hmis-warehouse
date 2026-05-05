@@ -189,6 +189,95 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
     end
   end
 
+  describe '#find_hopwa_eligible_enrollment' do
+    let(:generator_instance) { described_class.new(create_report([tbra_project])) }
+
+    def mock_enrollment(attrs = {})
+      OpenStruct.new({
+        id: rand(1000),
+        entry_date: report_start_date,
+        exit_date: nil,
+        relationship_to_hoh: 1,
+        hiv_positive: true,
+      }.merge(attrs))
+    end
+
+    it 'prefers an enrollment active within the report period over an exited one' do
+      # Enrollment 1: Exited BEFORE report period, but NEWER entry date
+      exited = mock_enrollment(
+        entry_date: report_start_date - 1.month,
+        exit_date: report_start_date - 1.day,
+        relationship_to_hoh: 1,
+        hiv_positive: true,
+      )
+
+      # Enrollment 2: Active during report period, but OLDER entry date
+      active = mock_enrollment(
+        entry_date: report_start_date - 1.year,
+        exit_date: nil,
+        relationship_to_hoh: 1,
+        hiv_positive: true,
+      )
+
+      # Should prefer the active one
+      expect(generator_instance.send(:find_hopwa_eligible_enrollment, [exited, active])).to eq(active)
+    end
+
+    it 'prefers the most recent entry date among active enrollments' do
+      # Enrollment 1: Active, older entry date
+      older = mock_enrollment(
+        entry_date: report_start_date - 2.months,
+        exit_date: nil,
+        relationship_to_hoh: 1,
+        hiv_positive: true,
+      )
+
+      # Enrollment 2: Active, newer entry date
+      newer = mock_enrollment(
+        entry_date: report_start_date - 1.month,
+        exit_date: nil,
+        relationship_to_hoh: 1,
+        hiv_positive: true,
+      )
+
+      expect(generator_instance.send(:find_hopwa_eligible_enrollment, [older, newer])).to eq(newer)
+    end
+
+    it 'uses ID as a tie-breaker when status and entry date are identical' do
+      # Enrollment 1: ID 100
+      e1 = mock_enrollment(id: 100, entry_date: report_start_date, exit_date: nil, relationship_to_hoh: 1, hiv_positive: true)
+
+      # Enrollment 2: ID 50
+      e2 = mock_enrollment(id: 50, entry_date: report_start_date, exit_date: nil, relationship_to_hoh: 1, hiv_positive: true)
+
+      # Should prefer lower ID
+      expect(generator_instance.send(:find_hopwa_eligible_enrollment, [e1, e2])).to eq(e2)
+    end
+
+    it 'prioritizes HIV+ Head of Household over other HIV+ members' do
+      # Enrollment 1: HIV+ but NOT HoH
+      hiv_not_hoh = mock_enrollment(entry_date: report_start_date, relationship_to_hoh: 2, hiv_positive: true)
+
+      # Enrollment 2: NOT HIV+ but IS HoH
+      not_hiv_hoh = mock_enrollment(entry_date: report_start_date, relationship_to_hoh: 1, hiv_positive: false)
+
+      # Enrollment 3: HIV+ and IS HoH
+      hiv_hoh = mock_enrollment(entry_date: report_start_date, relationship_to_hoh: 1, hiv_positive: true)
+
+      expect(generator_instance.send(:find_hopwa_eligible_enrollment, [hiv_not_hoh, not_hiv_hoh, hiv_hoh])).to eq(hiv_hoh)
+    end
+
+    it 'prioritizes any HIV+ member over Head of Household if HoH is not HIV+' do
+      # Enrollment 1: HIV+ but NOT HoH
+      hiv_not_hoh = mock_enrollment(entry_date: report_start_date, relationship_to_hoh: 2, hiv_positive: true)
+
+      # Enrollment 2: NOT HIV+ but IS HoH
+      not_hiv_hoh = mock_enrollment(entry_date: report_start_date, relationship_to_hoh: 1, hiv_positive: false)
+
+      expect(generator_instance.send(:find_hopwa_eligible_enrollment, [hiv_not_hoh, not_hiv_hoh])).to eq(hiv_not_hoh)
+    end
+  end
+
   describe '#cde_value_to_boolean' do
     let(:generator_instance) { described_class.new(create_report([tbra_project])) }
     let(:def_bool) { create(:hmis_custom_data_element_definition, field_type: 'boolean', owner_type: 'Hmis::Hud::CustomAssessment') }
@@ -218,6 +307,43 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: ''))).to be_nil
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: '  '))).to be_nil
       expect(generator_instance.send(:cde_value_to_boolean, def_str, build(:hmis_custom_data_element, owner_type: 'Hmis::Hud::CustomAssessment', value_string: nil))).to be_nil
+    end
+  end
+
+  describe '#build_hopwa_caper_models' do
+    let(:project) { tbra_project }
+    let(:client) { create(:hud_client, data_source: data_source) }
+    let!(:enrollment) do
+      create_hiv_positive_enrollment(
+        client: client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    it 'persists HopwaCaper::Funder records from the source project funders' do
+      # Source hud_funder has start/end dates
+      hud_funder = project.funders.first
+      hud_funder.update!(
+        start_date: report_start_date - 1.month,
+        end_date: report_end_date + 1.month,
+      )
+
+      report = create_report([project])
+      run_report(report)
+
+      # Verify HopwaCaper::Funder was created
+      persisted_funder = HopwaCaper::Funder.find_by(
+        report_instance_id: report.id,
+        project_id: project.id,
+        code: tbra_funder.to_i,
+      )
+
+      expect(persisted_funder).to be_present
+      expect(persisted_funder.start_date).to eq(hud_funder.start_date)
+      expect(persisted_funder.end_date).to eq(hud_funder.end_date)
+      expect(persisted_funder.funder_id).to eq(hud_funder.id)
     end
   end
 end

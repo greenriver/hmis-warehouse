@@ -44,6 +44,7 @@ module HopwaCaper::Generators::Fy2026
       # Rails.logger.level = 1
       report.hopwa_caper_enrollments.delete_all
       report.hopwa_caper_services.delete_all
+      report.hopwa_caper_funders.delete_all
       report.report_cells.with_deleted.destroy_all
       # report.update! state: 'Waiting'
     end
@@ -60,10 +61,13 @@ module HopwaCaper::Generators::Fy2026
         HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
         HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
         HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet,
+        HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet,
       ]
 
       sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
 
+      sheets = sheets.sort_by { |s| s.question_number.gsub(/\AQ(\d+).*/, '\\1').to_i }
       sheets.map do |q|
         [q.question_number, q]
       end.to_h.freeze
@@ -89,6 +93,8 @@ module HopwaCaper::Generators::Fy2026
       ]
     end
 
+    # def self.supports_idempotent_retry? = true
+
     protected
 
     def service_history_enrollments
@@ -111,7 +117,8 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def build_hopwa_caper_models
-      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }, :services])
+      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, :project, :services])
+      project_ids = Set.new
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -126,6 +133,7 @@ module HopwaCaper::Generators::Fy2026
           next unless client
 
           enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
+          project_ids.add hud_enrollment.project.id
 
           # Store enrollment context for later custom service lookup
           context_key = [hud_enrollment.data_source_id, hud_enrollment.EnrollmentID]
@@ -150,6 +158,18 @@ module HopwaCaper::Generators::Fy2026
         import_rows(HopwaCaper::Enrollment, enrollment_rows)
         import_rows(HopwaCaper::Service, service_rows)
       end
+
+      funder_rows = []
+      GrdaWarehouse::Hud::Project.where(id: project_ids).preload(:funders).each do |project|
+        project.funders.each do |funder|
+          funder_rows << HopwaCaper::Funder.from_hud_record(
+            funder: funder,
+            project: project,
+            report: report,
+          )
+        end
+      end
+      HopwaCaper::Funder.import(funder_rows)
 
       report.hopwa_caper_enrollments.distinct.pluck(:destination_client_id).in_groups_of(100, false) do |client_ids|
         enrollments = report.hopwa_caper_enrollments.where(destination_client_id: client_ids).order(:id)
@@ -204,11 +224,18 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def find_hopwa_eligible_enrollment(enrollments)
-      hohs = enrollments.filter { |e| e.relationship_to_hoh == 1 }.sort_by(&:id)
-      return hohs.first if hohs.one? && hohs.first.hiv_positive
+      # Sort enrollments so that those active within the report period come first,
+      # then by most recent entry date, then by id.
+      sorted = enrollments.sort_by do |e|
+        is_active = (e.exit_date.nil? || e.exit_date >= report.start_date) && e.entry_date <= report.end_date
+        [is_active ? 0 : 1, -e.entry_date.to_time.to_i, e.id]
+      end
 
-      hiv = enrollments.filter(&:hiv_positive).sort_by(&:id)
-      return hiv.first if hiv.one?
+      hohs = sorted.filter { |e| e.relationship_to_hoh == 1 }
+      hiv_positive_hoh = hohs.detect(&:hiv_positive)
+      return hiv_positive_hoh if hiv_positive_hoh
+
+      hiv = sorted.filter(&:hiv_positive)
       return hiv.first if hiv.any?
 
       hohs.first

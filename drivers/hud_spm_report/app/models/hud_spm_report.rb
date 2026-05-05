@@ -9,10 +9,11 @@
 module HudSpmReport
   def self.current_generator
     active_version = ::HudReports::BaseController.new.default_report_version
-    if active_version == :fy2026
+    case active_version
+    when :fy2026
       HudSpmReport::Generators::Fy2026::Generator
     else
-      HudSpmReport::Generators::Fy2024::Generator
+      raise "Generator not configured for version \"#{active_version}\""
     end
   end
 end

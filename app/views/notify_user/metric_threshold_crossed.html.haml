@@ -1,13 +1,14 @@
 %h2 Threshold Monitoring Thresholds Crossed
 
 %p
-  The following clients have crossed metric thresholds on
+  The following items have crossed metric thresholds on
   = @calculation_date.strftime('%B %d, %Y')
 
 - @crossings.each do |metric_id, snapshot_info|
   %h3= snapshot_info[:display_name]
+  - entity_label = snapshot_info[:entity_label] || 'client'
   %p
-    #{snapshot_info[:total_count]} #{'client'.pluralize(snapshot_info[:total_count])} crossed the threshold for this metric.
+    #{snapshot_info[:total_count]} #{entity_label.pluralize(snapshot_info[:total_count])} crossed the threshold for this metric.
     = link_to 'View metric details', admin_metric_definition_url(id: metric_id)
 
 %p
