@@ -15,7 +15,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
 
   before(:each) do
     hmis_login(user)
-    Hmis::ProjectStaffAssignmentConfig.new(project_id: p1.id).save!
+    Hmis::ProjectStaffAssignmentConfig.new(project_id: p1.id, data_source: ds1).save!
   end
 
   subject(:mutation) do

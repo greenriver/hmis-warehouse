@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# Report database and table size growth between two S3 snapshots.
+#
+# Requires an active GrdaWarehouse::RemoteCredentials::S3 row with slug 'app_stats'.
+#
+# Examples:
+#   bin/app_resource_monitor/db_growth --prefix=clientname-production --database=warehouse_production
+#   bin/app_resource_monitor/db_growth --prefix=clientname-production --database=warehouse_production --days-back=14
+#   bin/app_resource_monitor/db_growth --prefix=clientname-production --database=warehouse_production --days-back=7 --limit=20
+#   bin/app_resource_monitor/db_growth --prefix=clientname-production --database=warehouse_production --as-of=2025-01-31
+
+require 'optparse'
+require 'date'
+
+options = { days_back: 7, limit: 10 }
+
+OptionParser.new do |o|
+  o.banner = 'Usage: bin/app_resource_monitor/db_growth --prefix=PREFIX --database=DB [options]'
+  o.separator ''
+  o.separator 'Required:'
+  o.on('--prefix=PREFIX',   'S3 sub-prefix for the target environment (e.g. "clientname-production")')  { |v| options[:prefix]    = v }
+  o.on('--database=DB',     'Exact database name (e.g. "warehouse_production")')                        { |v| options[:database]  = v }
+  o.separator ''
+  o.separator 'Optional:'
+  o.on('--days-back=N',  Integer, 'Number of days to look back (default: 7)')        { |v| options[:days_back] = v }
+  o.on('--limit=N',      Integer, 'Top N tables to display (default: 10)')           { |v| options[:limit]     = v }
+  o.on('--as-of=DATE',            'Anchor date in YYYY-MM-DD format (default: today)') { |v| options[:as_of] = Date.parse(v) }
+end.parse!
+
+abort 'Error: --prefix is required'   unless options[:prefix]
+abort 'Error: --database is required' unless options[:database]
+
+require_relative '../../config/environment'
+
+begin
+  AppResourceMonitor::GrowthAnalysis.new(**options).run
+rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError => e
+  abort "Error: #{e.message}"
+end

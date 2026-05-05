@@ -14,7 +14,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_create?
 
       errors = HmisErrors::Errors.new
       errors.add :config_type, :required if input.config_type.blank?
@@ -22,6 +22,7 @@ module Mutations
 
       record = Hmis::ProjectConfig.config_factory(input.config_type)
       record.assign_attributes(input.to_params.excluding(:config_type))
+      record.data_source_id = current_user.hmis_data_source_id
       if record.valid?
         record.save!
       else

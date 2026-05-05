@@ -492,7 +492,7 @@ module Types
       filters_argument Types::HmisSchema::ProjectConfig
     end
     def project_configs(filters: nil)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_view?
 
       scope = Hmis::ProjectConfig.viewable_by(current_user)
       scope = scope.apply_filters(filters) if filters

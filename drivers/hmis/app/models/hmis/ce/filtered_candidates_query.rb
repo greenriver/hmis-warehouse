@@ -87,6 +87,8 @@ module Hmis::Ce
         joins(:unit_groups).
         where(arel.ug_t[:id].eq(@unit_group_id)).
         distinct
+
+      # TODO(#9074): Prevent relevant_form_definition_identifiers from returning form definitions from the wrong data source
       form_identifiers = candidate_pools.flat_map(&:relevant_form_definition_identifiers).uniq
 
       # Get most recent assessment date per client

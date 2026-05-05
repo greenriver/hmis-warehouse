@@ -248,18 +248,18 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     let!(:other_project) { create :hmis_hud_project }
 
     it 'returns true if a config exists for this project' do
-      Hmis::ProjectStaffAssignmentConfig.new(project_id: project.id).save!
+      Hmis::ProjectStaffAssignmentConfig.new(project_id: project.id, data_source: data_source).save!
       expect(project.staff_assignments_enabled?).to eq(true)
       expect(other_project.staff_assignments_enabled?).to eq(false)
     end
 
     it 'returns true if a config exists for this project type' do
-      Hmis::ProjectStaffAssignmentConfig.new(project_type: project.project_type).save!
+      Hmis::ProjectStaffAssignmentConfig.new(project_type: project.project_type, data_source: data_source).save!
       expect(project.staff_assignments_enabled?).to eq(true)
     end
 
     it 'returns true if a config exist for this project organization' do
-      Hmis::ProjectStaffAssignmentConfig.new(organization: project.organization).save!
+      Hmis::ProjectStaffAssignmentConfig.new(organization: project.organization, data_source: data_source).save!
       expect(project.staff_assignments_enabled?).to eq(true)
     end
   end
@@ -275,7 +275,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
 
     context 'with config matching by project_type' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
-      let!(:config) { create(:hmis_project_ce_config, project_type: 2) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 2, data_source: data_source) }
 
       it 'returns all open projects with matching project_type' do
         expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
@@ -297,7 +297,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       let!(:project_2) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
       let!(:project_3) { create(:hmis_hud_project, data_source: data_source, project_type: 3) }
       let!(:config_1) { create(:hmis_project_ce_config, project: project_1) }
-      let!(:config_2) { create(:hmis_project_ce_config, project_type: 2) }
+      let!(:config_2) { create(:hmis_project_ce_config, project_type: 2, data_source: data_source) }
       let!(:config_3) { create(:hmis_project_ce_config, organization: project_3.organization) }
 
       it 'returns all matching open projects' do
@@ -322,7 +322,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     context 'with closed project matching config' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
       let!(:closed_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1, operating_end_date: 1.year.ago) }
-      let!(:config) { create(:hmis_project_ce_config, project_type: 1) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 1, data_source: data_source) }
 
       it 'does not return closed projects' do
         expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
@@ -362,7 +362,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     context 'with config matching by project_type' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
       let!(:closed_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1, operating_end_date: 1.year.ago) }
-      let!(:config) { create(:hmis_project_ce_config, project_type: 1, supports_waitlist_referrals: true) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 1, supports_waitlist_referrals: true, data_source: data_source) }
 
       it 'returns all open projects with matching project_type' do
         expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to contain_exactly(project)
