@@ -13,6 +13,7 @@ OpenPath::Application.routes.draw do
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       resources :questions, only: [:show, :create] do
         get :result, on: :member
         get :running, on: :member

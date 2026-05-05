@@ -20,6 +20,11 @@ module  HudPit::Generators::Pit::Fy2022
       'PIT'
     end
 
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudPit::Archival
+
     def self.default_project_type_codes
       HudHelper.util('2024').residential_project_type_numbers_by_code.keys
     end
