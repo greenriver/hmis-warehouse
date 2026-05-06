@@ -149,7 +149,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a3) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e3, client: c3, data_collection_stage: 1) }
 
     shared_examples 'fully deletes the household' do
-      it "returns success and deletes both members' intake assessments and enrollments" do
+      it "returns success and deletes all members' intake assessments and enrollments" do
         mutate(input: { id: a1.id }) do |assessment_id, errors|
           expect(assessment_id).to be_present
           expect(errors).to be_empty
