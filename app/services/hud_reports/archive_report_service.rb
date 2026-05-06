@@ -89,8 +89,7 @@ module HudReports
         select { |_, t| [:json, :jsonb].include?(t.type) }.
         keys.to_set
 
-      temp_file = Tempfile.new(['hud_archive', '.csv'])
-      begin
+      Tempfile.create(['hud_archive', '.csv']) do |temp_file|
         CSV.open(temp_file.path, 'wb') do |csv|
           csv << column_names
           relation.find_in_batches(batch_size: 1_000) do |batch|
@@ -100,20 +99,14 @@ module HudReports
           end
         end
 
-        file_handle = File.open(temp_file.path, 'rb')
-        begin
+        File.open(temp_file.path, 'rb') do |file_handle|
           report.send(attachment_name).attach(
             io: file_handle,
             filename: filename,
             content_type: 'text/csv',
           )
           report.save(validate: false)
-        ensure
-          file_handle.close
         end
-      ensure
-        temp_file.close
-        temp_file.unlink
       end
     end
 
