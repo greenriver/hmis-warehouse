@@ -49,8 +49,12 @@ module HudReports
 
             count = restore_from_csv(attachment_name, entry)
             restored_counts[attachment_name] = count
+          rescue StandardError => e
+            raise e.class, "#{attachment_name}: #{e.message}", e.backtrace
           end
 
+          # reset_sequences uses DDL (setval). In PostgreSQL DDL *is* transactional,
+          # so a rollback will undo the sequence reset — the correct behaviour here.
           reset_sequences(config)
           clear_purged_at
         end
@@ -62,8 +66,10 @@ module HudReports
           "HudReports::RestoreArchivedReportDataService: #{@errors.last}\n#{e.backtrace.first(5).join("\n")}",
         )
       ensure
-        report.reload
-        report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at
+        # Guard with rescue nil: if the DB connection was the cause of the rollback,
+        # these calls would raise a second exception and swallow the original error.
+        report.reload rescue nil # rubocop:disable Style/RescueModifier
+        report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at rescue nil # rubocop:disable Style/RescueModifier
       end
 
       { success: @errors.empty?, restored_counts: restored_counts, errors: @errors }

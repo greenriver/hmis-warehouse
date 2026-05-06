@@ -200,7 +200,7 @@ RSpec.describe 'SPM Archival Integration', type: :model do
         cell = report.report_cells.create!(question: 'Measure 1', cell_name: 'A1', universe: false)
 
         enrollment_id = enrollment_klass.insert(
-          { report_instance_id: report.id }, returning: [:id],
+          { report_instance_id: report.id }, returning: [:id]
         ).first['id']
         insert_universe_member(report_cell_id: cell.id, type: enrollment_klass.name, membership_id: enrollment_id)
 
@@ -210,9 +210,7 @@ RSpec.describe 'SPM Archival Integration', type: :model do
         link_klass.insert({ enrollment_id: enrollment_id, episode_id: @episode_id })
         return_klass.insert({ report_instance_id: report.id, client_id: 1, exit_enrollment_id: enrollment_id })
 
-        if fy_mod == 'Fy2026'
-          HudSpmReport::Fy2026::BedNight.insert({ enrollment_id: enrollment_id, date: Date.current })
-        end
+        HudSpmReport::Fy2026::BedNight.insert({ enrollment_id: enrollment_id, date: Date.current }) if fy_mod == 'Fy2026'
       end
 
       it 'deletes episode rows even though universe_members are deleted first (delete_order 1 vs 4+)' do
@@ -227,8 +225,8 @@ RSpec.describe 'SPM Archival Integration', type: :model do
         # universe_members which are already deleted, so it returns 0 regardless.
         # This direct lookup will expose any episode rows that were silently skipped.
         expect(episode_klass.where(id: @episode_id).count).to eq(0),
-          "#{fy_mod}::Episode id=#{@episode_id} still exists after purge — " \
-          'episode_ids was a lazy subquery on universe_members already deleted at order 1'
+                                                              "#{fy_mod}::Episode id=#{@episode_id} still exists after purge — " \
+                                                              'episode_ids was a lazy subquery on universe_members already deleted at order 1'
       end
     end
   end

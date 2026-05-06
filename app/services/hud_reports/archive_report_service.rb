@@ -99,14 +99,13 @@ module HudReports
           end
         end
 
-        File.open(temp_file.path, 'rb') do |file_handle|
-          report.send(attachment_name).attach(
-            io: file_handle,
-            filename: filename,
-            content_type: 'text/csv',
-          )
-          report.save(validate: false)
-        end
+        temp_file.rewind
+        report.send(attachment_name).attach(
+          io: temp_file,
+          filename: filename,
+          content_type: 'text/csv',
+        )
+        report.save(validate: false)
       end
     end
 
