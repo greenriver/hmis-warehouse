@@ -47,12 +47,15 @@ RSpec.describe 'SPM Archival Integration', type: :model do
     report.reload
     expect(report.archived?).to be true
 
-    # Verify CSV row counts match DB counts captured before archival
+    # Verify CSV row counts match DB counts captured before archival, and that each
+    # attachment has at least one data row (ReportCsvReader excludes the header row).
     config.each do |name, _entry|
       csv_count = ReportCsvReader.new(report, name).count
       db_count = before_counts[name]
       expect(csv_count).to eq(db_count),
                            "CSV count mismatch for #{name}: CSV=#{csv_count}, DB=#{db_count}"
+      expect(csv_count).to be_positive,
+                           "Archived CSV #{name} must not be header-only / empty (count=#{csv_count})"
     end
 
     # ── Purge ────────────────────────────────────────────────────────────────
@@ -107,6 +110,46 @@ RSpec.describe 'SPM Archival Integration', type: :model do
     )
   end
 
+  # Minimal rows for each enrollment-based archival attachment on the *current* generator.
+  # Keys come from `archival_csv_config`; if new CSVs are added to a future FY, add matching
+  # inserts here or the non-empty CSV expectations will fail.
+  def seed_spm_enrollment_archival_supporting_rows(report:, cell:, config_keys:, fy_mod:, enrollment_id:)
+    episode_id = nil
+
+    if config_keys.include?(:spm_episodes_csv)
+      ep_klass = "HudSpmReport::#{fy_mod}::Episode".constantize
+      episode_id = ep_klass.insert({ client_id: nil }, returning: [:id]).first['id']
+      insert_universe_member(
+        report_cell_id: cell.id,
+        type: ep_klass.name,
+        membership_id: episode_id,
+      )
+    end
+
+    if config_keys.include?(:spm_enrollment_links_csv)
+      link_klass = "HudSpmReport::#{fy_mod}::EnrollmentLink".constantize
+      attrs = { enrollment_id: enrollment_id }
+      attrs[:episode_id] = episode_id if episode_id
+      link_klass.insert(attrs)
+    end
+
+    if config_keys.include?(:spm_bed_nights_csv)
+      bn_klass = "HudSpmReport::#{fy_mod}::BedNight".constantize
+      bn_klass.insert({ enrollment_id: enrollment_id, date: Date.current })
+    end
+
+    return unless config_keys.include?(:spm_returns_csv)
+
+    ret_klass = "HudSpmReport::#{fy_mod}::Return".constantize
+    ret_klass.insert(
+      {
+        report_instance_id: report.id,
+        client_id: 1,
+        exit_enrollment_id: enrollment_id,
+      },
+    )
+  end
+
   # ── FY2020 explicit ─────────────────────────────────────────────────────────
   describe 'FY2020 full cycle' do
     let(:report) { create_completed_report(HudSpmReport::Generators::Fy2020::Generator.title) }
@@ -134,7 +177,7 @@ RSpec.describe 'SPM Archival Integration', type: :model do
     end
   end
 
-  # ── Current version (FY2026 polymorphic) ────────────────────────────────────
+  # ── Current generator (resolved via HudSpmReport.current_generator) ────────
   describe 'current version full cycle' do
     let(:current_gen) { HudSpmReport.current_generator }
     let(:report) { create_completed_report(current_gen.title) }
@@ -157,6 +200,14 @@ RSpec.describe 'SPM Archival Integration', type: :model do
           report_cell_id: cell.id,
           type: enrollment_klass.name,
           membership_id: enrollment_id,
+        )
+
+        seed_spm_enrollment_archival_supporting_rows(
+          report: report,
+          cell: cell,
+          config_keys: config_keys,
+          fy_mod: fy_mod,
+          enrollment_id: enrollment_id,
         )
       elsif config_keys.include?(:spm_clients_csv)
         # FY2020 fallback path
