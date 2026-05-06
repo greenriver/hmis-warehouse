@@ -8,6 +8,8 @@
 
 module Mutations
   class DeleteAssessment < BaseMutation
+    include DeletesHouseholdEnrollments
+
     argument :id, ID, required: true
     argument :assessment_lock_version, Integer, required: false
 
@@ -39,38 +41,14 @@ module Mutations
         # and moving the referral back to "accepted" status
         record.enrollment&.accept_referral!(current_user: current_user) if record.exit? && !is_wip
 
-        # Deleting the Intake Assessment deletes the enrollment
-        delete_household_enrollments(record: record) if record.intake?
+        # Deleting the Intake deletes the enrollment, and other household members' enrollments if enrollment is HoH.
+        if record.intake? && record.enrollment.present?
+          # Don't delete the enrollment if it has any other intakes besides this one. (Not allowed in HMIS, likely a data issue from import)
+          destroy_enrollment_and_household_if_hoh!(enrollment: record.enrollment) unless record.enrollment.intake_assessment&.present?
+        end
 
         { assessment_id: record.id, errors: [] }
       end
-    end
-
-    def delete_household_enrollments(record:)
-      return unless record.intake? && record.enrollment.present?
-
-      # Don't delete the enrollment if it has any other intakes.
-      # (This would likely be a data issue from import, since our frontend does not allow creating multiple intakes)
-      return if record.enrollment.intake_assessment&.present?
-
-      enrollments_to_delete = [record.enrollment]
-
-      # If we're deleting the HoH enrollment, delete all household members' enrollments too.
-      # This avoids leaving a dangling household without a HoH.
-      if record.enrollment.head_of_household?
-        record.enrollment.household_members.each do |hhm_enrollment|
-          # Check if the user has permission to delete each enrollment. This deals with the hypothetical edge case:
-          # If the HoH's intake is WIP, but another HHM has a completed intake,
-          # the current user might not have the right permission (can_delete_enrollments) to delete all the enrollments.
-          # (This would likely be a data issue from import, since our frontend disallows submitting the HHM intakes before the HoH.)
-          access_denied! unless policy_for(hhm_enrollment, policy_type: :hmis_enrollment).can_delete?
-
-          enrollments_to_delete.append(hhm_enrollment)
-        end
-      end
-
-      # Destroy all the enrollments. This is done in a transaction thanks to record.with_lock above
-      enrollments_to_delete.uniq.each(&:destroy!)
     end
   end
 end
