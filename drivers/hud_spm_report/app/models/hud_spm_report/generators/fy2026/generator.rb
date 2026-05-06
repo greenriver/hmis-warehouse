@@ -22,6 +22,11 @@ module HudSpmReport::Generators::Fy2026
       'SPM'
     end
 
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudSpmReport::Archival
+
     def self.supports_idempotent_retry?
       true
     end
@@ -86,6 +91,42 @@ module HudSpmReport::Generators::Fy2026
 
     def self.uploadable_version?
       true
+    end
+
+    def self.archival_csv_config(report_instance)
+      enrollment_ids = HudSpmReport::Fy2026::SpmEnrollment.where(report_instance_id: report_instance.id).select(:id)
+      episode_ids = HudReports::UniverseMember.where(
+        report_cell_id: report_instance.report_cells.select(:id),
+        universe_membership_type: 'HudSpmReport::Fy2026::Episode',
+      ).select(:universe_membership_id)
+
+      shared_archival_entries(report_instance).merge(
+        spm_bed_nights_csv: {
+          scope: -> { HudSpmReport::Fy2026::BedNight.where(enrollment_id: enrollment_ids) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-bed-nights.csv" },
+          delete_order: 2,
+        },
+        spm_enrollment_links_csv: {
+          scope: -> { HudSpmReport::Fy2026::EnrollmentLink.where(enrollment_id: enrollment_ids) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-enrollment-links.csv" },
+          delete_order: 3,
+        },
+        spm_returns_csv: {
+          scope: -> { HudSpmReport::Fy2026::Return.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-returns.csv" },
+          delete_order: 4,
+        },
+        spm_episodes_csv: {
+          scope: -> { HudSpmReport::Fy2026::Episode.where(id: episode_ids) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-episodes.csv" },
+          delete_order: 5,
+        },
+        spm_enrollments_csv: {
+          scope: -> { HudSpmReport::Fy2026::SpmEnrollment.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-enrollments.csv" },
+          delete_order: 6,
+        },
+      )
     end
 
     private

@@ -22,6 +22,11 @@ module HudApr::Generators::Caper::Fy2024
       'CAPER'
     end
 
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudApr::Archival
+
     def self.file_prefix
       "v1.2 #{short_name} #{fiscal_year}"
     end

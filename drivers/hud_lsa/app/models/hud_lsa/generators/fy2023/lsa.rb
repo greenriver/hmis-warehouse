@@ -27,6 +27,11 @@ module HudLsa::Generators::Fy2023
     include MissingDataConcern
     include ViewRelatedConcern
     include StatusProgressionConcern
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. title is defined on ViewRelatedConcern (generic_title and
+    # fiscal_year); keep HudLsa::Archival immediately after ViewRelatedConcern.
+    include HudLsa::Archival
+
     attr_accessor :report, :destroy_rds, :hmis_export_id, :test
     has_one_attached :result_file
     has_one_attached :intermediate_file
@@ -425,6 +430,16 @@ module HudLsa::Generators::Fy2023
     def test?
       @test = false if @test.nil?
       @test
+    end
+
+    def self.archival_csv_config(report_instance)
+      shared_archival_entries(report_instance).merge(
+        lsa_summary_results_csv: {
+          scope: -> { HudLsa::Fy2023::SummaryResult.where(hud_report_instance_id: report_instance.id) },
+          filename: -> { "hud-lsa-fy2023-#{report_instance.id}-summary-results.csv" },
+          delete_order: 2,
+        },
+      )
     end
   end
 end
