@@ -57,7 +57,17 @@ module Mutations
 
       # If we're deleting the HoH enrollment, delete all household members' enrollments too.
       # This avoids leaving a dangling household without a HoH.
-      enrollments_to_delete.concat(record.enrollment.household_members) if record.enrollment.head_of_household?
+      if record.enrollment.head_of_household?
+        record.enrollment.household_members.each do |hhm_enrollment|
+          # Check if the user has permission to delete each enrollment. This deals with the hypothetical edge case:
+          # If the HoH's intake is WIP, but another HHM has a completed intake,
+          # the current user might not have the right permission (can_delete_enrollments) to delete all the enrollments.
+          # (This would likely be a data issue from import, since our frontend disallows submitting the HHM intakes before the HoH.)
+          access_denied! unless policy_for(hhm_enrollment, policy_type: :hmis_enrollment).can_delete?
+
+          enrollments_to_delete.append(hhm_enrollment)
+        end
+      end
 
       # Destroy all the enrollments. This is done in a transaction thanks to record.with_lock above
       enrollments_to_delete.uniq.each(&:destroy!)

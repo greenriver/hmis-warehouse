@@ -80,6 +80,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it "should handle deleting #{name} intake assessment based on whether user can delete enrollments" do
       remove_permissions(access_control, :can_delete_enrollments)
       action.call(a1)
+      action.call(e1)
       a1.update(data_collection_stage: 1) # intake
 
       if key == :submitted
@@ -175,16 +176,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    context 'when deleting WIP HoH intake while another member already has a submitted intake' do
-      before do
-        a1.save_in_progress
-        a2.save_not_in_progress
-        a3.save_in_progress
-      end
-
-      it_behaves_like 'fully deletes the household'
-    end
-
     context 'when deleting submitted HoH intake while another member only has WIP intake' do
       before do
         a1.save_not_in_progress
@@ -193,6 +184,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it_behaves_like 'fully deletes the household'
+    end
+
+    context 'when deleting WIP HoH intake while another member already has a submitted intake (DQ issue)' do
+      before do
+        e1.save_in_progress
+        a1.save_in_progress
+        a2.save_not_in_progress
+        remove_permissions(access_control, :can_delete_enrollments)
+      end
+
+      it 'raises if the user does not have permission to delete completed enrollments' do
+        expect_access_denied post_graphql(input: { id: a1.id }) { mutation }
+      end
     end
 
     wip_and_submitted.each do |_key, name, action|
