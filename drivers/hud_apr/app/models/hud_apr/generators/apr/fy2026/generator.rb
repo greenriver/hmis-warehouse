@@ -9,6 +9,7 @@
 module HudApr::Generators::Apr::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
+
     def self.fiscal_year
       'FY 2026'
     end
@@ -20,6 +21,11 @@ module HudApr::Generators::Apr::Fy2026
     def self.short_name
       'APR'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudApr::Archival
 
     def self.file_prefix
       "v1.2 #{short_name} #{fiscal_year}"

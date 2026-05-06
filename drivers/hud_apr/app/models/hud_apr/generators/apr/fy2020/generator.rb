@@ -22,6 +22,11 @@ module HudApr::Generators::Apr::Fy2020
       'APR'
     end
 
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudApr::Archival
+
     def url
       hud_reports_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end

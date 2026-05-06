@@ -14,6 +14,9 @@ OpenPath::Application.routes.draw do
     resources :spms do
       concerns :hud_report_actions
       concerns :hud_drilldown_actions, resource: :measures
+      member do
+        post :restore
+      end
     end
     resources :legacy_spms, only: [:index, :show] do
       resources :legacy_results, only: [:show]

@@ -11,6 +11,12 @@ module HudSpmReport::Generators::Fy2020
     def self.fiscal_year = 'FY 2020'
     def self.generic_title = 'System Performance Measures'
     def self.short_name = 'SPM'
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudSpmReport::Archival
+
     def self.filter_class = ::Filters::HudFilterBase
 
     def self.default_project_type_codes
@@ -62,6 +68,16 @@ module HudSpmReport::Generators::Fy2020
         :first_name,
         :last_name,
       ]
+    end
+
+    def self.archival_csv_config(report_instance)
+      shared_archival_entries(report_instance).merge(
+        spm_clients_csv: {
+          scope: -> { HudSpmReport::Fy2020::SpmClient.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2020-#{report_instance.id}-spm-clients.csv" },
+          delete_order: 2,
+        },
+      )
     end
   end
 end

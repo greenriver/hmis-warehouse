@@ -11,7 +11,7 @@ module HudLsa
     include AjaxModalRails::Controller
     include ArelHelper
     before_action :filter
-    before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
+    before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate, :restore]
     before_action :set_reports, except: [:index, :running_all_questions]
 
     private def report_scope

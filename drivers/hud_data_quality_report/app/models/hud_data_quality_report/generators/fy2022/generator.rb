@@ -17,8 +17,13 @@ module HudDataQualityReport::Generators::Fy2022
     end
 
     def self.short_name
-      'DQ'.freeze
+      'DQ'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
+    # fiscal_year; define those class methods above before including Archival.
+    include HudDataQualityReport::Archival
 
     def self.default_project_type_codes
       HudHelper.util('2024').residential_project_type_numbers_by_code.keys
