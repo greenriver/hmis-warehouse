@@ -11,7 +11,7 @@ module HudPit
     include PitConcern
     before_action :set_report
     before_action :set_question
-    before_action :check_hiv_drilldown_access
+    before_action :enforce_hiv_drilldown_access
 
     def report_param_name
       :pit_id
@@ -37,7 +37,10 @@ module HudPit
       end
     end
 
-    private def check_hiv_drilldown_access
+    # No-op when the user may view HIV drilldowns, or when this cell is not the
+    # HIV/AIDS row for a question that defines HIV_AIDS_ROW. Otherwise redirects
+    # with an alert (before_action halts the request).
+    private def enforce_hiv_drilldown_access
       return if current_user.can_view_hiv_status?
 
       question_class = generator.questions[@question]
