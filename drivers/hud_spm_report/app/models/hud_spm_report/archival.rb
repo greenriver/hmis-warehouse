@@ -24,7 +24,5 @@ module HudSpmReport
 
       ::HudReportArchival.register_archival_generator(title, self)
     end
-
-    end
   end
 end
