@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Generates oauth2-proxy alpha-config files from templates in docker/auth/.
-# Substitutes ${JWT_SECRET} with the value from .env.development.local.
+# Substitutes ${JWT_SECRET} from .env.development.local into templates and requires
+# OAUTH2_PROXY_COOKIE_SECRET / OAUTH2_PROXY_CLIENT_SECRET to be set there too (compose uses them).
 # Output goes to dev/auth/ which is gitignored.
 #
 # Run once after initial setup and again if a template file changes.
@@ -18,9 +19,41 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
-JWT_SECRET=$(grep '^JWT_SECRET=' "$ENV_FILE" | sed 's/^JWT_SECRET=//;s/^"//;s/"$//')
+# Echoes trimmed value on stdout with status 0; status 1 and no output when missing or empty.
+read_env_line() {
+  local key="$1" val
+  val="$(grep "^${key}=" "$ENV_FILE" | sed "s/^${key}=//;s/^\"//;s/\"$//" || true)"
+  if [[ -z "$val" ]]; then
+    return 1
+  fi
+  printf '%s' "$val"
+  return 0
+}
+
+# Read and validate JWT_SECRET, OAUTH2_COOKIE_SECRET, OAUTH2_CLIENT_SECRET
+# Note: only JWT_SECRET is required for this script, but we validate all three for completeness.
+JWT_SECRET="$(read_env_line JWT_SECRET || true)"
+OAUTH2_COOKIE_SECRET="$(read_env_line OAUTH2_PROXY_COOKIE_SECRET || true)"
+OAUTH2_CLIENT_SECRET="$(read_env_line OAUTH2_PROXY_CLIENT_SECRET || true)"
+
 if [[ -z "$JWT_SECRET" ]]; then
-  echo "Error: JWT_SECRET is not set in $ENV_FILE" >&2
+  echo "Error: JWT_SECRET is missing, set a JWT_SECRET in: $ENV_FILE" >&2
+  exit 1
+fi
+
+if [[ -z "$OAUTH2_COOKIE_SECRET" ]]; then
+  echo "Error: OAUTH2_PROXY_COOKIE_SECRET is missing, set a OAUTH2_PROXY_COOKIE_SECRET in: $ENV_FILE" >&2
+  exit 1
+fi
+
+if [[ -z "$OAUTH2_CLIENT_SECRET" ]]; then
+  echo "Error: OAUTH2_PROXY_CLIENT_SECRET is missing, set a OAUTH2_PROXY_CLIENT_SECRET in: $ENV_FILE" >&2
+  exit 1
+fi
+
+# ensure JWT_SECRET, OAUTH2_COOKIE_SECRET, OAUTH2_CLIENT_SECRET are set to the same value
+if [[ "$JWT_SECRET" != "$OAUTH2_COOKIE_SECRET" || "$JWT_SECRET" != "$OAUTH2_CLIENT_SECRET" ]]; then
+  echo "Error: JWT_SECRET, OAUTH2_COOKIE_SECRET, OAUTH2_CLIENT_SECRET are not set to the same value in: $ENV_FILE" >&2
   exit 1
 fi
 

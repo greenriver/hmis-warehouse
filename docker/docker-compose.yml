@@ -293,8 +293,10 @@ services:
         aliases:
           - dex.dev.test
     depends_on:
+      keycloak:
+        condition: service_healthy
       db:
-        condition: "service_healthy"
+        condition: service_healthy
       dex-db-init:
         condition: service_completed_successfully
     # oauth2 proxy kept failing intermittently, added this health check
