@@ -9696,17 +9696,11 @@ type ProjectAccess {
 }
 
 input ProjectCeOpportunityFilterOptions {
-  projectGroupId: ID
   status: [CeOpportunityStatus!]
 }
 
 input ProjectCeReferralFilterOptions {
   origin: [CeReferralOrigin!]
-
-  """
-  Filter to referrals where the target project belongs to the specified project group
-  """
-  projectGroupId: ID
   referralStatus: [String!]
   searchTerm: String
 }
@@ -9882,11 +9876,6 @@ input ProjectFilterOptions {
 input ProjectOutgoingCeReferralFilterOptions {
   organization: [ID!]
   project: [ID!]
-
-  """
-  Filter to referrals where the target project belongs to the specified project group
-  """
-  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
   searchTerm: String
