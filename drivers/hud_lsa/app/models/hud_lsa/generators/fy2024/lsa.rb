@@ -586,7 +586,7 @@ module HudLsa::Generators::Fy2024
     end
 
     def self.archival_csv_config(report_instance)
-      shared_archival_entries(report_instance).merge(
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'lsa').merge(
         lsa_summary_results_csv: {
           scope: -> { HudLsa::Fy2024::SummaryResult.where(hud_report_instance_id: report_instance.id) },
           filename: -> { "hud-lsa-fy2024-#{report_instance.id}-summary-results.csv" },

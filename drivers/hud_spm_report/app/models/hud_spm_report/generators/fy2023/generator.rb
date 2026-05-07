@@ -80,7 +80,7 @@ module HudSpmReport::Generators::Fy2023
         universe_membership_type: 'HudSpmReport::Fy2023::Episode',
       ).select(:universe_membership_id)
 
-      shared_archival_entries(report_instance).merge(
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
         spm_enrollment_links_csv: {
           scope: -> { HudSpmReport::Fy2023::EnrollmentLink.where(enrollment_id: enrollment_ids) },
           filename: -> { "hud-spm-fy2023-#{report_instance.id}-spm-enrollment-links.csv" },

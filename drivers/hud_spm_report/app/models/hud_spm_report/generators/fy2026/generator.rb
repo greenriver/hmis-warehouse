@@ -100,7 +100,7 @@ module HudSpmReport::Generators::Fy2026
         universe_membership_type: 'HudSpmReport::Fy2026::Episode',
       ).select(:universe_membership_id)
 
-      shared_archival_entries(report_instance).merge(
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
         spm_bed_nights_csv: {
           scope: -> { HudSpmReport::Fy2026::BedNight.where(enrollment_id: enrollment_ids) },
           filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-bed-nights.csv" },

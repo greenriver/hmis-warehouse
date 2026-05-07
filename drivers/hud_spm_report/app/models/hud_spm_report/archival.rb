@@ -25,25 +25,6 @@ module HudSpmReport
       ::HudReportArchival.register_archival_generator(title, self)
     end
 
-    module ClassMethods
-      def shared_archival_entries(report_instance)
-        {
-          universe_members_csv: {
-            scope: -> { ::HudReports::UniverseMember.where(report_cell_id: report_instance.report_cells.select(:id)) },
-            filename: -> { "hud-spm-#{report_instance.id}-universe-members.csv" },
-            delete_order: 1,
-          },
-          report_cells_csv: {
-            scope: -> { report_instance.report_cells },
-            filename: -> { "hud-spm-#{report_instance.id}-cells.csv" },
-            delete_order: 99,
-          },
-        }
-      end
-
-      def archival_csv_config(_report_instance)
-        raise NotImplementedError, "#{name} must implement self.archival_csv_config"
-      end
     end
   end
 end

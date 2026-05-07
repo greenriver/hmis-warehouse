@@ -19,23 +19,8 @@ module HudPit
     end
 
     module ClassMethods
-      def shared_archival_entries(report_instance)
-        {
-          universe_members_csv: {
-            scope: -> { ::HudReports::UniverseMember.where(report_cell_id: report_instance.report_cells.select(:id)) },
-            filename: -> { "hud-pit-#{report_instance.id}-universe-members.csv" },
-            delete_order: 1,
-          },
-          report_cells_csv: {
-            scope: -> { report_instance.report_cells },
-            filename: -> { "hud-pit-#{report_instance.id}-cells.csv" },
-            delete_order: 99,
-          },
-        }
-      end
-
       def archival_csv_config(report_instance)
-        shared_archival_entries(report_instance).merge(
+        HudReportArchival.shared_archival_entries(report_instance, prefix: 'pit').merge(
           pit_clients_csv: {
             scope: -> { HudPit::Fy2022::PitClient.where(report_instance_id: report_instance.id) },
             filename: -> { "hud-pit-#{report_instance.id}-clients.csv" },

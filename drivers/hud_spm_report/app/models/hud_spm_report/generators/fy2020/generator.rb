@@ -71,7 +71,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.archival_csv_config(report_instance)
-      shared_archival_entries(report_instance).merge(
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
         spm_clients_csv: {
           scope: -> { HudSpmReport::Fy2020::SpmClient.where(report_instance_id: report_instance.id) },
           filename: -> { "hud-spm-fy2020-#{report_instance.id}-spm-clients.csv" },
