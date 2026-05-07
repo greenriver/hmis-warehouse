@@ -20,11 +20,6 @@ module  HudHic::Generators::Hic::Fy2022
       'HIC'
     end
 
-    # HudReportArchival.register_archival_generator(self.title, self) runs when this
-    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
-    # fiscal_year; define those class methods above before including Archival.
-    include HudHic::Archival
-
     # Project Types (HIC):
     #   ES, TH, SH, PH (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services (no disability required for entry) and PH – Housing Only)
     #   OR numerically
@@ -113,5 +108,10 @@ module  HudHic::Generators::Hic::Fy2022
         HudHic::Fy2022::Funder,
       ].freeze
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudHic::Archival
   end
 end

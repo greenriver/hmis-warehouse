@@ -30,11 +30,6 @@ module HudApr::Generators::Dq::Fy2026
       'DQ'
     end
 
-    # HudReportArchival.register_archival_generator(self.title, self) runs when this
-    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
-    # fiscal_year; define those class methods above before including Archival.
-    include HudApr::Archival
-
     def self.file_prefix
       "#{short_name} #{fiscal_year}"
     end
@@ -68,5 +63,10 @@ module HudApr::Generators::Dq::Fy2026
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 1'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudApr::Archival
   end
 end
