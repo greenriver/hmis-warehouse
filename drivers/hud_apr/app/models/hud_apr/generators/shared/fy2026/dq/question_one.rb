@@ -129,10 +129,12 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionOne
         # HoH and adult stayers in project 365 days or more
         # "...any adult stayer present when the head of household’s stay is 365 days or more,
         # even if that adult has not been in the household that long"
+        # Per HUD clarification: include adult stayers with 365+ days even when HoH has < 365 days.
         {
           row: '17',
           clause: a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-            and(adult_clause.or(a_t[:head_of_household].eq(true))),
+            and(adult_clause.or(a_t[:head_of_household].eq(true))).
+            or(a_t[:id].in(adult_lts_stayer_ids)),
         },
       ]
     end

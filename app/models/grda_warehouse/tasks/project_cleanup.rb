@@ -194,9 +194,16 @@ module GrdaWarehouse::Tasks
       # Don't do anything if we don't know what CoC the project operates in
       return unless coc_codes.present?
 
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first, source_hash: nil) if coc_codes.count == 1
+      # where.not with a single value generates `!= value` which excludes NULLs, so OR explicitly
+      base = project.enrollments
+      outside_cocs = base.where.not(EnrollmentCoC: coc_codes).or(base.where(EnrollmentCoC: nil))
 
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil, source_hash: nil)
+      if coc_codes.count == 1
+        outside_cocs.update_all(EnrollmentCoC: coc_codes.first, source_hash: nil)
+      else
+        # Exclude already-nil rows: setting nil→nil isn't a real change, so don't wipe source_hash
+        outside_cocs.where.not(EnrollmentCoC: nil).update_all(EnrollmentCoC: nil, source_hash: nil)
+      end
     end
 
     # If a project has user provided HMIS Participation records, than we don't need the 2022 -> 2024 migration generated

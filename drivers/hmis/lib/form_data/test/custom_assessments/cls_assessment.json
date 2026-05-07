@@ -30,6 +30,15 @@
         "record_type": "CURRENT_LIVING_SITUATION",
         "field_name": "currentLivingSituation"
       }
+    },
+    {
+      "type": "STRING",
+      "link_id": "custom_note",
+      "text": "Custom Note",
+      "required": false,
+      "mapping": {
+        "custom_field_key": "custom_cls_test_note"
+      }
     }
   ]
 }

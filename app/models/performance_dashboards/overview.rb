@@ -20,7 +20,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Enrolled
   include PerformanceDashboard::Overview::ProjectType
-  include PerformanceDashboard::Overview::Coc
+  include PerformanceDashboard::CocBuckets
   include PerformanceDashboard::Overview::LotHomeless
 
   def self.url

@@ -141,6 +141,12 @@ module Admin
         includes(:entity, :alert_definitions).
         order(type: :asc).
         to_a
+
+      # Import CSV Monitor notifications (user_id is cross-DB)
+      @import_csv_monitor_configs = GrdaWarehouse::NotificationConfiguration.
+        where(user_id: @user.id, source_type: 'GrdaWarehouse::ImportCsvMonitor', active: true).
+        includes(source: :data_source).
+        to_a
     end
 
     def impersonate
@@ -167,6 +173,8 @@ module Admin
 
     def update
       existing_health_roles = @user.health_roles.to_a
+      email_before = @user.email
+
       begin
         User.transaction do
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
@@ -223,6 +231,7 @@ module Admin
         render :edit
         return
       end
+
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
       respond_with(@user, location: edit_admin_user_path(@user))

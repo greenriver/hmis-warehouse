@@ -88,8 +88,8 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'returns none if form is draft' do
-      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft)
-      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'bad-referral-form')
+      create(:hmis_form_definition, role: role, identifier: 'draft-form', status: :draft)
+      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'draft-form')
       expect(selected_instances.size).to eq(0)
     end
 
@@ -219,6 +219,12 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'returns most specific instance per definition identifier' do
+      # Create these two forms manually instead of using the 'hmis json forms seed'.
+      # The seed context also creates default system instances,
+      # whereas this spec file wants to start from a clean slate of instances.
+      create(:hmis_form_definition, role: role, identifier: 'move_in_date')
+      create(:hmis_form_definition, role: role, identifier: 'date_of_engagement')
+
       mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date', data_collected_about: 'HOH')
       mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier, data_collected_about: 'HOH_AND_ADULTS')
 

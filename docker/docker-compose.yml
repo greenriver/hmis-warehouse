@@ -10,11 +10,11 @@ x-app: &app
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.4.5
+      RUBY_VERSION: 3.4.9
       BUNDLER_VERSION: "2.7.2"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.4.5-slim-bookworm
+      BUILD_TAG: 3.4.9-slim-bookworm
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -298,8 +298,10 @@ services:
         aliases:
           - dex.dev.test
     depends_on:
+      keycloak:
+        condition: service_healthy
       db:
-        condition: "service_healthy"
+        condition: service_healthy
       dex-db-init:
         condition: service_completed_successfully
     # oauth2 proxy kept failing intermittently, added this health check

@@ -104,7 +104,7 @@ module
         ]
         available_coc_codes.each do |coc_code|
           rows["_Household Types_data_#{title}"] += [
-            household_type_hoh_count(id, coc_code.to_sym),
+            household_type_client_count(id, coc_code.to_sym),
             household_type_hoh_count(id, coc_code.to_sym),
             household_type_hoh_percentage(id, coc_code.to_sym) / 100,
           ]

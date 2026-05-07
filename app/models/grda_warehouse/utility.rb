@@ -58,10 +58,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
       GrdaWarehouse::WarehouseReports::Base,
       GrdaWarehouse::Cohort,
-      GrdaWarehouse::Cohorts::CohortColumn,
-      GrdaWarehouse::CohortColumnOption,
       GrdaWarehouse::CohortClientChange,
-      GrdaWarehouse::CohortTab,
       Reporting::MonthlyReports::Base,
       Reporting::DataQualityReports::Enrollment,
       Reporting::DataQualityReports::Project,
@@ -79,7 +76,9 @@ class GrdaWarehouse::Utility
       UserGroup,
       AccessControl,
       User,
+      HudReports::ReportCheckpoint,
       HudReports::ReportInstance,
+      HudReports::HouseholdContext,
       HudReports::UniverseMember,
       HudReports::ReportCell,
       GrdaWarehouse::WarehouseReports::ReportDefinition,
@@ -105,6 +104,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::File,
       GrdaWarehouse::Config,
       GrdaWarehouse::ImportThreshold,
+      GrdaWarehouse::ImportCsvMonitor,
       GrdaWarehouse::NotificationConfiguration,
       Hmis::Hud::CustomDataElementDefinition,
       Hmis::Hud::CustomDataElement,
@@ -119,11 +119,11 @@ class GrdaWarehouse::Utility
     tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
     if RailsDrivers.loaded.include?(:hud_spm_report)
       tables << HudSpmReport::Fy2020::SpmClient
-      tables << HudSpmReport::Fy2024::SpmEnrollment
-      tables << HudSpmReport::Fy2024::Episode
-      tables << HudSpmReport::Fy2024::BedNight
-      tables << HudSpmReport::Fy2024::EnrollmentLink
-      tables << HudSpmReport::Fy2024::Return
+      tables << HudSpmReport::Fy2026::SpmEnrollment
+      tables << HudSpmReport::Fy2026::Episode
+      tables << HudSpmReport::Fy2026::BedNight
+      tables << HudSpmReport::Fy2026::EnrollmentLink
+      tables << HudSpmReport::Fy2026::Return
     end
 
     if RailsDrivers.loaded.include?(:hud_data_quality_report)

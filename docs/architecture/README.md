@@ -1,0 +1,47 @@
+# Architecture Documentation
+
+This directory contains the architectural documentation for the **entire Open Path Platform system**, including the Rails monolith, the HMIS front-end, the analytics store, and the CAS matching system.
+
+## Table of Contents
+
+1. [**1 Introduction and Goals**](01-introduction.md): Short description of the requirements and goals.
+2. [**2 Architecture Constraints**](02-constraints.md): System-wide constraints and limitations.
+3. [**3 Context and Scope**](03-context.md): External interfaces and actors.
+4. [**4 Solution Strategy**](04-solution-strategy.md): Fundamental system-wide decisions and strategies.
+5. [**5 Building Block View**](05-building-blocks/05-0-building-blocks.md): Static decomposition into containers and components.
+6. [**6 Runtime View**](06-runtime/06-0-runtime-view.md): Behavior and interactions at runtime.
+7. [**7 Deployment View**](07-deployment.md): Technical infrastructure and mapping.
+8. [**8 Cross-cutting Concepts**](08-concepts/08-0-concepts.md): Cross-cutting concerns and patterns.
+9. [**9 Architecture Decisions**](09-decisions.md): References to Architecture Decision Records (ADRs).
+10. [**10 Quality Requirements**](10-quality.md): Quality goals and scenarios.
+11. [**11 Risks and Technical Debts**](11-risks.md): Identified risks and debts.
+12. [**12 Glossary**](12-glossary.md): Important domain and technical terms.
+
+## About this Documentation
+
+This documentation uses a combination of two industry-standard frameworks to ensure clarity, consistency, and depth.
+
+### About the arc42 Template
+We use the [arc42](https://arc42.org/) template to provide a consistent structure for the documentation. Each numbered file in this directory corresponds to a section of the arc42 template, guiding the reader from high-level goals and constraints down to technical implementation details and cross-cutting concepts.
+
+### C4 Model
+For visual documentation and diagramming, we follow the [C4 model](https://c4model.com/). This allows us to represent the system at different levels of abstraction:
+- [**Level 1 (System Context)**](03-context.md): The system as a "black box" in its environment.
+- [**Level 2 (Containers)**](05-building-blocks/05-0-building-blocks.md): The overall system opened to show its major containers.
+- **Level 3 (Components)**: Individual containers opened to show internal structure. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md), [5.2.2 CAS](05-building-blocks/05-2-2-cas.md), [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md), and [5.2.4 Analytics](05-building-blocks/05-2-4-analytics.md).
+
+## Repositories
+
+The platform spans multiple repositories. This architecture documentation covers all of them.
+
+| Repository | Building Block | Visibility |
+| --- | --- | --- |
+| [greenriver/hmis-warehouse](https://github.com/greenriver/hmis-warehouse) | Warehouse Application (Rails monolith) | Public |
+| [greenriver/hmis-frontend](https://github.com/greenriver/hmis-frontend) | HMIS Frontend (React SPA) | Public |
+| [greenriver/boston-cas](https://github.com/greenriver/boston-cas) | CAS (legacy matching system) | Public |
+| *(private)* | Analytics Stack (Superset, DBT) | Private |
+| *(private)* | Deployment (ArgoCD) | Private |
+
+## Other Documentation
+- **Detailed Implementation Documentation**: Refer to the respective `docs/features` directories in each repository.
+- **Architecture Decisions (ADRs)**: Refer to the respective `docs/adr` directories in each repository for low-level technical decisions.

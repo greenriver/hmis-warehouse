@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   get 'hmis/system_status/operational', to: 'system_status#operational'
   get 'hmis/system_status/cache_status', to: 'system_status#cache_status'
   get 'hmis/system_status/details', to: 'system_status#details'

@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Intake assessment', type: :system do
   include_context 'hmis base setup'
   # could parse CAPYBARA_APP_HOST
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Quentin', last_name: 'Coldwater' }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alice', last_name: 'Quinn' }
   let!(:unit1) { create :hmis_unit, project: p1, user: user, name: 'unit 1' }

@@ -1,0 +1,13 @@
+- view_filter = filter_data
+- creator_display = view_filter_available_users.find { |id, _| id.to_s == view_filter[:creator].to_s }&.last || 'Any user'
+- run_type_display = view_filter[:run_type] == 'automated' ? 'Background (automated)' : 'Normal (on-demand)'
+- parts = []
+- if view_filter[:start].present? && view_filter[:end].present?
+  - start_date = Date.parse(view_filter[:start].to_s)
+  - end_date = Date.parse(view_filter[:end].to_s)
+  - date_range = "#{start_date} - #{end_date}"
+  - parts << date_range
+- parts << run_type_display if view_filter[:run_type].present?
+- parts << creator_display if view_filter[:creator].present?
+.text-muted.small
+  Filtered to: #{parts.join(' • ')}

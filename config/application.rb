@@ -25,7 +25,7 @@ require_relative '../lib/util/rails_trusted_proxies_config'
 # common route concerns, included here to avoid class loader issues due to "drivers" load order in dev mode
 require_relative '../lib/hud_reports/route_concerns'
 
-module BostonHmis
+module OpenPath
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1

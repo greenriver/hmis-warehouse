@@ -99,7 +99,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Non-configurable forms. These are submitted using custom mutations.
   STATIC_FORM_ROLES = [
     :FORM_RULE,
-    :AUTO_EXIT_CONFIG,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
@@ -124,105 +123,76 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   CREATE = 'create'
   FORM_RECORD_ACTIONS = [EDIT, CREATE].freeze
 
-  ENROLLMENT_CONFIG = {
-    owner_class: 'Hmis::Hud::Enrollment',
-    permission: :can_edit_enrollments,
-  }.freeze
-
-  # Configuration for SubmitForm
-  # TODO(#8676) - now that permission config lives in the SubmitFormAuthorizer helper,
-  # this can be simplified, but complete that work in a 2nd PR because it involves disruption to unit tests,
-  # and we want confidence that the existing tests pass for the 1st PR.
+  # Configuration for forms by role
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: 'Hmis::Hud::HmisService',
-      permission: :can_edit_enrollments,
     },
     PROJECT: {
       owner_class: 'Hmis::Hud::Project',
-      permission: :can_edit_project_details,
     },
     ORGANIZATION: {
       owner_class: 'Hmis::Hud::Organization',
-      permission: :can_edit_organization,
     },
     CLIENT: {
       owner_class: 'Hmis::Hud::Client',
-      permission: :can_edit_clients,
     },
     FUNDER: {
       owner_class: 'Hmis::Hud::Funder',
-      permission: :can_edit_project_details,
     },
     INVENTORY: {
       owner_class: 'Hmis::Hud::Inventory',
-      permission: :can_edit_project_details,
     },
     PROJECT_COC: {
       owner_class: 'Hmis::Hud::ProjectCoc',
-      permission: :can_edit_project_details,
     },
     HMIS_PARTICIPATION: {
       owner_class: 'Hmis::Hud::HmisParticipation',
-      permission: :can_edit_project_details,
     },
     CE_PARTICIPATION: {
       owner_class: 'Hmis::Hud::CeParticipation',
-      permission: :can_edit_project_details,
     },
     CE_ASSESSMENT: {
       owner_class: 'Hmis::Hud::Assessment',
-      permission: :can_edit_enrollments,
     },
     CE_EVENT: {
       owner_class: 'Hmis::Hud::Event',
-      permission: :can_edit_enrollments,
     },
     CASE_NOTE: {
       owner_class: 'Hmis::Hud::CustomCaseNote',
-      permission: :can_edit_enrollments,
     },
     FILE: {
       owner_class: 'Hmis::File',
-      # Because File has an `authorize` proc, this `permission` mapping is unused except in unit tests.
-      permission: [:can_manage_any_client_files, :can_manage_own_client_files],
-      authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
     # Deprecated: was used to send Referral Requests to external Link system.
     REFERRAL_REQUEST: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
-      permission: :can_manage_incoming_referrals,
     },
     # Deprecated: used to update status of external ReferralPostings (still in use while legacy referrals are worked through)
     REFERRAL: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralPosting',
-      # Note: this permission should be checked against the project that is _sending_ the referral,
-      # not the project that is receiving it.
-      permission: :can_manage_outgoing_referrals,
     },
     CURRENT_LIVING_SITUATION: {
       owner_class: 'Hmis::Hud::CurrentLivingSituation',
-      permission: :can_edit_enrollments,
     },
-    OCCURRENCE_POINT: ENROLLMENT_CONFIG,
-    ENROLLMENT: ENROLLMENT_CONFIG,
-    # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
+    OCCURRENCE_POINT: {
+      owner_class: 'Hmis::Hud::Enrollment',
+    },
+    ENROLLMENT: {
+      owner_class: 'Hmis::Hud::Enrollment',
+    },
     NEW_CLIENT_ENROLLMENT: {
-      **ENROLLMENT_CONFIG,
-      permission: [:can_edit_clients, :can_edit_enrollments],
+      owner_class: 'Hmis::Hud::Enrollment',
       allowed_form_record_actions: [CREATE],
     },
     CLIENT_DETAIL: {
       owner_class: 'Hmis::Hud::Client',
-      permission: :can_edit_clients,
     },
     EXTERNAL_FORM: {
       owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
-      permission: :can_manage_external_form_submissions,
     },
     CE_REFERRAL_STEP: {
       owner_class: 'Hmis::WorkflowExecution::Step',
-      authorize: -> { raise 'not expected to be submitted via submit form' },
     },
   }.freeze
 
@@ -263,6 +233,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }
 
   scope :with_role, ->(role) { where(role: role) }
+
+  scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
 
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed
@@ -380,7 +352,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Raise an error if no definition was found for a system role (like CLIENT, PROJECT, etc).
     # System role forms are required for the HMIS to function. There should be system Instances that prevent this from happening.
-    raise `No Definition found for System form #{role}` if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
+    raise "No Definition found for System form #{role}" if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
 
     selected_definition
   end
@@ -391,9 +363,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
-  def validate_json_form
+  # TODO(#6691): remove data_source_id argument once data_source_id column is added to FormDefinition
+  def validate_json_form(data_source_id: nil)
     # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
-    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?)
+    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?, data_source_id: data_source_id)
   end
 
   def self.validate_schema(json)

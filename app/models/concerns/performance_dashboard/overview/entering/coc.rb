@@ -28,19 +28,7 @@ module PerformanceDashboard::Overview::Entering::Coc
   end
 
   def entering_by_coc_data_for_chart
-    @entering_by_coc_data_for_chart ||= begin
-      columns = [@filter.date_range_words]
-      columns += entering_by_coc.values.map(&:count)
-      categories = entering_by_coc.keys
-      filter_selected_data_for_chart(
-        {
-          labels: categories.map { |s| [s, HudHelper.util.coc_name(s)] }.to_h,
-          chosen: @coc_codes,
-          columns: columns,
-          categories: categories,
-        },
-      )
-    end
+    @entering_by_coc_data_for_chart ||= coc_data_for_chart(entering_by_coc)
   end
 
   private def entering_by_coc_details(options)

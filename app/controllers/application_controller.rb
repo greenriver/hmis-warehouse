@@ -43,7 +43,6 @@ class ApplicationController < ActionController::Base
   helper_method :locale
   before_action :require_compliance_agreement!
   before_action :require_training!
-  before_action :health_emergency?
 
   before_action :prepare_exception_notifier
 

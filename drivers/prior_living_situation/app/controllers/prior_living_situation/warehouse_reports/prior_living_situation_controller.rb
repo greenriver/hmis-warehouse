@@ -13,7 +13,7 @@ module PriorLivingSituation::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_view_clients, only: [:detail]
+    before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report
     before_action :set_pdf_export
 

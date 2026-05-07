@@ -11,5 +11,9 @@ FactoryBot.define do
     trait :record_count_change_notification_event do
       notification_slug { 'count_threshold_exceeded' }
     end
+
+    trait :csv_import_notification_event do
+      notification_slug { 'csv_import_threshold_exceeded' }
+    end
   end
 end

@@ -25,7 +25,8 @@ RSpec.describe GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask do
     end
 
     it 'runs in a transaction' do
-      expect(GrdaWarehouse::ClientSearchQuery).to receive(:transaction)
+      # perform wraps cleanup + complete!; complete! also opens a transaction (which becomes a nested savepoint in Postgres)
+      expect(GrdaWarehouseBase).to receive(:transaction).at_least(:once).and_call_original
       task.perform
     end
   end

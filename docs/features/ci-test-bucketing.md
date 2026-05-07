@@ -35,10 +35,14 @@ Add `ci-focus: <path>` to your commit message.
 *   **Directory**: `git commit -m "debugging [ci-focus: spec/requests]"`
 
 #### Available Flags
-Flags can be included anywhere in the commit message (separate from `ci-focus`):
+Flags can be included anywhere in the commit message (**outside** of the `ci-focus` brackets):
 *   `with-okta`: Runs Okta request specs (Omniauth/Sessions).
 *   `with-logging`: Runs the 5-way logging configuration matrix.
+*   `testkit-check-all-results`: Ignores the `skip` option in table comparisons, forcing all cells to be checked.
 *   `ci-profile`: Enables RSpec profiling and outputs `rspec_results.json`.
+
+**Example combining focus and flags:**
+`git commit -m "debugging [ci-focus: drivers/hud_spm_report/spec/models/datalab_testkit/all_projects_spec.rb] testkit-check-all-results"`
 
 #### Trigger via GitHub UI
 1. Go to **Actions** -> **Rails Tests** -> **Run workflow**.

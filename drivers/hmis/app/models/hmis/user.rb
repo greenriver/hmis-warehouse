@@ -21,6 +21,8 @@ class Hmis::User < ApplicationRecord
   include UserConcern
   include IdpSupport
   include HasRecentItems
+  include DeviseUserPatch
+
   self.table_name = :users
 
   has_many :user_group_members, dependent: :destroy, inverse_of: :user
@@ -35,11 +37,35 @@ class Hmis::User < ApplicationRecord
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'
-  attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
-  scope :with_hmis_access, -> do
-    # Users that are a member of at least 1 HMIS User Group
-    not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+  # Request-scoped attribute storing the data_source_id of the current HMIS request for the current user.
+  # All HMIS access is scoped to this data source.
+  # @see docs/architecture/multi-hmis-support.md
+  attr_accessor :hmis_data_source_id
+
+  # Returns application users who have some permissions in the given data source.
+  # Excludes the system user.
+  scope :with_hmis_access_in_data_source, ->(data_source_id) do
+    next none unless data_source_id.present?
+
+    data_source = GrdaWarehouse::DataSource.hmis.find_by(id: data_source_id)
+    next none unless data_source
+
+    access_group_ids = Hmis::GroupViewableEntity.
+      includes_any_entity_in_data_source(data_source).
+      distinct.
+      pluck(:collection_id)
+    next none if access_group_ids.empty?
+
+    user_ids = Hmis::AccessControl.
+      where(access_group_id: access_group_ids).
+      joins(:users).
+      distinct.
+      select(Hmis::User.arel_table[:id])
+
+    # Explicitly exclude the system user. Probably not strictly necessary,
+    # since the system user is not typically included in any access groups anyway
+    not_system.where(id: user_ids)
   end
 
   # load a hash of global permission names (e.g. 'can_view_all_reports')

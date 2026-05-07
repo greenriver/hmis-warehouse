@@ -12,7 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
   include_context 'hmis base setup'
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Marlon', last_name: 'Harris' }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
   let!(:e1) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1 }
@@ -84,7 +84,6 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
         assert_text 'Where did the client spend the night before project entry?'
 
         # These aren't visible on pageload since we are in the conditional version
-        assert_no_text 'Length of stay'
         assert_no_text 'Approximate date this episode of homelessness started'
         assert_no_text 'number of times the client has been on the streets'
         assert_no_text 'Total number of months homeless'
@@ -93,10 +92,12 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
 
       it 'displays correct options and saves correctly when PLS is homeless situation' do
         mui_select 'Safe Haven', from: 'Prior Living Situation'
+        assert_text 'Length of stay'
         assert_text 'Approximate date this episode of homelessness started'
         assert_text 'number of times the client has been on the streets'
         assert_text 'Total number of months homeless'
 
+        mui_select 'One week or more, but less than one month', from: /Length of stay/
         mui_date_select 'Approximate date this episode of homelessness started', date: today - 4.weeks
         mui_select 'Four or more times', from: /Regardless of where they stayed the night before/
         mui_select 'More than 12 months', from: /Total number of months homeless/
@@ -104,6 +105,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
         expect do
           save_ignoring_warnings
         end.to change(e1, :living_situation).to(118).
+          and change(e1, :length_of_stay).to(2).
           and change(e1, :date_to_street_essh).to(today - 4.weeks).
           and change(e1, :times_homeless_past_three_years).to(4).
           and change(e1, :months_homeless_past_three_years).to(113)

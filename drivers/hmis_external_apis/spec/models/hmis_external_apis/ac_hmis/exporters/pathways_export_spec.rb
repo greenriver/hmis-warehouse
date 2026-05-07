@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model do
-  let!(:ds) { create(:hmis_data_source) }
+  let!(:ds) { create(:hmis_primary_data_source) }
   let!(:p1) { create(:hmis_hud_project, data_source: ds) }
   let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds) }
   let!(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: ds) }
@@ -25,25 +25,25 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model
       'client_pathway_1',
       'client_pathway_2',
       'client_pathway_3',
-    ].map { |key| create(:hmis_custom_data_element_definition, key: key, field_type: :string, owner_type: 'Hmis::Hud::Client') }
+    ].map { |key| create(:hmis_custom_data_element_definition, key: key, field_type: :string, owner_type: 'Hmis::Hud::Client', data_source: ds) }
 
     cdeds << [
       'client_pathway_1_date',
       'client_pathway_2_date',
       'client_pathway_3_date',
-    ].map { |key| create(:hmis_custom_data_element_definition, key: key, field_type: :date, owner_type: 'Hmis::Hud::Client') }
+    ].map { |key| create(:hmis_custom_data_element_definition, key: key, field_type: :date, owner_type: 'Hmis::Hud::Client', data_source: ds) }
 
     cdeds << [
       'client_pathway_1_narrative',
       'client_pathway_2_narrative',
       'client_pathway_3_narrative',
-    ].map { |key| create(:hmis_custom_data_element_definition, key: key, field_type: :text, owner_type: 'Hmis::Hud::Client') }
+    ].map { |key| create(:hmis_custom_data_element_definition, key: key, field_type: :text, owner_type: 'Hmis::Hud::Client', data_source: ds) }
 
     cdeds.flatten.index_by(&:key)
   end
 
   it 'collects clients with pathways' do
-    create(:hmis_custom_data_element, owner: client, data_element_definition: pathway_definitions['client_pathway_1'])
+    create(:hmis_custom_data_element, owner: client, data_element_definition: pathway_definitions['client_pathway_1'], data_source: ds)
     subject.run!
     expect(subject.send(:pathway_client_warehouse_id_to_client_ids)).to contain_exactly([client.warehouse_id, [client.id]])
   end
@@ -54,10 +54,10 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model
   end
 
   it 'makes a csv' do
-    pathway1 = create(:hmis_custom_data_element, owner: client, value_string: 'xyz', data_element_definition: pathway_definitions['client_pathway_1'])
-    pathway2date = create(:hmis_custom_data_element, owner: client, value_date: 1.week.ago, data_element_definition: pathway_definitions['client_pathway_1_date'])
-    pathway2 = create(:hmis_custom_data_element, owner: client, value_string: 'abc', data_element_definition: pathway_definitions['client_pathway_2'])
-    pathway2narrative = create(:hmis_custom_data_element, owner: client, value_text: 'narrative note', data_element_definition: pathway_definitions['client_pathway_2_narrative'])
+    pathway1 = create(:hmis_custom_data_element, owner: client, value_string: 'xyz', data_element_definition: pathway_definitions['client_pathway_1'], data_source: ds)
+    pathway2date = create(:hmis_custom_data_element, owner: client, value_date: 1.week.ago, data_element_definition: pathway_definitions['client_pathway_1_date'], data_source: ds)
+    pathway2 = create(:hmis_custom_data_element, owner: client, value_string: 'abc', data_element_definition: pathway_definitions['client_pathway_2'], data_source: ds)
+    pathway2narrative = create(:hmis_custom_data_element, owner: client, value_text: 'narrative note', data_element_definition: pathway_definitions['client_pathway_2_narrative'], data_source: ds)
 
     subject.run!
     result = CSV.parse(output, headers: true)
@@ -79,7 +79,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model
 
   context 'when source client does not have a destination client yet' do
     let!(:client) { create(:hmis_hud_client, data_source: ds) }
-    let!(:pathway1) { create(:hmis_custom_data_element, value_string: 'value', owner: client, data_element_definition: pathway_definitions['client_pathway_1']) }
+    let!(:pathway1) { create(:hmis_custom_data_element, value_string: 'value', owner: client, data_element_definition: pathway_definitions['client_pathway_1'], data_source: ds) }
 
     it 'does not export the client' do
       subject.run!
@@ -90,13 +90,13 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model
 
   context 'when there are multiple pathway clients with the same destination id' do
     # Two Pathway 1 CDEs, with different source clients but same dest client
-    let!(:pathway1) { create(:hmis_custom_data_element, value_string: 'retained', owner: client, data_element_definition: pathway_definitions['client_pathway_1']) }
-    let!(:pathway1_dup) { create(:hmis_custom_data_element, value_string: 'dropped', date_updated: 1.week.ago, owner: client2, data_element_definition: pathway_definitions['client_pathway_1']) }
+    let!(:pathway1) { create(:hmis_custom_data_element, value_string: 'retained', owner: client, data_element_definition: pathway_definitions['client_pathway_1'], data_source: ds) }
+    let!(:pathway1_dup) { create(:hmis_custom_data_element, value_string: 'dropped', date_updated: 1.week.ago, owner: client2, data_element_definition: pathway_definitions['client_pathway_1'], data_source: ds) }
     # One Pathway 2, dropped because it will only export `client`
-    let!(:pathway2) { create(:hmis_custom_data_element, value_string: 'dropped', owner: client2, data_element_definition: pathway_definitions['client_pathway_2']) }
+    let!(:pathway2) { create(:hmis_custom_data_element, value_string: 'dropped', owner: client2, data_element_definition: pathway_definitions['client_pathway_2'], data_source: ds) }
     # Two Pathway 3 CDEs, with different source clients but same dest client
-    let!(:pathway3) { create(:hmis_custom_data_element, value_string: 'retained', owner: client, data_element_definition: pathway_definitions['client_pathway_3']) }
-    let!(:pathway3_dup) { create(:hmis_custom_data_element, value_string: 'dropped', owner: client3, date_updated: 1.week.ago, data_element_definition: pathway_definitions['client_pathway_3']) }
+    let!(:pathway3) { create(:hmis_custom_data_element, value_string: 'retained', owner: client, data_element_definition: pathway_definitions['client_pathway_3'], data_source: ds) }
+    let!(:pathway3_dup) { create(:hmis_custom_data_element, value_string: 'dropped', owner: client3, date_updated: 1.week.ago, data_element_definition: pathway_definitions['client_pathway_3'], data_source: ds) }
 
     before(:each) do
       warehouse_id = client.warehouse_id

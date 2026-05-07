@@ -35,14 +35,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
               latestOpportunity {
                 id
                 name
-                eligibilityRequirements {
-                  id
-                  expression
-                }
-                prioritySchemes {
-                  id
-                  expression
-                }
               }
             }
             #{error_fields}

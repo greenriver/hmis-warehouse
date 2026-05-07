@@ -12,7 +12,7 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.feature 'Assessment definition selection', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:mci_cred) { create(:ac_hmis_mci_credential) }
 
@@ -33,8 +33,16 @@ RSpec.feature 'Assessment definition selection', type: :system do
     allow(stub_mci).to receive(:create_mci_id).and_return(nil)
     allow(stub_mci).to receive(:creds).and_return(mci_cred)
     allow(stub_mci).to receive(:cached_mci_unique_id_for).with(any_args).and_return(nil)
+  end
 
-    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions
+  before(:all) do
+    # Seed MCI-specific client forms
+    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
+  end
+
+  after(:all) do
+    # Return client forms to normal.
+    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   def enter_client_details

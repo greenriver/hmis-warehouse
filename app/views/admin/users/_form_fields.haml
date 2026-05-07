@@ -76,8 +76,8 @@
                 checked_value: alert.id,
                 unchecked_value: nil
     - unless @user.new_record?
-      = render 'contact_relationships'
-      = render 'identity_providers', user: user
+      = render 'admin/users/contact_relationships'
+      = render 'admin/users/identity_providers', user: user
     .form-access-control
       %h3 Permission Scheme
       .well

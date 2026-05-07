@@ -12,6 +12,7 @@ module HopwaCaper
       @services_by_client = {}
       @field_map = enrollment_fields
       preload_services
+      preload_funders
     end
 
     def headers
@@ -24,6 +25,8 @@ module HopwaCaper
 
       value = if field.name == 'services_summary'
         services_summary(record)
+      elsif field.name == 'project_funders'
+        funder_summary(record)
       elsif record.respond_to?(field.name)
         record.send(field.name)
       end
@@ -134,12 +137,29 @@ module HopwaCaper
       end.compact.uniq.sort
     end
 
+    # all the funders that overlap this enrollment's range
+    def funder_summary(enrollment)
+      funders = @funders_by_enrollment[enrollment.project_id] || []
+      funders.filter_map do |funder|
+        next unless funder.within_range?(enrollment.to_range)
+
+        funder.code
+      end.uniq.sort
+    end
+
     def preload_services
       client_ids = @records.map(&:destination_client_id).uniq
       @services_by_client = @report.hopwa_caper_services.
         where(destination_client_id: client_ids).
         where(date_provided: @report.start_date..@report.end_date).
         group_by(&:destination_client_id)
+    end
+
+    def preload_funders
+      project_ids = @records.map(&:project_id).uniq
+      @funders_by_enrollment = @report.hopwa_caper_funders.
+        where(project_id: project_ids).
+        group_by(&:project_id)
     end
   end
 end

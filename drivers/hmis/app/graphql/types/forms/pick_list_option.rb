@@ -59,6 +59,8 @@ module Types
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
+      when 'CE_ACCESS_POINT_PROJECT_NAMES'
+        ce_access_point_project_names_picklist(user)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -274,8 +276,13 @@ module Types
 
     def self.user_picklist(current_user)
       return [] unless current_user
-      # currently picklist is only needed when filtering audit events, and when filtering client merge history
-      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients? || current_user.can_merge_clients?
+
+      # User picklist is currently used:
+      # - when filtering audit events
+      # - when filtering client merge history
+      # - when selecting users in the form builder
+      # (Most other user picklists in the app use a more restricted list of users, such as eligible_staff_assignment_users, eligible_referral_step_assignment_users, etc.)
+      return [] unless current_user.permissions?(:can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients, mode: :any)
 
       Hmis::User.with_deleted.map do |user|
         {
@@ -666,6 +673,25 @@ module Types
       return [] unless project&.staff_assignments_enabled?
 
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
+    end
+
+    def self.ce_access_point_project_names_picklist(user)
+      project_ids = Hmis::Hud::Project.viewable_by(user).
+        open_on_date. # Projects that are currently active
+        joins(:ce_participations).
+        # project has an active CE Participation record where Access Point = Yes
+        merge(Hmis::Hud::CeParticipation.active_on_date.access_point).
+        distinct.
+        pluck(Hmis::Hud::Project.arel_table[:id]) # Pluck project IDs to avoid complexity from the join
+
+      Hmis::Hud::Project.where(id: project_ids).
+        preload(:organization).
+        sort_by_option(:organization_and_name).
+        map do |project|
+          # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
+          # Use case: collecting CE Assessment Location
+          project.to_pick_list_option.merge(code: "#{project.project_name} (#{project.id})")
+        end
     end
 
     def self.projects_receiving_referrals(data_source_id)
