@@ -55,22 +55,17 @@ module HopwaCaper::Generators::Fy2026
 
     def self.questions
       sheets = [
-        HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::TbraSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet,
+        Sheets::DemographicsAndPriorLivingSituationSheet,
+        Sheets::TbraSheet,
+        Sheets::PFbhSheet,
+        Sheets::StTfbhSheet,
+        Sheets::StrmuSheet,
+        Sheets::PhpSheet,
+        Sheets::HousingInfoSheet,
+        Sheets::SupportiveServicesSheet,
       ]
-
-      sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
-
-      sheets = sheets.sort_by { |s| s.question_number.gsub(/\AQ(\d+).*/, '\\1').to_i }
-      sheets.map do |q|
-        [q.question_number, q]
-      end.to_h.freeze
+      sheets << Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
+      sheets.map { |q| [q.question_number, q] }.to_h.freeze
     end
 
     def self.valid_question_number(question_number)
