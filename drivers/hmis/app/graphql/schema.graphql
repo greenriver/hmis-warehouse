@@ -828,6 +828,11 @@ input CeClientFilterOptions {
   dynamicFilters: [TableFilterValue!]
 
   """
+  Filter to Clients that are eligible for projects in the specified Project Group
+  """
+  projectGroupId: ID
+
+  """
   Filter to Clients that are eligible for the specified Project Types
   """
   projectType: [ProjectType!]
@@ -1030,6 +1035,7 @@ input CeOpportunityFilterOptions {
   availableOnDate: ISO8601Date
   organization: [ID!]
   project: [ID!]
+  projectGroupId: ID
   projectType: [ProjectType!]
   status: [CeOpportunityStatus!]
   workflowTemplate: [String!]
@@ -1241,6 +1247,11 @@ input CeReferralFilterOptions {
   organization: [ID!]
   origin: [CeReferralOrigin!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
   searchTerm: String
@@ -1797,6 +1808,11 @@ input ClientCeReferralFilterOptions {
   organization: [ID!]
   origin: [CeReferralOrigin!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
 }
@@ -1878,6 +1894,7 @@ enum ClientDashboardFeature {
 input ClientEligibleCeOpportunityFilterOptions {
   organization: [ID!]
   project: [ID!]
+  projectGroupId: ID
   projectType: [ProjectType!]
 }
 
@@ -9679,11 +9696,17 @@ type ProjectAccess {
 }
 
 input ProjectCeOpportunityFilterOptions {
+  projectGroupId: ID
   status: [CeOpportunityStatus!]
 }
 
 input ProjectCeReferralFilterOptions {
   origin: [CeReferralOrigin!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   referralStatus: [String!]
   searchTerm: String
 }
@@ -9859,6 +9882,11 @@ input ProjectFilterOptions {
 input ProjectOutgoingCeReferralFilterOptions {
   organization: [ID!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
   searchTerm: String
@@ -10195,6 +10223,7 @@ type Query {
   """
   user(id: ID!): ApplicationUser
   userDashboard: UserDashboard!
+  workspaces(appliesTo: WorkspaceAppliesTo!): [Workspace!]!
 }
 
 type QueryAccess {
@@ -13946,6 +13975,20 @@ enum WorkerResponse {
   (1) Yes
   """
   YES
+}
+
+type Workspace {
+  id: ID!
+  name: String!
+  projectGroupId: ID!
+  slug: String!
+}
+
+enum WorkspaceAppliesTo {
+  """
+  CE referrals workspace switcher
+  """
+  CE_REFERRALS
 }
 
 """

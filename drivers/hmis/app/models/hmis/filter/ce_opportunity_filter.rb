@@ -14,6 +14,7 @@ class Hmis::Filter::CeOpportunityFilter < Hmis::Filter::BaseFilter
     scope.
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_projects)).
+      yield_self(&method(:with_project_group)).
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_organizations)).
       yield_self(&method(:available_on_date)).
@@ -30,6 +31,15 @@ class Hmis::Filter::CeOpportunityFilter < Hmis::Filter::BaseFilter
   def with_projects(scope)
     with_filter(scope, :project) do
       scope.joins(:project).where(p_t[:id].in(input.project))
+    end
+  end
+
+  def with_project_group(scope)
+    with_filter(scope, :project_group_id) do
+      project_ids = Hmis::ProjectGroup.find_by(id: input.project_group_id)&.projects&.pluck(:id)
+      next scope.none unless project_ids&.any?
+
+      scope.joins(:project).where(p_t[:id].in(project_ids))
     end
   end
 
