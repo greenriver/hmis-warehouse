@@ -13,7 +13,6 @@ class User < ApplicationRecord
   include IdpSupport
   include JwtUser
   include RailsDrivers::Extensions
-  include DeviseUserPatch
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
