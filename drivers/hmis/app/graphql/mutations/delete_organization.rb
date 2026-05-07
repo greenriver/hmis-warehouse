@@ -14,7 +14,13 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :organization, permissions: [:can_delete_organization])
+      access_denied! unless record && policy_for(record, policy_type: :hmis_organization).can_delete?
+
+      record.destroy!
+      {
+        organization: record,
+        errors: [],
+      }
     end
   end
 end

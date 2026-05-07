@@ -93,6 +93,15 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
   end
 
   describe 'error handling' do
+    it 'silently skips empty files without raising a Sentry error' do
+      allow(s3).to receive(:list_objects).and_return([double(key: 'empty.csv')])
+      allow(s3).to receive(:get_as_io).and_return(StringIO.new(''))
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
+      expect(Sentry).not_to have_received(:capture_exception_with_info)
+    end
+
     it 'logs an error for malformed CSV files' do
       malformed_csv_content = "first_name,last_name,ssn4,dob,#{external_id_field}\nJohn,Doe,\"1234,1990-01-01,1" # Unclosed quoted field
       allow(s3).to receive(:list_objects).and_return([double(key: 'test.csv')])

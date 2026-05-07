@@ -668,6 +668,8 @@ module GrdaWarehouse
         incoming_client_ids = filter.apply_criteria(
           GrdaWarehouse::ServiceHistoryEnrollment.all,
           tags: [:warehouse],
+          # nil disables report_scope_source-dependent criteria (gender, race); cohort
+          # automation filters do not expose those options.
           report_scope_source: nil,
           all_project_types: true,
         ).pluck(:client_id).uniq
