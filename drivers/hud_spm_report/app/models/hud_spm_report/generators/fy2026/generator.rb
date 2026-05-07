@@ -98,7 +98,7 @@ module HudSpmReport::Generators::Fy2026
       episode_ids = HudReports::UniverseMember.where(
         report_cell_id: report_instance.report_cells.select(:id),
         universe_membership_type: 'HudSpmReport::Fy2026::Episode',
-      ).select(:universe_membership_id)
+      ).pluck(:universe_membership_id)
 
       HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
         spm_bed_nights_csv: {

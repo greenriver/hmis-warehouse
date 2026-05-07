@@ -177,6 +177,60 @@ RSpec.describe 'SPM Archival Integration', type: :model do
     end
   end
 
+  # ── Episode purge regression (FY2023 / FY2024 / FY2026) ─────────────────────
+  # episode_ids is built as a lazy AR subquery on universe_members. universe_members
+  # are deleted at delete_order 1 and episodes at order 4+. With a lazy relation the
+  # episode scope re-evaluates after universe_members are gone, returns 0 rows, and
+  # silently skips episode deletion. These tests assert the count by querying the
+  # episodes table directly by the seeded ID — no dependency on universe_members —
+  # so they catch any orphaned rows the broken scope misses.
+  {
+    'Fy2023' => HudSpmReport::Generators::Fy2023::Generator,
+    'Fy2024' => HudSpmReport::Generators::Fy2024::Generator,
+    'Fy2026' => HudSpmReport::Generators::Fy2026::Generator,
+  }.each do |fy_mod, generator_klass|
+    describe "#{fy_mod} episode purge regression" do
+      let(:report) { create_completed_report(generator_klass.title) }
+      let(:episode_klass) { "HudSpmReport::#{fy_mod}::Episode".constantize }
+      let(:enrollment_klass) { "HudSpmReport::#{fy_mod}::SpmEnrollment".constantize }
+      let(:link_klass) { "HudSpmReport::#{fy_mod}::EnrollmentLink".constantize }
+      let(:return_klass) { "HudSpmReport::#{fy_mod}::Return".constantize }
+
+      before do
+        cell = report.report_cells.create!(question: 'Measure 1', cell_name: 'A1', universe: false)
+
+        enrollment_id = enrollment_klass.insert(
+          { report_instance_id: report.id }, returning: [:id]
+        ).first['id']
+        insert_universe_member(report_cell_id: cell.id, type: enrollment_klass.name, membership_id: enrollment_id)
+
+        @episode_id = episode_klass.insert({ client_id: nil }, returning: [:id]).first['id']
+        insert_universe_member(report_cell_id: cell.id, type: episode_klass.name, membership_id: @episode_id)
+
+        link_klass.insert({ enrollment_id: enrollment_id, episode_id: @episode_id })
+        return_klass.insert({ report_instance_id: report.id, client_id: 1, exit_enrollment_id: enrollment_id })
+
+        HudSpmReport::Fy2026::BedNight.insert({ enrollment_id: enrollment_id, date: Date.current }) if fy_mod == 'Fy2026'
+      end
+
+      it 'deletes episode rows even though universe_members are deleted first (delete_order 1 vs 4+)' do
+        archive_service = HudReports::ArchiveReportService.new(report)
+        expect(archive_service.archive!).to be(true), "Archive failed: #{archive_service.errors.inspect}"
+
+        purge_service = HudReports::PurgeArchivedReportDataService.new(report, dry_run: false, force: true)
+        result = purge_service.purge!
+        expect(result[:success]).to be(true), "Purge failed: #{result[:errors].inspect}"
+
+        # Query by the captured ID, not through the scope. The scope subqueries
+        # universe_members which are already deleted, so it returns 0 regardless.
+        # This direct lookup will expose any episode rows that were silently skipped.
+        expect(episode_klass.where(id: @episode_id).count).to eq(0),
+                                                              "#{fy_mod}::Episode id=#{@episode_id} still exists after purge — " \
+                                                              'episode_ids was a lazy subquery on universe_members already deleted at order 1'
+      end
+    end
+  end
+
   # ── Current generator (resolved via HudSpmReport.current_generator) ────────
   describe 'current version full cycle' do
     let(:current_gen) { HudSpmReport.current_generator }

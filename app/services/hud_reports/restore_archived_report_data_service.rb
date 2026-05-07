@@ -39,30 +39,37 @@ module HudReports
       restored_counts = {}
 
       begin
-        # Restore in reverse delete_order (highest delete_order first)
-        sorted_entries = config.sort_by { |_k, v| -v[:delete_order] }
+        report.class.transaction do
+          # Restore in reverse delete_order (highest delete_order first)
+          sorted_entries = config.sort_by { |_k, v| -v[:delete_order] }
 
-        sorted_entries.each do |attachment_name, entry|
-          next unless expected_files.include?(attachment_name.to_s)
-          next unless report.send(attachment_name).attached?
+          sorted_entries.each do |attachment_name, entry|
+            next unless expected_files.include?(attachment_name.to_s)
+            next unless report.send(attachment_name).attached?
 
-          count = restore_from_csv(attachment_name, entry)
-          restored_counts[attachment_name] = count
-        rescue StandardError => e
-          @errors << "Failed to restore #{attachment_name}: #{e.message}"
-          Rails.logger.error(
-            "HudReports::RestoreArchivedReportDataService: #{@errors.last}\n#{e.backtrace.first(5).join("\n")}",
-          )
-        end
+            count = restore_from_csv(attachment_name, entry)
+            restored_counts[attachment_name] = count
+          rescue StandardError => e
+            raise e.class, "#{attachment_name}: #{e.message}", e.backtrace
+          end
 
-        if @errors.empty?
+          # reset_sequences uses DDL (setval). In PostgreSQL DDL *is* transactional,
+          # so a rollback will undo the sequence reset — the correct behaviour here.
           reset_sequences(config)
           clear_purged_at
-          Rails.logger.info("HudReports::RestoreArchivedReportDataService: Restored report ##{report.id}: #{restored_counts.inspect}")
         end
+
+        Rails.logger.info("HudReports::RestoreArchivedReportDataService: Restored report ##{report.id}: #{restored_counts.inspect}")
+      rescue StandardError => e
+        @errors << "Failed to restore: #{e.message}"
+        Rails.logger.error(
+          "HudReports::RestoreArchivedReportDataService: #{@errors.last}\n#{e.backtrace.first(5).join("\n")}",
+        )
       ensure
-        report.reload
-        report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at
+        # Guard with rescue nil: if the DB connection was the cause of the rollback,
+        # these calls would raise a second exception and swallow the original error.
+        report.reload rescue nil # rubocop:disable Style/RescueModifier
+        report.update_column(:updated_at, original_updated_at) if report.updated_at != original_updated_at rescue nil # rubocop:disable Style/RescueModifier
       end
 
       { success: @errors.empty?, restored_counts: restored_counts, errors: @errors }
