@@ -78,7 +78,7 @@ module HudSpmReport::Generators::Fy2024
       episode_ids = HudReports::UniverseMember.where(
         report_cell_id: report_instance.report_cells.select(:id),
         universe_membership_type: 'HudSpmReport::Fy2024::Episode',
-      ).select(:universe_membership_id)
+      ).pluck(:universe_membership_id)
 
       shared_archival_entries(report_instance).merge(
         spm_enrollment_links_csv: {

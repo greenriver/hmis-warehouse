@@ -13,9 +13,6 @@ OpenPath::Application.routes.draw do
     # APR (Annual Performance Report)
     resources :aprs do
       concerns :hud_report_actions
-      member do
-        post :restore
-      end
       scope module: :apr do
         concerns :hud_drilldown_actions
       end
@@ -24,9 +21,6 @@ OpenPath::Application.routes.draw do
     # CAPER (Consolidated Annual Performance and Evaluation Report)
     resources :capers do
       concerns :hud_report_actions
-      member do
-        post :restore
-      end
       scope module: :caper do
         concerns :hud_drilldown_actions
       end
@@ -35,9 +29,6 @@ OpenPath::Application.routes.draw do
     # CE APR (Coordinated Entry Annual Performance Report)
     resources :ce_aprs do
       concerns :hud_report_actions
-      member do
-        post :restore
-      end
       scope module: :ce_apr do
         concerns :hud_drilldown_actions
       end
@@ -46,9 +37,6 @@ OpenPath::Application.routes.draw do
     # DQ (Data Quality Report)
     resources :dqs do
       concerns :hud_report_actions
-      member do
-        post :restore
-      end
       scope module: :dq do
         concerns :hud_drilldown_actions
       end
