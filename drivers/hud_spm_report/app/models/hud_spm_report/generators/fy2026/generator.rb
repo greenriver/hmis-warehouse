@@ -22,11 +22,6 @@ module HudSpmReport::Generators::Fy2026
       'SPM'
     end
 
-    # HudReportArchival.register_archival_generator(self.title, self) runs when this
-    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
-    # fiscal_year; define those class methods above before including Archival.
-    include HudSpmReport::Archival
-
     def self.supports_idempotent_retry?
       true
     end
@@ -100,7 +95,7 @@ module HudSpmReport::Generators::Fy2026
         universe_membership_type: 'HudSpmReport::Fy2026::Episode',
       ).pluck(:universe_membership_id)
 
-      shared_archival_entries(report_instance).merge(
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
         spm_bed_nights_csv: {
           scope: -> { HudSpmReport::Fy2026::BedNight.where(enrollment_id: enrollment_ids) },
           filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-bed-nights.csv" },
@@ -128,6 +123,11 @@ module HudSpmReport::Generators::Fy2026
         },
       )
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudSpmReport::Archival
 
     private
 
