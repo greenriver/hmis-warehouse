@@ -30,7 +30,12 @@ module Mutations
       # WIP Enrollments, and enrollments missing intakes (such as migrated-in data), can be deleted
       access_denied! unless policy.can_delete?
 
-      destroy_enrollment_and_household_if_hoh!(enrollment: enrollment)
+      # If this is the HoH, delete all household enrollments to avoid leaving behind a household with no HoH
+      if enrollment.head_of_household?
+        destroy_household!(hoh_enrollment: enrollment)
+      else
+        enrollment.destroy!
+      end
 
       {
         enrollment: enrollment,

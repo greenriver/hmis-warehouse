@@ -8,29 +8,28 @@
 
 module Mutations
   module DeletesHouseholdEnrollments
-    # Destroys the given enrollment. If the enrollment belongs to a Head of Household,
-    # also destroys all other household members' enrollments to avoid leaving a dangling
-    # household without a HoH.
-    #
+    # Destroys the household of the provided HoH enrollment
     # Safe to call from within or outside an existing transaction: always wraps in
-    # Enrollment.transaction, which joins an outer transaction if one is already open.
-    def destroy_enrollment_and_household_if_hoh!(enrollment:)
-      enrollments_to_delete = [enrollment]
+    # a transaction, which joins an outer transaction if one is already open.
+    def destroy_household!(hoh_enrollment:)
+      raise 'expected HoH' unless hoh_enrollment.head_of_household?
+      raise 'missing household ID' unless hoh_enrollment.household_id.present?
 
-      if enrollment.head_of_household?
-        enrollment.household_members.each do |hhm_enrollment|
-          # Check if the user has permission to delete each enrollment. This deals with the hypothetical edge case:
-          # If the HoH's enrollment is in-progress, but another HHM has a completed intake (non-WIP),
-          # the current user might not have the right permission (can_delete_enrollments) to delete all the enrollments.
-          # (This would likely be a data issue from import, since our frontend disallows submitting the HHM intakes before the HoH.)
-          access_denied! unless policy_for(hhm_enrollment, policy_type: :hmis_enrollment).can_delete?
-
-          enrollments_to_delete << hhm_enrollment
-        end
-      end
+      ensure_can_delete_household!(enrollment: hoh_enrollment)
 
       Hmis::Hud::Enrollment.transaction do
-        enrollments_to_delete.uniq.each(&:destroy!)
+        hoh_enrollment.household_members.each(&:destroy!)
+      end
+    end
+
+    private
+
+    # Ensure user has permission to delete ALL hhm enrollments.
+    # This will raise if we hit an edge case (bad data quality, disallowed in HMIS frontend)
+    # where the HoH enrollment is WIP and other members are not, for users who are only allowed to delete WIP enrollments.
+    def ensure_can_delete_household!(enrollment:)
+      enrollment.household_members.each do |hhm_enrollment|
+        access_denied! unless policy_for(hhm_enrollment, policy_type: :hmis_enrollment).can_delete?
       end
     end
   end
