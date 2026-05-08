@@ -11,6 +11,7 @@ require 'rails_helper'
 RSpec.describe Hmis::TableConfiguration, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:project) { create(:hmis_hud_project, data_source: data_source) }
+  let(:project_group) { create(:hmis_project_group, data_source: data_source, with_projects: [project]) }
 
   describe 'validations' do
     subject { build(:hmis_table_configuration_ce_clients, data_source: data_source) }
@@ -38,6 +39,21 @@ RSpec.describe Hmis::TableConfiguration, type: :model do
       duplicate = build(:hmis_table_configuration_ce_clients, owner: project, data_source: data_source2)
 
       expect(duplicate).to be_valid
+    end
+
+    it 'allows project groups as owners' do
+      config = build(:hmis_table_configuration_ce_clients, owner: project_group, data_source: data_source)
+      expect(config).to be_valid
+    end
+  end
+
+  describe '.detect_ce_clients_config' do
+    it 'prefers project group configuration when provided' do
+      global = create(:hmis_table_configuration_ce_clients, data_source: data_source, columns: [])
+      project_group_config = create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: project_group, columns: [{ 'key' => 'cde.custom_assessment.score', 'type' => 'string', 'label' => 'Score' }])
+
+      expect(described_class.detect_ce_clients_config(data_source_id: data_source.id, project_group_id: project_group.id)).to eq(project_group_config)
+      expect(described_class.detect_ce_clients_config(data_source_id: data_source.id)).to eq(global)
     end
   end
 
