@@ -20,11 +20,6 @@ module HudPathReport::Generators::Fy2020
       'PATH'
     end
 
-    # HudReportArchival.register_archival_generator(self.title, self) runs when this
-    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
-    # fiscal_year; define those class methods above before including Archival.
-    include HudPathReport::Archival
-
     def url
       hud_reports_path_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
@@ -49,5 +44,10 @@ module HudPathReport::Generators::Fy2020
     def self.filter_class
       ::HudPathReport::Filters::PathFilter
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudPathReport::Archival
   end
 end

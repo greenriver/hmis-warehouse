@@ -41,6 +41,10 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
   end
 
+  # cruft: user has full permissions in a different data source, which should not be returned in any of the examples
+  let(:other_ds) { create(:hmis_data_source) }
+  let!(:other_ds_access_control) { create_access_control(user, other_ds) }
+
   context 'Instance policy' do
     let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project) }
 
@@ -91,6 +95,10 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       it 'denies can_merge_clients?' do
         expect(policy.can_merge_clients?).to be false
       end
+
+      it 'denies can_manage_own_client_files?' do
+        expect(policy.can_manage_own_client_files?).to be false
+      end
     end
 
     context 'with can_edit_clients permission' do
@@ -110,6 +118,14 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
 
       it 'grants can_merge_clients?' do
         expect(policy.can_merge_clients?).to be true
+      end
+    end
+
+    context 'with can_manage_own_client_files permission' do
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_manage_own_client_files]) }
+
+      it 'grants can_manage_own_client_files?' do
+        expect(policy.can_manage_own_client_files?).to be true
       end
     end
   end
