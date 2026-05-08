@@ -611,6 +611,8 @@ module Types
       argument :applies_to, HmisSchema::Enums::WorkspaceAppliesTo, required: true
     end
     def workspaces(applies_to:)
+      # future need: limit workspaces depending on users permissions? for CE Referral usage, that would need to check whether
+      # the user can see any referrals to the projects within the project group
       Hmis::Workspace.
         active.
         for_usage(applies_to).
