@@ -1,0 +1,53 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "decision",
+      "mapping": {
+        "custom_field_key": "demo_coc_initial_review_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "continue", "label": "Continue" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "mapping": {
+        "custom_field_key": "demo_coc_initial_review_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "referral_sent_in_error", "label": "Referral sent in error" },
+        { "code": "ineligible", "label": "Does not meet eligibility criteria" },
+        { "code": "enrolled_in_equivalent_service", "label": "Enrolled in equivalent service with another provider" },
+        { "code": "unable_to_locate_client", "label": "Unable to contact/locate" },
+        { "code": "client_not_interested", "label": "No longer interested in the program" },
+        { "code": "other", "label": "Other (detail in notes section)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "demo_coc_initial_review_notes"
+      },
+      "required": false
+    }
+  ]
+}
