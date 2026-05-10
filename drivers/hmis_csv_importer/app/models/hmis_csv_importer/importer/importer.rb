@@ -910,6 +910,7 @@ module HmisCsvImporter::Importer
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
 
+        # Closes over `batch` from the enclosing scope; resets it after each flush.
         flush_batch = lambda do |label|
           return if batch.empty?
 
@@ -947,7 +948,7 @@ module HmisCsvImporter::Importer
             SQL
             break if rows.ntuples.zero?
 
-            last_id = rows.max_by { |r| r['id'].to_i }.fetch('id').to_i
+            last_id = rows.map { |r| r['id'].to_i }.max
             hud_keys = rows.map { |r| r['hud_key'] }
 
             klass.should_import.where(
