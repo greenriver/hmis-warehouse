@@ -910,38 +910,13 @@ module HmisCsvImporter::Importer
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
 
-        Rails.logger.info "Processing existing records for #{file_name} in batches"
+        flush_batch = lambda do |label|
+          return if batch.empty?
 
-        existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
-          hud_keys = relation.pluck(klass.hud_key)
-          klass.should_import.where(
-            importer_log_id: @importer_log.id,
-            klass.hud_key => hud_keys,
-          ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-            batch << prepare_destination_for_update(klass, source.as_destination_record)
-            if batch.count == INSERT_BATCH_SIZE
-              # Client model doesn't have a uniqueness constraint because of the warehouse data source
-              # so these must be processed more slowly
-              if klass.hud_key == :PersonalID
-                Rails.logger.info "Processing #{batch.count} records individually for #{file_name}"
-                batch.each do |incoming|
-                  destination_class.where(
-                    data_source_id: incoming.data_source_id,
-                    PersonalID: incoming.PersonalID,
-                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
-                end
-                note_processed(file_name, batch.count, 'updated')
-              else
-                Rails.logger.info "Processing #{batch.count} records in bulk for #{file_name}"
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
-              end
-              batch = []
-            end
-          end
-        end
-        if batch.present? # ensure we get the last batch
+          # Client model doesn't have a uniqueness constraint because of the warehouse data source
+          # so these must be processed more slowly
           if klass.hud_key == :PersonalID
-            Rails.logger.info "Processing final batch of #{batch.count} records individually for #{file_name}"
+            Rails.logger.info "Processing #{label} #{batch.count} records individually for #{file_name}"
             batch.each do |incoming|
               destination_class.where(
                 data_source_id: incoming.data_source_id,
@@ -950,10 +925,42 @@ module HmisCsvImporter::Importer
             end
             note_processed(file_name, batch.count, 'updated')
           else
-            Rails.logger.info "Processing final batch of #{batch.count} records in bulk for #{file_name}"
+            Rails.logger.info "Processing #{label} #{batch.count} records in bulk for #{file_name}"
             process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
           end
+          batch = []
         end
+
+        Rails.logger.info "Processing existing records for #{file_name} in batches"
+
+        conn = destination_class.connection
+        tmp_name = tmp_table_name('updates', destination_class)
+        scope = existing_destination_data_scope(klass)
+
+        with_temp_id_key_table(conn, tmp_name, scope, klass.hud_key) do |quoted_temp|
+          last_id = 0
+          loop do
+            rows = conn.execute(<<~SQL)
+              SELECT id, hud_key FROM #{quoted_temp}
+              WHERE id > #{last_id}
+              ORDER BY id LIMIT #{SELECT_BATCH_SIZE}
+            SQL
+            break if rows.ntuples.zero?
+
+            last_id = rows.max_by { |r| r['id'].to_i }.fetch('id').to_i
+            hud_keys = rows.map { |r| r['hud_key'] }
+
+            klass.should_import.where(
+              importer_log_id: @importer_log.id,
+              klass.hud_key => hud_keys,
+            ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+              batch << prepare_destination_for_update(klass, source.as_destination_record)
+              flush_batch.call('batch of') if batch.count == INSERT_BATCH_SIZE
+            end
+          end
+        end
+
+        flush_batch.call('final batch of')
 
         flush_dirty_enrollments_for_exit(klass)
         Rails.logger.info "Completed applying updates for #{file_name}"
@@ -1165,6 +1172,22 @@ module HmisCsvImporter::Importer
       conn.execute(<<~SQL)
         CREATE TEMP TABLE #{conn.quote_table_name(name)} AS
           SELECT id FROM (#{scope.select(:id).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(name)} (id)")
+      yield conn.quote_table_name(name)
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
+    end
+
+    # Like with_temp_id_table but also snapshots the hud_key column so callers
+    # can read keys directly from the temp table without round-tripping to the
+    # warehouse. Used by apply_updates where we need hud_keys for staging lookup.
+    private def with_temp_id_key_table(conn, name, scope, hud_key)
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(name)} AS
+          SELECT id, #{conn.quote_column_name(hud_key)} AS hud_key
+          FROM (#{scope.select(:id, hud_key).to_sql}) sub
       SQL
       conn.execute("CREATE INDEX ON #{conn.quote_table_name(name)} (id)")
       yield conn.quote_table_name(name)
