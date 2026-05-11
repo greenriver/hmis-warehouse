@@ -9,23 +9,19 @@
 module GrdaWarehouse
   module DbMonitor
     class FreeStorageSpaceConfiguration
-      def enabled?
-        !!ActiveModel::Type::Boolean.new.cast(value_for(:enabled))
-      end
+      # Alert (Sentry warning) when free space drops below this percentage of database size.
+      # Returns nil when unconfigured.
+      def alert_threshold_pct = value_for(:alert_threshold_pct)&.to_i
 
-      # Alert (Sentry warning) when free space drops below this threshold
-      def alert_threshold_gb = value_for(:alert_threshold_gb)&.to_i || 20
-
-      # Block imports when free space drops below this threshold
-      def block_threshold_gb = value_for(:block_threshold_gb)&.to_i || 10
+      # Block imports when free space drops below this percentage of database size.
+      # Returns nil when unconfigured.
+      def block_threshold_pct = value_for(:block_threshold_pct)&.to_i
 
       protected
 
-      # read all configuration values from the db
       PROPERTIES = [
-        :enabled,
-        :block_threshold_gb,
-        :alert_threshold_gb,
+        :block_threshold_pct,
+        :alert_threshold_pct,
       ].freeze
       def values
         @values ||= AppConfigProperty.

@@ -23,7 +23,7 @@ module GrdaWarehouse
           namespace: 'AWS/RDS',
           metric_name: 'FreeStorageSpace',
           dimensions: [{ name: 'DBInstanceIdentifier', value: instance_id }],
-          start_time: now - 10.minutes.ago,
+          start_time: now - 10.minutes,
           end_time: now,
           period: 60,
           statistics: ['Minimum'],
