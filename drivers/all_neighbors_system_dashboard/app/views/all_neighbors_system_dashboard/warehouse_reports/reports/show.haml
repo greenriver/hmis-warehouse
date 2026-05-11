@@ -3,6 +3,9 @@
     &laquo;
     = @report.title
 %h1 Community Dashboard
-- if can_publish_reports?
-  = render 'common/publish'
-= render 'show'
+- if @report.purged?
+  = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: reload_from_csv_all_neighbors_system_dashboard_warehouse_reports_report_path(@report)
+- else
+  - if can_publish_reports?
+    = render 'common/publish'
+  = render 'show'
