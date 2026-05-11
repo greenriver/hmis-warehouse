@@ -53,16 +53,16 @@ RSpec.describe Hmis::AuthPolicies::HmisOrganizationPolicy, type: :model do
       end
     end
 
-    describe '#can_destroy?' do
+    describe '#can_delete?' do
       it 'returns false without permissions' do
-        expect(policy.can_destroy?).to be false
+        expect(policy.can_delete?).to be false
       end
 
       context 'with can_delete_organization permission' do
         let!(:access_control) { create_access_control(user, organization, with_permission: :can_delete_organization) }
 
         it 'returns true' do
-          expect(policy.can_destroy?).to be true
+          expect(policy.can_delete?).to be true
         end
       end
     end

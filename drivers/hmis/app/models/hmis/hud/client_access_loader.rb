@@ -16,7 +16,7 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
     client_ids = items.map { |i| i.first.id }.compact.uniq
 
     group_view_t = Hmis::GroupViewableEntity.arel_table
-    # Note: joins `projects` instead of `enrollments` to match the behavior of Client.with_access scope
+    # Note: joins `projects` instead of `enrollments` to match the behavior of Client.viewable_by scope
     orphan_client_ids = Hmis::Hud::Client.
       left_outer_joins(:projects).
       where(id: client_ids).
