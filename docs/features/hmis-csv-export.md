@@ -109,7 +109,7 @@ Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DO
 
 | Goal | Mechanism |
 |------|-----------|
-| Share sample data with a vendor for testing | Faked PII |
+| Share sample data with a vendor for testing | Faked PII in conjunction with full review or fake source data |
 | Produce a developer-friendly dataset | Faked PII |
 | HUD-compliant de-identification for RHY | SHA-256 Hashing |
 
