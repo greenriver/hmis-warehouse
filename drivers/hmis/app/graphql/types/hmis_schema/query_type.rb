@@ -325,10 +325,13 @@ module Types
     end
 
     access_field do
+      # TODO(#8995) - Update access fields to match the new pattern (see below) and remove any that are unused by the frontend
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+
+      bool_field(:can_index_referrals) { policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index? }
     end
 
     def access
@@ -601,9 +604,7 @@ module Types
 
     ce_referrals_field
     def ce_referrals(**args)
-      access_denied! unless current_user.can_administrate_coordinated_entry?
-
-      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false
