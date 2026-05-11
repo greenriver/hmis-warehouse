@@ -20,10 +20,10 @@ module GrdaWarehouse
       raise Error, 'DbMonitor: could not resolve warehouse RDS instance' unless instance_id
 
       free_gb = GrdaWarehouse::DbMonitor::FreeStorageSpace.call(instance_id)&.round(2)
-      return unless free_gb
+      raise Error, "DbMonitor: unable to retrieve free storage space for #{instance_id}" unless free_gb
 
       db_size_gb = database_size_gb
-      return unless db_size_gb
+      raise Error, 'DbMonitor: unable to determine warehouse database size' unless db_size_gb
 
       if config.block_threshold_pct
         block_gb = (db_size_gb * config.block_threshold_pct / 100.0).round(2)
@@ -33,19 +33,16 @@ module GrdaWarehouse
         end
       end
 
-      if config.alert_threshold_pct
-        alert_gb = (db_size_gb * config.alert_threshold_pct / 100.0).round(2)
-        if free_gb < alert_gb
-          Sentry.capture_message(
-            'DbMonitor: warehouse RDS instance is low on storage',
-            level: :warning,
-            extra: { free_storage_gb: free_gb, alert_threshold_gb: alert_gb, database_size_gb: db_size_gb.round(2) },
-          )
-        end
-      end
-    rescue Aws::Errors::ServiceError => e
-      Sentry.capture_exception(e)
-      Rails.logger.warn("DbMonitor: AWS error during health check: #{e.message}")
+      return unless config.alert_threshold_pct
+
+      alert_gb = (db_size_gb * config.alert_threshold_pct / 100.0).round(2)
+      return unless free_gb < alert_gb
+
+      Sentry.capture_message(
+        'DbMonitor: warehouse RDS instance is low on storage',
+        level: :warning,
+        extra: { free_storage_gb: free_gb, alert_threshold_gb: alert_gb, database_size_gb: db_size_gb.round(2) },
+      )
     end
 
     # Iterates all RDS instances to find one whose endpoint address matches
@@ -74,10 +71,6 @@ module GrdaWarehouse
     def self.database_size_gb
       bytes = GrdaWarehouseBase.connection.select_value('SELECT pg_database_size(current_database())')
       bytes / FreeStorageSpace::BYTES_PER_GB
-    rescue ActiveRecord::ActiveRecordError => e
-      Sentry.capture_exception(e)
-      Rails.logger.warn("DbMonitor: failed to query database size: #{e.message}")
-      nil
     end
   end
 end
