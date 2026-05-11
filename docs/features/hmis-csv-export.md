@@ -103,7 +103,7 @@ The "Hashed Only" export UI forces this setting and is available to users with f
 
 ### Faked PII
 
-Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DOB, addresses, project/organization names, contact info, and free-text fields). Fake values are consistent within an export — the same real value always maps to the same fake value — so referential integrity is preserved. This is intended for producing sample files safe to share with vendors or developers.
+Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DOB, addresses, project/organization names, contact info, and free-text fields). Fake values are consistent within an export — the same real value always maps to the same fake value — so referential integrity is preserved. This is intended for producing sample files safe for developers to use locally, or for use in staging environments. While the intention is to remove all PII, it is not guaranteed, and output should not be shared externally without detailed review. 
 
 ### When to use which
 
