@@ -37,6 +37,9 @@ module GrdaWarehouse
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
 
+    # Note, this is a cross-db join
+    belongs_to :owner, class_name: 'User', optional: true
+
     has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::Cohort') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
     # START_ACL remove this after permission migration is complete
@@ -157,6 +160,34 @@ module GrdaWarehouse
       tab = cohort_tabs.find_by(name: population)
       # If the source of the clients on this tab looks for deleted clients
       tab&.base_scope == 'only_deleted'
+    end
+
+    def creator_name
+      initial_version_user_id = versions.first&.whodunnit
+      return nil if initial_version_user_id.blank?
+
+      User.find(initial_version_user_id)&.name
+    end
+
+    def available_owners
+      # Pluck IDs from the warehouse DB first to avoid cross-DB join errors.
+      # Two paths exist depending on where the installation is in the legacy -> ACL migration.
+      collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
+      access_group_ids = group_viewable_entities.where.not(access_group_id: nil).pluck(:access_group_id)
+
+      user_ids = []
+      user_ids += User.joins(:access_controls).where(access_controls: { collection_id: collection_ids }).pluck(:id) if collection_ids.any?
+      user_ids += User.joins(:access_groups).where(access_groups: { id: access_group_ids }).pluck(:id) if access_group_ids.any?
+      user_ids << owner_id if owner_id.present?
+
+      User.not_system.where(id: user_ids.uniq)
+    end
+
+    def owner_name(include_unassigned: true)
+      return nil if !include_unassigned && owner_id.blank?
+      return 'Unassigned' if owner_id.blank?
+
+      return owner.name
     end
 
     def available_sub_populations
