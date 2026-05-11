@@ -79716,6 +79716,14 @@ ALTER TABLE ONLY public.contact_alert_subscriptions
 
 
 --
+-- Name: hmis_workspaces fk_rails_e480cf55b3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_workspaces
+    ADD CONSTRAINT fk_rails_e480cf55b3 FOREIGN KEY (hmis_project_group_id) REFERENCES public.hmis_project_groups(id);
+
+
+--
 -- Name: wfd_flows fk_rails_e4de2aca14; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 

@@ -7,7 +7,7 @@ class AddHmisWorkspaces < ActiveRecord::Migration[7.1]
       t.string :slug, null: false
       t.string :applies_to, null: false
       t.references :data_source, null: false
-      t.references :hmis_project_group, null: false
+      t.references :hmis_project_group, null: false, foreign_key: { to_table: :hmis_project_groups }
       t.integer :sort_order, null: false
       t.boolean :active, null: false, default: true
 
