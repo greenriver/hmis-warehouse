@@ -39,7 +39,7 @@ module GrdaWarehouse
       end
 
       def value_for(attr)
-        values[key_for(attr)]
+        values[key_for(attr)].presence
       end
 
       def key_for(attr)
