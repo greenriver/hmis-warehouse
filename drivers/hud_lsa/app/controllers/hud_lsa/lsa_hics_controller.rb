@@ -62,8 +62,6 @@ module HudLsa
 
     def available_report_versions
       {
-        'FY 2023' => { slug: :fy2023, active: false },
-        'FY 2024' => { slug: :fy2024, active: false },
         'FY 2026' => { slug: :fy2026, active: true },
       }.freeze
     end
