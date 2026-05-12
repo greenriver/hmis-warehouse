@@ -64,8 +64,6 @@ module GrdaWarehouse
 
     # Finds the RDS instance whose endpoint address exactly matches
     # WAREHOUSE_DATABASE_HOST, then fetches its CloudWatch free-storage metric.
-    # AWS ServiceErrors are caught here so they never propagate into assert_healthy!,
-    # keeping the block-threshold raise Error on a clean path.
     def self.resolve_instance
       warehouse_host = ENV.fetch('WAREHOUSE_DATABASE_HOST', nil)
       return nil unless warehouse_host.present?
