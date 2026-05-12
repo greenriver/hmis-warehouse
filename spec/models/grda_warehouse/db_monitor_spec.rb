@@ -184,14 +184,6 @@ RSpec.describe GrdaWarehouse::DbMonitor do
       end
     end
 
-    context 'when WAREHOUSE_DATABASE_HOST is a leading segment of the endpoint' do
-      before { stub_const('ENV', ENV.to_h.merge('WAREHOUSE_DATABASE_HOST' => 'my-host')) }
-
-      it 'returns the matching RdsInstance' do
-        expect(described_class.resolve_instance.id).to eq('my-instance')
-      end
-    end
-
     context 'when no RDS instance matches the host' do
       before { stub_const('ENV', ENV.to_h.merge('WAREHOUSE_DATABASE_HOST' => 'other-host')) }
 
@@ -212,7 +204,7 @@ RSpec.describe GrdaWarehouse::DbMonitor do
 
     context 'when CloudWatch returns no datapoints' do
       before do
-        stub_const('ENV', ENV.to_h.merge('WAREHOUSE_DATABASE_HOST' => 'my-host'))
+        stub_const('ENV', ENV.to_h.merge('WAREHOUSE_DATABASE_HOST' => 'my-host.abc123.us-east-1.rds.amazonaws.com'))
         allow(GrdaWarehouse::DbMonitor::FreeStorageSpace).to receive(:call).and_return(nil)
       end
 

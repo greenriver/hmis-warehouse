@@ -63,11 +63,8 @@ module GrdaWarehouse
       nil
     end
 
-    # Iterates all RDS instances to find one whose endpoint address matches
-    # WAREHOUSE_DATABASE_HOST. RDS hostnames are of the form
-    # <identifier>.xxxxxxxx.<region>.rds.amazonaws.com, so we match on the
-    # leading segment rather than an exact hostname comparison in case the env
-    # var is set to a CNAME or partial hostname.
+    # Finds the RDS instance whose endpoint address exactly matches
+    # WAREHOUSE_DATABASE_HOST, then fetches its CloudWatch free-storage metric.
     def self.resolve_instance
       warehouse_host = ENV.fetch('WAREHOUSE_DATABASE_HOST', nil)
       return nil unless warehouse_host.present?
@@ -76,7 +73,7 @@ module GrdaWarehouse
       rds.describe_db_instances.each do |page|
         page.db_instances.each do |instance|
           endpoint = instance.endpoint&.address.to_s
-          next unless endpoint == warehouse_host || endpoint.start_with?("#{warehouse_host}.")
+          next unless endpoint == warehouse_host
 
           free_gb = FreeStorageSpace.call(instance.db_instance_identifier)&.round(2)
           return RdsInstance.new(
