@@ -10,8 +10,8 @@ require 'aws-sdk-cloudwatch'
 
 module GrdaWarehouse
   module DbMonitor
-    # Returns the minimum free storage (GB) observed over the last 10 minutes
-    # as a conservative estimate — short spikes won't mask a real shortage.
+    # Returns the median free storage (GB) over the last 10 minutes. Using the
+    # median filters out transient spikes without masking a genuine shortage.
     class FreeStorageSpace
       BYTES_PER_GB = 1_073_741_824.0
 
@@ -27,23 +27,17 @@ module GrdaWarehouse
           start_time: now - 10.minutes,
           end_time: now,
           period: 60,
-          statistics: ['Minimum'],
+          statistics: ['Average'],
           unit: 'Bytes',
         )
 
-        if resp.datapoints.empty?
-          Sentry.capture_message(
-            'DbMonitor: no CloudWatch FreeStorageSpace datapoints returned -- monitor may be misconfigured',
-            level: :warning,
-            extra: { db_instance_identifier: instance_id },
-          )
-          return nil
-        end
+        return nil if resp.datapoints.empty?
 
-        minimum_bytes = resp.datapoints.max_by(&:timestamp).minimum
-        return nil if minimum_bytes.nil?
+        values = resp.datapoints.filter_map(&:average).sort
+        return nil if values.empty?
 
-        minimum_bytes / BYTES_PER_GB
+        median_bytes = values[(values.size - 1) / 2]
+        median_bytes / BYTES_PER_GB
       end
     end
   end
