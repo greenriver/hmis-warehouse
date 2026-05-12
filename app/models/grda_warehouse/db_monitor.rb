@@ -43,6 +43,8 @@ module GrdaWarehouse
         'warehouse RDS instance is low on storage',
         extra: { free_storage_gb: free_gb, alert_threshold_gb: alert_gb, database_size_gb: db_size_gb.round(2) },
       )
+    rescue Aws::Errors::ServiceError => e
+      capture_warning("AWS error during health check: #{e.message}")
     end
 
     def self.capture_warning(message, extra: nil)
@@ -75,6 +77,8 @@ module GrdaWarehouse
     # staying safely below the RDS autoscaling trigger.
     def self.database_size_gb
       bytes = GrdaWarehouseBase.connection.select_value('SELECT pg_database_size(current_database())')
+      return nil unless bytes
+
       bytes / FreeStorageSpace::BYTES_PER_GB
     end
   end

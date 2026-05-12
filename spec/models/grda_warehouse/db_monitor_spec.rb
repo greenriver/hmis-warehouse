@@ -115,6 +115,19 @@ RSpec.describe GrdaWarehouse::DbMonitor do
         end
       end
 
+      context 'when an AWS error occurs' do
+        before do
+          allow(described_class).to receive(:resolve_instance_id).and_raise(
+            Aws::RDS::Errors::ServiceError.new(nil, 'access denied'),
+          )
+        end
+
+        it 'sends a Sentry warning and does not raise' do
+          expect(Sentry).to receive(:capture_message).with(/AWS error/, hash_including(level: :warning))
+          expect { described_class.assert_healthy! }.not_to raise_error
+        end
+      end
+
       context 'alert threshold' do
         before do
           allow(config).to receive(:block_threshold_pct).and_return(nil)
