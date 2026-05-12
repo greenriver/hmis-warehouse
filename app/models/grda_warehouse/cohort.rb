@@ -187,7 +187,7 @@ module GrdaWarehouse
       return nil if !include_unassigned && owner_id.blank?
       return 'Unassigned' if owner_id.blank?
 
-      return owner.name
+      owner&.name
     end
 
     def available_sub_populations
