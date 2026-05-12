@@ -9,7 +9,6 @@
 module GrdaWarehouse
   module DbMonitor
     class FreeStorageSpaceConfiguration
-
       def enabled? = alert_threshold_pct.present? || block_threshold_pct.present?
 
       # Alert (Sentry warning) when free space drops below this percentage of database size.

@@ -10,7 +10,8 @@ require 'aws-sdk-cloudwatch'
 
 module GrdaWarehouse
   module DbMonitor
-    # Checks the warehouse RDS instance's FreeStorageSpace via CloudWatch
+    # Returns the minimum free storage (GB) observed over the last 10 minutes
+    # as a conservative estimate — short spikes won't mask a real shortage.
     class FreeStorageSpace
       BYTES_PER_GB = 1_073_741_824.0
 
@@ -39,8 +40,9 @@ module GrdaWarehouse
           return nil
         end
 
-        # use the most recent reading
         minimum_bytes = resp.datapoints.max_by(&:timestamp).minimum
+        return nil if minimum_bytes.nil?
+
         minimum_bytes / BYTES_PER_GB
       end
     end
