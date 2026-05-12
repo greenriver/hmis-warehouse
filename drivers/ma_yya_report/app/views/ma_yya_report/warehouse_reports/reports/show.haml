@@ -9,38 +9,41 @@
       %i.icon-download2
       Download Excel
 
-.warehouse-reports__completed
-  .d-flex
-    %h3 Report Options
-    .ml-auto
-      .text-muted.description
-        Run by: #{@report.user&.name}
-        %br
-        = @report.created_at
-  .well.d-flex
-    = @report.describe_filter_as_html
-.card
-  %table.table.table-striped
-    %tbody
-      - last_section = nil
-      - last_subsection = nil
-      - @report.labels.each do |label|
-        - description = @report.detail_description(label)
-        - section = label.to_s[0]
-        - subsection = label.to_s[0..1]
-        - if section != last_section
-          - last_section = section
-          %tr
-            %th{colspan: 3}
-              = @report.section_label(section)
+- if @report.purged?
+  = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: reload_from_csv_ma_yya_report_warehouse_reports_report_path(@report)
+- else
+  .warehouse-reports__completed
+    .d-flex
+      %h3 Report Options
+      .ml-auto
+        .text-muted.description
+          Run by: #{@report.user&.name}
+          %br
+          = @report.created_at
+    .well.d-flex
+      = @report.describe_filter_as_html
+  .card
+    %table.table.table-striped
+      %tbody
+        - last_section = nil
+        - last_subsection = nil
+        - @report.labels.each do |label|
+          - description = @report.detail_description(label)
+          - section = label.to_s[0]
+          - subsection = label.to_s[0..1]
+          - if section != last_section
+            - last_section = section
+            %tr
+              %th{colspan: 3}
+                = @report.section_label(section)
 
-        - if subsection != last_subsection
-          - last_subsection = subsection
-          %tr
-            - subsection_label = @report.subsection_label(subsection)
-            %td{rowspan: "#{@report.row_count(subsection)}", width: '20%'}
-              %i= subsection_label[:text]
-            = render 'row_contents', label: label, description: description
-        - else
-          %tr
-            = render 'row_contents', label: label, description: description
+          - if subsection != last_subsection
+            - last_subsection = subsection
+            %tr
+              - subsection_label = @report.subsection_label(subsection)
+              %td{rowspan: "#{@report.row_count(subsection)}", width: '20%'}
+                %i= subsection_label[:text]
+              = render 'row_contents', label: label, description: description
+          - else
+            %tr
+              = render 'row_contents', label: label, description: description

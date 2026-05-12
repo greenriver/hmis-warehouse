@@ -10,6 +10,20 @@ module MaYyaReport
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers
     include Reporting::Status
+    include ReportArchival
+
+    has_many :clients
+    has_many_attached :clients_csv
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+      }
+    end
 
     def run_and_save!
       start
