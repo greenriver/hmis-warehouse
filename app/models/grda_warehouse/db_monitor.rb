@@ -28,8 +28,11 @@ module GrdaWarehouse
       allocated_gb = instance.allocated_storage_gb
 
       if config.block_threshold_pct
-        block_gb = (allocated_gb * config.block_threshold_pct / 100.0).round(2)
-        block_gb = block_gb.clamp(config.min_block_threshold_gb, config.max_block_threshold_gb)
+        block_gb = threshold_gb(
+          allocated_gb, config.block_threshold_pct,
+          min_gb: config.min_block_threshold_gb,
+          max_gb: config.max_block_threshold_gb
+        )
         if free_gb < block_gb
           raise Error, "DbMonitor: block threshold reached for #{instance.id} " \
                        "(#{free_gb} GB free, threshold #{block_gb} GB = #{config.block_threshold_pct}% of #{allocated_gb} GB allocated)"
@@ -38,7 +41,7 @@ module GrdaWarehouse
 
       return unless config.alert_threshold_pct
 
-      alert_gb = (allocated_gb * config.alert_threshold_pct / 100.0).round(2)
+      alert_gb = threshold_gb(allocated_gb, config.alert_threshold_pct)
       return unless free_gb < alert_gb
 
       capture_warning(
@@ -47,6 +50,12 @@ module GrdaWarehouse
       )
     rescue Aws::Errors::ServiceError => e
       capture_warning("AWS error during health check: #{e.message}")
+    end
+
+    # Converts a percentage of allocated storage to an absolute GB threshold,
+    # clamped to keep it sensible on very small or very large instances.
+    def self.threshold_gb(allocated_gb, pct, min_gb: 0, max_gb: Float::INFINITY)
+      (allocated_gb * pct / 100.0).round(2).clamp(min_gb, max_gb)
     end
 
     def self.capture_warning(message, extra: nil)
