@@ -41,6 +41,7 @@ module GrdaWarehouse
 
       return unless config.alert_threshold_pct
 
+      # Alert threshold is intentionally unclamped as it's advisory-only
       alert_gb = threshold_gb(allocated_gb, config.alert_threshold_pct)
       return unless free_gb < alert_gb
 
@@ -48,8 +49,6 @@ module GrdaWarehouse
         'warehouse RDS instance is low on storage',
         extra: { free_storage_gb: free_gb, alert_threshold_gb: alert_gb, allocated_storage_gb: allocated_gb },
       )
-    rescue Aws::Errors::ServiceError => e
-      capture_warning("AWS error during health check: #{e.message}")
     end
 
     # Converts a percentage of allocated storage to an absolute GB threshold,
@@ -65,6 +64,8 @@ module GrdaWarehouse
 
     # Finds the RDS instance whose endpoint address exactly matches
     # WAREHOUSE_DATABASE_HOST, then fetches its CloudWatch free-storage metric.
+    # AWS ServiceErrors are caught here so they never propagate into assert_healthy!,
+    # keeping the block-threshold raise Error on a clean path.
     def self.resolve_instance
       warehouse_host = ENV.fetch('WAREHOUSE_DATABASE_HOST', nil)
       return nil unless warehouse_host.present?
@@ -72,7 +73,7 @@ module GrdaWarehouse
       rds = Aws::RDS::Client.new
       rds.describe_db_instances.each do |page|
         page.db_instances.each do |instance|
-          endpoint = instance.endpoint&.address.to_s
+          endpoint = instance.endpoint&.address&.to_s
           next unless endpoint == warehouse_host
 
           free_gb = FreeStorageSpace.call(instance.db_instance_identifier)&.round(2)
@@ -85,6 +86,8 @@ module GrdaWarehouse
       end
 
       nil
+    rescue Aws::Errors::ServiceError => e
+      capture_warning("AWS error during health check: #{e.message}")
     end
   end
 end
