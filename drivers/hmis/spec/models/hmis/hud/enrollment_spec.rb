@@ -12,7 +12,6 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Hud::Enrollment, type: :model do
   include_context 'hmis base setup'
-  include_context 'hmis json forms seed'
 
   it 'detects date conflicts' do
     [
@@ -258,11 +257,11 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     context 'when there are rules of varying specificity applying to different clients' do
       let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
-      let!(:definition) { create :hmis_form_definition, title: 'CLS', role: 'CURRENT_LIVING_SITUATION', identifier: 'custom_cls' }
+      let!(:definition) { create :hmis_form_definition, title: 'CLS', role: 'CURRENT_LIVING_SITUATION', identifier: 'custom_cls', data_source: ds1 }
       # Rule 1 is more specific for this project, but doesn't apply to non-HOH enrollment
-      let!(:rule1) { create :hmis_form_instance, entity: p1, data_collected_about: 'HOH', role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls' }
+      let!(:rule1) { create :hmis_form_instance, entity: p1, data_collected_about: 'HOH', role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls', data_source: ds1 }
       # Rule 2 is less specific for the project, but does applies to the non-HOH enrollment
-      let!(:rule2) { create :hmis_form_instance, entity: nil, project_type: p1.project_type, role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls' }
+      let!(:rule2) { create :hmis_form_instance, entity: nil, project_type: p1.project_type, role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls', data_source: ds1 }
 
       let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 1 }
       let!(:spouse_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 3 }
@@ -290,8 +289,10 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   end
 
   describe 'occurrence point form instances' do
+    include_context 'hmis json forms seed'
+
     let(:role) { :OCCURRENCE_POINT }
-    let!(:definition) { create(:occurrence_point_form) }
+    let!(:definition) { create(:occurrence_point_form, data_source: ds1) }
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
     let!(:hoh_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 1) }
     let!(:spouse_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 3) }
@@ -304,12 +305,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     before(:all) do
-      # delete default instances to test from a clean slate
+      # delete default instances. These tests expect seeded form definitions, but clean slate of instances
       Hmis::Form::Instance.delete_all
-    end
-    after(:all) do
-      # reset to original state
-      HmisUtil::HudComplianceFormInstanceMaintainer.new.ensure_all_system_instances_exist!
     end
 
     it 'does not return the form when no instance exists' do
@@ -317,12 +314,12 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     it 'does not return the form when an irrelevant instance exists' do
-      create(:hmis_form_instance, role: role, entity: p1, active: true) # applies to a different project
+      create(:hmis_form_instance, role: role, entity: p1, active: true, data_source: ds1) # applies to a different project
       expect(hoh_enrollment.occurrence_point_forms).to be_empty
     end
 
     it 'does not return the form when an inactive instance exists' do
-      create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition)
+      create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition, data_source: ds1)
       expect(hoh_enrollment.occurrence_point_forms).to be_empty
     end
 
@@ -343,10 +340,10 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       context 'when multiple irrelevant instances exist' do
-        let!(:instance1) { create(:hmis_form_instance, role: role, project_type: 2, active: true, definition: definition) }
-        let!(:instance2) { create(:hmis_form_instance, role: role, project_type: 3, active: true, definition: definition) }
-        let!(:instance3) { create(:hmis_form_instance, role: role, project_type: 4, active: true, definition: definition) }
-        let!(:inactive_instance) { create(:hmis_form_instance, role: role, project_type: 6, active: false, definition: definition) }
+        let!(:instance1) { create(:hmis_form_instance, role: role, project_type: 2, active: true, definition: definition, data_source: ds1) }
+        let!(:instance2) { create(:hmis_form_instance, role: role, project_type: 3, active: true, definition: definition, data_source: ds1) }
+        let!(:instance3) { create(:hmis_form_instance, role: role, project_type: 4, active: true, definition: definition, data_source: ds1) }
+        let!(:inactive_instance) { create(:hmis_form_instance, role: role, project_type: 6, active: false, definition: definition, data_source: ds1) }
 
         it 'returns the default move_in_date form, with no duplicates' do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
@@ -354,7 +351,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       context 'when a draft version of the form does not collect the same data' do
-        let!(:draft_definition) { create(:occurrence_point_form, version: 2, status: :draft) }
+        let!(:draft_definition) { create(:occurrence_point_form, version: 2, status: :draft, data_source: ds1) }
 
         it 'returns the default move_in_date form' do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
@@ -363,10 +360,10 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     context 'when a relevant instance exists for all clients' do
-      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition) }
+      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition, data_source: ds1) }
 
       context 'when the only definition is in draft' do
-        let!(:definition) { create(:occurrence_point_form, status: :draft) }
+        let!(:definition) { create(:occurrence_point_form, status: :draft, data_source: ds1) }
         it 'does not return the form' do
           expect(hoh_enrollment.occurrence_point_forms).to be_empty
           expect(spouse_enrollment.occurrence_point_forms).to be_empty
@@ -388,7 +385,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     context 'when a relevant instance exists for HoH only' do
-      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition, data_collected_about: :HOH) }
+      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition, data_collected_about: :HOH, data_source: ds1) }
 
       it 'returns the form for HoH only' do
         expected = have_attributes(

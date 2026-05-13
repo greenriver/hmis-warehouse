@@ -9,10 +9,11 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::ReferralWorkflowTemplateValidator, type: :model do
-  let(:template) { create(:hmis_workflow_definition_template, status: 'draft', template_type: 'ce_referral') }
+  let(:data_source) { create(:hmis_data_source) }
+  let(:template) { create(:hmis_workflow_definition_template, status: 'draft', template_type: 'ce_referral', data_source: data_source) }
   let(:start) { create(:hmis_workflow_definition_start_event, template: template, name: 'Start Event') }
   let(:accept) { create(:hmis_workflow_definition_end_event, template: template, name: 'Client Accepted') }
-  let(:step_def) { create(:ce_referral_step_form_definition) }
+  let(:step_def) { create(:ce_referral_step_form_definition, data_source: data_source) }
   let(:task) do
     create(
       :hmis_workflow_definition_user_task,
@@ -36,7 +37,7 @@ RSpec.describe Hmis::Ce::ReferralWorkflowTemplateValidator, type: :model do
 
   describe 'validate_decline_reasons' do
     context 'when the form does not collect decline reason' do
-      let(:step_def) { create(:hmis_form_definition, role: 'CE_REFERRAL_STEP') }
+      let(:step_def) { create(:hmis_form_definition, role: 'CE_REFERRAL_STEP', data_source: data_source) }
 
       it 'adds an error' do
         template.validate

@@ -37,7 +37,7 @@ module Mutations
         return { errors: errors }
       end
 
-      form_definition = Hmis::Form::Definition.find(form_definition_id)
+      form_definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(form_definition_id)
       raise unless form_definition.valid_status_for_submit?
 
       referral = nil

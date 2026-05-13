@@ -11,7 +11,7 @@ This pipeline can also be manually invoked with task `rails driver:hmis:seed_def
 
 ### `Hmis::Form::Definition`
 
-A versioned form schema. The `definition` column holds a recursive JSON structure (based on FHIR Questionnaire) that describes inputs, labels, validation, and mappings to HMIS fields. Each definition has a stable `identifier`, a version, a role (`SERVICE`, `CLIENT`, `ENROLLMENT`, etc.), and a status (`published`, `draft`, `retired`). Definitions that originate from JSON files on disk have `managed_in_version_control: true` and are limited to a single published version per identifier.
+A versioned form schema. The `definition` column holds a recursive JSON structure (based on FHIR Questionnaire) that describes inputs, labels, validation, and mappings to HMIS fields. Each definition has a stable `identifier`, a version, a role (`SERVICE`, `CLIENT`, `ENROLLMENT`, etc.), a status (`published`, `draft`, `retired`), and a reference to its `data_source` (to support isolated configuration for multi-HMIS). Definitions that originate from JSON files on disk have `managed_in_version_control: true` and are limited to a single published version per identifier.
 
 - Model: `drivers/hmis/app/models/hmis/form/definition.rb`
 - Table: `hmis_form_definitions`
@@ -75,5 +75,4 @@ drivers/hmis/lib/form_data/
 
 ## Related
 
-- TODO **#6691**: tie each Form Definition to a data source to support isolated configuration for multi-HMIS
 - TODO **#8955**: support overrides/patches per data source to support isolated configuration for multi-HMIS
