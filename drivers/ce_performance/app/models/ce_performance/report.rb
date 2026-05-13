@@ -14,12 +14,17 @@ module CePerformance
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include ReportArchival
 
     belongs_to :user, optional: true
     has_many :clients
     has_many :results
     has_many :ce_aprs
     has_many :hud_ce_apr, through: :ce_aprs
+
+    has_many_attached :clients_csv
+    has_many_attached :results_csv
+    has_many_attached :ce_aprs_csv
 
     after_initialize :filter
 
@@ -585,6 +590,24 @@ module CePerformance
           ]
         end
       end
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+        results_csv: {
+          association: :results,
+          filename: -> { "#{report_type}-results-#{id}.csv" },
+        },
+        ce_aprs_csv: {
+          association: :ce_aprs,
+          filename: -> { "#{report_type}-ce_aprs-#{id}.csv" },
+        },
+      }
     end
   end
 end

@@ -206,6 +206,8 @@ class CohortsController < ApplicationController
     opts = [
       :name,
       :short_name,
+      :description,
+      :owner_id,
       :effective_date,
       :visible_state,
       :days_of_inactivity,

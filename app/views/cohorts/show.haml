@@ -18,6 +18,25 @@
       However it is set to continue showing on client dashboards.
     - else
       Changes will not be reflected on client dashboards.
+.row
+  .col-sm-6
+    %p.fst-italic
+      %strong Owner:
+      = @cohort.owner_name
+  .col-sm-6.text-right
+    %p.fst-italic
+      - if @cohort.creator_name.present?
+        %strong Created by:
+        = @cohort.creator_name
+        on
+        = @cohort.created_at.to_date
+      - else
+        %strong Created:
+        = @cohort.created_at.to_date
+- if @cohort.description.present?
+  .card.mb-3
+    .card-body= simple_format(@cohort.description)
+
 
 = render 'nav', system_cohort: @cohort.system_cohort, active_tab: 'cohort'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)

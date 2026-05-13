@@ -108,5 +108,10 @@ module  HudHic::Generators::Hic::Fy2022
         HudHic::Fy2022::Funder,
       ].freeze
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudHic::Archival
   end
 end

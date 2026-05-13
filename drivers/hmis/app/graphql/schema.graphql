@@ -10218,6 +10218,7 @@ type QueryAccess {
   canEditUsersInWarehouse: Boolean!
   canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
+  canIndexReferrals: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!

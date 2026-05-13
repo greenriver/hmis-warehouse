@@ -30,6 +30,7 @@ module HudLsa::Generators::Fy2026
     include MissingDataConcern
     include ViewRelatedConcern
     include StatusProgressionConcern
+
     attr_accessor :report, :destroy_rds, :hmis_export_id, :test, :test_type
     has_one_attached :result_file
     has_one_attached :intermediate_file
@@ -579,5 +580,20 @@ module HudLsa::Generators::Fy2026
       @test = false if @test.nil?
       @test
     end
+
+    def self.archival_csv_config(report_instance)
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'lsa').merge(
+        lsa_summary_results_csv: {
+          scope: -> { HudLsa::Fy2026::SummaryResult.where(hud_report_instance_id: report_instance.id) },
+          filename: -> { "hud-lsa-fy2026-#{report_instance.id}-summary-results.csv" },
+          delete_order: 2,
+        },
+      )
+    end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudLsa::Archival
   end
 end
