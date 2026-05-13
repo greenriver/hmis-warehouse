@@ -428,40 +428,6 @@ module HudLsa::Generators::Fy2026
       end
     end
 
-    private def populate_hmis_table_from_s3_integration(klass:, file_name:)
-      Tempfile.open(klass.name) do |cleaned_output|
-        csv_output = CSV.new(cleaned_output)
-        headers_added = false
-        # Read the file in batches to avoid over RAM usage
-        File.open(File.join(extract_path, file_name)) do |file|
-          headers = file.first
-          i = 0
-          file.lazy.each_slice(read_rows) do |lines|
-            content = ::CSV.parse(lines.join, headers: headers)
-            import_headers = content.first.headers
-            next unless content.any?
-
-            # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
-            csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
-            headers_added = true
-            # this fixes dates that default to 1900-01-01 if you send an empty string
-            content.map do |row|
-              # increment the row counter for SQL Server
-              i += 1
-              csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-            end.compact
-          end
-        end
-        cleaned_output.rewind
-        s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
-        s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
-        mssql_import_from_s3(path: s3_upload_path, klass: klass)
-        # TODO
-        # remove file from s3
-        # s3.delete(key: s3_upload_path)
-      end
-    end
-
     # This reverses some export changes we made to maintain case sensitive matching with the 2026 spec
     private def standardize_headers(headers)
       # ZIP -> Zip
