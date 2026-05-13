@@ -192,4 +192,16 @@ RSpec.describe model, type: :model do
       end
     end
   end
+
+  describe 'PaperTrail' do
+    it 'creates a version on update' do
+      PaperTrailHelper.with_paper_trail do
+        ds = create(:source_data_source)
+        expect do
+          ds.update!(hmis: 'tenant.example.test')
+        end.to change(ds.versions, :count).by(1)
+        expect(ds.versions.last.changeset.keys).to include('hmis')
+      end
+    end
+  end
 end
