@@ -192,7 +192,7 @@ RSpec.describe 'PickList service-related dropdowns', type: :request do
     end
 
     it 'works when instance is associated by service category and Project Type AND Funder' do
-      # Instance: use this service definition for projets of type 12 funded by 43
+      # Instance: use this service definition for projects of type 12 funded by 43
       create(
         :hmis_form_instance,
         entity: nil,
