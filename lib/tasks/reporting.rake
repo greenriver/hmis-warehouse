@@ -20,7 +20,7 @@ namespace :reporting do
   # shut down the LSA server, we'll spool it up on-demand
   desc 'Shutdown unused LSA Servers'
   task lsa_shut_down: [:environment] do
-    # Note the current state
+    # Log the RDS instance state for operational visibility
     load 'lib/rds_sql_server/rds.rb'
     begin
       state = Rds.new.current_state
@@ -29,7 +29,9 @@ namespace :reporting do
     end
     GrdaWarehouse::LsaRdsStateLog.create(state: state)
 
-    # Check for in-progress LSA reports in the current (driver) framework
+    # NOTE: The original guard queried the old Report/ReportResult tables,
+    # which FY2026+ LSA reports never used. It was non-functional since the
+    # driver-based LSA was introduced.
     next if HudReports::ReportInstance.incomplete.
       where(HudReports::ReportInstance.arel_table[:type].matches('HudLsa::%')).
       where(HudReports::ReportInstance.arel_table[:updated_at].gt(24.hours.ago)).
