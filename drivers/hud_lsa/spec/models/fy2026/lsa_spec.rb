@@ -12,12 +12,13 @@ RSpec.describe HudLsa::Generators::Fy2026::Lsa, type: :model do
   let(:hic_scope_value) { HudLsa::Fy2026::Report.available_lsa_scopes['HIC'] }
 
   def create_lsa_report(**options_hash)
-    create(
+    record = create(
       :hud_reports_report_instance,
       type: 'HudLsa::Generators::Fy2026::Lsa',
       options: options_hash,
       question_names: [],
-    ).becomes(described_class)
+    )
+    described_class.find(record.id)
   end
 
   # -- State machine (StatusProgressionConcern) --------------------------------
@@ -182,10 +183,10 @@ RSpec.describe HudLsa::Generators::Fy2026::Lsa, type: :model do
         r
       end
 
-      it 'returns the narrow filter range directly' do
+      it 'returns the PIT date range without 7-year lookback' do
         range = report.export_date_range
-        expect(range.count).to be < 5
-        expect(range).to eq(report.filter.range)
+        expect(range.first).to eq(pit_date)
+        expect(range.last).to eq(pit_date)
       end
     end
   end
@@ -345,6 +346,62 @@ RSpec.describe HudLsa::Generators::Fy2026::Lsa, type: :model do
         report.reload
         expect(report.state).to eq('Failed')
         expect(report.error_details).to include('missing data')
+      end
+    end
+
+    context 'when a project is missing geocode' do
+      it 'returns false and fails the report' do
+        project = create_project_with_enrollment(housing_type: 1)
+        project.project_cocs.update_all(Geocode: nil)
+        report = build_report(project_ids: [project.id])
+
+        expect(report.send(:preflight_passes?)).to be false
+        report.reload
+        expect(report.state).to eq('Failed')
+        expect(report.error_details).to include('missing data')
+      end
+    end
+  end
+
+  # -- run! flow ---------------------------------------------------------------
+
+  describe '#run!' do
+    let(:user) { create(:acl_user) }
+    let(:report) do
+      r = create_lsa_report(
+        start: 1.year.ago.to_date.to_s,
+        end: Date.current.to_s,
+        coc_code: 'XX-501',
+        lsa_scope: 1,
+      )
+      r.update!(user_id: user.id)
+      r
+    end
+
+    before do
+      allow(report).to receive(:setup_notifier)
+    end
+
+    context 'when preflight fails' do
+      before do
+        allow(report).to receive(:preflight_passes?).and_return(false)
+      end
+
+      it 'does not call calculate' do
+        expect(report).not_to receive(:calculate)
+        report.run!
+      end
+    end
+
+    context 'when preflight passes' do
+      before do
+        allow(report).to receive(:preflight_passes?).and_return(true)
+        allow(report).to receive(:calculate)
+      end
+
+      it 'calls calculate' do
+        expect(report).to receive(:calculate)
+        report.run!
       end
     end
   end

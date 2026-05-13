@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
 # Hud LSA temporary RDS: drivers/hud_lsa/README.md
-
-# frozen_string_literal: true
 
 require 'aws-sdk-glacier'
 

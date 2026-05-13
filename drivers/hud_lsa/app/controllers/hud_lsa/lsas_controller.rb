@@ -18,8 +18,11 @@ module HudLsa
       report_source.lsa.where(report_name: possible_titles)
     end
 
+    # Broaden STI so history includes retired FY stubs, not just FY2026.
+    # Keeps .lsa / .hic scopes available from the FY2026 class.
     private def report_source
-      ::HudLsa::Generators::Fy2026::Lsa
+      ::HudLsa::Generators::Fy2026::Lsa.unscope(where: :type).
+        where(type: possible_generator_classes.values.map(&:name))
     end
 
     def new

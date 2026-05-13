@@ -29,8 +29,11 @@ namespace :reporting do
     end
     GrdaWarehouse::LsaRdsStateLog.create(state: state)
 
-    lsa_report_ids = Report.where(Report.arel_table[:type].matches('%::Lsa::%')).pluck(:id)
-    next if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
+    # Check for in-progress LSA reports in the current (driver) framework
+    next if HudReports::ReportInstance.incomplete.
+      where(HudReports::ReportInstance.arel_table[:type].matches('HudLsa::%')).
+      where(HudReports::ReportInstance.arel_table[:updated_at].gt(24.hours.ago)).
+      exists?
 
     Rds.new.stop!
   end

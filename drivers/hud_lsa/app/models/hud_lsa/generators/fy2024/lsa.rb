@@ -44,6 +44,10 @@ module HudLsa::Generators::Fy2024
       "#{self.class.generic_title} #{filter&.coc_code}"
     end
 
+    def hic?
+      options&.with_indifferent_access&.dig(:lsa_scope).to_i == 3
+    end
+
     def url
       if hic?
         hud_reports_lsa_hic_url(self, { host: ENV['FQDN'], protocol: 'https' })
