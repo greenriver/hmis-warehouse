@@ -109,7 +109,9 @@ RSpec.describe GrdaWarehouse::DbMonitor do
 
       context 'when an AWS error occurs' do
         before do
-          allow(described_class).to receive(:resolve_instance).and_raise(
+          allow(described_class).to receive(:resolve_instance).and_call_original
+          stub_const('ENV', ENV.to_h.merge('WAREHOUSE_DATABASE_HOST' => 'some-host'))
+          allow(Aws::RDS::Client).to receive(:new).and_raise(
             Aws::RDS::Errors::ServiceError.new(nil, 'access denied'),
           )
         end
