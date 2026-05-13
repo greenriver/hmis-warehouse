@@ -14,19 +14,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:today) do
     Date.current
   end
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
 
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: today - 2.weeks }
-  let!(:fd1) { create :hmis_form_definition }
+  let!(:fd1) { create :hmis_form_definition, data_source: ds1 }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   let(:hud_user) { Hmis::Hud::User.from_user(hmis_user) }

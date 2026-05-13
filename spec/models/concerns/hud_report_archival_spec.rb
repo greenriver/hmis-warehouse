@@ -122,6 +122,7 @@ RSpec.describe HudReportArchival, type: :model do
   describe '.register_archival_generator / .generator_registry' do
     it 'registers a generator class by report name' do
       fake_class = Class.new
+      fake_class.define_singleton_method(:archival_csv_config) { |_| {} }
       HudReportArchival.register_archival_generator('My Report - FY 9999', fake_class)
       expect(HudReportArchival.generator_registry['My Report - FY 9999']).to eq(fake_class)
     end
@@ -130,6 +131,7 @@ RSpec.describe HudReportArchival, type: :model do
   describe '#archival_generator_klass' do
     it 'returns the registered generator for this report_name' do
       fake_class = Class.new
+      fake_class.define_singleton_method(:archival_csv_config) { |_| {} }
       HudReportArchival.register_archival_generator(report.report_name, fake_class)
       expect(report.archival_generator_klass).to eq(fake_class)
     end
@@ -147,6 +149,7 @@ RSpec.describe HudReportArchival, type: :model do
 
     it 'falls back to registry lookup when generator_class is absent from metadata' do
       fake_class = Class.new
+      fake_class.define_singleton_method(:archival_csv_config) { |_| {} }
       HudReportArchival.register_archival_generator(report.report_name, fake_class)
       # No generator_class key in metadata — legacy report or pre-archive state.
       report.update_column(:archival_metadata, {})

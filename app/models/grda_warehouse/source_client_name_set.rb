@@ -41,6 +41,7 @@ module GrdaWarehouse
           value: patient.pii_provider(user: user).full_name,
         )
       end
+      @names.reject! { |n| n.value.blank? }
       @names.uniq!
     end
 

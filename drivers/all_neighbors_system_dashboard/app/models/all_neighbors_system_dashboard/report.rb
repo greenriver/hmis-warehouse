@@ -19,6 +19,7 @@ module AllNeighborsSystemDashboard
     include EnrollmentAttributeCalculations
 
     include ::WarehouseReports::Publish
+    include ReportArchival
 
     PILOT_END_DATE = '2023-05-01'.to_date.freeze
 
@@ -26,6 +27,10 @@ module AllNeighborsSystemDashboard
     has_many :datasets, class_name: '::GrdaWarehouse::Dataset', as: :source
     has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
     has_many :enrollments
+    has_many :events, through: :enrollments
+
+    has_many_attached :events_csv
+    has_many_attached :enrollments_csv
 
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
@@ -265,9 +270,9 @@ module AllNeighborsSystemDashboard
       return unless keep.any?
 
       remove_ids = all_duplicate_ids - keep.values.map { |m| m[:id] }
-      enrollments.where(id: remove_ids).delete_all
+      hard_delete_archival_relation(enrollments.where(id: remove_ids))
       # Cleanup the universe for good measure
-      universe.universe_members.where(universe_membership_id: remove_ids).delete_all
+      hard_delete_archival_relation(universe.universe_members.where(universe_membership_id: remove_ids))
     end
 
     def enrollment_scope
@@ -388,6 +393,20 @@ module AllNeighborsSystemDashboard
     # Override the default to remove the sandbox attribute
     private def generate_embed_code
       "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        events_csv: {
+          association: :events,
+          filename: -> { "#{report_type}-events-#{id}.csv" },
+        },
+        enrollments_csv: {
+          association: :enrollments,
+          filename: -> { "#{report_type}-enrollments-#{id}.csv" },
+        },
+      }
     end
 
     # This should probably use something like what we do in AssetHelper.inline_js_for_es_build

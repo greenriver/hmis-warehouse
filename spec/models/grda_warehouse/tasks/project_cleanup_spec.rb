@@ -158,6 +158,16 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
           end
         end
 
+        context 'when member already has the same CoC as the HoH' do
+          let!(:hoh) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 1) }
+          let!(:member) { create_enrollment('XX-500', HouseholdID: household_id, RelationshipToHoH: 2) }
+
+          it 'leaves the member CoC unchanged' do
+            expect { cleaner.fix_client_locations(project) }.
+              not_to(change { member.reload.EnrollmentCoC }.from('XX-500'))
+          end
+        end
+
         context 'when HoH has a NULL CoC' do
           let!(:hoh) { create_enrollment(nil, HouseholdID: household_id, RelationshipToHoH: 1) }
           let!(:member) { create_enrollment('XX-501', HouseholdID: household_id, RelationshipToHoH: 2) }
