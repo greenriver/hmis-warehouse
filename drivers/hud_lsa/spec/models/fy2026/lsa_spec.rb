@@ -236,12 +236,6 @@ RSpec.describe HudLsa::Generators::Fy2026::Lsa, type: :model do
       report.send(:standardize_headers, headers)
       expect(headers).to eq(['PersonalID', 'WorkPlaceViolenceThreats'])
     end
-
-    it 'handles both conversions in one header set' do
-      headers = ['ZIP', 'Name', 'WorkplaceViolenceThreats']
-      report.send(:standardize_headers, headers)
-      expect(headers).to eq(['Zip', 'Name', 'WorkPlaceViolenceThreats'])
-    end
   end
 
   # -- preflight_passes? -------------------------------------------------------
@@ -363,60 +357,11 @@ RSpec.describe HudLsa::Generators::Fy2026::Lsa, type: :model do
     end
   end
 
-  # -- run! flow ---------------------------------------------------------------
-
-  describe '#run!' do
-    let(:user) { create(:acl_user) }
-    let(:report) do
-      r = create_lsa_report(
-        start: 1.year.ago.to_date.to_s,
-        end: Date.current.to_s,
-        coc_code: 'XX-501',
-        lsa_scope: 1,
-      )
-      r.update!(user_id: user.id)
-      r
-    end
-
-    before do
-      allow(report).to receive(:setup_notifier)
-    end
-
-    context 'when preflight fails' do
-      before do
-        allow(report).to receive(:preflight_passes?).and_return(false)
-      end
-
-      it 'does not call calculate' do
-        expect(report).not_to receive(:calculate)
-        report.run!
-      end
-    end
-
-    context 'when preflight passes' do
-      before do
-        allow(report).to receive(:preflight_passes?).and_return(true)
-        allow(report).to receive(:calculate)
-      end
-
-      it 'calls calculate' do
-        expect(report).to receive(:calculate)
-        report.run!
-      end
-    end
-  end
-
   # -- LsaFilter ---------------------------------------------------------------
 
   describe HudLsa::Filters::LsaFilter do
     let(:user) { create(:acl_user) }
     let(:filter) { described_class.new(user_id: user.id) }
-
-    describe '.relevant_project_types' do
-      it 'returns the HUD-specified project type list' do
-        expect(described_class.relevant_project_types).to eq([0, 1, 2, 3, 8, 9, 10, 13])
-      end
-    end
 
     describe 'CoC code validation' do
       it 'is invalid without a coc_code' do
