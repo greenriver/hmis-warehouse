@@ -38,21 +38,19 @@ module Mutations
         record.form_processor.destroy_related_records!
 
         enrollment = record.enrollment
-        if enrollment.present?
 
-          # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record,
-          # and moving the referral back to "accepted" status
-          enrollment.accept_referral!(current_user: current_user) if record.exit? && !is_wip
+        # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record,
+        # and moving the referral back to "accepted" status
+        enrollment.accept_referral!(current_user: current_user) if record.exit? && !is_wip
 
-          # Deleting the Intake deletes the enrollment.
-          # Don't delete the enrollment if it has any other intakes besides this one. (Not allowed in HMIS, likely a data issue from import)
-          if record.intake? && !enrollment.intake_assessment&.present?
-            # If this is the HoH, delete all household enrollments to avoid leaving behind a household with no HoH
-            if enrollment.head_of_household?
-              destroy_household!(hoh_enrollment: enrollment)
-            else
-              enrollment.destroy!
-            end
+        # Deleting the Intake deletes the enrollment.
+        # Don't delete the enrollment if it has any other intakes besides this one. (Not allowed in HMIS, likely a data issue from import)
+        if record.intake? && !enrollment.intake_assessment.present?
+          # If this is the HoH, delete all household enrollments to avoid leaving behind a household with no HoH
+          if enrollment.head_of_household?
+            destroy_household!(hoh_enrollment: enrollment)
+          else
+            enrollment.destroy!
           end
         end
 
