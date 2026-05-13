@@ -10,7 +10,7 @@
 module CeWorkflows::Demo
   class WorkflowBuilder
     FORMS = {
-      coc_initial_review: 'demo_coc_initial_review',
+      initial_review: 'demo_initial_review',
       provider_decision: 'demo_provider_decision',
       confirm_placement: 'demo_confirm_placement',
       review_decline: 'demo_review_decline',
@@ -26,12 +26,13 @@ module CeWorkflows::Demo
 
     def ensure_decline_reasons
       [
-        { 'code': 'referral_sent_in_error', 'label': 'Referral sent in error' },
-        { 'code': 'ineligible', 'label': 'Does not meet eligibility criteria' },
-        { 'code': 'enrolled_in_equivalent_service', 'label': 'Enrolled in equivalent service with another provider' },
-        { 'code': 'unable_to_locate_client', 'label': 'Unable to contact/locate' },
-        { 'code': 'client_not_interested', 'label': 'No longer interested in the program' },
-        { 'code': 'other', 'label': 'Other (detail in notes section)' },
+        { code: 'hmis_user_error', label: 'HMIS user error' },
+        { code: 'inability_to_complete_intake', label: 'Inability to complete intake' },
+        { code: 'ineligible', label: 'Does not meet eligibility criteria' },
+        { code: 'client_not_interested', label: 'No longer interested in this program' },
+        { code: 'not_experiencing_homelessness', label: 'No longer experiencing homelessness' },
+        { code: 'vacancy_no_longer_available', label: 'Estimated vacancy no longer available' },
+        { code: 'enrolled_declined_hmis_data_entry', label: 'Enrolled, but declined HMIS data entry' },
       ].each do |option|
         Hmis::Ce::ReferralDeclineReason.find_or_create_by!(
           key: option[:code],
@@ -58,8 +59,31 @@ module CeWorkflows::Demo
         version: version,
       )
 
-      coc_lead_swimlane = template.swimlanes.find_or_create_by!(name: 'CoC Lead')
+      ce_team_swimlane = template.swimlanes.find_or_create_by!(name: 'CE Team')
       provider_swimlane = template.swimlanes.find_or_create_by!(name: 'Provider')
+
+      # Statuses
+      initial_review_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: 'initial_review',
+        data_source: @data_source,
+      ) { |s| s.name = 'Initial Review' }
+
+      pending_provider_decision_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: 'pending_provider_decision',
+        data_source: @data_source,
+      ) { |s| s.name = 'Pending Provider Decision' }
+
+      enrolled_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: 'enrolled',
+        data_source: @data_source,
+      ) { |s| s.name = 'Enrolled' }
+
+      pending_review_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: 'pending_review',
+        data_source: @data_source,
+      ) { |s| s.name = 'Pending Review' }
+
+      status_trigger = ->(key) { [{ event: 'enable_step', message: 'set_custom_referral_status', params: { custom_status_key: key } }] }
 
       # Events
       start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
@@ -67,13 +91,14 @@ module CeWorkflows::Demo
       decline_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_decline_event(template)
 
       # Tasks
-      coc_initial_review_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
-        name: 'CoC Initial Review',
-        form_definition_identifier: FORMS.fetch(:coc_initial_review),
+      initial_review_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
+        name: 'Initial Review',
+        form_definition_identifier: FORMS.fetch(:initial_review),
         template: template,
-        swimlane: coc_lead_swimlane,
+        swimlane: ce_team_swimlane,
       )
-      coc_initial_review_task.save!
+      initial_review_task.trigger_config = status_trigger.call(initial_review_status.key)
+      initial_review_task.save!
 
       provider_decision_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
         name: 'Provider Decision',
@@ -81,6 +106,7 @@ module CeWorkflows::Demo
         template: template,
         swimlane: provider_swimlane,
       )
+      provider_decision_task.trigger_config = status_trigger.call(pending_provider_decision_status.key)
       provider_decision_task.save!
 
       enroll_client_task = Hmis::WorkflowDefinition::ScriptTask.find_or_initialize_by(
@@ -99,29 +125,31 @@ module CeWorkflows::Demo
         name: 'Confirm Placement',
         form_definition_identifier: FORMS.fetch(:confirm_placement),
         template: template,
-        swimlane: coc_lead_swimlane,
+        swimlane: ce_team_swimlane,
       )
+      confirm_placement_task.trigger_config = status_trigger.call(enrolled_status.key)
       confirm_placement_task.save!
 
       review_decline_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
         name: 'Review Decline',
         form_definition_identifier: FORMS.fetch(:review_decline),
         template: template,
-        swimlane: coc_lead_swimlane,
+        swimlane: ce_team_swimlane,
       )
+      review_decline_task.trigger_config = status_trigger.call(pending_review_status.key)
       review_decline_task.save!
 
       # Gateways
-      coc_review_gateway = CeWorkflows::Shared::CeBuilderUtils.find_or_create_gateway(template, 'coc_initial_review')
+      initial_review_gateway = CeWorkflows::Shared::CeBuilderUtils.find_or_create_gateway(template, 'initial_review')
       provider_decision_gateway = CeWorkflows::Shared::CeBuilderUtils.find_or_create_gateway(template, 'provider_decision')
       review_decline_gateway = CeWorkflows::Shared::CeBuilderUtils.find_or_create_gateway(template, 'review_decline')
 
       # Wire up flow
-      start_event.connect_to!(coc_initial_review_task) unless start_event.outflows.exists?(target_node: coc_initial_review_task)
-      coc_initial_review_task.connect_to!(coc_review_gateway) unless coc_initial_review_task.outflows.exists?(target_node: coc_review_gateway)
+      start_event.connect_to!(initial_review_task) unless start_event.outflows.exists?(target_node: initial_review_task)
+      initial_review_task.connect_to!(initial_review_gateway) unless initial_review_task.outflows.exists?(target_node: initial_review_gateway)
       # Exclusive gateway: one default (no condition) outflow is required — see WorkflowTemplateValidator.
-      coc_review_gateway.connect_to!(decline_event, condition: 'decision = "decline"') unless coc_review_gateway.outflows.exists?(target_node: decline_event)
-      coc_review_gateway.connect_to!(provider_decision_task) unless coc_review_gateway.outflows.exists?(target_node: provider_decision_task)
+      initial_review_gateway.connect_to!(decline_event, condition: 'decision = "decline"') unless initial_review_gateway.outflows.exists?(target_node: decline_event)
+      initial_review_gateway.connect_to!(provider_decision_task) unless initial_review_gateway.outflows.exists?(target_node: provider_decision_task)
 
       provider_decision_task.connect_to!(provider_decision_gateway) unless provider_decision_task.outflows.exists?(target_node: provider_decision_gateway)
       provider_decision_gateway.connect_to!(review_decline_task, condition: 'decision = "decline"') unless provider_decision_gateway.outflows.exists?(target_node: review_decline_task)

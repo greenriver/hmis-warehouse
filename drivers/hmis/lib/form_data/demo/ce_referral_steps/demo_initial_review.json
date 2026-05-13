@@ -5,7 +5,7 @@
       "type": "CHOICE",
       "link_id": "decision",
       "mapping": {
-        "custom_field_key": "demo_coc_initial_review_decision"
+        "custom_field_key": "demo_initial_review_decision"
       },
       "required": true,
       "component": "RADIO_BUTTONS",
@@ -19,17 +19,18 @@
       "type": "CHOICE",
       "link_id": "decline_reason",
       "mapping": {
-        "custom_field_key": "demo_coc_initial_review_decline_reason"
+        "custom_field_key": "demo_initial_review_decline_reason"
       },
       "required": true,
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
-        { "code": "referral_sent_in_error", "label": "Referral sent in error" },
+        { "code": "hmis_user_error", "label": "HMIS user error" },
+        { "code": "inability_to_complete_intake", "label": "Inability to complete intake" },
         { "code": "ineligible", "label": "Does not meet eligibility criteria" },
-        { "code": "enrolled_in_equivalent_service", "label": "Enrolled in equivalent service with another provider" },
-        { "code": "unable_to_locate_client", "label": "Unable to contact/locate" },
-        { "code": "client_not_interested", "label": "No longer interested in the program" },
-        { "code": "other", "label": "Other (detail in notes section)" }
+        { "code": "client_not_interested", "label": "No longer interested in this program" },
+        { "code": "not_experiencing_homelessness", "label": "No longer experiencing homelessness" },
+        { "code": "vacancy_no_longer_available", "label": "Estimated vacancy no longer available" },
+        { "code": "enrolled_declined_hmis_data_entry", "label": "Enrolled, but declined HMIS data entry" }
       ],
       "enable_when": [
         {
@@ -45,7 +46,7 @@
       "type": "TEXT",
       "link_id": "notes",
       "mapping": {
-        "custom_field_key": "demo_coc_initial_review_notes"
+        "custom_field_key": "demo_initial_review_notes"
       },
       "required": false
     }
