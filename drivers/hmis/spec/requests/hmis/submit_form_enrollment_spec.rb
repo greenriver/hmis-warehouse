@@ -26,7 +26,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: two_weeks_ago.strftime('%Y-%m-%d') }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT, data_source: ds1) }
   let(:hud_values) do
     {
       'entryDate' => yesterday.strftime('%Y-%m-%d'),

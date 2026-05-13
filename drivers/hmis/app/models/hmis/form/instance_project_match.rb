@@ -15,13 +15,13 @@ class Hmis::Form::InstanceProjectMatch
 
   # Match types ordered by rank, from most specific to least specific. Lower rank number if more specific.
   RANKED_MATCHES = [
-    PROJECT_MATCH = 'project'.freeze,
-    ORGANIZATION_MATCH = 'organization'.freeze,
-    PROJECT_TYPE_AND_FUNDER_MATCH = 'project_type_and_funder'.freeze,
-    PROJECT_TYPE_MATCH = 'project_type'.freeze,
-    PROJECT_FUNDER_MATCH = 'project_funder'.freeze,
-    DEFAULT_MATCH = 'default'.freeze,
-    DEFAULT_SYSTEM_MATCH = 'default_system'.freeze,
+    PROJECT_MATCH = 'project',
+    ORGANIZATION_MATCH = 'organization',
+    PROJECT_TYPE_AND_FUNDER_MATCH = 'project_type_and_funder',
+    PROJECT_TYPE_MATCH = 'project_type',
+    PROJECT_FUNDER_MATCH = 'project_funder',
+    DEFAULT_MATCH = 'default',
+    DEFAULT_SYSTEM_MATCH = 'default_system',
   ].freeze
   MATCH_RANKS = RANKED_MATCHES.each_with_index.to_h.freeze
 
@@ -42,6 +42,8 @@ class Hmis::Form::InstanceProjectMatch
 
   # match to project. Order is significant, should return the best ranked match
   memoize def match
+    raise 'Unexpected: InstanceProjectMatch called on an instance and project that are from different data sources' unless instance.data_source_id == project.data_source_id
+
     if instance.entity_type
       case instance.entity_type
       when Hmis::Hud::Project.sti_name

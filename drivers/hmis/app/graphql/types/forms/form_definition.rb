@@ -69,7 +69,7 @@ module Types
       # ...then forms A and B would still return a match for Project X.
 
       # Fetching all projects is slow, so here we do it only once and pass the scope to project_matches below.
-      project_scope = Hmis::Hud::Project.hmis
+      project_scope = Hmis::Hud::Project.hmis.where(data_source_id: object.data_source_id)
       instance_scope = object.instances.active
 
       # If there is a default, then all projects are fair game.
