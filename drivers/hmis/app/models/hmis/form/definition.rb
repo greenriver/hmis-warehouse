@@ -286,7 +286,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   scope :for_service_type, ->(service_type) do
-    base_scope = Hmis::Form::Instance.joins(:definition)
+    base_scope = Hmis::Form::Instance.joins(:definition).
+      where(data_source_id: service_type.data_source_id)
 
     instance_scope = [
       base_scope.for_service_type(service_type.id),
