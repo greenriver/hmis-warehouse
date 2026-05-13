@@ -9,6 +9,16 @@
 if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/rds.rb'
   load 'lib/rds_sql_server/sql_server_base.rb'
+elsif !defined?(::Rds)
+  # Stub so views and concerns can reference Rds without crashing when
+  # AWS credentials aren't configured
+  class ::Rds
+    def self.rds_available? = false
+    def self.static_rds?   = false
+    def self.identifier    = nil
+    def self.database      = nil
+    def self.timeout       = nil
+  end
 end
 
 require 'csv'
