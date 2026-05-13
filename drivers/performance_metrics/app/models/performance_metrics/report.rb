@@ -14,9 +14,12 @@ module PerformanceMetrics
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include ReportArchival
 
     belongs_to :user, optional: true
     has_many :clients
+
+    has_many_attached :clients_csv
 
     after_initialize :filter
 
@@ -724,6 +727,16 @@ module PerformanceMetrics
       options.delete(:comparison_pattern)
       outflow_filter.update(options)
       GrdaWarehouse::WarehouseReports::OutflowReport.new(outflow_filter, filter.user)
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+      }
     end
 
     private def run_inflow

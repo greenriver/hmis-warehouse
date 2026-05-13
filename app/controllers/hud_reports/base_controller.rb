@@ -65,6 +65,20 @@ module HudReports
       end
     end
 
+    def restore
+      service = ::HudReports::RestoreArchivedReportDataService.new(@report)
+      result = service.restore!
+
+      if result[:success]
+        total = result[:restored_counts]&.values&.sum || 0
+        flash[:notice] = "Report data restored successfully. #{total} records reloaded."
+      else
+        flash[:error] = "Failed to restore report data: #{result[:errors].join(', ')}"
+      end
+
+      redirect_to action: :show, id: @report.id
+    end
+
     def destroy
       @report.destroy
       flash[:notice] = 'Report removed'

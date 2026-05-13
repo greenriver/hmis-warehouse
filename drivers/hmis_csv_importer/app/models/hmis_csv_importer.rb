@@ -9,6 +9,8 @@
 # @see docs/features/hmis-csv-importer.md
 module HmisCsvImporter
   def self.import!(file_path, data_source_id, upload, deidentified:)
+    GrdaWarehouse::DbMonitor.assert_healthy!
+
     log = ::HmisCsvImporter::ImportLog.create(
       created_at: Time.current,
       upload_id: upload.id,

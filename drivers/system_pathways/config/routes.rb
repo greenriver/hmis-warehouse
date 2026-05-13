@@ -12,6 +12,7 @@ OpenPath::Application.routes.draw do
       resources :reports do
         get :details, on: :member
         get 'chart_data/:chart', to: 'reports#chart_data', on: :member, as: :chart_data
+        post 'reload_from_csv', to: 'reports#reload_from_csv', as: :reload_from_csv, on: :member
       end
     end
   end

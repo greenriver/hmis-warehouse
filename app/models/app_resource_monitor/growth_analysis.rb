@@ -18,8 +18,8 @@
 class AppResourceMonitor::GrowthAnalysis < AppResourceMonitor::S3Analysis
   attr_reader :days_back, :limit
 
-  def initialize(prefix:, database:, days_back: 7, limit: 10)
-    super(prefix: prefix, database: database)
+  def initialize(prefix:, database:, days_back: 7, limit: 10, as_of: nil)
+    super(prefix: prefix, database: database, as_of: as_of)
     @days_back = days_back.to_i
     @limit     = limit.to_i
     raise ArgumentError, 'days_back must be a positive integer' unless @days_back.positive?

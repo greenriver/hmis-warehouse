@@ -577,29 +577,6 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
-      "fingerprint": "342d35ee429ab461a9054be831be9ebc311521f286eba079af4e89e55a6221ef",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 374,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`No Definition found for System form #{role}`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::Form::Definition",
-        "method": "Hmis::Form::Definition.find_definition_for_role"
-      },
-      "user_input": "role",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
       "fingerprint": "34fd658393a9fb9bf9452d6dafc2a7dea87444ddd212196aef05e44065feeeb8",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -1156,7 +1133,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 265,
+      "line": 266,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -1179,7 +1156,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb",
-      "line": 369,
+      "line": 394,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"UPDATE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}\\nSET\\n  current_value = v.new_current_value::integer,\\n  current_observation_date = v.new_current_observation_date::date,\\n  updated_at = #{GrdaWarehouseBase.connection.quote(Time.current.strftime(\"%Y-%m-%d %H:%M:%S\"))}\\nFROM (VALUES #{snapshots.map do\n original_date = s.instance_variable_get(:@original_current_observation_date)\noriginal_date_str = s.instance_variable_get(:@original_current_observation_date).strftime(\"%Y-%m-%d\")\nentity_type = GrdaWarehouseBase.connection.quote(s.entity_type)\nentity_id = s.entity_id.to_i\nmetric_definition_id = s.metric_definition_id.to_i\ninitial_observation_date = GrdaWarehouseBase.connection.quote(s.initial_observation_date.strftime(\"%Y-%m-%d\"))\nold_current_observation_date = GrdaWarehouseBase.connection.quote(s.instance_variable_get(:@original_current_observation_date).strftime(\"%Y-%m-%d\"))\nnew_current_value = s.current_value.to_i\nnew_current_observation_date = GrdaWarehouseBase.connection.quote(s.current_observation_date.strftime(\"%Y-%m-%d\"))\n end.join(\",\")}) AS v(\\n  entity_type, entity_id, metric_definition_id, initial_observation_date,\\n  old_current_observation_date, new_current_value, new_current_observation_date\\n)\\nWHERE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_type = v.entity_type\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_id = v.entity_id\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.metric_definition_id = v.metric_definition_id\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.initial_observation_date = v.initial_observation_date::date\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.current_observation_date = v.old_current_observation_date::date\\n\")",
       "render_path": null,
@@ -1709,29 +1686,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "8d62e2a4304e38d28ca94dcc34f2af5b20c439804f756884591801df067877c8",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hud_spm_report/app/models/hud_spm_report/fy2026/spm_enrollment.rb",
-      "line": 152,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouse::ServiceHistoryEnrollment.entry.where(\"(enrollment_group_id, data_source_id) IN (#{batch.map do\n \"(#{GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)}, #{e.data_source_id})\"\n end.join(\",\")})\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HudSpmReport::Fy2026::SpmEnrollment",
-        "method": "HudSpmReport::Fy2026::SpmEnrollment.create_enrollment_set"
-      },
-      "user_input": "GrdaWarehouse::ServiceHistoryEnrollment.connection.quote(e.EnrollmentID)",
-      "confidence": "High",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "8f69630d4aa97334a2eaf60d1a93b9db30fc157587b803929e1c0716d830e21f",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1988,40 +1942,6 @@
       "confidence": "Medium",
       "cwe_id": [
         77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "ad643b5cc0525dc24944b965b530e1b65e3c3d7524efb0526565ec3f3f0df4a3",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/messages/show.haml",
-      "line": 7,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "simple_format(current_user.messages.find(params.require(:id)).body_html).gsub(URI.regexp([\"http\", \"https\"]), \"<a href=\\\"\\\\0\\\">\\\\0</a>\")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "MessagesController",
-          "method": "show",
-          "line": 36,
-          "file": "app/controllers/messages_controller.rb",
-          "rendered": {
-            "name": "messages/show",
-            "file": "app/views/messages/show.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "messages/show"
-      },
-      "user_input": "current_user.messages.find(params.require(:id))",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
       ],
       "note": ""
     },
@@ -2529,7 +2449,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 91,
+      "line": 90,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2598,7 +2518,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/access_group.rb",
-      "line": 77,
+      "line": 79,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{quoted_table_name}.coc_codes @> #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
       "render_path": null,
@@ -2644,7 +2564,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 279,
+      "line": 280,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
