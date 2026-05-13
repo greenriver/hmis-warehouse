@@ -196,6 +196,7 @@ RSpec.describe model, type: :model do
   describe 'PaperTrail' do
     it 'creates a version on update' do
       PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
         ds = create(:source_data_source)
         expect do
           ds.update!(hmis: 'tenant.example.test')
@@ -206,6 +207,7 @@ RSpec.describe model, type: :model do
 
     it 'does not create a version for last_imported_at changes' do
       PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
         ds = create(:source_data_source)
         expect do
           ds.update!(last_imported_at: Time.current)
