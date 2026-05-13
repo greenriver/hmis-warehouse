@@ -12,11 +12,6 @@ module HudSpmReport::Generators::Fy2023
     def self.generic_title = 'System Performance Measures'
     def self.short_name = 'SPM'
 
-    # HudReportArchival.register_archival_generator(self.title, self) runs when this
-    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
-    # fiscal_year; define those class methods above before including Archival.
-    include HudSpmReport::Archival
-
     def self.filter_class = ::Filters::HudFilterBase
 
     def self.default_project_type_codes
@@ -78,9 +73,9 @@ module HudSpmReport::Generators::Fy2023
       episode_ids = HudReports::UniverseMember.where(
         report_cell_id: report_instance.report_cells.select(:id),
         universe_membership_type: 'HudSpmReport::Fy2023::Episode',
-      ).select(:universe_membership_id)
+      ).pluck(:universe_membership_id)
 
-      shared_archival_entries(report_instance).merge(
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
         spm_enrollment_links_csv: {
           scope: -> { HudSpmReport::Fy2023::EnrollmentLink.where(enrollment_id: enrollment_ids) },
           filename: -> { "hud-spm-fy2023-#{report_instance.id}-spm-enrollment-links.csv" },
@@ -103,5 +98,10 @@ module HudSpmReport::Generators::Fy2023
         },
       )
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudSpmReport::Archival
   end
 end

@@ -13,7 +13,30 @@ module HudReportArchival
   self.generator_registry = {}
 
   def self.register_archival_generator(report_name, klass)
+    raise NotImplementedError, "#{klass} must implement self.archival_csv_config to register as an archival generator" unless klass.respond_to?(:archival_csv_config)
+
     generator_registry[report_name] = klass
+  end
+
+  # Common archival entries shared by every HUD report driver: the universe_members
+  # and report_cells tables that back all report types. Call from each driver's
+  # archival_csv_config and merge in driver-specific entries.
+  #
+  # prefix: short lowercase identifier for this report type (e.g. 'apr', 'spm', 'dq').
+  # Used only for human-readable CSV filenames; has no functional effect on restore.
+  def self.shared_archival_entries(report_instance, prefix:)
+    {
+      universe_members_csv: {
+        scope: -> { ::HudReports::UniverseMember.where(report_cell_id: report_instance.report_cells.select(:id)) },
+        filename: -> { "hud-#{prefix}-#{report_instance.id}-universe-members.csv" },
+        delete_order: 1,
+      },
+      report_cells_csv: {
+        scope: -> { report_instance.report_cells },
+        filename: -> { "hud-#{prefix}-#{report_instance.id}-cells.csv" },
+        delete_order: 99,
+      },
+    }
   end
 
   included do

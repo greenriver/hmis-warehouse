@@ -20,25 +20,10 @@ module HudDataQualityReport
     end
 
     module ClassMethods
-      def shared_archival_entries(report_instance)
-        {
-          universe_members_csv: {
-            scope: -> { ::HudReports::UniverseMember.where(report_cell_id: report_instance.report_cells.select(:id)) },
-            filename: -> { "hud-dq-#{report_instance.id}-universe-members.csv" },
-            delete_order: 1,
-          },
-          report_cells_csv: {
-            scope: -> { report_instance.report_cells },
-            filename: -> { "hud-dq-#{report_instance.id}-cells.csv" },
-            delete_order: 99,
-          },
-        }
-      end
-
       def archival_csv_config(report_instance)
         client_ids = HudDataQualityReport::Fy2020::DqClient.where(report_instance_id: report_instance.id).select(:id)
 
-        shared_archival_entries(report_instance).merge(
+        HudReportArchival.shared_archival_entries(report_instance, prefix: 'dq').merge(
           dq_living_situations_csv: {
             scope: -> { HudDataQualityReport::Fy2020::DqLivingSituation.where(hud_report_dq_client_id: client_ids) },
             filename: -> { "hud-dq-#{report_instance.id}-living-situations.csv" },

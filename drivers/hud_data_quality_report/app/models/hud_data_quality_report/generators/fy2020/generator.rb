@@ -20,11 +20,6 @@ module HudDataQualityReport::Generators::Fy2020
       'DQ'
     end
 
-    # HudReportArchival.register_archival_generator(self.title, self) runs when this
-    # concern is included. HudReports::GeneratorBase.title interpolates generic_title and
-    # fiscal_year; define those class methods above before including Archival.
-    include HudDataQualityReport::Archival
-
     def url
       hud_reports_past_dq_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
@@ -50,5 +45,10 @@ module HudDataQualityReport::Generators::Fy2020
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 1'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudDataQualityReport::Archival
   end
 end
