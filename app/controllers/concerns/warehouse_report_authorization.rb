@@ -34,5 +34,26 @@ module WarehouseReportAuthorization
       @visible_projects = GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).order(id: :asc).pluck(:id, :ProjectName).to_h
       @limited = all_project_ids != @visible_projects.keys
     end
+
+    def reload_from_csv
+      reload_from_csv_authorization!
+      result = Reports::ReloadReportFromCsvService.new(@report).reload!
+
+      if result[:success]
+        flash[:notice] = "Report data reloaded successfully. #{result[:reloaded_counts].values.sum} records restored."
+      else
+        flash[:error] = "Failed to reload report data: #{result[:errors].join(', ')}"
+      end
+
+      redirect_to reload_from_csv_redirect_path
+    end
+
+    def reload_from_csv_authorization!
+      require_can_view_any_reports!
+    end
+
+    def reload_from_csv_redirect_path
+      url_for(action: :show, id: @report)
+    end
   end
 end

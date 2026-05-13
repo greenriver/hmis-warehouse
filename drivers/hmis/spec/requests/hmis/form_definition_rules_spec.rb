@@ -191,7 +191,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:form_role) { 'ENROLLMENT' }
 
     let(:enrollment_definition) do
-      create(:hmis_form_definition, role: form_role, definition: { 'item' => [
+      create(:hmis_form_definition, role: form_role, data_source: ds1, definition: { 'item' => [
                {
                  'type': 'STRING',
                  'link_id': 'conditional-question',
@@ -204,7 +204,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
              ] })
     end
     # apply the custom enrollment form to the project
-    let!(:enrollment_instance) { create(:hmis_form_instance, role: form_role, entity: p1, definition: enrollment_definition) }
+    let!(:enrollment_instance) { create(:hmis_form_instance, role: form_role, entity: p1, definition: enrollment_definition, data_source: ds1) }
 
     let(:query) do
       <<~GRAPHQL

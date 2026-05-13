@@ -38,6 +38,7 @@
               %tr
                 %th{style: 'min-width: 20em;'} Name
                 %th{style: 'width: 12em;'} Effective Date
+                %th Owner
                 %th Visible on Client Dashboard?
                 %th Visible in CAS?
                 %th Tagged for CAS?
@@ -45,17 +46,13 @@
               %tbody
                 - @cohorts.each do |cohort|
                   %tr
-                    %td
-                      = link_to cohort.name, cohort_path(cohort)
-                    %td
-                      = cohort.effective_date
-                    %td
-                      = checkmark cohort.show_on_client_dashboard?
-                    %td
-                      = checkmark cohort.visible_in_cas?
+                    %td= link_to cohort.name, cohort_path(cohort)
+                    %td= cohort.effective_date
+                    %td= cohort.owner_name(include_unassigned: false)
+                    %td= checkmark cohort.show_on_client_dashboard?
+                    %td= checkmark cohort.visible_in_cas?
                     %td= cohort.cas_tag_name
-                    %td.text-center
-                      = cohort.cohort_clients.joins(:client).count
+                    %td.text-center= cohort.cohort_clients.joins(:client).count
       - else
         %p.none-found No Cohorts Found
   #inactive-cohorts.tab-pane{role: :tabpanel}
@@ -69,14 +66,14 @@
           %tr
             %th{style: 'min-width: 20em;'} Name
             %th{style: 'width: 12em;'} Effective Date
+            %th Owner
             %th Clients
         %tbody
           - @inactive_cohorts.each do |cohort|
             %tr
-              %td
-                = link_to cohort.name, cohort_path(cohort)
-              %td
-                = cohort.effective_date
+              %td= link_to cohort.name, cohort_path(cohort)
+              %td= cohort.effective_date
+              %td= cohort.owner_name(include_unassigned: false)
               %td.text-center
                 = cohort.cohort_clients.count
   - if system_cohorts_enabled
@@ -94,8 +91,6 @@
           %tbody
             - @system_cohorts.each do |cohort|
               %tr
-                %td
-                  = link_to cohort.name, cohort_path(cohort)
-                %td.text-center
-                  = cohort.cohort_clients.count
+                %td= link_to cohort.name, cohort_path(cohort)
+                %td.text-center= cohort.cohort_clients.count
 = render 'common/bootstrap_tab_memory'

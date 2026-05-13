@@ -16,7 +16,7 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
   let(:user) { create(:hmis_user, data_source: data_source) }
 
   def make_definition(owner_class:, role: 'FORM', allowed_form_record_actions: [Hmis::Form::Definition::CREATE, Hmis::Form::Definition::EDIT])
-    instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role, allowed_form_record_actions: allowed_form_record_actions)
+    instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role, data_source_id: data_source.id, allowed_form_record_actions: allowed_form_record_actions)
   end
 
   describe '#authorized_to_create?' do
