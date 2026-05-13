@@ -70,7 +70,7 @@ module HudLsa::Generators::Fy2026
     end
 
     def hic?
-      options.with_indifferent_access[:lsa_scope] == HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
+      options.with_indifferent_access[:lsa_scope].to_i == HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
     end
 
     def filter
