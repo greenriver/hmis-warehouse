@@ -5,6 +5,7 @@
 %p Configure thresholds that will trigger alerts and optionally pause imports when specific criteria are met for this data source.
 
 %h2 Import-Wide Monitoring Thresholds
+.mb-4= render 'scenarios'
 = simple_form_for import_threshold, url: data_source_import_threshold_path, method: :patch do |f|
   .row
     .col-sm
