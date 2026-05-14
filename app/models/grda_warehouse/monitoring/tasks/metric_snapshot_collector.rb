@@ -44,6 +44,11 @@ module GrdaWarehouse::Monitoring::Tasks
       # Uses find_or_create_by! so this is idempotent and preserves user changes
       GrdaWarehouse::Monitoring::MetricDefinition.maintain!
 
+      # Trigger alert notifications for threshold crossings from the previous day.
+      # This ensures all metrics are collected prior to sending notifications and is independent
+      # of the time it takes to run the collector.
+      NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date - 1.days)
+
       run_record = create_run_record
       all_metrics = load_metrics
       entities = load_entities
@@ -77,9 +82,6 @@ module GrdaWarehouse::Monitoring::Tasks
 
       cleanup_old_snapshots
       complete_run_record(run_record, 'completed')
-
-      # Trigger alert notifications for threshold crossings
-      NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date)
 
       # Return skipped metric names so the caller can schedule targeted retries
       skipped_metric_names
