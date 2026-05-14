@@ -1,0 +1,2 @@
+ProjectID,OrganizationID,ProjectName,ProjectCommonName,OperatingStartDate,OperatingEndDate,ContinuumProject,ProjectType,HousingType,RRHSubType,ResidentialAffiliation,TargetPopulation,HOPWAMedAssistedLivingFac,PITCount,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+proj-1,org-1,Multi-CoC Household CoC Propagation Test,"",2020-01-01,,0,1,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user-1,,hh_coc_propagation_export

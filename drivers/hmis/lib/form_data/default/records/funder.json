@@ -57,13 +57,19 @@
           ]
         },
         {
-          "type": "STRING",
-          "required": true,
-          "link_id": "grant_id",
-          "text": "Grant Identifier",
-          "mapping": {
-            "field_name": "grantId"
-          }
+          "type": "GROUP",
+          "link_id": "funder_grant_info",
+          "item": [
+              {
+              "type": "STRING",
+              "required": true,
+              "link_id": "grant_id",
+              "text": "Grant Identifier",
+              "mapping": {
+                "field_name": "grantId"
+              }
+            }
+          ]
         },
         {
           "type": "DISPLAY",
