@@ -217,11 +217,13 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     let(:role) { :SERVICE }
     it 'only service definitions for the specified service type are returned (regression test)' do
       cst1 = create(:hmis_custom_service_type, name: 'My service', data_source: ds1)
+      cst2 = create(:hmis_custom_service_type, name: 'Another service', data_source: ds1)
       p1 = create(:hmis_hud_project, project_type: 1, data_source: ds1)
       p2 = create(:hmis_hud_project, project_type: 1, funders: [43], data_source: ds1)
       p3 = create(:hmis_hud_project, project_type: 2, data_source: ds1)
 
-      create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43, data_source: ds1) # should never be chosen
+      # cruft: set up an instance that applies most specifically to this project type and funder, but applies to a different service type, so it should never be chosen
+      create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst2, project_type: 1, funder: 43, data_source: ds1)
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to be_nil
 
       # form by category
