@@ -1,7 +1,7 @@
 = render 'breadcrumbs', data_source: data_source
 - content_for :title, "Edit Monitor: #{import_csv_monitor.csv_file_name}"
 %h1= content_for :title
-
+= render 'scenarios'
 .well
   = render 'form', submit_label: 'Update Monitor'
 
