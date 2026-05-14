@@ -25,14 +25,31 @@ module ServiceHistory
           where(id: id).
           each(&:rebuild_service_history!)
       end
+
+      clear_processing_job_id
     end
 
     def enqueue(job)
       job.priority = BaseJob::PRE_BULK_PROCESSING_PRIORITY_9
     end
 
+    # DJ calls this only after all max_attempts are exhausted (failed_at is set at that point).
+    # Between retries, failed_at remains nil, so the job stays in the active_job_ids set
+    # used by wait_for_processing / clients_still_processing? — enrollment stamps are correctly
+    # treated as in-progress until the retry either succeeds or permanently fails.
+    def failure(_job)
+      clear_processing_job_id
+    end
+
     def max_attempts
       2
+    end
+
+    private
+
+    def clear_processing_job_id
+      GrdaWarehouse::Hud::Enrollment.where(id: @enrollment_ids).
+        update_all(service_history_processing_job_id: nil)
     end
   end
 end
