@@ -14,7 +14,6 @@ require 'memery'
 module GrdaWarehouse
   class ImportThreshold < GrdaWarehouseBase
     include Memery
-    include Rails.application.routes.url_helpers
     belongs_to :data_source
 
     validates :error_count_min_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
@@ -202,7 +201,7 @@ module GrdaWarehouse
           'count_threshold_met' => count,
           'paused' => paused,
           'import_log_id' => import_log_id,
-          'config_url' => data_source_import_threshold_path(data_source),
+          'config_url' => "/data_sources/#{data_source.id}/import_threshold",
         },
       )
       begin
