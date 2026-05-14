@@ -156,9 +156,21 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   def validate_service_form_restrictions
     return unless definition.role.to_s == 'SERVICE'
-    return unless custom_service_category_id.blank? && custom_service_type_id.blank?
 
-    errors.add(:base, :invalid, full_message: 'Service form rules must specify either a service category or service type, to indicate which service(s) the form can collect')
+    # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
+    if custom_service_category_id.blank? && custom_service_type_id.blank?
+      errors.add(:base, :invalid, full_message: 'Service form rules must specify either a service category or service type, to indicate which service(s) the form can collect')
+      return
+    end
+
+    if custom_service_category_id.present? && custom_service_category.data_source_id != data_source_id
+      errors.add(:custom_service_category_id, :invalid, full_message: 'Service category must be in the same data source as the instance')
+    end
+
+    if custom_service_type_id.present? && custom_service_type.data_source_id != data_source_id
+      errors.add(:custom_service_type_id, :invalid, full_message: 'Service type must be in the same data source as the instance')
+    end
+    # rubocop:enable Style/IfUnlessModifier, Style/GuardClause
   end
 
   def project_matches(project_scope)
