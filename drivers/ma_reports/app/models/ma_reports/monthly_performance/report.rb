@@ -17,9 +17,13 @@ module MaReports::MonthlyPerformance
     include HudReports::Households
     include HudReports::LengthOfStays
     include RaceAndEthnicityCalculations
+    include ReportArchival
 
     has_many :enrollments
     has_many :projects
+
+    has_many_attached :enrollments_csv
+    has_many_attached :projects_csv
 
     def self.current_version
       2026
@@ -50,6 +54,20 @@ module MaReports::MonthlyPerformance
 
     def complete
       update(completed_at: Time.current)
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore.tr('/', '-')
+      {
+        enrollments_csv: {
+          association: :enrollments,
+          filename: -> { "#{report_type}-enrollments-#{id}.csv" },
+        },
+        projects_csv: {
+          association: :projects,
+          filename: -> { "#{report_type}-projects-#{id}.csv" },
+        },
+      }
     end
 
     def title
@@ -106,9 +124,9 @@ module MaReports::MonthlyPerformance
 
     private def create_universe
       # make create_universe repeatable for testing
-      MaReports::MonthlyPerformance::Enrollment.where(report_id: id).delete_all
-      MaReports::MonthlyPerformance::Project.where(report_id: id).delete_all
-      SimpleReports::UniverseMember.where(report_cell_id: universe.id).delete_all
+      hard_delete_archival_relation(MaReports::MonthlyPerformance::Enrollment.where(report_id: id))
+      hard_delete_archival_relation(MaReports::MonthlyPerformance::Project.where(report_id: id))
+      hard_delete_archival_relation(SimpleReports::UniverseMember.where(report_cell_id: universe.id))
       projects = {}
       enrollment_scope.find_in_batches(batch_size: 100) do |batch|
         enrollment_batch = {}

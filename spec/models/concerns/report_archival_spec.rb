@@ -424,6 +424,55 @@ RSpec.describe ReportArchival, type: :model do
     end
   end
 
+  describe '#hard_delete_archival_relation' do
+    before(:all) do
+      connection = GrdaWarehouseBase.connection
+      unless connection.table_exists?(:test_report_archival_hard_delete_rows)
+        connection.create_table :test_report_archival_hard_delete_rows, force: true do |t|
+          t.integer :report_id, null: false
+          t.datetime :deleted_at
+          t.timestamps
+        end
+      end
+    end
+
+    after(:all) do
+      connection = GrdaWarehouseBase.connection
+      connection.drop_table :test_report_archival_hard_delete_rows if connection.table_exists?(:test_report_archival_hard_delete_rows)
+    end
+
+    let(:row_class) do
+      klass = Class.new(GrdaWarehouseBase) do
+        self.table_name = 'test_report_archival_hard_delete_rows'
+        acts_as_paranoid
+      end
+      class_name = "TestReportArchivalHardDeleteRow#{SecureRandom.hex(8)}"
+      Object.const_set(class_name, klass)
+      klass
+    end
+
+    it 'permanently removes acts_as_paranoid rows' do
+      row = row_class.create!(report_id: report.id)
+
+      deleted_count = report.hard_delete_archival_relation(row_class.where(report_id: report.id))
+
+      expect(deleted_count).to eq(1)
+      expect(row_class.where(report_id: report.id).count).to eq(0)
+      expect(row_class.with_deleted.where(id: row.id).count).to eq(0)
+    end
+
+    it 'deletes large relations in batches without loading all ids into one statement' do
+      3.times { row_class.create!(report_id: report.id) }
+      relation = row_class.where(report_id: report.id)
+      stub_const('ReportArchival::ARCHIVAL_HARD_DELETE_BATCH_SIZE', 2)
+
+      deleted_count = report.hard_delete_archival_relation(relation)
+
+      expect(deleted_count).to eq(3)
+      expect(row_class.where(report_id: report.id).count).to eq(0)
+    end
+  end
+
   describe '#expected_archival_files' do
     it 'returns empty array when not archived' do
       expect(report.expected_archival_files).to eq([])
