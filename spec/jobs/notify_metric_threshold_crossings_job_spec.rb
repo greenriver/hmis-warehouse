@@ -194,6 +194,50 @@ RSpec.describe NotifyMetricThresholdCrossingsJob, type: :job do
     end
   end
 
+  context 'when crossing has previous_value of zero' do
+    let(:metric_def) do
+      GrdaWarehouse::Monitoring::MetricDefinition.find_by!(
+        entity_type: 'GrdaWarehouse::DataSource',
+        subtype: 'Client.csv',
+      )
+    end
+    let(:csv_user) { create(:user, active: true) }
+    let!(:monitor) do
+      create(
+        :grda_warehouse_import_csv_monitor,
+        data_source: data_source,
+        csv_file_name: 'Client.csv',
+        count_increase_threshold: 50,
+      )
+    end
+
+    before do
+      GrdaWarehouse::NotificationConfiguration.create!(
+        source: monitor,
+        notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG,
+        user: csv_user,
+        active: true,
+      )
+      stub_crossings(
+        NotifyMetricThresholdCrossingsJob::CSV_IMPORT_ALERT_CODE => {
+          metric_def.id => {
+            display_name: 'Client.csv row count',
+            data: [{ entity_id: data_source.id, current_value: 50, previous_value: 0 }],
+            total_count: 1,
+            truncated: false,
+            entity_label: 'data source',
+          },
+        },
+      )
+    end
+
+    it 'sends an email notification (previous_value of 0 is not treated as absent)' do
+      described_class.new.perform(calculation_date)
+      expect(ActionMailer::Base.deliveries.count).to eq(1)
+      expect(ActionMailer::Base.deliveries.first.to).to include(csv_user.email)
+    end
+  end
+
   context 'notification logging' do
     let(:metric_def) do
       GrdaWarehouse::Monitoring::MetricDefinition.find_by!(

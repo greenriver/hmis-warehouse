@@ -161,7 +161,7 @@ export default class extends Controller {
       return `
               <tr>
                 <td>${linkHTML}</td>
-                <td>${crossing.previous_value || 'N/A'}</td>
+                <td>${crossing.previous_value != null ? crossing.previous_value : 'N/A'}</td>
                 <td>${crossing.current_value}</td>
                 <td>${sign}${change}</td>
               </tr>
