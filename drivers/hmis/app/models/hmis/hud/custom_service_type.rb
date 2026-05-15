@@ -33,6 +33,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
 
   scope :custom, -> { where(hud_record_type: nil) }
   scope :hud, -> { where.not(hud_record_type: nil) }
+  scope :in_data_source, ->(data_source_id) { where(data_source_id: data_source_id) }
 
   def self.apply_filters(input)
     Hmis::Filter::ServiceTypeFilter.new(input).filter_scope(self)

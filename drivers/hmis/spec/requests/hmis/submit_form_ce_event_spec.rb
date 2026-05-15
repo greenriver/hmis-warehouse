@@ -22,7 +22,7 @@ RSpec.describe 'SubmitForm for CeEvent', type: :request do
 
   before(:each) { hmis_login(user) }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_EVENT) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_EVENT, data_source: ds1) }
   let(:hud_values) do
     {
       'eventDate' => '2023-08-12',
