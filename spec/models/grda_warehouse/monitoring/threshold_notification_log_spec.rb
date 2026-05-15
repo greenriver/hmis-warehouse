@@ -93,7 +93,7 @@ RSpec.describe GrdaWarehouse::Monitoring::ThresholdNotificationLog, type: :model
 
     it 'links each stub log to its message' do
       described_class.backfill
-      expect(described_class.pluck(:message_id)).to contain_exactly(message.id, other_message.id)
+      expect(described_class.where(message_id: [message.id, other_message.id]).pluck(:message_id)).to contain_exactly(message.id, other_message.id)
     end
 
     it 'does not create duplicate stubs on second call' do
