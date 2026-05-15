@@ -121,12 +121,5 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
     end
 
-    context 'with can_manage_own_client_files permission' do
-      let!(:access_control) { create_access_control(user, project, with_permission: [:can_manage_own_client_files]) }
-
-      it 'grants can_manage_own_client_files?' do
-        expect(policy.can_manage_own_client_files?).to be true
-      end
-    end
   end
 end
