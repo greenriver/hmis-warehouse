@@ -53,7 +53,8 @@ class Hmis::Form::SubmitFormRecordInitializer
     {
       project: find_viewable(Hmis::Hud::Project, input.project_id),
       client: find_viewable(Hmis::Hud::Client, input.client_id),
-      enrollment: find_viewable(Hmis::Hud::Enrollment, input.enrollment_id),
+      # todo @martha - this seems messy but not sure if there is a better way
+      enrollment: find_viewable(Hmis::Hud::Enrollment, input.enrollment_id || input&.values&.dig('file_enrollment')),
       organization: find_viewable(Hmis::Hud::Organization, input.organization_id),
       custom_service_type: input.service_type_id.present? ? Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) : nil,
     }

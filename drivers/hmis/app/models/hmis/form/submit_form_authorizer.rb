@@ -49,7 +49,13 @@ class Hmis::Form::SubmitFormAuthorizer
       source_project = record.referral.enrollment.project
       user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
     when 'Hmis::File'
-      Hmis::File.authorize_proc.call(record.client, user)
+      if record.enrollment_id
+        # If the file is associated with an enrollment, check the user's permissions for that enrollment
+        user.policy_for(record.enrollment, policy_type: :hmis_enrollment).can_create_file?
+      else
+        # Otherwise, check the permissions for the client
+        user.policy_for(record.client, policy_type: :hmis_client).can_create_file?
+      end
     else
       raise "No authorization configured for #{record.class.name}"
     end
@@ -76,7 +82,7 @@ class Hmis::Form::SubmitFormAuthorizer
       source_project = record.referral.enrollment.project
       user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
     when 'Hmis::File'
-      Hmis::File.authorize_proc.call(record, user)
+      user.policy_for(record, policy_type: :file).can_manage?
     else
       raise "No authorization configured for #{record.class.name}"
     end
