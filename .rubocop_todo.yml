@@ -1242,8 +1242,6 @@ Style/RedundantFreeze:
     - 'drivers/claims_reporting/app/models/claims_reporting/rx_claim.rb'
     - 'drivers/hmis/app/models/hmis/client_alert.rb'
     - 'drivers/hmis/app/models/hmis/enrollment_assessment_eligibility_list.rb'
-    - 'drivers/hmis/app/models/hmis/form/instance_enrollment_match.rb'
-    - 'drivers/hmis/app/models/hmis/form/instance_project_match.rb'
     - 'drivers/hmis/app/models/hmis/hud/custom_client_address.rb'
     - 'drivers/hmis/app/models/hmis/hud/validators/income_benefit_validator.rb'
     - 'drivers/hmis/app/models/hmis/reminders.rb'

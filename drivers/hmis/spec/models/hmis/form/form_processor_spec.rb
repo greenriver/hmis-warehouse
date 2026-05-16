@@ -663,8 +663,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       old_entry_date = assessment.enrollment.entry_date
-      new_entry_date = 1.week.ago.strftime('%Y-%m-%d')
       expect(old_entry_date).not_to be_nil
+      # Must differ from factory EntryDate sequence (which includes 1.week.ago)
+      new_entry_date = (old_entry_date - 2.weeks).strftime('%Y-%m-%d')
 
       assessment.reload.form_processor.hud_values = {
         'Enrollment.entryDate' => new_entry_date,

@@ -398,6 +398,7 @@ module Types
       # Just checks if there are ANY active Instances for each role.
       # It's possible there could be instances that exist but don't apply to any projects, but we don't bother checking for that.
       Hmis::Form::Instance.active.
+        where(data_source_id: current_user.hmis_data_source_id).
         joins(:definition).
         where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
         pluck(:role).uniq

@@ -405,7 +405,10 @@ module MaYyaReport
 
     # This is the value for F1a and the universe for G
     private def prevention_remained_housed_clause
-      prevention_clause.and(a_t[:entry_date].gt(a_t[:latest_homeless_cls_in_range]))
+      prevention_clause.and(
+        a_t[:entry_date].gt(a_t[:latest_homeless_cls_in_range]).
+        or(a_t[:latest_homeless_cls_in_range].eq(nil)),
+      )
     end
 
     # This is the value for F2a and the universe for H

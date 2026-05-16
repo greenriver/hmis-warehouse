@@ -20,7 +20,10 @@ module CeWorkflows::Ph
       @data_source = data_source
 
       # Validate required forms exist
-      missing = FORMS.values - Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: FORMS.values).pluck(:identifier)
+      missing = FORMS.values - Hmis::Form::Definition.
+        in_data_source(@data_source.id).
+        where(role: 'CE_REFERRAL_STEP', identifier: FORMS.values).
+        pluck(:identifier)
       raise "Missing CE_REFERRAL_STEP forms: #{missing.join(', ')}" if missing.any?
     end
 
