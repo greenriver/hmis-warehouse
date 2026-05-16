@@ -49,7 +49,9 @@ module GrdaWarehouse::SystemCohorts
             changed_at: date.to_time .. (date + 1.days).to_time,
           ).delete_all
 
-          find(cohort_id).sync(processing_date: date, date_window: date_window)
+          # sync returns false when it can't acquire the cohort write lock;
+          # rolling back preserves the CohortClientChange rows deleted above.
+          raise ActiveRecord::Rollback unless find(cohort_id).sync(processing_date: date, date_window: date_window)
         end
       end
     end
