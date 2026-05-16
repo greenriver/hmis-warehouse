@@ -47,6 +47,16 @@ module HudLsa::Generators::RetiredLsaStub
       { 'LSA' => 'All LSA Data' }.freeze
     end
 
+    def describe_table(table_name)
+      table_descriptions[table_name]
+    end
+
+    def allowed_options(report)
+      opts = [:project_ids, :project_group_ids, :data_source_ids, :coc_code, :lsa_scope]
+      opts += report.hic? ? [:on] : [:start, :end]
+      opts
+    end
+
     def archival_csv_config(report_instance)
       HudReportArchival.shared_archival_entries(report_instance, prefix: 'lsa').merge(
         lsa_summary_results_csv: {
@@ -59,7 +69,7 @@ module HudLsa::Generators::RetiredLsaStub
   end
 
   def hic?
-    options&.with_indifferent_access&.dig(:lsa_scope).to_i == 3
+    options&.with_indifferent_access&.dig(:lsa_scope).to_i == HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
   end
 
   def filter

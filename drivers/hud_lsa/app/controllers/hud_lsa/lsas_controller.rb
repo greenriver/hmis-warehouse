@@ -15,14 +15,24 @@ module HudLsa
     before_action :set_reports, except: [:index, :running_all_questions]
 
     private def report_scope
-      report_source.lsa.where(report_name: possible_titles)
+      lsa_scope.where(report_name: possible_titles)
     end
 
-    # Broaden STI so history includes retired FY stubs, not just FY2026.
-    # Keeps .lsa / .hic scopes available from the FY2026 class.
+    # Query from the STI base so retired FY rows (siblings of Fy2026::Lsa) are valid.
     private def report_source
-      ::HudLsa::Generators::Fy2026::Lsa.unscope(where: :type).
-        where(type: possible_generator_classes.values.map(&:name))
+      ::HudReports::ReportInstance.where(type: possible_generator_classes.values.map(&:name))
+    end
+
+    private def lsa_scope
+      report_source.where("(options->>'lsa_scope')::integer != ? OR options->>'lsa_scope' IS NULL", hic_value)
+    end
+
+    private def hic_scope
+      report_source.where("(options->>'lsa_scope')::integer = ?", hic_value)
+    end
+
+    private def hic_value
+      HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
     end
 
     def new
