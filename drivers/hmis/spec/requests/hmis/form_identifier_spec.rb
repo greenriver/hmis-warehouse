@@ -15,10 +15,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
 
-  let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: Hmis::Form::Definition::RETIRED, title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
-  let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: Hmis::Form::Definition::RETIRED, title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
-  let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: Hmis::Form::Definition::PUBLISHED, title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
-  let!(:id1_draft) { create :hmis_form_definition, identifier: 'identifier_1', version: 3, status: Hmis::Form::Definition::DRAFT, title: 'The title of this assessment has changed!', role: 'CUSTOM_ASSESSMENT' }
+  let(:attrs) do
+    {
+      identifier: 'identifier_1',
+      role: 'CUSTOM_ASSESSMENT',
+      data_source: ds1,
+      title: 'This is an assessment!',
+    }
+  end
+
+  let!(:id1_retired1) { create :hmis_form_definition, version: 0, status: Hmis::Form::Definition::RETIRED, **attrs }
+  let!(:id1_retired2) { create :hmis_form_definition, version: 1, status: Hmis::Form::Definition::RETIRED, **attrs }
+  let!(:id1_published) { create :hmis_form_definition, version: 2, status: Hmis::Form::Definition::PUBLISHED, **attrs }
+  let!(:id1_draft) { create :hmis_form_definition, version: 3, status: Hmis::Form::Definition::DRAFT, **attrs, title: 'The title of this assessment has changed!' }
 
   before(:each) do
     hmis_login(user)
@@ -131,6 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         status: Hmis::Form::Definition::PUBLISHED,
         title: 'External form',
         role: 'EXTERNAL_FORM',
+        data_source: ds1,
       )
       remove_permissions(access_control, :can_administrate_config)
       response, result = post_graphql(identifier: 'external_form_identifier') { query }

@@ -15,6 +15,7 @@ OpenPath::Application.routes.draw do
       post :data_missing, on: :collection
       get :data_missing, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       get :download_intermediate, on: :member
     end
     resources :lsa_hics do
@@ -24,6 +25,7 @@ OpenPath::Application.routes.draw do
       post :data_missing, on: :collection
       get :data_missing, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       get :download_intermediate, on: :member
     end
   end
