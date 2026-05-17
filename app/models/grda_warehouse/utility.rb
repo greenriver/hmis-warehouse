@@ -106,7 +106,6 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ImportThreshold,
       GrdaWarehouse::ImportCsvMonitor,
       GrdaWarehouse::NotificationConfiguration,
-      GrdaWarehouse::Monitoring::ThresholdNotificationLog,
       Hmis::Hud::CustomDataElementDefinition,
       Hmis::Hud::CustomDataElement,
     ]

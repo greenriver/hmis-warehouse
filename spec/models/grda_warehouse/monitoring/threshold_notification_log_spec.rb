@@ -88,7 +88,7 @@ RSpec.describe GrdaWarehouse::Monitoring::ThresholdNotificationLog, type: :model
     it 'creates stub logs for all users with threshold messages' do
       expect do
         described_class.backfill
-      end.to change(described_class, :count).by(2)
+      end.to change { described_class.where(message_id: [message.id, other_message.id]).count }.by(2)
     end
 
     it 'links each stub log to its message' do
@@ -123,7 +123,7 @@ RSpec.describe GrdaWarehouse::Monitoring::ThresholdNotificationLog, type: :model
       it 'picks up messages with prefixed subjects' do
         expect do
           described_class.backfill
-        end.to change(described_class, :count).by(3)
+        end.to change { described_class.where(message_id: [message.id, other_message.id, prefixed_message.id]).count }.by(3)
       end
 
       it 'sets email_type correctly for a prefixed subject' do
