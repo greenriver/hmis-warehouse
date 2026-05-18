@@ -108,10 +108,7 @@ module Types
     end
 
     def redacted?
-      return false unless object.confidential
-      return false if own_file && current_user.can_manage_own_client_files_for?(object)
-
-      !current_user.can_view_any_confidential_client_files_for?(object)
+      !current_user.policy_for(object, policy_type: :file).can_view?
     end
   end
 end
