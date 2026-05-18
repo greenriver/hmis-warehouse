@@ -51,7 +51,7 @@ module Hmis
     scope :viewable_by, ->(user, for_usage:) do
       case for_usage
       when Hmis::Workspace::CE_REFERRALS
-        return none unless policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?
+        return none unless user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?
       else
         raise NotImplementedError, "viewable_by scope not implemented for applies_to: #{for_usage}"
       end
