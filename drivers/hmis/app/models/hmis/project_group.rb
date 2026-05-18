@@ -91,6 +91,10 @@ module Hmis
       @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria, data_source_id: data_source_id)
     end
 
+    def self.project_ids_for(id)
+      find_by(id: id)&.projects&.pluck(:id) || []
+    end
+
     def self.maintain_project_lists!
       find_each(&:maintain_projects!)
     end

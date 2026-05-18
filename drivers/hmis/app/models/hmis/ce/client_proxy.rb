@@ -45,12 +45,13 @@ module Hmis::Ce
 
     scope :eligible_for_project_type, ->(project_types) do
       joins(ce_match_candidates: { candidate_pool: { unit_groups: :project } }).
-        where(Hmis::Hud::Project.arel_table[:project_type].in(Array.wrap(project_types)))
+        where(Hmis::Hud::Project.arel_table[:project_type].in(Array.wrap(project_types))).
+        distinct
     end
 
     scope :eligible_for_project_group, ->(project_group_id) do
-      project_ids = Hmis::ProjectGroup.find_by(id: project_group_id)&.projects&.pluck(:id)
-      next none unless project_ids&.any?
+      project_ids = Hmis::ProjectGroup.project_ids_for(project_group_id)
+      next none if project_ids.empty?
 
       joins(ce_match_candidates: { candidate_pool: { unit_groups: :project } }).
         where(Hmis::Hud::Project.arel_table[:id].in(project_ids)).

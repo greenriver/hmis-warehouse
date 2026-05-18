@@ -41,8 +41,8 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   def with_project_group(scope)
     with_filter(scope, :project_group_id) do
-      project_ids = Hmis::ProjectGroup.find_by(id: input.project_group_id)&.projects&.pluck(:id)
-      next scope.none unless project_ids&.any?
+      project_ids = Hmis::ProjectGroup.project_ids_for(input.project_group_id)
+      next scope.none if project_ids.empty?
 
       scope.joins(:target_project).where(p_t[:id].in(project_ids))
     end
