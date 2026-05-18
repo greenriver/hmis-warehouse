@@ -137,7 +137,7 @@ module OpenPath
     Dir[root.join('drivers', '*', 'lib')].each do |driver_lib|
       next unless File.directory?(driver_lib)
 
-      config.eager_load_paths << driver_lib
+      config.autoload_paths << driver_lib
       tasks_dir = File.join(driver_lib, 'tasks')
       Rails.autoloaders.main.ignore(tasks_dir) if File.directory?(tasks_dir)
     end
