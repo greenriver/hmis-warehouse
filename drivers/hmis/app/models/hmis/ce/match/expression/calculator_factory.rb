@@ -4,6 +4,17 @@ require 'dentaku'
 
 module Hmis::Ce::Match::Expression
   module CalculatorFactory
+    # Shared parser calculator (registration list matches +build+) so callers that only parse
+    # (+#ast+) do not allocate a fresh +Dentaku::Calculator+ per expression.
+    PARSER_MUTEX = Mutex.new
+
+    def self.ast(expression)
+      PARSER_MUTEX.synchronize do
+        @parser_calculator ||= build
+        @parser_calculator.ast(expression)
+      end
+    end
+
     # calculator with custom functions
     def self.build
       calculator = Dentaku::Calculator.new(case_sensitive: true) # CDED keys are case sensitive, so Dentaku expressions should be too

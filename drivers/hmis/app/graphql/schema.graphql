@@ -949,6 +949,45 @@ type CeMatchRule {
   Rule applicability is limited to projects with these types
   """
   projectTypes: [ProjectType!]!
+
+  """
+  Expression translated into a structured clause list; null if the expression is too complex to translate
+  """
+  structuredExpression: CeMatchRuleStructuredExpression
+}
+
+enum CeMatchRuleBooleanOperator {
+  AND
+  OR
+}
+
+type CeMatchRuleClause {
+  """
+  The comparison operator to apply to the field and value, such as EQ
+  """
+  comparator: CeMatchRuleComparator!
+
+  """
+  The name of the field for comparison, such as client_age or cde.custom_assessment.my_score
+  """
+  field: String!
+
+  """
+  The value to compare the field against, such as 18 or "1 Bed". JSON scalar
+  (e.g. integer, float, string, boolean, or null). Not a list or nested object.
+  """
+  value: JSON
+}
+
+enum CeMatchRuleComparator {
+  EQ
+  EXCLUDES
+  GT
+  GTE
+  INCLUDES
+  LT
+  LTE
+  NOT_EQ
 }
 
 enum CeMatchRuleOwner {
@@ -976,6 +1015,11 @@ enum CeMatchRuleOwner {
   Unit Group
   """
   UNIT_GROUP
+}
+
+type CeMatchRuleStructuredExpression {
+  clauses: [CeMatchRuleClause!]!
+  operator: CeMatchRuleBooleanOperator!
 }
 
 type CeMatchValue {
