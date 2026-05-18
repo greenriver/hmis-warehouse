@@ -120,9 +120,10 @@
         Click on a bar to see the details of the threshold crossings for that day.
 
       - if @chart_data.any?
-        - help_text = 'For import CSV monitoring, only the first threshold crossing in a day is captured.'
         - if @metric_definition.category.to_s == 'csv_import'
-          - help_text = 'For max additions and min removals, only the "New Value" is relevant.' + help_text
+          - help_text = 'For count increase/decrease thresholds: Previous Value, New Value, and Change all reflect the total row count and directly correspond to the threshold condition. For min additions/max removals thresholds: New Value shows the total row count in the file; Previous Value and Change reflect the overall count drift between imports, not the additions or removals that triggered the alert. Only the first threshold crossing per data source per day is captured.'
+        - else
+          - help_text = 'Previous Value is the metric\'s prior value; New Value is the value at the time of the threshold crossing; Change is the difference between them.'
         - chart_data_attrs = { controller: 'metric-threshold-chart', metric_threshold_chart_data_value: @chart_data.to_json, metric_threshold_chart_metric_name_value: @metric_definition.display_name, metric_threshold_chart_entity_label_value: @entity_label, metric_threshold_chart_metric_id_value: @metric_definition.id, metric_threshold_chart_details_help_text_value: help_text }
         - chart_data_attrs[:metric_threshold_chart_entity_id_value] = @entity_id_filter if @entity_id_filter.present?
         .metric-threshold-chart.pb-4{ data: chart_data_attrs }

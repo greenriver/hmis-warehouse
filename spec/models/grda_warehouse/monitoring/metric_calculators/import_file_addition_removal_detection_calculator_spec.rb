@@ -6,6 +6,24 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::ImportFileAdditionR
   let(:data_source) { create(:grda_warehouse_data_source) }
 
   describe '.exceeded?' do
+    context 'with min_additions_threshold of 0' do
+      let(:monitor) do
+        create(
+          :grda_warehouse_import_csv_monitor,
+          data_source: data_source,
+          csv_file_name: 'Services.csv',
+          min_additions_threshold: 0,
+          count_increase_threshold: nil,
+          count_decrease_threshold: nil,
+        )
+      end
+
+      it 'never triggers even when no rows are added' do
+        current = { pre_processed: 1000, added: 0, removed: 0 }
+        expect(described_class.exceeded?(monitor: monitor, current: current)).to be false
+      end
+    end
+
     context 'with min_additions_threshold' do
       let(:monitor) do
         create(:grda_warehouse_import_csv_monitor,
@@ -29,6 +47,29 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::ImportFileAdditionR
 
       it 'returns false when added exceeds threshold' do
         current = { pre_processed: 1000, added: 600, removed: 0 }
+        expect(described_class.exceeded?(monitor: monitor, current: current)).to be false
+      end
+    end
+
+    context 'with max_removals_threshold of 0' do
+      let(:monitor) do
+        create(
+          :grda_warehouse_import_csv_monitor,
+          data_source: data_source,
+          csv_file_name: 'Enrollment.csv',
+          max_removals_threshold: 0,
+          count_increase_threshold: nil,
+          count_decrease_threshold: nil,
+        )
+      end
+
+      it 'triggers when any rows are removed' do
+        current = { pre_processed: 999, added: 0, removed: 1 }
+        expect(described_class.exceeded?(monitor: monitor, current: current)).to include(reason: :max_removals)
+      end
+
+      it 'does not trigger when no rows are removed' do
+        current = { pre_processed: 1000, added: 0, removed: 0 }
         expect(described_class.exceeded?(monitor: monitor, current: current)).to be false
       end
     end

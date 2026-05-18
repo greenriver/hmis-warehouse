@@ -414,6 +414,167 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
   end
 
+  describe 'CsvRowCountMetricCalculator integration' do
+    let(:csv_entity_type) { 'GrdaWarehouse::DataSource' }
+    let(:data_source) { create(:grda_warehouse_data_source) }
+
+    let!(:csv_metric_definition) do
+      create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'csv_enrollment_count',
+        entity_type: csv_entity_type,
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::CsvRowCountMetricCalculator',
+        subtype: 'Enrollment.csv',
+        count_change_threshold: 1,
+        active: true,
+      )
+    end
+
+    def run_csv_collection(entity_ids: [data_source.id])
+      described_class.run_daily_collection(
+        entity_type: csv_entity_type,
+        calculation_date: calculation_date,
+        entity_ids: entity_ids,
+        metric_names: ['csv_enrollment_count'],
+      )
+    end
+
+    context 'when an import log exists with pre_processed data' do
+      before do
+        create(
+          :hmis_csv_importer_log,
+          data_source: data_source,
+          status: 'complete',
+          completed_at: calculation_date.end_of_day - 1.minute,
+          summary: { 'Enrollment.csv' => { 'pre_processed' => 500 } },
+        )
+      end
+
+      it 'creates a snapshot for the data source' do
+        expect { run_csv_collection }.
+          to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
+
+        snapshot = GrdaWarehouse::Monitoring::MetricSnapshot.
+          where(entity_type: csv_entity_type, entity_id: data_source.id).
+          for_metric(csv_metric_definition).
+          first
+
+        expect(snapshot).to be_present
+        expect(snapshot.initial_value).to eq(500)
+        expect(snapshot.current_value).to eq(500)
+        expect(snapshot.initial_observation_date).to eq(calculation_date)
+      end
+    end
+
+    context 'when the value changes beyond the threshold' do
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity_type: csv_entity_type,
+          entity_id: data_source.id,
+          metric_definition: csv_metric_definition,
+          initial_observation_date: 1.day.ago,
+          current_observation_date: 1.day.ago,
+          initial_value: 500,
+          current_value: 500,
+        )
+        create(
+          :hmis_csv_importer_log,
+          data_source: data_source,
+          status: 'complete',
+          completed_at: calculation_date.end_of_day - 1.minute,
+          summary: { 'Enrollment.csv' => { 'pre_processed' => 510 } },
+        )
+      end
+
+      it 'creates a new snapshot, enabling crossing detection' do
+        expect { run_csv_collection }.
+          to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
+
+        new_snapshot = GrdaWarehouse::Monitoring::MetricSnapshot.
+          where(entity_type: csv_entity_type, entity_id: data_source.id).
+          for_metric(csv_metric_definition).
+          where(initial_observation_date: calculation_date).
+          first
+
+        expect(new_snapshot).to be_present
+        expect(new_snapshot.initial_value).to eq(510)
+      end
+    end
+
+    context 'when no import log exists for the data source' do
+      it 'does not create a snapshot' do
+        expect { run_csv_collection }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+    end
+
+    context 'when the metric: argument is not forwarded (regression guard)' do
+      before do
+        create(
+          :hmis_csv_importer_log,
+          data_source: data_source,
+          status: 'complete',
+          completed_at: calculation_date.end_of_day - 1.minute,
+          summary: { 'Enrollment.csv' => { 'pre_processed' => 200 } },
+        )
+      end
+
+      it 'calculator receives the metric keyword and returns data' do
+        expect(
+          GrdaWarehouse::Monitoring::MetricCalculators::CsvRowCountMetricCalculator,
+        ).to receive(:calculate_batch).
+          with(anything, anything, metric: csv_metric_definition).
+          and_call_original
+
+        run_csv_collection
+      end
+    end
+  end
+
+  describe 'stale baseline handling' do
+    # Regression guard: load_current_snapshots_for_batch must use ..@calculation_date - 1.day
+    # (upper-bound range). The wrong direction (@calculation_date - 1.day..) would make
+    # months-old snapshots invisible, causing them to be treated as "first time" and creating
+    # spurious new snapshots that trigger false crossing notifications.
+
+    let!(:stale_snapshot) do
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        entity: client1,
+        metric_definition: metric_definition,
+        initial_observation_date: 3.months.ago,
+        current_observation_date: 3.months.ago,
+        initial_value: 100,
+        current_value: 100,
+      )
+    end
+
+    def run_stale_collection
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id],
+        metric_names: ['test_metric'],
+      )
+    end
+
+    it 'finds a months-old snapshot as the current baseline' do
+      # processed1 has 100 days_homeless (unchanged). If the stale snapshot were invisible
+      # the collector would treat client1 as "first time" and create a new snapshot (+1).
+      # With the fix, it finds the baseline and updates in place — count unchanged.
+      expect { run_stale_collection }.
+        not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+    end
+
+    it 'updates the stale snapshot observation date, preventing spurious crossings' do
+      run_stale_collection
+      stale_snapshot.reload
+      expect(stale_snapshot.current_observation_date).to eq(calculation_date)
+      expect(stale_snapshot.current_value).to eq(100)
+    end
+  end
+
   describe 'cleanup old snapshots' do
     let!(:old_snapshot) do
       create(
@@ -440,6 +601,10 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
 
     it 'deletes snapshots older than 3 years' do
+      # The recent_snapshot (1 year old, initial_value: 75) is now found as the current
+      # baseline regardless of age (no date filter). The calculated value (100) changes
+      # by 25, which is below the count_change_threshold of 30, so no new snapshot is
+      # created — only the old 4-year snapshot is deleted. Net count change = -1.
       expect do
         described_class.run_daily_collection(
           entity_type: entity_type,
@@ -447,7 +612,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           entity_ids: [client1.id],
           metric_names: ['test_metric'],
         )
-      end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(0) # -1 old + 1 new = 0
+      end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(-1)
 
       expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(id: old_snapshot.id).exists?).to be false
       expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(id: recent_snapshot.id).exists?).to be true
