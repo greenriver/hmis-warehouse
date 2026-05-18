@@ -21,7 +21,7 @@ module Hmis
     protected
 
     def redacted?(file)
-      !current_hmis_user.policy_for(file, policy_type: :file).can_view?
+      !current_hmis_user.policy_for(file, policy_type: :hmis_file).can_view?
     end
 
     # returns the direct url to the active storage file with a short expiration

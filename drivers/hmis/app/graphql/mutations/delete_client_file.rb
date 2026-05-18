@@ -14,7 +14,7 @@ module Mutations
 
     def resolve(file_id:)
       file = Hmis::File.find(file_id)
-      access_denied! unless file && current_user.policy_for(file, policy_type: :file).can_delete?
+      access_denied! unless file && current_user.policy_for(file, policy_type: :hmis_file).can_delete?
 
       file.destroy!
       {

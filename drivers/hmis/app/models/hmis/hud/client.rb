@@ -122,7 +122,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # which is checked for separately by the File#viewable_by scope.
   scope :files_viewable_by, ->(user) do
     # optimization: return early if the user has NO access to view files in the current data source
-    return none unless user.policy_for(Hmis::File, policy_type: :file).can_index?
+    return none unless user.policy_for(Hmis::File, policy_type: :hmis_file).can_index?
 
     project_ids = Hmis::Hud::Project.
       # User must be able to view clients at the project

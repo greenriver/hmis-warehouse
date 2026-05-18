@@ -73,7 +73,7 @@ class Hmis::File < GrdaWarehouse::File
     # Users can see files they uploaded if they have can_manage_own_client_files, even if they lack broader permissions.
     # can_manage_own_client_files is a global permission. If you have it anywhere in the data source,
     # you can manage your own files on any client you can view (even if you don't have it in any of that client's projects).
-    if user.policy_for(Hmis::File, policy_type: :file).can_manage_own_client_files?
+    if user.policy_for(Hmis::File, policy_type: :hmis_file).can_manage_own_client_files?
       own_scope = Hmis::File.
         left_outer_joins(:client). # same left_outer_joins as above, in order to pass structurally compatible relationship to #or
         left_outer_joins(:enrollment).

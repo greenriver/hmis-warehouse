@@ -4,7 +4,7 @@ This document captures non-obvious behaviors of HMIS file permissions. See also 
 
 Relevant code:
 - `drivers/hmis/app/models/hmis/file.rb` — the `File#viewable_by` scope
-- `drivers/hmis/app/models/hmis/auth_policies/file_policy.rb` — per-instance and global file policy checks
+- `drivers/hmis/app/models/hmis/auth_policies/hmis_file_policy.rb` — per-instance and global file policy checks
 
 ## Files can be attached to either a Client or an Enrollment
 

@@ -30,7 +30,7 @@ module Types
     hud_field :user, Application::User, null: true
 
     access_field do
-      define_method(:policy) { @policy ||= policy_for(object, policy_type: :file) }
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_file) }
 
       bool_field(:can_manage) { policy.can_manage? }
     end
@@ -108,7 +108,7 @@ module Types
     end
 
     def redacted?
-      !current_user.policy_for(object, policy_type: :file).can_view?
+      !current_user.policy_for(object, policy_type: :hmis_file).can_view?
     end
   end
 end

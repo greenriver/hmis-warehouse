@@ -9,7 +9,7 @@
 require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 
-RSpec.describe Hmis::AuthPolicies::FilePolicy, type: :model do
+RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, data_source: data_source) }
@@ -18,7 +18,7 @@ RSpec.describe Hmis::AuthPolicies::FilePolicy, type: :model do
   let(:other_user) { create(:hmis_user, data_source: data_source) }
 
   def file_policy(file)
-    user.policy_for(file, policy_type: :file)
+    user.policy_for(file, policy_type: :hmis_file)
   end
 
   describe 'Instance policy' do
@@ -120,7 +120,7 @@ RSpec.describe Hmis::AuthPolicies::FilePolicy, type: :model do
   end
 
   describe 'Global policy' do
-    let(:policy) { user.policy_for(Hmis::File, policy_type: :file) }
+    let(:policy) { user.policy_for(Hmis::File, policy_type: :hmis_file) }
 
     describe '#can_manage_own_client_files?' do
       it 'returns false without access' do
