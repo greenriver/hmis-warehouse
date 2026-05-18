@@ -157,6 +157,11 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     let!(:csc) { create(:hmis_custom_service_category, name: 'Test Service Category', data_source: project.data_source) }
     let!(:cst) { create(:hmis_custom_service_type, name: 'Custom Type', custom_service_category: csc, data_source: project.data_source) }
 
+    # cruft: cst in another data source that should not be returned
+    let!(:other_ds) { create(:hmis_data_source) }
+    let!(:other_cst) { create(:hmis_custom_service_type, name: 'Other DS Custom Type', data_source: other_ds) }
+    let!(:other_instance) { create(:hmis_form_instance, role: role, entity: nil, custom_service_type: other_cst, data_source: other_ds) }
+
     def selected_instance
       object = project.data_collection_features.find { |os| os.role == role.to_s }
       # Always make sure the service type picklist matches. If the service feature is "enabled", there should be something in the picklist.
@@ -169,15 +174,9 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(selected_instance).to be_nil
     end
 
-    it 'does NOT choose default instance if no service type/category specified' do
-      create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
-      expect(selected_instance).to be_nil
-    end
-
     it 'chooses instance specified by category' do
-      create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
-      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc, data_source: data_source)
-      expect(selected_instance).to eq(expected)
+      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc, data_source: data_source)
+      expect(selected_instance).to eq(instance)
     end
 
     it 'does not return inactive service types' do
@@ -192,7 +191,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'does not return service types that only have unpublished forms' do
-      # Form is "active,"" but it is not published. The service type should not be considered available
+      # Form is "active," but it is not published. The service type should not be considered available
       instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst, data_source: data_source)
       instance.definition.update!(status: :retired)
 

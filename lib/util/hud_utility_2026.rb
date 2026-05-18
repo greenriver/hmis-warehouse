@@ -730,7 +730,11 @@ module HudUtility2026
       test_codes['ZZ-000'] = 'Test CoC ZZ-000'
       test_codes['ZZ-100'] = 'Test CoC ZZ-100'
       test_codes['ZZ-999'] = 'Test CoC ZZ-999'
-      (0..100).to_a.each do |n|
+      # Must exceed the number of :hud_project_coc factory instances created across the
+      # full test suite. That factory uses a global FactoryBot sequence for CoCCode
+      # (XX-001, XX-002, …) that never resets, so lookup_coc associations return nil
+      # once the sequence passes the upper bound here.
+      (0..500).to_a.each do |n|
         test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
       end
     end
