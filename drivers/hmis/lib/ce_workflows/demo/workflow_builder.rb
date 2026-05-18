@@ -147,7 +147,6 @@ module CeWorkflows::Demo
       # Wire up flow
       start_event.connect_to!(initial_review_task) unless start_event.outflows.exists?(target_node: initial_review_task)
       initial_review_task.connect_to!(initial_review_gateway) unless initial_review_task.outflows.exists?(target_node: initial_review_gateway)
-      # Exclusive gateway: one default (no condition) outflow is required — see WorkflowTemplateValidator.
       initial_review_gateway.connect_to!(decline_event, condition: 'decision = "decline"') unless initial_review_gateway.outflows.exists?(target_node: decline_event)
       initial_review_gateway.connect_to!(provider_decision_task) unless initial_review_gateway.outflows.exists?(target_node: provider_decision_task)
 

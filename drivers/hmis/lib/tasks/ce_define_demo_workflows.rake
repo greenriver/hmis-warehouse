@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 namespace :ce_define_demo_workflows do
-  desc 'Creates and publishes standard demo CE workflow templates and form definitions.'
+  desc 'Creates and publishes a Standard Referral CE workflow template and its form definitions.'
   # Usage:
   #   rails driver:hmis:ce_define_demo_workflows:create[DATA_SOURCE_ID]   # explicit data source
   #   rails driver:hmis:ce_define_demo_workflows:create                   # expects sole HMIS data source
@@ -22,10 +22,11 @@ namespace :ce_define_demo_workflows do
     end
 
     if ENV['FORCE_RECREATE']
+      # Both these destructive methods raise in prod
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data('standard_referral')
       CeWorkflows::Shared::CeBuilderUtils.delete_form_definitions(CeWorkflows::Demo::WorkflowBuilder::FORMS.values, data_source.id)
       puts 'Re-seeding form definitions...'
-      HmisUtil::JsonForms.new(env_key: 'demo', data_source_id: data_source.id).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
+      HmisUtil::JsonForms.new(data_source_id: data_source.id).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
     end
 
     builder = CeWorkflows::Demo::WorkflowBuilder.new(data_source)
