@@ -143,5 +143,6 @@
 %h2#section-completed Completed
 .well
   = f.input :completed_on, as: :date_picker, label: 'Date of completion'
+  %p.text-muted To generate a Qualifying Activity for completing the Comprehensive Assessment, push the "Save" button.
 .form__actions.form__actions--right.mb-6
   = f.submit 'Save', class: 'btn btn-primary'

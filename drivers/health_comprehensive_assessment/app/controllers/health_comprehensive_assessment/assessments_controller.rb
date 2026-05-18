@@ -32,11 +32,13 @@ module HealthComprehensiveAssessment
     def update
       prior_completion = @assessment.completed_on
       @assessment.update(ca_params)
-      # Generate a completed QA if the assessment is newly completed, or the completion date was changed
-      @patient.qa_factory_factory.complete_ca(@assessment) if @assessment.completed_on.present? && @assessment.completed_on != prior_completion
+
       if request.xhr?
         render json: { status: 'success' }
       else
+        # Generate a completed QA if the assessment is newly completed, or the completion date was changed
+        # Only update QA if the save button is pushed
+        @patient.qa_factory_factory.complete_ca(@assessment) if @assessment.completed_on.present? && @assessment.completed_on != prior_completion
         respond_with @assessment, location: client_health_careplans_path(@client)
       end
     end

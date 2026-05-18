@@ -56,14 +56,14 @@ module HealthPctp
 
       @careplan.save
 
-      # Generate action QAs if the action is newly completed, or the prior date was changed
-      @patient.qa_factory_factory.complete_careplan(@careplan) if @careplan.completed? && @careplan.patient_signed_on != prior_completion
-      @patient.qa_factory_factory.review_careplan(@careplan) if @careplan.reviewed? && @careplan.reviewed_by_ccm_on != prior_review
-      @patient.qa_factory_factory.approve_careplan(@careplan) if @careplan.approved? && @careplan.reviewed_by_rn_on != prior_approval
-
       if request.xhr?
         render json: { status: 'success' }
       else
+        # Generate action QAs if the action is newly completed, or the prior date was changed
+        @patient.qa_factory_factory.complete_careplan(@careplan) if @careplan.completed? && @careplan.patient_signed_on != prior_completion
+        @patient.qa_factory_factory.review_careplan(@careplan) if @careplan.reviewed? && @careplan.reviewed_by_ccm_on != prior_review
+        @patient.qa_factory_factory.approve_careplan(@careplan) if @careplan.approved? && @careplan.reviewed_by_rn_on != prior_approval
+
         respond_with @careplan, location: client_health_careplans_path(@client)
       end
     end
