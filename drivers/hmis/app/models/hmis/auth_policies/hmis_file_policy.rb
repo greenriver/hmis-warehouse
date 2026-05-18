@@ -78,5 +78,5 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
 end
 
 # todo @martha - what happens if you try to upload a confidential file, but you don't have access?
-# - currently in QA?
-# - in the new code? what should happen?
+# both on this branch and on main: if you can upload a file, the UI does not prevent you from marking it confidential,
+# even if that means you then can't view the file

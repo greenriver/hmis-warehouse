@@ -10,12 +10,12 @@ Relevant code:
 
 `Hmis::File` belongs to a `Client` (currently always present for HMIS files, even though the DB column is nullable) and optionally to an `Enrollment`. This drives which permissions apply:
 
-- **Enrollment-attached files:** permissions come from the enrollment's project. TODO @martha - this is not currently true, needs more work if desired
+- **Enrollment-attached files:** permissions come from the enrollment's project. TODO @martha - under discussion
 - **Client-only files:** permissions come from the client, which aggregates permissions across the projects the client is enrolled in, falling back to global permissions for unenrolled clients.
 
 ## Confidential files are listable but not readable
 
-The `File#viewable_by` scope intentionally includes confidential files even when the user lacks `can_view_any_confidential_client_files`. Users see that a confidential file exists, but cannot read it. The per-instance `can_view?` check enforces the read restriction. TODO @martha what about can_view_unredacted?
+The `File#viewable_by` scope intentionally includes confidential files even when the user lacks `can_view_any_confidential_client_files`. Users see that a confidential file exists, but cannot read it. The per-instance `can_view?` check enforces the read restriction.
 
 ## `can_manage_own_client_files` is a global permission
 
