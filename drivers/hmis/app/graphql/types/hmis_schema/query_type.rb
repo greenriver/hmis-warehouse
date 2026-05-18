@@ -616,11 +616,7 @@ module Types
       argument :applies_to, HmisSchema::Enums::WorkspaceAppliesTo, required: true
     end
     def workspaces(applies_to:)
-      Hmis::Workspace.
-        active.
-        for_usage(applies_to).
-        where(data_source_id: current_user.hmis_data_source_id).
-        ordered
+      Hmis::Workspace.active.viewable_by(current_user, for_usage: applies_to).ordered
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false

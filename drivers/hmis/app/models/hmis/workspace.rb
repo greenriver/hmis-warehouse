@@ -19,6 +19,9 @@ module Hmis
   class Workspace < Hmis::HmisBase
     self.table_name = 'hmis_workspaces'
 
+    acts_as_paranoid
+    has_paper_trail
+
     CE_REFERRALS = 'ce_referrals'
     APPLIES_TO = [
       CE_REFERRALS,
@@ -37,6 +40,24 @@ module Hmis
     scope :active, -> { where(active: true) }
     scope :for_usage, ->(applies_to) { where(applies_to: applies_to) }
     scope :ordered, -> { order(:sort_order, :id) }
+
+    # Returns viewable workspaces for the given usage, belonging to the user's data source.
+    #
+    # ce_referrals behavior:
+    # - Usage-level index permission only; does not filter by project-group referral access.
+    # - TODO(#9234): narrow to workspaces where the user can view referrals for at least one
+    #   project in the group (ce_referrals). Without that, users may see workspaces whose tables
+    #   are always empty.
+    scope :viewable_by, ->(user, for_usage:) do
+      case for_usage
+      when Hmis::Workspace::CE_REFERRALS
+        return none unless policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?
+      else
+        raise NotImplementedError, "viewable_by scope not implemented for applies_to: #{for_usage}"
+      end
+
+      for_usage(for_usage).where(data_source_id: user.hmis_data_source_id)
+    end
 
     private
 
