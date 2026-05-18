@@ -173,7 +173,7 @@ module Types
       can :edit_clients, field_name: :can_edit_client
 
       bool_field(:can_index_files) { policy.can_index_files? }
-      bool_field(:can_upload_client_files) { policy.can_upload_files? }
+      bool_field(:can_upload_client_files) { policy.can_create_file? }
 
       # Deprecated
       can :manage_any_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'

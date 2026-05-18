@@ -67,7 +67,7 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
         global_permissions.include?(:can_view_any_confidential_client_files)
     end
 
-    # Note, there is no "can_create?" permission on the global HmisFile policy; use the instance HmisClient policy's can_upload_files? instead
+    # Note, there is no "can_create?" permission on the global HmisFile policy; use the instance HmisClient policy's can_create_file? instead
 
     protected
 

@@ -40,10 +40,10 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
         client_permissions.include?(:can_view_any_confidential_client_files)
     end
 
-    def can_upload_files?
+    def can_create_file?
       return false unless can_index_files?
 
-      # I can upload files if I can manage "any" (meaning "all" in this case) files for this client,
+      # I can create a file if I can manage "any" (meaning "all" in this case) files for this client,
       # OR if I can manage my own files (global perm)
       client_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
     end

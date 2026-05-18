@@ -121,6 +121,51 @@ RSpec.describe 'SubmitForm for File', type: :request do
         end.to change(file_owned_by_other, :enrollment_id).to(e1.id)
       end
     end
+
+    # todo @martha - discuss and settle on desired behavior
+    # Is this a bug? The following tests fail on main / succeed on this branch
+    # BUT if this is the desired behavior, there is more work to do with the enrollments dropdown.
+    #
+    # Current behavior:
+    # When the user can manage files for the client, but selects an enrollment for which they can't manage files,
+    # the file upload still succeeds, and it is successfully associated with that enrollment.
+    # The file form definition uses the ENROLLMENTS_FOR_CLIENT pick list option, which is scoped to enrollments the current user can view,
+    # but it doesn't care about file related permissions.
+    # Currently reproducible in QA: it's possible to upload a file which you immediately don't have permission to view.
+    #
+    # Expected behavior (I think):
+    # The enrollment dropdown only includes enrollments where the user can view AND manage files.
+    # (OR all viewable enrollments, if the user has "can_manage_own_client_files" which is a global permission)
+    # The file upload should fail with "not authorized" if trying to upload a file for an enrollment where the user can't manage files.
+    context 'when user has can_manage_any_client_files for the client, but not the enrollment' do
+      # user can manage and view files at p1
+      let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_manage_any_client_files, :can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_enrollment_details, :can_view_project]) }
+
+      # user can only view clients and enrollments at p2, and can view files but not manage them
+      let!(:p2) { create :hmis_hud_project, data_source: ds1 }
+      let!(:access_control_2) { create_access_control(hmis_user, p2, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_enrollment_details, :can_view_project]) }
+      let!(:e2) { create :hmis_hud_enrollment, client: c1, project: p2, data_source: ds1 }
+
+      # file is associated with enrollment at p2
+      let!(:file1) { create :file, client: c1, enrollment: e2, blob: blob, tags: [tag] }
+
+      let(:hud_values) do
+        {
+          'confidential' => false,
+          'enrollmentId' => e2.id,
+          'tags' => [tag.id.to_s],
+          'fileBlobId' => blob.signed_id,
+        }
+      end
+
+      it 'does not allow creating a file' do
+        expect_gql_error submit_form(input, expect_raise: true), message: /not authorized/
+      end
+
+      it 'does not allow updating a file' do
+        expect_gql_error submit_form(input.merge(record_id: file1.id), expect_raise: true), message: /not authorized/
+      end
+    end
   end
 end
 

@@ -29,7 +29,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     it 'denies unconfigured permissions' do
       expect(policy.can_delete?).to be false
       expect(policy.can_manage_alerts?).to be false
-      expect(policy.can_upload_files?).to be false
+      expect(policy.can_create_file?).to be false
     end
   end
 
@@ -41,7 +41,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       expect(policy.can_view_name?).to be false
       expect(policy.can_manage_alerts?).to be false
       expect(policy.can_index_files?).to be false
-      expect(policy.can_upload_files?).to be false
+      expect(policy.can_create_file?).to be false
     end
   end
 
@@ -124,12 +124,12 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
     end
 
-    describe '#can_upload_files?' do
+    describe '#can_create_file?' do
       context 'when user has can_manage_own_client_files' do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_manage_own_client_files]) }
 
         it 'returns true' do
-          expect(policy.can_upload_files?).to be true
+          expect(policy.can_create_file?).to be true
         end
       end
 
@@ -137,7 +137,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files]) }
 
         it 'returns false' do
-          expect(policy.can_upload_files?).to be false
+          expect(policy.can_create_file?).to be false
         end
       end
 
@@ -145,7 +145,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files]) }
 
         it 'returns true' do
-          expect(policy.can_upload_files?).to be true
+          expect(policy.can_create_file?).to be true
         end
       end
 
@@ -153,7 +153,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_manage_any_client_files]) }
 
         it 'returns false' do
-          expect(policy.can_upload_files?).to be false
+          expect(policy.can_create_file?).to be false
         end
       end
     end
