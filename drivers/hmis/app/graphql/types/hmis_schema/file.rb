@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::File < Types::BaseObject
+    # Object is a Hmis::File
     description 'File'
     field :id, ID, null: false
     field :content_type, String, null: true
@@ -28,7 +29,11 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     hud_field :user, Application::User, null: true
 
-    # Object is a Hmis::File
+    access_field do
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :file) }
+
+      bool_field(:can_manage) { policy.can_manage? }
+    end
 
     def name
       unless_redacted('Confidential File') { object.name || "File #{object.id}" }

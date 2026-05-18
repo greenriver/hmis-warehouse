@@ -32,6 +32,22 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_manage_scan_cards)
     end
 
+    def can_index_files?
+      # I can index files if I can manage my own files (global perm),
+      # or can view nonconfidential or confidential files for this client
+      global_permissions.include?(:can_manage_own_client_files) ||
+        client_permissions.include?(:can_view_any_nonconfidential_client_files) ||
+        client_permissions.include?(:can_view_any_confidential_client_files)
+    end
+
+    def can_upload_files?
+      return false unless can_index_files?
+
+      # I can upload files if I can manage "any" (meaning "all" in this case) files for this client,
+      # OR if I can manage my own files (global perm)
+      client_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
+    end
+
     protected
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Client)
