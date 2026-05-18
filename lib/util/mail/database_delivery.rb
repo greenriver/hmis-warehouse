@@ -7,6 +7,11 @@ module Mail
       @parameters = {}.merge(parameters)
     end
 
+    # mail gem calls delivery_method.settings[:return_response] after deliver! completes
+    def settings
+      @parameters
+    end
+
     def deliver!(mail)
       is_html, body = content_and_type(mail)
       subject = ApplicationMailer.remove_prefix(mail.subject)
