@@ -65,6 +65,8 @@ module Health
               errors << conflict_message(transaction)
             end
           end
+        rescue Health::MedicaidIdConflict
+          errors << conflict_message(transaction)
         end
 
         enrollment.disenrollments.each do |transaction|
