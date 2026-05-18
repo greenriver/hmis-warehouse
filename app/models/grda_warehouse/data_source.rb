@@ -9,7 +9,8 @@
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include Hmis::GrdaWarehouse::DataSourceExtension
   include EntityAccess
   include ArelHelper
   include Memery
@@ -844,6 +845,4 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
     memoize :warehouse_id
   end
-
-  include RailsDrivers::Extensions
 end

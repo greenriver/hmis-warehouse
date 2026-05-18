@@ -11,7 +11,9 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::HmisParticipation
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::HmisParticipationExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::HmisParticipationExtension
 
     attr_accessor :source_id
 

@@ -14,7 +14,11 @@ module GrdaWarehouse::Hud
     include ::HmisStructure::IncomeBenefit
     include ::HmisStructure::Shared
     include Memery
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::IncomeBenefitExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::IncomeBenefitExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::IncomeBenefitExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::IncomeBenefitExtension
 
     attr_accessor :source_id
 

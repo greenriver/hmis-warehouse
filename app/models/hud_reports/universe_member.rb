@@ -10,7 +10,14 @@
 module HudReports
   class UniverseMember < GrdaWarehouseBase
     acts_as_paranoid
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HopwaCaper::HudReports::UniverseMemberExtension
+    include HudApr::HudReports::UniverseMemberExtension
+    include HudDataQualityReport::HudReports::UniverseMemberExtension
+    include HudHic::HudReports::UniverseMemberExtension
+    include HudPathReport::HudReports::UniverseMemberExtension
+    include HudPit::HudReports::UniverseMemberExtension
+    include HudSpmReport::HudReports::UniverseMemberExtension
 
     include HasPiiAttributes
     pii_attr :first_name
