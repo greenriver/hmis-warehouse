@@ -412,7 +412,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # Extensions from drivers — see ADR 0007
-  include ClientLocationHistory::Hmis::Hud::ClientExtension
+  include ::ClientLocationHistory::Hmis::Hud::ClientExtension
   include HmisExternalApis::Hmis::Hud::ClientExtension
 
   # The warehouse uses the source hash to determine if the record has changed and to maintain the

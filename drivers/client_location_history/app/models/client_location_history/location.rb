@@ -84,6 +84,6 @@ module ClientLocationHistory
     end
 
     # Extensions from drivers — see ADR 0007
-    include Hmis::ClientLocationHistory::LocationExtension
+    include ::Hmis::ClientLocationHistory::LocationExtension
   end
 end
