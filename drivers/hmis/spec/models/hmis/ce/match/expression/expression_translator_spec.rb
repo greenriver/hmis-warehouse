@@ -85,13 +85,6 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
     end
   end
 
-  describe '.from_structured' do
-    it 'builds Dentaku expression for a structured AND rule' do
-      structured = described_class.to_structured('current_age >= 18 AND veteran = TRUE')
-      expect(described_class.from_structured(structured)).to eq('current_age >= 18 AND veteran = TRUE')
-    end
-  end
-
   describe 'round-trip' do
     it 'preserves structured form for AND expressions' do
       original = 'current_age >= 18 AND veteran = TRUE'

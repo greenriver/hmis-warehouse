@@ -35,24 +35,26 @@ module Hmis::Ce::Match::Expression
       GTE: '>=',
     }.freeze
 
+    FUNCTION_COMPARATORS = {
+      'INCLUDES' => :INCLUDES,
+      'EXCLUDES' => :EXCLUDES,
+    }.freeze
+
     class << self
-      # Parse +expression+ into a StructuredExpression, or +nil+ if it is blank, invalid, or not a flat AND/OR list of supported clauses.
       def to_structured(expression)
         return if expression.blank?
 
         ast = CalculatorFactory.build.ast(expression.strip)
-        operator, leaves = boolean_leaves(ast)
-        return unless leaves
+        operator, nodes = clause_nodes(ast)
 
-        clauses = leaves.map { |node| clause_from_ast(node) }.compact
-        return if clauses.size != leaves.size
+        clauses = nodes.map { |node| clause_from_ast(node) }
+        return if clauses.any?(&:nil?)
 
         StructuredExpression.new(operator: operator, clauses: clauses)
       rescue Dentaku::Error
         nil
       end
 
-      # Build a Dentaku expression string from a StructuredExpression (+AND+ / +OR+ and comparable clauses only).
       def from_structured(structured_expression)
         joiner = structured_expression.operator == :OR ? ' OR ' : ' AND '
         structured_expression.clauses.map { |c| clause_to_expression(c) }.join(joiner)
@@ -60,122 +62,115 @@ module Hmis::Ce::Match::Expression
 
       private
 
-      # Returns +[:AND|:OR, leaf_ast_nodes]+, or +[:AND, [ast]]+ when the root is not +And+/+Or+.
-      def boolean_leaves(ast)
-        if ast.is_a?(Dentaku::AST::And)
-          [:AND, flatten_combinator(ast, Dentaku::AST::And)]
-        elsif ast.is_a?(Dentaku::AST::Or)
-          [:OR, flatten_combinator(ast, Dentaku::AST::Or)]
-        else
-          [:AND, [ast]]
-        end
+      def clause_nodes(ast)
+        # Preserve the top-level joiner (and/or), and flatten repeated uses of that same joiner from the AST.
+        return [:AND, flatten_nodes(ast, Dentaku::AST::And)] if ast.is_a?(Dentaku::AST::And)
+        return [:OR, flatten_nodes(ast, Dentaku::AST::Or)] if ast.is_a?(Dentaku::AST::Or)
+
+        # A single clause has no boolean joiner; default to AND for the structured shape.
+        [:AND, [ast]]
       end
 
-      # Recursively split +node+ into a flat array of children that are not wrapped in the same +klass+ (+And+ or +Or+).
-      def flatten_combinator(node, klass)
+      def flatten_nodes(node, klass)
+        # Stop flattening as soon as another kind of node appears, since we don't support mixed/nested boolean groups.
         return [node] unless node.is_a?(klass)
 
-        flatten_combinator(node.left, klass) + flatten_combinator(node.right, klass)
+        flatten_nodes(node.left, klass) + flatten_nodes(node.right, klass)
       end
 
-      # Map one AST subtree to a Clause, or +nil+ when it is not a supported comparison or INCLUDES/EXCLUDES call.
       def clause_from_ast(node)
-        if dentaku_function?(node, 'INCLUDES')
-          function_includes_clause(node, :INCLUDES)
-        elsif dentaku_function?(node, 'EXCLUDES')
-          function_includes_clause(node, :EXCLUDES)
+        # Returns nil for any node that does not map to a supported clause,
+        # which will cause the whole translation to return nil.
+        function_comparator = FUNCTION_COMPARATORS[function_name(node)]
+        if function_comparator
+          function_clause(node, function_comparator)
         elsif COMPARATORS.key?(node.class)
           comparison_clause(node)
         end
       end
 
-      # True if +node+ is a Dentaku function with the given +name+ (e.g. +INCLUDES+).
-      # We compare +#name+ strings because +add_function+ yields distinct Function AST classes per calculator instance.
-      def dentaku_function?(node, name)
-        node.is_a?(Dentaku::AST::Function) && node.name.to_s == name
+      def function_name(node)
+        # Custom functions get calculator-specific AST classes, so compare by name.
+        node.name.to_s if node.is_a?(Dentaku::AST::Function)
       end
 
-      # Build a Clause from +INCLUDES(field, value)+ / +EXCLUDES(field, value)+ (identifier first arg, literal second).
-      def function_includes_clause(node, comparator)
+      def function_clause(node, comparator)
         args = node.args
-        return unless args&.size == 2
+        return unless args&.size == 2 # INCLUDES and EXCLUDES each take two arguments
         return unless args.first.is_a?(Dentaku::AST::Identifier)
         return unless literal_ast?(args.last)
 
-        field = args.first.identifier
-        value = literal_value(args.last)
-        StructuredExpression::Clause.new(field: field, comparator: comparator, value: value)
-      end
-
-      # Build a Clause from a comparator node (+=+, +!=+, +<+, etc.) with identifier on the left and a literal on the right.
-      def comparison_clause(node)
-        comparator_sym = COMPARATORS[node.class]
-        return unless node.left.is_a?(Dentaku::AST::Identifier)
-        return unless literal_ast?(node.right)
-
-        value = literal_value(node.right)
         StructuredExpression::Clause.new(
-          field: node.left.identifier,
-          comparator: comparator_sym,
-          value: value,
+          field: args.first.identifier,
+          comparator: comparator,
+          value: args.last.value,
         )
       end
 
-      # +true+ if +node+ is a Dentaku numeric, string, or boolean literal AST node.
+      def comparison_clause(node)
+        return unless node.left.is_a?(Dentaku::AST::Identifier)
+        return unless literal_ast?(node.right)
+
+        StructuredExpression::Clause.new(
+          field: node.left.identifier,
+          comparator: COMPARATORS.fetch(node.class),
+          value: node.right.value,
+        )
+      end
+
       def literal_ast?(node)
-        node.is_a?(Dentaku::AST::Numeric) ||
-          node.is_a?(Dentaku::AST::String) ||
-          node.is_a?(Dentaku::AST::Logical) ||
-          node.is_a?(Dentaku::AST::Nil)
+        [
+          Dentaku::AST::Numeric,
+          Dentaku::AST::String,
+          Dentaku::AST::Logical,
+          Dentaku::AST::Nil,
+        ].any? { |klass| node.is_a?(klass) }
       end
 
-      # Ruby value carried by a Dentaku literal node (+#value+ does not evaluate unbound identifiers here).
-      def literal_value(node)
-        node.value
-      end
-
-      # Serialize one Clause to a Dentaku fragment (function call or +field op value+).
       def clause_to_expression(clause)
-        field_sql = quote_field(clause.field)
-        comp = clause.comparator.to_sym
+        field = quote_field(clause.field)
+        comparator = clause.comparator.to_sym
 
-        if [:INCLUDES, :EXCLUDES].include?(comp)
-          "#{comp}(#{field_sql}, #{quote_literal(clause.value)})"
+        if FUNCTION_COMPARATORS.value?(comparator)
+          # If this is a function like INCLUDES, format as "INCLUDES(foo, 1)"
+          "#{comparator}(#{field}, #{quote_literal(clause.value)})"
         else
-          "#{field_sql} #{COMPARATOR_TO_TOKEN.fetch(comp)} #{quote_literal(clause.value)}"
+          # Otherwise, format as a comparison like "foo = 1"
+          "#{field} #{COMPARATOR_TO_TOKEN.fetch(comparator)} #{quote_literal(clause.value)}"
         end
       end
 
-      SIMPLE_IDENTIFIER = /\A[a-zA-Z_][a-zA-Z0-9_]*\z/
-
-      # Emit a bare identifier or backtick-quoted Dentaku identifier for dotted or special names.
       def quote_field(field)
         field = field.to_s
-        if SIMPLE_IDENTIFIER.match?(field)
+        if /\A[a-zA-Z_][a-zA-Z0-9_]*\z/.match?(field)
+          # Simple identifiers are passed through as-is.
           field
         else
+          # Dotted CDE/custom-assessment keys must be quoted to parse as one Dentaku identifier.
           "`#{field}`"
         end
       end
 
-      # Emit +NULL+, +TRUE+/+FALSE+, numeric, or quoted string text for the right-hand side of a clause.
       def quote_literal(value)
         case value
         when NilClass
+          # Dentaku uses SQL-like NULL for nil literals.
           'NULL'
         when TrueClass, FalseClass
+          # Keep booleans uppercase to match existing CE match rule expressions.
           value ? 'TRUE' : 'FALSE'
         when Integer, Float
           value.to_s
         when String
+          # Strings need Dentaku quote syntax; bare strings would be parsed as identifiers.
           dentaku_string_literal(value)
         else
           value.to_s
         end
       end
 
-      # Wrap +str+ in single or double quotes; Dentaku tokens do not support escapes inside quotes.
       def dentaku_string_literal(str)
+        # Dentaku string tokens don't support escaped quotes. Choose the quote type that fits
         if str.exclude?("'")
           "'#{str}'"
         else
