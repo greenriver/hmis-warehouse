@@ -34,6 +34,13 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
       expect(loader.get(client.destination_id)).to be false
     end
 
+    it 'returns true when ROI is All CoCs and user has specific coc_codes' do
+      create(:client_roi_authorization, destination_client: client.destination, status: 'full', coc_codes: ['All CoCs'])
+      user.coc_codes = ['PA-501']
+
+      expect(loader.get(client.destination_id)).to be true
+    end
+
     it 'caches the result' do
       expect(GrdaWarehouse::ClientRoiAuthorization).to receive(:active).once.and_call_original
       loader.get(client.destination_id)

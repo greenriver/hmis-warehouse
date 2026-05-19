@@ -14,6 +14,7 @@ require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for Enrollment', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) { hmis_login(user) }
@@ -25,7 +26,7 @@ RSpec.describe 'SubmitForm for Enrollment', type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: two_weeks_ago.strftime('%Y-%m-%d') }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT, data_source: ds1) }
   let(:hud_values) do
     {
       'entryDate' => yesterday.strftime('%Y-%m-%d'),

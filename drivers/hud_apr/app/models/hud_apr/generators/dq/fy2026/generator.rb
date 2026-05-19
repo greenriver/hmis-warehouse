@@ -9,6 +9,15 @@
 module HudApr::Generators::Dq::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
+
+    # Read by the SPM (hdx_upload.rb) to pass its own report ID so that DQ sub-reports
+    # could share pre-computed household context. Currently a no-op: the DQ generator no
+    # longer calls HouseholdContextBuilder, so this value is read but never acted on.
+    def source_report_id_for_contexts
+      @source_report_id_for_contexts ||= report.options&.with_indifferent_access&.[](:source_report_id_for_contexts)
+    end
+    attr_writer :source_report_id_for_contexts
+
     def self.fiscal_year
       'FY 2026'
     end
@@ -54,5 +63,10 @@ module HudApr::Generators::Dq::Fy2026
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 1'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudApr::Archival
   end
 end

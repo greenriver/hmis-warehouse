@@ -9,7 +9,7 @@
 module MaReports::WarehouseReports
   class MonthlyProjectUtilizationsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_report, only: [:show, :destroy, :details, :reload_from_csv]
     before_action :require_can_access_some_version_of_clients!, only: [:details]
 
     def index

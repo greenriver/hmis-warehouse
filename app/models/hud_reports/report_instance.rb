@@ -20,6 +20,7 @@ module HudReports
     include ActionView::Helpers::DateHelper
     include SafeInspectable
     include RailsDrivers::Extensions
+    include HudReportArchival
 
     self.table_name = 'hud_report_instances'
 
@@ -31,6 +32,7 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+    has_many :household_contexts, class_name: 'HudReports::HouseholdContext', foreign_key: 'report_instance_id', dependent: :delete_all
     has_many :checkpoints, class_name: 'HudReports::ReportCheckpoint', foreign_key: 'hud_report_instance_id', dependent: :destroy
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
@@ -72,6 +74,10 @@ module HudReports
     end
 
     def current_status(include_error_details: true)
+      # Same label as Reporting::Status (SimpleReports warehouse history): once DB rows are purged,
+      # list views show Archived instead of Completed.
+      return 'Archived' if purged?
+
       # Sometimes the report attempts to run again and ends up in the Started state, short circuit if we know this
       # isn't going to run successfully
       if error_details.present?

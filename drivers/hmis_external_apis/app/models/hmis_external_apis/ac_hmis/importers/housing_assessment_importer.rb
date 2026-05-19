@@ -320,6 +320,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def form_definition
+    # We expect exactly one HMIS data source, so no need to scope definitions by data source here
     @form_definition ||= Hmis::Form::Definition.published.where(identifier: @form_definition_identifier).first!
   end
 

@@ -13,7 +13,7 @@ module SystemPathways::WarehouseReports
     include ArelHelper
     include BaseFilters
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :destroy, :details, :chart_data]
+    before_action :set_report, only: [:show, :destroy, :details, :chart_data, :reload_from_csv]
     before_action :show_filter, only: [:show, :details, :chart_data]
     before_action :set_pdf_export, only: [:show]
 

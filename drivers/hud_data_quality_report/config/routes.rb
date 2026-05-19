@@ -6,13 +6,14 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope module: :hud_data_quality_report, path: :hud_reports, as: :hud_reports do
     resources :past_dqs, controller: 'dqs' do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       resources :questions, only: [:show, :create] do
         get :result, on: :member
         get :running, on: :member

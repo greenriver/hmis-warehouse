@@ -21,12 +21,12 @@ class Hmis::EnrollmentAssessmentEligibilityList
     self.enrollment = enrollment
   end
 
-  INTAKE_ROLE = 'INTAKE'.freeze
-  UPDATE_ROLE = 'UPDATE'.freeze
-  ANNUAL_ROLE = 'ANNUAL'.freeze
-  EXIT_ROLE = 'EXIT'.freeze
-  POST_EXIT_ROLE = 'POST_EXIT'.freeze
-  CUSTOM_ASSESSMENT = 'CUSTOM_ASSESSMENT'.freeze
+  INTAKE_ROLE = 'INTAKE'
+  UPDATE_ROLE = 'UPDATE'
+  ANNUAL_ROLE = 'ANNUAL'
+  EXIT_ROLE = 'EXIT'
+  POST_EXIT_ROLE = 'POST_EXIT'
+  CUSTOM_ASSESSMENT = 'CUSTOM_ASSESSMENT'
 
   DATA_COLLECTION_STAGE_BY_ROLE = {
     INTAKE_ROLE => 1,
@@ -57,6 +57,7 @@ class Hmis::EnrollmentAssessmentEligibilityList
   def filtered_definitions(roles)
     fi_t = Hmis::Form::Instance.arel_table
     definitions_by_role = Hmis::Form::Definition.published.
+      in_data_source(project.data_source_id).
       # skip definition for performance
       exclude_definition_from_select.
       # preload active instances

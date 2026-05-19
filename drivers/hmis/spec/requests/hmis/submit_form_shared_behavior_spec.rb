@@ -13,12 +13,13 @@ require_relative '../../support/submit_form_spec_helpers'
 
 RSpec.describe 'SubmitForm shared behavior', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) { hmis_login(user) }
 
   # use PROJECT as an example; the behavior tested here applies to all roles
-  let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT, data_source: ds1) }
   let(:hud_values) do
     {
       'projectName' => 'Test Project',
@@ -39,7 +40,7 @@ RSpec.describe 'SubmitForm shared behavior', type: :request do
 
   shared_examples 'submit form fails when form definition is draft' do
     it 'fails when form definition is draft' do
-      draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier)
+      draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier, data_source: ds1)
       expect_gql_error submit_form(input.merge(form_definition_id: draft.id), expect_raise: true), message: /status draft is invalid/
     end
   end
@@ -85,7 +86,7 @@ RSpec.describe 'SubmitForm shared behavior', type: :request do
     end
 
     context 'when record already has form processor' do
-      let!(:retired_definition) { create(:hmis_form_definition, version: definition.version - 1, status: Hmis::Form::Definition::RETIRED, identifier: definition.identifier) }
+      let!(:retired_definition) { create(:hmis_form_definition, version: definition.version - 1, status: Hmis::Form::Definition::RETIRED, identifier: definition.identifier, data_source: ds1) }
       let!(:form_processor) { create(:hmis_form_processor, owner: p1, definition: retired_definition) }
 
       it 'updates existing form processor' do
@@ -96,6 +97,15 @@ RSpec.describe 'SubmitForm shared behavior', type: :request do
         end.to change(form_processor, :definition).from(retired_definition).to(definition).
           and not_change(Hmis::Form::FormProcessor, :count)
       end
+    end
+  end
+
+  context 'when the form definition is not found' do
+    # cruft: this form definition exists in a different data source
+    let!(:other_ds_definition) { create(:hmis_form_definition, role: :PROJECT) }
+
+    it 'returns not found' do
+      expect_gql_error submit_form(input.merge(form_definition_id: other_ds_definition.id), expect_raise: true), message: /Form Definition not found/
     end
   end
 end

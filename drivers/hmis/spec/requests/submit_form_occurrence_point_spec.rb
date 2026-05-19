@@ -19,7 +19,7 @@ RSpec.describe 'SubmitForm for OCCURRENCE_POINT', type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
-  let!(:definition) { create :occurrence_point_form }
+  let!(:definition) { create :occurrence_point_form, data_source: ds1 }
 
   let(:move_in_date) { '2024-06-01' }
 

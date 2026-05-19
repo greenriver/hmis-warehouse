@@ -6,12 +6,13 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :system_pathways do
     namespace :warehouse_reports do
       resources :reports do
         get :details, on: :member
         get 'chart_data/:chart', to: 'reports#chart_data', on: :member, as: :chart_data
+        post 'reload_from_csv', to: 'reports#reload_from_csv', as: :reload_from_csv, on: :member
       end
     end
   end

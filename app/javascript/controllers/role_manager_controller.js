@@ -28,30 +28,45 @@ const controller = class extends Controller {
 
   connect() {
     this.element['roleManager'] = this
-    // console.log('role manager connected', this.roleToggleTargets)
     this.path = $(this.inputWrapperTarget).data('roleManagerFormValue')
     this.columnStateKey = 'roleManagerState' + this.path
     this.enabledColumns = []
+    this._syncingCategory = false
+    this.categoryState = {}
     this.enabledColumns = this.setInitialColumns()
-
     this.setInitialState()
+    this.bindCollapseSyncListeners()
   }
 
-  toggleSection(e) {
-    const target_category = $(e.currentTarget).data('roleManagerCategoryValue')
-    // find all of the sections with the same value and set their state to match
-    this.permissionCategoryTargets.forEach((section) => {
-      const section_category = $(section).data('roleManagerCategoryValue')
-      const current_panel = $(e.currentTarget).siblings('.panel-collapse')
-      if (section != e.currentTarget && section_category == target_category) {
-        // show class is added AFTER the opening has completed, so check for the inverse
-        if ($(current_panel).hasClass('show')) {
-          $(section).siblings('.panel-collapse').collapse('hide')
-        } else {
-          $(section).siblings('.panel-collapse').collapse('show')
-        }
+  // Sync same-category panels across role columns. Uses native addEventListener
+  // because Bootstrap 5 fires CustomEvents with type "show.bs.collapse" — jQuery's
+  // .on() strips the namespace and listens for "show", which never matches.
+  bindCollapseSyncListeners() {
+    this.permissionCategoryTargets.forEach((button) => {
+      const panel = $(button).siblings('.panel-collapse')[0]
+      if (!panel) return
+      panel.addEventListener('show.bs.collapse', () => this._syncCategory(button, 'show'))
+      panel.addEventListener('hide.bs.collapse', () => this._syncCategory(button, 'hide'))
+    })
+  }
+
+  _syncCategory(sourceButton, action) {
+    if (this._syncingCategory) return
+    this._syncingCategory = true
+    const category = $(sourceButton).data('roleManagerCategoryValue')
+    this.categoryState[category] = action
+    this.permissionCategoryTargets.forEach((button) => {
+      if (button === sourceButton) return
+      if ($(button).data('roleManagerCategoryValue') !== category) return
+      const $panel = $(button).siblings('.panel-collapse')
+      if (!$panel.length) return
+      if (action === 'show' && !$panel.hasClass('show')) {
+        $panel.collapse('show')
+      } else if (action === 'hide' && $panel.hasClass('show')) {
+        $panel.collapse('hide')
       }
-    });
+    })
+    this._syncingCategory = false
   }
 
   toggleColumn(e) {
@@ -74,9 +89,28 @@ const controller = class extends Controller {
       if (target_role == $(column).data('roleManagerRoleValue')) {
         $(column).removeClass('hide')
       }
-    });
+    })
+    this._applyCategoryStateToColumn(target_role)
     const search_string = $('.j-table__search').val().toLowerCase()
     this.showSearchPermissions(search_string, false)
+  }
+
+  _applyCategoryStateToColumn(target_role) {
+    const prev = this._syncingCategory
+    this._syncingCategory = true
+    this.permissionCategoryTargets.forEach((button) => {
+      if ($(button).closest('[data-role-manager-role-value]').data('roleManagerRoleValue') != target_role) return
+      const storedAction = this.categoryState[$(button).data('roleManagerCategoryValue')]
+      if (!storedAction) return
+      const $panel = $(button).siblings('.panel-collapse')
+      if (!$panel.length) return
+      if (storedAction === 'show' && !$panel.hasClass('show')) {
+        $panel.collapse('show')
+      } else if (storedAction === 'hide' && $panel.hasClass('show')) {
+        $panel.collapse('hide')
+      }
+    })
+    this._syncingCategory = prev
   }
 
   hideColumn(target_role) {

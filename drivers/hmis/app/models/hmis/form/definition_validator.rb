@@ -22,7 +22,7 @@ class Hmis::Form::DefinitionValidator
     @data_source = if data_source_id
       GrdaWarehouse::DataSource.hmis.find(data_source_id)
     elsif !skip_cded_validation
-      GrdaWarehouse::DataSource.hmis.sole # 'sole' raises if there are >1 HMIS data sources
+      GrdaWarehouse::DataSource.hmis.sole # if no data source was provided, expect a single data source and raise otherwise
     end # we don't need a data source ID if we are skipping CDED validation
 
     # Validate JSON shape against JSON Schema

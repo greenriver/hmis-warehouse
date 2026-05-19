@@ -24,6 +24,7 @@ class AccountsController < ApplicationController
     if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')
       @user.update(account_params)
+      @user.sync_to_hud_users if HmisEnforcement.hmis_enabled?
       bypass_sign_in(@user)
     end
     redirect_to edit_account_path

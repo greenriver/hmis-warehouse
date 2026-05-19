@@ -63,5 +63,23 @@ RSpec.describe AccountEmailsController, type: :request do
         expect(response).to redirect_to edit_account_email_path
       end
     end
+
+    context 'when HMIS is enabled' do
+      before(:each) do
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      end
+
+      it 'syncs HUD users with the previous email on success' do
+        expect_any_instance_of(User).to receive(:sync_to_hud_users).with(previous_email: user.email)
+
+        patch account_email_path, params: { user: { email: 'info@greenriver.com', current_password: Digest::SHA256.hexdigest('abcd1234abcd1234') } }
+      end
+
+      it 'does not sync HUD users when the update fails' do
+        expect_any_instance_of(User).not_to receive(:sync_to_hud_users)
+
+        patch account_email_path, params: { user: { email: 'info@greenriver.com' } }
+      end
+    end
   end
 end

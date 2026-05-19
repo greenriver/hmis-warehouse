@@ -907,4 +907,126 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
                                "Expected median to be #{expected_median}, but got #{actual_median}"
     end
   end
+
+  describe 'SPM CoC funding for income metrics' do
+    describe 'spm_coc_funded?' do
+      before do
+        @psh_project = create_project(project_type: 3)
+      end
+
+      it 'returns true when project has SPM CoC funder overlapping the date range' do
+        create(
+          :hud_funder,
+          project: @psh_project,
+          funder: 2,
+          data_source: data_source,
+          start_date: test_start_date - 1.year,
+          end_date: nil,
+        )
+        report = PerformanceMeasurement::Report.new(user_id: user.id)
+
+        expect(report.send(:spm_coc_funded?, @psh_project, test_start_date, test_end_date)).to be true
+      end
+
+      it 'returns false when project has no funders' do
+        report = PerformanceMeasurement::Report.new(user_id: user.id)
+
+        expect(report.send(:spm_coc_funded?, @psh_project, test_start_date, test_end_date)).to be false
+      end
+
+      it 'returns false when project has only non-SPM CoC funder' do
+        create(
+          :hud_funder,
+          project: @psh_project,
+          funder: 1,
+          data_source: data_source,
+          start_date: test_start_date - 1.year,
+          end_date: nil,
+        )
+        report = PerformanceMeasurement::Report.new(user_id: user.id)
+
+        expect(report.send(:spm_coc_funded?, @psh_project, test_start_date, test_end_date)).to be false
+      end
+
+      it 'returns false when project has SPM CoC funder but outside date range' do
+        create(
+          :hud_funder,
+          project: @psh_project,
+          funder: 2,
+          data_source: data_source,
+          start_date: test_start_date - 3.years,
+          end_date: test_start_date - 2.years,
+        )
+        report = PerformanceMeasurement::Report.new(user_id: user.id)
+
+        expect(report.send(:spm_coc_funded?, @psh_project, test_start_date, test_end_date)).to be false
+      end
+    end
+
+    describe 'increased_income project-level results' do
+      before do
+        @coc_funded_project = create_project(project_type: 3)
+        create(
+          :hud_funder,
+          project: @coc_funded_project,
+          funder: 2,
+          data_source: data_source,
+          start_date: test_start_date - 2.years,
+          end_date: nil,
+        )
+
+        # ES project with no SPM CoC funder - will have clients from measure 1 (homeless count)
+        @non_coc_project = create_project(project_type: 0)
+
+        @client = create_client_with_warehouse_link
+        create_enrollment(
+          client: @client,
+          project: @coc_funded_project,
+          entry_date: test_start_date - 100.days,
+          exit_date: nil,
+        )
+        create(
+          :hud_income_benefit,
+          enrollment: GrdaWarehouse::Hud::Enrollment.last,
+          data_source: data_source,
+          information_date: test_start_date - 100.days,
+          data_collection_stage: 1,
+          earned: 1,
+          earned_amount: 500,
+        )
+        create(
+          :hud_income_benefit,
+          enrollment: GrdaWarehouse::Hud::Enrollment.last,
+          data_source: data_source,
+          information_date: test_start_date + 100.days,
+          data_collection_stage: 5,
+          earned: 1,
+          earned_amount: 1000,
+        )
+
+        # Client in non-CoC project so it appears in report projects (measure 1 homeless count)
+        @other_client = create_client_with_warehouse_link
+        create_enrollment(
+          client: @other_client,
+          project: @non_coc_project,
+          entry_date: test_start_date + 10.days,
+          exit_date: test_start_date + 40.days,
+        )
+      end
+
+      it 'includes project-level income results for CoC funded projects' do
+        @spm_report, pm_report = setup_reports(projects: [@coc_funded_project])
+
+        result = pm_report.result_for(:stayers_with_increased_income, project_id: @coc_funded_project.id)
+        expect(result).to be_present
+      end
+
+      it 'excludes project-level income results for non-CoC funded projects' do
+        @spm_report, pm_report = setup_reports(projects: [@non_coc_project, @coc_funded_project])
+
+        result = pm_report.result_for(:stayers_with_increased_income, project_id: @non_coc_project.id)
+        expect(result).to be_nil
+      end
+    end
+  end
 end

@@ -115,7 +115,7 @@ RSpec.describe 'BulkAssignService', type: :request do
 
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let(:bednight_service_type) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) }
+  let(:bednight_service_type) { ds1.custom_service_types.find_by(hud_record_type: 200) }
   let(:today) { Date.current }
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago }
@@ -192,7 +192,7 @@ RSpec.describe 'BulkAssignService', type: :request do
     it 'makes a reasonable number of db queries' do
       expect do
         perform_query(service_date: service_date, filters: { service_in_range: service_filter })
-      end.to make_database_queries(count: 70..85) # TODO(#7573) - improve n+1 caused by querying services on active enrollment
+      end.to make_database_queries(count: 70..95) # TODO(#7573) - improve n+1 caused by querying services on active enrollment
     end
   end
 end

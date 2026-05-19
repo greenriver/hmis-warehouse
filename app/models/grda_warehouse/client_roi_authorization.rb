@@ -48,6 +48,10 @@ module GrdaWarehouse
       # if there are no codes, assume visibility not limited by COC
       return true if coc_codes.blank?
 
+      # Mirror valid_in_coc in drivers/client_access_control/extensions/grda_warehouse/hud/client_extension.rb:
+      # an ROI that includes "All CoCs" applies to all CoCs and must not require a literal code intersection
+      return true if coc_codes.include?('All CoCs')
+
       (any_coc_codes & coc_codes).present?
     end
 

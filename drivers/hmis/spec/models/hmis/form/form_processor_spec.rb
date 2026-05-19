@@ -12,6 +12,7 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let(:fd) { Hmis::Form::Definition.find_by!(role: :INTAKE) }
   let(:fd_exit) { Hmis::Form::Definition.find_by!(role: :EXIT) }
@@ -662,8 +663,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       old_entry_date = assessment.enrollment.entry_date
-      new_entry_date = 1.week.ago.strftime('%Y-%m-%d')
       expect(old_entry_date).not_to be_nil
+      # Must differ from factory EntryDate sequence (which includes 1.week.ago)
+      new_entry_date = (old_entry_date - 2.weeks).strftime('%Y-%m-%d')
 
       assessment.reload.form_processor.hud_values = {
         'Enrollment.entryDate' => new_entry_date,
@@ -2090,7 +2092,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   describe 'Form processing for Service' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
-    include_context 'hmis service setup'
     # HUD Service: SSVF Financial Assistance (152), Child Care (10)
     let!(:hud_service) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, record_type: 152, type_provided: 10 }
     # Custom Service

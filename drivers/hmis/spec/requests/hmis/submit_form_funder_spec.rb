@@ -14,6 +14,7 @@ require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for Funder', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }

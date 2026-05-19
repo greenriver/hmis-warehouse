@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope module: :hud_lsa, path: :hud_reports, as: :hud_reports do
     resources :lsas do
       get :running, on: :collection
@@ -15,6 +15,7 @@ BostonHmis::Application.routes.draw do
       post :data_missing, on: :collection
       get :data_missing, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       get :download_intermediate, on: :member
     end
     resources :lsa_hics do
@@ -24,6 +25,7 @@ BostonHmis::Application.routes.draw do
       post :data_missing, on: :collection
       get :data_missing, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       get :download_intermediate, on: :member
     end
   end

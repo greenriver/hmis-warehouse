@@ -15,6 +15,7 @@ require_relative '../../support/shared_examples/submit_form'
 RSpec.describe 'SubmitForm for File', type: :request do
   include_context 'hmis base setup'
   include_context 'file upload setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) { hmis_login(user) }

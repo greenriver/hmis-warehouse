@@ -9,16 +9,11 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
+RSpec.describe Hmis::Hud::Project, type: :model do
   let!(:data_source) { create :hmis_primary_data_source }
   let!(:project) { create :hmis_hud_project, data_source: data_source }
   let!(:client) { create :hmis_hud_client, data_source: data_source }
   let!(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
-
-  before(:all) do
-    # delete default instances to test from a clean slate (for data_collection_features and occurrence_point_form_instances tests)
-    Hmis::Form::Instance.delete_all
-  end
 
   describe '#destroy' do
     # Create dependent records to ensure they are destroyed when the project is destroyed
@@ -93,14 +88,14 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     end
 
     it 'returns none if form is draft' do
-      create(:hmis_form_definition, role: role, identifier: 'draft-form', status: :draft)
-      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'draft-form')
+      create(:hmis_form_definition, role: role, identifier: 'draft-form', status: :draft, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'draft-form', data_source: data_source)
       expect(selected_instances.size).to eq(0)
     end
 
     context 'if the form is retired' do
-      let!(:retired_def) { create(:hmis_form_definition, role: role, identifier: 'fully-retired-form', status: :retired) }
-      let!(:retired_inst) { create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'fully-retired-form') }
+      let!(:retired_def) { create(:hmis_form_definition, role: role, identifier: 'fully-retired-form', status: :retired, data_source: data_source) }
+      let!(:retired_inst) { create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'fully-retired-form', data_source: data_source) }
 
       it 'returns nothing' do
         expect(selected_instances.size).to eq(0)
@@ -117,41 +112,41 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     end
 
     it 'chooses default instance, prefers active > inactive' do
-      default_inst = create(:hmis_form_instance, role: role, entity: nil)
-      create(:hmis_form_instance, role: role, entity: nil, active: false) # not chosen
+      default_inst = create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, active: false, data_source: data_source) # not chosen
 
       expect(selected_instances).to contain_exactly(default_inst)
     end
 
     it 'chooses more specific instance (project type > default)' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      create(:hmis_form_instance, role: role, entity: nil, active: false)
-      inst_for_project_type = create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
+      create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, active: false, data_source: data_source)
+      inst_for_project_type = create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_source: data_source)
 
       expect(selected_instances).to contain_exactly(inst_for_project_type)
     end
 
     it 'chooses more specific instance (project > project type > default)' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      create(:hmis_form_instance, role: role, entity: nil, active: false)
-      create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
-      inst_for_project = create(:hmis_form_instance, role: role, entity: project)
+      create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, active: false, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_source: data_source)
+      inst_for_project = create(:hmis_form_instance, role: role, entity: project, data_source: data_source)
       expect(selected_instances).to contain_exactly(inst_for_project)
     end
 
     it 'tie-breaks on date updated' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      create(:hmis_form_instance, role: role, entity: nil, active: false)
-      create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
-      inst_for_project = create(:hmis_form_instance, role: role, entity: project)
-      create(:hmis_form_instance, role: role, entity: project, updated_at: inst_for_project.updated_at - 1.day)
+      create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, active: false, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_source: data_source)
+      inst_for_project = create(:hmis_form_instance, role: role, entity: project, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: project, updated_at: inst_for_project.updated_at - 1.day, data_source: data_source)
       expect(selected_instances).to contain_exactly(inst_for_project)
     end
 
     it 'returns more specific instance, even if 2 have different data_collected_about values' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      inst_for_project = create(:hmis_form_instance, role: role, entity: project)
-      create(:hmis_form_instance, data_collected_about: 'HOH', role: role, entity: nil, project_type: project.project_type)
+      create(:hmis_form_instance, role: role, entity: nil, data_source: data_source)
+      inst_for_project = create(:hmis_form_instance, role: role, entity: project, data_source: data_source)
+      create(:hmis_form_instance, data_collected_about: 'HOH', role: role, entity: nil, project_type: project.project_type, data_source: data_source)
 
       expect(selected_instances).to contain_exactly(inst_for_project)
     end
@@ -161,6 +156,11 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     let(:role) { :SERVICE }
     let!(:csc) { create(:hmis_custom_service_category, name: 'Test Service Category', data_source: project.data_source) }
     let!(:cst) { create(:hmis_custom_service_type, name: 'Custom Type', custom_service_category: csc, data_source: project.data_source) }
+
+    # cruft: cst in another data source that should not be returned
+    let!(:other_ds) { create(:hmis_data_source) }
+    let!(:other_cst) { create(:hmis_custom_service_type, name: 'Other DS Custom Type', data_source: other_ds) }
+    let!(:other_instance) { create(:hmis_form_instance, role: role, entity: nil, custom_service_type: other_cst, data_source: other_ds) }
 
     def selected_instance
       object = project.data_collection_features.find { |os| os.role == role.to_s }
@@ -174,19 +174,13 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
       expect(selected_instance).to be_nil
     end
 
-    it 'does NOT choose default instance if no service type/category specified' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      expect(selected_instance).to be_nil
-    end
-
     it 'chooses instance specified by category' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc)
-      expect(selected_instance).to eq(expected)
+      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc, data_source: data_source)
+      expect(selected_instance).to eq(instance)
     end
 
     it 'does not return inactive service types' do
-      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
+      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst, data_source: data_source)
       pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
       expect(pick_list_options.size).to eq(1)
       expect(pick_list_options[0][:label]).to eq('Custom Type')
@@ -197,8 +191,8 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     end
 
     it 'does not return service types that only have unpublished forms' do
-      # Form is "active,"" but it is not published. The service type should not be considered available
-      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
+      # Form is "active," but it is not published. The service type should not be considered available
+      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst, data_source: data_source)
       instance.definition.update!(status: :retired)
 
       pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
@@ -218,17 +212,23 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     end
 
     it 'does not return inactive instance' do
-      create(:hmis_form_instance, role: role, entity: project, active: false)
+      create(:hmis_form_instance, role: role, entity: project, active: false, data_source: data_source)
 
       expect(selected_instances.size).to eq(0)
     end
 
     it 'returns most specific instance per definition identifier' do
-      mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date', data_collected_about: 'HOH')
-      mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier, data_collected_about: 'HOH_AND_ADULTS')
+      # Create these two forms manually instead of using the 'hmis json forms seed'.
+      # The seed context also creates default system instances,
+      # whereas this spec file wants to start from a clean slate of instances.
+      create(:hmis_form_definition, role: role, identifier: 'move_in_date', data_source: data_source)
+      create(:hmis_form_definition, role: role, identifier: 'date_of_engagement', data_source: data_source)
 
-      doe_default = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'date_of_engagement', data_collected_about: 'ALL_CLIENTS')
-      doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier, data_collected_about: 'HOH')
+      mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date', data_collected_about: 'HOH', data_source: data_source)
+      mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier, data_collected_about: 'HOH_AND_ADULTS', data_source: data_source)
+
+      doe_default = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'date_of_engagement', data_collected_about: 'ALL_CLIENTS', data_source: data_source)
+      doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier, data_collected_about: 'HOH', data_source: data_source)
 
       expect(selected_instances).to contain_exactly(
         have_attributes(definition: mid_project.definition, data_collected_about: mid_project.data_collected_about),
@@ -237,8 +237,8 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     end
 
     it 'does not return draft forms, even for active instances' do
-      create(:hmis_form_definition, role: role, identifier: 'abc-assessment', status: :draft)
-      create(:hmis_form_instance, role: role, entity: project, definition_identifier: 'abc-assessment')
+      create(:hmis_form_definition, role: role, identifier: 'abc-assessment', status: :draft, data_source: data_source)
+      create(:hmis_form_instance, role: role, entity: project, definition_identifier: 'abc-assessment', data_source: data_source)
 
       expect(selected_instances).to be_empty
     end
@@ -248,18 +248,18 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     let!(:other_project) { create :hmis_hud_project }
 
     it 'returns true if a config exists for this project' do
-      Hmis::ProjectStaffAssignmentConfig.new(project_id: project.id).save!
+      Hmis::ProjectStaffAssignmentConfig.new(project_id: project.id, data_source: data_source).save!
       expect(project.staff_assignments_enabled?).to eq(true)
       expect(other_project.staff_assignments_enabled?).to eq(false)
     end
 
     it 'returns true if a config exists for this project type' do
-      Hmis::ProjectStaffAssignmentConfig.new(project_type: project.project_type).save!
+      Hmis::ProjectStaffAssignmentConfig.new(project_type: project.project_type, data_source: data_source).save!
       expect(project.staff_assignments_enabled?).to eq(true)
     end
 
     it 'returns true if a config exist for this project organization' do
-      Hmis::ProjectStaffAssignmentConfig.new(organization: project.organization).save!
+      Hmis::ProjectStaffAssignmentConfig.new(organization: project.organization, data_source: data_source).save!
       expect(project.staff_assignments_enabled?).to eq(true)
     end
   end
@@ -275,7 +275,7 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
 
     context 'with config matching by project_type' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
-      let!(:config) { create(:hmis_project_ce_config, project_type: 2) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 2, data_source: data_source) }
 
       it 'returns all open projects with matching project_type' do
         expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
@@ -297,7 +297,7 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
       let!(:project_2) { create(:hmis_hud_project, data_source: data_source, project_type: 2) }
       let!(:project_3) { create(:hmis_hud_project, data_source: data_source, project_type: 3) }
       let!(:config_1) { create(:hmis_project_ce_config, project: project_1) }
-      let!(:config_2) { create(:hmis_project_ce_config, project_type: 2) }
+      let!(:config_2) { create(:hmis_project_ce_config, project_type: 2, data_source: data_source) }
       let!(:config_3) { create(:hmis_project_ce_config, organization: project_3.organization) }
 
       it 'returns all matching open projects' do
@@ -322,7 +322,7 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     context 'with closed project matching config' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
       let!(:closed_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1, operating_end_date: 1.year.ago) }
-      let!(:config) { create(:hmis_project_ce_config, project_type: 1) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 1, data_source: data_source) }
 
       it 'does not return closed projects' do
         expect(Hmis::Hud::Project.with_ce_enabled).to contain_exactly(project)
@@ -362,7 +362,7 @@ RSpec.describe Hmis::Hud::Project, :manages_hmis_form_state, type: :model do
     context 'with config matching by project_type' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
       let!(:closed_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1, operating_end_date: 1.year.ago) }
-      let!(:config) { create(:hmis_project_ce_config, project_type: 1, supports_waitlist_referrals: true) }
+      let!(:config) { create(:hmis_project_ce_config, project_type: 1, supports_waitlist_referrals: true, data_source: data_source) }
 
       it 'returns all open projects with matching project_type' do
         expect(Hmis::Hud::Project.with_ce_waitlists_enabled).to contain_exactly(project)

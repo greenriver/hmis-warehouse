@@ -34,6 +34,7 @@
             - cell_color = 'table-primary' if details[:value].nil? || details[:value] == ''
             %td{class: cell_color}
               - begin
-                = link_to_if((show_link && details[:any_members]), details[:value], path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table))
+                - row_show_link = show_link.respond_to?(:call) ? show_link.call(row_num) : show_link
+                = link_to_if((row_show_link && details[:any_members]), details[:value], path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table))
               - rescue NoMethodError
                 = details[:value]

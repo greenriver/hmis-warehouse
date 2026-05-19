@@ -12,6 +12,8 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
+
   let!(:access_control) { create_access_control(hmis_user, ds1) }
 
   let!(:project) { create :hmis_hud_project, data_source: ds1, project_type: 6 } # services only (non-residential)

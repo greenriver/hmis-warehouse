@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# @see docs/features/warehouse-permissions.md
+#
 # Participates in both the "new" and "legacy" permissions systems
 #
 # Roles define what actions a user can perform within the system. Not all permissions grant abilities, some are

@@ -14,6 +14,7 @@ require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for CaseNote', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:each) { hmis_login(user) }
@@ -21,7 +22,7 @@ RSpec.describe 'SubmitForm for CaseNote', type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
   let!(:custom_case_note) { create(:hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1) }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CASE_NOTE) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CASE_NOTE, data_source: ds1) }
 
   let(:hud_values) do
     {
@@ -100,7 +101,7 @@ RSpec.describe 'SubmitForm for CaseNote', type: :request do
         ],
       }
     end
-    let!(:definition) { create :hmis_form_definition, role: :CASE_NOTE, definition: definition_json }
+    let!(:definition) { create :hmis_form_definition, role: :CASE_NOTE, definition: definition_json, data_source: ds1 }
     let(:hud_values) do
       {
         'content' => 'test',

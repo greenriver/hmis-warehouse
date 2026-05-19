@@ -36,7 +36,7 @@ ARG BUNDLER_VERSION=2.7.2
 ARG PG_MAJOR=17
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.4.5
+LABEL "ruby-version"=3.4.9
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -76,7 +76,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends curl ca-certificates lsb-release gnupg \
   && sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
   && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
-  && curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y \
+  && curl -fsSL https://deb.nodesource.com/setup_24.x | bash -s -- -y \
   && apt-get update \
   && apt-get remove -y nodejs \
   && rm -rf /var/lib/apt/lists/*
@@ -157,7 +157,7 @@ RUN apt-get update && apt-get upgrade -y \
      else \
        ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
      fi \
-  && npm install -g yarn@1.22.19
+  && npm install -g yarn@1.22.22
 
 # Install custom pg_repack versions
 COPY docker/app/install_pg_repack.sh /usr/local/bin/install_pg_repack.sh
@@ -172,9 +172,11 @@ WORKDIR /app
 COPY docker/app/has_rdoc_patch.rb /usr/local/lib/ruby/has_rdoc_patch.rb
 ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 
-# CVE-2025-58767, note rexml is bundled with ruby, and must be explicitly pinned
+# rexml: CVE-2025-58767, rack: CVE in system gem shipped with base image — both must be explicitly updated since they're bundled with ruby
+# gem cleanup removes old gemspecs that vulnerability scanners (e.g. Trivy) would otherwise flag
 RUN gem update --system \
-  && gem update rexml \
+  && gem update rexml rack erb \
+  && gem cleanup rexml rack erb \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
@@ -249,3 +251,13 @@ RUN mkdir -p app/assets/stylesheets/theme/styles \
 
 RUN rm -rf tmp/* \
   && mkdir -p tmp/pids
+
+# Remove npm and yarn — they're only needed during asset compilation.
+# Node itself is kept for puppeteer (PDF generation via grover).
+# Trivy flags CVEs in npm's bundled node_modules (/usr/lib/node_modules/npm/node_modules),
+# which are unreachable at runtime, so we drop the whole package managers here.
+USER root
+RUN rm -rf /usr/lib/node_modules/npm /usr/lib/node_modules/yarn \
+  && rm -f /usr/bin/npm /usr/bin/npx /usr/bin/yarn /usr/bin/yarnpkg
+
+USER ${USER_ID}

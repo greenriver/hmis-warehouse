@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class StTfbhSheet < BaseFbhSheet
-    QUESTION_NUMBER = 'Q9: ST-TFBH'
+    QUESTION_NUMBER = 'ST-TFBH'
     QUESTION_NUMBERS = ['Q9'].freeze
     SHEET_TITLE = 'Complete this section for Facilities, Households served with HOPWA Short-Term or Transitional Facility-Based Housing assistance by your organization in the reporting year. Note: Scattered-Site Facilities may be reported as one Facility. Examples include Short-Term and Transitional Housing Types, Facility Based Housing with a tenure of fewer than 24 months, short-term treatment or health facilities, hotel-motel vouchers.'
 

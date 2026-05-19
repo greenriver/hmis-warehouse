@@ -26,13 +26,14 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   has_many :form_instances, class_name: 'Hmis::Form::Instance'
   has_many :definitions, through: :form_instances, source: :definitions
 
-  validates :hud_record_type, uniqueness: { scope: [:hud_type_provided] }, allow_nil: true
-  validates :name, uniqueness: { scope: [:custom_service_category] }
+  validates :hud_record_type, uniqueness: { scope: [:hud_type_provided, :data_source_id] }, allow_nil: true
+  validates :name, uniqueness: { scope: [:custom_service_category, :data_source_id] }
   validates_presence_of :name, allow_blank: false
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
 
   scope :custom, -> { where(hud_record_type: nil) }
   scope :hud, -> { where.not(hud_record_type: nil) }
+  scope :in_data_source, ->(data_source_id) { where(data_source_id: data_source_id) }
 
   def self.apply_filters(input)
     Hmis::Filter::ServiceTypeFilter.new(input).filter_scope(self)

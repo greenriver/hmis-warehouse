@@ -44,9 +44,16 @@ module Types
     def client_search(input:, **args)
       # ensure that client search has sufficient search criteria, so as not to allow exposing all clients at once.
       # caller must use some search criteria, OR a service filter by project to limit results (used in Bulk Services)
-      has_search_term = input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+      has_search_term = input.to_h.values.compact_blank.any?
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
+
+      # Find or create a ClientSearchQuery for the given params and user.
+      query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
+      context[:search_query_id] = query.id
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
@@ -58,11 +65,24 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    field :persisted_client_search_params, Types::HmisSchema::ClientSearchParams, 'Persisted search params lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def persisted_client_search_params(id:)
+      # Only return the requested search query if it is viewable by the current user
+      Hmis::ClientSearchQuery.viewable_by(current_user).find_by(id: id)
+    end
+
     clients_field :client_omni_search, 'Client omnisearch' do |field|
       field.argument :text_search, String, 'Omnisearch string', required: true
     end
 
     def client_omni_search(text_search:)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params({ 'text_search' => text_search }, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      context[:search_query_id] = query.id
+
       Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
         sort_by_option(:recently_added)
@@ -190,16 +210,17 @@ module Types
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
+      definition_scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id)
       record = if id
-        Hmis::Form::Definition.find(id)
+        definition_scope.find(id)
       else
-        Hmis::Form::Definition.find_definition_for_role(role, project: project)
+        Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: current_user.hmis_data_source_id)
       end
 
       # If the frontend is making this query, it's trying to display some data using a form definition,
       # so we try to avoid returning nil. Even if we didn't find a good match (e.g., because the instance is inactive),
       # we return some default "best guess", enabling the application to display the data somehow instead of erroring.
-      record ||= Hmis::Form::Definition.published.where(role: role, managed_in_version_control: true).first
+      record ||= definition_scope.published.where(role: role, managed_in_version_control: true).first
 
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
@@ -222,9 +243,9 @@ module Types
 
       if id
         # If ID is specified, we assume that it's correct for this project.
-        record = Hmis::Form::Definition.find(id)
+        record = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
       else
-        record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+        record = Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: current_user.hmis_data_source_id)
       end
 
       # Set filter context, so that form rules are applied
@@ -244,10 +265,11 @@ module Types
       service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
+      definition_scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id)
       definition = if id
         # If ID is specified, fetch form directly. ID is only provided when editing existing services.
         # Note: It may be a retired form, or a form that is no longer enabled in the project.
-        Hmis::Form::Definition.with_role(:SERVICE).find(id)
+        definition_scope.with_role(:SERVICE).find(id)
       else
         # If ID is not specified, determine which form is specified for collecting this Service Type in this Project.
         Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
@@ -255,7 +277,7 @@ module Types
 
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
-      definition ||= Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
+      definition ||= definition_scope.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
       # Add filter context to apply project-specific filtering rules ("custom_rule")
       definition&.filter_context = { project: project }
       definition
@@ -267,7 +289,7 @@ module Types
     def static_form_definition(role:)
       # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
       # Assume that this is exactly 1 definition per static role
-      Hmis::Form::Definition.order(:id).with_role(role).first!
+      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).order(:id).with_role(role).first!
     end
 
     field :parsed_form_definition, Types::Forms::FormDefinitionForJsonResult, null: true do
@@ -305,10 +327,13 @@ module Types
     end
 
     access_field do
+      # TODO(#8995) - Update access fields to match the new pattern (see below) and remove any that are unused by the frontend
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+
+      bool_field(:can_index_referrals) { policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index? }
     end
 
     def access
@@ -359,7 +384,8 @@ module Types
     def application_users(**args)
       raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      resolve_application_users(Hmis::User.active.with_hmis_access, **args)
+      user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      resolve_application_users(user_scope, **args)
     end
 
     field :user, Types::Application::User, 'User lookup', null: true do
@@ -368,7 +394,8 @@ module Types
     def user(id:)
       raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
 
-      load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
+      user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
+      load_ar_scope(scope: user_scope, id: id)
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
@@ -404,23 +431,6 @@ module Types
         preload(:project, :client, :organization)
     end
 
-    field :service_category, Types::HmisSchema::ServiceCategory, null: true do
-      argument :id, ID, required: true
-    end
-    def service_category(id:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      Hmis::Hud::CustomServiceCategory.find_by(id: id)
-    end
-
-    field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
-    def service_categories
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      # TODO: add sort and filter capabilities
-      Hmis::Hud::CustomServiceCategory.all
-    end
-
     field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
       filters_argument HmisSchema::ServiceType
     end
@@ -441,7 +451,7 @@ module Types
       # to the definition.
       access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.find(id)
+      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
     end
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
@@ -459,7 +469,13 @@ module Types
     def form_identifier(identifier:)
       access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+      scope = Hmis::Form::Definition.
+        in_data_source(current_user.hmis_data_source_id).
+        non_static.latest_versions.where(identifier: identifier)
+
+      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope.first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
@@ -468,37 +484,18 @@ module Types
     def form_identifiers(filters: nil)
       access_denied! unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.non_static.valid.latest_versions
+      scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).non_static.valid.latest_versions
       scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
     end
 
-    form_rules_field
-    def form_rules(**args)
-      access_denied! unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Form::Instance.all
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
-
-      resolve_form_rules(scope, **args)
-    end
-
-    field :form_rule, Types::Admin::FormRule, null: true do
-      argument :id, ID, required: true
-    end
-    def form_rule(id:)
-      access_denied! unless current_user.can_configure_data_collection?
-
-      Hmis::Form::Instance.find_by(id: id)
-    end
-
     field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false do
       filters_argument Types::HmisSchema::ProjectConfig
     end
     def project_configs(filters: nil)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_view?
 
       scope = Hmis::ProjectConfig.viewable_by(current_user)
       scope = scope.apply_filters(filters) if filters
@@ -612,9 +609,7 @@ module Types
 
     ce_referrals_field
     def ce_referrals(**args)
-      access_denied! unless current_user.can_administrate_coordinated_entry?
-
-      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false

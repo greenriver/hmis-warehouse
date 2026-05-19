@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
@@ -21,9 +22,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  # cruft: there is another data source that also has seeded forms, which should be ignored
+  let!(:ds2) do
+    ds = create(:hmis_data_source)
+    HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
+    HmisUtil::JsonForms.seed_all(data_source_id: ds.id)
+    ds
+  end
+
   describe 'Form definition lookup for record-editing' do
     # apply project form definition to p1
-    let(:default_project_form) { Hmis::Form::Definition.managed_in_version_control.find_by!(role: :PROJECT) }
+    let(:default_project_form) { Hmis::Form::Definition.managed_in_version_control.in_data_source(ds1.id).find_by!(role: :PROJECT) }
     let!(:instance) { create(:hmis_form_instance, system: true, entity: nil, definition: default_project_form) }
 
     let(:query) do
@@ -45,6 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         form_definition = result.dig('data', 'recordFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['role']).to eq(role.to_s)
+        expect(form_definition['id']).to eq(default_project_form.id.to_s)
       end
     end
   end
@@ -74,7 +84,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Service definition lookup' do
-    include_context 'hmis service setup'
     let(:service_query) do
       <<~GRAPHQL
         query GetServiceFormDefinition($serviceTypeId: ID!, $projectId: ID!) {
@@ -85,7 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
     let(:service_form_definition) do
-      Hmis::Form::Definition.where(role: :SERVICE).first
+      Hmis::Form::Definition.in_data_source(ds1.id).where(role: :SERVICE).first
     end
 
     it 'should find no definitions if there are no service-specific instances' do
@@ -104,6 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project_type: p1.project_type,
         definition_identifier: service_form_definition.identifier,
         custom_service_type_id: cst1.id,
+        data_source: ds1,
       )
 
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
@@ -122,6 +132,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         entity: p1,
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: csc1.id,
+        data_source: ds1,
       )
 
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
@@ -133,18 +144,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
       end
     end
+  end
 
-    it 'should return the default HUD service definition for a HUD service, even if there is no instance' do
-      hud_service = Hmis::Hud::CustomServiceType.where.not(hud_record_type: nil).first
-      expect(Hmis::Form::Definition.find_definition_for_service_type(hud_service, project: p1)).to be_nil
+  describe 'staticFormDefinition' do
+    let(:query) do
+      <<~GRAPHQL
+        query StaticFormDefinition($role: StaticFormRole!) {
+          staticFormDefinition(role: $role) {
+            id
+            role
+          }
+        }
+      GRAPHQL
+    end
 
-      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: hud_service.id.to_s }) { service_query }
+    it 'returns the static form definition for the role in the current user data source' do
+      role = :FORM_RULE
+      expected = Hmis::Form::Definition.in_data_source(ds1.id).with_role(role).sole
+      response, result = post_graphql({ role: role.to_s }) { query }
 
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        form_definition = result.dig('data', 'serviceFormDefinition')
-        expect(form_definition['id']).to eq(service_form_definition.id.to_s)
-      end
+      expect(response.status).to eq(200), result.inspect
+      form_definition = result.dig('data', 'staticFormDefinition')
+      expect(form_definition).to be_present
+      expect(form_definition['id']).to eq(expected.id.to_s)
+      expect(form_definition['role']).to eq(role.to_s)
     end
   end
 
@@ -172,7 +195,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
 
-    let!(:form) { create :hmis_form_definition, identifier: 'form-def' }
+    let!(:form) { create :hmis_form_definition, identifier: 'form-def', data_source: ds1 }
 
     context 'when a project matches more than one rule' do
       # tests Project and Organization cases
@@ -204,7 +227,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when a rule specifies funder' do
       let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o1, funders: [43] }
-      let!(:form2) { create :hmis_form_definition, identifier: 'form-2' }
+      let!(:form2) { create :hmis_form_definition, identifier: 'form-2', data_source: ds1 }
       let!(:funder_instance) { create(:hmis_form_instance, definition: form2, entity: nil, funder: 43) }
 
       it 'should return the project with this funder' do
@@ -220,7 +243,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when a rule specifies project type' do
       let!(:p4) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 2 }
-      let!(:form3) { create :hmis_form_definition, identifier: 'form-3' }
+      let!(:form3) { create :hmis_form_definition, identifier: 'form-3', data_source: ds1 }
       let!(:project_type_instance) { create(:hmis_form_instance, definition: form3, entity: nil, project_type: 2) }
 
       it 'should return the project with this funder' do

@@ -14,13 +14,14 @@ require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for CeParticipation', type: :request do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:ce_particip1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1, user: u1 }
 
   before(:each) { hmis_login(user) }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION, data_source: ds1) }
   let(:hud_values) do
     {
       "accessPoint": 'YES',

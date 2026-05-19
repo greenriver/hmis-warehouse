@@ -120,12 +120,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           dob
           age
           ssn
-          access {
-            id
-            canViewFullSsn
-            canViewPartialSsn
-            __typename
-          }
           __typename
         }
 
@@ -169,19 +163,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         fragment ClientAccessFields on ClientAccess {
           id
-          canEditClient
+          canAuditClients
           canDeleteClient
-          canViewDob
-          canViewFullSsn
-          canViewPartialSsn
-          canEditEnrollments
-          canDeleteEnrollments
-          canViewEnrollmentDetails
-          canDeleteAssessments
+          canEditClient
           canManageAnyClientFiles
+          canManageClientAlerts
           canManageOwnClientFiles
-          canViewAnyConfidentialClientFiles
-          canViewAnyNonconfidentialClientFiles
+          canManageScanCards
+          canMergeClients
+          canPrintClientCaseNotes
+          canUploadClientFiles
+          canViewAnyFiles
+          canViewClientAlerts
+          canViewClientEligibleOpportunities
+          canViewClientName
+          canViewClientPhoto
+          canViewDob
+          canViewEnrollmentDetails
+          canViewFullSsn
+          canViewOwnReferrals
+          canViewPartialSsn
+          canViewReferrals
           __typename
         }
 

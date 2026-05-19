@@ -40,23 +40,26 @@ class IdentifyExternalClientsJob < BaseJob
         input_key = input_object.key
 
         data_string = s3.get_as_io(key: input_key)&.read
+        # Skip empty files and directory placeholder objects
+        next if data_string.blank?
+
         content_type = Marcel::MimeType.for(data_string, name: File.basename(input_key))
         # If we didn't find a file (or are looking at a directory), just skip
         next if content_type.in?(['application/x-empty', 'application/octet-stream'])
 
         if ! content_type.in?(['text/csv', 'text/plain'])
-          log("invalid content type #{content_type}", object_key: input_key)
+          log("invalid content type #{content_type}", s3_path: input_key)
           next
         end
 
         input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
         if input_rows.blank?
-          log('invalid CSV content', object_key: input_key)
+          log('invalid CSV content', s3_path: input_key)
           next
         end
 
         output_rows = input_rows.map { |row| process_row(row, external_id_field) }.compact
-        log("matched #{output_rows.size} of #{input_rows.size} rows", type: :info, object_key: input_key)
+        log("matched #{output_rows.size} of #{input_rows.size} rows", type: :info, s3_path: input_key)
 
         # s3.store raises on failure
         s3.store(
@@ -109,11 +112,11 @@ class IdentifyExternalClientsJob < BaseJob
         end
       end
     rescue CSV::MalformedCSVError => e
-      log("CSV parsing error: #{e.message}", object_key: key)
+      log("CSV parsing error: #{e.message}", s3_path: key)
     rescue ArgumentError => e
-      log("Argument error (possibly encoding related): #{e.message}", object_key: key)
+      log("Argument error (possibly encoding related): #{e.message}", s3_path: key)
     rescue StandardError => e
-      log("An unexpected error occurred: #{e.message}", object_key: key)
+      log("An unexpected error occurred: #{e.message}", s3_path: key)
     end
     results
   end
@@ -161,13 +164,13 @@ class IdentifyExternalClientsJob < BaseJob
     end
   end
 
-  def log(message, object_key:, type: :error)
-    Rails.logger.send(type, "#{self.class.name} s3:#{object_key}: #{message}")
+  def log(message, s3_path:, type: :error)
+    Rails.logger.send(type, "#{self.class.name} s3:#{s3_path}: #{message}")
     return unless type == :error
 
     Sentry.capture_exception_with_info(
       StandardError.new(message),
-      info: { object_key: object_key },
+      info: { s3_path: s3_path },
     )
   end
 end

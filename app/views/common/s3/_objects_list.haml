@@ -1,3 +1,4 @@
+- download_path_helper = local_assigns.fetch(:download_path_helper) { ->(key) { download_data_source_hmis_import_config_path(key: key) } }
 %h3 Files on S3
 - if @error
   .alert.alert-danger
@@ -14,7 +15,7 @@
       %tbody
         - @bucket_objects_list.each do |obj|
           %tr
-            %td= link_to obj.key.gsub(@config.s3_path, ''), download_data_source_hmis_import_config_path(key: obj.key)
+            %td= link_to obj.key.gsub(@config.s3_path, ''), download_path_helper.call(obj.key)
             %td.nobr= obj.last_modified.in_time_zone
             %td.nobr= number_to_human_size obj.size
 - else

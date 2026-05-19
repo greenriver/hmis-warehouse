@@ -170,4 +170,19 @@ RSpec.describe HudReports::ReportInstance, type: :model do
       end
     end
   end
+
+  describe '#current_status' do
+    it 'returns Archived when purged (matches Reporting::Status / SimpleReports history)' do
+      report = described_class.create!(
+        report_name: 'Test Report',
+        state: 'Completed',
+        started_at: 1.hour.ago,
+        completed_at: Time.current,
+        question_names: ['test'],
+        archival_metadata: { 'purged_at' => Time.current.iso8601 },
+      )
+
+      expect(report.current_status(include_error_details: false)).to eq('Archived')
+    end
+  end
 end

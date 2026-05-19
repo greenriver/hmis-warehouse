@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :all_neighbors_system_dashboard do
     namespace :warehouse_reports do
       resources :reports do
@@ -14,6 +14,7 @@ BostonHmis::Application.routes.draw do
           get :internal
           get :raw
           get :debug
+          post :reload_from_csv
         end
       end
     end
