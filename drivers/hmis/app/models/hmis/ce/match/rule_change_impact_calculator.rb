@@ -1,0 +1,59 @@
+# frozen_string_literal: true
+
+module Hmis::Ce::Match
+  # Answers, "How many current candidates in the affected pools would be removed if this rule were added?"
+  # Does not (yet) simulate the full post-save rule set, rebuild hypothetical pools, or report added candidates.
+  class RuleChangeImpactCalculator
+    Result = Struct.new(:affected_unit_groups, keyword_init: true)
+    UnitGroupImpact = Struct.new(:unit_group, :current_candidate_count, :removed_candidate_count, keyword_init: true)
+
+    def self.for_create(rule:)
+      new(rule: rule).call
+    end
+
+    def initialize(rule:)
+      @rule = rule
+    end
+
+    def call
+      raise ArgumentError, 'priority scheme impact preview is not supported' if @rule.priority_scheme?
+
+      Result.new(affected_unit_groups: unit_group_impacts)
+    end
+
+    private
+
+    def unit_group_impacts
+      Rule.unit_groups_for_rule(@rule).
+        filter_map { |unit_group| impact_for_unit_group(unit_group) }
+    end
+
+    def impact_for_unit_group(unit_group)
+      pool = unit_group.candidate_pool
+      return unless pool
+
+      clients = pool.warehouse_clients
+      current_count = clients.count
+      removed_count = count_removed_candidates(clients, @rule.expression)
+
+      UnitGroupImpact.new(
+        unit_group: unit_group,
+        current_candidate_count: current_count,
+        removed_candidate_count: removed_count,
+      )
+    end
+
+    def count_removed_candidates(clients, expression)
+      return 0 if clients.none?
+
+      # Initialize an unpersisted pool (with a meaningless priority expression)
+      # for evaluating clients against the new requirement.
+      preview_pool = CandidatePool.new(requirement_expression: expression, priority_expression: '{1}')
+
+      field_map = Expression::FieldMap.new
+      evaluator = Internal::ClientPoolEvaluator.new(clients, preview_pool, field_map)
+
+      clients.count { |client| evaluator.call(client).failed? }
+    end
+  end
+end

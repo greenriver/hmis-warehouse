@@ -140,6 +140,13 @@ module Hmis::Ce::Match
       eligibility_requirements_for_entity(entity) + priority_schemes_for_entity(entity)
     end
 
+    # Returns unit groups to which the given rule would apply.
+    def self.unit_groups_for_rule(rule)
+      Hmis::UnitGroup.preload(project: [:organization, :data_source, :funders]).select do |unit_group|
+        rule.applies_to_entity?(unit_group)
+      end
+    end
+
     private
 
     def owner_is_not_changed
