@@ -50,9 +50,9 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       when :money
         rounded = row[hud_field].to_f.round(2)
         if positive
-          rounded.positive? ? rounded : nil
+          rounded.positive? ? format('%.2f', rounded) : nil
         else
-          rounded
+          format('%.2f', rounded)
         end
       when :integer
         row[hud_field].to_f.round(0) # Use to_f to round .9 to 1

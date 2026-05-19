@@ -12,7 +12,9 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def initialize(options)
       @output_file = options[:output_file]
-      @keys = options[:hmis_class].hmis_configuration(version: '2026').keys
+      config = options[:hmis_class].hmis_configuration(version: '2026')
+      @keys = config.keys
+      @money_keys = config.filter_map { |k, m| k if m[:check] == :money }.to_set
       @strip_newline_proc = proc do |field|
         field.respond_to?(:gsub) ? field.gsub("\n", '\\n') : field
       end
@@ -26,7 +28,15 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def write(row)
       @csv ||= CSV.open(@output_file, 'wb', force_quotes: true, write_converters: [@strip_newline_proc])
-      @csv << row.values_at(*@keys)
+      values = row.values_at(*@keys)
+      # AR type-casts string values back to BigDecimal for numeric columns on read;
+      # re-apply formatting here after values_at to guarantee two-decimal output.
+      @keys.each_with_index do |key, i|
+        next unless @money_keys.include?(key) && values[i]
+
+        values[i] = format('%.2f', values[i])
+      end
+      @csv << values
     end
 
     def close
