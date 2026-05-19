@@ -45,6 +45,8 @@ RSpec.describe Hmis::Workspace, type: :model do
   end
 
   describe '.viewable_by' do
+    before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
+
     let!(:other_data_source) { create(:hmis_data_source) }
     let!(:other_project_group) { create(:hmis_project_group, data_source: other_data_source) }
     let!(:workspace) { create(:hmis_workspace, data_source: data_source, project_group: project_group) }
@@ -62,10 +64,6 @@ RSpec.describe Hmis::Workspace, type: :model do
       user = create(:hmis_user, data_source: data_source)
       create_access_control(user, data_source, with_permission: [:can_view_project])
       user
-    end
-
-    before do
-      allow(Hmis::Ce.configuration).to receive(:enabled?).and_return(true)
     end
 
     it 'returns ce_referrals workspaces in the user data source when they can index referrals' do
