@@ -100,6 +100,7 @@ module Types
     available_filter_options do
       arg :referral_status, [String]
       arg :project, [ID]
+      arg :project_group_id, ID, description: 'Filter to referrals where the target project belongs to the specified project group'
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]

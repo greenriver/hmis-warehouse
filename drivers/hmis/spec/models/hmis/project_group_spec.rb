@@ -20,6 +20,18 @@ RSpec.describe Hmis::ProjectGroup, type: :model do
   # project in another non-HMIS data source
   let!(:non_hmis_project) { create(:hmis_hud_project, data_source: create(:source_data_source)) }
 
+  describe '.project_ids_for' do
+    let!(:project_group) { create(:hmis_project_group, data_source: hmis_ds, with_projects: [p1_o1]) }
+
+    it 'returns project ids for the group' do
+      expect(described_class.project_ids_for(project_group.id)).to eq([p1_o1.id])
+    end
+
+    it 'returns an empty array for an unknown group' do
+      expect(described_class.project_ids_for(-1)).to eq([])
+    end
+  end
+
   describe 'access scopes' do
     let!(:non_admin_user) do
       hmis_user = create(:hmis_user, data_source: hmis_ds)
