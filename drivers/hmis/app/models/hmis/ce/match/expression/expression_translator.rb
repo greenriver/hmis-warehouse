@@ -4,7 +4,7 @@ require 'dentaku'
 
 module Hmis::Ce::Match::Expression
   # Ce Match Rules have a free-text Dentaku `expression` field, like "current_age >= 18 AND veteran = TRUE".
-  # Parsing uses `CalculatorFactory.ast` so the tokenizer sees the same
+  # Parsing uses `CalculatorFactory.build.ast` so the tokenizer sees the same
   # registration as evaluation (+INCLUDES+/+EXCLUDES+/…).
   #
   # For ease of editing and display, the frontend displays expressions as structured clauses with {field, comparator, value}.
@@ -40,7 +40,7 @@ module Hmis::Ce::Match::Expression
       def to_structured(expression)
         return if expression.blank?
 
-        ast = CalculatorFactory.ast(expression.strip)
+        ast = CalculatorFactory.build.ast(expression.strip)
         operator, leaves = boolean_leaves(ast)
         return unless leaves
 
