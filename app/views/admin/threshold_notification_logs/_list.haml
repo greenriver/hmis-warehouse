@@ -1,0 +1,37 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Sent At
+        %th Threshold Crossings Included
+        %th Configuration
+        %th
+    %tbody
+      - list.each do |log|
+        %tr
+          %td
+            = log.sent_at.to_fs(:db)
+            - if log.delivery_failed?
+              %span.badge.bg-danger.ms-1 Delivery failed
+          %td
+            - if log.metric_threshold_crossed? && log.crossings.any?
+              = log.crossings.map { |c| c['metric_name'] }.uniq.join(', ')
+            - elsif log.import_processing? && log.details.present?
+              - flags = []
+              - flags << 'Error threshold exceeded' if log.details['error_threshold_met']
+              - flags << 'Record count change exceeded' if log.details['count_threshold_met']
+              - flags << 'Import paused' if log.details['paused']
+              = flags.join(', ')
+            - else
+              %span.text-muted —
+          %td
+            - if log.metric_threshold_crossed? && log.crossings.any?
+              - log.crossings.uniq { |c| c['config_url'] }.each do |crossing|
+                = link_to crossing['config_label'], crossing['config_url']
+                %br
+            - elsif log.import_processing? && log.details['config_url'].present?
+              = link_to(log.details['data_source_name'].presence || 'View configuration', log.details['config_url'])
+            - else
+              %span.text-muted —
+          %td
+            = link_to 'View Email', admin_user_threshold_notification_log_path(@user, log), class: 'btn btn-sm btn-secondary'

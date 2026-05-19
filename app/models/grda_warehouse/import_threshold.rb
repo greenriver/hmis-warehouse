@@ -86,47 +86,41 @@ module GrdaWarehouse
 
       receive_both_user_ids = error_count_notification_user_ids & record_change_count_notification_user_ids
 
-      # Handle users who subscribe to both types - they get one notification containing both status types
       if error_threshold_met || record_count_threshold_met
         User.where(id: receive_both_user_ids).find_each do |user|
-          NotifyUser.with(
+          send_notification_and_log(
             user: user,
             import_log_id: import_log_id,
-            data_source: data_source,
             error: error_threshold_met,
             count: record_count_threshold_met,
             paused: paused,
-          ).import_processing.deliver_later
+          )
         end
       end
 
       only_error_user_ids = error_count_notification_user_ids - receive_both_user_ids
-      # Notify where the user receives only the error notification
       if error_threshold_met
         User.where(id: only_error_user_ids).find_each do |user|
-          NotifyUser.with(
+          send_notification_and_log(
             user: user,
             import_log_id: import_log_id,
-            data_source: data_source,
             error: error_threshold_met,
-            count: false, # never notify on counts in this scenario
+            count: false,
             paused: paused,
-          ).import_processing.deliver_later
+          )
         end
       end
 
       only_count_user_ids = record_change_count_notification_user_ids - receive_both_user_ids
-      # Notify where the user receives only the record count notification
       if record_count_threshold_met # rubocop:disable Style/GuardClause
         User.where(id: only_count_user_ids).find_each do |user|
-          NotifyUser.with(
+          send_notification_and_log(
             user: user,
             import_log_id: import_log_id,
-            data_source: data_source,
-            error: false, # never notify on errors in this scenario
+            error: false,
             count: record_count_threshold_met,
             paused: paused,
-          ).import_processing.deliver_later
+          )
         end
       end
     end
@@ -191,6 +185,42 @@ module GrdaWarehouse
         :pause_on_record_count_threshold,
         :pause_on_error_threshold,
       ]
+    end
+
+    private
+
+    def send_notification_and_log(user:, import_log_id:, error:, count:, paused:)
+      log = GrdaWarehouse::Monitoring::ThresholdNotificationLog.create!(
+        user_id: user.id,
+        email_type: 'import_processing',
+        sent_at: Time.current,
+        details: {
+          'data_source_id' => data_source.id,
+          'data_source_name' => data_source.name,
+          'error_threshold_met' => error,
+          'count_threshold_met' => count,
+          'paused' => paused,
+          'import_log_id' => import_log_id,
+          'config_url' => "/data_sources/#{data_source.id}/import_threshold",
+        },
+      )
+      begin
+        NotifyUser.with(
+          user: user,
+          import_log_id: import_log_id,
+          data_source: data_source,
+          error: error,
+          count: count,
+          paused: paused,
+        ).import_processing.deliver_now!
+        message = Message.where(
+          user_id: user.id,
+          subject: GrdaWarehouse::Monitoring::ThresholdNotificationLog::IMPORT_PROCESSING_SUBJECT,
+        ).order(:id).last
+        log.update!(message_id: message&.id)
+      rescue Net::SMTPError, SocketError, IOError, Errno::ECONNREFUSED, Timeout::Error, OpenSSL::SSL::SSLError => e
+        log.update!(delivery_failed: true, delivery_error: e.message)
+      end
     end
   end
 end
