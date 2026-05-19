@@ -69,8 +69,10 @@ module CePerformance
     end
 
     scope :youth_only_households, -> do
-      # Unclear why, but active record extended isn't working here
-      where(household_type: :adults_only).where('household_ages <@ json_build_array(?)::jsonb', (18..24).to_a).hoh
+      where(household_type: :adults_only).
+        where('jsonb_array_length(household_ages) > 0').
+        where('household_ages <@ ?::jsonb', (18..24).to_a.to_json).
+        hoh
     end
 
     scope :unknown_households, -> do

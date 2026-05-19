@@ -90,7 +90,7 @@ module Types
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project, user: user)
       when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
-        projects_receiving_direct_ce_referrals(from_project: project)
+        projects_receiving_direct_ce_referrals(user: user, from_project: project)
       when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
         # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
         unit_groups_for_project_direct_ce_referral(project_id: project_id, user: user)
@@ -109,17 +109,17 @@ module Types
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
-        all_service_types_picklist
+        all_service_types_picklist(user: user)
       when 'CUSTOM_SERVICE_TYPES'
-        custom_service_types_picklist
+        custom_service_types_picklist(user: user)
       when 'HUD_SERVICE_TYPES'
-        hud_service_types_picklist
+        hud_service_types_picklist(user: user)
       when 'ALL_SERVICE_CATEGORIES'
-        all_service_categories_picklist
+        all_service_categories_picklist(user: user)
       when 'CUSTOM_SERVICE_CATEGORIES'
-        custom_service_categories_picklist
+        custom_service_categories_picklist(user: user)
       when 'HUD_SERVICE_CATEGORIES'
-        hud_service_categories_picklist
+        hud_service_categories_picklist(user: user)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -399,18 +399,18 @@ module Types
       end
     end
 
-    def self.hud_service_types_picklist
-      scope = Hmis::Hud::CustomServiceType.hud
+    def self.hud_service_types_picklist(user:)
+      scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id).hud
       service_types_picklist(scope: scope)
     end
 
-    def self.custom_service_types_picklist
-      scope = Hmis::Hud::CustomServiceType.custom
+    def self.custom_service_types_picklist(user:)
+      scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id).custom
       service_types_picklist(scope: scope)
     end
 
-    def self.all_service_types_picklist
-      scope = Hmis::Hud::CustomServiceType.all
+    def self.all_service_types_picklist(user:)
+      scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id)
       service_types_picklist(scope: scope)
     end
 
@@ -426,18 +426,18 @@ module Types
     end
     private_class_method :service_types_picklist
 
-    def self.hud_service_categories_picklist
-      scope = Hmis::Hud::CustomServiceCategory.hud_only
+    def self.hud_service_categories_picklist(user:)
+      scope = Hmis::Hud::CustomServiceCategory.in_data_source(user.hmis_data_source_id).hud_only
       service_categories_picklist(scope: scope)
     end
 
-    def self.custom_service_categories_picklist
-      scope = Hmis::Hud::CustomServiceCategory.custom_only
+    def self.custom_service_categories_picklist(user:)
+      scope = Hmis::Hud::CustomServiceCategory.in_data_source(user.hmis_data_source_id).custom_only
       service_categories_picklist(scope: scope)
     end
 
-    def self.all_service_categories_picklist
-      scope = Hmis::Hud::CustomServiceCategory.all
+    def self.all_service_categories_picklist(user:)
+      scope = Hmis::Hud::CustomServiceCategory.in_data_source(user.hmis_data_source_id)
       service_categories_picklist(scope: scope)
     end
 
@@ -465,31 +465,6 @@ module Types
       options[0][:initial_selected] = true if options.size == 1
 
       options
-    end
-
-    def self.service_type_picklist
-      Types::HmisSchema::Enums::ServiceTypeProvided.values.map do |key, enum|
-        next if enum.value.is_a?(Integer) && enum.value.negative?
-
-        record_type = enum.value.split(':').first
-        record_type_key, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
-
-        label = enum.description.gsub(CODE_PATTERN, '')
-        sort_key = "#{record_type}:#{label}"
-
-        [
-          sort_key,
-          {
-            code: key,
-            label: label,
-            group_code: record_type_key,
-            group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
-          },
-        ]
-      end.
-        compact.
-        sort_by { |sort_key, _v| sort_key }.
-        map(&:second)
     end
 
     def self.sub_type_provided_picklist(enum_type, type_provided_value)
@@ -660,7 +635,7 @@ module Types
       # get all form rules for custom assessments (active and inactive)
       scope = Hmis::Form::Instance.with_role(:CUSTOM_ASSESSMENT)
       # filter down to rules that match this project, if project is specified
-      scope = scope.filter { |fi| fi.project_match(project) } if project
+      scope = scope.in_data_source(project.data_source_id).filter { |fi| fi.project_match(project) } if project
       # { code: definition.identifier, label: definition.title }
       custom_options = scope.map(&:to_pick_list_option).uniq.sort_by { |opt| opt[:label] }
       hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.
@@ -695,16 +670,17 @@ module Types
     end
 
     def self.projects_receiving_referrals(data_source_id)
-      Hmis::Hud::Project.where(data_source_id: data_source_id).
-        receiving_legacy_referrals.
+      Hmis::Hud::Project.receiving_legacy_referrals(data_source_id).
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
     end
 
-    def self.projects_receiving_direct_ce_referrals(from_project:)
+    def self.projects_receiving_direct_ce_referrals(user:, from_project:)
       return [] unless Hmis::Ce.configuration.enabled?
-      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
+      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').
+        where(data_source_id: user.hmis_data_source_id).
+        any?
 
       # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
       project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).

@@ -20,7 +20,7 @@ RSpec.describe 'SubmitForm for Client', type: :request do
 
   before(:each) { hmis_login(user) }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CLIENT) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CLIENT, data_source: ds1) }
   let(:hud_values) do
     {
       'names' => [

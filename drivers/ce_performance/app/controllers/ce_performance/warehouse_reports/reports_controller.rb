@@ -14,7 +14,7 @@ module CePerformance::WarehouseReports
     include BaseFilters
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
-    before_action :set_report, only: [:show, :destroy, :details, :clients]
+    before_action :set_report, only: [:show, :destroy, :details, :clients, :reload_from_csv]
     # before_action :set_pdf_export, only: [:show]
 
     def index

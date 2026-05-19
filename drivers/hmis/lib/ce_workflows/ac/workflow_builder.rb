@@ -42,7 +42,10 @@ module CeWorkflows::Ac
       @unsafe_run_in_production = unsafe_run_in_production # flag to allow running in prod ONLY for initial setup
 
       # validate forms exist
-      missing_identifiers = CE_STEP_FORMS.values - Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: CE_STEP_FORMS.values).pluck(:identifier)
+      missing_identifiers = CE_STEP_FORMS.values - Hmis::Form::Definition.
+        in_data_source(@data_source.id).
+        where(role: 'CE_REFERRAL_STEP', identifier: CE_STEP_FORMS.values).
+        pluck(:identifier)
       raise "Some form definitions are missing. Did you run 'rails driver:hmis:seed_definitions'? #{missing_identifiers.join(', ')}" if missing_identifiers.any?
 
       raise 'This class destroys data and should not be run in production' if Rails.env.production? && !@unsafe_run_in_production

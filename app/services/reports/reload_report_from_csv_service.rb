@@ -70,8 +70,10 @@ module Reports
       # Exclude id from inserts - let database auto-generate new IDs
       columns_to_exclude = ['id'].to_set
 
-      # Delete existing records first to ensure all data is coming from the CSV
-      model_class.where(report_id: report.id).delete_all
+      relation = report.archival_relation_scope(csv_config, association_name, model_class)
+
+      # Delete existing rows before reload; hard-delete so paranoid/nullify associations do not leave orphans
+      report.hard_delete_archival_relation(relation)
 
       # Stream CSV and insert in batches to avoid loading everything into memory
       reader = ReportCsvReader.new(report, attachment_name)
@@ -112,12 +114,17 @@ module Reports
       Rails.logger.info("ReloadReportFromCsvService: Processed #{total_rows} rows from #{attachment_name} for report ##{report.id}")
 
       # Verify records were inserted
-      inserted_count_scoped = model_class.where(report_id: report.id).count
-      inserted_count_unscoped = model_class.unscoped.where(report_id: report.id).count
+      inserted_relation = report.archival_relation_scope(csv_config, association_name, model_class)
+      inserted_count_scoped = inserted_relation.count
+      inserted_count_unscoped = if model_class.respond_to?(:with_deleted)
+        inserted_relation.with_deleted.count
+      else
+        inserted_count_scoped
+      end
       Rails.logger.info("ReloadReportFromCsvService: Verified #{inserted_count_scoped} records (scoped) / #{inserted_count_unscoped} records (unscoped) in database for #{attachment_name} (report ##{report.id})")
 
       if inserted_count_scoped != inserted_count_unscoped
-        soft_deleted = model_class.unscoped.where(report_id: report.id).where.not(deleted_at: nil).count
+        soft_deleted = inserted_relation.with_deleted.where.not(deleted_at: nil).count
         Rails.logger.warn("ReloadReportFromCsvService: WARNING - #{soft_deleted} records have deleted_at set (should be 0)")
       end
 

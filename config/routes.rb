@@ -604,7 +604,9 @@ Rails.application.routes.draw do
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
-    resources :custom_imports, controller: 'data_sources/custom_imports'
+    resources :custom_imports, controller: 'data_sources/custom_imports' do
+      get :download, on: :member
+    end
     resource :api_config
     resource :hmis_import_config do
       get :download
@@ -773,6 +775,7 @@ Rails.application.routes.draw do
         post :impersonate
         patch :expire_password
       end
+      resources :threshold_notification_logs, only: [:index, :show]
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]

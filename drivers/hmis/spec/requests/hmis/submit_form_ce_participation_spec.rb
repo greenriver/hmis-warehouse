@@ -21,7 +21,7 @@ RSpec.describe 'SubmitForm for CeParticipation', type: :request do
 
   before(:each) { hmis_login(user) }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION, data_source: ds1) }
   let(:hud_values) do
     {
       "accessPoint": 'YES',

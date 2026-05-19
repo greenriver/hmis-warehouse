@@ -13,7 +13,4 @@
 
 
   %div
-    - if @message.html?
-      = @message.body_html
-    - else
-      = simple_format(@message.body_html).gsub(URI.regexp(['http', 'https']), '<a href="\0">\0</a>').html_safe
+    = @message.sanitized_body(render_as: :html)

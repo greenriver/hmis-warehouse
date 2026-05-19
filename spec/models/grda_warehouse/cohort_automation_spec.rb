@@ -307,6 +307,19 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       end
     end
 
+    describe '#with_client_update_lock' do
+      let(:cohort) { create(:cohort) }
+
+      it 'returns true when the lock is acquired' do
+        expect(cohort.with_client_update_lock { 'anything' }).to eq(true)
+      end
+
+      it 'returns false when the lock is already held' do
+        allow(GrdaWarehouseBase).to receive(:with_advisory_lock).and_return(false)
+        expect(cohort.with_client_update_lock { raise 'should not execute' }).to eq(false)
+      end
+    end
+
     describe 'validations' do
       it 'allows valid sub_population' do
         cohort.project_group = project_group

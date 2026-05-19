@@ -31,17 +31,17 @@ HMIS API requests (GraphQL and other HMIS controllers) determine **which data so
 
 ### Host → data source binding
 
-1. **Host resolution**  
+1. **Host resolution**
    The controller layer identifies the current HMIS “domain” from the request host:
    - In production: `request.host` (trusted value from Rack/Rails host resolution)
    - In development: the `X-Hmis-Dev-Host` header (so the dev frontend can simulate different HMIS domains).
 
    See `Hmis::BaseController#current_hmis_host`.
 
-2. **Lookup data source by domain**  
+2. **Lookup data source by domain**
    Each Open Path HMIS data source has an `hmis` attribute on `GrdaWarehouse::DataSource` storing the domain (e.g. `hmis-coc-a.example.com`). The controller looks up the data source for the domain identified by the request host.
 
-3. **Attach data source to current user for the request**  
+3. **Attach data source to current user for the request**
    A `before_action :attach_data_source_id` (used by the GraphQL controller, impersonations, client files, etc.) sets:
 
    `current_hmis_user.hmis_data_source_id = data_source_id`
@@ -70,7 +70,7 @@ All HMIS data (clients, enrollments, projects, organizations, etc.) is stored in
 - **`viewable_by` scopes** combine permission-based filtering with a restriction to the user’s `hmis_data_source_id`. Convention: use these when you need “only records in this data source that the user may see.”
 
 - **Auth Policies**  expect that the user has `hmis_data_source_id`, and raise an error if attempting to authorize data from a different data source.
-  - **Global Policies** authorize the set of permissions the user has on *some* entity in that data source (see `#global_permissions`).  
+  - **Global Policies** authorize the set of permissions the user has on *some* entity in that data source (see `#global_permissions`).
   - **Instance Policies** authorize permissions against a particular record (often a project) and enforce that the data source matches the current data source. (See `#project_permissions`, `#organization_permissions`)
 
 - **Object-level auth** on some GraphQL types (e.g. `HmisSchema::Client`) adds a final check, often via an instance policy. If a record from a different data source slipped through, this check prevents it from resolving.
@@ -79,7 +79,7 @@ All HMIS data (clients, enrollments, projects, organizations, etc.) is stored in
 
 ## Configuration
 
-Configuration (forms, form rules, referral workflows, auto-exit config, etc.) is intended to be scoped the same way as data: stored **per data source** and never shared across data sources. Today, some form and config tables are still shared or not fully scoped. Adding or enforcing `data_source_id` on those tables is part of the multi-HMIS work. (🟠TODO#6691)
+Configuration (forms, form rules, referral workflows, auto-exit config, etc.) is intended to be scoped the same way as data: stored **per data source** and never shared across data sources. Today, some form and config tables are still shared or not fully scoped. Adding or enforcing `data_source_id` on those tables is part of the multi-HMIS work. (See child issues of #6612)
 
 ---
 
@@ -98,7 +98,7 @@ Granting a user access to the **wrong** data source (e.g. an admin mistake) is a
 | **Data source per HMIS** | Each HMIS installation is one data source; access is by its own domain. |
 | **Request routing** | Host → `DataSource.hmis` → `attach_data_source_id` → `current_hmis_user.hmis_data_source_id` for the request. |
 | **Data** | All HMIS data tables have `data_source_id`; access is scoped to the current request’s data source. |
-| **Configuration** | Target state: fully isolated per data source (forms, form instances, workflows, rules). Some config still needs `data_source_id` and scoping. (🟠TODO#6691)|
+| **Configuration** | Target state: fully isolated per data source (forms, form instances, workflows, rules). Some config still needs `data_source_id` and scoping. (🟠TODO#6612)|
 | **Users** | A user can have access to multiple HMIS data sources; permissions are enforced independently per data source. |
 | **User lists / admin** | User lists and selectors in an HMIS instance show only users active in that data source. (🟠TODO#8831)|
 | **CoCs** | Each data source can define and manage its relevant CoCs independently. (🟠TODO#8829)|

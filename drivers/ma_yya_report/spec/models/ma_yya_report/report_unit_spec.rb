@@ -144,6 +144,16 @@ RSpec.describe MaYyaReport::Report, 'unit tests' do
           expect(result).to be_present
           expect(result).to respond_to(:to_sql)
         end
+
+        it 'includes clients with no homeless CLS in range (nil latest_homeless_cls_in_range)' do
+          sql = report.send(:prevention_remained_housed_clause).to_sql
+          expect(sql).to include('latest_homeless_cls_in_range" IS NULL')
+        end
+
+        it 'excludes clients whose homeless CLS occurred after entry' do
+          sql = report.send(:prevention_remained_housed_clause).to_sql
+          expect(sql).to include('entry_date')
+        end
       end
 
       describe '#became_housed_clause' do
