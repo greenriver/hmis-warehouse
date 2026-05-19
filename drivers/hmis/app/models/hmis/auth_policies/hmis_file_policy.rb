@@ -6,12 +6,20 @@
 
 # frozen_string_literal: true
 
+# See README_FOR_FILE_PERMISSIONS.md for
 class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_view?
-      # User can view the file if they have "can manage own" (global) AND it's their file, OR
-      # if they have non-confidential access AND it's not confidential, OR
-      # if they have confidential access AND it is confidential
+      # User can view the file if:
+      # - they have "can manage own" (global) AND it's their file, OR
+      # - they have non-confidential access AND it's not confidential, OR
+      # - they have confidential access AND it is confidential.
+      #
+      # NOTE: If the user can view nonconfidential files but not confidential files,
+      # can_view? returns false but the file IS included in the `File#viewable_by` scope.
+      # `can_view?` acts as a check for "is this file shown to the user as redacted?",
+      # not "is this file's existence visible to the user at all?"
+      # See comments on the `File#viewable_by` scope.
       (file.user_id == user.id && global_permissions.include?(:can_manage_own_client_files)) ||
         (file_permissions.include?(:can_view_any_nonconfidential_client_files) && !file.confidential) ||
         (file_permissions.include?(:can_view_any_confidential_client_files) && file.confidential)
@@ -19,11 +27,11 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def can_manage?
       # User can manage (edit/delete) the file if they can view it, and:
-      # - they have "can manage own" (global) AND it's their file, OR
-      # - they can manage any files for this client
+      # - they have "can manage any" granted through the file's client/enrollment, OR
+      # - they have "can manage own" (global) AND it's their file
       can_view? && (
-        (file.user_id == user.id && file_permissions.include?(:can_manage_own_client_files)) ||
-        file_permissions.include?(:can_manage_any_client_files)
+        file_permissions.include?(:can_manage_any_client_files) ||
+        (file.user_id == user.id && global_permissions.include?(:can_manage_own_client_files))
       )
     end
 
@@ -36,13 +44,13 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     memoize def file_permissions
+      # File belongs to a client and optionally to an enrollment.
       if file.enrollment_id
-        # If the file is connected to an enrollment, check the user's permissions on the enrollment's project
+        # If the file is connected to an enrollment, permissions come from the enrollment's project.
         context.project_permissions(file.enrollment.project_pk)
       else
-        # Otherwise, check the user's permissions on the client,
-        # which are based on their permissions at projects the client is enrolled in
-        # (or global permissions, for unenrolled clients).
+        # Otherwise, permissions come from the client, which aggregates permissions across the
+        # projects the client is enrolled in, falling back to global permissions for unenrolled clients.
         context.client_permissions(file.client_id)
       end
     end
@@ -60,14 +68,13 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
       global_permissions.include?(:can_manage_own_client_files)
     end
 
-    # this is a functionality change. it's currently only used in the Client.files_viewable_by scope as an optimization.
     def can_index?
       global_permissions.include?(:can_manage_own_client_files) ||
         global_permissions.include?(:can_view_any_nonconfidential_client_files) ||
         global_permissions.include?(:can_view_any_confidential_client_files)
     end
 
-    # Note, there is no "can_create?" permission on the global HmisFile policy; use the instance HmisClient policy's can_create_file? instead
+    # Note, there is no "can_create?" permission on the global HmisFile policy. Use the instance HmisClient policy's can_create_file? instead
 
     protected
 
@@ -76,7 +83,3 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
     end
   end
 end
-
-# todo @martha - what happens if you try to upload a confidential file, but you don't have access?
-# both on this branch and on main: if you can upload a file, the UI does not prevent you from marking it confidential,
-# even if that means you then can't view the file

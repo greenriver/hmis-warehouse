@@ -21,6 +21,7 @@ module Hmis
     protected
 
     def redacted?(file)
+      # HmisFilePolicy checks for confidentiality and ownership
       !current_hmis_user.policy_for(file, policy_type: :hmis_file).can_view?
     end
 

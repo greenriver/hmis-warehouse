@@ -33,7 +33,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_index_files?
-      # I can index files if I can manage my own files (global perm),
+      # User can index files if they can manage own files (global perm),
       # or can view nonconfidential or confidential files for this client
       global_permissions.include?(:can_manage_own_client_files) ||
         client_permissions.include?(:can_view_any_nonconfidential_client_files) ||
@@ -43,8 +43,8 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     def can_create_file?
       return false unless can_index_files?
 
-      # I can create a file if I can manage "any" (meaning "all" in this case) files for this client,
-      # OR if I can manage my own files (global perm)
+      # User can create a file if they can manage "any" (meaning "all" in this case) files for this client,
+      # OR if they can manage own files (global perm)
       client_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
     end
 

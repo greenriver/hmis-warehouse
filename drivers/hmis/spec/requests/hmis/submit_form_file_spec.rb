@@ -122,21 +122,6 @@ RSpec.describe 'SubmitForm for File', type: :request do
       end
     end
 
-    # todo @martha - discuss and settle on desired behavior
-    # Is this a bug? The following tests fail on main / succeed on this branch
-    # BUT if this is the desired behavior, there is more work to do with the enrollments dropdown.
-    #
-    # Current behavior:
-    # When the user can manage files for the client, but selects an enrollment for which they can't manage files,
-    # the file upload still succeeds, and it is successfully associated with that enrollment.
-    # The file form definition uses the ENROLLMENTS_FOR_CLIENT pick list option, which is scoped to enrollments the current user can view,
-    # but it doesn't care about file related permissions.
-    # Currently reproducible in QA: it's possible to upload a file which you immediately don't have permission to view.
-    #
-    # Expected behavior (I think):
-    # The enrollment dropdown only includes enrollments where the user can view AND manage files.
-    # (OR all viewable enrollments, if the user has "can_manage_own_client_files" which is a global permission)
-    # The file upload should fail with "not authorized" if trying to upload a file for an enrollment where the user can't manage files.
     context 'when user has can_manage_any_client_files for the client, but not the enrollment' do
       # user can manage and view files at p1
       let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_manage_any_client_files, :can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_enrollment_details, :can_view_project]) }
