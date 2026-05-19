@@ -2,9 +2,9 @@
 
 ## Status
 
-- Current Status: Proposed
-- Date of last update: 2026-05-13
-- Decision-makers: Dave, Theron, Elliot
+- Current Status: Accepted
+- Date of last update: 2026-05-19
+- Decision-makers: OP Engineering Team
 
 ## Context
 
