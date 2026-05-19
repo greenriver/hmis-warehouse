@@ -139,6 +139,9 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
+      # Convert to a plain hash so string values set below (e.g. "50.00") are stored as-is.
+      # AR would silently re-cast them back to numeric types on assignment.
+      row = row.attributes.with_indifferent_access
       row = sanitize_string_fields(row)
       row = enforce_lengths(row)
       row = enforce_rounding(row)

@@ -83,4 +83,38 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       expect(row['FAAmount']).to eq '25.50'
     end
   end
+
+  describe '.round_value money formatting' do
+    let(:klass) { HmisCsvTwentyTwentySix::Exporter::IncomeBenefit }
+
+    it 'returns a two-decimal string for a round integer' do
+      row = { TotalMonthlyIncome: 50 }
+      klass.round_value(row, hud_field: :TotalMonthlyIncome, rounding: :money, positive: false)
+      expect(row[:TotalMonthlyIncome]).to eq '50.00'
+    end
+
+    it 'returns a two-decimal string for a single-decimal value' do
+      row = { TotalMonthlyIncome: 18.5 }
+      klass.round_value(row, hud_field: :TotalMonthlyIncome, rounding: :money, positive: false)
+      expect(row[:TotalMonthlyIncome]).to eq '18.50'
+    end
+
+    it 'rounds sub-cent values up and returns a string' do
+      row = { TotalMonthlyIncome: 0.009 }
+      klass.round_value(row, hud_field: :TotalMonthlyIncome, rounding: :money, positive: false)
+      expect(row[:TotalMonthlyIncome]).to eq '0.01'
+    end
+
+    it 'returns nil for a zero value when positive: true' do
+      row = { TotalMonthlyIncome: 0 }
+      klass.round_value(row, hud_field: :TotalMonthlyIncome, rounding: :money, positive: true)
+      expect(row[:TotalMonthlyIncome]).to be_nil
+    end
+
+    it 'returns a two-decimal string for a positive value when positive: true' do
+      row = { TotalMonthlyIncome: 25.5 }
+      klass.round_value(row, hud_field: :TotalMonthlyIncome, rounding: :money, positive: true)
+      expect(row[:TotalMonthlyIncome]).to eq '25.50'
+    end
+  end
 end
