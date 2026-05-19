@@ -42,10 +42,13 @@ This document argues for an **importer-leaning** approach to HMIS data clean-up.
 
 Certain extensions might be required for HMIS-marked Data Sources (e.g. assigning Household ID), while others might be optional (but encouraged) data quality improvements. See **APPENDIX A** at the end of this file for a list.
 
+We are happy with **importer extensions** so far. They are mostly very light-weight, though they are flexible enough (see the enrollment aggregator) that they can be slow. If they only read/update one row at a time, they are very fast. The code for importer extensions is stable. Eventually, we'd like to refactor the entire import process (maybe moving it to a tool more suited to the job, something like DBT) but we expect importer extensions will continue to exist in some format.
+
 ### Potential additional needs
 We may need to make some enhancements to ImporterExtension:
 - Structured per-extension summary  (e.g. # rows updated, logging sample of affected rows)
 - Optional dry-run mode to report counts without mutating, for pre–go-live monitoring.
+- Post-ingest extensions that don't operate on staging data
 
 ### Out of scope: generating HUD Intake/Exit Assessments
 
@@ -74,7 +77,9 @@ More discussion needed; calling this out-of-scope for this ADR. We may want to e
 
 - Engineering cost to port `HmisDataCleanup::Util` logic to **staging** scopes and to keep behavior aligned with HUD expectations and tests.
 - If some cleanups are **optional** we run the risk of needing to maintain the existing `HmisDataCleanup::Util` logic alongside the new importer extensions. Because customers may opt not to clean up certain things before launch, but after launch they decide they change their mind. We can't re-use the importer cleanup routines once the data is "live" (I think), so we would need 2 implementations.
-- Some fixes (personal ID alignment) may **not** fit cleanly in pre-ingest `cleanup_data_set!`; split phases add complexity.
+  - **Mitigation**: It could be written such that the util could use the importer extension to do transformations that need to occur in both locations.
+- Some fixes (personal ID alignment; clear ExportID) may **not** fit cleanly in pre-ingest `cleanup_data_set!`; split phases add complexity.
+  - **Mitigation**: We could build a post-ingest extension mechanism to handle this and others that don't operate on staging data.
 - `MigrateAssessmentsJob` auto-queue needs to be addressed separately
 
 ## Alternatives Considered
