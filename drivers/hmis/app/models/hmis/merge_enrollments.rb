@@ -73,6 +73,8 @@ module Hmis
         enrollment_to_destroy.destroy!
       end
       Rails.logger.info "Merged enrollment #{enrollment_to_destroy.id} into enrollment #{enrollment_to_retain.id}"
+      enrollment_to_retain.invalidate_processing!
+      enrollment_to_retain.queue_service_history_processing!
     end
 
     def valid?

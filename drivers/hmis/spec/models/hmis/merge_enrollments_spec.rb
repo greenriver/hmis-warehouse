@@ -7,10 +7,9 @@
 ###
 
 require 'rails_helper'
-require_relative '../../../app/services/hmis/merge_enrollments' # https://github.com/greenriver/rails_drivers/blob/master/lib/rails_drivers/setup.rb#L5-L15
 require_relative '../../support/hmis_base_setup'
 
-RSpec.describe Hmis::MergeEnrollments, type: :service do
+RSpec.describe Hmis::MergeEnrollments, type: :model do
   include_context 'hmis base setup'
 
   let!(:e_retain) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1) }
