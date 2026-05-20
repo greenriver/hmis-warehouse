@@ -6,12 +6,6 @@
 
 # frozen_string_literal: true
 
-# These should be removed as these are moved to their own drivers
-Rails.application.config.hud_reports['Reports::Lsa::Fy2021::Base'] = {
-  title: 'Longitudinal System Analysis',
-  helper: 'hud_reports_lsas_path',
-}
-
 class Report < ApplicationRecord
   require 'csv'
   include Rails.application.routes.url_helpers
