@@ -124,9 +124,9 @@ module HmisDataQualityTool
         iraq_ond: { title: 'Iraq (Operation New Dawn)', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         military_branch: { title: 'Military Branch', translator: ->(v) { "#{HudHelper.util.military_branch(v)} (#{v})" } },
         discharge_status: { title: 'Discharge Status', translator: ->(v) { "#{HudHelper.util.discharge_status(v)} (#{v})" } },
-        employed: { title: 'Employed', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        employment_type: { title: 'Employment Type', translator: ->(v) { "#{HudHelper.util.employment_type(v)} (#{v})" } },
-        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { "#{HudHelper.util.not_employed_reason(v)} (#{v})" } },
+        employed: { title: 'Employed', translator: ->(v) { v.nil? ? '' : "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        employment_type: { title: 'Employment Type', translator: ->(v) { v.nil? ? '' : "#{HudHelper.util.employment_type(v)} (#{v})" } },
+        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { v.nil? ? '' : "#{HudHelper.util.not_employed_reason(v)} (#{v})" } },
       }.freeze
     end
 
