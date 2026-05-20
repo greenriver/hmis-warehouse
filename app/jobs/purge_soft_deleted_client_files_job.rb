@@ -16,11 +16,15 @@
 class PurgeSoftDeletedClientFilesJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-  RETENTION_PERIOD = 30.days
-
   # @param retain_at [DateTime] Records deleted before this time will be purged
   # @param batch_size [Integer] Number of records to process per batch
-  def perform(retain_at: RETENTION_PERIOD.ago, batch_size: 1_000)
+  def perform(retain_at: nil, max_deleted: nil, batch_size: 1_000)
+    config = SoftDeleteRetentionConfiguration.new
+    return 0 unless config.enabled?
+
+    retain_at ||= config.retain_at
+    max_deleted ||= config.max_deleted_per_run
+
     total = 0
 
     with_lock do
@@ -28,12 +32,11 @@ class PurgeSoftDeletedClientFilesJob < BaseJob
         GrdaWarehouse::ClientFile.arel_table[:deleted_at].lt(retain_at),
       ).with_attached_client_file
 
-      scope.find_in_batches(batch_size: batch_size) do |batch|
-        batch.each do |file|
-          file.client_file.purge if file.client_file.attached?
-          file.really_destroy!
-          total += 1
-        end
+      scope.find_each(batch_size: batch_size) do |file|
+        file.client_file.purge if file.client_file.attached?
+        file.really_destroy!
+        total += 1
+        break if total >= max_deleted
       end
     end
 
