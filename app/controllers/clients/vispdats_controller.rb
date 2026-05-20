@@ -118,7 +118,7 @@ module Clients
     def destroy_file
       set_vispdat
       @file = @vispdat.files.find params[:file_id]
-      @file.soft_delete
+      @file.soft_delete!
       respond_with @vispdat
     end
 

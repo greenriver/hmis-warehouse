@@ -8,6 +8,7 @@ RSpec.describe PurgeSoftDeletedClientFilesJob, type: :job do
   let!(:file_active) { create(:client_file) }
 
   before do
+    AppConfigProperty.create!(key: 'purge_soft_deleted_records/enabled', value: '1')
     file_old.update_columns(deleted_at: 60.days.ago)
     file_recent.update_columns(deleted_at: 10.days.ago)
   end

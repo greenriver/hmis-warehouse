@@ -30,13 +30,12 @@ class PurgeSoftDeletedClientFilesJob < BaseJob
     with_lock do
       scope = GrdaWarehouse::ClientFile.only_deleted.where(
         GrdaWarehouse::ClientFile.arel_table[:deleted_at].lt(retain_at),
-      ).with_attached_client_file
+      ).with_attached_client_file.limit(max_deleted)
 
       scope.find_each(batch_size: batch_size) do |file|
         file.client_file.purge if file.client_file.attached?
         file.really_destroy!
         total += 1
-        break if total >= max_deleted
       end
     end
 

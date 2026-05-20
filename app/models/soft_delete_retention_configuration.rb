@@ -16,11 +16,16 @@ class SoftDeleteRetentionConfiguration
   DEFAULT_MAX_DELETED_PER_RUN = 10_000_000
 
   # Whether purging is enabled. Defaults to true in staging, false otherwise.
-  def enabled? = value_for(:enabled)&.to_i == 1 || Rails.env.staging?
+  def enabled?
+    value = value_for(:enabled)
+    return value.to_i == 1 if value.present?
+
+    Rails.env.staging?
+  end
 
   # Number of days to retain soft-deleted records before purging.
   def retention_period_days
-    value_for(:retention_period_days)&.to_i || DEFAULT_RETENTION_PERIOD_DAYS
+    value_for(:retention_period_days)&.to_i.presence || DEFAULT_RETENTION_PERIOD_DAYS
   end
 
   # Convenience timestamp: records deleted before this time are eligible for purging.
