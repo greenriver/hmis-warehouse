@@ -16,9 +16,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
 
-  let!(:assessment) { create :hmis_form_definition, identifier: 'test-custom-assessment', role: :CUSTOM_ASSESSMENT }
-  let!(:assessment_rule) { create :hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: p1, active: true }
-  let!(:inactive_rule) { create :hmis_form_instance, definition_identifier: 'test-custom-assessment', active: false }
+  let!(:assessment) { create :hmis_form_definition, identifier: 'test-custom-assessment', role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:assessment_rule) { create :hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: p1, active: true, data_source: ds1 }
+  let!(:inactive_rule) { create :hmis_form_instance, definition_identifier: 'test-custom-assessment', active: false, data_source: ds1 }
 
   before(:each) do
     hmis_login(user)
@@ -67,7 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should return all seeded form rules for a hud service' do
-      service_definition = Hmis::Form::Definition.with_role(:SERVICE).first
+      service_definition = Hmis::Form::Definition.in_data_source(ds1).with_role(:SERVICE).first
       rules = query_form_rules(id: service_definition.id)
       expect(rules.count).to be >= 10
     end
@@ -82,11 +82,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before do
         50.times do
           project = create(:hmis_hud_project, data_source: ds1, organization: o1)
-          create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: project, active: true)
+          create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: project, data_source: ds1, active: true)
         end
         50.times do
           organization = create(:hmis_hud_organization, data_source: ds1)
-          create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: organization, active: true)
+          create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: organization, data_source: ds1, active: true)
         end
       end
 

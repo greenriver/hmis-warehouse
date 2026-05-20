@@ -26,8 +26,8 @@ class AppResourceMonitor::TableHistory < AppResourceMonitor::S3Analysis
 
   attr_reader :table, :days_back, :output_path
 
-  def initialize(prefix:, database:, table:, days_back: 30, output_path: './table_history.csv')
-    super(prefix: prefix, database: database)
+  def initialize(prefix:, database:, table:, days_back: 30, output_path: './table_history.csv', as_of: nil)
+    super(prefix: prefix, database: database, as_of: as_of)
     @table       = table.to_s
     @days_back   = days_back.to_i
     @output_path = output_path.to_s

@@ -22,7 +22,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
     # Clients not found are omitted (no snapshot will be created)
     # Note: calculation_date not used since warehouse_clients_processed
     # maintains a rolling 3-year window
-    def self.calculate_batch(entities, _calculation_date)
+    def self.calculate_batch(entities, _calculation_date, **_kwargs)
       entity_ids = entities.map(&:id)
 
       GrdaWarehouse::WarehouseClientsProcessed.

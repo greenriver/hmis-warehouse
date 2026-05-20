@@ -19,6 +19,7 @@ module Types
     available_filter_options do
       arg :search_term, String, required: false
       arg :project_type, [Types::HmisSchema::Enums::ProjectType], required: false, description: 'Filter to Clients that are eligible for the specified Project Types'
+      arg :project_group_id, ID, required: false, description: 'Filter to Clients that are eligible for projects in the specified Project Group'
       arg :dynamic_filters, [Types::TableFilterValue], required: false
     end
 

@@ -25,16 +25,14 @@ module HmisUtil
 
     attr_reader :env_key, :generate_cdeds, :create_instances
 
-    def initialize(env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?, data_source_id: nil)
+    def initialize(data_source_id:, env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?)
       @env_key = env_key.presence || compute_default_env_key
       @create_instances = create_instances
       @generate_cdeds = generate_cdeds # default: generate CDEDs from custom_field_key mappings in non-test environments
-      # TODO(#6691) require data source. Currently this class allows it to be missing because this gets run in rails helper before data sources are created.
-      @data_source = data_source_id ? GrdaWarehouse::DataSource.hmis.find(data_source_id) : GrdaWarehouse::DataSource.hmis.first
-      raise 'No HMIS data source found for JsonForms seeding' if @data_source.blank? && !Rails.env.test?
+      @data_source = GrdaWarehouse::DataSource.hmis.find(data_source_id)
     end
 
-    def self.seed_all(data_source_id: nil)
+    def self.seed_all(data_source_id:)
       new(data_source_id: data_source_id).seed_all
     end
 
@@ -56,7 +54,7 @@ module HmisUtil
     protected
 
     def instance_maintainer
-      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: @data_source&.id)
+      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: @data_source.id)
     end
 
     def compute_default_env_key
@@ -308,6 +306,7 @@ module HmisUtil
         identifier: identifier,
         role: role,
         version: 0,
+        data_source_id: @data_source.id,
       ).first_or_initialize(title: title || identifier.to_s.humanize)
       record.managed_in_version_control = true
       record.definition = form_definition
@@ -334,7 +333,7 @@ module HmisUtil
         form_definition,
         role,
         skip_cded_validation: !generate_cdeds, # skip validation if we didn't generate CDEDs
-        data_source_id: @data_source&.id,
+        data_source_id: @data_source.id,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 

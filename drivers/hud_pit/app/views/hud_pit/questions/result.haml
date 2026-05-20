@@ -8,6 +8,7 @@
 
 .well.mt-6
   = render 'hud_reports/inline_parameters', report: @report
+- show_link = true
 - question_class = generator.questions[@question]
 - if question_class&.const_defined?(:HIV_AIDS_ROW) && !current_user.can_view_hiv_status?
   - hiv_row = question_class::HIV_AIDS_ROW

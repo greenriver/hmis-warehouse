@@ -12,7 +12,7 @@ module HudLsa
     include ArelHelper
 
     private def report_scope
-      report_source.hic.where(report_name: possible_titles)
+      hic_scope.where(report_name: possible_titles)
     end
 
     # Last Wednesday of January

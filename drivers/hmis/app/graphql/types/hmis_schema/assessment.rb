@@ -79,7 +79,7 @@ module Types
       # If definition is stored on Form Processor, return that. This is the Definition that was most recently used to submit the Assessment.
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition on the Form Processor, which would occur if this is a migrated HUD Assessment, then choose an appropriate one:
-      definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: object.data_source_id)
       # Apply filter context to filter out items that are not relevant for this project (HUD and Custom Rules)
       definition.filter_context = { project: project, active_date: object.assessment_date }
       definition
