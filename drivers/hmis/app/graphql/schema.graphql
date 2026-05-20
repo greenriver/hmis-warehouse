@@ -1243,7 +1243,6 @@ type CeReferralAuditEventsPaginated {
 }
 
 input CeReferralFilterOptions {
-  assignedToUser: ID
   assignedToYou: Boolean
   onCurrentTaskSince: ISO8601Date
   organization: [ID!]
