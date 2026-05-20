@@ -61,6 +61,7 @@ module HudReports
         generator.new(@report).queue
         redirect_to(path_for_history(filter: @filter.to_h))
       else
+        @filter.default_project_type_codes = generator.default_project_type_codes
         render :new
       end
     end
