@@ -38,14 +38,25 @@ module Hmis::Ce::Match
       pool = unit_group.candidate_pool
       return unless pool
 
-      clients = pool.warehouse_clients.load # `.load` materializes the relation once for performance
-      current_count = clients.size
+      # Multiple unit groups frequently share the same candidate pool; memoize the
+      # per-pool counts so we only load clients and evaluate the expression once per pool.
+      counts = counts_for_pool(pool)
 
       UnitGroupImpact.new(
         unit_group: unit_group,
-        current_candidate_count: current_count,
-        removed_candidate_count: current_count.zero? ? 0 : count_removed_candidates(clients, @rule.expression),
+        current_candidate_count: counts[:current],
+        removed_candidate_count: counts[:removed],
       )
+    end
+
+    def counts_for_pool(pool)
+      @counts_by_pool_id ||= {}
+      @counts_by_pool_id[pool.id] ||= begin
+        clients = pool.warehouse_clients.load # `.load` materializes the relation once for performance
+        current_count = clients.size
+        removed_count = current_count.zero? ? 0 : count_removed_candidates(clients, @rule.expression)
+        { current: current_count, removed: removed_count }
+      end
     end
 
     def count_removed_candidates(clients, expression)
