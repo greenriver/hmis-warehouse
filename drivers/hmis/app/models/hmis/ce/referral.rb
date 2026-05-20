@@ -137,6 +137,10 @@ module Hmis::Ce
     validate :ce_template
     validate :consistent_data_source
     validate :consistent_project
+    # Direct referrals require a source enrollment to identify which project sent the referral.
+    # Without a source enrollment, the referral would "float" and not appear on the source project's
+    # outgoing referrals list, making it difficult to track and manage.
+    validates :source_enrollment_id, presence: true, if: -> { referral_origin == DIRECT_SEND_ORIGIN }
 
     before_save :clear_decline_reason_when_accepted
 
