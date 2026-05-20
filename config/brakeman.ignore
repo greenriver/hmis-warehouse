@@ -278,29 +278,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "150ecb715f71e17ac9457b3b0a5a938f6c8023af3e2199132fce57d1e6c60309",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa_summary.rb",
-      "line": 477,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.exec_query(\"dbo.sp_lsaPersonDemographics #{pop[:pop_id]}, #{(hh_type or \"NULL\")}, '#{param}'\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAReportSummary",
-        "method": "fetch_demographics"
-      },
-      "user_input": "pop[:pop_id]",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "1547f3e0a337f1a7b198be3c3c47ebeba2160c2565c27f2fce794f2c5775535f",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1133,7 +1110,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 266,
+      "line": 270,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -1743,7 +1720,7 @@
         {
           "type": "template",
           "name": "cohorts/show",
-          "line": 46,
+          "line": 65,
           "file": "app/views/cohorts/show.haml",
           "rendered": {
             "name": "cohorts/_client_table",
@@ -1849,7 +1826,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/cohorts/edit.haml",
-      "line": 32,
+      "line": 34,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
       "render_path": [
@@ -2564,7 +2541,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 280,
+      "line": 284,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
