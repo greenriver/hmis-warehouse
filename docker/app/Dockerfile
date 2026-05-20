@@ -177,6 +177,7 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 RUN gem update --system \
   && gem update rexml rack erb \
   && gem cleanup rexml rack erb \
+  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap -v 0.5.8 \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
