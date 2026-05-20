@@ -67,13 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    context 'when hud user columns are nil' do
-      before do
-        PaperTrail.request(controller_info: { true_user_id: app_user.id, whodunnit: app_user.id }) do
-          create(:hmis_custom_assessment, date_created: 2.days.ago, date_updated: 2.days.ago, data_source: ds1, enrollment: e1, updated_by_hud_user: nil, created_by_hud_user: nil)
-        end
-      end
-
+    shared_examples 'falls back to papertrail for user and createdBy' do
       it 'falls back to papertrail for user and createdBy' do
         response, result = post_graphql(id: e1.id.to_s) { enrollment_assessments_query }
         expect(response.status).to eq(200), result.inspect
@@ -83,6 +77,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(node['createdBy']['id']).to eq(app_user.id.to_s)
         expect(node['createdBy']['email']).to eq(app_user.email)
       end
+    end
+
+    context 'when hud user columns are nil' do
+      before do
+        PaperTrail.request(controller_info: { true_user_id: app_user.id, whodunnit: app_user.id }) do
+          create(:hmis_custom_assessment, date_created: 2.days.ago, date_updated: 2.days.ago, data_source: ds1, enrollment: e1, updated_by_hud_user: nil, created_by_hud_user: nil)
+        end
+      end
+
+      it_behaves_like 'falls back to papertrail for user and createdBy'
+    end
+
+    context 'when hud user exists, but does not map to an application user' do
+      let!(:unmapped_hud_user) { create(:hmis_hud_user, data_source: ds1, user_email: 'nonexistent@example.com') }
+
+      before do
+        PaperTrail.request(controller_info: { true_user_id: app_user.id, whodunnit: app_user.id }) do
+          create(:hmis_custom_assessment, date_created: 2.days.ago, date_updated: 2.days.ago, data_source: ds1, enrollment: e1, updated_by_hud_user: unmapped_hud_user, created_by_hud_user: unmapped_hud_user)
+        end
+      end
+
+      it_behaves_like 'falls back to papertrail for user and createdBy'
     end
   end
 
