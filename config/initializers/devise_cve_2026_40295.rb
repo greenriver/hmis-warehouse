@@ -21,12 +21,12 @@ module DeviseStoreLocationPatch
   def extract_path_from_location(location)
     uri = parse_uri(location)
 
-    if uri && uri.path
-      path = remove_domain_from_uri(uri)
-      path = add_fragment_back_to_path(uri, path)
+    return unless uri&.path
 
-      path
-    end
+    path = remove_domain_from_uri(uri)
+    path = add_fragment_back_to_path(uri, path)
+
+    path
   end
 end
 
