@@ -133,7 +133,7 @@ module Clients
       end
 
       begin
-        @file.soft_delete
+        @file.soft_delete!
 
         flash[:notice] = 'File was successfully deleted.'
         # Keep various client fields in sync with files if appropriate

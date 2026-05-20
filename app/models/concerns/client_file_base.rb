@@ -19,15 +19,17 @@ module ClientFileBase
     # dependent: false prevents soft-deletes (via acts_as_paranoid) from enqueuing
     # ActiveStorage::PurgeJob, which would delete the S3 blob while the DB record
     # is still restorable and may have pending AnalyzeJobs.
+    # S3 blobs are cleaned up later by PurgeSoftDeletedClientFilesJob.
+    # Use soft_delete/soft_delete! instead of .destroy (see below).
     has_one_attached :client_file, dependent: false
 
     # Use instead of .destroy to soft-delete without side effects.
     # acts_as_paranoid's .destroy runs :destroy callbacks, which triggers
     # acts_as_taggable's `dependent: :destroy` on the taggings association,
     # hard-deleting the join rows. That makes tag-based restore impossible.
-    def soft_delete
-      update(deleted_at: Time.current)
-    end
+    # S3 blobs are cleaned up later by PurgeSoftDeletedClientFilesJob.
+    def soft_delete = update(deleted_at: Time.current)
+    def soft_delete! = update!(deleted_at: Time.current)
 
     # The file_exists_and_not_too_large validation checks that the client_file exists, so we can rely on that and only validate presence of name if the file has a client_file attachment.
     # This avoids an awkward double-error "Name can't be blank" if the file is not uploaded or has expired.
