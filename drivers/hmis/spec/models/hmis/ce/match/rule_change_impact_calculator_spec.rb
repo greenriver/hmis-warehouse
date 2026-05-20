@@ -18,10 +18,10 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
   let!(:candidate2) { create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client2.destination_client) }
   let!(:candidate3) { create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client3.destination_client) }
 
-  describe '.for_create' do
+  describe '.for_rule' do
     it 'counts candidates that would be removed by the proposed requirement' do
       rule = build(:hmis_ce_eligibility_requirement, owner: project, expression: 'veteran_status = 1')
-      result = described_class.for_create(rule: rule)
+      result = described_class.for_rule(rule: rule)
 
       expect(result.affected_unit_groups.size).to eq(1)
 
@@ -33,7 +33,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
 
     it 'returns zero removals when all current candidates pass the proposed requirement' do
       rule = build(:hmis_ce_eligibility_requirement, owner: project, expression: 'current_age >= 18')
-      result = described_class.for_create(rule: rule)
+      result = described_class.for_rule(rule: rule)
 
       impact = result.affected_unit_groups.first
       expect(impact.removed_candidate_count).to eq(0)
@@ -43,7 +43,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
       unit_group.update!(candidate_pool: nil)
 
       rule = build(:hmis_ce_eligibility_requirement, owner: project, expression: 'veteran_status = 1')
-      result = described_class.for_create(rule: rule)
+      result = described_class.for_rule(rule: rule)
 
       expect(result.affected_unit_groups).to be_empty
     end
@@ -60,7 +60,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
           expression: 'veteran_status = 1',
           applicability_config: { project_types: [project.project_type] },
         )
-        result = described_class.for_create(rule: rule)
+        result = described_class.for_rule(rule: rule)
 
         unit_groups = result.affected_unit_groups.map(&:unit_group)
         expect(unit_groups).to contain_exactly(unit_group)
@@ -80,7 +80,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
           expression: 'veteran_status = 1',
           applicability_config: { project_funders: [50] },
         )
-        result = described_class.for_create(rule: rule)
+        result = described_class.for_rule(rule: rule)
 
         unit_groups = result.affected_unit_groups.map(&:unit_group)
         expect(unit_groups).to contain_exactly(other_unit_group)
@@ -104,7 +104,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
       let(:new_rule) { build(:hmis_ce_eligibility_requirement, owner: project, expression: '`cde.custom_assessment.eligible_for_program` = "yes"') }
 
       it 'evaluates the proposed expression against CDE values without raising' do
-        result = described_class.for_create(rule: new_rule)
+        result = described_class.for_rule(rule: new_rule)
 
         impact = result.affected_unit_groups.first
         # No CDE values exist for any candidate, so the expression evaluates to nil
@@ -120,7 +120,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
         let!(:custom_data_element) { create(:hmis_custom_data_element, owner: custom_assessment, data_element_definition: cded, data_source: hmis_data_source, value_string: 'yes') }
 
         it 'does not count that candidate as removed' do
-          result = described_class.for_create(rule: new_rule)
+          result = described_class.for_rule(rule: new_rule)
 
           impact = result.affected_unit_groups.first
           expect(impact.current_candidate_count).to eq(4)
@@ -134,7 +134,27 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
       it 'raises' do
         rule = build(:hmis_ce_priority_scheme, owner: project, expression: 'current_age')
 
-        expect { described_class.for_create(rule: rule) }.to raise_error(ArgumentError, /priority scheme impact preview is not supported/)
+        expect { described_class.for_rule(rule: rule) }.to raise_error(ArgumentError, /priority scheme impact preview is not supported/)
+      end
+    end
+
+    context 'with a persisted rule that has unpersisted changes' do
+      let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'current_age >= 18') }
+
+      before do
+        client1.destination_client.update!(dob: 30.years.ago(current_date))
+        client2.destination_client.update!(dob: 35.years.ago(current_date))
+        client3.destination_client.update!(dob: 50.years.ago(current_date))
+      end
+
+      it 'evaluates the in-memory expression against current candidates' do
+        rule.expression = 'current_age >= 40'
+        result = described_class.for_rule(rule: rule)
+
+        impact = result.affected_unit_groups.first
+        expect(impact.unit_group).to eq(unit_group)
+        expect(impact.current_candidate_count).to eq(3)
+        expect(impact.removed_candidate_count).to eq(2)
       end
     end
   end

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match
-  # Answers, "How many current candidates in the affected pools would be removed if this rule were added?"
-  # Does not (yet) simulate the full post-save rule set, rebuild hypothetical pools, or report added candidates.
+  # Answers, "How many current candidates in the affected pools would be removed if this rule's
+  # expression were applied?" Does not simulate the full post-save rule set, rebuild hypothetical
+  # pools, or report added candidates.
   #
-  # Expects a built-but-unpersisted Hmis::Ce::Match::Rule (e.g. from `Rule.new(...)`).
+  # Expects an unpersisted Hmis::Ce::Match::Rule, or a persisted rule carrying in-memory changes.
   # Callers should validate the rule's expression using `Hmis::Ce::Match::Expression::Validator`
   # before invoking this service, which does not handle validation.
   #
@@ -13,7 +14,7 @@ module Hmis::Ce::Match
     Result = Struct.new(:affected_unit_groups, keyword_init: true)
     UnitGroupImpact = Struct.new(:unit_group, :current_candidate_count, :removed_candidate_count, keyword_init: true)
 
-    def self.for_create(rule:)
+    def self.for_rule(rule:)
       new(rule: rule).call
     end
 
