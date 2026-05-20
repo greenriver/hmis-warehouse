@@ -180,11 +180,15 @@ module GrdaWarehouse::Monitoring::Tasks
       entity_ids = entities.map(&:id)
       metric_ids = metrics.map(&:id)
 
-      # Find most recent snapshot for each entity/metric
+      # Find the most recent snapshot updated on or before yesterday for each entity/metric.
+      # Upper bound (..yesterday) ensures we never pick up a snapshot already written by
+      # today's run (same-day re-run safety), while still finding stale baselines from
+      # weeks or months ago so they are compared against rather than treated as "first time"
+      # (which would create a spurious crossing notification against the old baseline).
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
-        where(current_observation_date: @calculation_date - 1.day..).
+        where(current_observation_date: ..@calculation_date - 1.day).
         order(id: :desc).
         group_by { |s| [s.entity_id, s.metric_definition_id] }.
         transform_values(&:first)
@@ -194,7 +198,7 @@ module GrdaWarehouse::Monitoring::Tasks
       calculator_class = metric.calculator_class.constantize
 
       # Use batch calculation
-      calculated_values = calculator_class.calculate_batch(entities, @calculation_date)
+      calculated_values = calculator_class.calculate_batch(entities, @calculation_date, metric: metric)
 
       calculated_values.each do |entity_id, calculated_value|
         # Skip nil values (no data available)

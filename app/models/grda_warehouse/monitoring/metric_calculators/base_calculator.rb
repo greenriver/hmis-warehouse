@@ -25,7 +25,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
     # Class method - calculate for batch of entities
     # Returns hash of { entity_id => value }
     # Subclasses should override this for efficient batch processing
-    def self.calculate_batch(entities, calculation_date)
+    def self.calculate_batch(entities, calculation_date, **_kwargs)
       entities.to_h do |entity|
         [entity.id, new(entity, calculation_date).calculate]
       end

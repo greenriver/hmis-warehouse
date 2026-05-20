@@ -775,6 +775,7 @@ Rails.application.routes.draw do
         post :impersonate
         patch :expire_password
       end
+      resources :threshold_notification_logs, only: [:index, :show]
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
