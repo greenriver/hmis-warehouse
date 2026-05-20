@@ -3,6 +3,12 @@
 module Hmis::Ce::Match
   # Answers, "How many current candidates in the affected pools would be removed if this rule were added?"
   # Does not (yet) simulate the full post-save rule set, rebuild hypothetical pools, or report added candidates.
+  #
+  # Expects a built-but-unpersisted Hmis::Ce::Match::Rule (e.g. from `Rule.new(...)`).
+  # Callers should validate the rule's expression using `Hmis::Ce::Match::Expression::Validator`
+  # before invoking this service, which does not handle validation.
+  #
+  # Priority schemes are not supported here, since adding a priority scheme cannot remove existing candidates.
   class RuleChangeImpactCalculator
     Result = Struct.new(:affected_unit_groups, keyword_init: true)
     UnitGroupImpact = Struct.new(:unit_group, :current_candidate_count, :removed_candidate_count, keyword_init: true)
@@ -24,7 +30,7 @@ module Hmis::Ce::Match
     private
 
     def unit_group_impacts
-      Rule.unit_groups_for_rule(@rule).
+      Rule.unit_groups_for_owner(@rule.owner, applicability_config: @rule.applicability_config).
         filter_map { |unit_group| impact_for_unit_group(unit_group) }
     end
 
@@ -32,14 +38,13 @@ module Hmis::Ce::Match
       pool = unit_group.candidate_pool
       return unless pool
 
-      clients = pool.warehouse_clients
-      current_count = clients.count
-      removed_count = count_removed_candidates(clients, @rule.expression)
+      clients = pool.warehouse_clients.load # `.load` materializes the relation once for performance
+      current_count = clients.size
 
       UnitGroupImpact.new(
         unit_group: unit_group,
         current_candidate_count: current_count,
-        removed_candidate_count: removed_count,
+        removed_candidate_count: current_count.zero? ? 0 : count_removed_candidates(clients, @rule.expression),
       )
     end
 

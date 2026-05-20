@@ -140,11 +140,34 @@ module Hmis::Ce::Match
       eligibility_requirements_for_entity(entity) + priority_schemes_for_entity(entity)
     end
 
-    # Returns unit groups to which the given rule would apply.
-    def self.unit_groups_for_rule(rule)
-      Hmis::UnitGroup.preload(project: [:organization, :data_source, :funders]).select do |unit_group|
-        rule.applies_to_entity?(unit_group)
+    # Returns Hmis::UnitGroups that a rule with the given `owner` + `applicability_config`
+    # apply to. Performs the lineage + applicability filtering at the SQL level for performance.
+    #
+    # IMPORTANT: keep this in sync with `MatchApplicability`, the in-Ruby evaluator.
+    def self.unit_groups_for_owner(owner, applicability_config: {})
+      p_t = Hmis::Hud::Project.arel_table
+      o_t = GrdaWarehouse::Hud::Organization.arel_table
+      f_t = GrdaWarehouse::Hud::Funder.arel_table
+
+      scope = Hmis::UnitGroup.joins(:project)
+      scope = case owner
+      when Hmis::UnitGroup
+        scope.where(id: owner.id)
+      when Hmis::Hud::Project
+        scope.where(project_id: owner.id)
+      when Hmis::Hud::Organization
+        scope.joins(project: :organization).where(o_t[:id].eq(owner.id))
+      when GrdaWarehouse::DataSource
+        scope.where(p_t[:data_source_id].eq(owner.id))
+      else
+        raise ArgumentError, "Unsupported owner type for rule applicability: #{owner.class}"
       end
+
+      config = (applicability_config || {}).symbolize_keys
+      scope = scope.where(p_t[:ProjectType].in(config[:project_types])) if config[:project_types].present?
+      scope = scope.joins(project: :funders).where(f_t[:Funder].in(config[:project_funders])).distinct if config[:project_funders].present?
+
+      scope.preload(project: [:organization, :data_source, :funders])
     end
 
     private
