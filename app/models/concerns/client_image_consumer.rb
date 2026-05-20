@@ -98,7 +98,7 @@ module ClientImageConsumer
       self.class.transaction do
         # Hard-delete ephemeral cache records (no reason to soft-delete or restore).
         # Purge blobs first so S3 objects aren't orphaned.
-        client_files.window.where(name: 'Client Headshot Cache').each do |f|
+        client_files.window.where(name: 'Client Headshot Cache').with_attached_client_file.each do |f|
           f.client_file.purge if f.client_file.attached?
           f.really_destroy!
         end

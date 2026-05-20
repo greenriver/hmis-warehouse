@@ -26,7 +26,7 @@ class PurgeSoftDeletedClientFilesJob < BaseJob
     with_lock do
       scope = GrdaWarehouse::ClientFile.only_deleted.where(
         GrdaWarehouse::ClientFile.arel_table[:deleted_at].lt(retain_at),
-      )
+      ).with_attached_client_file
 
       scope.find_in_batches(batch_size: batch_size) do |batch|
         batch.each do |file|
