@@ -7,6 +7,13 @@
 # The script seems to be freezing with no output. This might help debug it.
 $stdout.sync = true
 
+# Kubernetes sends SIGTERM when scaling down or restarting pods. Exit cleanly
+# rather than letting Ruby raise SignalException (which Sentry reports as an error).
+Signal.trap('TERM') do
+  puts 'Received SIGTERM, exiting.'
+  exit(0)
+end
+
 require 'timeout'
 
 class DbTester
