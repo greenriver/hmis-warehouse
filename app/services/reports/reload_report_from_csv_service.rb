@@ -67,8 +67,7 @@ module Reports
 
       # Get valid column names for the model
       valid_columns = model_class.column_names.to_set
-      # Exclude id from inserts - let database auto-generate new IDs
-      columns_to_exclude = ['id'].to_set
+      jsonb_columns = model_class.columns.select { |c| c.sql_type == 'jsonb' }.map(&:name).to_set
 
       relation = report.archival_relation_scope(csv_config, association_name, model_class)
 
@@ -87,8 +86,11 @@ module Reports
 
           # Convert CSV row to model attributes
           attributes = row.transform_keys(&:to_s)
-          # Filter to only include valid columns and exclude id
-          filtered_attributes = attributes.select { |key, _| valid_columns.include?(key) && !columns_to_exclude.include?(key) }
+          # Keep all valid columns including id — original IDs must be preserved so that
+          # polymorphic foreign keys (e.g. universe_membership_id in simple_report_universe_members)
+          # continue to resolve after reload. The hard-delete above removed the old rows, so
+          # re-inserting with the same IDs is safe.
+          filtered_attributes = attributes.select { |key, _| valid_columns.include?(key) }
           # Set required fields
           filtered_attributes['report_id'] = report.id if valid_columns.include?('report_id')
           filtered_attributes['deleted_at'] = nil if valid_columns.include?('deleted_at')
@@ -99,17 +101,20 @@ module Reports
           # Convert string values to appropriate types using model
           model_instance = model_class.new
           filtered_attributes.each do |key, value|
-            model_instance.send("#{key}=", value) if model_instance.respond_to?("#{key}=")
-          end
-          final_attributes = model_instance.attributes
-          final_attributes.delete('id')
+            next unless model_instance.respond_to?("#{key}=")
 
-          final_attributes
+            value = JSON.parse(value) if jsonb_columns.include?(key) && value.is_a?(String)
+            model_instance.send("#{key}=", value)
+          end
+          model_instance.attributes
         end
 
         # Insert the processed batch
         insert_batch(model_class, processed_batch, attachment_name)
       end
+
+      # Reset the PK sequence so future inserts don't collide with the restored IDs.
+      model_class.connection.reset_pk_sequence!(model_class.table_name) if model_class.column_names.include?('id')
 
       Rails.logger.info("ReloadReportFromCsvService: Processed #{total_rows} rows from #{attachment_name} for report ##{report.id}")
 
