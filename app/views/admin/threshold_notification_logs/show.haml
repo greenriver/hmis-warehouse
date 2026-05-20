@@ -1,0 +1,57 @@
+= content_for :crumbs do
+  = link_to admin_user_threshold_notification_logs_path(@user) do
+    &laquo; Threshold Notification History
+
+- content_for :title, "Threshold Notification — #{@user.name}"
+%h1= content_for :title
+
+.row
+  .col-sm-6
+    .well
+      %dl.row
+        %dt.col-sm-4 Sent At
+        %dd.col-sm-8= @log.sent_at.to_fs(:db)
+
+        %dt.col-sm-4 Type
+        %dd.col-sm-8= @log.email_type.humanize
+
+        %dt.col-sm-4 Delivery Status
+        %dd.col-sm-8
+          - if @log.delivery_failed?
+            %span.badge.bg-danger Delivery failed
+            - if @log.delivery_error.present?
+              %p.text-muted.mt-1= @log.delivery_error
+          - else
+            %span.badge.bg-success Sent
+
+        - if @log.metric_threshold_crossed? && @log.crossings.any?
+          %dt.col-sm-4 Threshold Crossings
+          %dd.col-sm-8
+            %ul.list-unstyled
+              - @log.crossings.each do |crossing|
+                %li= link_to crossing['config_label'], crossing['config_url']
+
+        - elsif @log.import_processing? && @log.details.present?
+          %dt.col-sm-4 Data Source
+          %dd.col-sm-8
+            - if @log.details['config_url'].present?
+              = link_to(@log.details['data_source_name'].presence || 'View configuration', @log.details['config_url'])
+            - else
+              = @log.details['data_source_name']
+
+          %dt.col-sm-4 Threshold Types
+          %dd.col-sm-8
+            - flags = []
+            - flags << 'Error threshold exceeded' if @log.details['error_threshold_met']
+            - flags << 'Record count change exceeded' if @log.details['count_threshold_met']
+            - flags << 'Import paused' if @log.details['paused']
+            = flags.join(', ')
+
+.row.mt-4
+  .col-sm-12
+    .well
+      %h3 Email Contents
+      - if @message
+        = @message.sanitized_body(render_as: :html)
+      - else
+        %p.text-muted Email body not available for this notification.
