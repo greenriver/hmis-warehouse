@@ -734,7 +734,8 @@ module HudUtility2026
       # full test suite. That factory uses a global FactoryBot sequence for CoCCode
       # (XX-001, XX-002, …) that never resets, so lookup_coc associations return nil
       # once the sequence passes the upper bound here.
-      (0..500).to_a.each do |n|
+      # Stop at 499 to avoid overwriting the hardcoded test_codes above beginning at XX-500
+      (0..499).to_a.each do |n|
         test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
       end
     end
