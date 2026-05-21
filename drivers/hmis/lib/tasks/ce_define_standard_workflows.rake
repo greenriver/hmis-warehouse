@@ -45,6 +45,9 @@ namespace :ce_define_standard_workflows do
     template = builder.build_standard_referral_workflow
     CeWorkflows::Shared::CeBuilderUtils.publish_template(template: template) if ENV['PUBLISH']&.downcase == 'true'
 
+    puts 'Template Mermaid Diagram:'
+    puts template.reload.to_mermaid_diagram
+
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
   end
 end
