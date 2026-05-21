@@ -18,7 +18,7 @@ class SoftDeleteRetentionConfiguration
   # Whether purging is enabled. Defaults to true in staging, false otherwise.
   def enabled?
     value = value_for(:enabled)
-    return value.to_i == 1 if value.present?
+    return ActiveModel::Type::Boolean.new.cast(value) if value.present?
 
     Rails.env.staging?
   end
