@@ -35,7 +35,7 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
       # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
       # This helps avoid downstream issues in later tests.
       ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
-        CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
+        CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: ds1)
       end
       Hmis::Ce::CustomReferralStatus.delete_all
 
