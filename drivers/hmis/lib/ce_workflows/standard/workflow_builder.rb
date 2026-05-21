@@ -152,18 +152,18 @@ module CeWorkflows::Standard
       # Wire up flow
       start_event.connect_to!(initial_review_task) unless start_event.outflows.exists?(target_node: initial_review_task)
       initial_review_task.connect_to!(initial_review_gateway) unless initial_review_task.outflows.exists?(target_node: initial_review_gateway)
-      initial_review_gateway.connect_to!(decline_event, condition: 'decision = "decline"') unless initial_review_gateway.outflows.exists?(target_node: decline_event)
+      initial_review_gateway.connect_to!(decline_event, condition: "decision = 'decline'") unless initial_review_gateway.outflows.exists?(target_node: decline_event)
       initial_review_gateway.connect_to!(provider_decision_task) unless initial_review_gateway.outflows.exists?(target_node: provider_decision_task)
 
       provider_decision_task.connect_to!(provider_decision_gateway) unless provider_decision_task.outflows.exists?(target_node: provider_decision_gateway)
-      provider_decision_gateway.connect_to!(review_decline_task, condition: 'decision = "decline"') unless provider_decision_gateway.outflows.exists?(target_node: review_decline_task)
+      provider_decision_gateway.connect_to!(review_decline_task, condition: "decision = 'decline'") unless provider_decision_gateway.outflows.exists?(target_node: review_decline_task)
       provider_decision_gateway.connect_to!(enroll_client_task) unless provider_decision_gateway.outflows.exists?(target_node: enroll_client_task)
 
       enroll_client_task.connect_to!(confirm_placement_task) unless enroll_client_task.outflows.exists?(target_node: confirm_placement_task)
       confirm_placement_task.connect_to!(accept_event) unless confirm_placement_task.outflows.exists?(target_node: accept_event)
 
       review_decline_task.connect_to!(review_decline_gateway) unless review_decline_task.outflows.exists?(target_node: review_decline_gateway)
-      review_decline_gateway.connect_to!(decline_event, condition: 'decision = "approve_decline"') unless review_decline_gateway.outflows.exists?(target_node: decline_event)
+      review_decline_gateway.connect_to!(decline_event, condition: "decision = 'approve_decline'") unless review_decline_gateway.outflows.exists?(target_node: decline_event)
       review_decline_gateway.connect_to!(provider_decision_task) unless review_decline_gateway.outflows.exists?(target_node: provider_decision_task)
 
       template.validate!

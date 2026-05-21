@@ -29,8 +29,7 @@ module Hmis::WorkflowDefinition
       source = source_node.to_mermaid_node_id
       target = target_node.to_mermaid_node_id
       if condition
-        sanitized_condition = condition.gsub('"', "'")
-        "#{source}-- IF #{sanitized_condition} --> #{target}"
+        "#{source}-- IF #{condition} --> #{target}"
       else
         "#{source}--> #{target}"
       end
