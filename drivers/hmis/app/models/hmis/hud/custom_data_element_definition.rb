@@ -40,7 +40,11 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :assessments
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
-  belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
+  belongs_to :form_definition,
+             primary_key: ['identifier', 'data_source_id'],
+             foreign_key: ['form_definition_identifier', 'data_source_id'],
+             class_name: 'Hmis::Form::Definition',
+             optional: true
 
   validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/

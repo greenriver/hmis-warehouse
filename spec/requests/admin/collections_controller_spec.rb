@@ -16,7 +16,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
            can_edit_collections: true)
   end
 
-  let!(:project_coc) { create :hud_project_coc }
+  let!(:project_coc) { create(:hud_project_coc, CoCCode: 'XX-500') }
   let!(:project_coc_2) { create :hud_project_coc }
   let!(:data_source) { create :data_source_fixed_id }
   let!(:organization) { create :grda_warehouse_hud_organization }

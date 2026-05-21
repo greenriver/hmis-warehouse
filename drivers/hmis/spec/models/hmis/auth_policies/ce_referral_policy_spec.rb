@@ -38,14 +38,19 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
         expect(policy.can_index?).to be true
       end
 
-      it 'returns false if user only has view permission' do
+      it 'returns true if user only has view permission' do
         create_access_control(user, project, with_permission: [:can_view_referrals])
-        expect(policy.can_index?).to be false
+        expect(policy.can_index?).to be true
       end
 
-      it 'returns false if user only has perform permission' do
-        create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
-        expect(policy.can_index?).to be false
+      it 'returns true if user only has can_view_own_referrals' do
+        create_access_control(user, project, with_permission: [:can_view_own_referrals])
+        expect(policy.can_index?).to be true
+      end
+
+      it 'returns true if user can view outgoing referrals in a source project permission' do
+        create_access_control(user, project, with_permission: [:can_view_outgoing_referral_details, :can_view_project])
+        expect(policy.can_index?).to be true
       end
 
       it 'returns false if user has no permissions' do
@@ -53,16 +58,16 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       end
     end
 
-    describe '#can_perform_referral_tasks?' do
+    describe '#can_be_global_default_contact?' do
       it 'returns false when user cannot perform any referral tasks' do
-        expect(policy.can_perform_referral_tasks?).to be false
+        expect(policy.can_be_global_default_contact?).to be false
       end
 
       context 'when user can perform any referral tasks in the data source' do
         let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_perform_any_referral_tasks]) }
 
         it 'returns true' do
-          expect(policy.can_perform_referral_tasks?).to be true
+          expect(policy.can_be_global_default_contact?).to be true
         end
       end
 
@@ -71,7 +76,37 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks]) }
 
         it 'returns true' do
-          expect(policy.can_perform_referral_tasks?).to be true
+          expect(policy.can_be_global_default_contact?).to be true
+        end
+      end
+
+      context 'when user can only perform own referral tasks' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_perform_own_referral_tasks]) }
+
+        it 'returns false' do
+          expect(policy.can_be_global_default_contact?).to be false
+        end
+      end
+    end
+
+    describe '#can_perform_some_referral_tasks?' do
+      it 'returns false when user has no perform permissions' do
+        expect(policy.can_perform_some_referral_tasks?).to be false
+      end
+
+      context 'when user can perform any referral tasks in the data source' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_perform_any_referral_tasks]) }
+
+        it 'returns true' do
+          expect(policy.can_perform_some_referral_tasks?).to be true
+        end
+      end
+
+      context 'when user can only perform own referral tasks in the data source' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_perform_own_referral_tasks]) }
+
+        it 'returns true' do
+          expect(policy.can_perform_some_referral_tasks?).to be true
         end
       end
     end

@@ -26,7 +26,8 @@ Exports are configured through `Filters::HmisExport` with the following paramete
 - **CoC codes**: Limits export to projects operating in specified Continuum of Care codes
 - **Period type**: Determines which records are included (operating period, update period, etc.)
 - **Directive**: Controls data completeness (projects only, projects and related, etc.)
-- **Hash status**: PII hashing level (none, partial, full)
+- **Hash status**: PII hashing level (see [De-identification Options](#de-identification-options) below)
+- **Faked PII**: Replaces sensitive fields with realistic fake data (see [De-identification Options](#de-identification-options) below)
 - **Include deleted**: Whether to export soft-deleted records
 - **Custom files**: Optional custom CSV files defined via the custom files configuration
 
@@ -90,13 +91,31 @@ The 2026 exporter supports custom CSV files defined through the custom files con
 
 Custom files are only exported when explicitly selected in the export configuration.
 
-## PII Hashing
+## De-identification Options
 
-When `hash_status` is set to 4 (full hashing), the exporter applies SHA-256 hashing to:
-- FirstName, MiddleName, LastName
-- SSN
+The export supports two distinct de-identification mechanisms intended for different use cases:
 
-The `ExportConcern` excludes these fields from length validation when hashed since the hash is longer than the allowed field length.
+### SHA-256 Hashing (hash_status = 4)
+
+Applies one-way SHA-256 hashing to name fields (FirstName, MiddleName, LastName) and SSN. Hashed values are deterministic — the same input always produces the same hash — enabling cross-system deduplication without exposing PII. This is the HUD-defined "SHA-256 (RHY)" approach. All other fields remain unchanged.
+
+The "Hashed Only" export UI forces this setting and is available to users with fewer permissions than the full export.
+
+### Faked PII
+
+Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DOB, addresses, project/organization names, contact info, and free-text fields). Fake values are consistent within an export — the same real value always maps to the same fake value — so referential integrity is preserved. This is intended for producing sample files safe for developers to use locally, or for use in staging environments. While the intention is to remove all PII, it is not guaranteed, and output should not be shared externally without detailed review. 
+
+### When to use which
+
+| Goal | Mechanism |
+|------|-----------|
+| Share sample data with a vendor for testing | Faked PII in conjunction with full review or fake source data |
+| Produce a developer-friendly dataset | Faked PII |
+| HUD-compliant de-identification for RHY | SHA-256 Hashing |
+
+The two options are mutually exclusive in practice: the hashed export path does not accept faked PII.
+
+**Important:** Neither option fully de-identifies the data. Hashing only covers a handful of fields, and faked PII does not obscure enrollment patterns, dates, or service history that could re-identify individuals. All exports should be treated as confidential regardless of which de-identification option is used.
 
 ## Recurring Exports
 

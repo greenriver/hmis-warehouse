@@ -31,7 +31,7 @@ module HudLsa::Filters
       filters = filters.to_h.with_indifferent_access
 
       # Support the HIC
-      if filters.dig(:lsa_scope) == HudLsa::Fy2024::Report.available_lsa_scopes['HIC'].to_s
+      if filters.dig(:lsa_scope) == HudLsa::Fy2026::Report.available_lsa_scopes['HIC'].to_s
         pit_date = filters.dig(:on)&.to_date
         self.start = pit_date
         self.end = pit_date

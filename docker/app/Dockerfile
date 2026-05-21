@@ -175,8 +175,9 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 # rexml: CVE-2025-58767, rack: CVE in system gem shipped with base image — both must be explicitly updated since they're bundled with ruby
 # gem cleanup removes old gemspecs that vulnerability scanners (e.g. Trivy) would otherwise flag
 RUN gem update --system \
-  && gem update rexml rack \
-  && gem cleanup rexml rack \
+  && gem update rexml rack erb \
+  && gem cleanup rexml rack erb \
+  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap -v 0.5.8 \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \

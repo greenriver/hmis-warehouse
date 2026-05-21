@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
 # Hud LSA temporary RDS: drivers/hud_lsa/README.md
-
-# frozen_string_literal: true
 
 require 'aws-sdk-glacier'
 
@@ -247,7 +251,7 @@ class Rds
       can_create_table = false
       while can_create_table == false
         begin
-          load 'lib/rds_sql_server/lsa/fy2021/lsa_sql_server.rb'
+          load 'lib/rds_sql_server/db_up.rb'
           ::LsaSqlServer::DbUp.hmis_table_create!(version: '2022')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true

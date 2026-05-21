@@ -11,6 +11,21 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
 
+    # Override HasHudMetadata's helpers to use updated_by_hud_user_id and created_by_hud_user_id, which are more accurate than papertrail
+    def user
+      hud_user = load_ar_association(object, :updated_by_hud_user)
+      app_user = dataloader.with(Sources::HmisUserByEmail).load(hud_user.user_email) if hud_user&.user_email.present?
+
+      app_user || load_last_user_from_versions(object)
+    end
+
+    def created_by
+      hud_user = load_ar_association(object, :created_by_hud_user)
+      app_user = dataloader.with(Sources::HmisUserByEmail).load(hud_user.user_email) if hud_user&.user_email.present?
+
+      app_user || load_created_by_user_from_versions(object)
+    end
+
     available_filter_options do
       arg :assessment_name, [String]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
@@ -63,7 +78,7 @@ module Types
       # If definition is stored on Form Processor, return that. This is the Definition that was most recently used to submit the Assessment.
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition on the Form Processor, which would occur if this is a migrated HUD Assessment, then choose an appropriate one:
-      definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project, data_source_id: object.data_source_id)
       # Apply filter context to filter out items that are not relevant for this project (HUD and Custom Rules)
       definition.filter_context = { project: project, active_date: object.assessment_date }
       definition

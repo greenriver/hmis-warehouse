@@ -23,6 +23,7 @@ module Mutations
       previous_published_form = Hmis::Form::Definition.find_by(
         identifier: definition.identifier,
         status: Hmis::Form::Definition::PUBLISHED,
+        data_source_id: definition.data_source_id,
       )
 
       definition.status = Hmis::Form::Definition::PUBLISHED

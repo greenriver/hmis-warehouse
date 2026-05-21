@@ -11,6 +11,7 @@ module HudSpmReport::Generators::Fy2023
     def self.fiscal_year = 'FY 2023'
     def self.generic_title = 'System Performance Measures'
     def self.short_name = 'SPM'
+
     def self.filter_class = ::Filters::HudFilterBase
 
     def self.default_project_type_codes
@@ -66,5 +67,41 @@ module HudSpmReport::Generators::Fy2023
     def self.valid_question_number(num) = questions.keys.detect { |q| q == num } || questions.keys.first
     def self.client_class(question) = questions[question].client_class
     def self.client_scope(question) = questions[question].client_scope
+
+    def self.archival_csv_config(report_instance)
+      enrollment_ids = HudSpmReport::Fy2023::SpmEnrollment.where(report_instance_id: report_instance.id).select(:id)
+      episode_ids = HudReports::UniverseMember.where(
+        report_cell_id: report_instance.report_cells.select(:id),
+        universe_membership_type: 'HudSpmReport::Fy2023::Episode',
+      ).pluck(:universe_membership_id)
+
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
+        spm_enrollment_links_csv: {
+          scope: -> { HudSpmReport::Fy2023::EnrollmentLink.where(enrollment_id: enrollment_ids) },
+          filename: -> { "hud-spm-fy2023-#{report_instance.id}-spm-enrollment-links.csv" },
+          delete_order: 2,
+        },
+        spm_returns_csv: {
+          scope: -> { HudSpmReport::Fy2023::Return.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2023-#{report_instance.id}-spm-returns.csv" },
+          delete_order: 3,
+        },
+        spm_episodes_csv: {
+          scope: -> { HudSpmReport::Fy2023::Episode.where(id: episode_ids) },
+          filename: -> { "hud-spm-fy2023-#{report_instance.id}-spm-episodes.csv" },
+          delete_order: 4,
+        },
+        spm_enrollments_csv: {
+          scope: -> { HudSpmReport::Fy2023::SpmEnrollment.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2023-#{report_instance.id}-spm-enrollments.csv" },
+          delete_order: 5,
+        },
+      )
+    end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudSpmReport::Archival
   end
 end

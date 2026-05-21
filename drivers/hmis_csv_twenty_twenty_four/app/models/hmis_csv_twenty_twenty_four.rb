@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 module HmisCsvTwentyTwentyFour
+  def self.utf8_export? = false
+
   def self.table_name_prefix
     'hmis_csv_twenty_twenty_four_'
   end

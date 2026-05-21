@@ -135,9 +135,9 @@ module HmisExternalApis::ExternalForms
       render_form_group(node: node) do
         case node['component']
         when 'DROPDOWN', nil
-          render_form_select(label: node['text'], name: node_name(node), options: options, required: node['required'])
+          render_form_select(label: node['text'], name: node_name(node), options: options, required: node['required'], helper_text: node['helper_text'])
         when 'RADIO_BUTTONS'
-          render_form_radio_group(legend: node['text'], name: node_name(node), options: options, required: node['required'])
+          render_form_radio_group(legend: node['text'], name: node_name(node), options: options, required: node['required'], helper_text: node['helper_text'])
         else
           raise "component #{node['component']} not supported in #{node.inspect}"
         end

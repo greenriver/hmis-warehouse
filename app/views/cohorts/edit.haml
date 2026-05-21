@@ -10,6 +10,8 @@
       .well
         = f.input :name, disabled: @cohort.system_cohort
         = f.input :short_name, input_html: {maxlength: 8, style: 'width: 8em;'}
+        = f.input :description, as: :text, input_html: {rows: 3}
+        = f.input :owner_id, collection: @cohort.available_owners, as: :select_two, selected: @cohort.owner_id, label: 'Owner', include_blank: 'Unassigned'
         = f.input :effective_date, as: :date_picker
         = f.input :only_window, as: :pretty_boolean, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
         = f.input :enforce_project_visibility_on_cells, as: :pretty_boolean, label: 'Enforce project visibility', hint: 'For cells that show project details, limit to projects each user can see.  If disabled, all projects are visible, confidential projects will not be exposed.'

@@ -22,7 +22,7 @@ RSpec.describe 'SubmitForm for CeAssessment', type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
   let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c1, enrollment: e1, user: u1 }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_ASSESSMENT) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CE_ASSESSMENT, data_source: ds1) }
   let(:hud_values) do
     {
       'assessmentDate' => '2023-08-15',

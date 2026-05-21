@@ -1,0 +1,19 @@
+.accordion#scenariosAccordion
+  .accordion-item
+    %h2.accordion-header
+      %button.accordion-button.collapsed{type: 'button', data: {bs_toggle: 'collapse', bs_target: '#scenariosBody'}, aria: {expanded: 'false', controls: 'scenariosBody'}}
+        Scenarios
+    #scenariosBody.accordion-collapse.collapse
+      .accordion-body
+        %h3 Ensure services are flowing
+        %p
+          Example Goal: You have two Night-by-Night Emergency Shelters with 50 beds each. You expect each import to include at least 75 new service records (75% capacity in-use each day.) If the count drops below that, you want to be notified.
+        %ul
+          %li In the CSV File dropdown, select Services.csv
+          %li Set Min additions threshold to 75
+        %h3 Catch enrollment count drops
+        %p
+          Example Goal: The total number of enrollments in each import should never decrease by more than 10 compared to the previous import. If it does, you want to be notified.  This catches the scenario where a project is left off of an import, or a data cleanup routine in your HMIS failed and removed an excessive number of enrollments.
+        %ul
+          %li In the CSV File dropdown, select Enrollment.csv.
+          %li Set Count decrease threshold to 10

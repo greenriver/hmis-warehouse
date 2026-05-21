@@ -14,10 +14,8 @@ module Mutations
     field :service_type, Types::HmisSchema::ServiceType, null: true
 
     def resolve(id:)
-      access_denied! unless current_user.can_configure_data_collection?
-
       service_type = Hmis::Hud::CustomServiceType.find(id)
-      raise "Can't delete HUD service type: #{service_type.id} #{service_type.name}" if service_type.hud_service?
+      access_denied! unless policy_for(service_type, policy_type: :service_type).can_delete?
 
       # Can't delete service type that already has services
       if service_type.custom_services.exists?
@@ -26,10 +24,12 @@ module Mutations
         return { errors: errors }
       end
 
-      default_delete_record(
-        record: service_type,
-        field_name: :service_type,
-      )
+      service_type.destroy!
+
+      {
+        service_type: service_type,
+        errors: [],
+      }
     end
   end
 end

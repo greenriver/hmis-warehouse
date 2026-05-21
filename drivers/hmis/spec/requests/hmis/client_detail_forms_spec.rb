@@ -15,8 +15,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
-  let!(:definition) { create :hmis_form_definition, identifier: 'client_detail_form', role: :CLIENT_DETAIL, version: 1 }
-  let!(:form_rule) { create :hmis_form_instance, definition_identifier: 'client_detail_form', entity: nil, active: true }
+  let!(:definition) { create :hmis_form_definition, identifier: 'client_detail_form', role: :CLIENT_DETAIL, version: 1, data_source: ds1 }
+  let!(:form_rule) { create :hmis_form_instance, definition_identifier: 'client_detail_form', entity: nil, active: true, data_source: ds1 }
 
   before(:each) do
     hmis_login(user)
