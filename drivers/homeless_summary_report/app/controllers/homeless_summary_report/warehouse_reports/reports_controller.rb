@@ -67,20 +67,6 @@ module HomelessSummaryReport::WarehouseReports
       respond_with(@report, location: homeless_summary_report_warehouse_reports_reports_path)
     end
 
-    def reload_from_csv
-      require_can_view_any_reports!
-      service = Reports::ReloadReportFromCsvService.new(@report)
-      result = service.reload!
-
-      if result[:success]
-        flash[:notice] = "Report data reloaded successfully. #{result[:reloaded_counts].values.sum} records restored."
-      else
-        flash[:error] = "Failed to reload report data: #{result[:errors].join(', ')}"
-      end
-
-      redirect_to homeless_summary_report_warehouse_reports_report_path(@report)
-    end
-
     def details
       params = details_params(@report)
       @variant = params['variant'] || 'all_persons'

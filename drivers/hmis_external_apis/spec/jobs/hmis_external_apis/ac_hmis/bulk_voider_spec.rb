@@ -18,6 +18,7 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       role: :CUSTOM_ASSESSMENT,
       status: Hmis::Form::Definition::PUBLISHED,
       data_source: data_source,
+      generate_cdeds: true,
       definition: {
         item: [
           { type: 'DATE', link_id: 'linkid_date', required: true, text: 'Assessment Date', assessment_date: true, mapping: { field_name: 'assessmentDate' } },

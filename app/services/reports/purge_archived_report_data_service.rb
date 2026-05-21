@@ -213,7 +213,7 @@ module Reports
       # Delete associations in reverse order to handle foreign key dependencies
       # (child records first, then parent records)
       purge_associations.reverse_each do |_attachment_name, association_name|
-        counts[association_name] = report.send(association_name).delete_all
+        counts[association_name] = report.hard_delete_archival_relation(report.send(association_name))
       end
 
       counts

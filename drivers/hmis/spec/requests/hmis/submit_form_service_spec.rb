@@ -89,7 +89,7 @@ RSpec.describe 'SubmitForm for Service', type: :request do
 
   describe 'custom service' do
     let!(:definition) do
-      create :hmis_form_definition, role: :SERVICE, data_source: ds1, definition: {
+      create :hmis_form_definition, role: :SERVICE, data_source: ds1, generate_cdeds: true, definition: {
         'item' => [
           {
             'type' => 'STRING',
