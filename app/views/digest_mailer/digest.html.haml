@@ -8,7 +8,8 @@
       %th Sent at:
       %td= message.created_at.to_fs(:long)
 
-  %div{ style: ( "white-space: pre;" unless message.html? ) }= message.body_html
+  %div{ style: ( "white-space: pre;" unless message.html? ) }
+    = message.sanitized_body(render_as: :html)
 
   - unless i == @messages.length - 1
     %hr

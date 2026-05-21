@@ -110,7 +110,7 @@ module Mutations
         else
           users.each do |user|
             user.hmis_data_source_id = data_source.id
-            raise "User #{user.id} not authorized" unless user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_perform_referral_tasks?
+            raise "User #{user.id} not authorized" unless user.policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_be_global_default_contact?
           end
         end
       end

@@ -9,6 +9,16 @@
 if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/rds.rb'
   load 'lib/rds_sql_server/sql_server_base.rb'
+elsif !defined?(::Rds)
+  # Stub so views and concerns can reference Rds without crashing when
+  # AWS credentials aren't configured
+  class ::Rds
+    def self.rds_available? = false
+    def self.static_rds?   = false
+    def self.identifier    = nil
+    def self.database      = nil
+    def self.timeout       = nil
+  end
 end
 
 require 'csv'
@@ -30,6 +40,7 @@ module HudLsa::Generators::Fy2026
     include MissingDataConcern
     include ViewRelatedConcern
     include StatusProgressionConcern
+
     attr_accessor :report, :destroy_rds, :hmis_export_id, :test, :test_type
     has_one_attached :result_file
     has_one_attached :intermediate_file
@@ -37,11 +48,11 @@ module HudLsa::Generators::Fy2026
     belongs_to :export, class_name: 'GrdaWarehouse::HmisExport', optional: true
 
     scope :lsa, -> do
-      where("options->>'lsa_scope' != ? OR options->>'lsa_scope' IS NULL", HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
+      where("(options->>'lsa_scope')::integer != ? OR options->>'lsa_scope' IS NULL", HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
     end
 
     scope :hic, -> do
-      where("options->>'lsa_scope' = ?", HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
+      where("(options->>'lsa_scope')::integer = ?", HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
     end
 
     def self.find_report(user)
@@ -59,7 +70,7 @@ module HudLsa::Generators::Fy2026
     end
 
     def hic?
-      options.with_indifferent_access[:lsa_scope] == HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
+      options.with_indifferent_access[:lsa_scope].to_i == HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
     end
 
     def filter
@@ -427,40 +438,6 @@ module HudLsa::Generators::Fy2026
       end
     end
 
-    private def populate_hmis_table_from_s3_integration(klass:, file_name:)
-      Tempfile.open(klass.name) do |cleaned_output|
-        csv_output = CSV.new(cleaned_output)
-        headers_added = false
-        # Read the file in batches to avoid over RAM usage
-        File.open(File.join(extract_path, file_name)) do |file|
-          headers = file.first
-          i = 0
-          file.lazy.each_slice(read_rows) do |lines|
-            content = ::CSV.parse(lines.join, headers: headers)
-            import_headers = content.first.headers
-            next unless content.any?
-
-            # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
-            csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
-            headers_added = true
-            # this fixes dates that default to 1900-01-01 if you send an empty string
-            content.map do |row|
-              # increment the row counter for SQL Server
-              i += 1
-              csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-            end.compact
-          end
-        end
-        cleaned_output.rewind
-        s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
-        s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
-        mssql_import_from_s3(path: s3_upload_path, klass: klass)
-        # TODO
-        # remove file from s3
-        # s3.delete(key: s3_upload_path)
-      end
-    end
-
     # This reverses some export changes we made to maintain case sensitive matching with the 2026 spec
     private def standardize_headers(headers)
       # ZIP -> Zip
@@ -579,5 +556,20 @@ module HudLsa::Generators::Fy2026
       @test = false if @test.nil?
       @test
     end
+
+    def self.archival_csv_config(report_instance)
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'lsa').merge(
+        lsa_summary_results_csv: {
+          scope: -> { HudLsa::Fy2026::SummaryResult.where(hud_report_instance_id: report_instance.id) },
+          filename: -> { "hud-lsa-fy2026-#{report_instance.id}-summary-results.csv" },
+          delete_order: 2,
+        },
+      )
+    end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudLsa::Archival
   end
 end

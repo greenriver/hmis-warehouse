@@ -193,4 +193,113 @@ RSpec.describe NotifyMetricThresholdCrossingsJob, type: :job do
       expect(email_body).to include('Days Homeless (Last 3 Years)')
     end
   end
+
+  context 'when crossing has previous_value of zero' do
+    let(:metric_def) do
+      GrdaWarehouse::Monitoring::MetricDefinition.find_by!(
+        entity_type: 'GrdaWarehouse::DataSource',
+        subtype: 'Client.csv',
+      )
+    end
+    let(:csv_user) { create(:user, active: true) }
+    let!(:monitor) do
+      create(
+        :grda_warehouse_import_csv_monitor,
+        data_source: data_source,
+        csv_file_name: 'Client.csv',
+        count_increase_threshold: 50,
+      )
+    end
+
+    before do
+      GrdaWarehouse::NotificationConfiguration.create!(
+        source: monitor,
+        notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG,
+        user: csv_user,
+        active: true,
+      )
+      stub_crossings(
+        NotifyMetricThresholdCrossingsJob::CSV_IMPORT_ALERT_CODE => {
+          metric_def.id => {
+            display_name: 'Client.csv row count',
+            data: [{ entity_id: data_source.id, current_value: 50, previous_value: 0 }],
+            total_count: 1,
+            truncated: false,
+            entity_label: 'data source',
+          },
+        },
+      )
+    end
+
+    it 'sends an email notification (previous_value of 0 is not treated as absent)' do
+      described_class.new.perform(calculation_date)
+      expect(ActionMailer::Base.deliveries.count).to eq(1)
+      expect(ActionMailer::Base.deliveries.first.to).to include(csv_user.email)
+    end
+  end
+
+  context 'notification logging' do
+    let(:metric_def) do
+      GrdaWarehouse::Monitoring::MetricDefinition.find_by!(
+        entity_type: 'GrdaWarehouse::DataSource',
+        subtype: 'Client.csv',
+      )
+    end
+    let(:csv_user) { create(:user, active: true) }
+    let!(:monitor) do
+      create(
+        :grda_warehouse_import_csv_monitor,
+        data_source: data_source,
+        csv_file_name: 'Client.csv',
+        count_increase_threshold: 50,
+      )
+    end
+
+    before do
+      GrdaWarehouse::NotificationConfiguration.create!(
+        source: monitor,
+        notification_slug: GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG,
+        user: csv_user,
+        active: true,
+      )
+      stub_crossings(
+        NotifyMetricThresholdCrossingsJob::CSV_IMPORT_ALERT_CODE => {
+          metric_def.id => {
+            display_name: 'Client.csv row count',
+            data: [{ entity_id: data_source.id, current_value: 1100, previous_value: 1000 }],
+            total_count: 1,
+            truncated: false,
+            entity_label: 'data source',
+          },
+        },
+      )
+    end
+
+    it 'creates a ThresholdNotificationLog for the recipient user' do
+      expect do
+        described_class.new.perform(calculation_date)
+      end.to change(GrdaWarehouse::Monitoring::ThresholdNotificationLog, :count).by(1)
+    end
+
+    it 'stores the correct email_type on the log' do
+      described_class.new.perform(calculation_date)
+      log = GrdaWarehouse::Monitoring::ThresholdNotificationLog.last
+      expect(log.email_type).to eq('metric_threshold_crossed')
+    end
+
+    it 'stores crossings detail in the log' do
+      described_class.new.perform(calculation_date)
+      log = GrdaWarehouse::Monitoring::ThresholdNotificationLog.last
+      expect(log.details['crossings']).to be_an(Array)
+      expect(log.details['crossings'].first['metric_id']).to eq(metric_def.id)
+    end
+
+    it 'marks log as delivery_failed when email raises' do
+      allow_any_instance_of(Mail::Message).to receive(:deliver!).and_raise(SocketError, 'connection refused')
+      described_class.new.perform(calculation_date)
+      log = GrdaWarehouse::Monitoring::ThresholdNotificationLog.last
+      expect(log.delivery_failed).to be true
+      expect(log.delivery_error).to include('connection refused')
+    end
+  end
 end

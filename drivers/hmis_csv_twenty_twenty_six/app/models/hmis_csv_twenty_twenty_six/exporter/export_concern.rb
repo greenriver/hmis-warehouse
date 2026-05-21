@@ -50,9 +50,9 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       when :money
         rounded = row[hud_field].to_f.round(2)
         if positive
-          rounded.positive? ? rounded : nil
+          rounded.positive? ? format('%.2f', rounded) : nil
         else
-          rounded
+          format('%.2f', rounded)
         end
       when :integer
         row[hud_field].to_f.round(0) # Use to_f to round .9 to 1
@@ -139,6 +139,11 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
+      # Convert to a plain hash so string values set below (e.g. "50.00") are stored as-is.
+      # AR would silently re-cast them back to numeric types on assignment.
+      # Some custom exporters (e.g. CustomDataElement) convert via apply_warehouse_to_export_mappings
+      # inside adjust_keys, so row may already be a Hash at this point.
+      row = row.respond_to?(:attributes) ? row.attributes.with_indifferent_access : row.with_indifferent_access
       row = sanitize_string_fields(row)
       row = enforce_lengths(row)
       row = enforce_rounding(row)

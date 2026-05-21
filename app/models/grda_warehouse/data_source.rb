@@ -17,6 +17,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   self.primary_key = :id
 
   acts_as_paranoid
+  has_paper_trail ignore: [:last_imported_at, :updated_at]
+
   validates :name, presence: true
   validates :short_name, presence: true
 

@@ -24,7 +24,7 @@ RSpec.describe 'SubmitForm for CLIENT_DETAIL', type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Client', key: CDE_KEY, field_type: :string, data_source: ds1 }
   let!(:definition) do
-    create :hmis_form_definition, role: :CLIENT_DETAIL, definition: {
+    create :hmis_form_definition, role: :CLIENT_DETAIL, data_source: ds1, definition: {
       'item' => [
         {
           'type' => 'STRING',
