@@ -5,7 +5,7 @@
       "type": "TEXT",
       "link_id": "notes",
       "mapping": {
-        "custom_field_key": "demo_review_decline_notes"
+        "custom_field_key": "standard_review_decline_notes"
       },
       "required": false
     },
@@ -14,7 +14,7 @@
       "type": "CHOICE",
       "link_id": "decision",
       "mapping": {
-        "custom_field_key": "demo_review_decline_decision"
+        "custom_field_key": "standard_review_decline_decision"
       },
       "required": true,
       "component": "RADIO_BUTTONS",

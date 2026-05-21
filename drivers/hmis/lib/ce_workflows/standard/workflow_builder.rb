@@ -6,21 +6,25 @@
 
 # frozen_string_literal: true
 
-# Utility for building CE workflow definitions specific to the Demo installation.
-module CeWorkflows::Demo
+# Utility for building the default Standard Referral CE workflow template.
+# Intended for QA, staging, demo, and as a baseline when onboarding new clients.
+module CeWorkflows::Standard
   class WorkflowBuilder
     FORMS = {
-      initial_review: 'demo_initial_review',
-      provider_decision: 'demo_provider_decision',
-      confirm_placement: 'demo_confirm_placement',
-      review_decline: 'demo_review_decline',
+      initial_review: 'standard_initial_review',
+      provider_decision: 'standard_provider_decision',
+      confirm_placement: 'standard_confirm_placement',
+      review_decline: 'standard_review_decline',
     }.freeze
 
     def initialize(data_source)
       @data_source = data_source
 
       # Validate required forms exist
-      missing = FORMS.values - Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: FORMS.values).pluck(:identifier)
+      missing = FORMS.values - Hmis::Form::Definition.
+        in_data_source(@data_source.id).
+        where(role: 'CE_REFERRAL_STEP', identifier: FORMS.values).
+        pluck(:identifier)
       raise "Missing CE_REFERRAL_STEP forms: #{missing.join(', ')}" if missing.any?
     end
 
@@ -83,7 +87,8 @@ module CeWorkflows::Demo
         data_source: @data_source,
       ) { |s| s.name = 'Pending Review' }
 
-      status_trigger = ->(key) { [{ event: 'enable_step', message: 'set_custom_referral_status', params: { custom_status_key: key } }] }
+      status_trigger = ->(key) { { event: 'enable_step', message: 'set_custom_referral_status', params: { custom_status_key: key } } }
+      decline_reason_trigger = { event: 'complete_step', message: 'set_referral_decline_reason' }
 
       # Events
       start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
@@ -97,7 +102,7 @@ module CeWorkflows::Demo
         template: template,
         swimlane: ce_team_swimlane,
       )
-      initial_review_task.trigger_config = status_trigger.call(initial_review_status.key)
+      initial_review_task.trigger_config = [status_trigger.call(initial_review_status.key), decline_reason_trigger]
       initial_review_task.save!
 
       provider_decision_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
@@ -106,7 +111,7 @@ module CeWorkflows::Demo
         template: template,
         swimlane: provider_swimlane,
       )
-      provider_decision_task.trigger_config = status_trigger.call(pending_provider_decision_status.key)
+      provider_decision_task.trigger_config = [status_trigger.call(pending_provider_decision_status.key), decline_reason_trigger]
       provider_decision_task.save!
 
       enroll_client_task = Hmis::WorkflowDefinition::ScriptTask.find_or_initialize_by(
@@ -127,7 +132,7 @@ module CeWorkflows::Demo
         template: template,
         swimlane: ce_team_swimlane,
       )
-      confirm_placement_task.trigger_config = status_trigger.call(enrolled_status.key)
+      confirm_placement_task.trigger_config = [status_trigger.call(enrolled_status.key)]
       confirm_placement_task.save!
 
       review_decline_task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
@@ -136,7 +141,7 @@ module CeWorkflows::Demo
         template: template,
         swimlane: ce_team_swimlane,
       )
-      review_decline_task.trigger_config = status_trigger.call(pending_review_status.key)
+      review_decline_task.trigger_config = [status_trigger.call(pending_review_status.key)]
       review_decline_task.save!
 
       # Gateways

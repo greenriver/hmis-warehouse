@@ -6,12 +6,12 @@
 
 # frozen_string_literal: true
 
-namespace :ce_define_demo_workflows do
+namespace :ce_define_standard_workflows do
   desc 'Creates and publishes a Standard Referral CE workflow template and its form definitions.'
   # Usage:
-  #   rails driver:hmis:ce_define_demo_workflows:create[DATA_SOURCE_ID]   # explicit data source
-  #   rails driver:hmis:ce_define_demo_workflows:create                   # expects sole HMIS data source
-  # Optional: PUBLISH=true, FORCE_RECREATE=true
+  #   rails driver:hmis:ce_define_standard_workflows:create[DATA_SOURCE_ID]   # explicit data source
+  #   rails driver:hmis:ce_define_standard_workflows:create                   # expects sole HMIS data source
+  # Optional: PUBLISH=true, FORCE_RECREATE=true, UNSAFE_RUN_IN_PRODUCTION=true
   task :create, [:data_source_id] => :environment do |_, args|
     raise unless HmisEnforcement.hmis_enabled?
 
@@ -21,15 +21,24 @@ namespace :ce_define_demo_workflows do
       GrdaWarehouse::DataSource.hmis.sole
     end
 
+    unsafe_run_in_production = ENV['UNSAFE_RUN_IN_PRODUCTION']&.downcase == 'true'
+
     if ENV['FORCE_RECREATE']
-      # Both these destructive methods raise in prod
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data('standard_referral')
-      CeWorkflows::Shared::CeBuilderUtils.delete_form_definitions(CeWorkflows::Demo::WorkflowBuilder::FORMS.values, data_source.id)
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(
+        'standard_referral',
+        data_source: data_source,
+        unsafe_run_in_production: unsafe_run_in_production,
+      )
+      CeWorkflows::Shared::CeBuilderUtils.delete_form_definitions(
+        CeWorkflows::Standard::WorkflowBuilder::FORMS.values,
+        data_source.id,
+        unsafe_run_in_production: unsafe_run_in_production,
+      )
       puts 'Re-seeding form definitions...'
       HmisUtil::JsonForms.new(data_source_id: data_source.id).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
     end
 
-    builder = CeWorkflows::Demo::WorkflowBuilder.new(data_source)
+    builder = CeWorkflows::Standard::WorkflowBuilder.new(data_source)
 
     builder.ensure_decline_reasons
 
