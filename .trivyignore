@@ -30,9 +30,8 @@ CVE-2025-61729
 
 # devise, we monkey patched the user model; avoids major version upgrade as we will replace devise with SSO in the near future
 CVE-2026-32700
+# devise, solved with monkey patch to avoid major version upgrade
+CVE-2026-40295
 
 # our app code is patched but the built-in gem for ruby 3.4 remains. Currently ruby 3.4 has no patch to bump the dependency. Can be removed after we upgrade to ruby 4
 CVE-2026-41316
-
-# we patched this in app, ignore residual alerts stale system deps
-CVE-2026-42246

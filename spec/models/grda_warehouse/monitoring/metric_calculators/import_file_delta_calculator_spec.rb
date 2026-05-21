@@ -6,6 +6,29 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::ImportFileDeltaCalc
   let(:data_source) { create(:grda_warehouse_data_source) }
 
   describe '.exceeded?' do
+    context 'with count_increase_threshold of 0' do
+      let(:monitor) do
+        create(
+          :grda_warehouse_import_csv_monitor,
+          data_source: data_source,
+          count_increase_threshold: 0,
+          count_decrease_threshold: nil,
+        )
+      end
+
+      it 'triggers on any row count increase' do
+        current = { pre_processed: 1001, added: 1, removed: 0 }
+        previous = { pre_processed: 1000, added: 0, removed: 0 }
+        expect(described_class.exceeded?(monitor: monitor, current: current, previous: previous)).to include(reason: :delta_increase)
+      end
+
+      it 'does not trigger when count is unchanged' do
+        current = { pre_processed: 1000, added: 0, removed: 0 }
+        previous = { pre_processed: 1000, added: 0, removed: 0 }
+        expect(described_class.exceeded?(monitor: monitor, current: current, previous: previous)).to be false
+      end
+    end
+
     context 'with count_increase_threshold' do
       let(:monitor) do
         create(:grda_warehouse_import_csv_monitor,
@@ -35,6 +58,29 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::ImportFileDeltaCalc
           previous_count: 1000,
           current_count: 1060,
         )
+      end
+    end
+
+    context 'with count_decrease_threshold of 0' do
+      let(:monitor) do
+        create(
+          :grda_warehouse_import_csv_monitor,
+          data_source: data_source,
+          count_increase_threshold: nil,
+          count_decrease_threshold: 0,
+        )
+      end
+
+      it 'triggers on any row count decrease' do
+        current = { pre_processed: 999, added: 0, removed: 1 }
+        previous = { pre_processed: 1000, added: 0, removed: 0 }
+        expect(described_class.exceeded?(monitor: monitor, current: current, previous: previous)).to include(reason: :delta_decrease)
+      end
+
+      it 'does not trigger when count is unchanged' do
+        current = { pre_processed: 1000, added: 0, removed: 0 }
+        previous = { pre_processed: 1000, added: 0, removed: 0 }
+        expect(described_class.exceeded?(monitor: monitor, current: current, previous: previous)).to be false
       end
     end
 

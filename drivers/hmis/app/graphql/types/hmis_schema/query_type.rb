@@ -612,6 +612,13 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
 
+    field :workspaces, [HmisSchema::Workspace], null: false do
+      argument :applies_to, HmisSchema::Enums::WorkspaceAppliesTo, required: true
+    end
+    def workspaces(applies_to:)
+      Hmis::Workspace.active.viewable_by(current_user, for_usage: applies_to).ordered
+    end
+
     field :table_config_lookup, Types::TableConfigLookup, null: false
     def table_config_lookup
       {}
