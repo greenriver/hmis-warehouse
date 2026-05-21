@@ -22,7 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             access {
               id
-              canDeleteAssessments
+              canDelete
             }
           }
         }
@@ -34,13 +34,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'assessment', 'access')).to include(
         'id' => assessment.id.to_s,
-        'canDeleteAssessments' => can_delete,
+        'canDelete' => can_delete,
       )
     end
 
     let(:view_permissions) { [:can_view_enrollment_details, :can_view_project] }
 
-    it 'resolves canDeleteAssessments from the assessment policy (WIP + can_edit_enrollments)' do
+    it 'resolves canDelete from the assessment policy (WIP + can_edit_enrollments)' do
       create_access_control(hmis_user, p1, with_permission: [:can_edit_enrollments, *view_permissions])
       assessment = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, client: c1)
 
