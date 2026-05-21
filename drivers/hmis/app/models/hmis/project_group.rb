@@ -7,6 +7,24 @@
 # frozen_string_literal: true
 
 module Hmis
+  # Criteria-based grouping of HMIS projects.
+  #
+  # Membership criteria is stored as JSON on the group. The current project list
+  # is materialized in the hmis_project_project_groups join table, which lists
+  # every project that currently belongs to each group. Call
+  # maintain_project_lists! to refresh those join rows after criteria changes.
+  #
+  # Current uses:
+  # - Access controls, where project groups can determine which projects a user
+  #   can view or administer (via Collections)
+  # - Workspaces, where project groups back high-level UI context switchers
+  #   without changing access permissions
+  #
+  # Likely future uses include: reporting segmentation, form applicability,
+  # and custom form-rule targeting.
+  #
+  # See issue #9097 for broader product context and open questions around using
+  # project groups as a general HMIS grouping primitive.
   class ProjectGroup < GrdaWarehouseBase
     self.table_name = 'hmis_project_groups'
     acts_as_paranoid
@@ -18,6 +36,7 @@ module Hmis
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     has_and_belongs_to_many :projects, class_name: 'Hmis::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
     has_and_belongs_to_many :warehouse_projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
+    has_many :workspaces, class_name: 'Hmis::Workspace', dependent: :restrict_with_exception, foreign_key: :hmis_project_group_id
 
     # GroupViewableEntities that are associated with this project group
     has_many :hmis_group_viewable_entities, -> { where(entity_type: 'Hmis::ProjectGroup') }, class_name: 'Hmis::GroupViewableEntity', foreign_key: :entity_id
@@ -70,6 +89,10 @@ module Hmis
 
     def parsed_exclusion_criteria
       @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria, data_source_id: data_source_id)
+    end
+
+    def self.project_ids_for(id)
+      find_by(id: id)&.projects&.pluck(:id) || []
     end
 
     def self.maintain_project_lists!

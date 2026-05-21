@@ -15,6 +15,7 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_search_term)).
       yield_self(&method(:with_dynamic_filters)).
       yield_self(&method(:with_project_type)).
+      yield_self(&method(:with_project_group)).
       yield_self(&method(:clean_scope))
   end
 
@@ -29,6 +30,12 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
   def with_project_type(scope)
     with_filter(scope, :project_type) do
       scope.eligible_for_project_type(input.project_type)
+    end
+  end
+
+  def with_project_group(scope)
+    with_filter(scope, :project_group_id) do
+      scope.eligible_for_project_group(input.project_group_id)
     end
   end
 
