@@ -13,7 +13,7 @@ module Mutations
     field :file, Types::HmisSchema::File, null: true
 
     def resolve(file_id:)
-      file = Hmis::File.find(file_id)
+      file = Hmis::File.viewable_by(current_user).find_by(id: file_id)
       access_denied! unless file && current_user.policy_for(file, policy_type: :hmis_file).can_delete?
 
       file.destroy!
