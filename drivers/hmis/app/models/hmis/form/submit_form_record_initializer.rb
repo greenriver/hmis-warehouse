@@ -42,7 +42,7 @@ class Hmis::Form::SubmitFormRecordInitializer
     raise "shouldn't be called for input with record_id" if input.record_id.present?
 
     associations = resolve_associations(input)
-    build_record(associations, input)
+    build_record(associations)
   end
 
   private
