@@ -16,18 +16,20 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
   let(:user) { create(:hmis_user, hmis_data_source_id: data_source.id) }
   let(:policy) { user.policy_for(client, policy_type: :hmis_client) }
 
-  let(:granted_permissions) { [:can_view_clients, :can_edit_clients, :can_view_client_name] }
+  let(:granted_permissions) { [:can_view_clients, :can_edit_clients, :can_view_client_name, :can_view_any_nonconfidential_client_files] }
 
   shared_examples 'permission checks with access' do
     it 'grants configured permissions' do
       expect(policy.can_view?).to be true
       expect(policy.can_edit?).to be true
       expect(policy.can_view_name?).to be true
+      expect(policy.can_index_files?).to be true
     end
 
     it 'denies unconfigured permissions' do
       expect(policy.can_delete?).to be false
       expect(policy.can_manage_alerts?).to be false
+      expect(policy.can_create_file?).to be false
     end
   end
 
@@ -38,6 +40,8 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       expect(policy.can_delete?).to be false
       expect(policy.can_view_name?).to be false
       expect(policy.can_manage_alerts?).to be false
+      expect(policy.can_index_files?).to be false
+      expect(policy.can_create_file?).to be false
     end
   end
 
@@ -65,6 +69,93 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       let!(:access_control) { create_access_control(user, other_project, with_permission: granted_permissions) }
 
       include_examples 'permission checks without access'
+    end
+
+    describe '#can_index_files?' do
+      context 'when user has can_manage_own_client_files via access on enrolled project' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_manage_own_client_files]) }
+
+        it 'returns true' do
+          expect(policy.can_index_files?).to be true
+        end
+      end
+
+      context 'when user has can_manage_own_client_files only on a different project than the enrollment project' do
+        let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+        let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_manage_own_client_files]) }
+
+        it 'returns true via global_permissions' do
+          expect(policy.can_index_files?).to be true
+        end
+      end
+
+      context 'when user has can_view_any_nonconfidential_client_files via access on enrolled project' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files]) }
+
+        it 'returns true' do
+          expect(policy.can_index_files?).to be true
+        end
+      end
+
+      context 'when user has can_view_any_confidential_client_files via access on enrolled project' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_confidential_client_files]) }
+
+        it 'returns true' do
+          expect(policy.can_index_files?).to be true
+        end
+      end
+
+      context 'when user lacks file-related permissions' do
+        let!(:other_project) { create(:hmis_hud_project, data_source: data_source) }
+        let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_clients]) }
+
+        it 'returns false' do
+          expect(policy.can_index_files?).to be false
+        end
+      end
+
+      context 'when user has can_view_any_nonconfidential_client_files only via access on another project the client is not enrolled in' do
+        let!(:other_project) { create(:hmis_hud_project, data_source: data_source) }
+        let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_any_nonconfidential_client_files]) }
+
+        it 'returns false' do
+          expect(policy.can_index_files?).to be false
+        end
+      end
+    end
+
+    describe '#can_create_file?' do
+      context 'when user has can_manage_own_client_files' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_manage_own_client_files]) }
+
+        it 'returns true' do
+          expect(policy.can_create_file?).to be true
+        end
+      end
+
+      context 'when user can only view, not manage' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files]) }
+
+        it 'returns false' do
+          expect(policy.can_create_file?).to be false
+        end
+      end
+
+      context 'when user can view and manage' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_manage_any_client_files]) }
+
+        it 'returns true' do
+          expect(policy.can_create_file?).to be true
+        end
+      end
+
+      context 'when user can manage but not view (misconfigured permissions)' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_manage_any_client_files]) }
+
+        it 'returns false' do
+          expect(policy.can_create_file?).to be false
+        end
+      end
     end
   end
 
@@ -95,10 +186,6 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       it 'denies can_merge_clients?' do
         expect(policy.can_merge_clients?).to be false
       end
-
-      it 'denies can_manage_own_client_files?' do
-        expect(policy.can_manage_own_client_files?).to be false
-      end
     end
 
     context 'with can_edit_clients permission' do
@@ -118,14 +205,6 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
 
       it 'grants can_merge_clients?' do
         expect(policy.can_merge_clients?).to be true
-      end
-    end
-
-    context 'with can_manage_own_client_files permission' do
-      let!(:access_control) { create_access_control(user, project, with_permission: [:can_manage_own_client_files]) }
-
-      it 'grants can_manage_own_client_files?' do
-        expect(policy.can_manage_own_client_files?).to be true
       end
     end
   end
