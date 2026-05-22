@@ -19,9 +19,11 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         t.integer :report_id, null: false
         t.integer :client_id
         t.integer :reporting_age
+        t.jsonb :metadata
         t.timestamps
       end
     end
+    connection.add_column :test_reload_clients, :metadata, :jsonb unless connection.column_exists?(:test_reload_clients, :metadata)
 
     # Create test projects table
     unless connection.table_exists?(:test_reload_projects)
@@ -239,6 +241,42 @@ RSpec.describe Reports::ReloadReportFromCsvService, type: :service do
         client = test_client_class.find_by(report_id: report.id, client_id: 100)
         expect(client).to be_present
         expect(client.reporting_age).to eq(25)
+      end
+
+      it 'preserves original IDs from the CSV' do
+        service.reload!
+
+        expect(test_client_class.find_by(id: 1)&.client_id).to eq(100)
+        expect(test_client_class.find_by(id: 2)&.client_id).to eq(101)
+      end
+
+      context 'with jsonb columns' do
+        before do
+          clients_csv = CSV.generate do |csv|
+            csv << ['id', 'client_id', 'report_id', 'reporting_age', 'metadata']
+            csv << [1, 100, report.id, 25, [20, 30].to_json]
+            csv << [2, 101, report.id, 30, nil]
+          end
+          report.clients_csv.detach
+          report.clients_csv.attach(
+            io: StringIO.new(clients_csv),
+            filename: 'clients-jsonb.csv',
+            content_type: 'text/csv',
+          )
+        end
+
+        it 'restores jsonb columns as Ruby objects, not strings' do
+          service.reload!
+
+          client = test_client_class.find_by(id: 1)
+          expect(client.metadata).to eq([20, 30])
+          expect(client.metadata).to be_an(Array)
+        end
+
+        it 'handles nil jsonb values without error' do
+          expect { service.reload! }.not_to raise_error
+          expect(test_client_class.find_by(id: 2).metadata).to be_nil
+        end
       end
 
       it 'does not update report updated_at timestamp' do
