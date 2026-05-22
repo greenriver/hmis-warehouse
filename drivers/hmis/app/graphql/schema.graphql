@@ -4811,7 +4811,8 @@ type File {
 }
 
 type FileAccess {
-  canManage: Boolean!
+  canDeleteFile: Boolean!
+  canEditFile: Boolean!
   id: ID!
 }
 

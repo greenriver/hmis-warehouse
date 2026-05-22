@@ -32,7 +32,8 @@ module Types
     access_field do
       define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_file) }
 
-      bool_field(:can_manage) { policy.can_manage? }
+      bool_field(:can_edit_file) { policy.can_edit? }
+      bool_field(:can_delete_file) { policy.can_delete? }
     end
 
     def name
