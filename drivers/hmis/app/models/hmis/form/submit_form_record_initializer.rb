@@ -50,10 +50,14 @@ class Hmis::Form::SubmitFormRecordInitializer
   attr_reader :owner_class, :user
 
   def resolve_associations(input)
+    enrollment_id = input.enrollment_id
+    # File: enrollment is often supplied as a form value, not a top-level input arg; top-level wins when present.
+    enrollment_id ||= input.hud_values&.dig('enrollmentId') if owner_class == Hmis::File
+
     {
       project: find_viewable(Hmis::Hud::Project, input.project_id),
       client: find_viewable(Hmis::Hud::Client, input.client_id),
-      enrollment: find_viewable(Hmis::Hud::Enrollment, input.enrollment_id),
+      enrollment: find_viewable(Hmis::Hud::Enrollment, enrollment_id),
       organization: find_viewable(Hmis::Hud::Organization, input.organization_id),
       custom_service_type: input.service_type_id.present? ? Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) : nil,
     }
@@ -72,7 +76,7 @@ class Hmis::Form::SubmitFormRecordInitializer
     { data_source_id: user.hmis_data_source_id }
   end
 
-  def build_record(associations, input)
+  def build_record(associations)
     case owner_class.name
     when 'Hmis::Hud::Client'
       build_client_record(associations)
@@ -89,9 +93,7 @@ class Hmis::Form::SubmitFormRecordInitializer
     when *ENROLLMENT_RELATED_CLASSES
       build_enrollment_related_record(associations)
     when 'Hmis::File'
-      # Special case for File: pass `input` in order to read the enrollment from the form values.
-      # (Forms are not created in the Enrollment context, so the enrollment ID is a form value rather than a top-level input arg.)
-      build_file_record(associations, input)
+      build_file_record(associations)
     else
       raise "No initialization configured for #{owner_class.name}"
     end
@@ -165,18 +167,13 @@ class Hmis::Form::SubmitFormRecordInitializer
     )
   end
 
-  def build_file_record(associations, input)
+  def build_file_record(associations)
     client = associations[:client]
     raise 'cannot create file without client' unless client
 
-    # Enrollment is a form field, not a top-level input arg.
-    # Needed here for create authorization
-    enrollment_id = input.hud_values&.dig('enrollmentId')
-    enrollment = enrollment_id.present? ? find_viewable(Hmis::Hud::Enrollment, enrollment_id) : nil
-
     Hmis::File.new(
       client_id: client.id,
-      enrollment_id: enrollment&.id,
+      enrollment_id: associations[:enrollment]&.id,
     )
   end
 end
