@@ -88,7 +88,7 @@ module Types
     )
     ce_referrals_field(
       :ce_referrals,
-      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term], type_name: 'ClientCeReferral' },
+      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term, :assigned_to_you, :assigned_to_user], type_name: 'ClientCeReferral' },
     )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do

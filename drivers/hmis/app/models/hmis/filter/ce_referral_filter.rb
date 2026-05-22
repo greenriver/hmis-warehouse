@@ -9,6 +9,13 @@
 class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   include ::Hmis::Concerns::HmisArelHelper
 
+  attr_accessor :user
+
+  def initialize(input, user: nil)
+    super(input)
+    self.user = user
+  end
+
   def filter_scope(scope)
     scope = ensure_scope(scope)
     scope.
@@ -21,6 +28,8 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:on_current_task_since)).
       yield_self(&method(:with_origin)).
       yield_self(&method(:with_search_term)).
+      yield_self(&method(:assigned_to_current_user)).
+      yield_self(&method(:assigned_to_user)).
       yield_self(&method(:clean_scope))
   end
 
@@ -87,5 +96,24 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :search_term) do
       scope.matching_search_term(input.search_term)
     end
+  end
+
+  def assigned_to_current_user(scope)
+    with_filter(scope, :assigned_to_you) do
+      next scope unless user
+
+      filter_by_assigned_user(scope, user.id)
+    end
+  end
+
+  def assigned_to_user(scope)
+    with_filter(scope, :assigned_to_user) do
+      filter_by_assigned_user(scope, input.assigned_to_user)
+    end
+  end
+
+  def filter_by_assigned_user(scope, user_id)
+    scope.joins(:current_steps).
+      merge(Hmis::WorkflowExecution::Step.assigned_to(user_id))
   end
 end
