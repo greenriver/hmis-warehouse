@@ -82,7 +82,7 @@ class Hmis::Form::SubmitFormAuthorizer
       source_project = record.referral.enrollment.project
       user.policy_for(source_project, policy_type: :hmis_project).can_send_out_direct_referral?
     when 'Hmis::File'
-      user.policy_for(record, policy_type: :hmis_file).can_manage?
+      user.policy_for(record, policy_type: :hmis_file).can_edit?
     else
       raise "No authorization configured for #{record.class.name}"
     end

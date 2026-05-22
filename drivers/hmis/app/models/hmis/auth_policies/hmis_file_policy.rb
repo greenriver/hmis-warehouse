@@ -34,6 +34,7 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_delete? = can_manage?
+    def can_edit? = can_manage?
 
     protected
 
