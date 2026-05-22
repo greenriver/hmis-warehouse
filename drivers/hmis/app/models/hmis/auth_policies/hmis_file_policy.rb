@@ -23,6 +23,15 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
         (file_permissions.include?(:can_view_any_confidential_client_files) && file.confidential)
     end
 
+    def can_delete? = can_manage?
+    def can_edit? = can_manage?
+
+    protected
+
+    def file
+      resource
+    end
+
     def can_manage?
       # User can manage (edit/delete) the file if they can view it, and:
       # - they have "can manage any" granted through the file's client/enrollment, OR
@@ -31,15 +40,6 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
         file_permissions.include?(:can_manage_any_client_files) ||
         (file.user_id == user.id && global_permissions.include?(:can_manage_own_client_files))
       )
-    end
-
-    def can_delete? = can_manage?
-    def can_edit? = can_manage?
-
-    protected
-
-    def file
-      resource
     end
 
     memoize def file_permissions
