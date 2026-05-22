@@ -74,9 +74,9 @@ module CeWorkflows::Shared
       end
     end
 
-    def self.delete_template_and_associated_data(template_identifier, data_source:, unsafe_run_in_production: false)
+    def self.delete_template_and_associated_data(template_identifier, data_source:)
       raise ArgumentError, 'data_source is required' if data_source.blank?
-      raise 'This method destroys data and should not be run in production' if Rails.env.production? && !unsafe_run_in_production
+      raise 'This method destroys data and should not be run in production' if Rails.env.production?
 
       puts "Deleting existing CE data associated with #{template_identifier}"
 
@@ -142,8 +142,8 @@ module CeWorkflows::Shared
       template.destroy!
     end
 
-    def self.delete_form_definitions(form_definition_identifiers, data_source_id, unsafe_run_in_production: false)
-      raise 'This method destroys data and should not be run in production' if Rails.env.production? && !unsafe_run_in_production
+    def self.delete_form_definitions(form_definition_identifiers, data_source_id)
+      raise 'This method destroys data and should not be run in production' if Rails.env.production?
 
       puts "Deleting form definitions #{form_definition_identifiers.join(', ')}"
 

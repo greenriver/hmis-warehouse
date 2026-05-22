@@ -47,6 +47,10 @@ module CeWorkflows::Standard
       end
     end
 
+    # Similar to PH, the standard workflow builder hard-codes its version number,
+    # and is intended to be idempotent on that version number.
+    # This enables iterating on a template until it is ready to be published.
+    # See README_FOR_STANDARD_CE_WORKFLOWS.md for more details.
     def build_standard_referral_workflow
       find_or_create_draft_template(
         identifier: 'standard_referral',

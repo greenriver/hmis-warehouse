@@ -11,9 +11,11 @@ namespace :ce_define_standard_workflows do
   # Usage:
   #   rails driver:hmis:ce_define_standard_workflows:create[DATA_SOURCE_ID]   # explicit data source
   #   rails driver:hmis:ce_define_standard_workflows:create                   # expects sole HMIS data source
-  # Optional: PUBLISH=true, FORCE_RECREATE=true, UNSAFE_RUN_IN_PRODUCTION=true
+  # Creates/updates draft templates. Idempotent; if the template already exists as draft, it will be updated.
+  # Optional: PUBLISH=true, FORCE_RECREATE=true (non-production only; destroys existing template/form data)
   task :create, [:data_source_id] => :environment do |_, args|
     raise unless HmisEnforcement.hmis_enabled?
+    raise 'FORCE_RECREATE destroys data and should not be run in production' if ENV['FORCE_RECREATE'] && Rails.env.production?
 
     data_source = if args[:data_source_id].present?
       GrdaWarehouse::DataSource.hmis.find(args[:data_source_id])
@@ -21,18 +23,14 @@ namespace :ce_define_standard_workflows do
       GrdaWarehouse::DataSource.hmis.sole
     end
 
-    unsafe_run_in_production = ENV['UNSAFE_RUN_IN_PRODUCTION']&.downcase == 'true'
-
     if ENV['FORCE_RECREATE']
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(
         'standard_referral',
         data_source: data_source,
-        unsafe_run_in_production: unsafe_run_in_production,
       )
       CeWorkflows::Shared::CeBuilderUtils.delete_form_definitions(
         CeWorkflows::Standard::WorkflowBuilder::FORMS.values,
         data_source.id,
-        unsafe_run_in_production: unsafe_run_in_production,
       )
       puts 'Re-seeding form definitions...'
       HmisUtil::JsonForms.new(data_source_id: data_source.id).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
