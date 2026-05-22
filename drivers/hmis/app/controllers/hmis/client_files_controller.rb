@@ -22,7 +22,7 @@ module Hmis
 
     def redacted?(file)
       # HmisFilePolicy checks for confidentiality and ownership
-      !current_hmis_user.policy_for(file, policy_type: :hmis_file).can_view?
+      !current_hmis_user.policy_for(file, policy_type: :hmis_file).can_view_unredacted?
     end
 
     # returns the direct url to the active storage file with a short expiration

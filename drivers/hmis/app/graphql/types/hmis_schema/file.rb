@@ -108,7 +108,7 @@ module Types
     end
 
     def redacted?
-      !current_user.policy_for(object, policy_type: :hmis_file).can_view?
+      !current_user.policy_for(object, policy_type: :hmis_file).can_view_unredacted?
     end
   end
 end

@@ -6,18 +6,16 @@
 
 # frozen_string_literal: true
 
-# See README_FOR_FILE_PERMISSIONS.md for
 class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
-    def can_view?
-      # User can view the file if:
+    def can_view_unredacted?
+      # User can view the file contents if:
       # - they have "can manage own" (global) AND it's their file, OR
       # - they have non-confidential access AND it's not confidential, OR
       # - they have confidential access AND it is confidential.
       #
       # NOTE: If the user can view nonconfidential files but not confidential files,
-      # can_view? returns false but the file IS included in the `File#viewable_by` scope.
-      # `can_view?` acts as a check for "is this file shown to the user as redacted?",
+      # can_view_unredacted? returns false but the file IS included in the `File#viewable_by` scope.
       # not "is this file's existence visible to the user at all?"
       # See comments on the `File#viewable_by` scope.
       (file.user_id == user.id && global_permissions.include?(:can_manage_own_client_files)) ||
@@ -29,7 +27,7 @@ class Hmis::AuthPolicies::HmisFilePolicy < Hmis::AuthPolicies::ResourcePolicy
       # User can manage (edit/delete) the file if they can view it, and:
       # - they have "can manage any" granted through the file's client/enrollment, OR
       # - they have "can manage own" (global) AND it's their file
-      can_view? && (
+      can_view_unredacted? && (
         file_permissions.include?(:can_manage_any_client_files) ||
         (file.user_id == user.id && global_permissions.include?(:can_manage_own_client_files))
       )

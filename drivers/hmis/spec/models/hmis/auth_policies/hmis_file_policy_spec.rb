@@ -28,14 +28,14 @@ RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
     let(:confidential_file) { create(:file, :skip_validate, client: client, user: other_user, confidential: true) }
     let(:own_file) { create(:file, :skip_validate, client: client, user: user) }
 
-    describe '#can_view?' do
+    describe '#can_view_unredacted?' do
       context 'when user can view non-confidential files' do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files]) }
 
         it 'grants view access to non-confidential files' do
-          expect(file_policy(file).can_view?).to be true
-          expect(file_policy(own_file).can_view?).to be true
-          expect(file_policy(confidential_file).can_view?).to be false
+          expect(file_policy(file).can_view_unredacted?).to be true
+          expect(file_policy(own_file).can_view_unredacted?).to be true
+          expect(file_policy(confidential_file).can_view_unredacted?).to be false
         end
       end
 
@@ -43,7 +43,7 @@ RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_confidential_client_files]) }
 
         it 'grants view access to confidential files' do
-          expect(file_policy(confidential_file).can_view?).to be true
+          expect(file_policy(confidential_file).can_view_unredacted?).to be true
         end
       end
 
@@ -51,9 +51,9 @@ RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_manage_own_client_files]) }
 
         it 'grants view access to own files' do
-          expect(file_policy(own_file).can_view?).to be true
-          expect(file_policy(file).can_view?).to be false
-          expect(file_policy(confidential_file).can_view?).to be false
+          expect(file_policy(own_file).can_view_unredacted?).to be true
+          expect(file_policy(file).can_view_unredacted?).to be false
+          expect(file_policy(confidential_file).can_view_unredacted?).to be false
         end
       end
 
@@ -61,9 +61,9 @@ RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_manage_any_client_files]) }
 
         it 'denies view access' do
-          expect(file_policy(file).can_view?).to be false
-          expect(file_policy(confidential_file).can_view?).to be false
-          expect(file_policy(own_file).can_view?).to be false
+          expect(file_policy(file).can_view_unredacted?).to be false
+          expect(file_policy(confidential_file).can_view_unredacted?).to be false
+          expect(file_policy(own_file).can_view_unredacted?).to be false
         end
       end
 
@@ -73,7 +73,7 @@ RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
         let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files]) }
 
         it 'denies view access' do
-          expect(file_policy(other_enrollment_file).can_view?).to be false
+          expect(file_policy(other_enrollment_file).can_view_unredacted?).to be false
         end
       end
     end
