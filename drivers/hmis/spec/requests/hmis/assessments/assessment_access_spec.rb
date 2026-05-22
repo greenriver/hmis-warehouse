@@ -22,36 +22,36 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             access {
               id
-              canDelete
+              canDeleteAssessment
             }
           }
         }
       GRAPHQL
     end
 
-    def expect_assessment_access!(assessment:, can_delete:)
+    def expect_assessment_access!(assessment:, can_delete_assessment:)
       response, result = post_graphql(id: assessment.id.to_s) { access_query }
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'assessment', 'access')).to include(
         'id' => assessment.id.to_s,
-        'canDelete' => can_delete,
+        'canDeleteAssessment' => can_delete_assessment,
       )
     end
 
     let(:view_permissions) { [:can_view_enrollment_details, :can_view_project] }
 
-    it 'resolves canDelete from the assessment policy (WIP + can_edit_enrollments)' do
+    it 'resolves canDeleteAssessment from the assessment policy (WIP + can_edit_enrollments)' do
       create_access_control(hmis_user, p1, with_permission: [:can_edit_enrollments, *view_permissions])
       assessment = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, client: c1)
 
-      expect_assessment_access!(assessment: assessment, can_delete: true)
+      expect_assessment_access!(assessment: assessment, can_delete_assessment: true)
     end
 
     it 'returns false when the policy denies delete' do
       create_access_control(hmis_user, p1, with_permission: [*view_permissions])
       assessment = create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1)
 
-      expect_assessment_access!(assessment: assessment, can_delete: false)
+      expect_assessment_access!(assessment: assessment, can_delete_assessment: false)
     end
   end
 end

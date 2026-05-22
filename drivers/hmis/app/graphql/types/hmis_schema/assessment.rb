@@ -44,11 +44,11 @@ module Types
     access_field do
       define_method(:assessment_policy) { @assessment_policy ||= policy_for(object, policy_type: :hmis_custom_assessment) }
 
-      bool_field(:can_delete, description: 'Whether the user can delete this assessment') { assessment_policy.can_delete? }
+      bool_field(:can_delete_assessment, description: 'Whether the user can delete this assessment') { assessment_policy.can_delete? }
 
       can :edit_enrollments, deprecation_reason: 'Use enrollment.access.canEditEnrollments for enrollment edit checks'
-      can :delete_enrollments, deprecation_reason: 'Use assessment.access.canDelete'
-      can :delete_assessments, deprecation_reason: 'Use assessment.access.canDelete'
+      can :delete_enrollments, deprecation_reason: 'Use assessment.access.canDeleteAssessment'
+      can :delete_assessments, deprecation_reason: 'Use assessment.access.canDeleteAssessment'
     end
     # Related records that were created by this Assessment, if applicable
     field :ce_assessment, Types::HmisSchema::CeAssessment, null: true
