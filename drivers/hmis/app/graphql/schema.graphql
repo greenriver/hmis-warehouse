@@ -1612,14 +1612,15 @@ type ClientAccess {
   canAuditClients: Boolean!
   canDeleteClient: Boolean!
   canEditClient: Boolean!
-  canManageAnyClientFiles: Boolean!
+  canIndexFiles: Boolean!
+  canManageAnyClientFiles: Boolean! @deprecated(reason: "Resolve canManage on individual file access field instead")
   canManageClientAlerts: Boolean!
-  canManageOwnClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean! @deprecated(reason: "Resolve canManage on individual file access field instead")
   canManageScanCards: Boolean!
   canMergeClients: Boolean!
   canPrintClientCaseNotes: Boolean!
   canUploadClientFiles: Boolean!
-  canViewAnyFiles: Boolean!
+  canViewAnyFiles: Boolean! @deprecated(reason: "Use canIndexFiles")
   canViewClientAlerts: Boolean!
   canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
@@ -4790,6 +4791,7 @@ type FieldMapping {
 File
 """
 type File {
+  access: FileAccess!
   confidential: Boolean
   contentType: String
   dateCreated: ISO8601DateTime
@@ -4807,6 +4809,12 @@ type File {
   uploadedBy: ApplicationUser
   url: String
   user: ApplicationUser
+}
+
+type FileAccess {
+  canDeleteFile: Boolean!
+  canEditFile: Boolean!
+  id: ID!
 }
 
 """
