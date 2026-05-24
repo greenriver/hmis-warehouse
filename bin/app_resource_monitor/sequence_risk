@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# Show the top sequences by percentage of their max value consumed.
+# Useful for spotting primary key exhaustion before it becomes an emergency.
+#
+# Requires an active GrdaWarehouse::RemoteCredentials::S3 row with slug 'app_stats'.
+#
+# Examples:
+#   bin/app_resource_monitor/sequence_risk --prefix=clientname-production
+#   bin/app_resource_monitor/sequence_risk --prefix=clientname-production --limit=30
+#   bin/app_resource_monitor/sequence_risk --prefix=clientname-production --database=warehouse_production
+#   bin/app_resource_monitor/sequence_risk --prefix=clientname-production --as-of=2025-06-15
+
+require 'optparse'
+require 'date'
+
+options = { limit: 20 }
+
+OptionParser.new do |o|
+  o.banner = 'Usage: bin/app_resource_monitor/sequence_risk --prefix=PREFIX [options]'
+  o.separator ''
+  o.separator 'Required:'
+  o.on('--prefix=PREFIX', 'S3 sub-prefix for the target environment (e.g. "clientname-production")') { |v| options[:prefix] = v }
+  o.separator ''
+  o.separator 'Optional:'
+  o.on('--database=DB',   'Filter to a single database (default: show all)')              { |v| options[:database] = v }
+  o.on('--limit=N',       Integer, 'Top N sequences to display (default: 20)')            { |v| options[:limit]    = v }
+  o.on('--as-of=DATE',    'Anchor date in YYYY-MM-DD format (default: today)')            { |v| options[:as_of]    = Date.parse(v) }
+end.parse!
+
+abort 'Error: --prefix is required' unless options[:prefix]
+
+require_relative '../../config/environment'
+
+begin
+  AppResourceMonitor::SequenceRisk.new(**options).run
+rescue AppResourceMonitor::S3Analysis::ConfigurationError, ArgumentError => e
+  abort "Error: #{e.message}"
+end
