@@ -28,9 +28,7 @@ class Git
   end
 
   def self.release
-    # Release tags are only meaningful on deployed environments.
-    # Development branches do not have a meaningful release tag.
-    return 'release-DEV' if Rails.env.development?
+    return nil if Rails.env.development?
 
     File.read("#{Rails.root}/GIT_RELEASE").chomp
   rescue StandardError

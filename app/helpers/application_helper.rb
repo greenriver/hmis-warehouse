@@ -306,6 +306,8 @@ module ApplicationHelper
   end
 
   def release_info
+    return unless Git.release
+
     content_tag :div, class: 'navbar-text' do
       content_tag :span, Git.release, class: 'label label-warning'
     end
