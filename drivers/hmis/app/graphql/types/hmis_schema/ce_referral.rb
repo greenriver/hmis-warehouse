@@ -107,6 +107,8 @@ module Types
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
       arg :origin, [HmisSchema::Enums::CeReferralOrigin]
       arg :search_term, String
+      arg :assigned_to_you, Boolean
+      arg :assigned_to_user, ID
     end
 
     def current_match_values
