@@ -4,7 +4,7 @@ module Hmis::Ce::Match::Expression
   # Read-only structured view of a flat AND-only or OR-only CE match expression.
   # For now, if the expression is more complex, we skip translation and fallback to the free text expression.
   class StructuredExpression
-    Clause = Struct.new(:field, :comparator, :value, keyword_init: true)
+    Clause = Data.define(:field, :comparator, :value)
 
     attr_reader :operator, :clauses
 
