@@ -108,6 +108,8 @@ module Hmis::Ce::Match::Expression
       end
 
       def comparison_clause(node)
+        # only supports parsing comparison where identifier is on the left
+        # (can parse "current_age > 18" but not "18 < current_age")
         return unless node.left.is_a?(Dentaku::AST::Identifier)
         return unless literal_ast?(node.right)
 
