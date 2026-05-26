@@ -309,9 +309,13 @@ type Assessment {
 }
 
 type AssessmentAccess {
-  canDeleteAssessments: Boolean!
-  canDeleteEnrollments: Boolean!
-  canEditEnrollments: Boolean!
+  """
+  Whether the user can delete this assessment
+  """
+  canDeleteAssessment: Boolean!
+  canDeleteAssessments: Boolean! @deprecated(reason: "Use assessment.access.canDeleteAssessment")
+  canDeleteEnrollments: Boolean! @deprecated(reason: "Use assessment.access.canDeleteAssessment")
+  canEditEnrollments: Boolean! @deprecated(reason: "Use enrollment.access.canEditEnrollments for enrollment edit checks")
   id: ID!
 }
 
