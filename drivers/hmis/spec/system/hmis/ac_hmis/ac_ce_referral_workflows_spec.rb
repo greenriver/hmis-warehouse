@@ -304,8 +304,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
 
     # Shared method for progressing the referral through the initial steps and assigning the provider
     def ce_staff_complete_initial_steps
-      # Navigate to admin referrals page and click into the referral
-      visit '/admin/referrals/'
+      # Navigate to referrals page and click into the referral
+      visit '/referrals/'
       expect(page).to have_content('Alice A')
       expect(page).to have_content('Matching In Progress')
       click_link 'Alice A'
