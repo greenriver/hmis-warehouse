@@ -473,6 +473,60 @@ RSpec.describe ReportArchival, type: :model do
     end
   end
 
+  describe 'purge_eligible scope' do
+    let!(:eligible_report) do
+      SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 61.days.ago,
+      )
+    end
+
+    let!(:ineligible_purged) do
+      r = SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 61.days.ago,
+      )
+      r.update_column(:archival_metadata, { 'purged_at' => Time.current.iso8601 })
+      r
+    end
+
+    let!(:ineligible_recent) do
+      SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 30.days.ago,
+      )
+    end
+
+    let!(:ineligible_failed) do
+      r = SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 61.days.ago,
+      )
+      r.update_column(:archival_metadata, { 'purge_failed_at' => Time.current.iso8601 })
+      r
+    end
+
+    it 'includes reports past their grace period that have not been purged or failed' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).to include(eligible_report)
+    end
+
+    it 'excludes already-purged reports' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(ineligible_purged)
+    end
+
+    it 'excludes reports still within the grace period' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(ineligible_recent)
+    end
+
+    it 'excludes reports that have a recorded purge failure' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(ineligible_failed)
+    end
+  end
+
   describe '#expected_archival_files' do
     it 'returns empty array when not archived' do
       expect(report.expected_archival_files).to eq([])

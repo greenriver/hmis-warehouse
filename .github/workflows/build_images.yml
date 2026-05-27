@@ -93,6 +93,7 @@ jobs:
         run: |
           echo $SHA > docker/app/REVISION
           echo $BRANCH > docker/app/GIT_BRANCH
+          git describe --tags --always > docker/app/GIT_RELEASE
           bin/error_if_githash_is_latest.rb base
 
       # https://github.com/docker/metadata-action#images-input

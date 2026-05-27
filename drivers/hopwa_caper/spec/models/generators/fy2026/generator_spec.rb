@@ -45,6 +45,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Generator, type: :model do
       atc_maintained_contact_field_name: maintained_key,
       atc_housing_plan_field_name: housing_plan_key,
       atc_primary_health_contact_field_name: primary_health_key,
+      funder_daily_rate_field_name: nil,
     )
   end
 
