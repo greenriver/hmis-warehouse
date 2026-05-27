@@ -26,6 +26,8 @@ module Hmis::Ce::Match
     acts_as_paranoid
     has_paper_trail
 
+    EXPRESSION_MAX_LENGTH = 2_000
+
     # lower numbers have a higher priority
     OWNER_PRECEDENCE = {
       'Hmis::UnitGroup' => 1,
@@ -40,6 +42,7 @@ module Hmis::Ce::Match
     validate :rule_type_is_not_changed, on: :update
 
     validates :name, presence: true
+    validates :expression, length: { maximum: EXPRESSION_MAX_LENGTH }
     validates :priority_rank, uniqueness: { scope: [:owner_type, :owner_id], allow_nil: true }
 
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'

@@ -2,8 +2,6 @@
 
 module Hmis::Ce::Match::Expression
   class Validator
-    MAX_LENGTH = 2_000
-
     def self.call(expression)
       new.call(expression)
     end
@@ -13,11 +11,6 @@ module Hmis::Ce::Match::Expression
 
       if expression.blank?
         errors.add(:expression, :required)
-        return errors
-      end
-
-      if expression.length > MAX_LENGTH
-        errors.add(:expression, :invalid, message: "is too long (maximum is #{MAX_LENGTH} characters)")
         return errors
       end
 

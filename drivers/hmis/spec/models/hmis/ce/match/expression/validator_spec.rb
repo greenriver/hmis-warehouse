@@ -50,16 +50,6 @@ RSpec.describe Hmis::Ce::Match::Expression::Validator do
     end
   end
 
-  describe 'oversized expression' do
-    it 'returns a length error' do
-      errors = described_class.call('a' * 2_001).errors
-
-      expect(errors).not_to be_empty
-      expect(errors.first).to have_attributes(attribute: :expression, type: :invalid)
-      expect(errors.first.message).to include('too long')
-    end
-  end
-
   describe 'parse errors' do
     it 'returns an invalid error with the parser message' do
       errors = described_class.call('this is not an expression').errors
