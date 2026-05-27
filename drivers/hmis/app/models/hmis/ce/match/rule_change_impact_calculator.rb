@@ -36,6 +36,9 @@ module Hmis::Ce::Match
     end
 
     def impact_for_unit_group(unit_group)
+      # We don't calculate impact for unit groups that don't have a candidate pool yet.
+      # Currently this RuleChangeImpactCalculator only measures *removals*, and if the unit group
+      # doesn't have a candidate pool yet, it doesn't have any candidates to remove.
       pool = unit_group.candidate_pool
       return unless pool
 
