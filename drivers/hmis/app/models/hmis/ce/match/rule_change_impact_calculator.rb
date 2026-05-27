@@ -44,12 +44,12 @@ module Hmis::Ce::Match
       # We don't calculate impact for unit groups that don't have a candidate pool yet.
       # Currently this RuleChangeImpactCalculator only measures *removals*, and if the unit group
       # doesn't have a candidate pool yet, it doesn't have any candidates to remove.
-      pool = unit_group.candidate_pool
-      return unless pool
+      pool_id = unit_group.candidate_pool_id
+      return unless pool_id
 
       # Multiple unit groups frequently share the same candidate pool; memoize the
       # per-pool counts so we only load clients and evaluate the expression once per pool.
-      counts = counts_for_pool(pool)
+      counts = counts_for_pool(pool_id)
 
       UnitGroupImpact.new(
         unit_group: unit_group,
@@ -58,10 +58,10 @@ module Hmis::Ce::Match
       )
     end
 
-    def counts_for_pool(pool)
+    def counts_for_pool(pool_id)
       @counts_by_pool_id ||= {}
-      @counts_by_pool_id[pool.id] ||= begin
-        clients = pool.warehouse_clients.load # `.load` materializes the relation once for performance
+      @counts_by_pool_id[pool_id] ||= begin
+        clients = Hmis::Ce::Match::CandidatePool.find(pool_id).warehouse_clients.load # `.load` materializes the relation once for performance
         current_count = clients.size
         removed_count = current_count.zero? ? 0 : count_removed_candidates(clients, @rule.expression)
         { current: current_count, removed: removed_count }

@@ -138,6 +138,22 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
       end
     end
 
+    context 'with many unit groups sharing one candidate pool' do
+      let(:impact_rule) { build(:hmis_ce_eligibility_requirement, owner: project, expression: 'veteran_status = 1') }
+
+      before do
+        20.times do
+          create(:hmis_unit_group, project: project, candidate_pool: candidate_pool)
+        end
+      end
+
+      it 'does not reload CandidatePool rows once per unit group (shared pool is loaded once)' do
+        expect do
+          described_class.for_rule(rule: impact_rule)
+        end.to make_database_queries(count: 5..10)
+      end
+    end
+
     context 'when the proposed rule is a priority scheme' do
       it 'raises' do
         rule = build(:hmis_ce_priority_scheme, owner: project, expression: 'current_age')
