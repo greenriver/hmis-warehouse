@@ -355,7 +355,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def delete_image
-    client_files&.client_photos&.newest_first&.first&.destroy!
+    client_files&.client_photos&.newest_first&.first&.soft_delete!
     @image = nil
   end
 
