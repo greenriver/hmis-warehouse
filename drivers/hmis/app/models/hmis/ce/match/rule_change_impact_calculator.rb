@@ -1,15 +1,20 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match
-  # Answers, "How many current candidates in the affected pools would be removed if this rule's
-  # expression were applied?" Does not simulate the full post-save rule set, rebuild hypothetical
-  # pools, or report added candidates.
+  # Previews the impact of creating or changing a CE Match rule, per affected unit group.
+  #
+  # Today this only reports how many current pool candidates would be *removed* if the rule's expression
+  # were applied; NOT how many clients would be *added*. Counting removals only requires evaluating
+  # clients already in the pool ("how many fail this expression?"). Reporting additions would require
+  # finding clients outside the pool who would newly qualify ("who in the broader universe would be
+  # added?"), which is substantially more expensive. Additional impact metrics (e.g. added candidates)
+  # can be added to this class later if product needs them.
   #
   # Expects an unpersisted Hmis::Ce::Match::Rule, or a persisted rule carrying in-memory changes.
   # Callers should validate the rule's expression using `Hmis::Ce::Match::Expression::Validator`
   # before invoking this service, which does not handle validation.
   #
-  # Priority schemes are not supported here, since adding a priority scheme cannot remove existing candidates.
+  # Priority schemes are not supported here, since adding a priority scheme cannot add or remove candidates.
   class RuleChangeImpactCalculator
     Result = Struct.new(:affected_unit_groups, keyword_init: true)
     UnitGroupImpact = Struct.new(:unit_group, :current_candidate_count, :removed_candidate_count, keyword_init: true)
