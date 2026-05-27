@@ -48,7 +48,8 @@ module HudReportArchival
 
       base = where(state: 'Completed').
         where.not(completed_at: nil).
-        where("archival_metadata->>'purged_at' IS NULL")
+        where("archival_metadata->>'purged_at' IS NULL").
+        where("archival_metadata->>'purge_failed_at' IS NULL")
 
       # Branch 1: an explicit purge_eligible_at was set (e.g. by the rake task)
       by_explicit_date = base.
