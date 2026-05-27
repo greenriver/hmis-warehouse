@@ -38,7 +38,7 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
     end
 
     it 'returns zero removals when all current candidates pass the proposed requirement' do
-      rule = build(:hmis_ce_eligibility_requirement, owner: project, expression: 'current_age >= 18')
+      rule = build(:hmis_ce_eligibility_requirement, owner: organization.data_source, expression: 'current_age >= 18')
       result = described_class.for_rule(rule: rule)
 
       impact = result.affected_unit_groups.first

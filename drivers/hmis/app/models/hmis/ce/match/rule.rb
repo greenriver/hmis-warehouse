@@ -146,23 +146,19 @@ module Hmis::Ce::Match
     # IMPORTANT: keep this in sync with `MatchApplicability`, the in-Ruby evaluator.
     def self.unit_groups_for_owner(owner, applicability_config: {})
       p_t = Hmis::Hud::Project.arel_table
-      o_t = GrdaWarehouse::Hud::Organization.arel_table
       f_t = GrdaWarehouse::Hud::Funder.arel_table
 
-      # Only include unit groups that have CE waitlists enabled
-      scope = Hmis::UnitGroup.with_ce_waitlists_enabled.joins(:project)
       scope = case owner
       when Hmis::UnitGroup
-        scope.where(id: owner.id)
-      when Hmis::Hud::Project
-        scope.where(project_id: owner.id)
-      when Hmis::Hud::Organization
-        scope.joins(project: :organization).where(o_t[:id].eq(owner.id))
-      when GrdaWarehouse::DataSource
-        scope.where(p_t[:data_source_id].eq(owner.id))
+        Hmis::UnitGroup.where(id: owner.id)
+      when Hmis::Hud::Project, Hmis::Hud::Organization, GrdaWarehouse::DataSource
+        owner.unit_groups
       else
         raise ArgumentError, "Unsupported owner type for rule applicability: #{owner.class}"
       end
+
+      # Only include unit groups that have CE waitlists enabled
+      scope = scope.with_ce_waitlists_enabled.joins(:project)
 
       config = (applicability_config || {}).symbolize_keys
       scope = scope.where(p_t[:ProjectType].in(config[:project_types])) if config[:project_types].present?
