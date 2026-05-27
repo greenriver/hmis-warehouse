@@ -149,7 +149,8 @@ module Hmis::Ce::Match
       o_t = GrdaWarehouse::Hud::Organization.arel_table
       f_t = GrdaWarehouse::Hud::Funder.arel_table
 
-      scope = Hmis::UnitGroup.joins(:project)
+      # Only include unit groups that have CE waitlists enabled
+      scope = Hmis::UnitGroup.with_ce_waitlists_enabled.joins(:project)
       scope = case owner
       when Hmis::UnitGroup
         scope.where(id: owner.id)

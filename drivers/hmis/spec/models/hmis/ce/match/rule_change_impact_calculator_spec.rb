@@ -8,6 +8,12 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
 
   let!(:organization) { create(:hmis_hud_organization) }
   let!(:project) { create(:hmis_hud_project, organization: organization) }
+  let!(:project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: project }
+
+  before(:each) do
+    # Stub CandidatePoolBuilder to prevent it from overwriting unit group pools in after_create callbacks
+    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
+  end
   let!(:unit_group) { create(:hmis_unit_group, project: project, candidate_pool: candidate_pool) }
 
   let!(:client1) { create(:hmis_hud_client_with_warehouse_client, dob: 30.years.ago(current_date), veteran_status: 1) }
@@ -69,6 +75,8 @@ RSpec.describe Hmis::Ce::Match::RuleChangeImpactCalculator do
 
     context 'with a project_funders applicability_config filter' do
       let!(:other_project) { create(:hmis_hud_project, organization: organization, funders: [50]) }
+      let!(:other_project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: other_project }
+
       let!(:other_pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'TRUE', priority_expression: '{2}') }
       let!(:other_unit_group) { create(:hmis_unit_group, project: other_project, candidate_pool: other_pool) }
 
