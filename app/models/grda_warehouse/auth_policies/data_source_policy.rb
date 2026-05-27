@@ -21,6 +21,10 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
     resource_permissions.include?(:can_edit_data_sources) && resource_permissions.include?(:can_upload_hud_zips)
   end
 
+  memoize def can_see_import_debugging?
+    user.can_manage_config?
+  end
+
   protected
 
   def validate_resource!(arg)
