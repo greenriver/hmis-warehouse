@@ -2448,17 +2448,6 @@
         ]
       },
       {
-        "file_path": "./spec/models/hud_reports/household_context_builder_spec.rb",
-        "total_time": 33.712188186,
-        "groups": [
-          {
-            "location": "./spec/models/hud_reports/household_context_builder_spec.rb:5",
-            "total_time": 33.712188186,
-            "description": "HudReports::HouseholdContextBuilder"
-          }
-        ]
-      },
-      {
         "file_path": "./spec/models/app_resource_monitor/report_spec.rb",
         "total_time": 32.076111065,
         "groups": [
@@ -2576,17 +2565,6 @@
             "location": "./spec/requests/clients/notes_controller_spec.rb:7",
             "total_time": 18.395811322,
             "description": "Clients::NotesController"
-          }
-        ]
-      },
-      {
-        "file_path": "./spec/models/grda_warehouse/service_history_service_spec.rb",
-        "total_time": 17.737021808,
-        "groups": [
-          {
-            "location": "./spec/models/grda_warehouse/service_history_service_spec.rb:6",
-            "total_time": 17.737021808,
-            "description": "GrdaWarehouse::ServiceHistoryService"
           }
         ]
       },
@@ -3562,17 +3540,6 @@
             "location": "./drivers/client_access_control/spec/requests/clients_spec.rb:14",
             "total_time": 310.940521138,
             "description": "ClientAccessControl::ClientsController"
-          }
-        ]
-      },
-      {
-        "file_path": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/custom_augmentation_spec.rb",
-        "total_time": 362.5570111308,
-        "groups": [
-          {
-            "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/custom_augmentation_spec.rb:11",
-            "total_time": 302.130842609,
-            "description": "Custom Augmentation File Imports"
           }
         ]
       },
