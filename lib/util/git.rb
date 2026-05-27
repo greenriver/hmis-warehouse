@@ -26,4 +26,12 @@ class Git
   rescue StandardError
     'unknown'
   end
+
+  def self.release
+    return nil if Rails.env.development?
+
+    File.read("#{Rails.root}/GIT_RELEASE").chomp
+  rescue StandardError
+    'unknown'
+  end
 end
