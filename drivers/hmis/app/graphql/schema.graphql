@@ -7519,6 +7519,7 @@ type Organization {
 }
 
 type OrganizationAccess {
+  canCreateProjects: Boolean!
   canDeleteOrganization: Boolean!
   canEditOrganization: Boolean!
   id: ID!
@@ -10273,67 +10274,33 @@ type Query {
 }
 
 type QueryAccess {
-  canAdministerHmis: Boolean!
+  canAdministerHmis: Boolean! @deprecated(reason: "Unused in the frontend")
   canAdministrateConfig: Boolean!
-  canAdministrateCoordinatedEntry: Boolean!
-  canAssignReferralTasks: Boolean!
-  canAuditClients: Boolean!
-  canAuditEnrollments: Boolean!
+  canAdministrateCoordinatedEntry: Boolean! @deprecated(reason: "Use policy permission specific to the need, such as canManageCeDefaultContacts or canIndexOpportunities")
   canAuditUsers: Boolean!
-  canConfigureDataCollection: Boolean!
-  canDeleteAssessments: Boolean!
-  canDeleteClients: Boolean!
-  canDeleteEnrollments: Boolean!
-  canDeleteOrganization: Boolean!
-  canDeleteProject: Boolean!
-  canEditClients: Boolean!
-  canEditEnrollments: Boolean!
-  canEditOrganization: Boolean!
-  canEditProjectDetails: Boolean!
+  canConfigureDataCollection: Boolean! @deprecated(reason: "Use policy permission specific to the need, such as canManageFormRules or canManageServices")
+  canCreateClients: Boolean!
+  canCreateOrganizations: Boolean!
+  canEditClients: Boolean! @deprecated(reason: "Use canCreateClients when checking for creation permission. Use client access object when checking for ability to edit a specific client.")
+  canEditOrganization: Boolean! @deprecated(reason: "Use canCreateOrganizations when checking for creation permission. Use organization access object when checking for ability to edit a specific organization.")
+  canEditProjectDetails: Boolean! @deprecated(reason: "Use canCreateProjects on the organization access object")
   canEditUsersInWarehouse: Boolean!
-  canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
+  canIndexEligibleClients: Boolean!
+  canIndexOpportunities: Boolean!
   canIndexReferrals: Boolean!
-  canManageAnyClientFiles: Boolean!
-  canManageClientAlerts: Boolean!
+  canManageCeDefaultContacts: Boolean!
+  canManageCeMatchRules: Boolean!
   canManageDeniedReferrals: Boolean!
-  canManageExternalFormSubmissions: Boolean!
+  canManageFormRules: Boolean!
   canManageForms: Boolean!
-  canManageIncomingReferrals: Boolean!
-  canManageOutgoingReferrals: Boolean!
-  canManageOwnClientFiles: Boolean!
-  canManageScanCards: Boolean!
-  canManageUnits: Boolean!
+  canManageProjectConfigs: Boolean!
+  canManageServices: Boolean!
   canMergeClients: Boolean!
-  canPerformAnyReferralTasks: Boolean!
-  canPerformOwnReferralTasks: Boolean!
-  canPrintClientCaseNotes: Boolean!
-  canSplitHouseholds: Boolean!
-  canStartReferrals: Boolean!
-  canTransferEnrollments: Boolean!
-  canUpdateUnitAvailability: Boolean!
-  canViewAnyConfidentialClientFiles: Boolean!
-  canViewAnyNonconfidentialClientFiles: Boolean!
+  canTransferEnrollments: Boolean! @deprecated(reason: "Unused in the frontend")
   canViewClientAlerts: Boolean!
-  canViewClientContactInfo: Boolean!
-  canViewClientEligibleOpportunities: Boolean!
-  canViewClientName: Boolean!
-  canViewClientPhoto: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
-  canViewEnrollmentDetails: Boolean!
-  canViewEnrollmentLocationMap: Boolean!
-  canViewFullSsn: Boolean!
-  canViewHudChronicStatus: Boolean!
-  canViewLimitedEnrollmentDetails: Boolean!
-  canViewOpenEnrollmentSummary: Boolean!
-  canViewOutgoingReferralDetails: Boolean!
-  canViewOwnReferrals: Boolean!
-  canViewPartialSsn: Boolean!
-  canViewPrioritizedClientLists: Boolean!
-  canViewProject: Boolean!
-  canViewReferrals: Boolean!
-  canViewUnits: Boolean!
   id: ID!
 }
 
