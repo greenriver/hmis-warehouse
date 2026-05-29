@@ -9,6 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
+  before(:all) { cleanup_test_environment }
   describe 'validations' do
     it 'requires name' do
       metric = build(:grda_warehouse_monitoring_metric_definition, name: nil)

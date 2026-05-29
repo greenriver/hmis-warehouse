@@ -81,6 +81,34 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     end
   end
 
+  describe '#can_create_file?' do
+    it 'returns true when the user has can_manage_any_client_files on the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_manage_any_client_files])
+      expect(policy.can_create_file?).to be true
+    end
+
+    it 'returns true when the user has can_manage_own_client_files' do
+      create_access_control(user, project, with_permission: [:can_manage_own_client_files])
+      expect(policy.can_create_file?).to be true
+    end
+
+    it 'returns true when the user has can_manage_own_client_files anywhere in the data source' do
+      create_access_control(user, other_project, with_permission: [:can_manage_own_client_files])
+      expect(policy.can_create_file?).to be true
+    end
+
+    it 'returns false when the user can only view files, not manage' do
+      create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files])
+      expect(policy.can_create_file?).to be false
+    end
+
+    it 'returns false when the user has can_manage_any_client_files only on a different project than the enrollment' do
+      create_access_control(user, project, with_permission: [:can_view_clients])
+      create_access_control(user, other_project, with_permission: [:can_view_clients, :can_manage_any_client_files])
+      expect(policy.can_create_file?).to be false
+    end
+  end
+
   describe 'Global policy' do
     let(:global_policy) { user.policy_for(Hmis::Hud::Enrollment, policy_type: :hmis_enrollment) }
 
@@ -153,6 +181,7 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
     it 'is denied' do
       expect(policy.can_edit?).to be false
+      expect(policy.can_create_file?).to be false
     end
 
     context 'and user has permission in both data sources' do
@@ -163,6 +192,7 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
       it 'is still denied when scoped to the wrong data source' do
         expect(policy.can_edit?).to be false
+        expect(policy.can_create_file?).to be false
       end
 
       it 'is allowed when scoped to the enrollment\'s data source' do

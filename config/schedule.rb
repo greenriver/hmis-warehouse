@@ -186,19 +186,10 @@ tasks = [
     at: import_cleanup_time,
     interruptable: false,
   },
-  # Archive and purge SimpleReports and HUD Reports
-  # Once both are enabled on production, we can remove the individual tasks and use the archive_and_purge_eligible task instead.
   {
-    task: 'reports:csv:archive_and_purge_simple_reports',
+    task: 'reports:csv:archive_and_purge_eligible',
     frequency: 1.day,
     at: '2:00 am',
-    interruptable: true,
-  },
-  {
-    task: 'reports:csv:archive_and_purge_hud_reports',
-    frequency: 1.day,
-    at: '3:00 am',
-    trigger: ENV['RAILS_ENV'] != 'production',
     interruptable: true,
   },
 ]
