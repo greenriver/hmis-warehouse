@@ -142,7 +142,7 @@ flowchart TB
 
 ## Driver Catalog
 
-Each driver is a self-contained Rails engine in `/drivers/[name]` with its own models, controllers, views, and specs. See [8.3 Driver Module Pattern](../08-concepts/08-3-driver-module-pattern.md) for the convention. The 88 drivers group into the functional areas below; architecturally significant drivers are listed individually, while the long tail is summarized.
+Each driver is a self-contained module directory in `/drivers/[name]` with its own models, controllers, views, and specs (a convention autoloaded into the monolith, not a Rails engine). See [8.3 Driver Module Pattern](../08-concepts/08-3-driver-module-pattern.md) for the convention. The 88 drivers group into the functional areas below; architecturally significant drivers are listed individually, while the long tail is summarized.
 
 ### HMIS Module
 

@@ -15,37 +15,17 @@
   end
 end
 
+# Driver model extensions live under each driver's app/models/<driver>/extensions/ directory and
+# are namespaced as <Driver>::...Extension. Collapsing the `extensions` segment makes the main
+# autoloader map e.g. app/models/cas_access/extensions/user_extension.rb -> CasAccess::UserExtension,
+# so extensions autoload on demand and reload in lockstep with the app (this is what makes `reload!`
+# work — the previous to_prepare/load approach could not survive a console reload).
+# See dev/build_docs/driver-extensions-autoloading.md for the full rationale.
+Dir[Rails.root.join('drivers', '*', 'app', 'models', '*', 'extensions')].each do |ext_dir|
+  Rails.autoloaders.main.collapse(ext_dir)
+end
+
 # Register driver view paths so drivers can provide their own views.
 Dir[Rails.root.join('drivers', '*', 'app', 'views')].each do |view_path|
   ActionController::Base.prepend_view_path(view_path)
-end
-
-# Load driver extension files so model includes (e.g. include Hmis::UserExtension) resolve.
-# Uses reloader.to_prepare (not config.to_prepare) because config.to_prepare blocks added
-# during initializers are never forwarded to the reloader.
-# Uses `load` so extensions are re-applied after Zeitwerk reloads in development.
-#
-# Extension files use compact module form (e.g. module DriverName::GrdaWarehouse::Hud),
-# which requires all intermediate constants to exist. We create stub modules for each
-# subdirectory level under extensions/ inside the driver's real namespace module.
-Rails.application.reloader.to_prepare do
-  Dir[Rails.root.join('drivers', '*', 'extensions')].each do |ext_root|
-    driver_mod = File.basename(File.dirname(ext_root)).camelize.safe_constantize
-    next unless driver_mod
-
-    Dir.glob("#{ext_root}/*/").each do |level1_dir|
-      l1_name = File.basename(level1_dir).camelize
-      driver_mod.const_set(l1_name, Module.new) unless driver_mod.const_defined?(l1_name, false)
-      l1_mod = driver_mod.const_get(l1_name, false)
-
-      Dir.glob("#{level1_dir}/*/").each do |level2_dir|
-        l2_name = File.basename(level2_dir).camelize
-        l1_mod.const_set(l2_name, Module.new) unless l1_mod.const_defined?(l2_name, false)
-      end
-    end
-  end
-
-  Dir[Rails.root.join('drivers', '*', 'extensions', '**', '*_extension.rb')].sort.each do |path|
-    load path
-  end
 end
