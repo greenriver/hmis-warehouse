@@ -471,7 +471,7 @@ module Types
       filters_argument HmisSchema::ServiceType
     end
     def service_types(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage?
 
       scope = Hmis::Hud::CustomServiceType.all
       scope = scope.apply_filters(filters) if filters
