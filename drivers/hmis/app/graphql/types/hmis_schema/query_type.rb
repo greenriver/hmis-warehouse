@@ -485,9 +485,10 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      access_denied! unless current_user.can_configure_data_collection?
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_view?
 
-      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      definition
     end
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
@@ -503,25 +504,23 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      access_denied! unless current_user.can_configure_data_collection?
+      # return early if the user has no permission to view forms at all
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_index?
 
-      scope = Hmis::Form::Definition.
-        in_data_source(current_user.hmis_data_source_id).
-        non_static.latest_versions.where(identifier: identifier)
+      definition = Hmis::Form::Definition.form_editor_viewable_by(current_user).
+        non_static.latest_versions.where(identifier: identifier).first!
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_view?
 
-      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
-      scope.first
+      definition
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_index?
 
-      scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).non_static.valid.latest_versions
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope = Hmis::Form::Definition.form_editor_viewable_by(current_user).non_static.valid.latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
