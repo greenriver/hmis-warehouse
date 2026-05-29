@@ -215,6 +215,7 @@ RUN git config --global --add safe.directory /app \
   less \
   python3 \
   zsh \
+  jq yq \
   openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
