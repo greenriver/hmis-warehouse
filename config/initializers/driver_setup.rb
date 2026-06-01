@@ -20,7 +20,7 @@ end
 # autoloader map e.g. app/models/cas_access/extensions/user_extension.rb -> CasAccess::UserExtension,
 # so extensions autoload on demand and reload in lockstep with the app (this is what makes `reload!`
 # work — the previous to_prepare/load approach could not survive a console reload).
-# See dev/build_docs/driver-extensions-autoloading.md for the full rationale.
+# See docs/developer/drivers.md for details.
 Dir[Rails.root.join('drivers', '*', 'app', 'models', '*', 'extensions')].each do |ext_dir|
   Rails.autoloaders.main.collapse(ext_dir)
 end

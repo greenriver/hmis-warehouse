@@ -1,11 +1,11 @@
 # Drivers
 
-Large or optional features in the Warehouse live in **drivers** — self-contained directories under
+Drivers are a code structure we use to isolate features from a development standpoint.  Code in a driver lives within a sub-directory under
 `drivers/` that mirror the standard Rails layout (`app/models`, `app/controllers`, `app/views`,
-`config/routes.rb`, `lib`, `spec`, …). Drivers keep feature-specific code out of the core `app/`
-tree so the open-source core stays separable from community-specific customizations.
+`config/routes.rb`, `lib`, `spec`, …). Drivers allow us to keep feature-specific code out of the core `app/`
+tree and help engineers compartmentalize work such that all code relating to a feature is in one directory and not mixed in with other feature code.
 
-Drivers are **not** Rails engines and there is no driver gem. They are plain directories that the
+Drivers are **not** Rails engines and there is no longer a driver gem. They are plain directories that the
 app wires into Zeitwerk and the boot process by convention. (This replaced the archived
 `rails_drivers` gem, whose autoloading the app now replicates natively.) For the architectural
 overview, see [8.3 Driver Module Pattern](../architecture/08-concepts/08-3-driver-module-pattern.md).
