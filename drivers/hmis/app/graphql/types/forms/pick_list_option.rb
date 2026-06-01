@@ -275,15 +275,7 @@ module Types
     end
 
     def self.user_picklist(current_user)
-      return [] unless current_user
-
-      # TODO(#9003)
-      # User picklist is currently used:
-      # - when filtering audit events
-      # - when filtering client merge history
-      # - when selecting users in the form builder
-      # (Most other user picklists in the app use a more restricted list of users, such as eligible_staff_assignment_users, eligible_referral_step_assignment_users, etc.)
-      return [] unless current_user.permissions?(:can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients, mode: :any)
+      return [] unless current_user&.policy_for(Hmis::User, policy_type: :hmis_user)&.can_index_users?
 
       Hmis::User.with_deleted.map do |user|
         {

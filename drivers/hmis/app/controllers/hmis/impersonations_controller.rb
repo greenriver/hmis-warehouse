@@ -16,6 +16,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
     user = Hmis::User.with_hmis_access_in_data_source(current_hmis_user.hmis_data_source_id).find(params[:user_id])
 
     return render_error('Cannot impersonate current user') if user.id == current_hmis_user.id
+    return not_authorized! unless current_hmis_user.policy_for(user, policy_type: :hmis_user).can_impersonate?
 
     impersonate_hmis_user(user)
     render_success
@@ -31,7 +32,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   protected
 
   def authorize_action
-    return not_authorized! unless true_hmis_user.can_impersonate_users?
+    return not_authorized! unless current_hmis_user.policy_for(Hmis::User, policy_type: :hmis_user).can_impersonate_users?
   end
 
   def render_success
