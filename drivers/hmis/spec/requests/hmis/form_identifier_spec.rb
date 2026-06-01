@@ -126,10 +126,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(node['allVersions']['nodesCount']).to eq(4)
     end
 
-    it 'returns null when the identifier does not exist' do
-      response, result = post_graphql(identifier: 'no_such_identifier') { query }
-      expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'formIdentifier')).to be_nil
+    it 'returns access denied when the identifier does not exist' do
+      expect_access_denied post_graphql(identifier: 'no_such_identifier') { query }
     end
 
     it 'returns null for admin-only form roles when user lacks can_administrate_config' do
@@ -143,9 +141,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         data_source: ds1,
       )
       remove_permissions(access_control, :can_administrate_config)
-      response, result = post_graphql(identifier: 'external_form_identifier') { query }
-      expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'formIdentifier')).to be_nil
+      expect_access_denied post_graphql(identifier: 'external_form_identifier') { query }
     end
   end
 end

@@ -508,8 +508,8 @@ module Types
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_index?
 
       definition = Hmis::Form::Definition.form_editor_viewable_by(current_user).
-        non_static.latest_versions.where(identifier: identifier).first!
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_view?
+        non_static.latest_versions.where(identifier: identifier).first
+      access_denied! unless definition && policy_for(definition, policy_type: :form_definition).can_view?
 
       definition
     end
