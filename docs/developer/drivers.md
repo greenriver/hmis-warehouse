@@ -1,7 +1,7 @@
 # Drivers
 
-Drivers are a code structure we use to isolate features from a development standpoint.  Code in a driver lives within a sub-directory under
-`drivers/` that mirror the standard Rails layout (`app/models`, `app/controllers`, `app/views`,
+Drivers are a code structure we use to isolate features to improve the developer experience.  Code in a driver lives within a sub-directory under
+`drivers/` that mirrors the standard Rails layout (`app/models`, `app/controllers`, `app/views`,
 `config/routes.rb`, `lib`, `spec`, …). Drivers allow us to keep feature-specific code out of the core `app/`
 tree and help engineers compartmentalize work such that all code relating to a feature is in one directory and not mixed in with other feature code.
 
