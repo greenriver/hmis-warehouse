@@ -285,7 +285,7 @@ module HudApr
     end
 
     def hud_helper
-      @hud_helper ||= HudHelper.util('2026')
+      @hud_helper ||= HudHelper.util
     end
   end
 end
