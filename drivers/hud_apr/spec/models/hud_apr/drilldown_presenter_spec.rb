@@ -63,14 +63,6 @@ RSpec.describe HudApr::DrilldownPresenter, type: :model do
       )
     end
 
-    it 'returns filtered fields for a mapped question' do
-      presenter = described_class.new(scope, report, user, question: 'Question 5')
-      headers = presenter.headers
-
-      expect(headers.keys).to include('destination_client_id', 'personal_id', 'first_name', 'last_name', 'age', 'dob')
-      expect(headers.keys).not_to include('income_from_any_source_at_start', 'destination', 'project_type')
-    end
-
     it 'returns all fields with a warning for an unmapped question' do
       expect(Rails.logger).to receive(:warn).with(/No field mapping for "Question 99"/)
 
@@ -82,66 +74,57 @@ RSpec.describe HudApr::DrilldownPresenter, type: :model do
   end
 
   describe '#fields_for_question' do
-    it 'includes common fields for every mapped question' do
-      common = ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household']
+    it 'returns the exact expected fields for each question' do
+      expected = {
+        'Question 4' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'project_type', 'project_tracking_method'],
+        'Question 5' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'age', 'dob', 'parenting_youth', 'veteran_status', 'chronically_homeless', 'date_homeless', 'times_homeless', 'months_homeless'],
+        'Question 6' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'ssn', 'name_quality', 'dob_quality', 'ssn_quality', 'race_multi', 'sex', 'veteran_status', 'relationship_to_hoh', 'enrollment_coc', 'disabling_condition', 'indefinite_and_impairs', 'developmental_disability', 'hiv_aids', 'physical_disability', 'chronic_disability', 'mental_health_problem', 'substance_abuse', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'destination', 'housing_assessment', 'prior_living_situation', 'project_type', 'project_tracking_method', 'enrollment_created', 'exit_created', 'date_of_last_bed_night', 'date_to_street'],
+        'Question 7' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'parenting_youth', 'project_type', 'project_tracking_method'],
+        'Question 8' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'parenting_youth', 'project_type', 'project_tracking_method'],
+        'Question 9' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'parenting_youth', 'project_type', 'project_tracking_method'],
+        'Question 10' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'sex', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'age', 'dob', 'project_type', 'project_tracking_method'],
+        'Question 11' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'age', 'dob', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'project_type', 'project_tracking_method'],
+        'Question 12' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'race_multi', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'project_type', 'project_tracking_method'],
+        'Question 13' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'mental_health_problem', 'mental_health_problem_entry', 'mental_health_problem_exit', 'mental_health_problem_latest', 'alcohol_abuse_entry', 'alcohol_abuse_exit', 'alcohol_abuse_latest', 'drug_abuse_entry', 'drug_abuse_exit', 'drug_abuse_latest', 'chronic_disability', 'chronic_disability_entry', 'chronic_disability_exit', 'chronic_disability_latest', 'hiv_aids', 'hiv_aids_entry', 'hiv_aids_exit', 'hiv_aids_latest', 'developmental_disability', 'developmental_disability_entry', 'developmental_disability_exit', 'developmental_disability_latest', 'physical_disability', 'physical_disability_entry', 'physical_disability_exit', 'physical_disability_latest', 'substance_abuse', 'substance_abuse_entry', 'substance_abuse_exit', 'substance_abuse_latest', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'project_type', 'project_tracking_method'],
+        'Question 14' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'domestic_violence', 'currently_fleeing', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'project_type', 'project_tracking_method'],
+        'Question 15' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'destination', 'housing_assessment', 'prior_living_situation', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in'],
+        'Question 16' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'age', 'dob', 'project_type', 'project_tracking_method'],
+        'Question 17' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'age', 'dob', 'project_type', 'project_tracking_method'],
+        'Question 18' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'age', 'dob', 'project_type', 'project_tracking_method'],
+        'Question 19' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'age', 'dob', 'mental_health_problem', 'mental_health_problem_entry', 'mental_health_problem_exit', 'mental_health_problem_latest', 'alcohol_abuse_entry', 'alcohol_abuse_exit', 'alcohol_abuse_latest', 'drug_abuse_entry', 'drug_abuse_exit', 'drug_abuse_latest', 'chronic_disability', 'chronic_disability_entry', 'chronic_disability_exit', 'chronic_disability_latest', 'hiv_aids', 'hiv_aids_entry', 'hiv_aids_exit', 'hiv_aids_latest', 'developmental_disability', 'developmental_disability_entry', 'developmental_disability_exit', 'developmental_disability_latest', 'physical_disability', 'physical_disability_entry', 'physical_disability_exit', 'physical_disability_latest', 'substance_abuse', 'substance_abuse_entry', 'substance_abuse_exit', 'substance_abuse_latest', 'project_type', 'project_tracking_method'],
+        'Question 20' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'age', 'dob', 'parenting_youth', 'project_type', 'project_tracking_method'],
+        'Question 21' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'insurance_from_any_source_at_start', 'insurance_from_any_source_at_annual_assessment', 'insurance_from_any_source_at_exit', 'project_type', 'project_tracking_method'],
+        'Question 22' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'destination', 'housing_assessment', 'prior_living_situation', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'project_type', 'project_tracking_method'],
+        'Question 23' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'destination', 'housing_assessment', 'prior_living_situation', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'project_type', 'project_tracking_method'],
+        'Question 24' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'annual_assessment_expected', 'housing_assessment', 'ce_assessment_date', 'ce_assessment_type', 'ce_assessment_prioritization_status', 'destination', 'prior_living_situation'],
+        'Question 25' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'veteran_status', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'sex', 'age', 'dob', 'mental_health_problem', 'mental_health_problem_entry', 'mental_health_problem_exit', 'mental_health_problem_latest', 'alcohol_abuse_entry', 'alcohol_abuse_exit', 'alcohol_abuse_latest', 'drug_abuse_entry', 'drug_abuse_exit', 'drug_abuse_latest', 'chronic_disability', 'chronic_disability_entry', 'chronic_disability_exit', 'chronic_disability_latest', 'hiv_aids', 'hiv_aids_entry', 'hiv_aids_exit', 'hiv_aids_latest', 'developmental_disability', 'developmental_disability_entry', 'developmental_disability_exit', 'developmental_disability_latest', 'physical_disability', 'physical_disability_entry', 'physical_disability_exit', 'physical_disability_latest', 'substance_abuse', 'substance_abuse_entry', 'substance_abuse_exit', 'substance_abuse_latest', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'destination', 'housing_assessment', 'prior_living_situation', 'project_type', 'project_tracking_method'],
+        'Question 26' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'chronically_homeless', 'date_homeless', 'times_homeless', 'months_homeless', 'sex', 'age', 'dob', 'mental_health_problem', 'mental_health_problem_entry', 'mental_health_problem_exit', 'mental_health_problem_latest', 'alcohol_abuse_entry', 'alcohol_abuse_exit', 'alcohol_abuse_latest', 'drug_abuse_entry', 'drug_abuse_exit', 'drug_abuse_latest', 'chronic_disability', 'chronic_disability_entry', 'chronic_disability_exit', 'chronic_disability_latest', 'hiv_aids', 'hiv_aids_entry', 'hiv_aids_exit', 'hiv_aids_latest', 'developmental_disability', 'developmental_disability_entry', 'developmental_disability_exit', 'developmental_disability_latest', 'physical_disability', 'physical_disability_entry', 'physical_disability_exit', 'physical_disability_latest', 'substance_abuse', 'substance_abuse_entry', 'substance_abuse_exit', 'substance_abuse_latest', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'project_type', 'project_tracking_method'],
+        'Question 27' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'age', 'dob', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'parenting_youth', 'sex', 'mental_health_problem', 'mental_health_problem_entry', 'mental_health_problem_exit', 'mental_health_problem_latest', 'alcohol_abuse_entry', 'alcohol_abuse_exit', 'alcohol_abuse_latest', 'drug_abuse_entry', 'drug_abuse_exit', 'drug_abuse_latest', 'chronic_disability', 'chronic_disability_entry', 'chronic_disability_exit', 'chronic_disability_latest', 'hiv_aids', 'hiv_aids_entry', 'hiv_aids_exit', 'hiv_aids_latest', 'developmental_disability', 'developmental_disability_entry', 'developmental_disability_exit', 'developmental_disability_latest', 'physical_disability', 'physical_disability_entry', 'physical_disability_exit', 'physical_disability_latest', 'substance_abuse', 'substance_abuse_entry', 'substance_abuse_exit', 'substance_abuse_latest', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'destination', 'housing_assessment', 'prior_living_situation', 'project_type', 'project_tracking_method'],
+      }
 
-      ('4'..'27').each do |n|
-        question = "Question #{n}"
+      expected.each do |question, fields|
         presenter = described_class.new(scope, report, user, question: question)
-        headers = presenter.headers
+        actual = presenter.headers.keys
 
-        missing = common - headers.keys
-        expect(missing).to be_empty, "Question #{n} is missing common fields: #{missing.join(', ')}"
+        expect(actual).to match_array(fields), -> {
+          missing = fields - actual
+          extra = actual - fields
+          parts = []
+          parts << "missing: #{missing.join(', ')}" if missing.any?
+          parts << "extra: #{extra.join(', ')}" if extra.any?
+          "#{question} field mismatch — #{parts.join('; ')}"
+        }
       end
     end
 
-    it 'includes health fields for Question 13' do
-      presenter = described_class.new(scope, report, user, question: 'Question 13')
-      headers = presenter.headers
-
-      expect(headers.keys).to include(
-        'mental_health_problem', 'mental_health_problem_entry',
-        'hiv_aids', 'hiv_aids_entry',
-        'substance_abuse', 'substance_abuse_entry'
-      )
-    end
-
-    it 'includes financial fields for Question 16' do
-      presenter = described_class.new(scope, report, user, question: 'Question 16')
-      headers = presenter.headers
-
-      expect(headers.keys).to include(
-        'income_date_at_start', 'income_from_any_source_at_start',
-        'income_total_at_start', 'income_total_at_exit'
-      )
-    end
-
-    it 'includes housing fields for Question 22' do
-      presenter = described_class.new(scope, report, user, question: 'Question 22')
-      headers = presenter.headers
-
-      expect(headers.keys).to include('destination', 'housing_assessment', 'prior_living_situation')
-    end
-
-    it 'includes insurance fields for Question 21' do
-      presenter = described_class.new(scope, report, user, question: 'Question 21')
-      headers = presenter.headers
-
-      expect(headers.keys).to include(
-        'insurance_from_any_source_at_start',
-        'insurance_from_any_source_at_annual_assessment',
-        'insurance_from_any_source_at_exit',
-      )
-    end
-
-    it 'only references field names that exist in enrollment_fields' do
+    it 'only references groups that exist on at least one field' do
       presenter = described_class.new(scope, report, user)
-      known = presenter.send(:enrollment_fields).keys.map(&:to_s).to_set
+      known_groups = presenter.send(:enrollment_fields).values.flat_map(&:groups).uniq.to_set
 
-      presenter.send(:extra_fields).each do |question, symbols|
-        all_symbols = (presenter.send(:common_fields) + symbols).uniq
-        unknown = all_symbols.map(&:to_s).reject { |s| known.include?(s) }
-        expect(unknown).to be_empty, "#{question} references unknown fields: #{unknown.join(', ')}"
+      presenter.send(:extra_fields).each do |question, groups|
+        all_groups = ([:common] + groups).uniq
+        unknown = all_groups.reject { |g| known_groups.include?(g) }
+        expect(unknown).to be_empty, "#{question} references unknown groups: #{unknown.join(', ')}"
       end
     end
   end
@@ -280,40 +263,39 @@ RSpec.describe HudApr::CeAprDrilldownPresenter, type: :model do
   end
 
   describe '#extra_fields' do
-    it 'maps CE APR questions 5-10' do
+    it 'returns the exact expected fields for each question' do
+      expected = {
+        'Question 5' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'age', 'dob', 'parenting_youth', 'veteran_status', 'chronically_homeless', 'date_homeless', 'times_homeless', 'months_homeless'],
+        'Question 6' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'ssn', 'name_quality', 'dob_quality', 'ssn_quality', 'race_multi', 'sex', 'veteran_status', 'relationship_to_hoh', 'enrollment_coc', 'disabling_condition', 'indefinite_and_impairs', 'developmental_disability', 'hiv_aids', 'physical_disability', 'chronic_disability', 'mental_health_problem', 'substance_abuse', 'income_date_at_start', 'income_from_any_source_at_start', 'income_from_any_source_at_start_raw', 'income_sources_at_start', 'income_date_at_annual_assessment', 'annual_assessment_in_window', 'income_from_any_source_at_annual_assessment', 'income_from_any_source_at_annual_assessment_raw', 'income_sources_at_annual_assessment', 'income_date_at_exit', 'income_from_any_source_at_exit', 'income_from_any_source_at_exit_raw', 'income_sources_at_exit', 'income_total_at_start', 'income_total_at_annual_assessment', 'income_total_at_exit', 'non_cash_benefits_from_any_source_at_start', 'non_cash_benefits_from_any_source_at_annual_assessment', 'non_cash_benefits_from_any_source_at_exit', 'subsidy_information', 'destination', 'housing_assessment', 'prior_living_situation', 'project_type', 'project_tracking_method', 'enrollment_created', 'exit_created', 'date_of_last_bed_night', 'date_to_street'],
+        'Question 7' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'parenting_youth', 'project_type', 'project_tracking_method'],
+        'Question 8' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'parenting_youth', 'project_type', 'project_tracking_method'],
+        'Question 9' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'head_of_household_id', 'household_id', 'household_type', 'household_members', 'move_in_date', 'time_to_move_in', 'date_to_street', 'approximate_time_to_move_in', 'ce_assessment_date', 'ce_assessment_type', 'ce_assessment_prioritization_status', 'ce_event_date', 'ce_event_event', 'ce_event_problem_sol_div_rr_result', 'ce_event_referral_case_manage_after', 'ce_event_referral_result', 'project_type', 'project_tracking_method'],
+        'Question 10' => ['destination_client_id', 'personal_id', 'first_name', 'last_name', 'first_date_in_program', 'last_date_in_program', 'head_of_household', 'ce_assessment_date', 'ce_assessment_type', 'ce_assessment_prioritization_status', 'ce_event_date', 'ce_event_event', 'ce_event_problem_sol_div_rr_result', 'ce_event_referral_case_manage_after', 'ce_event_referral_result', 'project_type', 'project_tracking_method'],
+      }
+
+      expected.each do |question, fields|
+        presenter = described_class.new(scope, report, user, question: question)
+        actual = presenter.headers.keys
+
+        expect(actual).to match_array(fields), -> {
+          missing = fields - actual
+          extra = actual - fields
+          parts = []
+          parts << "missing: #{missing.join(', ')}" if missing.any?
+          parts << "extra: #{extra.join(', ')}" if extra.any?
+          "#{question} field mismatch — #{parts.join('; ')}"
+        }
+      end
+    end
+
+    it 'only references groups that exist on at least one field' do
       presenter = described_class.new(scope, report, user)
-      keys = presenter.send(:extra_fields).keys
+      known_groups = presenter.send(:enrollment_fields).values.flat_map(&:groups).uniq.to_set
 
-      expect(keys).to contain_exactly(
-        'Question 5', 'Question 6', 'Question 7', 'Question 8', 'Question 9', 'Question 10'
-      )
-    end
-
-    it 'includes CE-specific fields for Question 9' do
-      presenter = described_class.new(scope, report, user, question: 'Question 9')
-      headers = presenter.headers
-
-      expect(headers.keys).to include(
-        'ce_assessment_date', 'ce_assessment_type', 'ce_assessment_prioritization_status',
-        'ce_event_date', 'ce_event_event'
-      )
-    end
-
-    it 'includes CE-specific fields for Question 10' do
-      presenter = described_class.new(scope, report, user, question: 'Question 10')
-      headers = presenter.headers
-
-      expect(headers.keys).to include('ce_event_date', 'ce_event_event', 'ce_event_referral_result')
-    end
-
-    it 'only references field names that exist in enrollment_fields' do
-      presenter = described_class.new(scope, report, user)
-      known = presenter.send(:enrollment_fields).keys.map(&:to_s).to_set
-
-      presenter.send(:extra_fields).each do |question, symbols|
-        all_symbols = (presenter.send(:common_fields) + symbols).uniq
-        unknown = all_symbols.map(&:to_s).reject { |s| known.include?(s) }
-        expect(unknown).to be_empty, "#{question} references unknown fields: #{unknown.join(', ')}"
+      presenter.send(:extra_fields).each do |question, groups|
+        all_groups = ([:common] + groups).uniq
+        unknown = all_groups.reject { |g| known_groups.include?(g) }
+        expect(unknown).to be_empty, "#{question} references unknown groups: #{unknown.join(', ')}"
       end
     end
   end
