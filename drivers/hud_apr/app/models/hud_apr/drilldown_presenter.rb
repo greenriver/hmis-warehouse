@@ -2,9 +2,9 @@
 
 module HudApr
   class DrilldownPresenter
-    Field = Struct.new(:name, :label, :transform, :not_collected, :pii, :groups, keyword_init: true) do
-      def initialize(groups: [], **args)
-        super(groups: groups.freeze, **args)
+    Field = Data.define(:name, :label, :transform, :not_collected, :pii, :groups) do
+      def initialize(name:, label: nil, transform: nil, not_collected: nil, pii: nil, groups: [])
+        super
       end
     end
 

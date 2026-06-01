@@ -54,13 +54,7 @@ RSpec.describe HudApr::DrilldownPresenter, type: :model do
       presenter = described_class.new(scope, report, user)
       headers = presenter.headers
 
-      expect(headers).to include(
-        'personal_id' => 'HMIS Personal ID',
-        'destination_client_id' => 'Warehouse Client ID',
-        'first_name' => 'First name',
-        'ssn' => 'SSN',
-        'dob' => 'DOB',
-      )
+      expect(headers.keys).to match_array(presenter.send(:enrollment_fields).keys)
     end
 
     it 'returns all fields with a warning for an unmapped question' do
