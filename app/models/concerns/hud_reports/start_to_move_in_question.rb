@@ -15,7 +15,6 @@ module HudReports::StartToMoveInQuestion
 
   # Upper bound matches the largest bucket row in the spec ("366 to 730 days (1-2 Yrs)").
   # Totals and the average use this same cap so all rows cover the same universe.
-  # APR/CAPER spec (dev/datalab/apr_caper_2026.md): Q22c rows 2-10, row 11, row 12.
   MAX_DAYS_TO_MOVE_IN = 730
 
   def start_to_move_in_question(question:, members:, populations: sub_populations)
