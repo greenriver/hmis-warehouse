@@ -2842,7 +2842,7 @@ module GrdaWarehouse::Hud
     include ClientLocationHistory::GrdaWarehouse::Hud::ClientExtension
     include ClientsSubPop::GrdaWarehouse::Hud::ClientExtension
     include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension
-    include EccoviaDatum::GrdaWarehouse::Hud::ClientExtension
+    include EccoviaData::GrdaWarehouse::Hud::ClientExtension
     include Financial::GrdaWarehouse::Hud::ClientExtension
     include HealthFlexibleService::GrdaWarehouse::Hud::ClientExtension
     include Hmis::GrdaWarehouse::Hud::ClientExtension

@@ -83,6 +83,7 @@ module GrdaWarehouse::Hud
     include ClientAccessControl::GrdaWarehouse::Hud::ProjectExtension
     include ClientLocationHistory::GrdaWarehouse::Hud::ProjectExtension
     include HmisCsvImporter::GrdaWarehouse::Hud::ProjectExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ProjectExtension
     include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ProjectExtension
     include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ProjectExtension
     include ServiceScanning::GrdaWarehouse::Hud::ProjectExtension
