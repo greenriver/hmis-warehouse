@@ -58,73 +58,37 @@ module Hmis::Ce
         distinct
     end
 
-    # Narrow CE client proxies to those whose latest assessments have a CustomDataElement value
-    # matching any of the given filter values (same semantics as `CdeFieldMap#client_query`).
+    # Return the subset of `candidate_client_ids` (destination warehouse client ids) whose latest
+    # assessment for the CDE's form has a CustomDataElement value in `filter_values`.
     #
-    # Example: `scope.matching_dynamic_cde_filter('custom_assessment.language_preference', ['English'])`
-    scope :matching_dynamic_cde_filter, ->(custom_assessment_field, filter_values) do
-      filter_values = Array.wrap(filter_values).map(&:to_s).reject(&:blank?).uniq
-      if filter_values.empty?
-        all
-      else
-        sql, binds = sql_cde_value_exists_for_ce_client_proxy(custom_assessment_field, filter_values)
-        where([sql, *binds])
-      end
-    end
-
-    # Returns a correlated `EXISTS` SQL fragment (and bind values) for `scope.where([sql, *binds])`.
-    # The EXISTS is tied to each row's `ce_client_proxies.client_id` (destination warehouse client id):
-    # a proxy matches when that client's latest assessment for the CDE's form has a CDE value in
-    # `filter_values`, using `Hmis::DestinationClientLatestAssessment` the same way as
-    # `Hmis::Ce::Match::Expression::CdeFieldMap#client_query`.
+    # Performs a single bounded lookup against `Hmis::DestinationClientLatestAssessment` restricted by
+    # `destination_client_id IN (candidate_client_ids)`. That lets Postgres push the restriction into
+    # the view's `DISTINCT ON`, avoiding a correlated EXISTS per ce_client_proxies row.
     #
-    # Added to support dynamic filtering on CE waitlists based on CDE values, using
-    # `cde.*` keys from `Hmis::Filter::CeClientFilter` / table configuration.
-    #
-    # Values are compared as `column::text IN (...)` so HUD/UI string filter values behave predictably.
-    # `filter_values` must be non-empty after stripping blanks; callers with nothing to match should skip.
-    #
-    # @param custom_assessment_field [String] argument to `CdeFieldMap#parse_entity_type`
-    #   (e.g. `'custom_assessment.primary_language'`, the portion of a `cde.*` expression key after `cde.`)
+    # @param candidate_client_ids [Array<Integer>] destination client ids to consider
+    # @param custom_assessment_field [String] e.g. 'custom_assessment.primary_language'
     # @param filter_values [Array<String,#to_s>] values to match (e.g. ['English', 'Spanish'])
-    # @return [Array(String, Array)] SQL string and bind arguments for `scope.where([sql, *binds])`
-    def self.sql_cde_value_exists_for_ce_client_proxy(custom_assessment_field, filter_values)
-      raise ArgumentError, 'filter_values must be non-empty' if filter_values.empty?
+    # @return [Array<Integer>] matching destination client ids (subset of candidate_client_ids)
+    def self.client_ids_matching_cde_filter(candidate_client_ids, custom_assessment_field, filter_values)
+      filter_values = Array.wrap(filter_values).map(&:to_s).reject(&:blank?).uniq
+      return candidate_client_ids if filter_values.empty?
+      return [] if candidate_client_ids.empty?
 
       conn = ActiveRecord::Base.connection
-      dcla = conn.quote_table_name(Hmis::DestinationClientLatestAssessment.table_name)
-      ca = conn.quote_table_name(Hmis::Hud::CustomAssessment.table_name)
-      cde_tbl = conn.quote_table_name(Hmis::Hud::CustomDataElement.table_name)
-      cde_alias = 'cde'
-      proxy = conn.quote_table_name(Hmis::Ce::ClientProxy.table_name)
-
-      # Get the CustomDataElementDefinition and determine the value column name (e.g. value_string)
       cded = Hmis::Ce::Match::Expression::CdeFieldMap.new.parse_entity_type(custom_assessment_field)
+      cde_tbl = Hmis::Hud::CustomDataElement.quoted_table_name
       value_col = conn.quote_column_name(cded.cde_arel_field.name.to_s)
+      cde_t = Hmis::Hud::CustomDataElement.arel_table
 
-      # Create predicate for matching CustomDataElement values
-      # For example: (cde.value_string)::text IN (?, ?, ?)
-      placeholders = filter_values.map { '?' }.join(', ')
-      value_predicate = "(#{cde_alias}.#{value_col})::text IN (#{placeholders})"
-
-      sql = <<~SQL
-        EXISTS (
-          SELECT 1
-          FROM #{dcla} dcla
-          INNER JOIN #{ca} ca ON ca.id = dcla.custom_assessment_id AND ca."DateDeleted" IS NULL
-          INNER JOIN #{cde_tbl} #{cde_alias} ON #{cde_alias}.owner_type = ?
-            AND #{cde_alias}.owner_id = ca.id
-            AND #{cde_alias}."DateDeleted" IS NULL
-            AND #{cde_alias}.data_element_definition_id = ?
-          WHERE dcla.destination_client_id = #{proxy}.client_id
-            AND dcla.form_identifier = ?
-            AND (#{value_predicate})
-        )
-      SQL
-
-      # Values to bind to the '?' placeholders in the SQL fragment
-      binds = [Hmis::Hud::CustomAssessment.name, cded.id, cded.form_definition_identifier] + filter_values
-      [sql.squish, binds]
+      Hmis::DestinationClientLatestAssessment.
+        where(destination_client_id: candidate_client_ids).
+        where(data_source_id: cded.data_source_id).
+        where(form_identifier: cded.form_definition_identifier).
+        joins(custom_assessment: :custom_data_elements).
+        where(cde_t[:data_element_definition_id].eq(cded.id)).
+        where(["(#{cde_tbl}.#{value_col})::text IN (?)", filter_values]).
+        distinct.
+        pluck(:destination_client_id)
     end
 
     def self.apply_filters(input)
