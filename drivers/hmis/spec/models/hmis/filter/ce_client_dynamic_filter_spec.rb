@@ -242,5 +242,83 @@ RSpec.describe Hmis::Filter::CeClientFilter, type: :model do
         described_class.new(input).filter_scope(base_scope)
       end.to raise_error(ArgumentError, /CE client dynamic filters only support/)
     end
+
+    # Performance tests for regression(#9269)
+    describe 'performance' do
+      let(:several_filters) do
+        [
+          dynamic_filter(key: key_language, values: ['English']),
+          dynamic_filter(key: key_score, values: ['10', '15']),
+          dynamic_filter(key: key_tags, values: ['alpha', 'beta']),
+        ]
+      end
+
+      before do
+        20.times do
+          client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+          assessment = build_assessment(client, assessment_date: current_date)
+          build_cde(assessment, cded_language, value_string: 'English')
+          build_cde(assessment, cded_priority_score, value_integer: 10)
+        end
+
+        20.times do
+          client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+          assessment = build_assessment(client, assessment_date: current_date)
+          build_cde(assessment, cded_language, value_string: 'Spanish')
+          build_cde(assessment, cded_priority_score, value_integer: 15)
+        end
+      end
+
+      # Note that the #9269 fix actually INCREASED the query count,
+      # deliberately trading a single expensive query that was performing one EXISTS subquery per client
+      # for 2 queries per filter:
+      # - one to resolve the CDE definition
+      # - one to look up matching client ids using the DestinationClientLatestAssessment view
+      #
+      # Since filter count is expected to be low (and explicitly bounded at 50), this is a reasonable tradeoff.
+      # This test is still worth keeping to verify the query count does not balloon proportionally to the *client* count.
+      it 'makes a number of queries proportional to the filter count' do
+        expect do
+          apply_filters(base_scope, several_filters)
+        end.to make_database_queries(count: 6..12)
+      end
+
+      describe 'query shape against the latest-assessment view' do
+        # Capture every SQL statement executed while running the given block.
+        def capture_executed_sql
+          executed = []
+          callback = ->(_name, _start, _finish, _id, payload) { executed << payload[:sql] }
+          ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') { yield }
+          executed
+        end
+
+        def view_source_queries(executed_sql)
+          # Queries that use the view as a table source (FROM)
+          executed_sql.select { |sql| sql.include?('FROM "hmis_destination_client_latest_assessments"') }
+        end
+
+        # Prior to #9269 fix, the code with the performance problem generated SQL like:
+        # SELECT DISTINCT "ce_client_proxies"."id" FROM "ce_client_proxies" WHERE (EXISTS ( SELECT 1 FROM "hmis_destination_client_latest_assessments" ...) AND (EXISTS ( SELECT 1 FROM "hmis_destination_client_latest_assessments" ...)
+        # The problem was complexity of a single query (not query count).
+        it 'references the latest-assessment view at most once per executed query' do
+          executed_sql = capture_executed_sql do
+            apply_filters(base_scope, several_filters).to_a
+          end
+
+          # Verify that no single statement references the heavy hmis_destination_client_latest_assessments view more than once
+          max_view_refs = executed_sql.map { |sql| sql.scan('FROM "hmis_destination_client_latest_assessments"').size }.max || 0
+          expect(max_view_refs).to eq(1)
+
+          view_queries = view_source_queries(executed_sql)
+
+          # Verify that no statements reference the ce_client_proxies table (no correlated subquery)
+          correlated_view_queries = view_queries.select { |sql| sql.include?('"ce_client_proxies"') }
+          expect(correlated_view_queries).to be_empty
+
+          # Verify that all queries bound the DCLA view to a pre-set list of destination_client_ids
+          expect(view_queries).to all(match(/"destination_client_id"\s+(IN|=)/))
+        end
+      end
+    end
   end
 end
