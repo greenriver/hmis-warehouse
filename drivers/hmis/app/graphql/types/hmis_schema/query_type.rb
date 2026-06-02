@@ -607,9 +607,17 @@ module Types
       resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 
-    ce_referrals_field
+    # Omit assigned_to_user for now. Enabling it will require a frontend change to map the filter to a user picklist
+    ce_referrals_field(filter_args: { omit: [:assigned_to_user], type_name: 'CeReferral' })
     def ce_referrals(**args)
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
+    end
+
+    field :workspaces, [HmisSchema::Workspace], null: false do
+      argument :applies_to, HmisSchema::Enums::WorkspaceAppliesTo, required: true
+    end
+    def workspaces(applies_to:)
+      Hmis::Workspace.active.viewable_by(current_user, for_usage: applies_to).ordered
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false

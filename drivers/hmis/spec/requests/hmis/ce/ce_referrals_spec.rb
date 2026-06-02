@@ -111,6 +111,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when filtering by assigned to current user' do
+      let!(:other_user) { create(:hmis_user, data_source: ds1) }
+      let!(:referral_assigned_to_me) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+      let!(:referral_assigned_to_other) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+      let!(:referral_with_completed_step) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+
+      before do
+        create(:hmis_wfe_step, instance: referral_assigned_to_me.workflow_instance, assignees: [hmis_user])
+        create(:hmis_wfe_step, instance: referral_assigned_to_other.workflow_instance, assignees: [other_user])
+        create(:hmis_wfe_step, instance: referral_with_completed_step.workflow_instance, assignees: [hmis_user], status: 'completed')
+      end
+
+      it 'returns only referrals with an open step assigned to the current user' do
+        referrals = perform_referrals_query(filters: { assignedToYou: true })
+        expect(referrals.map { |r| r['id'] }).to contain_exactly(referral_assigned_to_me.id.to_s)
+      end
+    end
+
     context 'when querying by workflow template' do
       let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
       let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }

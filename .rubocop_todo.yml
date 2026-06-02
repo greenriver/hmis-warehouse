@@ -35,7 +35,6 @@ Layout/ClosingParenthesisIndentation:
 Layout/CommentIndentation:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
@@ -73,9 +72,7 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/lsa/fy2019/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -122,7 +119,6 @@ Layout/EmptyLines:
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/reporting/d3_charts.rb'
     - 'app/models/reporting/rrh_report.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
     - 'drivers/hud_twenty_twenty_to_twenty_twenty_two/app/models/hud_twenty_twenty_to_twenty_twenty_two/client/transform_gender_to_columns.rb'
 
@@ -218,8 +214,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/report_results_summaries/ahar/veteran.rb'
     - 'app/models/report_results_summaries/hic/fy2017.rb'
     - 'app/models/report_results_summaries/hic/fy2019.rb'
-    - 'app/models/report_results_summaries/lsa/fy2018.rb'
-    - 'app/models/report_results_summaries/lsa/fy2019.rb'
     - 'app/models/report_results_summaries/pit/fy2017.rb'
     - 'app/models/report_results_summaries/pit/fy2018.rb'
     - 'app/models/reporting/d3_charts.rb'
@@ -240,9 +234,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/reports/data_quality/fy2017/q5.rb'
     - 'app/models/reports/data_quality/fy2017/q6.rb'
     - 'app/models/reports/data_quality/fy2017/q7.rb'
-    - 'app/models/reports/lsa/fy2018/all.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
-    - 'app/models/reports/lsa/fy2019/all.rb'
     - 'app/models/reports/system_performance/fy2015/measure_five.rb'
     - 'app/models/reports/system_performance/fy2015/measure_four.rb'
     - 'app/models/reports/system_performance/fy2015/measure_one.rb'
@@ -391,7 +382,6 @@ Layout/IndentationConsistency:
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/generate_service_history_batch_log.rb'
     - 'app/models/health/aco_performance.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
@@ -509,7 +499,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/import.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
@@ -530,9 +519,7 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
@@ -598,9 +585,7 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/tasks/patient_client_matcher.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
 
@@ -660,8 +645,6 @@ Layout/SpaceInsideParens:
 # SupportedStyles: space, no_space
 Layout/SpaceInsideStringInterpolation:
   Exclude:
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/similarity_metric/experiment/float_formatter.rb'
     - 'app/models/similarity_metric/experiment/integer_formatter.rb'
     - 'app/models/similarity_metric/experiment/range_formatter.rb'
@@ -695,7 +678,6 @@ Lint/BinaryOperatorWithIdenticalOperands:
 # This cop supports safe autocorrection (--autocorrect).
 Lint/DeprecatedClassMethods:
   Exclude:
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
 
 # Offense count: 2
 Lint/DuplicateCaseCondition:
@@ -718,7 +700,6 @@ Lint/OrderedMagicComments:
 # This cop supports safe autocorrection (--autocorrect).
 Lint/ParenthesesAsGroupedExpression:
   Exclude:
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
 
 # Offense count: 6
 # This cop supports safe autocorrection (--autocorrect).
@@ -757,7 +738,6 @@ Lint/RedundantSplatExpansion:
 # This cop supports safe autocorrection (--autocorrect).
 Lint/RedundantStringCoercion:
   Exclude:
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
 
 # Offense count: 1
 # Configuration parameters: AllowRBSInlineAnnotation.
@@ -830,7 +810,6 @@ Lint/UselessAssignment:
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q2.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_six.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
@@ -912,7 +891,6 @@ Naming/MemoizedInstanceVariableName:
     - 'app/models/health/aco_performance.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/lsa/fy2019/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/reporting/rrh_report.rb'
 
@@ -966,8 +944,6 @@ Naming/PredicatePrefix:
     - 'app/models/reports/data_quality/fy2017/base.rb'
     - 'app/models/reports/hic/fy2017/base.rb'
     - 'app/models/reports/hic/fy2019/base.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
-    - 'app/models/reports/lsa/fy2019/base.rb'
     - 'app/models/reports/pit/fy2017/base.rb'
     - 'app/models/reports/pit/fy2017/by_project.rb'
     - 'app/models/reports/pit/fy2018/by_project.rb'
@@ -1056,7 +1032,6 @@ Style/GuardClause:
   Exclude:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/health/tasks/patient_client_matcher.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/report_result.rb'
     - 'app/models/reporting/rrh_report.rb'
     - 'app/models/similarity_metric/base.rb'
@@ -1093,7 +1068,6 @@ Style/IfUnlessModifier:
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_result.rb'
-    - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/experiment.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
@@ -1188,7 +1162,6 @@ Style/NestedParenthesizedCalls:
 Style/Next:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
@@ -1412,7 +1385,6 @@ Style/RegexpLiteral:
   Exclude:
     - 'app/controllers/warehouse_reports/health/completed_contact_tracing_controller.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
-    - 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
 
 # Offense count: 21
 # This cop supports safe autocorrection (--autocorrect).
@@ -1449,7 +1421,6 @@ Style/SafeNavigation:
 Style/Semicolon:
   Exclude:
     - 'app/models/phi.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
@@ -1560,8 +1531,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
-    - 'app/models/report_generators/lsa/fy2019/all.rb'
-    - 'app/models/report_generators/lsa/fy2019/base.rb'
     - 'app/models/report_generators/pit/fy2018/by_project.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'

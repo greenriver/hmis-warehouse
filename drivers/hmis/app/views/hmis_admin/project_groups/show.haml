@@ -49,3 +49,12 @@
             %br
         - else
           There are no collections associated with this project group.
+
+        - workspaces = @project_group.workspaces.order(:applies_to, :sort_order, :name)
+        %h3.mt-6.mb-4= "Related Workspaces (#{workspaces.count})"
+        - if workspaces.count > 0
+          - workspaces.each do |workspace|
+            = "#{workspace.name} (#{workspace.applies_to.to_s.humanize})"
+            %br
+        - else
+          There are no workspaces associated with this project group.

@@ -424,14 +424,33 @@ module GrdaWarehouse
           end
           rows << cc
         end
-        GrdaWarehouse::CohortClient.import(
-          rows,
-          on_duplicate_key_update: {
-            conflict_target: [:id],
-            columns: time_dependent_methods.keys,
-          },
-        )
+        acquired = with_client_update_lock do
+          GrdaWarehouse::CohortClient.import(
+            rows,
+            on_duplicate_key_update: {
+              conflict_target: [:id],
+              columns: time_dependent_methods.keys,
+            },
+          )
+        end
+        # Another process is writing to this cohort's clients; remaining batches
+        # would likely be stale, so yield and let the next scheduled run pick it up.
+        break unless acquired
       end
+    end
+
+    # Acquires a per-cohort advisory lock before writing to cohort_clients, preventing
+    # deadlocks between concurrent writers (e.g. system cohort sync and cache warm).
+    # Non-blocking by default; callers that must complete can pass a short timeout.
+    # Returns true if the lock was acquired (and the block executed), false otherwise.
+    def with_client_update_lock(timeout_seconds: 0)
+      lock_name = "GrdaWarehouse::Cohort:update_clients:#{id}"
+      acquired = false
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds) do
+        acquired = true
+        yield
+      end
+      acquired
     end
 
     private def time_dependent_methods
@@ -691,8 +710,7 @@ module GrdaWarehouse
     def maintain
       return unless auto_maintained?
 
-      lock_name = [self.class.name, :maintain, id].join(':')
-      acquired = self.class.with_advisory_lock(lock_name, timeout_seconds: 0) do
+      acquired = with_client_update_lock do
         existing_client_ids = cohort_clients.pluck(:client_id)
         filter = build_automation_filter
         # tags: [:warehouse] keeps the project, HoH, and sub-pop criteria active; other tag mixes drop one or the other.

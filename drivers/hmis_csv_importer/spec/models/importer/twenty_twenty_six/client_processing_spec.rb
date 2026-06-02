@@ -141,6 +141,43 @@ RSpec.describe HmisCsvImporter, type: :model do
       end
     end
 
+    # Exercises the bulk upsert path in apply_updates for an enrollment-child model
+    # (Disability uses DisabilitiesID as hud_key, not PersonalID, so it takes the
+    # process_batch! branch rather than the Client one-by-one branch).
+    describe 'when re-importing disabilities after nulling source_hash' do
+      before(:all) do
+        HmisCsvImporter::Utility.clear!
+        GrdaWarehouse::Utility.clear!
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing',
+          version: 'AutoMigrate',
+          run_jobs: false,
+          stop_version: '2026',
+        )
+        GrdaWarehouse::Hud::Disability.update_all(source_hash: nil)
+        @loader = import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing',
+          version: 'AutoMigrate',
+          run_jobs: false,
+          stop_version: '2026',
+        )
+      end
+
+      it 'updates all disability records via apply_updates' do
+        expect(@loader.importer_log.summary['Disabilities.csv']['updated']).to eq(12)
+      end
+
+      it 'repopulates source_hash on all disability records' do
+        expect(GrdaWarehouse::Hud::Disability.where.not(source_hash: nil).count).to eq(12)
+      end
+
+      it 'preserves disability column values from the CSV' do
+        disability = GrdaWarehouse::Hud::Disability.find_by(DisabilitiesID: '2')
+        expect(disability.DisabilityType).to eq(6)
+        expect(disability.DisabilityResponse).to eq(1)
+      end
+    end
+
     # Mixed case: only one warehouse client has its source_hash nilled
     describe 'when re-importing with only one client\'s source_hash nilled' do
       before(:all) do

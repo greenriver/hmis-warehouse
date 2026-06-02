@@ -100,12 +100,15 @@ module Types
     available_filter_options do
       arg :referral_status, [String]
       arg :project, [ID]
+      arg :project_group_id, ID, description: 'Filter to referrals where the target project belongs to the specified project group'
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
       arg :origin, [HmisSchema::Enums::CeReferralOrigin]
       arg :search_term, String
+      arg :assigned_to_you, Boolean
+      arg :assigned_to_user, ID
     end
 
     def current_match_values

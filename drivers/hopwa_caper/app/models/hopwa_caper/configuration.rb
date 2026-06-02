@@ -29,6 +29,11 @@ module HopwaCaper
       value_for(:atc_primary_health_contact_field_name)
     end
 
+    # name of the custom data element on funder, for example "funder_daily_rate"
+    def funder_daily_rate_field_name
+      value_for(:funder_daily_rate_field_name)
+    end
+
     protected
 
     PROPERTIES = [
@@ -36,6 +41,7 @@ module HopwaCaper
       :atc_maintained_contact_field_name,
       :atc_housing_plan_field_name,
       :atc_primary_health_contact_field_name,
+      :funder_daily_rate_field_name,
     ].freeze
 
     def values
