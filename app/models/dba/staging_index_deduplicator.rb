@@ -6,18 +6,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'json'
-
-# Detects and optionally removes duplicate/redundant indexes on HMIS CSV
-# importer staging tables. Works by inspecting what actually exists in the
-# current database — no hardcoded index names.
+# Detects and optionally removes duplicate/redundant db indexes Works
+# by inspecting what actually exists in the current database
 class Dba::StagingIndexDeduplicator
-  STAGING_TABLE_PATTERN = "hmis_2026%"
+  attr_reader :conn, :dry_run, :table_pattern
 
-  attr_reader :conn, :dry_run
-
-  def initialize(dry_run: true)
+  def initialize(table_pattern:, dry_run: true)
     @conn = GrdaWarehouseBase.connection
+    @table_pattern = table_pattern
     @dry_run = dry_run
   end
 
@@ -48,7 +44,7 @@ class Dba::StagingIndexDeduplicator
     conn.select_values(<<~SQL)
       SELECT tablename FROM pg_tables
       WHERE schemaname = 'public'
-        AND tablename LIKE #{conn.quote(STAGING_TABLE_PATTERN)}
+        AND tablename LIKE #{conn.quote(table_pattern)}
       ORDER BY tablename
     SQL
   end
@@ -128,7 +124,7 @@ class Dba::StagingIndexDeduplicator
       keeper = sorted.first
       keepers << keeper['index_name']
       sorted[1..].each do |idx|
-        label = (idx['is_unique'] == keeper['is_unique']) ? 'exact duplicate of' : 'subsumed by'
+        label = idx['is_unique'] == keeper['is_unique'] ? 'exact duplicate of' : 'subsumed by'
         drops << {
           index_name: idx['index_name'],
           index_def: idx['index_def'],
@@ -194,15 +190,13 @@ class Dba::StagingIndexDeduplicator
     return if drops.empty?
 
     puts
+    puts '=' * 80
     if dry_run
-      puts "=" * 80
-      puts "DRY RUN — the following DROP statements would be executed:"
-      puts "=" * 80
+      puts 'DRY RUN — the following DROP statements would be executed:'
     else
-      puts "=" * 80
-      puts "EXECUTING drops..."
-      puts "=" * 80
+      puts 'EXECUTING drops...'
     end
+    puts '=' * 80
 
     drops.each do |drop|
       sql = "DROP INDEX IF EXISTS #{conn.quote_column_name(drop[:index_name])};"
@@ -221,28 +215,27 @@ class Dba::StagingIndexDeduplicator
 
   def print_summary(drops)
     puts
-    puts "=" * 80
-    puts "SUMMARY"
-    puts "=" * 80
+    puts '=' * 80
+    puts 'SUMMARY'
+    puts '=' * 80
     puts "Redundant indexes found: #{drops.count}"
     total_bytes = drops.sum { |d| d[:size_bytes] }
     puts "Storage reclaimable: #{format_size(total_bytes)}"
     puts
     if dry_run && drops.any?
-      puts "To execute, run:"
-      puts "  rake dba:drop_redundant_staging_indexes[execute]"
+      puts 'Re-run with dry_run: false to execute.'
     elsif drops.empty?
-      puts "No redundant indexes found. Nothing to do."
+      puts 'No redundant indexes found. Nothing to do.'
     else
-      puts "Done. Indexes have been dropped."
+      puts 'Done. Indexes have been dropped.'
     end
   end
 
   def report_table(table, drops, keepers)
     puts
-    puts "-" * 80
+    puts '-' * 80
     puts "Table: #{table} (#{drops.count} redundant)"
-    puts "-" * 80
+    puts '-' * 80
     keepers.each { |name| puts "  Keeping: #{name}" }
     drops.each do |drop|
       puts "  Drop: #{drop[:index_name]} (#{format_size(drop[:size_bytes])})"
@@ -252,13 +245,13 @@ class Dba::StagingIndexDeduplicator
 
   def header(count)
     lines = []
-    lines << "=" * 80
-    lines << "HMIS CSV Importer Staging Tables — Redundant Index Detection"
-    lines << "=" * 80
-    lines << ""
+    lines << '=' * 80
+    lines << 'HMIS CSV Importer Staging Tables — Redundant Index Detection'
+    lines << '=' * 80
+    lines << ''
     lines << "Mode: #{dry_run ? 'DRY RUN (no changes)' : 'EXECUTE (will drop indexes)'}"
     lines << "Staging tables found: #{count}"
-    lines << ""
+    lines << ''
     lines.join("\n")
   end
 

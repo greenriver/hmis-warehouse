@@ -71,10 +71,4 @@ namespace :dba do
       Dba::PartitionAll.new.space_needed
     end
   end
-
-  desc 'Find and optionally drop redundant indexes on HMIS CSV staging tables. Pass "execute" to actually drop.'
-  task :drop_redundant_staging_indexes, [:mode] => [:environment] do |_t, args|
-    execute = args[:mode] == 'execute'
-    Dba::StagingIndexDeduplicator.new(dry_run: !execute).run!
-  end
 end
