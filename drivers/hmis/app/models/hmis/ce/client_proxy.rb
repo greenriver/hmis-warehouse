@@ -58,39 +58,6 @@ module Hmis::Ce
         distinct
     end
 
-    # Return the subset of `candidate_client_ids` (destination warehouse client ids) whose latest
-    # assessment for the CDE's form has a CustomDataElement value in `filter_values`.
-    #
-    # Performs a single bounded lookup against `Hmis::DestinationClientLatestAssessment` restricted by
-    # `destination_client_id IN (candidate_client_ids)`. That lets Postgres push the restriction into
-    # the view's `DISTINCT ON`, avoiding a correlated EXISTS per ce_client_proxies row.
-    #
-    # @param candidate_client_ids [Array<Integer>] destination client ids to consider
-    # @param custom_assessment_field [String] e.g. 'custom_assessment.primary_language'
-    # @param filter_values [Array<String,#to_s>] values to match (e.g. ['English', 'Spanish'])
-    # @return [Array<Integer>] matching destination client ids (subset of candidate_client_ids)
-    def self.client_ids_matching_cde_filter(candidate_client_ids, custom_assessment_field, filter_values)
-      filter_values = Array.wrap(filter_values).map(&:to_s).reject(&:blank?).uniq
-      return candidate_client_ids if filter_values.empty?
-      return [] if candidate_client_ids.empty?
-
-      conn = ActiveRecord::Base.connection
-      cded = Hmis::Ce::Match::Expression::CdeFieldMap.new.parse_entity_type(custom_assessment_field)
-      cde_tbl = Hmis::Hud::CustomDataElement.quoted_table_name
-      value_col = conn.quote_column_name(cded.cde_arel_field.name.to_s)
-      cde_t = Hmis::Hud::CustomDataElement.arel_table
-
-      Hmis::DestinationClientLatestAssessment.
-        where(destination_client_id: candidate_client_ids).
-        where(data_source_id: cded.data_source_id).
-        where(form_identifier: cded.form_definition_identifier).
-        joins(custom_assessment: :custom_data_elements).
-        where(cde_t[:data_element_definition_id].eq(cded.id)).
-        where(["(#{cde_tbl}.#{value_col})::text IN (?)", filter_values]).
-        distinct.
-        pluck(:destination_client_id)
-    end
-
     def self.apply_filters(input)
       Hmis::Filter::CeClientFilter.new(input).filter_scope(current_scope)
     end

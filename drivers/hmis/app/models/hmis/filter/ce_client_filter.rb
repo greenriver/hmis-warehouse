@@ -50,7 +50,13 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
         return scope
       end
 
+      # Per filter, resolve matching destination client ids using the DestinationClientLatestAssessment view,
+      # then restrict the scope by client_id.
+      matching_client_ids = scope.distinct.pluck(:client_id)
+
       input.dynamic_filters.each do |filter|
+        break if matching_client_ids.empty?
+
         # Validate key. Filtering not supported for non-CDE keys. Raise in dev, otherwise skip and report to Sentry.
         field_type, custom_assessment_field = Hmis::Ce::Match::Expression::FieldMap.field_type_for(filter.key)
         if field_type != Hmis::Ce::Match::Expression::FieldMap::CDE
@@ -61,10 +67,18 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
           next
         end
 
-        scope = scope.matching_dynamic_cde_filter(custom_assessment_field, filter.values)
+        filter_values = Array.wrap(filter.values).map(&:to_s).reject(&:blank?).uniq
+        next if filter_values.empty? # blank filter is a no-op; leave the candidate set unchanged
+
+        cded = Hmis::Ce::Match::Expression::CdeFieldMap.new.parse_entity_type(custom_assessment_field)
+        matching_client_ids &= Hmis::DestinationClientLatestAssessment.
+          where(destination_client_id: matching_client_ids).
+          with_cde_value(cded, filter_values).
+          distinct.
+          pluck(:destination_client_id)
       end
 
-      scope.distinct
+      scope.where(client_id: matching_client_ids).distinct
     end
   end
 end
