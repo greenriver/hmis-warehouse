@@ -71,7 +71,9 @@ class Hmis::File < GrdaWarehouse::File
       where(case_statement)
 
     # Users can see files they uploaded if they have can_manage_own_client_files, even if they lack broader permissions.
-    if user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_manage_own_client_files?
+    # can_manage_own_client_files is a global permission. If you have it anywhere in the data source,
+    # you can manage your own files on any client you can view (even if you don't have it in any of that client's projects).
+    if user.policy_for(Hmis::File, policy_type: :hmis_file).can_manage_own_client_files?
       own_scope = Hmis::File.
         left_outer_joins(:client). # same left_outer_joins as above, in order to pass structurally compatible relationship to #or
         left_outer_joins(:enrollment).
@@ -93,35 +95,6 @@ class Hmis::File < GrdaWarehouse::File
       order(arel_table[:updated_at].desc.nulls_last)
     else
       raise NotImplementedError
-    end
-  end
-
-  def self.authorize_proc
-    ->(entity_base, user) do
-      # If the entity_base is a file, we're authorizing someone to edit an existing file.
-      case entity_base
-      when Hmis::File
-        file = entity_base
-        client = file.client
-      # If the entity_base is a client, that means we're trying to authorize the
-      # creation of a new file. (SubmitFormAuthorizer defines the permission base to use)
-      when Hmis::Hud::Client
-        client = entity_base
-      else
-        raise "Unexpected entity base for file permissions: #{entity_base&.class}"
-      end
-
-      # file can be created/edited if user has can_manage_any_client_files for the client
-      return true if user.can_manage_any_client_files_for?(client)
-
-      # file can be created if user has can_manage_own_client_files for the client
-      return true if user.can_manage_own_client_files_for?(client) && file.nil?
-
-      # file can be edited if user has can_manage_own_client_files for the client,
-      # AND this user uploaded the file
-      return true if user.can_manage_own_client_files_for?(client) && file.user_id == user.id
-
-      false
     end
   end
 end

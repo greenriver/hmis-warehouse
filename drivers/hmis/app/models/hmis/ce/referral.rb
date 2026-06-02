@@ -189,8 +189,8 @@ module Hmis::Ce
       end
     end
 
-    def self.apply_filters(input)
-      Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
+    def self.apply_filters(input, user: nil)
+      Hmis::Filter::CeReferralFilter.new(input, user: user).filter_scope(self)
     end
 
     # Returns IDs of Referrals where there are completed steps assigned to

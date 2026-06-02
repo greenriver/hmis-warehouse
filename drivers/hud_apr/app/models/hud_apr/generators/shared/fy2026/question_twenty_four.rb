@@ -12,7 +12,7 @@ module HudApr::Generators::Shared::Fy2026
 
     def self.table_descriptions
       {
-        'Question 24' => '',
+        'Question 24' => 'Targeted Questions',
         'Q24a' => 'Homelessness Prevention Housing Assessment at Exit',
         'Q24b' => 'Moving On Assistance Provided to Households in PSH',
         'Q24e' => 'Sex',

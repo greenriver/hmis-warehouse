@@ -37,6 +37,7 @@
             %th Name
             %th Project Count
             %th Universe
+            %th Notes
         %tbody
           - @project_groups.each do |group|
             %tr
@@ -49,6 +50,7 @@
               %th= group.projects.count
               %td.reports.report-parameters-all
                 = group.describe_filter_as_html
+              %td= group.markdown_notes
     .form-actions
       = f.button :submit, "Delete Selected Groups", id: :deleteMultipleButton, data: {confirm: "Are you sure you want to delete the selected project groups?"}
 

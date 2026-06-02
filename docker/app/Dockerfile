@@ -177,6 +177,7 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 RUN gem update --system \
   && gem update rexml rack erb \
   && gem cleanup rexml rack erb \
+  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap -v 0.5.8 \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
@@ -214,6 +215,7 @@ RUN git config --global --add safe.directory /app \
   less \
   python3 \
   zsh \
+  jq yq \
   openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
@@ -241,6 +243,7 @@ COPY --chown=app-user:app-user . ./
 COPY --chown=app-user:app-user sample.irbrc ./.irbrc
 COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
+COPY --chown=app-user:app-user docker/app/GIT_RELEASE ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
 # NOTE: The following ENV are required for assets compilation to run, but not actually used

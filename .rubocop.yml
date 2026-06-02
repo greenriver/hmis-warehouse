@@ -176,10 +176,6 @@ Style/RegexpLiteral:
   EnforcedStyle: slashes
   AllowInnerSlashes: true
 
-Lint/UnusedMethodArgument:
-  Exclude:
-    - "lib/rds_sql_server/hmis_sql_server.rb"
-
 Style/DoubleNegation:
   Enabled: false
 

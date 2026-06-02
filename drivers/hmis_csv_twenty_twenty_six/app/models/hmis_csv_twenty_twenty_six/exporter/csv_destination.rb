@@ -24,6 +24,8 @@ module HmisCsvTwentyTwentySix::Exporter
       @csv << options[:destination_class].csv_header_override(@keys)
     end
 
+    # row is a HashWithIndifferentAccess at this point, not an AR object.
+    # See ExportConcern#process for where the conversion happens.
     def write(row)
       @csv ||= CSV.open(@output_file, 'wb', force_quotes: true, write_converters: [@strip_newline_proc])
       @csv << row.values_at(*@keys)
