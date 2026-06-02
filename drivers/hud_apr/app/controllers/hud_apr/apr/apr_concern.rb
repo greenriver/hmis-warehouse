@@ -21,6 +21,7 @@ module HudApr::Apr::AprConcern
     private def path_for_question_result(question, report: nil)
       result_hud_reports_apr_question_path(apr_id: report&.id || 0, id: question)
     end
+    helper_method :path_for_question_result
 
     private def path_for_report(*options)
       hud_reports_apr_path(options)
