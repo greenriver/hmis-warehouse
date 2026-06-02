@@ -21,8 +21,14 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   # @param dry_run [Boolean] When true, only counts records that would be deleted (default: true)
   #
   # @return [Integer] Total number of records deleted
-  def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: warehouse_models, dry_run: true)
+  def perform(retain_at: nil, max_deleted: nil, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
+
+    config = SoftDeleteRetentionConfiguration.new
+    return 0 unless config.enabled?
+
+    retain_at ||= config.retain_at
+    max_deleted ||= config.max_deleted_per_run
 
     Rails.logger.info "Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})"
 

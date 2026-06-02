@@ -215,6 +215,7 @@ RUN git config --global --add safe.directory /app \
   less \
   python3 \
   zsh \
+  jq yq \
   openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
@@ -242,6 +243,7 @@ COPY --chown=app-user:app-user . ./
 COPY --chown=app-user:app-user sample.irbrc ./.irbrc
 COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
+COPY --chown=app-user:app-user docker/app/GIT_RELEASE ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
 # NOTE: The following ENV are required for assets compilation to run, but not actually used

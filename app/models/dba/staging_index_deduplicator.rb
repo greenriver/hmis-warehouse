@@ -213,6 +213,7 @@ class Dba::StagingIndexDeduplicator
       else
         puts "  Dropping #{drop[:index_name]} (#{format_size(drop[:size_bytes])})..."
         puts "    -- #{drop[:reason]}"
+        conn.execute("SET lock_timeout = '2s'")
         conn.execute(sql)
       end
     end

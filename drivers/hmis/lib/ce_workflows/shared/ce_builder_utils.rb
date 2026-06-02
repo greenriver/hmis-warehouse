@@ -74,15 +74,21 @@ module CeWorkflows::Shared
       end
     end
 
-    def self.delete_template_and_associated_data(template_identifier)
+    def self.delete_template_and_associated_data(template_identifier, data_source:)
+      raise ArgumentError, 'data_source is required' if data_source.blank?
       raise 'This method destroys data and should not be run in production' if Rails.env.production?
 
       puts "Deleting existing CE data associated with #{template_identifier}"
 
       templates = Hmis::WorkflowDefinition::Template.where(identifier: template_identifier)
+      raise 'Unexpected, found a template with this identifier associated with another data source' if templates.any? { |template| template.data_source_id != data_source.id }
+
       # Find opportunities through unit groups that use this template
       unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
-        or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier))
+        or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier)).
+        preload(:project)
+      raise 'Unexpected, found a unit group associated with this template in another data source' if unit_groups.any? { |ug| ug.project.data_source_id != data_source.id }
+
       opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
       instances = Hmis::WorkflowExecution::Instance.where(template: templates)
       steps = Hmis::WorkflowExecution::Step.where(instance: instances)
