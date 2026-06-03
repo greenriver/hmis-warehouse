@@ -11,24 +11,6 @@ require 'rails_helper'
 RSpec.describe HmisCsvTwentyTwentySix::SourceHash::TriggerGenerator do
   subject(:generator) { described_class }
 
-  let(:functions_dir) { Rails.root.join('db/functions') }
-
-  describe 'committed fx function files' do
-    # The committed db/functions/source_hash_*_v01.sql files are the canonical
-    # artifact loaded by the migration. They must stay byte-identical to what the
-    # generator produces from the live hmis_structure, so a schema change that is
-    # not reflected in the SQL fails here instead of silently drifting.
-    generator = described_class
-
-    generator.staging_classes.each do |klass|
-      it "#{klass.table_name} matches the generator (re-run the generator to fix drift)" do
-        path = functions_dir.join(generator.fx_file_name(klass))
-        expect(File).to exist(path), "missing #{path}"
-        expect(File.read(path)).to eq(generator.function_sql(klass))
-      end
-    end
-  end
-
   describe '.column_expression' do
     it 'renders text columns as-is, NULL-coalesced' do
       expect(generator.column_expression('FirstName', :string)).

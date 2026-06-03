@@ -15,10 +15,8 @@ module HmisCsvTwentyTwentySix
     # written, replacing the per-row Ruby `klass.new(...).calculate_source_hash`
     # in the `pre_process` hot loop.
     #
-    # The committed `db/functions/source_hash_<table>_v01.sql` files are the
-    # canonical artifact loaded by the migration via `fx`'s `create_function`.
-    # `trigger_generator_spec` regenerates from `hmis_structure` and diffs against
-    # those files, so a schema change not reflected in the committed SQL fails CI.
+    # The migration calls `execute function_sql(klass)` / `execute
+    # drop_function_sql(klass)` directly — no committed SQL files, no `fx` gem.
     #
     # Canonical serialization (must stay deterministic + GUC-independent):
     #   * column set & order: `hmis_structure(version: '2026').keys` minus :ExportID
@@ -55,10 +53,6 @@ module HmisCsvTwentyTwentySix
 
       def trigger_name(klass)
         "set_source_hash_#{klass.table_name}"
-      end
-
-      def fx_file_name(klass)
-        "#{function_name(klass)}_v01.sql"
       end
 
       # Ordered [name, type] pairs that feed the hash.
@@ -151,6 +145,10 @@ module HmisCsvTwentyTwentySix
 
       def drop_trigger_sql(klass)
         "DROP TRIGGER IF EXISTS #{trigger_name(klass)} ON #{klass.quoted_table_name}"
+      end
+
+      def drop_function_sql(klass)
+        "DROP FUNCTION IF EXISTS #{function_name(klass)}()"
       end
     end
   end
