@@ -32,7 +32,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   protected
 
   def authorize_action
-    return not_authorized! unless current_hmis_user.policy_for(Hmis::User, policy_type: :hmis_user).can_impersonate_users?
+    return not_authorized! unless true_hmis_user.policy_for(Hmis::User, policy_type: :hmis_user).can_impersonate_users?
   end
 
   def render_success
