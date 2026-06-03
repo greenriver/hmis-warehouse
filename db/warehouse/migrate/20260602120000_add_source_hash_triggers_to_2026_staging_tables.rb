@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 # Compute `source_hash` in PostgreSQL via a BEFORE INSERT OR UPDATE trigger on
-# each 2026 importer staging table, replacing the per-row Ruby
-# `klass.new(...).calculate_source_hash` in the pre_process hot loop.
+# each 2026 importer staging table
 #
 # See HmisCsvTwentyTwentySix::SourceHash::TriggerGenerator for the SQL generation
 # and db/warehouse/migrate/20241206145315_replace_rules_with_triggers.rb for precedent.

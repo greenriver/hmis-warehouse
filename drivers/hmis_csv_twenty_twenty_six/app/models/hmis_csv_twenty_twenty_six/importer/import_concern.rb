@@ -59,8 +59,7 @@ module HmisCsvTwentyTwentySix::Importer::ImportConcern
     # `source_hash` is computed in PostgreSQL by a BEFORE INSERT OR UPDATE trigger
     # (see HmisCsvTwentyTwentySix::SourceHash::TriggerGenerator), so pre_process
     # skips the per-row Ruby `calculate_source_hash`. Only the 2026 base staging
-    # tables have the trigger; legacy versions and custom files (which don't
-    # include this concern) keep the Ruby computation.
+    # tables have the trigger;
     def self.source_hash_computed_in_db?
       true
     end

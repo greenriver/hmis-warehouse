@@ -407,10 +407,6 @@ module HmisCsvImporter::Importer
         row_failures = []
         # Set any import overrides for this class and data source so we avoid going back to the db
         klass.import_overrides = import_overrides_for(file_name, @data_source.id)
-        # When source_hash is computed in PostgreSQL (2026 staging tables, via a
-        # BEFORE INSERT OR UPDATE trigger) we skip the per-row Ruby calculation
-        # entirely -- it built a full AR model solely to hash it. Hoisted out of
-        # the row loop to avoid a per-row method lookup on the 1.8M-row path.
         compute_source_hash_in_db = klass.respond_to?(:source_hash_computed_in_db?) && klass.source_hash_computed_in_db?
         scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           row_failures = []

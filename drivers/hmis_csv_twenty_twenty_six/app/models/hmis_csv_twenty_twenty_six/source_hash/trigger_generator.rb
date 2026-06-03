@@ -29,7 +29,7 @@ module HmisCsvTwentyTwentySix
     #     (bare concat_ws would drop NULLs and allow column-shift collisions)
     #   * hash: encode(sha256(convert_to(<canonical>, 'UTF8')), 'hex')
     module TriggerGenerator
-      extend self
+      module_function
 
       # Control characters chosen because they cannot appear in HMIS CSV data.
       FIELD_DELIMITER = '\x1e' # ASCII RS (record separator) between columns
