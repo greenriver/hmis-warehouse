@@ -4926,6 +4926,11 @@ FormDefinition
 type FormDefinition {
   access: FormDefinitionAccess!
   cacheKey: ID!
+
+  """
+  Form items on this definition that are usable as CE Match Rule condition fields
+  """
+  ceMatchItems: [FormItem!]!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   definition: FormDefinitionJson!
@@ -5069,6 +5074,11 @@ type FormItem {
   Label to use for placeholder and population table
   """
   briefText: String
+
+  """
+  The identifier used in CE Match Rule expressions (e.g. "current_age" or "cde.custom_assessment.foo").
+  """
+  ceMatchExpressionField: String
 
   """
   Component to use for display/input of this item
@@ -10150,6 +10160,16 @@ type Query {
   Clients who belong to at least one CE candidate pool
   """
   ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
+
+  """
+  Synthetic form items representing client fields (from ClientFieldMap) available for CE Match Rule expressions.
+  """
+  ceMatchClientItems: [FormItem!]!
+
+  """
+  Published and retired custom assessment form definitions in the user's data source that have usable CE Match fields.
+  """
+  ceMatchCustomAssessmentForms: [FormDefinition!]!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral

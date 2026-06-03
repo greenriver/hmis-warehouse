@@ -669,5 +669,42 @@ module Types
     def unit(id:)
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
+
+    # Synthetic FormItem catalog for client fields (from ClientFieldMap) available in CE Match Rule expressions.
+    # Resolved as typed FormItem objects rather than a PickList so the frontend gets field metadata such as
+    # type, repeats, and pickListReference.
+    # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
+    field :ce_match_client_items, [Forms::FormItem], null: false, description: 'Synthetic form items representing client fields (from ClientFieldMap) available for CE Match Rule expressions.'
+    def ce_match_client_items
+      access_denied! unless current_user.can_administrate_config? # todo @martha - use policy, but that PR is not approved yet and deprioritized
+
+      Hmis::Ce::Match::Expression::ClientFieldMap.new.ce_match_v1_item_attrs.map { |attrs| Forms::FormItem.build(attrs) }
+    end
+
+    # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
+    # Returns Forms::FormDefinition so the frontend can display a dropdown of assessments, then a dependent dropdown of CDEDs.
+    # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
+    field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
+    def ce_match_custom_assessment_forms
+      access_denied! unless current_user.can_administrate_config?
+
+      ds_id = current_user.hmis_data_source_id
+
+      # Only include forms that have at least one usable CDED (file/json fields are excluded from the structured builder).
+      # todo @martha - repeated code should use shared scopes
+      identifiers_with_cdeds = Hmis::Hud::CustomDataElementDefinition.
+        for_custom_assessments.
+        where(data_source_id: ds_id).
+        where.not(field_type: ['file', 'json']).
+        where.not(form_definition_identifier: nil).
+        distinct.pluck(:form_definition_identifier)
+
+      Hmis::Form::Definition.
+        with_role(:CUSTOM_ASSESSMENT).
+        published_or_retired.
+        where(data_source_id: ds_id, identifier: identifiers_with_cdeds).
+        latest_versions.
+        order(:title)
+    end
   end
 end

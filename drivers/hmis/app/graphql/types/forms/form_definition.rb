@@ -41,6 +41,7 @@ module Types
     field :updated_by, Types::Application::User, null: true
     field :project_matches, Types::Forms::ProjectMatch.array_page_type, null: false
     form_rules_field
+    field :ce_match_items, [Forms::FormItem], null: false, description: 'Form items on this definition that are usable as CE Match Rule condition fields'
 
     def form_rules(**args)
       resolve_form_rules(object.instances, **args)
@@ -123,6 +124,25 @@ module Types
 
     def supports_save_in_progress
       object.supports_save_in_progress?
+    end
+
+    def ce_match_items
+      # In the future, we may restrict this list further with a new flag in the FormBuilder to specify items that can be used for CE matching.
+      excluded_field_types = ['file', 'json'].freeze
+      usable_cded_keys = Hmis::Hud::CustomDataElementDefinition.
+        for_custom_assessments.
+        where(data_source_id: object.data_source_id, form_definition_identifier: object.identifier).
+        where.not(field_type: excluded_field_types).
+        pluck(:key).to_set
+
+      items = []
+      object.walk_definition_nodes do |item|
+        custom_field_key = item.dig('mapping', 'custom_field_key')
+        next unless custom_field_key.present? && usable_cded_keys.include?(custom_field_key)
+
+        items << Forms::FormItem.build(item)
+      end
+      items
     end
 
     protected
