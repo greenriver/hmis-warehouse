@@ -12,7 +12,10 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def initialize(options)
       @output_file = options[:output_file]
-      @keys = options[:hmis_class].hmis_configuration(version: '2026').keys
+      @config = options[:hmis_class].hmis_configuration(version: '2026')
+      @keys = @config.keys
+      # Cached here so write() can format money/integer fields without re-reading config per row.
+      @rounded_columns = @config.select { |_, m| m[:check].in?([:money, :integer]) }
       @strip_newline_proc = proc do |field|
         field.respond_to?(:gsub) ? field.gsub("\n", '\\n') : field
       end
@@ -24,11 +27,16 @@ module HmisCsvTwentyTwentySix::Exporter
       @csv << options[:destination_class].csv_header_override(@keys)
     end
 
-    # row is a HashWithIndifferentAccess at this point, not an AR object.
-    # See ExportConcern#process for where the conversion happens.
     def write(row)
       @csv ||= CSV.open(@output_file, 'wb', force_quotes: true, write_converters: [@strip_newline_proc])
-      @csv << row.values_at(*@keys)
+      # Build a plain hash from the AR object using spec column names as keys. Rounding is
+      # applied here rather than in ExportConcern#process because AR silently re-casts string
+      # values (e.g. "50.00") back to numeric types on assignment, corrupting the formatted output.
+      hash = @keys.map { |k| [k, row[k]] }.to_h
+      @rounded_columns.each do |k, opts|
+        hash = HmisCsvTwentyTwentySix::Exporter::IncomeBenefit.round_value(hash, hud_field: k, rounding: opts[:check], positive: opts[:positive])
+      end
+      @csv << hash.values_at(*@keys)
     end
 
     def close
