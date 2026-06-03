@@ -61,24 +61,26 @@ module HmisCsvImporter::Importer::ImportConcern
     end
 
     def self.date_columns
-      hmis_columns = hmis_structure.keys
-      content_columns.select do |c|
-        c.type == :date && c.name.to_sym.in?(hmis_columns)
-      end.map do |c|
-        c.name.to_s
+      @date_columns ||= begin
+        hmis_columns = hmis_structure.keys
+        content_columns.select do |c|
+          c.type == :date && c.name.to_sym.in?(hmis_columns)
+        end.map do |c|
+          c.name.to_s
+        end
       end
     end
-    # memoize :date_columns
 
     def self.time_columns
-      hmis_columns = hmis_structure.keys
-      content_columns.select do |c|
-        c.type == :datetime && c.name.to_sym.in?(hmis_columns)
-      end.map do |c|
-        c.name.to_s
+      @time_columns ||= begin
+        hmis_columns = hmis_structure.keys
+        content_columns.select do |c|
+          c.type == :datetime && c.name.to_sym.in?(hmis_columns)
+        end.map do |c|
+          c.name.to_s
+        end
       end
     end
-    # memoize :time_columns
 
     def self.attrs_from(loaded, deidentified: false)
       # we need to attempt a fix of date columns before ruby auto converts them

@@ -12,8 +12,12 @@ module HmisCsvTwentyTwentySix::Loader::LoaderConcern
   included do
     belongs_to :loader_log, optional: true, foreign_key: :loader_id, class_name: 'HmisCsvImporter::Loader::LoaderLog'
 
+    def self.hmis_data_keys
+      @hmis_data_keys ||= hmis_structure(version: '2026').keys
+    end
+
     def hmis_data
-      @hmis_data ||= slice(*self.class.hmis_structure(version: '2026').keys)
+      @hmis_data ||= slice(*self.class.hmis_data_keys)
     end
 
     def self.hud_csv_version
