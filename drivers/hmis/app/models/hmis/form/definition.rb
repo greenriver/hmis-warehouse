@@ -39,25 +39,27 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   include Hmis::Hud::Concerns::HasEnums
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
-  validates_uniqueness_of :identifier, if: :managed_in_version_control?
+  validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
 
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
 
-  # --- Relations by identifier ----
-  has_many :instances, foreign_key: 'definition_identifier', primary_key: 'identifier'
+  # --- Relations by identifier (scoped per HMIS data source) ----
+  has_many :instances, foreign_key: [:definition_identifier, :data_source_id], primary_key: [:identifier, :data_source_id], inverse_of: :definition
   has_many :custom_service_types, through: :instances, foreign_key: 'identifier', primary_key: 'form_definition_identifier'
-  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', primary_key: 'identifier', foreign_key: 'form_definition_identifier'
-  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', foreign_key: [:form_definition_identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_many :all_versions, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -236,6 +238,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
 
+  scope :in_data_source, ->(data_source_id) do
+    where(data_source_id: data_source_id)
+  end
+
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed
     return if draft?
@@ -251,6 +257,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.for_project(project:, role:, service_type: nil)
     # Consider all Active, Published Forms for this Role
     definition_scope = Hmis::Form::Definition.with_role(role).
+      in_data_source(project.data_source_id).
       active. # Drop definitions that have no active rules
       published
 
@@ -264,8 +271,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     return unless selected_instance # No match found. This is OK for non-system roles, like CurrentLivingSituation.
 
     # Safe to use `find_by` because definition_scope is already restricted to published versions,
-    # and there can be at most 1 published FormDefinition per identifier.
-    definition_scope.find_by(identifier: selected_instance.definition_identifier)
+    # and there can be at most 1 published FormDefinition per identifier/data source.
+    definition_scope.find_by(identifier: selected_instance.definition_identifier, data_source_id: project.data_source_id)
   end
 
   # Helper scope to drop forms that are not valid, because their role is outside of FORM_ROLES.
@@ -275,11 +282,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   scope :non_static, -> { where.not(role: STATIC_FORM_ROLES) }
 
   scope :active, -> do
-    where(identifier: Hmis::Form::Instance.active.select(:definition_identifier))
+    joins(:instances).merge(Hmis::Form::Instance.active).distinct
   end
 
   scope :for_service_type, ->(service_type) do
-    base_scope = Hmis::Form::Instance.joins(:definition)
+    base_scope = Hmis::Form::Instance.joins(:definition).
+      where(data_source_id: service_type.data_source_id)
 
     instance_scope = [
       base_scope.for_service_type(service_type.id),
@@ -291,7 +299,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   scope :latest_versions, -> do
-    # Returns the latest version per identifier
+    # Returns the latest version per identifier.
+    # Should be used in combination with `in_data_source`, since `identifier+version` is only guaranteed to be unique within a data source.
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
@@ -334,13 +343,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
 
-  def self.find_definition_for_role(role, project: nil)
+  def self.find_definition_for_role(role, project: nil, data_source_id: nil)
     selected_definition = if project.present?
       # Chooses the published FormDefinition that is "most relevant" for the Project (via an active FormInstance)
       Hmis::Form::Definition.for_project(project: project, role: role)
     else
+      raise ArgumentError, 'data_source_id is required when project is not specified' unless data_source_id.present?
+
       # Project was not specified, so return the "default" FormDefinition for the role (if any)
-      scope = Hmis::Form::Definition.with_role(role).published
+      scope = Hmis::Form::Definition.with_role(role).published.in_data_source(data_source_id)
       # Only consider forms that have an active "default" rule, meaning there is no project criteria on the rule
       scope = scope.joins(:instances).merge(Hmis::Form::Instance.defaults.active)
 
@@ -363,8 +374,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
-  # TODO(#6691): remove data_source_id argument once data_source_id column is added to FormDefinition
-  def validate_json_form(data_source_id: nil)
+  def validate_json_form
     # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
     Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?, data_source_id: data_source_id)
   end

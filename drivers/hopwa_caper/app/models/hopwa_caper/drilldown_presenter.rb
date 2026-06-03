@@ -87,6 +87,7 @@ module HopwaCaper
         Field.new(name: 'ever_prescribed_anti_retroviral_therapy'),
         Field.new(name: 'viral_load_suppression'),
         Field.new(name: 'percent_ami', label: 'Percent AMI', transform: ->(v, _poly) { hud_helper.percent_ami(v) }, not_collected: true),
+        Field.new(name: 'total_project_cost', label: 'Total Funder Cost'),
         Field.new(name: 'atc_maintained_contact', label: 'ATC: Maintained Contact'),
         Field.new(name: 'atc_housing_plan', label: 'ATC: Housing Plan'),
         Field.new(name: 'atc_primary_health_contact', label: 'ATC: Primary Health Contact'),

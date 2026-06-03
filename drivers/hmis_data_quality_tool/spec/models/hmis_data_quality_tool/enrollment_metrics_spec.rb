@@ -1201,7 +1201,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
     describe 'Employed' do
       # Guard against HUD list changes: Project entry/exit must resolve to valid data collection stages.
       it 'resolves Project entry and Project exit to valid data collection stage values' do
-        stages = HmisDataQualityTool::Enrollment::REQUIRED_EMPLOYMENT_STAGES
+        stages = HmisDataQualityTool::Enrollment::REQUIRED_EMPLOYMENT_STAGES.keys
         expect(stages).to contain_exactly(1, 3), "Expected stages 1 (Project entry) and 3 (Project exit), got #{stages.inspect}"
       end
 
@@ -1443,6 +1443,55 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         it 'does not populate employed when only non-required (annual) record in range' do
           enrollment_item = HmisDataQualityTool::Enrollment.find_by(enrollment_id: @enrollment.id, report_id: @report.id)
           expect(enrollment_item.employed).to be_nil
+        end
+      end
+
+      context 'with pre-period stayer (entry before report range, no exit)' do
+        before do
+          @project = create_employment_required_project
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-07-01'.to_date,
+            exit_date: nil,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2022-07-01'.to_date,
+            data_collection_stage: 1,
+            employed: 0,
+            not_employed_reason: 2,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'excludes pre-period stayer from employment check (no qualifying event in range)' do
+          expect_result(key: :employed, total: 0, invalid_count: 0)
+        end
+      end
+
+      context 'with pre-period stayer and invalid employment data (entry before range, no exit)' do
+        before do
+          @project = create_employment_required_project
+          @client = create_client_with_warehouse_link(dob: '1990-01-15'.to_date)
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            entry_date: '2022-07-01'.to_date,
+            exit_date: nil,
+          )
+          create_employment_education(
+            enrollment: @enrollment,
+            information_date: '2022-07-01'.to_date,
+            data_collection_stage: 1,
+            employed: 99,
+          )
+          @report = setup_report([@project.id])
+        end
+
+        it 'excludes pre-period stayer even when employment data is invalid' do
+          expect_result(key: :employed, total: 0, invalid_count: 0)
         end
       end
     end

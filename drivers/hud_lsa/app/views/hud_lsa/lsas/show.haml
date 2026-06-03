@@ -26,6 +26,11 @@
         = link_to(warehouse_reports_hmis_export_path(@report.export_id), {class: 'btn btn-secondary'}) do
           %span.icon-download2
           Source HMIS Data
+- if @report.purged?
+  .well
+    %p The report data has been archived and purged from the database.
+    = form_with url: { action: :restore, id: @report.id }, method: :post, local: true do |f|
+      = f.submit 'Reload Report from Archived Data', class: 'btn btn-primary'
 - if @report.error_details.present?
   .alert.alert-danger
     %p= @report.error_details

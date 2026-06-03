@@ -9,4 +9,5 @@ class Hmis::DestinationClientLatestAssessment < GrdaWarehouseBase
 
   belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
   belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment'
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 end

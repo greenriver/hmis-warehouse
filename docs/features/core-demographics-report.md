@@ -52,7 +52,7 @@ The shared base, included first in both report classes. It provides:
 - `report_scope` — applies the filter to `GrdaWarehouse::ServiceHistoryEnrollment.entry`, the base scope for all calculations
 - KPI counts: `total_client_count`, `hoh_count`, `household_count`, `project_count`
 - Authorization checks: `can_see_client_details?`, `can_view_client_disability?`
-- `mask_small_population` — suppresses counts below the privacy threshold
+- `mask_small_population` — rounds small counts into privacy brackets when enabled
 - `cache_slug` — derived from filter attributes, used as part of all `Rails.cache` keys
 
 ### Calculation Modules
@@ -64,7 +64,9 @@ Each `*_calculations.rb` file covers one demographic dimension. All follow the s
 - `{category}_percentage(type, coc_code)` — percentage of total
 - `{category}_data_for_export(rows)` — appends formatted rows to the export hash
 
-Shared calculation modules (both reports): `AgeCalculations`, `GenderCalculations`, `SexCalculations`, `RaceCalculations`, `EthnicityCalculations`, `RaceEthnicityCalculations`, `DisabilityCalculations` (Core only), `RelationshipCalculations` (Core only), `DvCalculations` (Core only), `PriorCalculations` (Core only), `HouseholdTypeCalculations`.
+Both reports: `AgeCalculations`, `GenderCalculations`, `SexCalculations`, `RaceCalculations`, `EthnicityCalculations`, `RaceEthnicityCalculations`, `HouseholdTypeCalculations`.
+
+Core only: `DisabilityCalculations`, `RelationshipCalculations`, `DvCalculations`, `PriorCalculations`.
 
 Demographic Summary-only: `ChronicCalculations`, `UnshelteredCalculations`, `HighAcuityCalculations`, `FirstTimeCalculations` (Newly Entering Homelessness), `OutcomeCalculations`.
 
@@ -76,22 +78,25 @@ Demographic Summary-only: `ChronicCalculations`, `UnshelteredCalculations`, `Hig
 
 Provides `enrollment_detail_hash` (one entry per project in scope) and project-level counts.
 
+## Comparison Mode
+
+Both reports support a comparison period. When one is selected, the controller instantiates a second report object with a separate filter. The view renders both side by side using the same calculation modules.
+
 ## Caching
 
 Every expensive computation is memoized in two layers:
 
-1. Instance variable (e.g., `@chronic_clients`)
-2. `Rails.cache` keyed by `[ClassName, cache_slug, method_name]`
+1. Instance variables
+2. `Rails.cache` keyed by class name, `cache_slug`, and method name
 
-Sections use a `section_ready?` guard. If the cache key does not exist, the controller returns HTTP 202 and the view re-polls via AJAX until the section is available.
+Some sections are expensive enough that they may not be ready on first request. These use a `section_ready?` guard — the controller returns HTTP 202 and the view re-polls via AJAX until the cached result is available.
 
 ## Rendering Flow
 
 1. `index.haml` renders the filter panel, hero KPI counts, and iterates `available_section_types`.
-2. Each section fires a `POST render_section` request, which enqueues a background job.
-3. The job renders the partial and stores the result in cache.
-4. The page polls and replaces the placeholder via XHR when ready.
-5. Clicking a count cell navigates to `details`, which renders a drilldown table via `detail_scope_from_key(key)`.
+2. Each section loads via XHR. Most render inline; expensive sections use the `section_ready?` polling described above.
+3. `background_render_action` defines endpoints that enqueue background jobs to render and cache sections. Demographic Summary has a separate background action for its detail sections.
+4. Clicking a count cell navigates to `details`, which renders a drilldown table via `detail_scope_from_key(key)`.
 
 ## Data Relationships
 
@@ -102,7 +107,7 @@ Sections use a `section_ready?` guard. If the cache key does not exist, the cont
 | Enrollment attributes (RelationshipToHoH, DisablingCondition) | `GrdaWarehouse::Hud::Enrollment` via `she.enrollment` |
 | Disabilities | `GrdaWarehouse::Hud::Disability`, filtered on `IndefiniteAndImpairs = 1` |
 | Chronic homelessness | `GrdaWarehouse::ChEnrollment.chronically_homeless` |
-| Household composition | Derived in-memory; households keyed by `"#{household_id}_#{data_source_id}"` |
+| Household composition | Derived in-memory from enrollment household and age data |
 | Project info | `GrdaWarehouse::Hud::Project` joined through the enrollment |
 
 ## Exports

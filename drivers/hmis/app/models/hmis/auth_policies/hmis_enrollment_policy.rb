@@ -22,6 +22,17 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
       project_permissions.include?(:can_delete_enrollments)
     end
 
+    def can_view_details?
+      project_permissions.include?(:can_view_enrollment_details) # can_view_enrollment_details? requires can_view_project?
+    end
+
+    def can_create_file?
+      # User can create a file for this enrollment if they:
+      # - can manage client files in the project, OR
+      # - have the global permission can_manage_own_client_files
+      project_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
+    end
+
     protected
 
     # convenience
@@ -36,5 +47,21 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
     def validate_resource!(arg)
       ensure_arg_type!(arg, Hmis::Hud::Enrollment)
     end
+  end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    # Whether the user can view some enrollments with full details
+    def can_view?
+      global_permissions.include?(:can_view_enrollment_details) && global_permissions.include?(:can_view_project)
+    end
+
+    # Whether the user can view some enrollments with limited details
+    def can_view_limited?
+      global_permissions.include?(:can_view_limited_enrollment_details)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Hud::Enrollment)
   end
 end

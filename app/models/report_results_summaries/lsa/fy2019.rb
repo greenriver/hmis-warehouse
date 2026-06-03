@@ -6,8 +6,12 @@
 
 # frozen_string_literal: true
 
+# LEGACY REPORT — FY 2019 (retired, read-only)
+#
+# STI stub for historical ReportResultsSummary records. No new summaries will be
+# generated for this fiscal year. Exists only to prevent STI resolution errors
+# when loading past run data. See Reports::Lsa::Fy2019 for the corresponding Report stub.
 module ReportResultsSummaries::Lsa
-  class Fy2019 < Base
-
+  class Fy2019 < ::ReportResultsSummary
   end
 end

@@ -14,12 +14,13 @@ module Mutations
 
     def resolve(file_id:)
       file = Hmis::File.viewable_by(current_user).find_by(id: file_id)
-      default_delete_record(
-        record: file,
-        field_name: :file,
-        permissions: :can_manage_any_client_files,
-        authorize: Hmis::File.authorize_proc,
-      )
+      access_denied! unless file && current_user.policy_for(file, policy_type: :hmis_file).can_delete?
+
+      file.destroy!
+      {
+        file: file,
+        errors: [],
+      }
     end
   end
 end

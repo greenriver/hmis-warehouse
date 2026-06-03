@@ -61,8 +61,23 @@ module HudReports
         generator.new(@report).queue
         redirect_to(path_for_history(filter: @filter.to_h))
       else
+        @filter.default_project_type_codes = generator.default_project_type_codes
         render :new
       end
+    end
+
+    def restore
+      service = ::HudReports::RestoreArchivedReportDataService.new(@report)
+      result = service.restore!
+
+      if result[:success]
+        total = result[:restored_counts]&.values&.sum || 0
+        flash[:notice] = "Report data restored successfully. #{total} records reloaded."
+      else
+        flash[:error] = "Failed to restore report data: #{result[:errors].join(', ')}"
+      end
+
+      redirect_to action: :show, id: @report.id
     end
 
     def destroy

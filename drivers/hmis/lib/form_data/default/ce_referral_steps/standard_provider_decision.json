@@ -1,0 +1,92 @@
+{
+  "item": [
+    {
+      "text": "Interview date",
+      "type": "DATE",
+      "link_id": "interview_date",
+      "mapping": {
+        "custom_field_key": "standard_provider_decision_interview_date"
+      },
+      "required": false
+    },
+    {
+      "text": "Client response",
+      "type": "CHOICE",
+      "link_id": "client_response",
+      "mapping": {
+        "custom_field_key": "standard_provider_decision_client_response"
+      },
+      "required": false,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "interested", "label": "Interested" },
+        { "code": "not_interested", "label": "Not interested" },
+        { "code": "unable_to_contact", "label": "Unable to contact" }
+      ]
+    },
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "decision",
+      "mapping": {
+        "custom_field_key": "standard_provider_decision_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "accept", "label": "Accept" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "The client will be added to the project as Incomplete. Please complete and submit the Intake Assessment to finalize enrollment.",
+      "type": "DISPLAY",
+      "link_id": "enroll_message",
+      "component": "ALERT_INFO",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "decision",
+          "answer_code": "accept"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "mapping": {
+        "custom_field_key": "standard_provider_decision_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "hmis_user_error", "label": "HMIS user error" },
+        { "code": "inability_to_complete_intake", "label": "Inability to complete intake" },
+        { "code": "ineligible", "label": "Does not meet eligibility criteria" },
+        { "code": "client_not_interested", "label": "No longer interested in this program" },
+        { "code": "not_experiencing_homelessness", "label": "No longer experiencing homelessness" },
+        { "code": "vacancy_no_longer_available", "label": "Estimated vacancy no longer available" },
+        { "code": "enrolled_declined_hmis_data_entry", "label": "Enrolled, but declined HMIS data entry" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "standard_provider_decision_notes"
+      },
+      "required": false
+    }
+  ]
+}

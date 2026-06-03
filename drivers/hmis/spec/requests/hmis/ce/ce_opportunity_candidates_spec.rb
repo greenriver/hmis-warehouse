@@ -5,6 +5,7 @@ require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
+  include GraphqlHelpers
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
@@ -15,8 +16,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   # Create a candidate pool that depends on a custom data element
+  # custom_assessment_with_custom_fields definition factory generates cded "custom_question_1"
   let!(:form_definition) { create(:custom_assessment_with_custom_fields, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
-  # custom_assessment_with_custom_fields factory generates cded "custom_question_1"
   let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'custom_question_1', form_definition: form_definition }
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool, priority_expression: 'cde.custom_assessment.custom_question_1' }
 
@@ -32,6 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           $limit: Int = 25
           $offset: Int = 0
           $filters: CeOpportunityCandidatesFilterOptions
+          $clientAttributeKeys: [String!] = null
         ) {
           ceOpportunity(id: $opportunityId) {
             id
@@ -43,7 +45,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
                 priorityScores
                 clientName
-                clientAttributes
+                clientAttributes(keys: $clientAttributeKeys)
               }
             }
           }
@@ -121,6 +123,52 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'id' => candidate1.id.to_s,
         'priorityScores' => [50],
       )
+
+      expect(candidates).to all(include('clientAttributes' => {}))
+    end
+
+    describe 'clientAttributes' do
+      let(:cde_expression_key) { 'cde.custom_assessment.custom_question_1' }
+
+      let!(:enrollment1) { create(:hmis_hud_enrollment, client: client_1, project: p1, data_source: ds1) }
+      let!(:assessment1) { create(:hmis_custom_assessment, client: client_1, enrollment: enrollment1, definition: form_definition, data_source: ds1) }
+      let!(:cde_element1) do
+        create(:hmis_custom_data_element, owner: assessment1, data_element_definition: cded, value_string: 'Answer for client one', data_source: ds1)
+      end
+
+      let!(:enrollment2) { create(:hmis_hud_enrollment, client: client_2, project: p1, data_source: ds1) }
+      let!(:assessment2) { create(:hmis_custom_assessment, client: client_2, enrollment: enrollment2, definition: form_definition, data_source: ds1) }
+      let!(:cde_element2) do
+        create(:hmis_custom_data_element, owner: assessment2, data_element_definition: cded, value_string: 'Answer for client two', data_source: ds1)
+      end
+
+      it 'returns live CDE values for the requested keys' do
+        response, result = post_graphql(**variables.merge(client_attribute_keys: [cde_expression_key])) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+        expect(candidates).to contain_exactly(
+          a_hash_including(
+            'id' => candidate2.id.to_s,
+            'clientAttributes' => { cde_expression_key => 'Answer for client two' },
+          ),
+          a_hash_including(
+            'id' => candidate3.id.to_s,
+            'clientAttributes' => { cde_expression_key => nil },
+          ),
+          a_hash_including(
+            'id' => candidate1.id.to_s,
+            'clientAttributes' => { cde_expression_key => 'Answer for client one' },
+          ),
+        )
+      end
+
+      it 'returns an error when an explicit key is not a valid CE expression key' do
+        expect_gql_error(
+          post_graphql(**variables.merge(client_attribute_keys: ['cde.custom_assessment.not_a_real_cde_key_xyz'])) { query },
+          message: /Unknown CDE/,
+        )
+      end
     end
 
     context 'without can_view_prioritized_client_lists permission' do
@@ -254,6 +302,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
           expect(candidates.size).to eq(3)
           expect(candidates.map { |c| c['id'] }).to contain_exactly(candidate1.id.to_s, candidate2.id.to_s, candidate3.id.to_s)
+        end
+      end
+
+      context 'when the destination client has another assessment with the same form identifier in a different data source' do
+        # there's a second HMIS data source that has a form definition with the same identifier
+        let!(:ds2) { create(:hmis_data_source) }
+        let!(:fd2) { create(:hmis_form_definition, identifier: form_definition.identifier, role: :CUSTOM_ASSESSMENT, data_source: ds2) }
+
+        # the declined client, client_1, has another source client in ds2
+        let!(:ds2_client) { create(:hmis_hud_client, data_source: ds2) }
+        let!(:ds2_wh_client) { create(:warehouse_client, destination_id: client_1.destination_client.id, source_id: ds2_client.id) }
+
+        # the declined client has an fd2 assessment since the decline, but this should be irrelevant - it's not the assessment with the CDED that this candidate pool uses
+        let!(:enrollment) { create(:hmis_hud_enrollment, client: ds2_client, data_source: ds2) }
+        let!(:assessment) { create(:hmis_custom_assessment, definition: fd2, client: ds2_client, enrollment: enrollment, date_updated: 1.hour.ago) }
+
+        # TODO(#9074): Reinstate this test when the behavior is corrected
+        xit 'does not return the destination client' do
+          _, result = post_graphql(**variables) { query }
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+          expect(candidates.map { |c| c['id'] }).not_to include(candidate1.id.to_s)
         end
       end
 

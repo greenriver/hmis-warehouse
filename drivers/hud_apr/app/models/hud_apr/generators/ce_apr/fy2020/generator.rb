@@ -9,7 +9,6 @@
 module HudApr::Generators::CeApr::Fy2020
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
-    include HudApr::CeAprCellDetailsConcern
 
     def self.fiscal_year
       'FY 2020'
@@ -85,5 +84,10 @@ module HudApr::Generators::CeApr::Fy2020
 
       scope.select(:id)
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudApr::Archival
   end
 end

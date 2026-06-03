@@ -14,6 +14,7 @@ OpenPath::Application.routes.draw do
           get :internal
           get :raw
           get :debug
+          post :reload_from_csv
         end
       end
     end

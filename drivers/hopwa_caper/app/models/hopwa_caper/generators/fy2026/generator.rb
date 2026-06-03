@@ -55,22 +55,17 @@ module HopwaCaper::Generators::Fy2026
 
     def self.questions
       sheets = [
-        HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::TbraSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet,
+        Sheets::DemographicsAndPriorLivingSituationSheet,
+        Sheets::TbraSheet,
+        Sheets::PFbhSheet,
+        Sheets::StTfbhSheet,
+        Sheets::StrmuSheet,
+        Sheets::PhpSheet,
+        Sheets::HousingInfoSheet,
+        Sheets::SupportiveServicesSheet,
       ]
-
-      sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
-
-      sheets = sheets.sort_by { |s| s.question_number.gsub(/\AQ(\d+).*/, '\\1').to_i }
-      sheets.map do |q|
-        [q.question_number, q]
-      end.to_h.freeze
+      sheets << Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
+      sheets.map { |q| [q.question_number, q] }.to_h.freeze
     end
 
     def self.valid_question_number(question_number)
@@ -119,6 +114,11 @@ module HopwaCaper::Generators::Fy2026
     def build_hopwa_caper_models
       scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, :project, :services])
       project_ids = Set.new
+      config = HopwaCaper::Configuration.new
+      cost_calculator = HopwaCaper::ProjectCostCalculator.new(
+        report: report,
+        cded_key: config.funder_daily_rate_field_name,
+      )
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -132,7 +132,12 @@ module HopwaCaper::Generators::Fy2026
           client = hud_enrollment&.client&.destination_client
           next unless client
 
-          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
+          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(
+            report: report,
+            client: client,
+            enrollment: hud_enrollment,
+            cost_calculator: cost_calculator,
+          )
           project_ids.add hud_enrollment.project.id
 
           # Store enrollment context for later custom service lookup

@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus,ImplementationID
+hh_coc_propagation_export,3,"",Test HMIS,Automated,Export,"","","",2024-01-01 00:00:00,2023-01-01,2024-01-01,Test HMIS,1,2026 v1.0,3,3,1,Test HMIS

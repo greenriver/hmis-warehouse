@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     namespace :warehouse_reports do
       resources :reports do
         get :details, on: :member
+        post :reload_from_csv, on: :member
       end
     end
   end

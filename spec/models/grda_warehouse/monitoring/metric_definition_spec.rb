@@ -9,6 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
+  before(:all) { cleanup_test_environment }
   describe 'validations' do
     it 'requires name' do
       metric = build(:grda_warehouse_monitoring_metric_definition, name: nil)
@@ -440,6 +441,35 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
 
       result = described_class.threshold_crossings_for_alerts(calculation_date)
       expect(result).to be_empty
+    end
+
+    it 'returns 0 as previous_value when the prior snapshot had current_value of zero' do
+      # Guards against IS NOT NULL accidentally excluding zero, or callers treating 0 as missing.
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date - 5.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 0,
+        current_value: 0,
+      )
+
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric_with_alert,
+        entity: client1,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 50,
+        current_value: 50,
+      )
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      crossing = result['metric_days_homeless_threshold'][metric_with_alert.id][:data].first
+
+      expect(crossing[:previous_value]).to eq(0)
+      expect(crossing[:previous_value]).not_to be_nil
     end
 
     it 'handles multiple crossings for the same entity/metric correctly' do

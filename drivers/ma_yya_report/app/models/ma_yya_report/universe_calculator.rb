@@ -507,7 +507,7 @@ module MaYyaReport
       return 6 if genders.include?(8) # Doesn't know
       return 6 if genders.include?(9) # Prefers not to answer
 
-      return client.GenderNone
+      return client.GenderNone.presence || 99
     end
 
     # Race calculations:

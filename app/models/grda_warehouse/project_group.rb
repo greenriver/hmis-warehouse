@@ -199,6 +199,16 @@ module GrdaWarehouse
       save_filter!
     end
 
+    def markdown_notes
+      return '' if notes.blank?
+
+      # Notes are user-entered content, so filter_html: true is required to strip raw HTML
+      # tags and prevent XSS. Do not switch to TranslatedHtml or remove filter_html — those
+      # are only safe for developer/admin-authored content.
+      renderer = Redcarpet::Render::HTML.new(filter_html: true)
+      Redcarpet::Markdown.new(renderer).render(notes).html_safe
+    end
+
     def any_contacts?
       contacts.any? || organization_contacts.any?
     end
