@@ -690,12 +690,10 @@ module Types
 
       ds_id = current_user.hmis_data_source_id
 
-      # Only include forms that have at least one usable CDED (file/json fields are excluded from the structured builder).
-      # todo @martha - repeated code should use shared scopes
+      # Only include forms that have at least one usable CDED.
       identifiers_with_cdeds = Hmis::Hud::CustomDataElementDefinition.
-        for_custom_assessments.
+        for_ce_match_conditions.
         where(data_source_id: ds_id).
-        where.not(field_type: ['file', 'json']).
         where.not(form_definition_identifier: nil).
         distinct.pluck(:form_definition_identifier)
 

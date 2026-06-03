@@ -127,12 +127,9 @@ module Types
     end
 
     def ce_match_items
-      # In the future, we may restrict this list further with a new flag in the FormBuilder to specify items that can be used for CE matching.
-      excluded_field_types = ['file', 'json'].freeze
       usable_cded_keys = Hmis::Hud::CustomDataElementDefinition.
-        for_custom_assessments.
+        for_ce_match_conditions.
         where(data_source_id: object.data_source_id, form_definition_identifier: object.identifier).
-        where.not(field_type: excluded_field_types).
         pluck(:key).to_set
 
       items = []
