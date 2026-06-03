@@ -10167,7 +10167,7 @@ type Query {
   ceMatchClientItems: [FormItem!]!
 
   """
-  Published and retired custom assessment form definitions in the user's data source that have usable CE Match fields.
+  Published and retired custom assessment form definitions in the user's data source that have CE Match fields.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
