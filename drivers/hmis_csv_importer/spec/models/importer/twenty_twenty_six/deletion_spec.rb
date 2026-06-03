@@ -8,10 +8,10 @@
 
 require 'rails_helper'
 
-# Covers the batch_soft_delete / with_temp_id_table path introduced in the
-# memory-footprint refactor. The key scenario — import a full data set, then
-# import a subset — was not exercised by any existing spec. Without it, the
-# temp-table batching logic for soft-deletes could regress silently.
+# Covers the soft-delete path in remove_pending_deletes. The key scenario —
+# import a full data set, then import a subset — was not exercised by any
+# existing spec. Without it, the scope-table-based deletion logic could
+# regress silently.
 #
 # Fixture layout:
 #   enrollment_test_files        — 4 enrollments (557331, 557890, 559123, 622377)

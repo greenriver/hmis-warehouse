@@ -39,9 +39,11 @@ Every import is scoped by three dimensions derived from the CSV files:
 
 These define which warehouse rows the import is "authoritative" for. The `involved_warehouse_scope` class method on each staging model builds the base warehouse query for this scope. Each model overrides it to join through the appropriate association chain (e.g. Disability joins through Enrollment → Project).
 
-### `pending_date_deleted` — The Central State Machine
+### Scope Tables — The Central State Machine
 
-The ingestion algorithm uses a "guilty until proven innocent" approach via the `pending_date_deleted` column on warehouse tables. At the start of ingestion, every in-scope warehouse row is flagged as pending deletion. Each subsequent step either **clears** that flag (proving the row should survive) or leaves it set. At the end, anything still flagged is soft-deleted.
+The ingestion algorithm uses session-scoped temp tables ("scope tables") to track which warehouse rows are in-scope. At the start of `ingest!`, each HUD file type's in-scope warehouse rows are materialized into a temp table containing `(id, hud_key, source_hash, DateUpdated)`. Subsequent passes progressively **drain** rows from these tables as they are accounted for. After all passes, rows remaining in the scope table are genuinely absent from the import and are soft-deleted.
+
+This replaces the previous `pending_date_deleted` column-flag approach, which bulk-updated every in-scope row twice per import. Scope tables avoid all warehouse writes for unchanged rows, reducing write amplification and index maintenance overhead. The `pending_date_deleted` column remains on warehouse tables for backward compatibility with older importers but is no longer used by the current importer.
 
 ### `source_hash` — Change Detection
 
@@ -57,24 +59,37 @@ import!
   ├── cleanup_data_set!         # Optional: fix known data quality issues
   ├── precalculate_change_counts # Estimate adds/removes for threshold checks
   ├── should_pause? check       # Abort if thresholds exceeded
-  ├── ingest!                   # Reconcile staging → warehouse
+  ├── ingest!                   # Reconcile staging → warehouse (see below)
   └── post_process              # Service history rebuild, duplicate detection, etc.
+
+ingest!
+  ├── create_scope_tables!      # Materialize in-scope warehouse rows into temp tables
+  ├── add_export_row            # Upsert the Export record
+  ├── add_new_data              # Anti-join staging against scope tables → upsert new rows
+  ├── process_existing          # Three sub-passes drain the scope tables
+  │     ├── unchanged           # source_hash match → drain from scope table
+  │     ├── incoming_older      # staging is stale → drain from scope table
+  │     └── apply_updates       # remaining matches → overwrite warehouse, drain
+  ├── update_export_ids         # Stamp ExportID on all in-scope warehouse rows
+  ├── remove_pending_deletes    # Soft-delete rows still in scope tables
+  ├── set_effective_export_end_date
+  └── drop_scope_tables!        # Cleanup (in ensure block)
 ```
 
 ### Ingestion
 
 Ingestion reconciles staged data with the warehouse in four passes:
 
-**Pass 0 — Mark all as pending deletion.** Every in-scope warehouse row gets `pending_date_deleted = today`.
+**Pass 0 — Create scope tables.** For each HUD file type (except Export), the in-scope warehouse rows are materialized into a session-scoped temp table with `(id, hud_key, source_hash, DateUpdated)`. These tables are the source of truth for what the import is authoritative over.
 
-**Pass 1 — Add new records.** Staging rows whose `hud_key` has no warehouse counterpart (within scope) are inserted. Records are upserted to handle cases where the key exists outside the scoped projects/date range.
+**Pass 1 — Add new records.** Staging rows whose `hud_key` is absent from the scope table (via NOT EXISTS anti-join) are upserted into the warehouse. Upsert handles cases where the key exists outside the scoped projects/date range.
 
-**Pass 2 — Process existing records.** For rows present in both staging and warehouse, three checks run in sequence:
-- **Unchanged**: If `source_hash` matches, clear `pending_date_deleted`. The warehouse row is kept as-is.
-- **Incoming older**: If the staging `DateUpdated` is strictly older than the warehouse (day-level comparison), clear `pending_date_deleted`. The warehouse is trusted. Skipped when this is the most recent export for the data source.
-- **Apply updates**: Everything still pending at this point has newer or changed data. The warehouse row is overwritten from staging. Side effects: client demographics and enrollment service history are flagged for rebuild.
+**Pass 2 — Process existing records.** For rows present in both staging and scope table, three sub-passes run in sequence, each draining resolved rows from the scope table:
+- **Unchanged**: If `source_hash` matches, drain from scope table. No warehouse writes.
+- **Incoming older**: If the staging `DateUpdated` is strictly older than the warehouse (day-level comparison), drain from scope table. No warehouse writes. Skipped when this is the most recent export for the data source.
+- **Apply updates**: Everything remaining in the scope table with a staging match has newer or changed data. The warehouse row is overwritten from staging, then drained from the scope table. Side effects: client demographics and enrollment service history are flagged for rebuild.
 
-**Pass 3 — Remove pending deletes.** Anything still carrying `pending_date_deleted` existed in the warehouse within scope but was absent from the import — it's soft-deleted. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation.
+**Pass 3 — Remove pending deletes.** Rows remaining in the scope table after all passes existed in the warehouse within scope but had no staging counterpart — they are soft-deleted. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation.
 
 ## Validation
 

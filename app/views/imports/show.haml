@@ -1,1 +1,12 @@
 = render(@import)
+
+- policy = current_user.policy_for(@import.data_source)
+- if policy.can_see_import_debugging?
+  %hr
+  - if params[:debug]
+    = link_to 'Hide Debug', import_path(@import), class: 'btn btn-sm btn-secondary'
+    %h3#debug.mt-4 Debug
+    %pre
+      = @import.importer_log.debug_phases(show_sql: true)
+  - else
+    = link_to 'Show Debug', import_path(@import, anchor: 'debug', debug: 1), class: 'btn btn-sm btn-secondary'
