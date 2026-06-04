@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class StrmuSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q3: STRMU'
+    QUESTION_NUMBER = 'STRMU'
     QUESTION_NUMBERS = ['Q3'].freeze
     SHEET_TITLE = 'Complete this section for all Households served with HOPWA Short-Term Rent, Mortgage, and Utilities Assistance (STRMU) by your organization in the reporting year.'
     CONTENTS = [

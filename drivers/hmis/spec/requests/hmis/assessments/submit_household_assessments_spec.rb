@@ -28,12 +28,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 5 }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 5 }
   let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: 2.weeks.ago, relationship_to_ho_h: 5 }
-  let!(:fd1) do
-    ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
-      create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
-    end
-    create :hmis_form_definition
-  end
+  let!(:fd1) { create :hmis_form_definition, data_source: ds1, generate_cdeds: true }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
   let(:hud_user) { Hmis::Hud::User.from_user(hmis_user) }
 
@@ -92,9 +87,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Submitting multiple saved assessments' do
     # Create 3 WIP Assessments that have saved values
-    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1, created_by_hud_user: hud_user) }
-    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1, created_by_hud_user: hud_user) }
-    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1, created_by_hud_user: hud_user) }
+    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1, created_by_hud_user: hud_user, definition: fd1) }
+    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1, created_by_hud_user: hud_user, definition: fd1) }
+    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1, created_by_hud_user: hud_user, definition: fd1) }
 
     let(:input) do
       {
@@ -187,8 +182,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Submitting multiple saved assessments that belong to different households' do
-    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1) }
-    let!(:a4) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e4, client: e4.client, data_source: ds1) }
+    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1, definition: fd1) }
+    let!(:a4) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e4, client: e4.client, data_source: ds1, definition: fd1) }
 
     it 'should fail' do
       expect(Hmis::Hud::CustomAssessment.count).to eq(2)

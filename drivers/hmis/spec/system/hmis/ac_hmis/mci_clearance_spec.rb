@@ -37,12 +37,14 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
   before(:all) do
     # Seed MCI-specific client forms
-    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
+    ds = GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost')
+    ::HmisUtil::JsonForms.new(env_key: 'allegheny', data_source_id: ds.id).seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   after(:all) do
     # Return client forms to normal.
-    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
+    ds = GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost')
+    HmisUtil::JsonForms.new(data_source_id: ds.id).seed_record_form_definitions(roles: [:CLIENT, :NEW_CLIENT_ENROLLMENT]) if ENV['RUN_SYSTEM_TESTS'] == 'true'
   end
 
   def enter_client_details
@@ -214,6 +216,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
         find_by_id('select_create_new_mci', visible: :all).set(true)
         expect do
           click_button 'Create & Enroll Client'
+          assert_text 'Incomplete' # the enrollment has been created and is incomplete
+          assert_text 'Household ID' # the household has been created and now has an ID
         end.to change(Hmis::Hud::Client, :count).by(1)
 
         expect(stub_mci).to have_received(:create_mci_id)

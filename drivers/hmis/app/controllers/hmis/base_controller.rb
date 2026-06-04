@@ -10,6 +10,7 @@ class Hmis::BaseController < ActionController::Base
   include BaseApplicationControllerBehavior
   include LogRagePayloadBehavior
   include CurrentUser
+  include ControllerCacheBehavior
 
   before_action :authenticate_hmis_user!
   before_action :initialize_session_for_tests, if: -> { Rails.env.test? }
@@ -19,6 +20,7 @@ class Hmis::BaseController < ActionController::Base
   before_action :set_csrf_cookie
   before_action :set_app_user_header
   before_action :set_git_revision_header
+  before_action :set_anti_caching_headers, if: :hmis_user_signed_in?
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token

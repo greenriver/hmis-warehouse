@@ -21,11 +21,12 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   describe 'resolve_match_rule_fields' do
     context 'when resolving custom data element field' do
+      let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form', data_source: ds1) }
+      let(:cded) { create(:hmis_custom_data_element_definition, data_source: ds1, key: 'housing_preference', label: 'Preferred Housing', owner_type: 'Hmis::Hud::CustomAssessment', form_definition_identifier: form_definition.identifier) }
+
       let(:requirement_expression) { '`cde.custom_assessment.housing_preference` = "apartment"' }
       let(:enrollment) { create(:hmis_hud_enrollment, client: client, data_source: ds1) }
-      let(:assessment) { create(:hmis_custom_assessment, enrollment: enrollment, data_source: ds1) }
-
-      let(:cded) { create(:hmis_custom_data_element_definition, data_source: ds1, key: 'housing_preference', label: 'Preferred Housing', owner_type: 'Hmis::Hud::CustomAssessment', form_definition_identifier: assessment.definition.identifier) }
+      let(:assessment) { create(:hmis_custom_assessment, enrollment: enrollment, data_source: ds1, definition: form_definition) }
       let!(:cde) { create(:hmis_custom_data_element, data_element_definition: cded, owner: assessment, value_string: 'house') }
 
       it 'resolves fields for custom data elements correctly' do

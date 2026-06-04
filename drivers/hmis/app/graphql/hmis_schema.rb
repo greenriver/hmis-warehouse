@@ -10,6 +10,10 @@ class HmisSchema < GraphQL::Schema
   mutation(Types::HmisSchema::MutationType)
   query(Types::HmisSchema::QueryType)
 
+  # Reject abusive queries during static analysis (before resolvers run), see https://graphql-ruby.org/queries/complexity_and_depth
+  max_depth 30, count_introspection_fields: false # Don't count introspection fields which are only enabled in development
+  max_complexity 40_000 # Observed max 04/2026: 17k when viewing entry assessments for a 10-person household
+
   trace_with(GraphqlTraceBehavior)
   trace_with(GraphQL::Tracing::SentryTrace) if Sentry.configuration&.traces_sample_rate&.positive?
 
@@ -57,8 +61,31 @@ class HmisSchema < GraphQL::Schema
     raise GraphQL::UnauthorizedError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
   end
 
-  # Return nil for unauthorized fields. This is expeced in some cases, for example non-summary fields on Enrollment.
+  # Return nil for unauthorized fields. This is expected in some cases, for example non-summary fields on Enrollment.
   def self.unauthorized_field(_error)
     nil
+  end
+
+  # Set HMIS_GQL_LOG_DEPTH_COMPLEXITY=1 in `.env.development.local` to enable local logging, for tuning max_depth/max_complexity
+  if Rails.env.development? && ENV['HMIS_GQL_LOG_DEPTH_COMPLEXITY'].present?
+    module QueryAnalysisLoggers
+      class Depth < GraphQL::Analysis::QueryDepth
+        def result
+          depth = super
+          Rails.logger.info("[HmisSchema] GraphQL query depth=#{depth}")
+          depth
+        end
+      end
+
+      class Complexity < GraphQL::Analysis::QueryComplexity
+        def result
+          complexity = super
+          Rails.logger.info("[HmisSchema] GraphQL query complexity=#{complexity}")
+          complexity
+        end
+      end
+    end
+    query_analyzer(QueryAnalysisLoggers::Depth)
+    query_analyzer(QueryAnalysisLoggers::Complexity)
   end
 end

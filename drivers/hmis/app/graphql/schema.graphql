@@ -319,9 +319,13 @@ type Assessment {
 }
 
 type AssessmentAccess {
-  canDeleteAssessments: Boolean!
-  canDeleteEnrollments: Boolean!
-  canEditEnrollments: Boolean!
+  """
+  Whether the user can delete this assessment
+  """
+  canDeleteAssessment: Boolean!
+  canDeleteAssessments: Boolean! @deprecated(reason: "Use assessment.access.canDeleteAssessment")
+  canDeleteEnrollments: Boolean! @deprecated(reason: "Use assessment.access.canDeleteAssessment")
+  canEditEnrollments: Boolean! @deprecated(reason: "Use enrollment.access.canEditEnrollments for enrollment edit checks")
   id: ID!
 }
 
@@ -770,9 +774,14 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   """
-  Most recent snapshot of client attributes
+  Current values for the given expression keys
   """
-  clientAttributes: JSON!
+  clientAttributes(
+    """
+    Keys whose values should be returned. Same format as TableColumnConfig keys.
+    """
+    keys: [String!]
+  ): JSON!
 
   """
   Masked as "Candidate 123" unless the user has permission to view
@@ -800,9 +809,14 @@ ClientProxy. Underlying client record is Destination Client.
 """
 type CeClient {
   """
-  Aggregation of most recent snapshots from all candidate pools this client belongs to
+  Current values for the given expression keys
   """
-  clientAttributes: JSON!
+  clientAttributes(
+    """
+    Keys whose values should be returned. Same format as TableColumnConfig keys.
+    """
+    keys: [String!]
+  ): JSON!
   clientName: String!
   destinationClientId: ID!
 
@@ -826,6 +840,11 @@ type CeClient {
 
 input CeClientFilterOptions {
   dynamicFilters: [TableFilterValue!]
+
+  """
+  Filter to Clients that are eligible for projects in the specified Project Group
+  """
+  projectGroupId: ID
 
   """
   Filter to Clients that are eligible for the specified Project Types
@@ -944,6 +963,45 @@ type CeMatchRule {
   Rule applicability is limited to projects with these types
   """
   projectTypes: [ProjectType!]!
+
+  """
+  Expression translated into a structured clause list; null if the expression is too complex to translate
+  """
+  structuredExpression: CeMatchRuleStructuredExpression
+}
+
+enum CeMatchRuleBooleanOperator {
+  AND
+  OR
+}
+
+type CeMatchRuleClause {
+  """
+  The comparison operator to apply to the field and value, such as EQ
+  """
+  comparator: CeMatchRuleComparator!
+
+  """
+  The name of the field for comparison, such as client_age or cde.custom_assessment.my_score
+  """
+  field: String!
+
+  """
+  The value to compare the field against, such as 18 or "1 Bed". JSON scalar
+  (e.g. integer, float, string, boolean, or null). Not a list or nested object.
+  """
+  value: JSON
+}
+
+enum CeMatchRuleComparator {
+  EQ
+  EXCLUDES
+  GT
+  GTE
+  INCLUDES
+  LT
+  LTE
+  NOT_EQ
 }
 
 enum CeMatchRuleOwner {
@@ -971,6 +1029,11 @@ enum CeMatchRuleOwner {
   Unit Group
   """
   UNIT_GROUP
+}
+
+type CeMatchRuleStructuredExpression {
+  clauses: [CeMatchRuleClause!]!
+  operator: CeMatchRuleBooleanOperator!
 }
 
 type CeMatchValue {
@@ -1030,6 +1093,7 @@ input CeOpportunityFilterOptions {
   availableOnDate: ISO8601Date
   organization: [ID!]
   project: [ID!]
+  projectGroupId: ID
   projectType: [ProjectType!]
   status: [CeOpportunityStatus!]
   workflowTemplate: [String!]
@@ -1237,10 +1301,16 @@ type CeReferralAuditEventsPaginated {
 }
 
 input CeReferralFilterOptions {
+  assignedToYou: Boolean
   onCurrentTaskSince: ISO8601Date
   organization: [ID!]
   origin: [CeReferralOrigin!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
   searchTerm: String
@@ -1600,14 +1670,15 @@ type ClientAccess {
   canAuditClients: Boolean!
   canDeleteClient: Boolean!
   canEditClient: Boolean!
-  canManageAnyClientFiles: Boolean!
+  canIndexFiles: Boolean!
+  canManageAnyClientFiles: Boolean! @deprecated(reason: "Resolve canManage on individual file access field instead")
   canManageClientAlerts: Boolean!
-  canManageOwnClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean! @deprecated(reason: "Resolve canManage on individual file access field instead")
   canManageScanCards: Boolean!
   canMergeClients: Boolean!
   canPrintClientCaseNotes: Boolean!
   canUploadClientFiles: Boolean!
-  canViewAnyFiles: Boolean!
+  canViewAnyFiles: Boolean! @deprecated(reason: "Use canIndexFiles")
   canViewClientAlerts: Boolean!
   canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
@@ -1797,6 +1868,11 @@ input ClientCeReferralFilterOptions {
   organization: [ID!]
   origin: [CeReferralOrigin!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
 }
@@ -1878,6 +1954,7 @@ enum ClientDashboardFeature {
 input ClientEligibleCeOpportunityFilterOptions {
   organization: [ID!]
   project: [ID!]
+  projectGroupId: ID
   projectType: [ProjectType!]
 }
 
@@ -4772,6 +4849,7 @@ type FieldMapping {
 File
 """
 type File {
+  access: FileAccess!
   confidential: Boolean
   contentType: String
   dateCreated: ISO8601DateTime
@@ -4789,6 +4867,12 @@ type File {
   uploadedBy: ApplicationUser
   url: String
   user: ApplicationUser
+}
+
+type FileAccess {
+  canDeleteFile: Boolean!
+  canEditFile: Boolean!
+  id: ID!
 }
 
 """
@@ -5282,8 +5366,6 @@ type FormRule {
 input FormRuleFilterOptions {
   activeStatus: [ActiveStatus!]
   appliedToProject: ID
-  definition: ID
-  formType: [FormRole!]
   projectType: [ProjectType!]
   systemForm: [SystemStatus!]
 }
@@ -10084,8 +10166,6 @@ type Query {
   formDefinition(id: ID!): FormDefinition
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
-  formRule(id: ID!): FormRule
-  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
   """
   Funder lookup
@@ -10171,8 +10251,6 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
-  serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
-  serviceCategory(id: ID!): ServiceCategory
 
   """
   Get most relevant form definition for the specified service type
@@ -10201,6 +10279,7 @@ type Query {
   """
   user(id: ID!): ApplicationUser
   userDashboard: UserDashboard!
+  workspaces(appliesTo: WorkspaceAppliesTo!): [Workspace!]!
 }
 
 type QueryAccess {
@@ -10224,6 +10303,7 @@ type QueryAccess {
   canEditUsersInWarehouse: Boolean!
   canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
+  canIndexReferrals: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!
@@ -11397,16 +11477,6 @@ type Service {
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided
   user: ApplicationUser
-}
-
-type ServiceCategoriesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [ServiceCategory!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 type ServiceCategory {
@@ -13961,6 +14031,20 @@ enum WorkerResponse {
   (1) Yes
   """
   YES
+}
+
+type Workspace {
+  id: ID!
+  name: String!
+  projectGroupId: ID!
+  slug: String!
+}
+
+enum WorkspaceAppliesTo {
+  """
+  CE referrals workspace switcher
+  """
+  CE_REFERRALS
 }
 
 """

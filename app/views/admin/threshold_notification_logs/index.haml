@@ -1,0 +1,8 @@
+= content_for :crumbs do
+  = link_to edit_admin_user_path(@user) do
+    &laquo; #{@user.name}
+
+- content_for :title, "Threshold Notification History — #{@user.name}"
+%h1= content_for :title
+
+= render_paginated_list(scope: @logs, item_name: 'notification', list_partial: 'admin/threshold_notification_logs/list')

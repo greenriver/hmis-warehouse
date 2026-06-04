@@ -8,7 +8,8 @@
 
 module HudPit::Generators::Pit::Fy2024
   class AdditionalHomelessPopulations < Base
-    QUESTION_NUMBER = 'Additional Homeless Populations'.freeze
+    QUESTION_NUMBER = 'Additional Homeless Populations'
+    HIV_AIDS_ROW = 4
 
     # Only relevant to adults
     def self.filter_pending_associations(pending_associations)

@@ -28,6 +28,18 @@ export default class extends Controller {
     const counts = data.map(d => d[1]);
     const entityLabel = this.entityLabelValue || 'Entities';
 
+    const yAxisConfig = {
+      label: {
+        text: `Number of ${entityLabel}`,
+        position: 'outer-middle'
+      },
+      tick: {
+        format: (x) => { return Math.floor(x).toLocaleString('en-US'); }
+      }
+    };
+    const yMax = this.calculateYAxisCap(counts);
+    if (yMax !== null) yAxisConfig.max = yMax;
+
     const chartConfig = {
       bindto: this.chartTarget,
       data: {
@@ -62,15 +74,7 @@ export default class extends Controller {
             }
           }
         },
-        y: {
-          label: {
-            text: `Number of ${entityLabel}`,
-            position: 'outer-middle'
-          },
-          tick: {
-            format: (x) => { return Math.floor(x).toLocaleString('en-US'); }
-          }
-        }
+        y: yAxisConfig
       },
       legend: {
         show: false
@@ -98,6 +102,20 @@ export default class extends Controller {
     this.chart = bb.generate(chartConfig);
     const svg = this.chartTarget.querySelector('svg');
     if (svg) svg.style.overflow = 'visible';
+  }
+
+  calculateYAxisCap(counts) {
+    const nonZero = counts.filter(v => v > 0).sort((a, b) => a - b);
+    if (nonZero.length < 4) return null;
+
+    const max = nonZero[nonZero.length - 1];
+    const q1 = nonZero[Math.floor(nonZero.length * 0.25)];
+    const q3 = nonZero[Math.floor(nonZero.length * 0.75)];
+    const iqr = q3 - q1;
+    const upperFence = q3 + 1.5 * iqr;
+
+    if (max > upperFence) return upperFence * 1.2;
+    return null;
   }
 
   async handleBarClick(d) {
@@ -161,7 +179,7 @@ export default class extends Controller {
       return `
               <tr>
                 <td>${linkHTML}</td>
-                <td>${crossing.previous_value || 'N/A'}</td>
+                <td>${crossing.previous_value != null ? crossing.previous_value : 'N/A'}</td>
                 <td>${crossing.current_value}</td>
                 <td>${sign}${change}</td>
               </tr>
