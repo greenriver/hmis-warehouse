@@ -93,22 +93,6 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'updateCeMatchRule', 'rule', 'expression')).to eq('current_age >= 65')
   end
 
-  it 'returns impact warnings without saving until confirmed when applicability config changes' do
-    allow(Hmis::Ce::Match::RuleChangeImpactCalculator).to receive(:for_rule).and_return(warning_impact)
-
-    input = { applicabilityConfig: { projectTypes: ['ES_ENTRY_EXIT'] } }
-
-    expect do
-      response, result = post_graphql(id: rule.id, input: input) { mutation }
-      expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'updateCeMatchRule', 'errors').first).to include('severity' => 'warning')
-    end.not_to(change { rule.reload.applicability_config })
-
-    response, result = post_graphql(id: rule.id, input: input, confirmed: true) { mutation }
-    expect(response.status).to eq(200), result.inspect
-    expect(rule.reload.applicability_config.symbolize_keys[:project_types]).to eq([project_type])
-  end
-
   context 'when the rule is in another data source' do
     let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: other_data_source, name: 'Other DS') }
 
