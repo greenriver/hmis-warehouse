@@ -38,17 +38,18 @@ module ManagesCeMatchRules
   end
 
   def impact_warnings(rule)
+    errors = HmisErrors::Errors.new
     result = Hmis::Ce::Match::RuleChangeImpactCalculator.for_rule(rule: rule)
 
     warn_unit_groups = result.affected_unit_groups.select do |unit_group_info|
       # Warn about this unit group if the rule change will cause many candidates to be removed
       unit_group_info.current_candidate_count.positive? &&
-        unit_group_info.removed_candidate_count / unit_group_info.current_candidate_count >= IMPACT_WARNING_RATIO
+        # casting removed candidate count to float to avoid integer division rounding
+        unit_group_info.removed_candidate_count.to_f / unit_group_info.current_candidate_count >= IMPACT_WARNING_RATIO
     end
 
-    return HmisErrors::Errors.new if warn_unit_groups.empty?
+    return errors if warn_unit_groups.empty?
 
-    errors = HmisErrors::Errors.new
     errors.add(
       :base,
       :information,
