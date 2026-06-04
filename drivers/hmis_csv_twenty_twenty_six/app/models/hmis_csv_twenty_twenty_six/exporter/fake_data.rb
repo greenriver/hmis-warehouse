@@ -14,8 +14,6 @@ module HmisCsvTwentyTwentySix::Exporter
       @options = options
     end
 
-    # row is a HashWithIndifferentAccess at this point, not an AR object.
-    # See ExportConcern#process for where the conversion happens.
     def process(row)
       export = @options[:export]
       return row unless export.faked_pii
