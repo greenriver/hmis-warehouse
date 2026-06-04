@@ -118,18 +118,21 @@ Then verify the user appears in the Keycloak admin console under Users.
 
 ## Configuring Production
 
-Create an `Idp::ServiceConfig` record with `connector_id: 'keycloak'` and the
-appropriate config hash:
+Create an `Idp::ServiceConfig` record with `connector_id: 'keycloak'`.
+The `service_token` field stores the client secret (encrypted at rest), and
+connector-specific keys like `client_id` and `realm` go in `additional_config`:
 
 ```ruby
 Idp::ServiceConfig.create!(
   connector_id: 'keycloak',
-  config: {
-    api_url: 'https://your-keycloak.example.com',
-    realm: 'openpath',
+  name: 'Keycloak Production',
+  api_url: 'https://your-keycloak.example.com',
+  service_token: '<client-secret>',
+  additional_config: {
     client_id: 'rails-service-account',
-    client_secret: 'KEYCLOAK_SERVICE_CLIENT_SECRET',
-  }
+    realm: 'openpath',
+  },
+  active: true,
 )
 ```
 
