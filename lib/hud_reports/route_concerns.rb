@@ -21,6 +21,7 @@ module HudReports
           get :running_all_questions, on: :collection
           get :history, on: :collection
           get :download, on: :member
+          post :restore, on: :member
         end
 
         # Nested routes for drilling down into report data via questions/measures and cells

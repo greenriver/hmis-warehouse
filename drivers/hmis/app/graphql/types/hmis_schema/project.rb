@@ -122,9 +122,9 @@ module Types
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
     field :unit_groups, Types::HmisSchema::UnitGroup.page_type, null: false
 
-    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
-    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
-    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:on_current_task_since, :workflow_template, :origin], type_name: 'ProjectOutgoingCeReferral' })
+    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_group_id, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_group_id, :project_type, :organization, :on_current_task_since, :workflow_template, :assigned_to_you, :assigned_to_user], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:project_group_id, :on_current_task_since, :workflow_template, :origin, :assigned_to_you, :assigned_to_user], type_name: 'ProjectOutgoingCeReferral' })
 
     def hud_id
       object.project_id
@@ -277,12 +277,12 @@ module Types
       # Find form instances for this project. Only include active instances. (Unlike other form types, we do not support
       # viewing "legacy" form submissions from inactive instances, to simplify implementation.)
       # Use for_project instead of for_project_through_entities because external forms are limited to project-level instances.
-      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object).active
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object).active # instances are already scoped to the DS because we used for_project
       identifiers = instances.select(:definition_identifier)
 
       scope = HmisExternalApis::ExternalForms::FormSubmission.
         joins(:definition).
-        where(definition: { identifier: identifiers })
+        where(definition: { identifier: identifiers, data_source_id: object.data_source_id })
 
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier

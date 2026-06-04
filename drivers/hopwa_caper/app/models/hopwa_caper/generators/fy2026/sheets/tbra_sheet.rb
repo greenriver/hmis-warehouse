@@ -8,7 +8,7 @@
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class TbraSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q2: TBRA'
+    QUESTION_NUMBER = 'TBRA'
     QUESTION_NUMBERS = ['Q2'].freeze
     SHEET_TITLE = 'Complete this section for all Households served with HOPWA Tenant-Based Rental Assistance (TBRA) by your organization in the reporting year.'
     CONTENTS = [
@@ -25,9 +25,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_enrollments
+      tbra_project_ids = GrdaWarehouse::Hud::Project.
+        where(arel.p_t[:HousingType].eq(3).or(arel.p_t[:HousingType].eq(nil))).select(:id)
+
       HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
         tbra_hopwa(range: @report.report_range).
-        apply(@report.hopwa_caper_enrollments)
+        apply(@report.hopwa_caper_enrollments).
+        where(project_id: tbra_project_ids)
     end
 
     def households_served_sheet(sheet)

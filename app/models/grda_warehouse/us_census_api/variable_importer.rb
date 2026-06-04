@@ -49,7 +49,7 @@ module GrdaWarehouse
           end.body
           vars = JSON.parse(body)['variables']
         rescue JSON::ParserError => e
-          Rails.logger.error e.message
+          UnifiedErrorReporter.call(e, "Census API: failed to parse variables response for #{dataset}/#{year}")
         end
 
         records = []
@@ -86,7 +86,7 @@ module GrdaWarehouse
         begin
           groups = JSON.parse(Curl.get(lookup_url).body)['groups']
         rescue JSON::ParserError => e
-          Rails.logger.error e.message
+          UnifiedErrorReporter.call(e, "Census API: failed to parse groups response for #{dataset}/#{year}")
         end
 
         records = []

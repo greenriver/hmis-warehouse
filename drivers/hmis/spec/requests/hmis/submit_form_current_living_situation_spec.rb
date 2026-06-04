@@ -22,7 +22,7 @@ RSpec.describe 'SubmitForm for CurrentLivingSituation', type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
   let!(:cls1) { create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e1, user: u1 }
 
-  let(:definition) { Hmis::Form::Definition.find_by(role: :CURRENT_LIVING_SITUATION) }
+  let(:definition) { Hmis::Form::Definition.find_by(role: :CURRENT_LIVING_SITUATION, data_source: ds1) }
   let(:hud_values) do
     {
       'informationDate' => '2023-07-27',

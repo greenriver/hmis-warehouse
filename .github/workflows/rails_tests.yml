@@ -6,7 +6,9 @@ on:
   push:
     branches:
       - stable
-      - "release-*"
+      - main
+      - staging
+      - production
   pull_request:
     branches:
       - "*"
@@ -390,7 +392,7 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'production' }}:production"
           CHROMIUM_PATH: /usr/bin/chromium
           TARGET_SPECS: ${{ needs.determine_matrix.outputs.focused_path }}
           TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}

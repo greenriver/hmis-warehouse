@@ -12,6 +12,7 @@ OpenPath::Application.routes.draw do
       resources :reports, only: [:index, :create, :show, :destroy] do
         get :details, on: :member
         get :clients, on: :member
+        post 'reload_from_csv', to: 'reports#reload_from_csv', as: :reload_from_csv, on: :member
       end
       resources :goal_configs, except: [:show]
     end

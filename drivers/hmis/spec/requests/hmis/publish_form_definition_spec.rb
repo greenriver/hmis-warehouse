@@ -56,14 +56,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ],
     }
   end
-  let!(:fd1) { create :hmis_form_definition, definition: definition_json, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT }
-  let!(:fd2) { create :hmis_form_definition }
+  let!(:fd1) { create :hmis_form_definition, definition: definition_json, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd2) { create :hmis_form_definition, data_source: ds1 }
 
-  let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, status: Hmis::Form::Definition::RETIRED, role: :CUSTOM_ASSESSMENT }
-  let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED, role: :CUSTOM_ASSESSMENT }
-  let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT }
+  let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, status: Hmis::Form::Definition::RETIRED, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
 
-  let!(:non_assessment_form) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT }
+  let!(:non_assessment_form) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT, data_source: ds1 }
 
   before(:each) do
     hmis_login(user)

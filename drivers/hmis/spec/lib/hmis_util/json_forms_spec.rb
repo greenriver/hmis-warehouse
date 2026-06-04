@@ -96,13 +96,13 @@ RSpec.describe HmisUtil::JsonForms do
     end
 
     it 'does not create duplicates when run multiple times' do
-      json_forms = described_class.new
+      json_forms = described_class.new(data_source_id: data_source.id)
       expect { json_forms.seed_all }.to change(Hmis::Form::Definition, :count).and change(Hmis::Form::Instance, :count)
       expect { json_forms.seed_all }.to not_change(Hmis::Form::Definition, :count).and not_change(Hmis::Form::Instance, :count)
     end
 
     it 'updates existing forms when definitions change' do
-      described_class.new.seed_all
+      described_class.new(data_source_id: data_source.id).seed_all
 
       # Get a form and modify its definition in memory
       client_form = Hmis::Form::Definition.find_by(identifier: 'client', role: :CLIENT)
@@ -125,7 +125,9 @@ RSpec.describe HmisUtil::JsonForms do
       expect(client_form.definition['item'].any? { |item| item['link_id'] == 'test_field' }).to be true
 
       # Run seed_all again - it should revert to the original definition
-      expect { described_class.new.seed_all }.to not_change(Hmis::Form::Definition, :count).and not_change(Hmis::Form::Instance, :count)
+      expect { described_class.new(data_source_id: data_source.id).seed_all }.
+        to not_change(Hmis::Form::Definition, :count).
+        and not_change(Hmis::Form::Instance, :count)
 
       client_form.reload
       expect(client_form.definition['item'].none? { |item| item['link_id'] == 'test_field' }).to be true
@@ -133,13 +135,13 @@ RSpec.describe HmisUtil::JsonForms do
 
     it 'loads test form data when env_key is test' do
       expect do
-        described_class.new(env_key: 'test').seed_all
+        described_class.new(env_key: 'test', data_source_id: data_source.id).seed_all
       end.to change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count).from(0).to(1)
     end
 
     it 'does not load test form data when env_key is not test' do
       expect do
-        described_class.new(env_key: 'qa_hmis').seed_all
+        described_class.new(env_key: 'qa_hmis', data_source_id: data_source.id).seed_all
       end.to not_change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count).from(0)
     end
   end
@@ -147,12 +149,12 @@ RSpec.describe HmisUtil::JsonForms do
   describe 'env_key (client/environment override)' do
     it 'loads client-specific form definitions when env_key is set' do
       expect do
-        described_class.new(env_key: 'allegheny').seed_all
+        described_class.new(env_key: 'allegheny', data_source_id: data_source.id).seed_all
       end.to change(Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP, identifier: 'change_provider_outcome'), :count).from(0).to(1)
     end
 
     it 'applies client-specific patches to form definitions when env_key is set' do
-      described_class.new(env_key: 'allegheny').seed_all
+      described_class.new(env_key: 'allegheny', data_source_id: data_source.id).seed_all
 
       client_form = Hmis::Form::Definition.managed_in_version_control.where(role: :CLIENT).sole
       expect(client_form).to be_present
@@ -162,7 +164,7 @@ RSpec.describe HmisUtil::JsonForms do
 
   describe 'fragment resolution' do
     it 'resolves fragments in form definitions (smoke-test)' do
-      described_class.new.seed_all
+      described_class.new(data_source_id: data_source.id).seed_all
 
       # Find a form that uses fragments (like intake assessment)
       intake_form = Hmis::Form::Definition.where(identifier: 'base-intake', role: :INTAKE).sole
@@ -177,7 +179,7 @@ RSpec.describe HmisUtil::JsonForms do
   describe 'generate_cdeds' do
     # cls_assessment (form_data/test/custom_assessments/cls_assessment.json) has a field with custom_field_key: custom_cls_test_note
     let(:cls_cded_scope) do
-      Hmis::Hud::CustomDataElementDefinition.where(key: 'custom_cls_test_note', owner_type: 'Hmis::Hud::CustomAssessment')
+      Hmis::Hud::CustomDataElementDefinition.where(key: 'custom_cls_test_note', owner_type: 'Hmis::Hud::CustomAssessment', data_source_id: data_source.id)
     end
 
     before(:each) do
@@ -187,23 +189,23 @@ RSpec.describe HmisUtil::JsonForms do
     it 'generates custom_cls_test_note CDED when loading cls_assessment with generate_cdeds: true' do
       expect(cls_cded_scope.count).to eq(0)
 
-      described_class.new(env_key: 'test', generate_cdeds: true).seed_all
+      described_class.new(env_key: 'test', generate_cdeds: true, data_source_id: data_source.id).seed_all
 
       expect(cls_cded_scope.count).to eq(1)
       expect(cls_cded_scope.sole.key).to eq('custom_cls_test_note')
     end
 
     it 'does nothing if CDED already exists when loading cls_assessment again with generate_cdeds: true' do
-      described_class.new(env_key: 'test', generate_cdeds: true).seed_all
+      described_class.new(env_key: 'test', generate_cdeds: true, data_source_id: data_source.id).seed_all
       expect(cls_cded_scope.count).to eq(1)
 
-      described_class.new(env_key: 'test', generate_cdeds: true).seed_all
+      described_class.new(env_key: 'test', generate_cdeds: true, data_source_id: data_source.id).seed_all
 
       expect(cls_cded_scope.count).to eq(1)
     end
 
     it 'does not generate custom_cls_test_note CDED when loading cls_assessment with generate_cdeds: false' do
-      described_class.new(env_key: 'test', generate_cdeds: false).seed_all
+      described_class.new(env_key: 'test', generate_cdeds: false, data_source_id: data_source.id).seed_all
 
       expect(cls_cded_scope.count).to eq(0)
     end

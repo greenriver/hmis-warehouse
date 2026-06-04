@@ -10,6 +10,7 @@ class SourceClientsController < ApplicationController
   include AjaxModalRails::Controller
   include ClientPathGenerator
 
+  skip_before_action :set_anti_caching_headers, only: [:image]
   before_action :require_can_create_clients!, except: [:image]
   before_action :set_client
   before_action :set_destination_client

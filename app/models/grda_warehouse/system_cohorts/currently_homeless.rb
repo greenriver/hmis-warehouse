@@ -16,11 +16,13 @@ module GrdaWarehouse::SystemCohorts
       @processing_date = processing_date
       @date_window = date_window
 
-      add_missing_clients
+      with_client_update_lock(timeout_seconds: 10) do
+        add_missing_clients
 
-      remove_housed_clients
-      remove_inactive_clients
-      remove_no_longer_meets_criteria
+        remove_housed_clients
+        remove_inactive_clients
+        remove_no_longer_meets_criteria
+      end
     end
 
     private def inactive_date

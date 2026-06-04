@@ -6,24 +6,44 @@
 
 # frozen_string_literal: true
 
-# Assumptions:
-# The import is authoritative for the date range specified in the Export.csv file
-# The import is authoritative for the projects specified in the Project.csv file
-# There's no reason to have client records with no enrollments
-# All tables that hang off a client also hang off enrollments
-
-# reload!; importer = HmisCsvImporter::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
-
-# Some notes on how to manually run imports where the delayed job expires or fails for non-data related issue
-# il = GrdaWarehouse::ImportLog.last
-# loader = HmisCsvImporter::Loader::LoaderLog.last
-# imp_log = HmisCsvImporter::Importer::ImporterLog.last
-# # NOTE: newing up an importer currently creates an ImporterLog, this should be deleted
-# imp = HmisCsvImporter::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
-# imp.importer_log = imp_log
-# il.update(import_errors: nil)
-# # at this point, you can call any of the various import methods, usually, the last one that was attempted
-# imp.log_timing(:process_existing)
+# Reconciles staged HUD CSV data (from the Loader) with the warehouse.
+#
+# The import is authoritative for the projects in Project.csv and the date
+# range in Export.csv. All warehouse rows within that scope are assumed
+# deleted unless the incoming data proves otherwise ("guilty until proven
+# innocent" via pending_date_deleted).
+#
+# Lifecycle:
+#   pre_process! → validate → aggregate → cleanup → ingest! → post_process
+#
+# Ingestion (ingest!) runs four passes per HUD file:
+#   0. mark_tree_as_dead   — flag all in-scope warehouse rows as pending deletion
+#   1. add_new_data        — upsert staging rows whose hud_key is absent from the
+#                            in-scope warehouse set (upsert handles keys that exist
+#                            outside the scope, e.g. from a prior date range)
+#   2. process_existing    — for rows present in both staging and warehouse:
+#      a. mark_unchanged       — source_hash match → clear pending deletion
+#      b. mark_incoming_older  — staging DateUpdated < warehouse → clear pending deletion
+#      c. apply_updates        — everything still pending → overwrite warehouse from staging
+#   3. remove_pending_deletes — soft-delete anything still flagged
+#
+# Terminology:
+#   "involved scope" / "in-scope" — the set of warehouse rows this import is
+#       authoritative over, defined by involved_warehouse_scope(data_source_id,
+#       project_ids, date_range). Each per-file model implements this scope.
+#   "aggregation" — optional enrollment combining for Night-by-Night ES projects
+#       (see CombineEnrollments). Accommodates vendors that submit NbN ES stays
+#       as a new Entry-Exit enrollment per night; aggregation merges those into a
+#       single continuous enrollment. When active, staging data may include
+#       enrollments outside the import date range so contiguous stays can be
+#       merged correctly.
+#
+# @see docs/features/hmis-csv-importer.md for full data-flow documentation.
+#
+# Manual run:
+#   loader = HmisCsvImporter::Loader::LoaderLog.last
+#   imp = HmisCsvImporter::Importer::Importer.new(loader_id: loader.id, data_source_id: loader.data_source_id)
+#   imp.import!
 
 require 'memery'
 require 'zlib'
@@ -55,7 +75,7 @@ module HmisCsvImporter::Importer
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @debug = debug # no longer used for anything. instead we use logger.levels.
-      @updated_source_client_ids = []
+      @updated_source_client_ids = Set.new
 
       @deidentified = deidentified
       @project_cleanup = project_cleanup
@@ -246,39 +266,85 @@ module HmisCsvImporter::Importer
     # @return [void]
     #
     private def precalculate_change_counts
-      # This makes an estimate of the changes that will occur as it needs to be done before the
-      # actual processing so that it can pause the import if necessary.
-      # NOTE: as written this causes 2 additional, potentially slow queries
-      importable_files.map do |file, klass|
-        incoming_data = klass.incoming_data(importer_log_id: importer_log.id).
-          pluck(klass.hud_key).to_set
-
-        to_add = (incoming_data - existing_hud_keys(klass)).count
-        # If we never delete, just pretend it will be 0
-        to_remove = 0 if klass.prevent_import_deletions?
-        to_remove ||= (existing_hud_keys(klass) - incoming_data).count
-
-        importer_log.summary[file]['added'] = to_add
-        importer_log.summary[file]['removed'] = to_remove
+      # Estimate change counts before processing to determine if the import should be paused.
+      importable_files.each do |file, klass|
+        importer_log.summary[file]['added']       = added_count(klass)
+        importer_log.summary[file]['removed']     = klass.prevent_import_deletions? ? 0 : removed_count(klass)
+        importer_log.summary[file]['total_count'] = existing_data_scope(klass).distinct.count(klass.hud_key)
       end
     end
 
-    ##
-    # Retrieves the set of existing HUD keys from the warehouse for a given class.
-    #
-    # This method queries the warehouse for records that match the data source,
-    # involved projects, and date range. It then extracts and returns the HUD keys
-    # as a set for efficient lookup and comparison.
-    #
-    # @param klass [Class] The class representing the data model being queried.
-    # @return [Set<String>] A set of existing HUD keys for the given class.
-    #
-    memoize private def existing_hud_keys(klass)
+    # Count of incoming hud_keys that do not yet exist in the warehouse.
+    private def added_count(klass)
+      anti_join_count(
+        klass.incoming_data(importer_log_id: importer_log.id),
+        existing_data_scope(klass),
+        klass.hud_key,
+      )
+    end
+
+    # Count of warehouse hud_keys not present in the incoming data.
+    private def removed_count(klass)
+      anti_join_count(
+        existing_data_scope(klass),
+        klass.incoming_data(importer_log_id: importer_log.id),
+        klass.hud_key,
+      )
+    end
+
+    # COUNT DISTINCT keys in `scope` that have no matching key in `other_scope`,
+    # using NOT EXISTS to avoid NOT IN's 3-valued NULL semantics.
+    private def anti_join_count(scope, other_scope, key)
+      other_table = other_scope.select(key).arel.as('other')
+      other_ref = Arel::Table.new('other')
+      exists = Arel::SelectManager.new.
+        from(other_table).
+        where(other_ref[key].eq(scope.arel_table[key])).
+        project(1)
+
+      scope.where(exists.exists.not).distinct.count(key)
+    end
+
+    private def existing_data_scope(klass)
       klass.existing_data(
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).pluck(klass.hud_key).to_set
+      )
+    end
+
+    # Snapshots the hud_keys already present in the warehouse (within the
+    # involved scope) into a temporary table, then yields a scope of staged
+    # rows whose keys are NOT in that snapshot — i.e., the genuinely new rows.
+    #
+    # Without the temp table, every batch fetched by find_each would re-evaluate
+    # the full involved_warehouse_scope query, which is expensive for large tables.
+    private def with_new_records_scope(klass)
+      conn = klass.connection
+      key = klass.hud_key
+      temp = tmp_table_name('existing_keys', klass.warehouse_class)
+
+      existing_scope = existing_data_scope(klass)
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
+          SELECT DISTINCT #{conn.quote_column_name(key)} AS hud_key
+          FROM (#{existing_scope.select(key).where.not(key => nil).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (hud_key)")
+
+      # NOT EXISTS instead of NOT IN because NOT IN returns no rows when any
+      # value in the subquery is NULL (SQL three-valued logic).
+      temp_table = Arel.sql(conn.quote_table_name(temp))
+      exists = Arel::SelectManager.new.
+        from(temp_table).
+        where(Arel.sql('hud_key').eq(klass.arel_table[key])).
+        project(1)
+      new_data_scope = klass.incoming_data(importer_log_id: importer_log.id).
+        where(exists.exists.not)
+      yield new_data_scope
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
     end
 
     ##
@@ -296,14 +362,13 @@ module HmisCsvImporter::Importer
     #
     private def change_counts
       importer_log.summary.map do |file, data|
-        klass = importable_files[file]
-        to_add = data['added']
+        to_add    = data['added']
         to_remove = data['removed']
         [
           file,
           {
             change_count: (to_add - to_remove).abs,
-            total_count: existing_hud_keys(klass).count,
+            total_count: data['total_count'].to_i,
           },
         ]
       end.to_h
@@ -339,6 +404,16 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Refresh statistics on all importable warehouse tables after mark_tree_as_dead
+    # bulk-writes pending_date_deleted, so the planner has accurate selectivity for
+    # the semi-join strategies used by mark_unchanged and mark_incoming_older.
+    private def analyze_warehouse_tables
+      importable_files.each_value do |klass|
+        wh_klass = klass.warehouse_class
+        wh_klass.connection.execute("ANALYZE #{wh_klass.quoted_table_name}")
+      end
+    end
+
     # Move all data from the data lake to either the structured, or aggregated tables
     def pre_process!
       importer_log.update(status: :pre_processing)
@@ -361,7 +436,7 @@ module HmisCsvImporter::Importer
       scope = source_data_scope_for(file_name)
       # save some allocations be doing these only once
       pre_processed_at = Time.current
-      bm = Benchmark.measure do
+      bmk = Benchmark.measure do
         batch = []
         failures = []
         row_failures = []
@@ -397,9 +472,9 @@ module HmisCsvImporter::Importer
       end
       records = scope.count
       stats = {
-        pp_secs: bm.real.round(3),
-        pp_rps: ((records / bm.real).round(3) unless records.zero?),
-        pp_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        pp_secs: bmk.real.round(3),
+        pp_rps: ((records / bmk.real).round(3) unless records.zero?),
+        pp_cpu: "#{(bmk.total * 100.0 / bmk.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -525,6 +600,10 @@ module HmisCsvImporter::Importer
       # as pending deletion.  We'll remove the pending where appropriate
       log_timing :mark_tree_as_dead
 
+      # mark_tree_as_dead just bulk-updated pending_date_deleted across all in-scope
+      # rows; refresh planner statistics so subsequent queries see accurate estimates.
+      log_timing :analyze_warehouse_tables
+
       # Add Export row
       log_timing :add_export_row
 
@@ -644,6 +723,16 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Upsert staged rows whose hud_key doesn't yet exist in the warehouse
+    # (within the involved scope). This is step 1 of ingestion — it runs
+    # before process_existing, so any key already present in the warehouse is
+    # skipped here and handled later by mark_unchanged / mark_incoming_older /
+    # apply_updates.
+    #
+    # "New" is determined via a NOT EXISTS anti-join against a temp table
+    # snapshot of warehouse hud_keys (see with_new_records_scope). Uses upsert
+    # rather than plain insert because a matching hud_key may exist outside the
+    # involved scope (e.g., from a prior date range import).
     def add_new_data
       file_count = 0
       importable_files.each do |file_name, klass|
@@ -655,57 +744,59 @@ module HmisCsvImporter::Importer
         preload_custom_file_data(klass)
 
         destination_class = klass.reflect_on_association(:destination_record).klass
-        # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
-        batch = []
-        # This is the same query as `existing_hud_keys` but the memoization of that method prevents this from
-        # using it.
-        existing_keys = nil
-        with_sql_log(__method__, klass, name: 'existing_data') do
-          existing_keys = klass.existing_data(
-            data_source_id: data_source.id,
-            project_ids: involved_project_ids,
-            date_range: date_range,
-          ).pluck(klass.hud_key).to_set
+
+        # When enrollment aggregation is active (Night-by-Night ES projects),
+        # CombineEnrollments writes consolidated enrollments into the staging
+        # table that can span beyond the import's date range. This means the
+        # "added" count in the log may be larger than expected.
+        upsert = !destination_class.name.in?(un_updateable_warehouse_classes)
+
+        bmk = Benchmark.measure do
+          upsert_new_records_in_batches(klass, destination_class, file_name, upsert: upsert)
         end
+        log_phase_stats(file_name, bmk, type: 'added', destination_class: destination_class)
+      end
+    end
 
-        bm = Benchmark.measure do
-          klass.incoming_data(importer_log_id: importer_log.id).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
-            next if existing_keys.include?(row[klass.hud_key])
-
+    # Iterates staged rows that have no matching hud_key in the warehouse and
+    # flushes them to the warehouse destination table in INSERT_BATCH_SIZE chunks.
+    #
+    # Columns are derived from the first record's attributes
+    private def upsert_new_records_in_batches(klass, destination_class, file_name, upsert:)
+      batch = []
+      columns = nil
+      with_new_records_scope(klass) do |new_data_scope|
+        with_sql_log(:add_new_data, klass, name: 'new_data') do
+          new_data_scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
             batch << row.as_destination_record
-            if batch.count == INSERT_BATCH_SIZE
-              # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
-              # for whatever reason doesn't fall within the involved scope
-              # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
-              # entire history of enrollments for aggregated projects because some of the existing enrollments fall
-              # outside of the range, but are necessary to calculate the correctly aggregated set
-              upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-              columns = batch.first.attributes.keys - ['id']
-              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
-              batch = []
-            end
-          end
-          # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
-          # for whatever reason doesn't fall within the involved scope
-          # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
-          # entire history of enrollments for aggregated projects because some of the existing enrollments fall
-          # outside of the range, but are necessary to calculate the correctly aggregated set
-          if batch.present?
-            upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-            columns = batch.first.attributes.keys - ['id']
-            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
+            next unless batch.count == INSERT_BATCH_SIZE
+
+            columns ||= batch.first.attributes.keys - ['id']
+            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+            batch = []
           end
         end
-        records = summary_for(file_name, 'added') || 0
-        stats = {
-          add_secs: bm.real.round(3),
-          add_rps: ((records / bm.real).round(3) unless records.zero?),
-          add_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
-        }
-        importer_log.summary[file_name].merge!(stats)
-        Rails.logger.debug do
-          "  Added #{destination_class.table_name} #{hash_as_log_str({ added: records }.merge(stats).merge(log_ids))}"
-        end
+      end
+      return unless batch.present?
+
+      columns ||= batch.first.attributes.keys - ['id']
+      process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+    end
+
+    # Records benchmark timings for a completed ingest phase into the importer
+    # log summary and emits a debug log line.
+    # +type+ is the summary key prefix (e.g., 'added', 'updated').
+    private def log_phase_stats(file_name, bmk, type:, destination_class:)
+      records = summary_for(file_name, type) || 0
+      stat_prefix = type == 'added' ? 'add' : type
+      stats = {
+        "#{stat_prefix}_secs": bmk.real.round(3),
+        "#{stat_prefix}_rps": (records.zero? ? nil : (records / bmk.real).round(3)),
+        "#{stat_prefix}_cpu": "#{(bmk.total * 100.0 / bmk.real).round}%",
+      }.compact
+      importer_log.summary[file_name].merge!(stats)
+      Rails.logger.debug do
+        "  #{type.capitalize} #{destination_class.table_name} #{hash_as_log_str({ type.to_sym => records }.merge(stats).merge(log_ids))}"
       end
     end
 
@@ -743,6 +834,15 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Final step of ingestion: soft-delete warehouse rows still flagged with
+    # pending_date_deleted. These are records that were in-scope but not
+    # accounted for by add_new_data, mark_unchanged, mark_incoming_older, or
+    # apply_updates — meaning the incoming CSV no longer contains them.
+    #
+    # Three special cases:
+    #   prevent_import_deletions? — some file types opt out of deletions entirely;
+    #   Client (PersonalID) — partial data sources may not include all clients;
+    #   Everything else — batched soft-delete (set DateDeleted, clear flag).
     def remove_pending_deletes
       importable_files.each do |file_name, klass|
         # Never delete Exports
@@ -767,20 +867,7 @@ module HmisCsvImporter::Importer
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
-          # Do this in batches to avoid the complex join during the update
-          scope = existing_destination_data_scope(klass)
-          all_ids = nil
-          with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
-            all_ids = scope.pluck(:id)
-          end
-          update_scope = if scope.klass.paranoid?
-            scope.klass.with_deleted
-          else
-            scope.klass
-          end
-          all_ids.each_slice(INSERT_BATCH_SIZE) do |ids|
-            update_scope.where(id: ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
-          end
+          batch_soft_delete(klass, existing_destination_data_scope(klass))
           note_processed(file_name, delete_count, 'removed')
         end
       end
@@ -819,7 +906,7 @@ module HmisCsvImporter::Importer
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
-      bm = Benchmark.measure do
+      bmk = Benchmark.measure do
         batch = []
         upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
 
@@ -873,9 +960,9 @@ module HmisCsvImporter::Importer
       end
       records = summary_for(file_name, 'updated') || 0
       stats = {
-        up_secs: bm.real.round(3),
-        up_rps: ((records / bm.real).round(3) unless records.zero?),
-        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        up_secs: bmk.real.round(3),
+        up_rps: ((records / bmk.real).round(3) unless records.zero?),
+        up_cpu: "#{(bmk.total * 100.0 / bmk.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -887,7 +974,7 @@ module HmisCsvImporter::Importer
     # These files only update existing records and never add new ones
     private def apply_augmentation_updates(klass, file_name)
       destination_class = klass.reflect_on_association(:destination_record).klass
-      bm = Benchmark.measure do
+      bmk = Benchmark.measure do
         batch = []
         upsert_columns = augmentation_upsert_columns(klass)
 
@@ -929,9 +1016,9 @@ module HmisCsvImporter::Importer
 
       records = summary_for(file_name, 'updated') || 0
       stats = {
-        up_secs: bm.real.round(3),
-        up_rps: ((records / bm.real).round(3) unless records.zero?),
-        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        up_secs: bmk.real.round(3),
+        up_rps: ((records / bmk.real).round(3) unless records.zero?),
+        up_cpu: "#{(bmk.total * 100.0 / bmk.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
@@ -977,9 +1064,7 @@ module HmisCsvImporter::Importer
     end
 
     private def track_updated_client(personal_id)
-      return if personal_id.blank?
-
-      @updated_source_client_ids << personal_id
+      @updated_source_client_ids << personal_id if personal_id.present?
     end
 
     private def augmentation_upsert_columns(klass)
@@ -996,64 +1081,163 @@ module HmisCsvImporter::Importer
       columns.uniq
     end
 
-    # Compare source_hash new and old, if they are identical, we don't need to do anything
+    # First pass of process_existing: clear pending_date_deleted on warehouse
+    # rows whose source_hash already matches the incoming staged row. These
+    # records haven't changed, so they don't need an update — just rescue them
+    # from the soft-delete that mark_tree_as_dead queued up.
+    #
+    # Rows that don't match here (hash mismatch or NULL warehouse source_hash)
+    # fall through to mark_incoming_older, then apply_updates.
     private def mark_unchanged(klass, file_name)
-      # We always bring over Exports
       return if klass.hud_key == :ExportID
-      # Augmented data will always appear changed as the source hash won't match the destination source hash
       return if custom_augmentation?(klass)
 
-      existing = existing_destination_data_scope(klass).where.not(DateUpdated: nil). # A bad import can sometimes cause this
-        pluck(klass.hud_key, :source_hash)
-      incoming = klass.should_import.where(importer_log_id: @importer_log.id).
-        pluck(klass.hud_key, :source_hash)
-      unchanged = (existing & incoming).map(&:first)
-      Rails.logger.info "Processing Unchanged for #{file_name}: #{incoming.count} incoming, #{unchanged.count} unchanged"
-      unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        query = klass.warehouse_class.where(
-          data_source_id: data_source.id,
-          klass.hud_key => batch,
-        )
-        query = query.with_deleted if klass.warehouse_class.paranoid?
-        query.update_all(pending_date_deleted: nil)
-        note_processed(file_name, batch.count, 'unchanged')
+      staging = klass.arel_table
+      wh      = klass.warehouse_class.arel_table
+      incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id)
+
+      # Staging source_hash is always non-NULL; warehouse source_hash can be NULL
+      # to flag records for re-evaluation. SQL equality returns NULL (not true)
+      # for NULL warehouse rows, so they correctly fall through to apply_updates.
+      exists = incoming_scope.
+        where(staging[klass.hud_key].eq(wh[klass.hud_key])).
+        where(staging[:source_hash].eq(wh[:source_hash])).
+        select(1).arel.exists
+      matched_scope = existing_destination_data_scope(klass).
+        where.not(DateUpdated: nil).
+        where(exists)
+
+      Rails.logger.info { "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged" }
+      batch_clear_pending_deletion(klass, matched_scope, file_name)
+    end
+
+    # Arel node: CAST(col AT TIME ZONE 'UTC' AT TIME ZONE '<local>' AS DATE)
+    # The DB stores naive timestamps in UTC; this converts to the app's local
+    # timezone before extracting the date so day boundaries match
+    private def local_date_cast_arel(conn, arel_column)
+      tz = Time.zone.tzinfo.name
+      utc_tz = Arel::Nodes::SqlLiteral.new("'UTC'")
+      local_tz = Arel::Nodes::SqlLiteral.new(conn.quote(tz))
+
+      at_utc = Arel::Nodes::InfixOperation.new('AT TIME ZONE', arel_column, utc_tz)
+      at_local = Arel::Nodes::InfixOperation.new('AT TIME ZONE', at_utc, local_tz)
+
+      Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(at_local, Arel.sql('DATE'))])
+    end
+
+    # Clear pending deletion for warehouse rows where the incoming DateUpdated
+    # (by local-timezone date) is strictly older than the warehouse value.
+    # The warehouse copy is newer, so we keep it and skip the incoming row.
+    # Runs after mark_unchanged, so only hash-mismatched rows reach here.
+    # Skipped when this is the most recent export for the data source, because
+    # the latest export is authoritative regardless of DateUpdated.
+    private def mark_incoming_older(klass, file_name)
+      return if klass.hud_key == :ExportID
+      return if custom_augmentation?(klass)
+      return if most_recent_export_for_ds?
+
+      staging = klass.arel_table
+      wh      = klass.warehouse_class.arel_table
+      incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
+        where.not(DateUpdated: nil)
+
+      conn = klass.connection
+      staging_date = local_date_cast_arel(conn, staging[:DateUpdated])
+      wh_date      = local_date_cast_arel(conn, wh[:DateUpdated])
+
+      exists = incoming_scope.
+        where(staging[klass.hud_key].eq(wh[klass.hud_key])).
+        where(Arel::Nodes::InfixOperation.new('<', staging_date, wh_date)).
+        select(1).arel.exists
+      matched_scope = existing_destination_data_scope(klass).
+        where.not(DateUpdated: nil).
+        where(exists)
+
+      Rails.logger.info { "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged" }
+      batch_clear_pending_deletion(klass, matched_scope, file_name)
+    end
+
+    # Creates a session-scoped temp table of IDs materialised from `scope`, builds
+    # an index on it, yields the quoted temp-table name for the caller to drive its
+    # own batched UPDATE, then drops the table in ensure.
+    private def with_temp_id_table(conn, name, scope)
+      conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
+      conn.execute(<<~SQL)
+        CREATE TEMP TABLE #{conn.quote_table_name(name)} AS
+          SELECT id FROM (#{scope.select(:id).to_sql}) sub
+      SQL
+      conn.execute("CREATE INDEX ON #{conn.quote_table_name(name)} (id)")
+      yield conn.quote_table_name(name)
+    ensure
+      conn&.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
+    end
+
+    # Temp tables are session-scoped, but we include a random suffix as a
+    # defensive measure against name collisions. The full name is truncated
+    # to PostgreSQL's 63-character identifier limit.
+    private def tmp_table_name(prefix, klass)
+      suffix = SecureRandom.hex(4) # 8 chars
+      base = "tmp_#{prefix}_#{klass.table_name}_"
+      "#{base.first(63 - suffix.length)}#{suffix}"
+    end
+
+    # Materialize matched IDs into a temp table so the expensive semi-join runs once,
+    # then batch UPDATE from the temp table.
+    private def batch_clear_pending_deletion(klass, matched_scope, file_name)
+      conn = klass.warehouse_class.connection
+      update_base = klass.warehouse_class
+      update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
+      tmp_name = tmp_table_name('unchanged', klass.warehouse_class)
+
+      with_temp_id_table(conn, tmp_name, matched_scope) do |quoted_temp|
+        last_id = 0
+        loop do
+          result = conn.execute(<<~SQL)
+            UPDATE #{update_base.quoted_table_name} wh SET pending_date_deleted = NULL
+            FROM (
+              SELECT id FROM #{quoted_temp}
+              WHERE id > #{last_id}
+              ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
+            ) batch
+            WHERE wh.id = batch.id
+            RETURNING wh.id
+          SQL
+          break if result.ntuples.zero?
+
+          last_id = result.map { |r| r['id'].to_i }.max
+          note_processed(file_name, result.ntuples, 'unchanged')
+        end
       end
     end
 
-    # Having already excluded unchanged records, compare DateUpdated,
-    # if the incoming record is older than the existing record,
-    # don't update the warehouse.
-    # NOTE: there is one exception, if the import is the most recently
-    # exported for this data source, then we can assume the data is
-    # more correct than anything we have
-    private def mark_incoming_older(klass, file_name)
-      # Doesn't apply to Exports
-      return if klass.hud_key == :ExportID
-      # Augmented data will always appear changed as the source hash won't match the destination source hash
-      return if custom_augmentation?(klass)
+    # Materialize delete-pending IDs into a temp table, then batch soft-delete.
+    private def batch_soft_delete(klass, scope)
+      conn = klass.warehouse_class.connection
+      update_base = klass.warehouse_class
+      update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
+      deleted_at = conn.quote(Time.current)
+      tmp_name = tmp_table_name('pending_deletes', klass.warehouse_class)
 
-      return if most_recent_export_for_ds?
+      with_temp_id_table(conn, tmp_name, scope) do |quoted_temp|
+        last_id = 0
+        loop do
+          result = conn.execute(<<~SQL)
+            UPDATE #{update_base.quoted_table_name} wh
+            SET pending_date_deleted = NULL,
+                "DateDeleted" = #{deleted_at},
+                source_hash = NULL
+            FROM (
+              SELECT id FROM #{quoted_temp}
+              WHERE id > #{last_id}
+              ORDER BY id LIMIT #{INSERT_BATCH_SIZE}
+            ) batch
+            WHERE wh.id = batch.id
+            RETURNING wh.id
+          SQL
+          break if result.ntuples.zero?
 
-      existing = existing_destination_data_scope(klass).pluck(klass.hud_key, :DateUpdated).to_h
-      incoming = klass.should_import.where(importer_log_id: @importer_log.id).
-        pluck(klass.hud_key, :DateUpdated).to_h
-
-      # ignore any where we don't have a DateUpdated,
-      # or we don't have a matching incoming record
-      existing.reject! { |k, v| v.blank? || incoming[k].blank? }
-
-      # if the incoming DateUpdated is strictly less than the existing one
-      # trust the warehouse is correct
-      unchanged = existing.select { |k, v| incoming[k].to_date < v.to_date }.keys
-      Rails.logger.info "Processing Incoming Older for #{file_name}: #{incoming.count} incoming, #{unchanged.count} unchanged"
-      unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        query = klass.warehouse_class.where(
-          data_source_id: data_source.id,
-          klass.hud_key => batch,
-        )
-        query = query.with_deleted if klass.warehouse_class.paranoid?
-        query.update_all(pending_date_deleted: nil)
-        note_processed(file_name, batch.count, 'unchanged')
+          last_id = result.map { |r| r['id'].to_i }.max
+        end
       end
     end
 
@@ -1094,6 +1278,18 @@ module HmisCsvImporter::Importer
       options
     end
 
+    # Flush an array of AR model instances to the database via activerecord-import.
+    # Three modes controlled by the caller:
+    #   update_only: true  → bulk UPDATE via VALUES list (augmentation files that
+    #                        only modify existing warehouse rows, never insert)
+    #   upsert: true       → INSERT ... ON CONFLICT UPDATE (the normal path for
+    #                        add_new_data and apply_updates)
+    #   upsert: false      → plain INSERT (Export and Client, which lack a usable
+    #                        uniqueness constraint for ON CONFLICT)
+    #
+    # On any ActiveRecord or PG error the entire batch is retried row-by-row so
+    # a single bad record doesn't block the rest; per-row failures are logged to
+    # import_errors.
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: importer_log.version), update_only: false)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
@@ -1347,12 +1543,15 @@ module HmisCsvImporter::Importer
     end
 
     private def cleanup_dangling_enrollments
-      # Clean up any dangling enrollments for updated clients
-      updated_client_ids = GrdaWarehouse::Hud::Client.
-        joins(:warehouse_client_source).
-        where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
-        pluck(wc_t[:destination_id])
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+      return if @updated_source_client_ids.empty?
+
+      @updated_source_client_ids.each_slice(SELECT_BATCH_SIZE) do |personal_id_batch|
+        updated_client_ids = GrdaWarehouse::Hud::Client.
+          joins(:warehouse_client_source).
+          where(PersonalID: personal_id_batch, data_source_id: @data_source.id).
+          pluck(wc_t[:destination_id])
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+      end
     end
 
     private def queue_enrollment_processing

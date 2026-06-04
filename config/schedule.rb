@@ -190,7 +190,6 @@ tasks = [
     task: 'reports:csv:archive_and_purge_eligible',
     frequency: 1.day,
     at: '2:00 am',
-    trigger: ENV['RAILS_ENV'] != 'production',
     interruptable: true,
   },
 ]

@@ -18,7 +18,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
 
     # Batch calculation for multiple clients
     # Returns hash of { client_id => min_size }
-    def self.calculate_batch(entities, _calculation_date)
+    def self.calculate_batch(entities, _calculation_date, **_kwargs)
       entity_ids = entities.map(&:id)
 
       # First, get count of members for each [data_source_id, HouseholdID] combination

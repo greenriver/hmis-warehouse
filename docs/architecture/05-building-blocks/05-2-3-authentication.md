@@ -15,7 +15,7 @@ graph TB
     end
 
     subgraph OP_AUTH ["Authentication Layer"]
-        O2P["OAuth2-Proxy (Node.js)"]
+        O2P["OAuth2-Proxy (Go)"]
         DEX["Dex (OIDC Broker)"]
     end
 
@@ -25,14 +25,14 @@ graph TB
     end
 
     subgraph IDP ["Identity Providers"]
-        KEYCLOAK["Keycloak (User IDP)"]
-        GITHUB["GitHub (Optional)"]
+        KEYCLOAK["Keycloak (GR hosted)"]
+        CUSTOMER_IDP["Customer-Org IdPs (via Dex connectors)"]
     end
 
     User -->|HTTPS| O2P
     O2P -->|Auth Request| DEX
     DEX -->|OIDC Flow| KEYCLOAK
-    DEX -->|OAuth Flow| GITHUB
+    DEX -->|OIDC / SAML| CUSTOMER_IDP
 
     O2P -- "Forward Request + JWT Headers" --> WAREHOUSE
     WAREHOUSE -- "Verify User / Session" --> WH_DB
@@ -42,10 +42,10 @@ graph TB
 
 | Component | Technology | Responsibilities |
 | --- | --- | --- |
-| **OAuth2-Proxy** | Node.js | Reverse proxy that handles JWT validation and session management. Injects user headers into upstream requests. |
-| **Dex** | Go / OIDC | Identity broker that normalizes multiple authentication sources (Keycloak, GitHub, etc.) into a single OIDC flow. |
-| **Keycloak** | Java / PostgreSQL | Primary Identity Provider (IDP) for user management and credential storage. |
+| **OAuth2-Proxy** | Go | Reverse proxy that handles JWT validation and session management. Injects user headers into upstream requests. |
+| **Dex** | Go / OIDC | Identity broker that normalizes multiple authentication sources into a single OIDC flow. Customer-org IdPs attach as additional Dex connectors. |
+| **Keycloak** (Internal Staff IdP) | Java / PostgreSQL | Primary Identity Provider for internal staff user management and credential storage. |
 
-## Key Interaction: Header-Based Trust
+## Key Interaction: Token-Based Trust
 
-The Warehouse Application does not perform its own authentication challenge. It trusts the `X-Forwarded-User` and `X-Forwarded-Groups` headers provided by the OAuth2-Proxy. The proxy ensures that these headers are only injected after a successful cryptographic validation of the JWT issued by Dex.
+The Warehouse Application does not perform its own authentication challenge — credential handling is delegated to the IdP via Dex. Rather than trusting forwarded headers as a primary control, it validates the Dex-issued token; forwarded headers (`X-Forwarded-User`, `X-Forwarded-Groups`) are convenience hints. The validation mechanics, header handling, and session policy are crosscutting security concerns documented in [§8.2 Security](../08-concepts/08-2-security.md); network isolation between the proxy and the Warehouse is described in [§7 Deployment View](../07-deployment-view.md).

@@ -15,6 +15,8 @@ module HudApr
     include ApplicationHelper
     include ActionView::Helpers::TagHelper
 
+    helper_method :drilldown_presenter_class
+
     def report_param_name
       :"#{report_type_param}_id"
     end
@@ -40,7 +42,6 @@ module HudApr
     end
 
     private def report_type_param
-      # Subclasses must override (e.g., 'apr', 'caper', 'ce_apr', 'dq')
       raise NotImplementedError
     end
 
@@ -58,6 +59,18 @@ module HudApr
                   question_id: @drilldown.measure,
                   cell_id: @drilldown.cell,
                   table: @drilldown.table)
+    end
+
+    def render_html_response(scope)
+      scope = preload_associations(scope)
+      @pagy, @clients = pagy(scope, items: pagination_limit)
+      project_ids = @clients.map(&:project_id).compact.uniq
+      current_user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
+      render 'hud_apr/shared/cells/show'
+    end
+
+    private def drilldown_presenter_class
+      HudApr::DrilldownPresenter
     end
   end
 end

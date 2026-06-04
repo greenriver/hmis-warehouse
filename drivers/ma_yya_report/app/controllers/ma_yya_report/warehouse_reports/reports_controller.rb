@@ -9,7 +9,7 @@
 module MaYyaReport::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_report, only: [:show, :destroy, :details, :reload_from_csv]
 
     def index
       if params[:filter].present?

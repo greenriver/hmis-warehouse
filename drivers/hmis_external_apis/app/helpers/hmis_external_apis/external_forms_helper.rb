@@ -32,17 +32,17 @@ module HmisExternalApis::ExternalFormsHelper
     end
   end
 
-  def render_form_select(label:, name:, required: false, options:)
-    render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id
+  def render_form_select(label:, name:, required: false, options:, helper_text: nil)
+    render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id, helper_text: helper_text
   end
 
   def render_form_geolocation(label:, name:, required: false)
     render partial_path('form/geolocation'), label: label, name: name, required: required, html_id: next_html_id
   end
 
-  def render_form_radio_group(legend:, name:, required: false, options:, &block)
+  def render_form_radio_group(legend:, name:, required: false, options:, helper_text: nil, &block)
     render_form_fieldset(legend: legend, required: required) do
-      radios = render(partial_path('form/radio_group_options'), options: options, name: name, required: required, html_id: next_html_id)
+      radios = render(partial_path('form/radio_group_options'), options: options, name: name, required: required, html_id: next_html_id, helper_text: helper_text)
       extra = capture(&block) if block
       safe_join([radios, extra].compact_blank, "\n")
     end

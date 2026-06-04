@@ -113,6 +113,7 @@ class SystemStatusController < ActionController::Base
       jobs_message: jobs_message,
       revision: Git.revision,
       branch: Git.branch,
+      release: Git.release,
       hostname: `hostname`.chomp,
       cache: cache_message,
       user_count_positive: User.all.any?,

@@ -11,6 +11,7 @@ OpenPath::Application.routes.draw do
     namespace :warehouse_reports do
       resources :monthly_project_utilizations do
         get :details, on: :member
+        post 'reload_from_csv', to: 'monthly_project_utilizations#reload_from_csv', as: :reload_from_csv, on: :member
       end
     end
 

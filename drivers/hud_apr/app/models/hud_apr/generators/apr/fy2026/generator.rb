@@ -9,6 +9,7 @@
 module HudApr::Generators::Apr::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
+
     def self.fiscal_year
       'FY 2026'
     end
@@ -70,5 +71,10 @@ module HudApr::Generators::Apr::Fy2026
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 4'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudApr::Archival
   end
 end

@@ -1,0 +1,19 @@
+.accordion#scenariosAccordion
+  .accordion-item
+    %h2.accordion-header
+      %button.accordion-button.collapsed{type: 'button', data: {bs_toggle: 'collapse', bs_target: '#scenariosBody'}, aria: {expanded: 'false', controls: 'scenariosBody'}}
+        Scenarios
+    #scenariosBody.accordion-collapse.collapse
+      .accordion-body
+        %h3 Alert on Error Spikes
+        %p
+          Example Goal: Receive an alert when more than 2% of rows in an import contain errors, as long as at least 20 rows are affected. This catches situations where a CSV was corrupted during export, or data was saved in an unexpected format.
+        %ul
+          %li Set Error count threshold (%) to 2
+          %li Set Minimum error count threshold to 20
+        %h3 Alert on Unexpected Row Count Changes
+        %p
+          Example Goal: Flag any import where the total number of records in any file changes by more than 10%, as long as the change is at least 5 records. This catches situations like a project being left off an import, or a data cleanup routine unexpectedly removing records.
+        %ul
+          %li Record count change threshold (%) to 10
+          %li Set Minimum change count threshold to 5

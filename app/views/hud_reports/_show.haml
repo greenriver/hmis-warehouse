@@ -6,7 +6,12 @@
 %header.mb-3
   %h1= content_for :title
 
-- if @show_recent
+- if @report&.purged?
+  .well
+    %p The report data has been archived and purged from the database.
+    = form_with url: { action: :restore, id: @report.id }, method: :post, local: true do |f|
+      = f.submit 'Reload Report from Archived Data', class: 'btn btn-primary'
+- elsif @show_recent
   .well
     .d-flex
       %h2= generator.file_prefix

@@ -26,6 +26,11 @@ module HmisCsvImporter::Cleanup
     include ElapsedTimeHelper
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+    # Versions prior to 2024 are intentionally frozen and excluded from expiration.
+    # Any version >= this value will be included automatically, so new HUD CSV versions
+    # (2026, 2028, ...) are picked up without manual changes to the sub-jobs.
+    MINIMUM_EXPIRATION_VERSION = 2024
+
     # low priority - eventual consistency cleanup
     def self.default_priority
       BaseJob::MAINTENANCE_PRIORITY_15
@@ -48,6 +53,9 @@ module HmisCsvImporter::Cleanup
     # @param max_per_run [Integer] stop processing if we delete more records than this
     # @param dry_run [Boolean] do not run delete statements
     def _perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, max_per_run: 30_000_000, batch_size: 500_000, dry_run: true)
+      # deleting rows may require additional space
+      GrdaWarehouse::DbMonitor.assert_healthy!
+
       did_run = false
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
@@ -187,6 +195,12 @@ module HmisCsvImporter::Cleanup
 
     private def sufficient_imports?
       log_model.count > @retain_item_count
+    end
+
+    private def active_data_lake_modules
+      Rails.application.config.hmis_data_lakes.filter_map do |version, module_name|
+        module_name.constantize if version.to_i >= MINIMUM_EXPIRATION_VERSION
+      end
     end
   end
 end
