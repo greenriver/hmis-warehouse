@@ -11,7 +11,7 @@ User → OAuth2-Proxy → Dex (OIDC broker) → Keycloak → Rails (JWT headers)
 - **Keycloak** handles user authentication and stores credentials
 - **Dex** brokers OIDC between OAuth2-Proxy and Keycloak
 - **OAuth2-Proxy** injects JWT headers into requests to Rails
-- **Rails** validates JWTs — unchanged from the Zitadel setup
+- **Rails** validates JWTs from the proxy headers
 
 ### Keycloak Realm and Clients
 

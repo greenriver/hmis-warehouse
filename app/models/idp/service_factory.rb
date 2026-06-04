@@ -12,8 +12,8 @@ module Idp
   # This factory uses a registry pattern to map connector IDs to their corresponding
   # IDP service implementations. New IDPs can be added by registering their service class.
   #
-  # @example Get Zitadel service
-  #   service = Idp::ServiceFactory.for_connector('zitadel')
+  # @example Get keycloak service
+  #   service = Idp::ServiceFactory.for_connector('keycloak')
   #   service.create_user(email: 'user@example.com', ...)
   #
   # @example Register a new IDP service
@@ -30,7 +30,7 @@ module Idp
 
       # Register an IDP service class for a given connector_id.
       #
-      # @param connector_id [String] The connector ID (e.g., 'zitadel', 'okta')
+      # @param connector_id [String] The connector ID (e.g., 'keycloak', 'okta')
       # @param service_class [Class] The IDP service class (must inherit from Idp::Service)
       # @raise [ArgumentError] if service_class doesn't inherit from Idp::Service
       def register_idp_service(connector_id, service_class)
