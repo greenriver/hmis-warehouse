@@ -442,7 +442,7 @@ module ApplicationHelper
   #
   # @param user [User, nil] User to get connector_id from (defaults to current_user)
   # @param redirect_to [String, nil] URL to redirect to after authentication (passed as `rd` parameter)
-  # @return [String] Sign-in path, e.g., '/oauth2/sign_in' or '/oauth2/sign_in?connector_id=zitadel&rd=/path'
+  # @return [String] Sign-in path, e.g., '/oauth2/sign_in' or '/oauth2/sign_in?connector_id=keycloak&rd=/path'
   def oauth2_sign_in_path(user: current_user, redirect_to: nil)
     path = '/oauth2/sign_in'
     params = []
@@ -473,7 +473,7 @@ module ApplicationHelper
 
   # Generate IDP logout URL with post-logout redirect.
   #
-  # For IDPs that support OIDC RP-Initiated Logout (like Zitadel), this creates
+  # For IDPs that support OIDC RP-Initiated Logout (like Keycloak), this creates
   # a proper logout URL that will:
   # 1. Log the user out of the IDP
   # 2. Redirect to oauth2-proxy's sign_out to clear its session
@@ -492,13 +492,12 @@ module ApplicationHelper
     oauth2_signout_url = "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(final_redirect_uri)}"
 
     # Use IDP service to generate logout URL
-    # - If IDP supports OIDC logout (e.g., Zitadel): returns IDP logout URL with oauth2_signout_url as post_logout_redirect_uri
+    # - If IDP supports OIDC logout (e.g., Keycloak): returns IDP logout URL with oauth2_signout_url as post_logout_redirect_uri
     # - If IDP doesn't support logout: returns oauth2_signout_url directly
-    # Pass the Warehouse client_id for Zitadel to validate the post_logout_redirect_uri
     idp_service = Idp::ServiceFactory.for_connector(connector_id)
     idp_service.logout_url(
       post_logout_redirect_uri: oauth2_signout_url,
-      client_id: ENV['ZITADEL_IDP_WAREHOUSE_CLIENT_ID'],
+      client_id: ENV['KEYCLOAK_IDP_CLIENT_ID'],
     )
   end
 

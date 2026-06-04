@@ -8,7 +8,7 @@ The authentication flow involves multiple components working together through **
 2. **oauth2-proxy-hmis** - Handles authentication for the HMIS React frontend
 3. **oauth2-proxy-hmis-backend** - Validates authentication for API requests from HMIS frontend to Rails backend
 
-When a user accesses either application, the appropriate **OAuth2-proxy** instance acts as a reverse proxy, intercepting requests and validating authentication. OAuth2-proxy communicates with **Dex**, which serves as an identity broker capable of connecting to various upstream IDPs. For communities with their own IDPs, Dex plays intermediary; for communities without IDP infrastructure, we use **Zitadel** to provide account management. The Rails application receives validated JWT tokens from OAuth2-proxy via HTTP headers and uses these tokens to identify and authenticate users without handling passwords or authentication credentials directly.
+When a user accesses either application, the appropriate **OAuth2-proxy** instance acts as a reverse proxy, intercepting requests and validating authentication. OAuth2-proxy communicates with **Dex**, which serves as an identity broker capable of connecting to various upstream IDPs. For communities with their own IDPs, Dex plays intermediary; for communities without IDP infrastructure, we use **Keycloak** to provide account management. The Rails application receives validated JWT tokens from OAuth2-proxy via HTTP headers and uses these tokens to identify and authenticate users without handling passwords or authentication credentials directly.
 
 The three-proxy architecture enables **session isolation**: logging out of Warehouse doesn't affect HMIS, and vice versa. The HMIS frontend and backend proxies share the same authentication cookie (`_oauth2_proxy_hmis`) to allow seamless API access, while Warehouse uses a separate cookie (`_oauth2_proxy_warehouse`).
 
@@ -16,7 +16,7 @@ The warehouse application receives authentication information through standardiz
 
 User management responsibilities are clearly separated between the IDP and the warehouse application. The IDP handles all authentication-related concerns including password policies, password resets, account locking, two-factor authentication, and session expiration. The warehouse application focuses solely on authorization—determining what authenticated users are permitted to access based on their roles, permissions, and data access assignments.
 
-The system supports multiple IDP backends through Dex's connector architecture, allowing deployments to use existing identity infrastructure or a standalone Zitadel instance for communities without an existing IDP. The warehouse tracks which IDP each user authenticated through via the `UserAuthenticationSource` model, which links warehouse users to their IDP user accounts. This design enables communities to migrate from one IDP to another or support multiple IDPs simultaneously, while maintaining consistent user experience and access control within the warehouse application.
+The system supports multiple IDP backends through Dex's connector architecture, allowing deployments to use existing identity infrastructure or a standalone Keycloak instance for communities without an existing IDP. The warehouse tracks which IDP each user authenticated through via the `UserAuthenticationSource` model, which links warehouse users to their IDP user accounts. This design enables communities to migrate from one IDP to another or support multiple IDPs simultaneously, while maintaining consistent user experience and access control within the warehouse application.
 
 ## Key Components
 
@@ -24,7 +24,7 @@ The system supports multiple IDP backends through Dex's connector architecture, 
 - **oauth2-proxy-hmis** (`hmis.dev.test`): Reverse proxy for HMIS React frontend, uses `_oauth2_proxy_hmis` cookie
 - **oauth2-proxy-hmis-backend** (`hmis-backend.dev.test`): Reverse proxy for HMIS API requests, shares `_oauth2_proxy_hmis` cookie with frontend
 - **Dex**: Identity broker that supports multiple upstream IDP connectors
-- **IDP** (e.g., Zitadel, Okta, Azure AD): Handles user authentication and credential management
+- **IDP** (e.g., Keycloak, Okta, Azure AD): Handles user authentication and credential management
 - **Rails Application**: Validates JWT tokens and manages authorization and access control for both Warehouse and HMIS
 
 ## Authentication Flow

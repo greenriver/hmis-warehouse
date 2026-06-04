@@ -9,7 +9,7 @@ graph TB
     O2P["🔐 OAuth2-Proxy<br/>(Node.js)<br/>Port 4180-4182"]
     Dex["🔑 Dex<br/>(OIDC Broker)<br/>Port 4443"]
 
-    Zitadel["👥 Zitadel<br/>(User IDP)<br/>Port 8080"]
+    Keycloak["👥 Keycloak<br/>(User IDP)<br/>Port 8080"]
     GitHub["🐙 GitHub<br/>(Optional)"]
     LocalAuth["🧪 Local Users<br/>(Dev Only)"]
 
@@ -21,7 +21,7 @@ graph TB
     O2P -->|Validates| Rails
     O2P -->|Auth Request| Dex
 
-    Dex -->|User Auth| Zitadel
+    Dex -->|User Auth| Keycloak
     Dex -->|OAuth| GitHub
     Dex -->|Test Users| LocalAuth
 
@@ -31,7 +31,7 @@ graph TB
     style Traefik fill:#ffe0b2
     style O2P fill:#f3e5f5
     style Dex fill:#ede7f6
-    style Zitadel fill:#e8f5e9
+    style Keycloak fill:#e8f5e9
     style GitHub fill:#f5f5f5
     style LocalAuth fill:#fff9c4
     style Rails fill:#e0f2f1
@@ -46,7 +46,7 @@ sequenceDiagram
     participant Browser
     participant OAuth2P as OAuth2-Proxy
     participant Dex
-    participant Zitadel as Zitadel IDP
+    participant Keycloak as Keycloak IDP
     participant Rails
     participant DB as PostgreSQL
 
@@ -59,21 +59,21 @@ sequenceDiagram
         Browser->>Dex: GET /dex/auth
         Dex-->>Browser: Show connector options
         Browser->>User: 2. Select Authentication Method
-        User->>Browser: Choose Zitadel
+        User->>Browser: Choose Keycloak
         Browser->>Dex: Initiate OIDC flow
-        Dex-->>Browser: Redirect to Zitadel
+        Dex-->>Browser: Redirect to Keycloak
 
-        Browser->>Zitadel: GET /login
-        Zitadel-->>Browser: Show login form
+        Browser->>Keycloak: GET /login
+        Keycloak-->>Browser: Show login form
         Browser->>User: 3. Enter credentials
         User->>Browser: email + password
-        Browser->>Zitadel: POST /login
-        Zitadel->>DB: Verify credentials
+        Browser->>Keycloak: POST /login
+        Keycloak->>DB: Verify credentials
 
-        Zitadel-->>Browser: Redirect to Dex callback
+        Keycloak-->>Browser: Redirect to Dex callback
         Browser->>Dex: GET /callback?code=AUTH_CODE
-        Dex->>Zitadel: 4. Exchange code for ID token
-        Zitadel-->>Dex: ID token + Access token
+        Dex->>Keycloak: 4. Exchange code for ID token
+        Keycloak-->>Dex: ID token + Access token
         Dex->>Dex: Issue JWT token
         Dex-->>Browser: Redirect to OAuth2P callback
 
@@ -169,7 +169,7 @@ erDiagram
     USER_AUTHENTICATION_SOURCES {
         uuid id
         uuid user_id
-        string connector_id "zitadel, github, etc"
+        string connector_id "keycloak, github, etc"
         string connector_user_id "User ID from IDP"
         boolean enabled
         datetime deleted_at
@@ -179,7 +179,7 @@ erDiagram
 
     IDP_SERVICE_CONFIGS {
         uuid id
-        string connector_id "zitadel, okta, etc"
+        string connector_id "keycloak, okta, etc"
         string name "Display name"
         string api_url "IDP API endpoint"
         string encrypted_service_token "Encrypted PAT"
@@ -201,7 +201,7 @@ graph TD
 
     Header["Header<br/>───────<br/>alg: RS256<br/>typ: JWT"]
 
-    Payload["Payload<br/>───────<br/>Standard Claims:<br/>iss: Dex URL<br/>sub: User ID<br/>aud: App IDs<br/>exp: Expiry<br/>iat: Issued At<br/><br/>Custom Claims:<br/>email: user@example.com<br/>name: John Doe<br/>groups: [...roles]<br/>connectorID: zitadel<br/>at_hash: Session ID"]
+    Payload["Payload<br/>───────<br/>Standard Claims:<br/>iss: Dex URL<br/>sub: User ID<br/>aud: App IDs<br/>exp: Expiry<br/>iat: Issued At<br/><br/>Custom Claims:<br/>email: user@example.com<br/>name: John Doe<br/>groups: [...roles]<br/>connectorID: keycloak<br/>at_hash: Session ID"]
 
     Signature["Signature<br/>───────<br/>RS256(<br/>Header + Payload,<br/>Private Key<br/>)<br/>= Cryptographic proof"]
 
@@ -233,7 +233,7 @@ graph LR
     end
 
     subgraph "Identity Layer"
-        D["Zitadel<br/>(User Management)"]
+        D["Keycloak<br/>(User Management)"]
         E["GitHub<br/>(Optional)"]
     end
 

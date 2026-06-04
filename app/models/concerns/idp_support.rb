@@ -45,13 +45,6 @@ module IdpSupport
       last_connector_id.presence || enabled_authentication_sources.first&.connector_id
     end
 
-    # Convenience method checking if primary IDP is Zitadel.
-    #
-    # @return [Boolean] true if primary IDP is Zitadel
-    def zitadel_idp?
-      primary_idp == 'zitadel'
-    end
-
     # Check if email changes are enabled for this user.
     #
     # With JWT auth, email changes are only enabled if:

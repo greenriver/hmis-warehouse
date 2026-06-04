@@ -23,7 +23,7 @@ At this point the usual `docker compose up -d` should bring up a functional supe
 
 ## Logging in to superset
 
-See @docs/developer/zitadel-idp.md
+See @docs/developer/keycloak-idp.md
 
 ## References
 BinFMT

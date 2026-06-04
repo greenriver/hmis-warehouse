@@ -23,7 +23,7 @@ class UserAuthenticationSource < ApplicationRecord
 
   # Return human-readable IDP name.
   #
-  # @return [String] IDP name (e.g., "Zitadel", "Okta")
+  # @return [String] IDP name (e.g., "Keycloak", "Okta")
   def idp_name
     idp_service.idp_name
   end

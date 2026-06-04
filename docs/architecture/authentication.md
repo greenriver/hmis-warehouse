@@ -29,14 +29,14 @@ The application uses a modern, federated authentication architecture:
     ▼             ▼
 ┌────────┐    ┌─────────────────────────────┐
 │ DEX    │───▶│ Authentication Connectors   │
-│ (OIDC  │    │ ├─ Zitadel (Primary IDP)  │
+│ (OIDC  │    │ ├─ Keycloak (Primary IDP)  │
 │ Broker)│    │ ├─ GitHub (Optional)       │
 │        │    │ └─ Local Test Users        │
 └────────┘    └──────────┬──────────────────┘
                          │
                          ▼
                    ┌───────────────┐
-                   │   Zitadel     │
+                   │   Keycloak     │
                    │ (User Manager)│
                    └───────────────┘
 ```
@@ -67,7 +67,7 @@ The application uses a modern, federated authentication architecture:
                      ┌────────────────────┴─────────────────┐
                      ▼                                      ▼
          ┌──────────────────────┐          ┌─────────────────────┐
-         │    Zitadel IDP       │          │  GitHub OAuth       │
+         │    Keycloak IDP       │          │  GitHub OAuth       │
          │  ════════════════    │          │  ════════════════   │
          │ User management      │          │  Optional auth      │
          │ Password storage     │          │  for developers     │
@@ -108,7 +108,7 @@ OAuth2-Proxy for SSL termination in production or local HTTPS.
     └──────────────┬─────────────┬─────┘
                    │             │
         ┌──────────▼──┐   ┌──────▼──────────┐
-        │  Zitadel    │   │  GitHub OAuth   │
+        │  Keycloak    │   │  GitHub OAuth   │
         │  IDP        │   │  (Optional)     │
         │ User auth   │   │                 │
         │ Management  │   │                 │
@@ -124,7 +124,7 @@ sequenceDiagram
     participant Nginx
     participant OAuth2P as OAuth2-Proxy
     participant Dex
-    participant Zitadel as Zitadel IDP
+    participant Keycloak as Keycloak IDP
     participant Rails
     participant DB as PostgreSQL
 
@@ -138,19 +138,19 @@ sequenceDiagram
         Browser->>Dex: GET /dex/auth
         Dex-->>Browser: Show Connector Options
         Browser->>User: Select Authentication Method
-        User->>Browser: Click Zitadel
-        Browser->>Dex: Initiate Zitadel flow
-        Dex-->>Browser: Redirect to Zitadel Login
-        Browser->>Zitadel: GET /login
-        Zitadel-->>Browser: Show Login Form
+        User->>Browser: Click Keycloak
+        Browser->>Dex: Initiate Keycloak flow
+        Dex-->>Browser: Redirect to Keycloak Login
+        Browser->>Keycloak: GET /login
+        Keycloak-->>Browser: Show Login Form
         User->>Browser: Enter credentials
-        Browser->>Zitadel: POST login
-        Zitadel->>Zitadel: Validate credentials
-        Zitadel->>DB: Lookup user
-        Zitadel-->>Browser: Redirect to Dex /callback
+        Browser->>Keycloak: POST login
+        Keycloak->>Keycloak: Validate credentials
+        Keycloak->>DB: Lookup user
+        Keycloak-->>Browser: Redirect to Dex /callback
         Browser->>Dex: GET /callback?code=...
-        Dex->>Zitadel: Exchange code for token
-        Zitadel-->>Dex: Return ID token + Access token
+        Dex->>Keycloak: Exchange code for token
+        Keycloak-->>Dex: Return ID token + Access token
         Dex->>Dex: Issue JWT token
         Dex-->>Browser: Redirect to OAuth2P /callback
         Browser->>OAuth2P: GET /callback?code=...
@@ -205,7 +205,7 @@ Payload (Dex issued):
   "email_verified": true,
   "name": "John Doe",
   "groups": ["case-managers"],
-  "connectorID": "zitadel",
+  "connectorID": "keycloak",
   "connectorData": "..."
 }
 
@@ -239,9 +239,9 @@ RS256(base64url(header) + "." + base64url(payload), private_key)
   - Handle token refresh requests
 - **Port**: 4443
 - **Token Expiry**: 30 minutes (ID token)
-- **Connectors**: Zitadel, GitHub, local test users
+- **Connectors**: Keycloak, GitHub, local test users
 
-#### 3. Zitadel (User Identity Provider)
+#### 3. Keycloak (User Identity Provider)
 - **Purpose**: User management and identity assertion
 - **Responsibilities**:
   - User authentication (email/password)
@@ -304,27 +304,22 @@ JWT_ALGORITHM=RS256
 IDP_AUD=hmis-warehouse,hmis-frontend,superset
 JWT_SECRET=<for encryption>
 
-# Zitadel Connector
-ZITADEL_API_URL=http://op-zitadel.dev.test:8080
-ZITADEL_IDP_CLIENT_ID=<client-id>
-ZITADEL_IDP_CLIENT_SECRET=<client-secret>
-
-# Optional: Service account for user management
-ZITADEL_SERVICE_USER_TOKEN=<personal-access-token>
-ZITADEL_ORG_ID=<organization-id>
-ZITADEL_PROJECT_ID=<project-id>
+# Keycloak Connector
+KEYCLOAK_API_URL=http://op-keycloak.dev.test:8080
+KEYCLOAK_IDP_CLIENT_ID=<client-id>
+KEYCLOAK_IDP_CLIENT_SECRET=<client-secret>
+KEYCLOAK_REALM=openpath
 ```
 
 #### Database Configuration (Optional)
-Store Zitadel credentials in `idp_service_configs` table instead of environment:
+Store Keycloak credentials in `idp_service_configs` table instead of environment:
 ```ruby
 Idp::ServiceConfig.create!(
-  connector_id: 'zitadel',
-  name: 'Zitadel Production',
-  api_url: ENV['ZITADEL_API_URL'],
-  service_token: '<encrypted-token>',
-  org_id: '<org-id>',
-  project_id: '<project-id>',
+  connector_id: 'keycloak',
+  name: 'Keycloak Production',
+  api_url: ENV['KEYCLOAK_API_URL'],
+  service_token: ENV['KEYCLOAK_IDP_CLIENT_SECRET'],
+  additional_config: { client_id: ENV['KEYCLOAK_IDP_CLIENT_ID'], realm: 'openpath' },
   active: true
 )
 ```
@@ -344,6 +339,6 @@ When `idp/auto_create_user` is enabled:
 
 - [OAuth2-Proxy Documentation](https://oauth2-proxy.github.io/oauth2-proxy/)
 - [Dex OIDC Provider](https://dexidp.io/)
-- [Zitadel Documentation](https://zitadel.com/docs)
+- [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
 - [OIDC Specification](https://openid.net/specs/openid-connect-core-1_0.html)
