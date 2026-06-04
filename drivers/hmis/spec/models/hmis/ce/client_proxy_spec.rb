@@ -45,14 +45,16 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
     end
   end
 
-  describe '#sql_cde_value_exists_for_ce_client_proxy' do
+  describe '#matching_cde_values' do
     let(:current_date) { Date.new(2024, 12, 26) }
-    let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form') }
+    let!(:ds) { create(:hmis_data_source) }
+    let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form', data_source: ds) }
     let(:string_cded) do
       create(:hmis_custom_data_element_definition,
              owner_type: 'Hmis::Hud::CustomAssessment',
              key: 'language_preference',
              field_type: 'string',
+             data_source: ds,
              form_definition_identifier: 'test_form')
     end
     let(:repeating_cded) do
@@ -61,6 +63,7 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
              key: 'allergies',
              field_type: 'string',
              repeats: true,
+             data_source: ds,
              form_definition_identifier: 'test_form')
     end
 
@@ -92,11 +95,11 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
 
       assessment
     end
-    let(:client1) { create(:hmis_hud_client_with_warehouse_client) }
+    let(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds) }
     let(:destination_client1) { client1.destination_client }
-    let(:client2) { create(:hmis_hud_client_with_warehouse_client) }
+    let(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: ds) }
     let(:destination_client2) { client2.destination_client }
-    let(:client3_no_assessment) { create(:hmis_hud_client_with_warehouse_client) }
+    let(:client3_no_assessment) { create(:hmis_hud_client_with_warehouse_client, data_source: ds) }
     let(:destination_client3) { client3_no_assessment.destination_client }
 
     let!(:proxy_for_client1) { create(:hmis_ce_client_proxy, client: destination_client1) }
@@ -104,9 +107,6 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
     let!(:proxy_for_client3) { create(:hmis_ce_client_proxy, client: destination_client3) }
 
     let(:proxy_scope) { Hmis::Ce::ClientProxy.where(id: [proxy_for_client1.id, proxy_for_client2.id, proxy_for_client3.id]) }
-
-    let(:language_field) { 'custom_assessment.language_preference' }
-    let(:allergies_field) { 'custom_assessment.allergies' }
 
     before do
       create_assessment_for_client(
@@ -122,24 +122,20 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
     end
 
     it 'matches client proxies whose latest assessment has a non-repeating CDE value in the list' do
-      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, ['English'])
-      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
+      expect(proxy_scope.matching_cde_values(string_cded, ['English'])).to contain_exactly(proxy_for_client1)
     end
 
-    it 'matches any of several string values (OR within one EXISTS)' do
-      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, ['English', 'French'])
-      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1, proxy_for_client2)
+    it 'matches any of several string values (OR within one filter)' do
+      expect(proxy_scope.matching_cde_values(string_cded, ['English', 'French'])).to contain_exactly(proxy_for_client1, proxy_for_client2)
     end
 
     it 'matches when any repeating CDE row matches one of the filter values' do
-      sql, binds = described_class.sql_cde_value_exists_for_ce_client_proxy(allergies_field, ['Peanuts'])
-      expect(proxy_scope.where([sql, *binds])).to contain_exactly(proxy_for_client1)
+      expect(proxy_scope.matching_cde_values(repeating_cded, ['Peanuts'])).to contain_exactly(proxy_for_client1)
     end
 
-    it 'raises when filter_values is empty' do
-      expect do
-        described_class.sql_cde_value_exists_for_ce_client_proxy(language_field, [])
-      end.to raise_error(ArgumentError, /filter_values must be non-empty/)
+    it 'is bounded to the current scope client ids' do
+      expect(described_class.where(id: proxy_for_client2.id).matching_cde_values(string_cded, ['English', 'French'])).
+        to contain_exactly(proxy_for_client2)
     end
   end
 end

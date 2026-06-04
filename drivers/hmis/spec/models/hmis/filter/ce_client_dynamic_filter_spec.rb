@@ -242,5 +242,52 @@ RSpec.describe Hmis::Filter::CeClientFilter, type: :model do
         described_class.new(input).filter_scope(base_scope)
       end.to raise_error(ArgumentError, /CE client dynamic filters only support/)
     end
+
+    describe 'performance' do
+      let(:several_filters) do
+        [
+          dynamic_filter(key: key_language, values: ['English']),
+          dynamic_filter(key: key_score, values: ['10', '15']),
+          dynamic_filter(key: key_tags, values: ['alpha', 'beta']),
+        ]
+      end
+
+      # Additional client proxies to be included in the base scope for testing query performance
+      let!(:bulk_proxies) do
+        15.times.map do
+          client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+          proxy = create(:hmis_ce_client_proxy, client: client.destination_client)
+          assessment = build_assessment(client, assessment_date: current_date)
+          build_cde(assessment, cded_language, value_string: 'English')
+          build_cde(assessment, cded_priority_score, value_integer: 15)
+          build_cde(assessment, cded_tags, value_string: 'beta')
+          proxy
+        end
+      end
+
+      let(:performance_scope) do
+        Hmis::Ce::ClientProxy.where(id: [c1_proxy.id, c2_proxy.id, c3_proxy.id] + bulk_proxies.map(&:id))
+      end
+
+      # Query count stays low and does not scale with client count
+      it 'makes a small number of queries when loading filtered results' do
+        expect do
+          apply_filters(performance_scope, several_filters).to_a
+        end.to make_database_queries(count: 2..10)
+      end
+
+      it 'does not use correlated EXISTS against the latest-assessment view - regression test for #9269' do
+        sql = []
+        callback = ->(*, payload) { sql << payload[:sql] }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+          apply_filters(performance_scope, several_filters).to_a
+        end
+
+        # Prior to #9269 fix, the code with the performance problem generated SQL like:
+        # SELECT DISTINCT "ce_client_proxies"."id" FROM "ce_client_proxies" WHERE (EXISTS ( SELECT 1 FROM "hmis_destination_client_latest_assessments" ...) AND (EXISTS ( SELECT 1 FROM "hmis_destination_client_latest_assessments" ...)
+        # The problem was correlated EXISTS subqueries tied to each outer row, not multiple view references per se.
+        expect(sql.join).not_to match(/EXISTS.*hmis_destination_client_latest_assessments.*ce_client_proxies.*client_id/m)
+      end
+    end
   end
 end
