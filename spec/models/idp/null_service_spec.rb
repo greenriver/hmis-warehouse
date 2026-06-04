@@ -54,8 +54,8 @@ RSpec.describe Idp::NullService, type: :model do
     end
 
     it 'humanizes connector_id when provided' do
-      service_with_connector = described_class.new('zitadel')
-      expect(service_with_connector.idp_name).to eq('Zitadel')
+      service_with_connector = described_class.new('keycloak')
+      expect(service_with_connector.idp_name).to eq('Keycloak')
     end
   end
 

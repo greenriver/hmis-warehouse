@@ -16,17 +16,17 @@ RSpec.describe Idp::ServiceConfig, type: :model do
     it { is_expected.to validate_presence_of(:service_token) }
 
     describe 'connector_id uniqueness' do
-      let!(:existing) { create(:idp_service_config, connector_id: 'zitadel') }
+      let!(:existing) { create(:idp_service_config, connector_id: 'keycloak') }
 
       it 'prevents duplicate connector_id when both active' do
-        config = build(:idp_service_config, connector_id: 'zitadel')
+        config = build(:idp_service_config, connector_id: 'keycloak')
         expect(config).not_to be_valid
         expect(config.errors[:connector_id]).to be_present
       end
 
       it 'allows duplicate connector_id when one is soft-deleted' do
         existing.destroy
-        config = build(:idp_service_config, connector_id: 'zitadel')
+        config = build(:idp_service_config, connector_id: 'keycloak')
         expect(config).to be_valid
       end
     end
@@ -64,9 +64,9 @@ RSpec.describe Idp::ServiceConfig, type: :model do
   end
 
   describe '#service_class' do
-    it 'returns ZitadelService class for zitadel connector' do
-      config = create(:idp_service_config, connector_id: 'zitadel')
-      expect(config.service_class).to eq(Idp::ZitadelService)
+    it 'returns KeycloakService class for keycloak connector' do
+      config = create(:idp_service_config, connector_id: 'keycloak')
+      expect(config.service_class).to eq(Idp::KeycloakService)
     end
 
     it 'returns NullService for unknown connector' do
@@ -79,22 +79,22 @@ RSpec.describe Idp::ServiceConfig, type: :model do
   end
 
   describe '#to_service' do
-    it 'instantiates ZitadelService with config values' do
+    it 'instantiates KeycloakService with config values' do
       config = create(
         :idp_service_config,
-        connector_id: 'zitadel',
-        api_url: 'http://test.zitadel:8080',
+        connector_id: 'keycloak',
+        api_url: 'http://test.keycloak:8080',
         service_token: 'test-token',
         org_id: 'test-org',
         project_id: 'test-proj',
       )
 
       service = config.to_service
-      expect(service).to be_a(Idp::ZitadelService)
-      expect(service.send(:api_url)).to eq('http://test.zitadel:8080')
-      expect(service.send(:token)).to eq('test-token')
-      expect(service.send(:org_id)).to eq('test-org')
-      expect(service.send(:project_id)).to eq('test-proj')
+      expect(service).to be_a(Idp::KeycloakService)
+      expect(service.send(:api_url)).to eq('http://test.keycloak:8080')
+      expect(service.send(:client_secret)).to eq('test-token')
+      expect(service.config[:org_id]).to eq('test-org')
+      expect(service.config[:project_id]).to eq('test-proj')
     end
 
     it 'instantiates NullService for unknown connector' do
@@ -107,14 +107,14 @@ RSpec.describe Idp::ServiceConfig, type: :model do
       expect(service).to be_a(Idp::NullService)
     end
 
-    it 'preserves additional_config in service' do
+    it 'merges additional_config into service config' do
       config = create(
         :idp_service_config,
         additional_config: { timeout: 30 },
       )
 
       service = config.to_service
-      expect(service.config[:additional_config]).to include('timeout' => 30)
+      expect(service.config[:timeout]).to eq(30)
     end
   end
 

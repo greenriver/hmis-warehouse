@@ -10,7 +10,7 @@ module Idp
   # Model for storing IDP service account credentials
   #
   # Allows administrators to configure service accounts for different IDPs
-  # (Zitadel, Okta, Azure AD, etc.) without hardcoding credentials in ENV variables.
+  # (Keycloak, Okta, Azure AD, etc.) without hardcoding credentials in ENV variables.
   class ServiceConfig < GrdaWarehouseBase
     self.table_name = 'idp_service_configs'
     acts_as_paranoid
@@ -26,7 +26,7 @@ module Idp
 
     # Get the service class for this connector
     #
-    # @return [Class] The service class (e.g., Idp::ZitadelService)
+    # @return [Class] The service class (e.g., Idp::KeycloakService)
     def service_class
       Idp::ServiceFactory.services[connector_id.to_s] || Idp::NullService
     end
@@ -37,11 +37,10 @@ module Idp
     def to_service
       config_hash = {
         api_url: api_url,
-        service_token: service_token,
+        client_secret: service_token,
         org_id: org_id,
         project_id: project_id,
-        additional_config: additional_config || {},
-      }
+      }.merge((additional_config || {}).symbolize_keys)
 
       service_class.new(config: config_hash)
     end
