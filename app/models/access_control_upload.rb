@@ -276,9 +276,8 @@ class AccessControlUpload < ApplicationRecord
   private def import_users!
     agency_ids = Agency.pluck(:name, :id).to_h
     users.each do |item|
-      user = User.with_deleted.where(email: item[:email]).first_or_initialize do |u|
-        u.password = Faker::Internet.password(min_length: 16)
-      end
+      # Users authenticate via OAuth2/IDP, no password needed in warehouse
+      user = User.with_deleted.where(email: item[:email]).first_or_initialize
       user.first_name = item[:first_name]
       user.last_name = item[:last_name]
       user.agency_id = agency_ids[item[:agency]]

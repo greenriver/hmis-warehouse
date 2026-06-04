@@ -93,7 +93,7 @@ class UserTrainingController < ApplicationController
   end
 
   # Figure out where we are going after login
-  # stored_location_for is provided by Devise
+  # stored_location_for stores redirect location in session
   # after_sign_in_path_for is provided by ApplicationController
   def safe_training_redirect_path
     path = stored_location_for(:user).presence || after_sign_in_path_for(current_user)

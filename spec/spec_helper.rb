@@ -161,6 +161,10 @@ end
 DBQueryMatchers.configure do |config|
   config.schemaless = true # ignore schema queries
   config.ignore_cached = true # ignore cached queries
+  config.log_backtrace = true # show call location for each query
+  config.backtrace_filter = proc do |backtrace|
+    backtrace.select { |line| line.start_with?(Rails.root.to_s) }
+  end
 end
 
 RSpec::Benchmark.configure do |config|

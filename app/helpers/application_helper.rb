@@ -317,10 +317,6 @@ module ApplicationHelper
     Git.revision
   end
 
-  def impersonating?
-    current_user != true_user
-  end
-
   def modal_size
     ''
   end
@@ -434,6 +430,75 @@ module ApplicationHelper
     else
       []
     end
+  end
+
+  # Generate OAuth2-proxy sign-in path, optionally with connector_id parameter.
+  #
+  # If a user has a last_connector_id set, it will be included as a query parameter
+  # to automatically direct them to the correct IDP.
+  #
+  # OAuth2-proxy supports the `rd` (redirect) query parameter to preserve the
+  # original URL through the authentication flow.
+  #
+  # @param user [User, nil] User to get connector_id from (defaults to current_user)
+  # @param redirect_to [String, nil] URL to redirect to after authentication (passed as `rd` parameter)
+  # @return [String] Sign-in path, e.g., '/oauth2/sign_in' or '/oauth2/sign_in?connector_id=keycloak&rd=/path'
+  def oauth2_sign_in_path(user: current_user, redirect_to: nil)
+    path = '/oauth2/sign_in'
+    params = []
+
+    # Get connector_id from user database record, or fall back to cookie for logged-out users
+    connector_id = user&.last_connector_id || cookies[:last_connector_id]
+    params << "connector_id=#{CGI.escape(connector_id)}" if connector_id.present?
+
+    if redirect_to.present?
+      # OAuth2-proxy uses `rd` parameter for redirect URL
+      params << "rd=#{CGI.escape(redirect_to)}"
+    end
+
+    return path if params.empty?
+
+    "#{path}?#{params.join('&')}"
+  end
+
+  # Generate OAuth2-proxy sign-in link.
+  #
+  # @param user [User, nil] User to get connector_id from (defaults to current_user)
+  # @param options [Hash] Options hash passed to link_to (e.g., class, text, etc.)
+  # @return [String] HTML link to sign-in path
+  def oauth2_sign_in_link(user: current_user, **options)
+    text = options.delete(:text) || 'Sign in'
+    link_to text, oauth2_sign_in_path(user: user), **options
+  end
+
+  # Generate IDP logout URL with post-logout redirect.
+  #
+  # For IDPs that support OIDC RP-Initiated Logout (like Keycloak), this creates
+  # a proper logout URL that will:
+  # 1. Log the user out of the IDP
+  # 2. Redirect to oauth2-proxy's sign_out to clear its session
+  # 3. Finally redirect back to the application
+  #
+  # For IDPs that don't support logout, just uses oauth2-proxy sign_out.
+  #
+  # @param user [User, nil] User to get connector_id from (defaults to current_user)
+  # @param final_redirect_uri [String] Final destination after all logouts complete (defaults to root_url)
+  # @return [String] Logout URL
+  def idp_logout_url(user: current_user, final_redirect_uri: nil)
+    connector_id = user&.last_connector_id || cookies[:last_connector_id]
+    final_redirect_uri ||= root_url
+
+    # After IDP logout, we need to clear oauth2-proxy session before going to final destination
+    oauth2_signout_url = "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(final_redirect_uri)}"
+
+    # Use IDP service to generate logout URL
+    # - If IDP supports OIDC logout (e.g., Keycloak): returns IDP logout URL with oauth2_signout_url as post_logout_redirect_uri
+    # - If IDP doesn't support logout: returns oauth2_signout_url directly
+    idp_service = Idp::ServiceFactory.for_connector(connector_id)
+    idp_service.logout_url(
+      post_logout_redirect_uri: oauth2_signout_url,
+      client_id: ENV['KEYCLOAK_IDP_CLIENT_ID'],
+    )
   end
 
   def foreground_color(bg_color)

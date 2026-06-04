@@ -7,8 +7,14 @@
 # frozen_string_literal: true
 
 module LoginAndPermissionsSpecHelper
+  # Sign in an HMIS user for request specs using JWT authentication.
+  #
+  # It sets up JWT stubs and headers so that the user appears authenticated.
+  #
+  # @param user [Hmis::User] The HMIS user to sign in
+  # @return [String] The mock JWT token used for authentication
   def hmis_login(user)
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+    sign_in(user)
   end
 
   def viewable_type(entity)

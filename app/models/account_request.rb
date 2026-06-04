@@ -38,23 +38,25 @@ class AccountRequest < ApplicationRecord
       email: email,
       phone: phone,
       agency_id: agency_id,
+      active: true,
+      confirmed_at: Time.current,
     }
-    user = User.invite!(options, user)
+    new_user = User.create!(options)
     # TODO: START_ACL remove when ACL transition complete
     roles = Role.where(id: role_ids)
     access_groups = AccessGroup.where(id: access_group_ids)
-    user.legacy_roles = roles
-    user.access_groups = access_groups
+    new_user.legacy_roles = roles
+    new_user.access_groups = access_groups
     # END_ACL
     acls = AccessControl.where(id: access_control_ids)
     acls.each do |acl|
-      acl.user_group.add(user)
+      acl.user_group.add(new_user)
     end
     update(
       status: :accepted,
       accepted_by: user.id,
       accepted_at: Time.current,
-      user_id: user.id,
+      user_id: new_user.id,
     )
   end
 end

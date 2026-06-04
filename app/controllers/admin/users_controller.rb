@@ -14,12 +14,11 @@ module Admin
     # which is handled separately as it's stored as a JSON array rather than associations.
     VALID_ENTITY_TYPES = (AccessGroup.known_entity_types.map(&:to_s) + ['coc_codes']).freeze
 
-    # This controller is namespaced to prevent
-    # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
+    before_action :set_user, only: [:edit, :update, :destroy, :impersonate]
+    before_action :set_available_idps, only: [:new, :create, :edit]
     before_action :require_can_impersonate_users!, only: [:impersonate]
-    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
+    after_action :log_user, only: [:show, :edit, :update, :destroy]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -36,11 +35,103 @@ module Admin
       @pagy, @users = pagy(@users)
     end
 
+    def new
+      @user = User.new
+      ensure_system_contact
+      set_system_alerts
+      @agencies = Agency.order(:name)
+    end
+
+    def create
+      @user = User.new
+      params_without_system_contact = user_params.except(:system_contact_attributes, :connector_id, :legacy_role_ids)
+      system_contact_attrs = user_params[:system_contact_attributes]
+      legacy_role_ids = user_params[:legacy_role_ids]
+      @user.assign_attributes(params_without_system_contact)
+      set_system_alerts
+      @agencies = Agency.order(:name)
+
+      connector_id = user_params[:connector_id]
+
+      begin
+        User.transaction do
+          @user.save!
+
+          # Assign roles after user is saved so the user_id is available
+          if legacy_role_ids.present?
+            @user.legacy_role_ids = legacy_role_ids.reject(&:blank?)
+          end
+
+          # Create system_contact after user is saved so entity_id can be set
+          system_contact = @user.create_system_contact!(
+            entity_id: @user.id,
+            entity_type: 'User',
+            user_id: @user.id,
+            type: 'GrdaWarehouse::Contact::User',
+          )
+
+          # Handle alert_definition_ids if provided
+          if system_contact_attrs.present? && system_contact_attrs[:alert_definition_ids].present?
+            alert_definition_ids = Array(system_contact_attrs[:alert_definition_ids]).reject(&:blank?)
+            alert_definition_ids.each do |alert_def_id|
+              system_contact.contact_alert_subscriptions.find_or_create_by!(
+                alert_definition_id: alert_def_id,
+                active: true,
+              )
+            end
+          end
+
+          # Create user in IDP if connector_id is provided and IDP supports user management
+          if connector_id.present?
+            idp_service = Idp::ServiceFactory.for_connector(connector_id)
+            if idp_service.supports_user_management?
+              begin
+                result = idp_service.create_user(
+                  email: @user.email,
+                  first_name: @user.first_name,
+                  last_name: @user.last_name,
+                  phone: @user.phone,
+                )
+                if result[:success] && result[:connector_user_id].present?
+                  # Create authentication source
+                  @user.user_authentication_sources.create!(
+                    connector_id: connector_id,
+                    connector_user_id: result[:connector_user_id],
+                    enabled: true,
+                  )
+                  @user.update_column(:last_connector_id, connector_id)
+                  Rails.logger.info "Created user #{@user.email} in IDP #{connector_id} with ID #{result[:connector_user_id]}"
+                end
+              rescue Idp::ServiceError => e
+                Rails.logger.error "Failed to create user in IDP: #{e.message}"
+                # Continue with warehouse user creation even if IDP creation fails
+                # User can still be created in warehouse as a shell user
+              end
+            end
+          end
+        end
+      rescue ActiveRecord::RecordInvalid
+        ensure_system_contact
+        error_messages = @user.errors.full_messages
+        flash[:error] = if error_messages.any?
+          "Please review the form problems below:<br>#{error_messages.map { |msg| "• #{msg}" }.join('<br>')}".html_safe
+        else
+          'Please review the form problems below'
+        end
+        render :new
+        return
+      end
+
+      flash[:notice] = "User #{@user.name} was successfully created."
+      redirect_to edit_admin_user_path(@user)
+    end
+
     def edit
-      @user.set_initial_two_factor_secret!
       @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
-      @user.build_system_contact if @user.system_contact.nil?
-      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
+      ensure_system_contact
+      set_system_alerts
+      # Preload authentication sources to avoid N+1 queries
+      @user.user_authentication_sources.load
 
       # Preload all contacts with their entities and alert definitions for contact relationships display
       # Exclude contacts whose entities (projects/organizations) have been deleted
@@ -58,61 +149,34 @@ module Admin
         to_a
     end
 
-    def unlock
-      @user.unlock_access!
-      redirect_to({ action: :index }, notice: 'User unlocked')
-    end
-
-    def un_expire
-      @user.update_last_activity!
-      redirect_to({ action: :index }, notice: 'User re-activated')
-    end
-
-    def expire_password
-      msg = if @user.force_password_reset!
-        { notice: "User #{@user.email} has been logged out and will need to change their password on next login." }
-      else
-        { warn: "Unable to expire password for #{@user.email}, password expiration is disabled" }
-      end
-      redirect_to({ action: :index }, **msg)
-    end
-
-    def confirm
-      return if adding_admin?
-
-      @redirecting = true
-      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
-      update
-      # early return if the response body was set by update(), avoid double-render error
-      return if performed?
-
-      redirect_to({ action: :edit }, notice: 'User updated')
-    end
-
     def impersonate
+      # Force session to be created by writing to it (needed for tests where sessions are lazy-loaded)
+      session[:_session_initialized] = true if Rails.env.test?
+
       become = User.find(params[:become_id].to_i)
-      impersonate_user(become)
+      return redirect_to root_path, alert: 'Cannot impersonate yourself' if become.id == current_user.id
+
+      # Validate permissions before storing
+      return redirect_to root_path, alert: 'You do not have permission to impersonate users' unless current_user.can_impersonate_users?
+
+      return redirect_to root_path, alert: 'This user cannot be impersonated' unless become.impersonateable_by?(current_user)
+
+      # Store impersonation state in session
+      ImpersonationManager.new(session).store(current_user.id, become.id)
       redirect_to root_path
     end
 
     def stop_impersonating
-      stop_impersonating_user
-      redirect_to root_path
+      ImpersonationManager.new(session).clear
+      redirect_to admin_users_path
     end
 
     def update
-      if adding_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
-        flash[:error] = 'User not updated. Incorrect password'
-        render :confirm
-        return
-      end
-
       existing_health_roles = @user.health_roles.to_a
       email_before = @user.email
 
       begin
         User.transaction do
-          @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
           @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls?
 
@@ -129,7 +193,6 @@ module Admin
               end
           end
           # END_ACL
-          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
 
           # The User Group data is not captured for update when using the Role-Based view. This means it will not be included
           # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
@@ -150,26 +213,28 @@ module Admin
           end
           # END_ACL
         end
-      rescue Exception
-        flash[:error] = 'Please review the form problems below'
+      rescue Exception => e
+        ensure_system_contact
+        set_system_alerts
+        Rails.logger.error "User update failed: #{e.class} - #{e.message}"
+        Rails.logger.error e.backtrace.first(10).join("\n")
+        flash[:error] = if e.is_a?(ActiveRecord::RecordInvalid)
+          error_messages = @user.errors.full_messages
+          if error_messages.any?
+            "Please review the form problems below:<br>#{error_messages.map { |msg| "• #{msg}" }.join('<br>')}".html_safe
+          else
+            'Please review the form problems below'
+          end
+        else
+          "Update failed: #{e.message}"
+        end
         render :edit
         return
       end
 
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
-
-      if HmisEnforcement.hmis_enabled?
-        begin
-          @user.sync_to_hud_users(previous_email: email_before)
-        rescue StandardError => e
-          Rails.logger.error("[HMIS] HUD user sync failed (user #{@user.id}): #{e.class}: #{e.message}")
-          redirect_to edit_admin_user_path(@user), alert: 'User updated, but HMIS sync failed. Your changes were saved.'
-          return
-        end
-      end
-
-      respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
+      respond_with(@user, location: edit_admin_user_path(@user))
     end
 
     def search
@@ -245,7 +310,7 @@ module Admin
 
     # Validates and sanitizes the base parameter for form input naming.
     # The base parameter determines the prefix used for form field names
-    # (e.g., 'user[projects][]' vs 'invitation[projects][]').
+    # (e.g., 'user[projects][]').
     #
     # @return [String] The sanitized base parameter, defaults to 'user'
     #
@@ -363,46 +428,6 @@ module Admin
       @user.using_acls? || changing_to_acls?
     end
 
-    private def adding_admin?
-      @adding_admin ||= begin
-        adding_admin = false
-        # TODO: START_ACL remove when ACL transition complete
-        if @user.using_acls?
-          existing_roles = @user.roles
-          # If we don't already have a role granting an admin permission, and we're assinging some
-          # ACLs (with associated roles)
-          if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
-            assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
-            added_role_ids = assigned_roles - existing_roles.pluck(:id)
-            Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
-              # If any role we're adding is administrative, make note, and present the confirmation page
-              next unless role.administrative?
-
-              @admin_role_name = role.role_name
-              adding_admin = true
-              break
-            end
-          end
-        else
-          existing_roles = @user.legacy_roles
-          if existing_roles.map(&:has_super_admin_permissions?).none?
-            assigned_roles = user_params[:legacy_role_ids]&.select(&:present?)&.map(&:to_i) || []
-            added_role_ids = assigned_roles - existing_roles.pluck(:id)
-            added_role_ids.select(&:present?).each do |id|
-              role = Role.find(id.to_i)
-              next unless role.administrative?
-
-              @admin_role_name = role.role_name
-              adding_admin = true
-              break
-            end
-          end
-        end
-        # END_ACL
-        adding_admin
-      end
-    end
-
     private def assigned_user_group_ids
       user_params[:user_group_ids]&.reject(&:blank?)&.map(&:to_i) || []
     end
@@ -414,6 +439,7 @@ module Admin
     private def user_params
       base_params = params[:user] || ActionController::Parameters.new
       base_params.permit(
+        :connector_id,
         :last_name,
         :first_name,
         :email,
@@ -429,8 +455,6 @@ module Admin
         :notify_on_client_added,
         :notify_on_anomaly_identified,
         :receive_account_request_notifications,
-        :otp_required_for_login,
-        :expired_at,
         :training_completed,
         :copy_form_id,
         :permission_context,
@@ -457,12 +481,6 @@ module Admin
           result[:user_group_ids] ||= []
           result[:user_group_ids] += @user.user_groups.system.pluck(:id)
         end
-    end
-
-    private def confirmation_params
-      params.require(:user).permit(
-        :confirmation_password,
-      )
     end
 
     private def viewable_params
@@ -493,6 +511,25 @@ module Admin
       @user = User.find(params[:id].to_i)
 
       @agencies = Agency.order(:name)
+    end
+
+    private def set_system_alerts
+      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
+    end
+
+    private def ensure_system_contact
+      @user.build_system_contact if @user.system_contact.nil?
+    end
+
+    private def set_available_idps
+      # Build list of available IDPs that have service configs and support user management
+      @available_idps = []
+
+      # Check Idp::ServiceConfig records
+      Idp::ServiceConfig.active.each do |config|
+        service = config.to_service
+        @available_idps << [config.connector_id, service.idp_name] if service.supports_user_management?
+      end
     end
 
     private def perform_search(search_params = {})

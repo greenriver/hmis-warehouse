@@ -20,10 +20,6 @@ RSpec.feature 'View-only access to Enrollments', type: :system do
   let!(:c1) { create :hmis_hud_client, data_source: ds1, first_name: 'Quentin', last_name: 'Coldwater' }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, first_name: 'Alice', last_name: 'Quinn' }
 
-  before(:each) do
-    sign_in(hmis_user)
-  end
-
   let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_client_name, :can_view_project, :can_view_enrollment_details]) }
   let!(:today) { Date.current }
 
@@ -32,6 +28,10 @@ RSpec.feature 'View-only access to Enrollments', type: :system do
   let(:exit_form) { Hmis::Form::Definition.find_by(role: :EXIT) }
 
   describe 'Enrollment Overview' do
+    before(:each) do
+      sign_in(hmis_user)
+    end
+
     context 'when enrollment is wip' do
       let!(:e1) { create :hmis_hud_wip_enrollment, client: c1, data_source: ds1, project: p1 }
       let!(:e2) { create :hmis_hud_wip_enrollment, client: c2, data_source: ds1, project: p1, household_id: e1.household_id }

@@ -16,7 +16,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
     logo = GrdaWarehouse::Theme.hmis_logo.presence # prefer HMIS_LOGO if provided, otherwise LOGO
     logo_path = logo_path('hmis_logo') if logo.present?
 
-    hostname = ENV['FQDN']
+    hostname = ENV.fetch('HMIS_BACKEND_FQDN', ENV['FQDN'])
 
     # Note: the commented-out theme call doesn't work yet because request.origin is nil for this request.
     # So for now, multi-HMIS theming is not yet supported. Issue #6774

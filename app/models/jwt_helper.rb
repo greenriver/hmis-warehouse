@@ -73,12 +73,22 @@ class JwtHelper
       true, # verify signature
       {
         algorithm: algorithm,
-        aud: ENV.fetch('IDP_AUD'),
+        aud: idp_audiences,
         iss: ENV.fetch('ISS_URL'),
         verify_aud: ENV.fetch('IDP_AUD').present?,
         verify_iss: ENV.fetch('ISS_URL').present?,
       },
     )
+  end
+
+  # Returns the list of valid audience values for JWT validation.
+  # Supports both single value and comma-separated list from IDP_AUD env var.
+  # Defaults to both hmis-warehouse and hmis-frontend if not set.
+  #
+  # @return [Array<String>] List of valid audience values
+  private def idp_audiences
+    aud = ENV.fetch('IDP_AUD', 'hmis-warehouse,hmis-frontend,superset')
+    aud.split(',').map(&:strip)
   end
 
   def email(forwarded_email)
@@ -103,6 +113,61 @@ class JwtHelper
 
   def last_login_at
     payload.first['iat']
+  end
+
+  # Get token expiration time.
+  #
+  # Returns the expiration time from the JWT's 'exp' claim.
+  # Standard JWT tokens include an 'exp' claim indicating when the token expires.
+  # Returns the time in the application's configured timezone.
+  #
+  # @return [Time, nil] Expiration time as a Time object in the application timezone, or nil if not present
+  def expiration_time
+    exp = payload.first['exp']
+    return nil unless exp
+
+    Time.zone.at(exp)
+  end
+
+  # Get the access token hash from the token.
+  #
+  # The 'at_hash' claim is a hash of the access token and changes with each new token issued.
+  # It remains constant across requests using the same token, making it ideal for session tracking.
+  # Used for token denylist/blacklist tracking to invalidate specific tokens.
+  #
+  # @return [String, nil] The access token hash, or nil if not available
+  def session_id
+    payload.first['at_hash']
+  end
+
+  # Check if an access token represents an authenticated user.
+  #
+  # This is a lightweight check that validates the token exists and is valid.
+  # Used by middleware like Rack::Attack to determine authentication status.
+  #
+  # @param access_token [String, nil] The JWT access token
+  # @return [Boolean] true if token is present and valid, false otherwise
+  def self.authenticated?(access_token)
+    return false unless access_token.present?
+
+    helper = new(access_token: access_token)
+    helper.token? && helper.validate!
+  end
+
+  # Get user ID from an access token.
+  #
+  # Validates the token and returns the associated user's ID.
+  # Returns nil if token is invalid or user cannot be found.
+  #
+  # @param access_token [String, nil] The JWT access token
+  # @return [Integer, nil] User ID or nil if not found/invalid
+  def self.user_id_from_token(access_token)
+    return nil unless access_token.present?
+
+    helper = new(access_token: access_token)
+    return nil unless helper.token? && helper.validate!
+
+    User.find_from_jwt(helper)&.id
   end
 
   # TODO: this is inconsistent based on the IDP

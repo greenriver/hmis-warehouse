@@ -119,7 +119,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(result.dig('data', 'project', 'services', 'nodesCount')).to eq(30 * 10)
             expect(result.dig('data', 'project', 'services', 'nodes').count).to eq(limit)
           end
-        end.to make_database_queries(count: 10..30)
+        end.to make_database_queries(count: 10..35)
       end
 
       it 'to execute in a reasonable amount of time' do

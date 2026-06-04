@@ -2,11 +2,22 @@
 .row
   .col-sm-6
     %h3 User Information
-    - providers = user.oauth_identities.map(&:provider_name).sort.uniq
-    - if providers.any?
+    - if user.primary_idp.present? && !user.idp_supports_profile_updates?
       .alert.alert-info
-        = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."
+        %p.mb-0
+          Sign-in provided by #{user.user_authentication_sources.find_by(connector_id: user.primary_idp)&.idp_name || user.primary_idp}. Changes made here to personal information may be overwritten on the user's next login since the IDP does not support profile updates.
     .form-inputs.well
+      -# IDP selection for new users
+      - if @available_idps.present? && @user.new_record?
+        .row
+          .col-sm-10
+            - if @available_idps.length > 1
+              = f.input :connector_id, collection: @available_idps, label_method: :last, value_method: :first, include_blank: false, as: :select_two, label: 'Identity Provider', hint: 'Select which Identity Provider to use for this user account.'
+            - else
+              = f.hidden_field :connector_id, value: @available_idps.first.first
+              - idp_name = @available_idps.first.last
+              .alert.alert-info
+                = "User will be created in #{idp_name}."
       .row
         .col-sm-10
           = f.input :first_name, required: true
@@ -36,16 +47,18 @@
       .row
         .col-sm-10
           = f.input :exclude_phone_from_directory
-      -# Allow skipping email invite for new users if OKTA is enabled. The first time they log in with okta, the account will get linked.
-      - if ENV['OKTA_DOMAIN'].present? && @user.new_record?
+    - if @available_idps.present? && @user.new_record?
+      .form-inputs.well
+        -# IDP selection for new users
         .row
           .col-sm-10
-            = f.input :skip_invitation, as: :boolean, label: 'Skip email invitation'
-      - if @user.two_factor_enabled?
-        .row
-          .col-sm-8
-            %p This user has enabled Two-Factor authentication.  If this is preventing login, you can turn it off below.  Before you do, you should ensure the request is coming from the actual user.  Once off, the user will need to re-enable it.
-            = f.input :otp_required_for_login, as: :select_two, label: 'Require two-factor authentication', include_blank: false, input_html: {class: [:j2Fa]}
+            - if @available_idps.length > 1
+              = f.input :connector_id, collection: @available_idps, label_method: :last, value_method: :first, include_blank: false, as: :select_two, label: 'Identity Provider', hint: 'Select which Identity Provider to use for this user account.'
+            - else
+              = f.hidden_field :connector_id, value: @available_idps.first.first
+              - idp_name = @available_idps.first.last
+              .alert.alert-info
+                = "User will be created in #{idp_name}."
 
   .col-sm-6
     .form--checkbox-groups
@@ -67,10 +80,7 @@
             = link_to 'View threshold notification history', admin_user_threshold_notification_logs_path(@user)
     - unless @user.new_record?
       = render 'admin/users/contact_relationships'
-    .form--expiration
-      %h3 Account Life-cycle
-      .well
-        = f.input :expired_at, as: :date_picker, label: 'Account Expiration Date', hint: 'If an expiration date is present, the user will not be able to login after that date.  Active accounts should be blank.'
+      = render 'admin/users/identity_providers', user: user
     .form-access-control
       %h3 Permission Scheme
       .well

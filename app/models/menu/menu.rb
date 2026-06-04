@@ -389,6 +389,14 @@ class Menu::Menu
       Menu::Item.new(
         user: user,
         visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_idp_service_configs_path,
+        title: 'Identity Providers',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: admin_translation_keys_path,
         title: 'Translations',
       ),
@@ -495,14 +503,6 @@ class Menu::Menu
         visible: ->(user) { user.can_manage_inbound_api_configurations? }, # rubocop:disable Style/SymbolProc
         path: admin_inbound_api_configurations_path,
         title: 'Inbound APIs',
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
-        path: oauth_applications_path,
-        title: 'Oauth',
       ),
     )
     menu

@@ -30,25 +30,61 @@ end
 
 # test helper methods
 RSpec.shared_context 'SystemSpecHelper' do
-  def sign_in(user, password: DEFAULT_USER_PASSWORD)
-    # this should go into before-each but that seems to hang up some tests
+  # Sign in a user for system specs using JWT authentication.
+  #
+  # This replaces the old Devise-based login form flow with JWT-based authentication.
+  # Instead of filling in a login form (which no longer exists with OAuth2-proxy),
+  # we inject a JWT token into the session and navigate to the application.
+  #
+  # @param user [User, Hmis::User] The user to sign in
+  # @param _password [String] Unused, kept for backward compatibility
+  def sign_in(user, _password: DEFAULT_USER_PASSWORD)
+    # Generate a mock JWT token that JwtHelper will recognize in system tests
+    # Format: "mock-jwt-token-{user_id}-{random_hex}"
+    # JwtHelper has special handling for these tokens when RUN_SYSTEM_TESTS=true
+    mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
+
+    # Create authentication source for the user
+    # This is needed for CurrentUser to find the user via User.find_from_jwt
+    user.user_authentication_sources.find_or_create_by!(
+      connector_id: 'test',
+      connector_user_id: user.id.to_s,
+    ) do |auth_source|
+      auth_source.enabled = true
+    end
+    user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
+
+    # Visit the application first (required to set cookies)
     visit('/')
 
-    fill_in 'Email Address', with: user.email
-    fill_in 'Password', with: password
-    click_button('Sign In')
-    assert_text user.full_name # user's name should appear in the header
+    # Set the test JWT token in a cookie that CurrentUser will read
+    # This bypasses oauth2-proxy which isn't running in tests
+    # E2E tests use Cuprite driver which has a different cookie API than Selenium
+    # Note: domain must match the current page domain for the cookie to be set
+    current_domain = URI.parse(page.current_url).host
+    page.driver.set_cookie('test_jwt_token', mock_token, path: '/', httponly: false, secure: false, domain: current_domain)
 
-    # Refresh page to address intermittent "_cuprite is not defined" failures on CI https://github.com/rubycdp/cuprite/issues/219
+    # Navigate to home page (now authenticated)
+    visit('/')
+
+    # Wait for page to load and verify user is signed in
     page.driver.wait_for_network_idle
-    page.driver.refresh
-    assert_text user.full_name
+
+    assert_text user.full_name # user's name should appear in the header
   end
 
   def sign_out
-    find('#userMenuToggle').click
-    # FIXME: sign out button needs a11y
-    find('span', text: 'Sign Out').click
+    # For system tests, simply remove the JWT token cookie and reload the page
+    # This bypasses the oauth2-proxy sign_out flow which isn't available in tests
+    current_domain = URI.parse(page.current_url).host
+    page.driver.remove_cookie('test_jwt_token', path: '/', domain: current_domain)
+
+    # Clear any localStorage caches
+    page.execute_script('localStorage.removeItem("_hmis_user_info")')
+
+    # Reload to show unauthenticated state
+    visit('/')
+    page.driver.wait_for_network_idle
   end
 
   def set_hidden_field_value(id, value)
@@ -179,28 +215,46 @@ RSpec.shared_context 'SystemSpecHelper' do
     user = Hmis::User.find(user_id)
 
     # Make a POST request to start impersonation using JavaScript fetch
-    page.execute_script(<<~JS)
+    # Clear cached user so React will fetch fresh data on reload
+    page.evaluate_async_script(<<~JS)
+      const done = arguments[0];
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      return fetch('/hmis/impersonations', {
+      fetch('/hmis/impersonations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
+        credentials: 'include',
         body: JSON.stringify({ user_id: #{user.id} })
       }).then(async (r) => {
         const body = await r.text();
-        return { ok: r.ok, status: r.status, body: body };
-      });
+        // Clear cached user from localStorage so React fetches fresh impersonated user data
+        localStorage.removeItem('_hmis_user_info');
+        let parsedBody;
+        try {
+          parsedBody = JSON.parse(body);
+        } catch(e) {
+          parsedBody = body;
+        }
+
+        done({ ok: r.ok, status: r.status, body: parsedBody });
+
+        // Reload current page to pick up the impersonated session
+        setTimeout(() => window.location.reload(), 100);
+      }).catch(e => done({ error: e.message }));
     JS
 
-    visit current_path # reload the page
+    # Wait for navigation to complete
+    page.driver.wait_for_network_idle
+
     expect(page).to have_content("Acting as #{user.full_name}")
 
     begin
       yield
     ensure
       # Stop impersonating by making a DELETE request
+      # Clear cached user so React will fetch fresh data on reload
       page.execute_script(<<~JS)
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         return fetch('/hmis/impersonations', {
@@ -208,8 +262,13 @@ RSpec.shared_context 'SystemSpecHelper' do
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
-          }
-        }).then(r => r.ok);
+          },
+          credentials: 'include'
+        }).then((r) => {
+          // Clear cached user from localStorage so React fetches fresh non-impersonated user data
+          localStorage.removeItem('_hmis_user_info');
+          return r.ok;
+        });
       JS
 
       visit current_path # reload the page

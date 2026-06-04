@@ -16,11 +16,11 @@ on:
   workflow_dispatch:
     inputs:
       test_path:
-        description: 'Spec file or directory (e.g., spec/models/user_spec.rb)'
+        description: "Spec file or directory (e.g., spec/models/user_spec.rb)"
         required: false
         type: string
       with_okta:
-        description: 'Run Okta integration tests'
+        description: "Run Okta integration tests"
         required: false
         type: boolean
         default: false
@@ -30,12 +30,12 @@ on:
         type: boolean
         default: false
       with_logging:
-        description: 'Run logging configuration tests'
+        description: "Run logging configuration tests"
         required: false
         type: boolean
         default: false
       with_profiling:
-        description: 'Enable RSpec profiling'
+        description: "Enable RSpec profiling"
         required: false
         type: boolean
         default: false
@@ -299,15 +299,6 @@ jobs:
               bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
             fi
           fi
-
-      - name: Run okta tests
-        if: matrix.test_group.okta || needs.determine_matrix.outputs.okta == 'true'
-        env:
-          MAX_FAILURES: 60
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-        run: |
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb
 
       - name: Run logging tests
         if: matrix.test_group.logging || needs.determine_matrix.outputs.logging == 'true'

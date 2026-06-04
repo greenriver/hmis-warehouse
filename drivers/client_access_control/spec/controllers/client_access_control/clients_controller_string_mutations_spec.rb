@@ -11,6 +11,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :controller do
     allow(user).to receive(:can_access_some_version_of_clients?).and_return(true)
     allow(user).to receive(:can_view_some_client_dashboard?).and_return(true)
     allow(user).to receive(:can_view_enrollment_details?).and_return(true)
+    allow(user).to receive(:can_use_strict_search?).and_return(true)
   end
 
   describe '#assign_client_list_vars method with += operations' do

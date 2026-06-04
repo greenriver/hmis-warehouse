@@ -17,6 +17,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   let!(:config) { create :config_b }
   let!(:user) { create :acl_user }
+  let(:oauth2_sign_in_path) { '/oauth2/sign_in' }
 
   before do
     Collection.maintain_system_groups

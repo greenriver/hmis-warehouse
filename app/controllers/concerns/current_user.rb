@@ -1,0 +1,330 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+# Concern providing JWT-based current_user functionality for controllers.
+#
+# Replaces Devise's current_user with JWT-based authentication.
+# Provides authenticate_user! method that validates JWT and sets current_user.
+module CurrentUser
+  extend ActiveSupport::Concern
+
+  included do
+    # Get the current authenticated user from JWT token.
+    #
+    # Also ensures authentication source exists for the user (only once per request).
+    # This handles cases where users existed before IDP integration.
+    #
+    # If impersonation is active, returns the impersonated user instead of the true user.
+    #
+    # @return [User, nil] Current user (or impersonated user) or nil if not authenticated
+    def current_user
+      @current_user ||= authenticated_user_from_jwt(user_class: User)
+    end
+    helper_method :current_user
+
+    # Get warden-compatible proxy for backward compatibility.
+    #
+    # @return [WardenProxy] Proxy that provides warden-like interface
+    def warden
+      @warden ||= WardenProxy.new(current_user, session: session)
+    end
+
+    # Check if the current token is denylisted (force logged out).
+    #
+    # This is a separate before_action that can be skipped independently.
+    # If the token is denylisted, redirects to the captive portal.
+    def check_token_denylist!
+      jwt_helper = jwt_helper_for_request
+      return unless jwt_helper&.token? && jwt_helper.validate! && TokenDenylist.denied?(jwt_helper.session_id)
+
+      handle_denylisted_token
+    end
+
+    # Authenticate user via JWT token.
+    #
+    # Redirects to sign-in page if authentication fails.
+    # Can be overridden in subclasses for different behavior (e.g., JSON responses).
+    #
+    # @raise [ActionController::RedirectBackError] if user is not authenticated
+    def authenticate_user!
+      user = authenticated_user_from_jwt(user_class: User)
+      unless user
+        handle_unauthenticated
+        return
+      end
+
+      # Ensure user is active and eligible for authentication
+      unless user.active_for_authentication?
+        handle_inactive_user(user)
+        return
+      end
+
+      @current_user = user
+    end
+
+    # Override in subclasses for custom behavior (e.g., JSON responses)
+    def handle_denylisted_token
+      redirect_to token_denylisted_path
+    end
+
+    # Check if user is signed in.
+    #
+    # Compatible with Devise's user_signed_in? helper.
+    #
+    # @return [Boolean] true if user is authenticated
+    def user_signed_in?
+      current_user.present?
+    end
+    helper_method :user_signed_in?
+
+    # Get the true user (when impersonating).
+    #
+    # Returns the actual authenticated user from JWT, not the impersonated user.
+    # If not impersonating, returns the current_user.
+    #
+    # @return [User, nil] True user or nil if not authenticated
+    def true_user
+      return nil unless current_user
+
+      impersonation_manager = ImpersonationManager.new(session)
+      impersonation_data = impersonation_manager.get
+      return current_user unless impersonation_data && impersonation_data[:true_user_id].present?
+
+      # Use same class as current_user to ensure permissions load correctly
+      true_user_record = current_user.class.find_by(id: impersonation_data[:true_user_id])
+      true_user_record || current_user
+    end
+    helper_method :true_user
+
+    # Check if currently impersonating another user.
+    #
+    # @return [Boolean] true if impersonating, false otherwise
+    def impersonating?
+      return false unless current_user
+
+      impersonation_manager = ImpersonationManager.new(session)
+      impersonation_data = impersonation_manager.get
+      return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
+
+      # Verify the impersonated user matches current_user
+      impersonation_data[:impersonated_user_id] == current_user.id
+    end
+    helper_method :impersonating?
+
+    # Get the expiration time of the current JWT token.
+    #
+    # Returns the absolute expiration timestamp in seconds since epoch.
+    # Used for session expiry modal to track remaining session time.
+    #
+    # @return [Integer, nil] Expiration timestamp, or nil if not available
+    def jwt_expires_at
+      jwt_helper = jwt_helper_for_request
+      return nil unless jwt_helper&.token? && jwt_helper.validate!
+
+      jwt_helper.expiration_time
+    end
+    helper_method :jwt_expires_at
+
+    private
+
+    # Get JWT helper for the current request.
+    #
+    # In production/development, reads JWT from X-Forwarded-Access-Token header (set by oauth2-proxy).
+    # In test environment, TestJwtMiddleware promotes test_jwt_token cookie to this header.
+    #
+    # @return [JwtHelper, nil] JwtHelper instance or nil if no token present
+    def jwt_helper_for_request
+      @jwt_helper_for_request ||= begin
+        # JWT comes from oauth2-proxy via header (or TestJwtMiddleware in system tests)
+        token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+
+        JwtHelper.new(access_token: token)
+      end
+    end
+
+    # Ensure UserAuthenticationSource exists for the user.
+    #
+    # This handles cases where users existed before IDP integration.
+    # Only creates/updates the auth source if it doesn't exist or needs updating.
+    # Uses memoization to ensure it only runs once per request.
+    #
+    # @param user [User] User instance
+    # @param jwt_helper [JwtHelper] JwtHelper instance with validated token
+    def ensure_authentication_source(user, jwt_helper)
+      return if @auth_source_ensured
+
+      connector_id = jwt_helper.connector_id
+      connector_user_id = jwt_helper.connector_user_id
+
+      return if connector_id.blank? || connector_user_id.blank?
+
+      auth_source = user.user_authentication_sources.with_deleted.find_or_initialize_by(
+        connector_id: connector_id,
+        connector_user_id: connector_user_id,
+      )
+
+      # Only save if it's a new record or was soft-deleted
+      if auth_source.new_record? || auth_source.deleted?
+        auth_source.enabled = true
+        auth_source.save!
+        auth_source.restore if auth_source.deleted?
+      end
+
+      # Update last_connector_id if this is a different connector
+      user.update_column(:last_connector_id, connector_id) if user.last_connector_id != connector_id
+
+      # Always ensure cookie is set so sign-in page can use it even when user is logged out
+      # This handles cases where cookie might have been cleared or expired
+      # Use permanent to set a 20-year expiration
+      cookies.permanent[:last_connector_id] = connector_id
+
+      @auth_source_ensured = true
+    end
+
+    # Validate impersonation permissions.
+    #
+    # Checks that the true user has permission to impersonate and that the
+    # impersonated user can be impersonated by the true user.
+    #
+    # @param true_user [User] The user who is impersonating
+    # @param impersonated_user [User] The user being impersonated
+    # @return [Boolean] true if impersonation is allowed, false otherwise
+    def validate_impersonation_permissions(true_user, impersonated_user)
+      return false unless true_user&.can_impersonate_users?
+      return false unless impersonated_user&.impersonateable_by?(true_user)
+
+      true
+    end
+
+    # Get authenticated user from JWT with impersonation support.
+    #
+    # This is a generic method that can be used by both User and Hmis::User controllers.
+    # It handles JWT validation, authentication source creation, and impersonation logic.
+    #
+    # @param user_class [Class] The user class to return (User or Hmis::User)
+    # @return [User, Hmis::User, nil] Authenticated user (or impersonated user) or nil
+    def authenticated_user_from_jwt(user_class: User)
+      jwt_helper = jwt_helper_for_request
+      return nil unless jwt_helper&.token? && jwt_helper.validate!
+
+      # If you want users to be created automatically based on successful login to their IDP:
+      # Add `allow_user_creation_from_idp_login`
+      auto_create_user = AppConfigProperty.value_for('idp/auto_create_user') == 'true'
+      authenticated_user = if auto_create_user
+        User.find_or_create_from_jwt(jwt_helper)
+      else
+        User.find_from_jwt(jwt_helper)
+      end
+      return nil unless authenticated_user
+
+      # Cast to requested user class if different (e.g., Hmis::User)
+      user = if user_class == User
+        authenticated_user
+      else
+        user_class.cached_user_find(authenticated_user.id)
+      end
+      return nil unless user
+
+      # Ensure authentication source exists (only once per request)
+      ensure_authentication_source(authenticated_user, jwt_helper) unless @auth_source_ensured
+
+      # Update last activity timestamp and store current token's subject for session tracking
+      # The subject (sub claim) is used to invalidate sessions when admins force logout users
+      update_user_activity(authenticated_user, session_id: jwt_helper.session_id)
+
+      # Check for impersonation state
+      impersonation_manager = ImpersonationManager.new(session)
+      impersonation_data = impersonation_manager.get
+      if impersonation_data && impersonation_data[:impersonated_user_id].present?
+        # Validate permissions on every request
+        # IMPORTANT: Use user_class for both users to ensure permissions are loaded correctly
+        # (e.g., both are Hmis::User in HMIS controllers, both are User in warehouse controllers)
+        true_user = user_class.find_by(id: impersonation_data[:true_user_id])
+        impersonated_user = user_class.find_by(id: impersonation_data[:impersonated_user_id])
+
+        if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
+          return impersonated_user
+        end
+
+        # Clear invalid impersonation
+        impersonation_manager.clear
+        return user
+      end
+
+      user
+    end
+
+    # Update the user's last activity timestamp and store current token's subject.
+    #
+    # This is called on each authenticated request to track active sessions.
+    # Stores the current token's subject (sub claim) in the appropriate field:
+    # - unique_session_id for warehouse users
+    # - hmis_unique_session_id for HMIS users
+    # Uses update_column to avoid triggering validations and callbacks.
+    #
+    # @param user [User, Hmis::User] The user to update
+    # @param session_id [String] The token's subject (sub claim) from the current token
+    def update_user_activity(user, session_id: nil)
+      return if user.blank?
+
+      # Only update once per request to avoid excessive database writes
+      return if @activity_updated_for_user_id == user.id
+
+      updates = { last_activity_at: Time.current }
+
+      # Use appropriate session ID field based on user type
+      if session_id.present?
+        session_id_field = user.is_a?(Hmis::User) ? :hmis_unique_session_id : :unique_session_id
+        updates[session_id_field] = session_id
+      end
+
+      user.update_columns(updates)
+      @activity_updated_for_user_id = user.id
+    end
+
+    # Handle unauthenticated user.
+    #
+    # Captures the original request URL and redirects to OAuth2-proxy sign-in
+    # with the redirect URL preserved via `rd` query parameter.
+    #
+    # Override in subclasses for custom behavior (e.g., JSON responses).
+    def handle_unauthenticated
+      original_url = RedirectUrlHelper.capture_original_request_url(
+        request: request,
+        session_id: session&.id&.to_s,
+      )
+      redirect_to helpers.oauth2_sign_in_path(redirect_to: original_url)
+    end
+
+    # Handle inactive user.
+    #
+    # Captures the original request URL and redirects to OAuth2-proxy sign-in
+    # with the redirect URL preserved via `rd` query parameter.
+    #
+    # Override in subclasses for custom behavior.
+    #
+    # @param _user [User] User instance that failed authentication checks
+    def handle_inactive_user(_user)
+      original_url = RedirectUrlHelper.capture_original_request_url(
+        request: request,
+        session_id: session&.id&.to_s,
+      )
+      redirect_to helpers.oauth2_sign_in_path(redirect_to: original_url), alert: 'Your account has been deactivated.'
+    end
+
+    # Handle denylisted (force-logged-out) user.
+    #
+    # Redirects to a captive portal that displays a message and provides a logout link.
+    # This is used when an admin has forcefully logged out a user via the sessions management page.
+    #
+    # Override in subclasses for custom behavior.
+    def handle_denylisted_token
+      redirect_to token_denylisted_path
+    end
+  end
+end

@@ -15,6 +15,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
   include_context 'client search helpers'
 
+  let(:oauth2_sign_in_path) { '/oauth2/sign_in' }
+
   context 'when config b is in effect' do
     before do
       GrdaWarehouse::Config.delete_all

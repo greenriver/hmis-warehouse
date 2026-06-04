@@ -13,7 +13,6 @@ module UserConcern
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
-    include PasswordRules
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
@@ -26,33 +25,19 @@ module UserConcern
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
-    # Include default devise modules. Others available are:
-    devise :invitable,
-           :recoverable,
-           :rememberable,
-           :trackable,
-           # :validatable,
-           :secure_validatable,
-           :lockable,
-           :timeoutable,
-           :confirmable,
-           :session_limitable,
-           :pwned_password,
-           :expirable,
-           :password_expirable,
-           :password_archivable,
-           :two_factor_authenticatable,
-           :two_factor_backupable,
-           password_length: 10..128,
-           otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
-           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
-           otp_number_of_backup_codes: 10
-
-    include OmniauthSupport
-
-    # Doorkeeper
-    has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
-    has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+    # Encrypted OTP secret (read-only, legacy 2FA data)
+    # 2FA is now handled by IDP, but we keep this for backward compatibility
+    # Configure attr_encrypted to match devise-two-factor's encryption setup
+    # Note: Legacy encrypted data may not be decryptable with current configuration
+    attr_encrypted :otp_secret,
+                   key: proc { |_instance| ENV['ENCRYPTION_KEY']&.[](0..31) },
+                   attribute: :encrypted_otp_secret,
+                   iv: :encrypted_otp_secret_iv,
+                   salt: :encrypted_otp_secret_salt,
+                   encode: true,
+                   encode_iv: true,
+                   encode_salt: true,
+                   mode: :per_attribute_iv_and_salt
 
     # Connect users to login attempts.
     # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
@@ -68,7 +53,6 @@ module UserConcern
 
     # No longer validating MX record, just validate email format (MX check requires a network connection)
     validates :email, presence: true, uniqueness: true, email_format: { check_mx: false }, length: { maximum: 250 }
-    validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }
     validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
@@ -84,6 +68,9 @@ module UserConcern
 
     has_many :two_factors_memorized_devices
     has_many :oauth_identities, dependent: :destroy
+
+    has_many :user_authentication_sources, dependent: :destroy
+    has_many :enabled_authentication_sources, -> { where(enabled: true) }, class_name: 'UserAuthenticationSource'
 
     has_many :favorites
     has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
@@ -135,23 +122,11 @@ module UserConcern
     end
 
     scope :active, -> do
-      where(
-        arel_table[:active].eq(true).and(
-          arel_table[:expired_at].eq(nil).
-          or(arel_table[:expired_at].gt(Time.current)),
-        ).and(
-          arel_table[:last_activity_at].eq(nil).
-          or(arel_table[:last_activity_at].gt(expire_after.ago)),
-        ),
-      )
+      where(active: true)
     end
 
     scope :inactive, -> do
-      where(
-        arel_table[:active].eq(false).
-        or(arel_table[:expired_at].lteq(Time.current)).
-        or(arel_table[:last_activity_at].lteq(expire_after.ago)),
-      )
+      where(active: false)
     end
 
     scope :care_coordinators, -> do
@@ -170,9 +145,10 @@ module UserConcern
     end
 
     # users that have currently active sessions (either in the warehouse or in HMIS)
+    # Note: Session timeout is now handled by OAuth2-proxy, so we use a recent activity period
     scope :has_recent_activity, -> do
-      where(last_activity_at: timeout_in.ago..Time.current).
-        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
+      timeout_period = Idp::ServiceFactory.recent_activity_period
+      where(last_activity_at: timeout_period.ago..Time.current)
     end
 
     scope :using_acls, -> do
@@ -240,22 +216,37 @@ module UserConcern
       GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
     end
 
+    # Check if user account is active and eligible for authentication.
+    #
+    # Accounts must be:
+    # - Active (active = true)
+    #
+    # @return [Boolean] true if account is active and eligible for authentication
     def active_for_authentication?
-      super && active
+      active?
     end
 
-    # Allow logins to be case insensitive at login time
+    # Stub method - authentication is handled by JWT
     def self.find_for_authentication(conditions)
-      conditions[:email].downcase!
-      super(conditions)
+      # Authentication is handled by JWT, not by this method
+      # This is kept for backward compatibility
+      find_by(email: conditions[:email]&.downcase)
     end
 
-    def timeout_time(session)
-      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
-    end
+    # Get session timeout time from JWT token.
+    #
+    # Attempts to get the expiration time from the JWT token.
+    # Returns nil if token is invalid or expiration is not available.
+    #
+    # @param access_token [String] JWT access token from request headers
+    # @return [Time, nil] Expected timeout time or nil if not available
+    def timeout_time(access_token)
+      return nil unless access_token.present?
 
-    def future_expiration?
-      expired_at.present? && expired_at > Time.current
+      jwt_helper = JwtHelper.new(access_token: access_token)
+      return nil unless jwt_helper.token? && jwt_helper.validate!
+
+      jwt_helper.expiration_time
     end
 
     def limited_client_view?
@@ -266,8 +257,17 @@ module UserConcern
       30.days.ago
     end
 
+    # Check if account is stale (unused for extended period).
+    #
+    # Accounts that haven't been active recently are considered stale.
+    # This is used for reporting purposes only - stale accounts can still log in.
+    # Only accounts that have passed their expiration date are prevented from logging in.
+    #
+    # @return [Boolean] true if account is stale
     def stale_account?
-      current_sign_in_at < self.class.stale_account_threshold
+      return false if last_activity_at.blank?
+
+      last_activity_at < self.class.stale_account_threshold
     end
 
     def impersonateable_by?(user)
@@ -354,75 +354,12 @@ module UserConcern
       @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
-    def two_factor_label
-      label = Translation.translate('Open Path HMIS Warehouse')
-      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
-    end
-
-    def two_factor_issuer
-      "#{two_factor_label} #{email}"
-    end
-
-    # clears all otp secrets
-    def reset_two_factor_model_attrs
-      self.encrypted_otp_secret = nil
-      self.encrypted_otp_secret_iv = nil
-      self.encrypted_otp_secret_salt = nil
-      self.otp_backup_codes = nil
-      self.otp_secret = nil
-      self.confirmed_2fa = 0
-      self.otp_required_for_login = false
-    end
-
     def my_root_path
       return clients_path if GrdaWarehouse::Config.client_search_available? && can_search_own_clients?
       return warehouse_reports_path if can_view_any_reports?
       return censuses_path if can_view_censuses?
 
       root_path
-    end
-
-    # ensure we have a secret
-    def set_initial_two_factor_secret!
-      return if otp_secret.present?
-
-      update(otp_secret: User.generate_otp_secret)
-    end
-
-    def two_factor_enabled?
-      otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
-    end
-
-    def confirmation_step
-      (confirmed_2fa + 1).ordinalize
-    end
-
-    def passed_2fa_confirmation?
-      confirmed_2fa.positive?
-    end
-
-    def disable_2fa!
-      update(
-        confirmed_2fa: 0,
-        otp_required_for_login: false,
-        otp_backup_codes: nil,
-      )
-    end
-
-    def record_failure_and_lock_access_if_exceeded!
-      # Due to a bug, failed PWs double increment failed attempts. To
-      # compensate, we double the lockout threshold. To match the PW
-      # behavior, double up on failures due to OTP
-      # https://github.com/tinfoil/devise-two-factor/issues/28
-      transaction do
-        2.times do # intentional double increment
-          increment_failed_attempts
-        end
-      end
-      # outside of transaction since this method sends email
-      return unless attempts_exceeded?
-
-      lock_access! unless access_locked?
     end
 
     def invitation_status
@@ -433,34 +370,6 @@ module UserConcern
       else
         :invitation_expired
       end
-    end
-
-    # Enforce a known value is included in the devise salt
-    # this allows us to invalidate sessions even though they are stored in redis
-    def authenticatable_salt
-      base_salt = super
-      return base_salt if custom_session_invalidator.blank?
-
-      # Poison the salt to force the user to re-login by changing custom_session_invalidator
-      # Make sure the salt isn't changing length
-      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
-    end
-
-    def force_logout!
-      update_attribute(:custom_session_invalidator, SecureRandom.hex)
-    end
-
-    # Dependent on devise expire_password_after being set to a value other than false
-    def force_password_reset!
-      return false unless password_expiration_enabled?
-
-      # Immediately logout the user
-      self.custom_session_invalidator = SecureRandom.hex
-      # Force a password change on next login
-      need_change_password! # calls save internally
-
-      # Return true to indicate success
-      true
     end
 
     # Prevent sending confirmation emails if the user has an open invitation
@@ -517,7 +426,35 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    # Search for users by name (prefix) or email (substring, e.g. domain).
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      base_salt = super
+      return base_salt if custom_session_invalidator.blank?
+
+      # Poison the salt to force the user to re-login by changing custom_session_invalidator
+      # Make sure the salt isn't changing length
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
+    end
+
+    # Search for users by name or email using prefix matching
     #
     # @param text [String] the search query
     # @param sort_by_best_match [Boolean] whether to order results by similarity to query
@@ -562,9 +499,16 @@ module UserConcern
       user&.restore
       return user if user.present?
 
-      invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
-        u.skip_invitation = true
-      end
+      user = new(
+        email: 'noreply@greenriver.com',
+        first_name: 'System',
+        last_name: 'User',
+        agency_id: 0,
+        active: true,
+        confirmed_at: Time.current,
+      )
+      user.save!
+      user
     end
 
     def self.system_user
@@ -585,9 +529,7 @@ module UserConcern
     end
 
     def inactive?
-      return true unless active?
-
-      expired?
+      !active?
     end
 
     # TODO: START_ACL remove when ACL transition complete
@@ -811,6 +753,11 @@ module UserConcern
         }.freeze
       end
       memoize :group_associations
+
+      def cached_user_find(id)
+        find_by(id: id)
+      end
+      memoize :cached_user_find, ttl: 30 # 30 seconds
     end
 
     # def health_agency
@@ -859,10 +806,6 @@ module UserConcern
           entity_type: model.sti_name,
         ).select(:entity_id),
       )
-    end
-
-    def skip_session_limitable?
-      ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
     end
 
     # Returns an array of hashes of access group name => [item names]

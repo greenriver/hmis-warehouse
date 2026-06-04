@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  use_doorkeeper
-  get 'oauth/user-data', to: 'oauth#user'
-
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match '/404', to: 'errors#not_found', via: :all
   match '/422', to: 'errors#unacceptable', via: :all
@@ -14,26 +11,38 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: {
-    invitations: 'users/invitations',
-    sessions: 'users/sessions',
-  }
 
-  devise_scope :user do
-    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-    match 'users/invitations/confirm', via: :post
-    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
-    if ENV['OKTA_DOMAIN'].present?
-      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+  # Constraint to check if user is authenticated and has permission
+  class AuthenticatedUserConstraint
+    def initialize(permission_method = nil)
+      @permission_method = permission_method
+    end
+
+    def matches?(request)
+      access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
+      return false unless access_token.present?
+
+      jwt_helper = JwtHelper.new(access_token: access_token)
+      return false unless jwt_helper.token? && jwt_helper.validate!
+
+      user = User.find_from_jwt(jwt_helper)
+      return false unless user&.active?
+
+      return true unless @permission_method
+
+      # Check permission if method is provided
+      user.public_send(@permission_method)
     end
   end
+  # Authentication routes (JWT handled by OAuth2-proxy)
+  get 'users/sign_in', to: 'users/sessions#new', as: :new_user_session
+  post 'users/sign_in', to: 'users/sessions#create', as: :user_session
+  delete 'users/sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
+  get 'logout_talentlms', to: 'users/sessions#destroy', as: :logout_talentlms
+  get 'session_keepalive', to: 'users/sessions#keepalive', as: :session_keepalive
+  get 'token_denylisted', to: 'token_denylisted#show', as: :token_denylisted
 
   namespace :users do
-    resources :invitations do
-      collection do
-        post :confirm
-      end
-    end
     resources :account_requests, only: [:new, :create]
   end
 
@@ -750,17 +759,16 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+
+    # Superset JWT-based role sync endpoint
+    get 'superset/user_roles', to: 'superset#user_roles'
   end
 
   namespace :admin do
-    # resolves route clash w/ devise
-    resources :users, except: [:show, :new, :create] do
-      resource :resend_invitation, only: :create
-      resource :recreate_invitation, only: :create
+    resources :users, except: [:show] do
       resource :audit, only: :show
       resource :edit_history, only: :show
       resource :locations, only: :show
-      patch :reactivate, on: :member
       collection do
         # User search queries
         resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
@@ -769,11 +777,7 @@ Rails.application.routes.draw do
         post :stop_impersonating
       end
       member do
-        post :unlock
-        post :un_expire
-        post :confirm
         post :impersonate
-        patch :expire_password
       end
       resources :threshold_notification_logs, only: [:index, :show]
     end
@@ -781,7 +785,6 @@ Rails.application.routes.draw do
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
 
     resources :inactive_users, except: [:show, :new, :create] do
-      patch :reactivate, on: :member
       collection do
         # Inactive user search queries
         resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
@@ -919,6 +922,12 @@ Rails.application.routes.draw do
     end
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
+    resources :idp_service_configs, except: [:show] do
+      member do
+        post :test
+      end
+    end
+
     resources :delayed_jobs, only: [:index, :update, :destroy] do
       patch :cancel, on: :member
     end
@@ -930,10 +939,6 @@ Rails.application.routes.draw do
     get :locations, on: :member
   end
   resource :account_email, only: [:edit, :update]
-  resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
-    get :remove_device
-  end
   resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
@@ -969,7 +974,7 @@ Rails.application.routes.draw do
       get :js_example
       get :system_colors
     end
-    authenticate :user, lambda(&:can_manage_config?) do
+    constraints AuthenticatedUserConstraint.new(:can_manage_config?) do
       # not quite sure why but we get double-prefixed routes in this engine
       get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
       mount PgHero::Engine, at: '/pghero'

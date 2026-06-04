@@ -12,8 +12,8 @@ require_relative '../../lib/util/git'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
-  impersonates :user
 
+  include CurrentUser
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
@@ -29,6 +29,7 @@ class ApplicationController < ActionController::Base
 
   protect_from_forgery with: :exception
 
+  before_action :check_token_denylist!
   before_action :authenticate_user!
 
   before_action :set_sentry_user
@@ -41,7 +42,6 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
-  before_action :enforce_2fa!
   before_action :require_compliance_agreement!
   before_action :require_training!
 
@@ -62,26 +62,6 @@ class ApplicationController < ActionController::Base
     location = current_user&.my_root_path || root_path
     redirect_to(location, alert: error.message)
   end
-
-  private def resource_name
-    :user
-  end
-  helper_method :resource_name
-
-  private def resource_class
-    User
-  end
-  helper_method :resource_class
-
-  def resource
-    @user = User.new
-  end
-  helper_method :resource
-
-  def devise_mapping
-    @devise_mapping ||= Devise.mappings[:user]
-  end
-  helper_method :devise_mapping
 
   # Send any exceptions on production to slack
   def set_notification
@@ -115,9 +95,9 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # don't extend the user's session if its an ajax request.
+  # Skip tracking timeout for AJAX requests (no-op for JWT auth).
   def skip_timeout
-    request.env['devise.skip_trackable'] = true if request.xhr?
+    # Session timeout is handled by JWT expiration, not trackable
   end
 
   def _basic_auth
@@ -127,8 +107,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  before_action :configure_permitted_parameters, if: :devise_controller?
-
   def append_info_to_payload(payload)
     super
     payload[:user_id] = current_user&.id
@@ -136,17 +114,20 @@ class ApplicationController < ActionController::Base
 
   def info_for_paper_trail
     {
-      user_id: warden&.user&.id,
+      user_id: current_user&.id,
+      true_user_id: true_user&.id,
       session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
 
-  # Sets whodunnit
+  # Sets whodunnit for PaperTrail
+  #
+  # Returns the true user ID when impersonating, otherwise the current user ID.
+  # Format when impersonating: "#{true_user.id} as #{current_user.id}"
   def user_for_paper_trail
     return 'unauthenticated' unless current_user.present?
-    return current_user.id unless true_user.present?
-    return current_user.id if true_user == current_user
+    return current_user.id unless impersonating?
 
     "#{true_user.id} as #{current_user.id}"
   end
@@ -157,20 +138,6 @@ class ApplicationController < ActionController::Base
     format('#%06x', (Zlib.crc32(Marshal.dump(object)) & 0xffffff))
   end
   helper_method :colorize
-
-  # the identity authenticated for the current session
-  # @example get the okta user id
-  #   current_user_identity&.uid
-  # @return [OauthIdentity, nil]
-  def current_user_identity
-    return nil unless current_user
-
-    provider = cookies.signed[:active_provider]
-    return nil unless provider
-
-    @current_user_identity ||= OauthIdentity.for_user(current_user).where(provider: provider).first
-  end
-  helper_method :current_user_identity
 
   def sentry_frontend_config
     {
@@ -185,42 +152,61 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
-  end
-
-  # Redirect to window page after signin if you have
+  # Redirect after signin
   # no where else to go (and you can see it)
-  def after_sign_in_path_for(resource)
-    # alert users if their password has been compromised
-    set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
-
-    last_url = session['user_return_to']
-    if last_url.present?
-      last_url
-    else
-      current_user&.my_root_path || root_path
+  #
+  # Priority order:
+  # 1. Stored redirect URL from OAuth2-proxy flow (via redirect_url_after_auth)
+  # 2. Application root path
+  #
+  # @param user [User, nil] User instance (defaults to current_user)
+  # @return [String] Path to redirect to
+  def after_sign_in_path_for(user = current_user)
+    # Check for stored redirect URL from OAuth2-proxy flow (includes user.my_root_path)
+    redirect_url = RedirectUrlHelper.redirect_url_after_auth(
+      params: params,
+      request: request,
+      session_id: session&.id&.to_s,
+      user: user,
+    )
+    if redirect_url.present?
+      # Clear the stored redirect after use
+      RedirectManager.new(session&.id&.to_s).clear
+      return redirect_url
     end
+    # Final fallback to application root
+    root_path
   end
 
   def after_sign_out_path_for(_scope)
-    user = request.env['last_user']
-    if user
-      provider = cookies.signed[:active_provider]
-      if provider
-        # If a provider exists, user is from Okta, due to the complexity of single log-out, we'll
-        # just log you out of okta in this case
-        identity = OauthIdentity.for_user(user).where(provider: provider).first
-        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
-      else
-        # If no provider exists, attempt to log the user out of superset (if they have access)
-        # this will redirect back to the warehouse
-        superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
-        superset_logout || root_url
-      end
-    else
-      root_url
-    end
+    root_url
+  end
+
+  # Store a location in session for redirect after authentication.
+  #
+  # Compatible with Devise's store_location_for helper.
+  #
+  # @param scope [Symbol] Scope name (e.g., :user)
+  # @param location [String] URL to store
+  def store_location_for(scope, location)
+    session["#{scope}_return_to"] = location
+  end
+
+  # Retrieve stored location from session.
+  #
+  # Compatible with Devise's stored_location_for helper.
+  #
+  # @param scope [Symbol] Scope name (e.g., :user)
+  # @return [String, nil] Stored location or nil if not present
+  def stored_location_for(scope)
+    session["#{scope}_return_to"]
+  end
+
+  # Clear stored location from session.
+  #
+  # @param scope [Symbol] Scope name (e.g., :user)
+  def clear_stored_location_for(scope)
+    session.delete("#{scope}_return_to")
   end
 
   def allowed_setup_controllers
@@ -228,26 +214,12 @@ class ApplicationController < ActionController::Base
       [
         'users/sessions',
         'accounts',
-        'account_two_factors',
         'account_emails',
-        'account_passwords',
         'user_training',
         'compliance_agreements',
         'content_pages',
       ],
     ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
-  end
-
-  # If a user must have Two-factor authentication turned on, only let them go
-  # to their 2FA page and their account page
-  def enforce_2fa!
-    return unless current_user
-    return unless current_user.enforced_2fa?
-    return if current_user.two_factor_enabled?
-    return if allowed_setup_controllers
-
-    flash[:alert] = 'Two factor authentication must be enabled for this account.'
-    redirect_to edit_account_two_factor_path
   end
 
   def require_training!
@@ -328,6 +300,8 @@ class ApplicationController < ActionController::Base
 
   before_action :set_app_user_header
   def set_app_user_header
-    response.headers['X-app-user-id'] = current_user&.id
+    # Always use the true user's ID for session tracking, even when impersonating
+    # The impersonation state is communicated through the API response fields
+    response.headers['X-app-user-id'] = true_user&.id
   end
 end

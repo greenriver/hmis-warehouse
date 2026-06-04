@@ -11,9 +11,6 @@
       %th Last Login
       %th Last Location
       %th Last Activity
-      %th
-        %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Subject to updates based on last activity'}}
-        Scheduled Expiration
       %th Force Logout
     %tbody
       - @users.each do |user|
@@ -25,7 +22,6 @@
             = "(HMIS)" if last_login_activity&.hmis?
           %td= last_login_activity&.location_description
           %td= user.last_activity_at
-          %td= user.last_activity_at + user.timeout_in
           %td
             = link_to admin_session_path(user),  method: :delete, data: {confirm: "Are you sure you want to end the session for #{user.name}? This action will immediately log the user out#{HmisEnforcement.hmis_enabled? ? ' of both HMIS and Warehouse' : ''}."}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
               %i.icon-cross

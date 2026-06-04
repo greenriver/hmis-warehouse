@@ -1,0 +1,6 @@
+- if resource.errors.any?
+  .alert.alert-danger
+    %p Please review the errors below:
+    %ul.error_list
+      - resource.errors.full_messages.each do |msg|
+        %li= msg

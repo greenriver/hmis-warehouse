@@ -33,11 +33,16 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
-    # Needs to match /app/docker/auth/dev.oauth2-proxy.yaml providers -> clientID
-    IDP_AUD: ${IDP_AUD:-hmis-warehouse}
+    # Comma-separated list of valid JWT audiences. Should include both:
+    # - hmis-warehouse (for warehouse oauth2-proxy)
+    # - hmis-frontend (for HMIS oauth2-proxy)
+    # Defaults to all if not set
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend,superset}
     # JWT_SECRET, OAUTH2_PROXY_COOKIE_SECRET, OAUTH2_PROXY_CLIENT_SECRET are provided via env_file.
     # See sample.env for instructions on generating these values.
     JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+    # Internal connections use Docker network hostname 'dex'
+    # Issuer must match what browsers see (https://dex.dev.test/dex) for token validation
     ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
     JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
 
@@ -278,7 +283,7 @@ services:
       '
     hostname: dex
     volumes:
-      - "./docker/auth/dev.dex.yaml:/dex.yaml"
+      - "./docker/auth/dev.dex.yaml.template:/dex.yaml"
       - "./docker/auth:/auth:ro"
     env_file: *env_file
     environment:

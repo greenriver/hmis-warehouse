@@ -54,7 +54,6 @@ module OpenPath
     # config.autoload_lib(ignore: ['assets', 'tasks'])
 
     config.add_autoload_paths_to_load_path = false
-    config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
     config.action_cable.mount_path = '/cable'
@@ -120,7 +119,6 @@ module OpenPath
 
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
-    config.eager_load_paths << Rails.root.join('lib', 'devise')
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.

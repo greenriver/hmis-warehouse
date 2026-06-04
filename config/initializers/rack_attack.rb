@@ -59,11 +59,9 @@ module RackAttackRequestHelpers
     # If we explicitly added a parameter to avoid updating last_request_at, honor it
     return false if env['QUERY_STRING'].include?('skip_trackable=true')
 
-    rack_session = env['rack.session']
-    return false unless rack_session
-
-    # Check session variable to check if the user is logged in. This avoids db queries
-    rack_session['warden.user.user.key'].present? || rack_session['warden.user.hmis_user.key'].present?
+    # Check for JWT token in headers (OAuth2-proxy forwards it)
+    access_token = env['HTTP_X_FORWARDED_ACCESS_TOKEN']
+    JwtHelper.authenticated?(access_token)
   end
 
   protected
@@ -240,7 +238,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
     amzn_trace_id: request.env['HTTP_X_AMZN_TRACE_ID'],
     request_start: request.env['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '').presence || start,
     remote_ip: request.env['action_dispatch.remote_ip']&.to_s,
-    user_id: request.env['warden'].user&.id,
+    user_id: JwtHelper.user_id_from_token(request.env['HTTP_X_FORWARDED_ACCESS_TOKEN']),
     session_id: request.env['rack.session'].id,
     user_agent: request.env['HTTP_USER_AGENT'],
     accept: request.env['HTTP_ACCEPT'],

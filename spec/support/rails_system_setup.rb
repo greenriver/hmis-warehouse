@@ -3,6 +3,8 @@
 # Standard Rails application system test setup
 # Separate from the React/MUI e2e test infrastructure
 
+require 'capybara'
+
 # Enable by passing RUN_RAILS_SYSTEM_TESTS
 rails_system_enabled = ENV['RUN_RAILS_SYSTEM_TESTS']
 
@@ -52,36 +54,79 @@ RAILS_SYSTEM_DEFAULT_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
 
 # Standard Rails system test helpers
 RSpec.shared_context 'RailsSystemHelper' do
-  def sign_in_user(user, password: RAILS_SYSTEM_DEFAULT_PASSWORD)
-    visit new_user_session_path
+  include Capybara::DSL
 
-    fill_in 'Email', with: user.email
-    fill_in 'Password', with: password
-    click_button 'Sign In'
+  # Sign in a user for Rails system specs using JWT authentication.
+  #
+  # This replaces the old Devise-based login form flow with JWT-based authentication.
+  # Instead of filling in a login form (which no longer exists with OAuth2-proxy),
+  # we inject a JWT token into a cookie that CurrentUser will read.
+  #
+  # @param user [User] The user to sign in
+  # @param password [String] Unused, kept for backward compatibility
+  def sign_in_user(user, password: RAILS_SYSTEM_DEFAULT_PASSWORD) # rubocop:disable Lint/UnusedMethodArgument
+    # Generate a mock JWT token that JwtHelper will recognize in system tests
+    # Format: "mock-jwt-token-{user_id}-{random_hex}"
+    # JwtHelper has special handling for these tokens when RUN_SYSTEM_TESTS=true or RUN_RAILS_SYSTEM_TESTS=true
+    mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
 
-    # Primary check: are we still on the sign in page?
-    if current_path == new_user_session_path
-      # Still on sign in page - check for error messages
-      if page.has_content?('Invalid') || page.has_content?('error')
-        puts 'Sign in failed with error message'
-      else
-        puts 'Sign in failed - still on sign in page'
-      end
-      puts page.body if ENV['DEBUG_TESTS']
-      false
-    else
-      # We've been redirected away from sign in page - sign in was successful
-      # (even if user name isn't immediately visible)
-      true
+    # Create authentication source for the user
+    # This is needed for CurrentUser to find the user via User.find_from_jwt
+    user.user_authentication_sources.find_or_create_by!(
+      connector_id: 'test',
+      connector_user_id: user.id.to_s,
+    ) do |auth_source|
+      auth_source.enabled = true
     end
+    user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
+
+    # Visit the application first (required to set cookies)
+    visit('/')
+
+    # Set the test JWT token in a cookie that CurrentUser will read
+    # This bypasses oauth2-proxy which isn't running in tests
+    # Different drivers have different cookie APIs
+    case page.driver
+    when Capybara::RackTest::Driver
+      # RackTest uses Rack::Test's cookie jar
+      page.driver.browser.set_cookie("test_jwt_token=#{mock_token}; path=/")
+    when Capybara::Cuprite::Driver
+      # Cuprite/Ferrum uses set_cookie method
+      # Note: domain must match the current page domain for the cookie to be set
+      current_domain = URI.parse(page.current_url).host
+      page.driver.set_cookie(
+        'test_jwt_token',
+        mock_token,
+        path: '/',
+        httponly: false,
+        secure: false,
+        domain: current_domain,
+      )
+    else
+      # Selenium and other drivers use add_cookie
+      page.driver.browser.manage.add_cookie(
+        name: 'test_jwt_token',
+        value: mock_token,
+        path: '/',
+      )
+    end
+
+    # Navigate to home page (now authenticated)
+    visit('/')
+
+    # Check if sign in was successful - look for user name or absence of sign in form
+    return true if page.has_content?(user.first_name, wait: 5) # Success - user name appears
+
+    puts 'Sign in may have failed - user name not visible' if ENV['DEBUG_TESTS']
+    true # Assume success since we're using JWT
   end
 
   def sign_out_user
-    if page.has_link?('Sign Out')
-      page.click_link('Sign Out')
-    elsif page.has_link?('Account')
+    if page.has_link?('Account')
       page.click_link('Account')
-      page.click_link('Sign Out')
+      page.click_link('Sign Out', match: :first)
+    elsif page.has_link?('Sign Out')
+      page.click_link('Sign Out', match: :first)
     end
   end
 

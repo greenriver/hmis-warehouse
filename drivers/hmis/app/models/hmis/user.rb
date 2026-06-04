@@ -19,8 +19,8 @@ class Hmis::User < ApplicationRecord
   include Memery
 
   include UserConcern
+  include IdpSupport
   include HasRecentItems
-  include DeviseUserPatch
 
   self.table_name = :users
 
@@ -66,16 +66,6 @@ class Hmis::User < ApplicationRecord
     # since the system user is not typically included in any access groups anyway
     not_system.where(id: user_ids)
   end
-
-  # The session_limitable extension uses user.hmis_unique_session_id to restrict the current session.
-  # Override reader/writer for unique_session_id to track sessions in the hmis separately from the
-  # warehouse. This allows a user to be logged into the HMIS and the warehouse simultaneously
-  def update_unique_session_id!(unique_session_id)
-    raise Devise::Models::Compatibility::NotPersistedError, 'cannot update a new record' unless persisted?
-
-    update_column(:hmis_unique_session_id, unique_session_id)
-  end
-  alias_attribute(:unique_session_id, :hmis_unique_session_id)
 
   # load a hash of global permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
@@ -131,10 +121,6 @@ class Hmis::User < ApplicationRecord
         select(Hmis::User.arel_table[:id]) # select ids to ensure the returned scope doesn't include complexity from the join
       where(id: user_ids)
     end
-  end
-
-  def lock_access!(opts = {})
-    super opts.merge({ send_instructions: false })
   end
 
   def entity_access_loader_factory(...)
@@ -253,7 +239,10 @@ class Hmis::User < ApplicationRecord
       name: name,
       email: email,
       phone: phone,
-      sessionDuration: Devise.timeout_in.in_seconds,
+      # Session duration is managed by the IDP and can be obtained from JWT token
+      sessionDuration: nil,
+      # Primary IDP connector ID for bypassing IDP picker on sign-in
+      primaryIdp: primary_idp,
     }
   end
 

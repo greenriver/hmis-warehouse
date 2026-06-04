@@ -119,17 +119,6 @@ RSpec.describe Rack::Attack, type: :request do
         expect(requests_sent).to eq(throttled_at)
       end
     end
-
-    describe 'Password Reset Throttling' do
-      let(:path) { edit_user_password_path }
-      it 'throttles brute-force password reset requests' do
-        throttled_at = 20
-        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
-          get(path, params: { reset_password_token: "FFFFFFFFFFFFFFFFFFF#{i}" })
-        end
-        expect(requests_sent).to eq(throttled_at)
-      end
-    end
   end
 
   describe 'when logged in' do
@@ -138,33 +127,6 @@ RSpec.describe Rack::Attack, type: :request do
     end
 
     include_examples 'blocks active storage routes'
-
-    describe 'status endpoints' do
-      let(:excluded_paths) { ['/messages/poll'] }
-      let(:session_timeout) { Devise.timeout_in }
-
-      it 'does not extend session lifetime for excluded paths' do
-        excluded_paths.each do |path|
-          # First request to establish session
-          get path, xhr: true
-          expect(response).to be_successful
-
-          # Move time forward
-          travel(session_timeout - 1.minutes)
-
-          # Should still be logged in
-          get path, xhr: true
-          expect(response).to be_successful
-
-          # Move time forward 2 more minutes (past the timeout)
-          travel 2.minutes
-
-          # Should be logged out
-          get path, xhr: true
-          expect(response).to have_http_status(:unauthorized)
-        end
-      end
-    end
 
     describe 'and hitting the homepage' do
       let(:path) { root_path }

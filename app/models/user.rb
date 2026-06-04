@@ -10,8 +10,9 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
+  include IdpSupport
+  include JwtUser
   include RailsDrivers::Extensions
-  include DeviseUserPatch
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
@@ -42,16 +43,6 @@ class User < ApplicationRecord
   has_many :compliance_agreements, class_name: 'GrdaWarehouse::Compliance::Agreement', dependent: :destroy
 
   accepts_nested_attributes_for :system_contact
-
-  # Ensure system_contact has proper entity attributes before validation
-  before_validation :set_system_contact_entity, if: -> { system_contact.present? }
-
-  private def set_system_contact_entity
-    system_contact.entity_type = 'User'
-    system_contact.entity_id = id
-    system_contact.user_id = id
-    system_contact.type = 'GrdaWarehouse::Contact::User'
-  end
 
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one

@@ -1,10 +1,9 @@
 :ruby
+  expires_at = jwt_expires_at
+  expires_at_seconds = expires_at ? expires_at.to_i : nil
   root_data = {
     controller: "inactive-session-modal",
-    inactive_session_modal: {
-      initial_user_id_value: current_user&.id.to_s,
-      session_lifetime_secs_value: Devise.timeout_in.in_seconds,
-    },
+    'inactive-session-modal-expires-at-value': expires_at_seconds,
     reflex_permanent: true
   }
 #inactive-session-modal{data: root_data}
