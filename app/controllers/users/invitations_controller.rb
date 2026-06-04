@@ -6,7 +6,10 @@
 
 # frozen_string_literal: true
 
-class Users::InvitationsController < Devise::InvitationsController
+# Temporizing replacement for Devise::InvitationsController.
+# Creates users directly without sending invitation emails.
+# TODO: Replace with Keycloak setup-email flow
+class Users::InvitationsController < ApplicationController
   prepend_before_action :require_can_edit_users!, only: [:new, :create]
   include ViewableEntities # TODO: START_ACL remove when ACL transition complete
 
@@ -17,63 +20,49 @@ class Users::InvitationsController < Devise::InvitationsController
     user_options = {}
     user_options[:permission_context] = 'acls' if User.anyone_using_acls?
     @user = User.new(user_options)
-  end
-
-  def confirm
-    @user = User.new
-    create unless creating_admin?
+    render 'admin/users/new'
   end
 
   # POST /resource/invitation
   def create
-    # if the account will be an admin, check that the current user has confirmed this action with their password
-    if creating_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
-      flash[:error] = 'User not updated. Incorrect password'
-      @user = User.new
-      render :confirm
-      return
-    end
-
-    # create the new user account and send an invitation. Note that we are sending an email within a tx here which
-    # isn't ideal. This assumes a robust and responsive delivery service such as aws ses
     @user = nil
     User.transaction do
-      @user = invite_and_find_or_create_user
+      @user = find_or_create_user
       raise ActiveRecord::Rollback if @user.errors.any?
     end
 
-    # handle errors from devise
     if @user.errors.empty?
-      set_flash_message :notice, :send_instructions, email: @user.email if is_flashing_format? && @user.invitation_sent_at
+      flash[:notice] = "User account created for #{@user.email}."
       redirect_to edit_admin_user_path(@user)
     else
       @agencies = Agency.order(:name)
       @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
-      render :new
+      render 'admin/users/new'
     end
   end
 
-  private def invite_and_find_or_create_user
-    # if a deleted account matches the email, restore it so devise's invitable will find it
+  private def find_or_create_user
     email = invite_params[:email]
     User.with_deleted.find_by_email(email)&.restore
 
-    # will find or create a user record
-    user = User.invite!(invite_params.except(:legacy_role_ids), current_user) do |u|
-      # If the user creating the account explicitly indicated they didn't need to send an invitation
-      # skip sending the invitation.  This is used when bulk creating accounts ahead of when
-      # someone should be given access to the application.
-      u.skip_invitation = invite_params[:skip_invitation]&.to_i == 1
+    existing = User.find_by_email(email)
+    if existing
+      existing.errors.add(:email, 'has already been taken')
+      return existing
     end
-    return user if user.errors.present?
 
-    # Roles need to be added as a second pass since devise invitable doesn't know how to handle them
-    user.update!(invite_params)
+    user = User.new(invite_params.except(:legacy_role_ids, :skip_invitation, :copy_form_id))
+    user.confirmed_at = Time.current
+    return user unless user.save
+
+    if invite_params[:legacy_role_ids].present?
+      user.legacy_role_ids = invite_params[:legacy_role_ids].reject(&:blank?)
+    end
+
     user.set_viewables(viewable_params.to_h.symbolize_keys) # TODO: START_ACL remove when ACL transition complete
-    # if we have a user to copy user groups from, add them
     copy_user_groups(user: user) if user.using_acls?
 
-    return user
+    user
   end
 
   private def copy_user_groups(user:)
@@ -86,21 +75,6 @@ class Users::InvitationsController < Devise::InvitationsController
     source_user.user_groups.each do |group|
       group.add(user)
     end
-  end
-
-  # GET /resource/invitation/accept?invitation_token=abcdef
-  def edit
-    super
-  end
-
-  # PUT /resource/invitation
-  def update
-    super
-  end
-
-  # GET /resource/invitation/remove?invitation_token=abcdef
-  def destroy
-    super
   end
 
   private
@@ -151,44 +125,4 @@ class Users::InvitationsController < Devise::InvitationsController
     )
   end
   # END_ACL
-
-  def confirmation_params
-    params.require(:user).permit(
-      :confirmation_password,
-    )
-  end
-
-  private def assigned_acl_ids
-    invite_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
-  end
-
-  private def creating_admin?
-    @creating_admin ||= begin
-      adming_admin = false
-      # If we don't already have a role granting an admin permission, and we're assinging some
-      # ACLs (with associated roles)
-      if assigned_acl_ids.present?
-        assigned_roles = AccessControl.where(id: assigned_acl_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
-        Role.where(id: assigned_roles).find_each do |role|
-          # If any role we're adding is administrative, make note, and present the confirmation page
-          if role.administrative?
-            @admin_role_name = role.role_name
-            adming_admin = true
-            break
-          end
-        end
-      end
-      # TODO: START_ACL remove when ACL transition complete
-      role_ids = invite_params[:legacy_role_ids]&.select(&:present?)&.map(&:to_i) || []
-      role_ids.each do |id|
-        role = Role.find(id)
-        if role.administrative?
-          @admin_role_name = role.name.humanize
-          adming_admin = true
-        end
-      end
-      # END_ACL
-      adming_admin
-    end
-  end
 end

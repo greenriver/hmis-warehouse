@@ -362,33 +362,15 @@ module UserConcern
       root_path
     end
 
+    INVITATION_LIFESPAN = 72.hours unless const_defined?(:INVITATION_LIFESPAN)
+
     def invitation_status
       if invitation_accepted_at.present? || invitation_sent_at.blank?
         :active
-      elsif invitation_due_at > Time.now
+      elsif invitation_sent_at + INVITATION_LIFESPAN > Time.current
         :pending_confirmation
       else
         :invitation_expired
-      end
-    end
-
-    # Prevent sending confirmation emails if the user has an open invitation
-    def send_reset_password_instructions
-      if invitation_token.present?
-        errors.add :email, 'There is an open invitation for this account.'
-        false
-      else
-        super
-      end
-    end
-
-    # Prevent confirming accounts if the user has an open invitation
-    def pending_any_confirmation
-      if invitation_token.present?
-        errors.add :email, 'There is an open invitation for this account.'
-        false
-      else
-        super
       end
     end
 

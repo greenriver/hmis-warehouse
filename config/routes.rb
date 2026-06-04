@@ -44,6 +44,7 @@ Rails.application.routes.draw do
 
   namespace :users do
     resources :account_requests, only: [:new, :create]
+    resources :invitations, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
