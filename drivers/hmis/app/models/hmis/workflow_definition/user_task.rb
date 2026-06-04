@@ -5,9 +5,17 @@
 # Tasks may include a swimline which can be used to determine which user is assigned to the corresponding step
 module Hmis::WorkflowDefinition
   class UserTask < Node
+    has_one :data_source, through: :template
+
     # Similar to Hmis::Form::Instance, Task has a form _identifier_, not a specific form, so that workflow steps can use newly published form versions
-    has_many :form_definitions, primary_key: :form_definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
-    has_one :form_definition, -> { published.order(version: :desc) }, primary_key: :form_definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
+    has_many :form_definitions, ->(user_task) { in_data_source(user_task.data_source.id) },
+             primary_key: :form_definition_identifier,
+             foreign_key: :identifier,
+             class_name: 'Hmis::Form::Definition'
+    has_one :form_definition, ->(user_task) { published.order(version: :desc).in_data_source(user_task.data_source.id) },
+            primary_key: :form_definition_identifier,
+            foreign_key: :identifier,
+            class_name: 'Hmis::Form::Definition'
 
     belongs_to :swimlane, class_name: 'Hmis::WorkflowDefinition::Swimlane', optional: true
 

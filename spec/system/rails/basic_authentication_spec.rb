@@ -65,7 +65,18 @@ RSpec.feature 'Basic Authentication Flow', type: :rails_system do
     it 'allows user to visit root page' do
       sign_in_user(user)
       visit root_path
-      expect(page).not_to have_content('Sign In')
+
+      # Get page text and exclude non-production-warning div
+      all_text = page.text
+      warning_div = find('#non-production-warning', visible: false)
+      warning_text = warning_div.text
+      remaining_text = all_text.gsub(warning_text, '')
+
+      # Should not be on sign-in page
+      expect(current_path).not_to eq(new_user_session_path)
+
+      # Should see Account menu (proves logged in) - excluding non-production-warning
+      expect(remaining_text).to include('Account')
     end
   end
 

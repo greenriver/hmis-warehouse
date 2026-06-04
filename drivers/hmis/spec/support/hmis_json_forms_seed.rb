@@ -33,9 +33,8 @@ RSpec.shared_context 'hmis json forms seed', shared_context: :metadata do
   after(:all) do
     # Clean up the data source so that other tests can create their own ds unimpeded
     ds = GrdaWarehouse::DataSource.find_by!(hmis: GraphqlHelpers::HMIS_HOSTNAME)
-    # TODO(#6691) - delete forms and instances by data source
-    Hmis::Form::Instance.delete_all
-    Hmis::Form::Definition.delete_all # bypass the before_destroy callback
+    Hmis::Form::Instance.in_data_source(ds.id).delete_all
+    Hmis::Form::Definition.in_data_source(ds.id).delete_all # delete_all bypasses the before_destroy callback
     Hmis::Hud::CustomDataElementDefinition.where(data_source: ds).delete_all
     Hmis::Hud::CustomDataElement.where(data_source: ds).delete_all
     Hmis::Hud::CustomServiceCategory.where(data_source: ds).delete_all

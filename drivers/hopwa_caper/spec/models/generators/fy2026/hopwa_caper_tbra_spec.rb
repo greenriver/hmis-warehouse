@@ -17,7 +17,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
   end
 
   let(:project) do
-    create_hopwa_project(funder: funder)
+    create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
   end
 
   context 'With one multi-member household served with rental assistance' do
@@ -207,10 +207,10 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
   context 'with same household re-enrolling in different projects' do
     let(:hoh_client) { create(:hud_client, data_source: data_source) }
     let(:project_a) do
-      create_hopwa_project(funder: funder)
+      create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
     end
     let(:project_b) do
-      create_hopwa_project(funder: funder)
+      create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
     end
 
     let!(:first_enrollment) do
@@ -346,6 +346,52 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       # despite being enrolled for 10 years.
       expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
       expect(rows.fetch('How many households have been served with TBRA for more than 10 years, but less than 15 years?')).to eq(0)
+    end
+  end
+
+  context 'with projects sharing the same HOPWA funder but different HousingType' do
+    let(:shared_funder) do
+      HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+    end
+    let(:facility_project) do
+      create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: 1) }
+    end
+    let(:null_housing_type_project) do
+      create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: nil) }
+    end
+
+    it 'excludes facility-based projects (HousingType 1) from the TBRA tab' do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: facility_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([facility_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(0)
+    end
+
+    it 'includes projects where HousingType is NULL (field not populated in HMIS)' do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: null_housing_type_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([null_housing_type_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+    end
+
+    it 'includes projects where HousingType is 3 (Tenant-based – scattered site)' do
+      tbra_project = create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: 3) }
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([tbra_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
     end
   end
 

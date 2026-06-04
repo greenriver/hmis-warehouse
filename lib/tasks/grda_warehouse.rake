@@ -352,10 +352,12 @@ namespace :grda_warehouse do
       end
     end
 
-    # Purge old soft-deleted records
+    # Purge old soft-deleted records (guarded by SoftDeleteRetentionConfiguration#enabled?)
     safely_execute do
-      enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
-      PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
+      if DateTime.current.hour == 5
+        PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false)
+        PurgeSoftDeletedClientFilesJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later
+      end
     end
 
     # Run CSG Engage export if ready

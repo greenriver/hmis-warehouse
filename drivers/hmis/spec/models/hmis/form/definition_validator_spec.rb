@@ -40,8 +40,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     context 'with multi-HMIS' do
       let!(:data_source2) { create(:hmis_data_source) }
 
-      # TODO(#6691): reinstate this test (xit => it) once data_source_id is required
-      xit 'fails if data_source_id is not provided' do
+      it 'fails if data_source_id is not provided' do
         expect do
           Hmis::Form::DefinitionValidator.perform(definition)
         end.to raise_error(ActiveRecord::SoleRecordExceeded)

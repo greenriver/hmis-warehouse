@@ -57,12 +57,25 @@ module Types
     summary_field :active, Boolean, null: false, method: :active?
     summary_field :origin, HmisSchema::Enums::CeReferralOrigin, null: false, method: :referral_origin
 
+    # pass `authorize_with: nil` because this is a summary field. See comments above on `self.field`
     access_field authorize_with: nil do
-      field :can_view_referral_details, Boolean, null: false
-      field :can_view_target_project, Boolean, null: false
-      field :can_view_source_enrollment_details, Boolean, null: false
-      field :can_assign_referral_tasks, Boolean, null: false
-      field :can_create_referral_note, Boolean, null: false, description: 'Whether or not the user can create a note on this referral at the top level, i.e., not tied to a specific task.'
+      define_method(:referral_policy) { @referral_policy ||= policy_for(object, policy_type: :ce_referral) }
+
+      bool_field(:can_view_referral_details) { referral_policy.can_view? }
+      bool_field(:can_assign_referral_tasks) { referral_policy.can_assign_referral_tasks? }
+      bool_field(:can_create_referral_note, description: 'Whether or not the user can create a note on this referral at the top level, i.e., not tied to a specific task.') do
+        referral_policy.can_create_note?
+      end
+      bool_field(:can_view_target_project) do
+        target_project = load_ar_association(object, :target_project)
+        target_project.present? && policy_for(target_project, policy_type: :hmis_project).can_view?
+      end
+      bool_field(:can_view_source_enrollment_details) do
+        enrollment = load_ar_association(object, :source_enrollment)
+        return false unless enrollment
+
+        policy_for(enrollment, policy_type: :hmis_enrollment).can_view_details?
+      end
     end
 
     # Detailed fields that only those with full view access should see. Must be nullable
@@ -87,12 +100,15 @@ module Types
     available_filter_options do
       arg :referral_status, [String]
       arg :project, [ID]
+      arg :project_group_id, ID, description: 'Filter to referrals where the target project belongs to the specified project group'
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
       arg :origin, [HmisSchema::Enums::CeReferralOrigin]
       arg :search_term, String
+      arg :assigned_to_you, Boolean
+      arg :assigned_to_user, ID
     end
 
     def current_match_values
@@ -270,21 +286,6 @@ module Types
 
     def workflow_template_name
       load_ar_association(object, :workflow_template)&.name
-    end
-
-    def access
-      project_id = target_project.id
-      project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
-      source_enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
-      referral_policy = policy_for(object, policy_type: :ce_referral)
-
-      {
-        can_view_referral_details: referral_policy.can_view?,
-        can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
-        can_assign_referral_tasks: referral_policy.can_assign_referral_tasks?,
-        can_view_source_enrollment_details: source_enrollment.present?,
-        can_create_referral_note: referral_policy.can_create_note?,
-      }
     end
 
     def audit_events

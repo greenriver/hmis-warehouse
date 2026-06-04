@@ -26,6 +26,14 @@ cd "$PROJECT_ROOT"
 echo "Copying sample.env to .env.development.local..."
 cp sample.env .env.development.local
 
+# Generate auth secrets and inject into .env.development.local
+echo "Generating auth secrets..."
+SECRET=$(openssl rand -base64 32)
+sed -i '' "s|^JWT_SECRET=$|JWT_SECRET=\"$SECRET\"|" .env.development.local
+sed -i '' "s|^OAUTH2_PROXY_COOKIE_SECRET=$|OAUTH2_PROXY_COOKIE_SECRET=\"$SECRET\"|" .env.development.local
+sed -i '' "s|^OAUTH2_PROXY_CLIENT_SECRET=$|OAUTH2_PROXY_CLIENT_SECRET=\"$SECRET\"|" .env.development.local
+echo "Auth secrets generated ✓"
+
 # Create .env.local file
 echo "Creating .env.local..."
 touch .env.local
@@ -46,6 +54,11 @@ if [ "$DOMAIN" != "$DEFAULT_DOMAIN" ]; then
 else
     echo "Using default domain ($DEFAULT_DOMAIN) ✓"
 fi
+
+# Generate oauth2-proxy config files from templates
+echo "Generating oauth2-proxy configuration..."
+bash docker/auth/generate-dev-auth.sh
+echo "oauth2-proxy configuration generated ✓"
 
 # Configure direnv
 echo "Configuring direnv..."

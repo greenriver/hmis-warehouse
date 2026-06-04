@@ -3,6 +3,7 @@
 FactoryBot.define do
   # puts Message.new.attributes
   factory :message do
+    association :user
     from    { ['macbeth@scotland.gov.uk'] }
     subject { 'futility' }
     body { <<-MESSAGE.strip_heredoc }

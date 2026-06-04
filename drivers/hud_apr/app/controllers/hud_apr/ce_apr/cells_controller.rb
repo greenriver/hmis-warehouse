@@ -13,5 +13,9 @@ module HudApr::CeApr
     private def report_type_param
       'ce_apr'
     end
+
+    private def drilldown_presenter_class
+      HudApr::CeAprDrilldownPresenter
+    end
   end
 end

@@ -3,7 +3,7 @@
   Subject: #{message.subject}
   Sent at: #{message.created_at.to_fs(:long)}
 
-  = message.body_text
+  = message.sanitized_body(render_as: :text)
 
   - unless i == @messages.length - 1
     = "---------------------------------------------------------"

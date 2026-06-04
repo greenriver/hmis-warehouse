@@ -154,16 +154,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     )
   end
 
-  scope :receiving_legacy_referrals, -> do
-    # Find all active instances that enable the Referral functionality
-    instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL).published
+  scope :receiving_legacy_referrals, ->(data_source_id) do
+    # Find all active instances that enable the Referral functionality, scoped to the given data source
+    instance_scope = Hmis::Form::Instance.in_data_source(data_source_id).active.with_role(:REFERRAL).published
     # Find open projects that have an instance that match the criteria, which indicates that the
     # project accepts referrals.
 
     # We do not check `viewable_by` because providers can refer to projects they can't otherwise view.
     # NOTE: is not optimized, could be refactored if performance is an issue. Used this approach to minimize
     # duplication of project_match logic.
-    referral_project_ids = Hmis::Hud::Project.open_on_date(Date.current).select do |project|
+    referral_project_ids = Hmis::Hud::Project.where(data_source_id: data_source_id).open_on_date(Date.current).select do |project|
       instance_scope.any? { |instance| instance.project_match(project) }
     end.map(&:id)
 
@@ -222,7 +222,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def receives_legacy_referrals?
-    Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
+    Hmis::Form::Instance.in_data_source(data_source_id).active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
   def receives_direct_ce_referrals?
@@ -295,7 +295,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      instance_scope = Hmis::Form::Instance.with_role(role).active.published
+      instance_scope = Hmis::Form::Instance.in_data_source(data_source_id).with_role(role).active.published
       # Service instances must specify a service type or category.
       instance_scope = instance_scope.for_services if role == :SERVICE
 
@@ -372,7 +372,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     type_matches = cst_t[:id].in(ids.map(&:first))
     category_matches = cst_t[:custom_service_category_id].in(ids.map(&:last))
 
-    Hmis::Hud::CustomServiceType.where(type_matches.or(category_matches))
+    Hmis::Hud::CustomServiceType.
+      # Filtering on DS is a secondary guard; Instance already validates that if it has a service type or category, it must be in the same data source.
+      in_data_source(data_source_id).
+      where(type_matches.or(category_matches))
   end
 
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
