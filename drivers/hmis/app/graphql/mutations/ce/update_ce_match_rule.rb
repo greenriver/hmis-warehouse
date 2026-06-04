@@ -18,11 +18,11 @@ module Mutations
       field :rule, Types::HmisSchema::CeMatchRule, null: true
 
       def resolve(id:, input:, confirmed: false)
-        errors = validate_input(input, expression_required: false)
-        return { rule: nil, errors: errors } if errors&.any?
-
         rule = Hmis::Ce::Match::Rule.find(id)
         access_denied! unless policy_for(rule, policy_type: :ce_match_rule).can_update?
+
+        errors = validate_input(input, expression_required: false)
+        return { rule: nil, errors: errors } if errors.any?
 
         rule.assign_attributes(input.to_rule_attributes)
 
@@ -35,7 +35,7 @@ module Mutations
         end
 
         errors = save_rule(rule)
-        return { rule: nil, errors: errors } if errors&.any?
+        return { rule: nil, errors: errors } if errors.any?
 
         { rule: rule }
       end

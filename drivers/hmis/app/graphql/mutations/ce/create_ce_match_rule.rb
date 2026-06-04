@@ -21,11 +21,15 @@ module Mutations
         access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_create?
 
         errors = validate_input(input, expression_required: true)
-        return { rule: nil, errors: errors } if errors&.any?
+        return { rule: nil, errors: errors } if errors.any?
 
-        # Check the rule instance policy, to confirm the user can create a rule for this owner (it's in the right DS)
         rule = Hmis::Ce::Match::Rule.new(input.to_rule_attributes)
-        access_denied! if rule.owner && !policy_for(rule, policy_type: :ce_match_rule).can_create?
+        # If no rule owner was set in the input, this is a global rule for the current data source
+        rule.owner ||= GrdaWarehouse::DataSource.hmis.find(current_user.hmis_data_source_id)
+        rule.applicability_config ||= {}
+
+        # Check the rule instance policy, to confirm the user can create a rule for this owner
+        access_denied! unless policy_for(rule, policy_type: :ce_match_rule).can_create?
 
         errors = validate_expression(rule)
         return { rule: nil, errors: errors } if errors.any?
@@ -36,7 +40,7 @@ module Mutations
         end
 
         errors = save_rule(rule)
-        return { rule: nil, errors: errors } if errors&.any?
+        return { rule: nil, errors: errors } if errors.any?
 
         { rule: rule }
       end

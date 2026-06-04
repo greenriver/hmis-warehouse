@@ -9,8 +9,6 @@
 module Mutations
   module Ce
     class DeleteCeMatchRule < Mutations::CleanBaseMutation
-      include ManagesCeMatchRules
-
       argument :id, ID, required: true
 
       field :rule, Types::HmisSchema::CeMatchRule, null: true

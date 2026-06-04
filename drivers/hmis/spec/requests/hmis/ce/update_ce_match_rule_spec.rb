@@ -96,7 +96,6 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
   it 'returns impact warnings without saving until confirmed when applicability config changes' do
     allow(Hmis::Ce::Match::RuleChangeImpactCalculator).to receive(:for_rule).and_return(warning_impact)
 
-    project_type = HudHelper.util('2026').hmis_project_type_keys.key('ES_ENTRY_EXIT')
     input = { applicabilityConfig: { projectTypes: ['ES_ENTRY_EXIT'] } }
 
     expect do

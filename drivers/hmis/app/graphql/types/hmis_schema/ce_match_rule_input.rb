@@ -22,7 +22,8 @@ module Types
     def to_rule_attributes
       attrs = to_h.except(:structured_expression, :applicability_config).compact
       attrs[:applicability_config] = applicability_config.to_params if applicability_config
-      attrs[:expression] = expression_from_input if expression_from_input
+      expr = expression_from_input
+      attrs[:expression] = expr if expr
       attrs
     end
 
