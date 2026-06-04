@@ -1,0 +1,13 @@
+{
+  "item": [
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "standard_confirm_placement_notes"
+      },
+      "required": false
+    }
+  ]
+}

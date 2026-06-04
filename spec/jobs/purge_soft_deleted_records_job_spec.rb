@@ -48,6 +48,10 @@ RSpec.describe PurgeSoftDeletedRecordsJob, type: :job do
     create(:hmis_external_api_ac_hmis_referral_household_member, client_id: client_active.id)
   end
 
+  before do
+    AppConfigProperty.create!(key: 'purge_soft_deleted_records/enabled', value: '1')
+  end
+
   describe '#perform' do
     it 'purges only old soft-deleted records' do
       expect do
