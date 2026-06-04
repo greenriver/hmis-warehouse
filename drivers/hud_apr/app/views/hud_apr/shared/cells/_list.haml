@@ -1,16 +1,16 @@
-- project_ids = list.map(&:project_id).uniq
-- current_user.policy_context.preload_project_dependencies(project_ids)
-- presenter = presenter_class.new(list, @report, current_user, format: :html)
+- presenter = drilldown_presenter_class.new(list, @drilldown.report, current_user, question: @drilldown.measure, format: :html)
 - display_headers = presenter.headers
 .card.overflow-x-scroll{style: "max-height: 80vh"}
   %table.table.table-sm.table-bordered.table-fixed
     %thead.table-dark
       %tr
+        %th
         - display_headers.each_value do |header|
           %th= header
     %tbody
-      - list.each do |record|
+      - list.each.with_index do |record, i|
         %tr
+          %th.table-dark= (@pagy.offset + i + 1)
           - display_headers.each_key do |field|
             %td{style: 'max-width: 600px;'}
               - if field == 'destination_client_id'
@@ -18,6 +18,6 @@
                   = record[field]
               - elsif field == 'personal_id'
                 - value = presenter.display_value(record, field)
-                = hmis_external_link(record.enrollment&.client, data_source: record.enrollment&.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
+                = hmis_external_link(record.source_enrollment&.client, data_source: record.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
               - else
                 = presenter.display_value(record, field)

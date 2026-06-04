@@ -15,7 +15,7 @@ module HudApr::Generators::Shared::Fy2026
 
     def self.table_descriptions
       {
-        'Question 23' => '',
+        'Question 23' => 'Exit Destination Information',
         'Q23c' => 'Exit Destination',
         'Q23d' => 'Exit Destination – Subsidy Type of Persons Exiting to Rental by Client With An Ongoing Subsidy',
         'Q23e' => 'Exit Destination Type by Race and Ethnicity',
