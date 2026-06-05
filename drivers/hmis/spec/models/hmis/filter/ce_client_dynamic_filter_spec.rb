@@ -243,7 +243,6 @@ RSpec.describe Hmis::Filter::CeClientFilter, type: :model do
       end.to raise_error(ArgumentError, /CE client dynamic filters only support/)
     end
 
-    # Performance tests for regression(#9269)
     describe 'performance' do
       let(:several_filters) do
         [
@@ -271,16 +270,14 @@ RSpec.describe Hmis::Filter::CeClientFilter, type: :model do
 
       # Note that the #9269 fix actually INCREASED the query count,
       # deliberately trading a single expensive query that was performing one EXISTS subquery per client
-      # for 2 queries per filter:
-      # - one to resolve the CDE definition
-      # - one to look up matching client ids using the DestinationClientLatestAssessment view
+      # for 1 query per filter to look up matching client ids using the DestinationClientLatestAssessment view.
       #
       # Since filter count is expected to be low (and explicitly bounded at 50), this is a reasonable tradeoff.
       # This test is still worth keeping to verify the query count does not balloon proportionally to the *client* count.
       it 'makes a number of queries proportional to the filter count' do
         expect do
-          apply_filters(base_scope, several_filters)
-        end.to make_database_queries(count: 6..12)
+          apply_filters(Hmis::Ce::ClientProxy.all, several_filters)
+        end.to make_database_queries(count: 4..10)
       end
 
       describe 'query shape against the latest-assessment view' do
@@ -302,7 +299,7 @@ RSpec.describe Hmis::Filter::CeClientFilter, type: :model do
         # The problem was complexity of a single query (not query count).
         it 'references the latest-assessment view at most once per executed query' do
           executed_sql = capture_executed_sql do
-            apply_filters(base_scope, several_filters).to_a
+            apply_filters(Hmis::Ce::ClientProxy.all, several_filters).to_a
           end
 
           # Verify that no single statement references the heavy hmis_destination_client_latest_assessments view more than once
