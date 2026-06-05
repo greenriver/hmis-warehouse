@@ -17,6 +17,8 @@
 
   = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly to them will be able to see the source client details.'
 
+  -# Vendor / external HMIS settings. Hidden when this data source is linked to Open Path HMIS,
+  -# because OP HMIS uses fixed values for these fields.
   .jNonHmisQuestions
     = f.input :munged_personal_id, as: :boolean, label: 'Does the Personal ID column contain a UUID?', hint: 'Checking this will add dashes to the Personal ID when displayed, converting 5011A79B04E34BB99D5A002A3E079C61 into 5011A79B-04E3-4BB9-9D5A-002A3E079C61.'
     = f.input :source_type, as: :hidden, value: 'manual'
@@ -24,10 +26,14 @@
     .jAuthoritativeType
       = f.input :authoritative_type, collection: GrdaWarehouse::DataSource.authoritative_types, as: :select_two
 
+  -# Configuration related to authoritative supplemental sources (youth, health, etc.) entered directly in the warehouse.
+  -# Only shown when authoritative is checked and the source is not Open Path HMIS.
   .jAuthoritativeQuestions
     = f.input :after_create_path, label: 'When adding a new client for this data source, which client page should we redirect to?', hint: 'Only applies to authoritative data sources.  Leaving this blank will redirect to the client dashboard.'
     = f.input :service_scannable, label: 'Enable Service Scanning?'
 
+  -# HUD CSV import controls. Shown for vendor HMIS and Open Path HMIS sources, which accept uploads;
+  -# hidden for authoritative non-HMIS sources where data is entered manually.
   .jImporterQuestions
     = f.input :disable_imports, as: :boolean, label: 'Disable HUD CSV imports', hint: 'When checked, manual uploads and automated daily imports are not allowed for this data source.', input_html: { class: 'jDisableImportsTrigger' }
     .jImportPausedField
