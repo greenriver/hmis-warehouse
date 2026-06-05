@@ -237,6 +237,79 @@ RSpec.describe HmisSimulation::Engine do
       end
     end
 
+    context 'concurrent enrollments' do
+      # Config with concurrent enrollments guaranteed on every client (count=1 always)
+      let(:base_config_with_concurrent) do
+        base_config.deep_dup.tap do |c|
+          c['organizations'].first['projects'] << {
+            'name' => 'Concurrent SO_', 'project_type' => 4
+          }
+          c['concurrent_enrollments'] = {
+            'count_distribution' => { '1' => 1 },
+            'data_error_rate' => 0.0,
+            'projects' => [
+              {
+                'name' => 'Concurrent SO_',
+                'project_type' => 4,
+                'selection_weight' => 1,
+                'duration' => { 'distribution' => 'constant', 'value' => 2 },
+                'gap_before_reentry' => { 'distribution' => 'constant', 'value' => 1 },
+                'reentry_probability' => 1.0,
+              },
+            ],
+          }
+        end
+      end
+      let(:concurrent_config) { HmisSimulation::ConfigLoader.send(:normalize, base_config_with_concurrent) }
+
+      before do
+        HmisSimulation::Bootstrapper.new(concurrent_config).run!
+      end
+
+      it 'assigns concurrent enrollments when a primary enrollment opens' do
+        described_class.new(concurrent_config).run(date: run_date)
+        expect(HmisSimulation::ConcurrentEnrollment.where(data_source_id: data_source.id).count).to be > 0
+      end
+
+      it 'closes concurrent enrollments when exit_on fires' do
+        e = described_class.new(concurrent_config)
+        e.run(date: run_date)
+
+        # concurrent enrollment duration = 2 days, so it expires on run_date + 2
+        e.run(date: run_date + 1)
+        e.run(date: run_date + 2)
+
+        exits = Hmis::Hud::Exit.where(data_source: data_source)
+        # At least some concurrent exits should have been created
+        expect(exits.count).to be > 0
+      end
+
+      it 'schedules reentry when reentry_probability = 1.0' do
+        e = described_class.new(concurrent_config)
+        e.run(date: run_date)
+
+        # Duration=2, so expires on run_date+2
+        e.run(date: run_date + 1)
+        e.run(date: run_date + 2)
+
+        # With reentry_probability=1.0, all expired concurrent enrollments should have pending_reentry_on set
+        expired = HmisSimulation::ConcurrentEnrollment.
+          where(data_source_id: data_source.id).
+          where.not(pending_reentry_on: nil)
+        expect(expired.count).to be > 0
+      end
+
+      it 'opens reentry enrollments when pending_reentry_on fires' do
+        e = described_class.new(concurrent_config)
+        e.run(date: run_date)       # spawns clients, creates concurrent enrollments (exit_on = run_date+2)
+        e.run(date: run_date + 2)   # expires concurrent, schedules reentry on run_date+3
+        enrollment_count = Hmis::Hud::Enrollment.where(data_source: data_source).count
+
+        e.run(date: run_date + 3)   # reentry fires, opens new concurrent enrollment
+        expect(Hmis::Hud::Enrollment.where(data_source: data_source).count).to be > enrollment_count
+      end
+    end
+
     context 'annual collection' do
       it 'creates annual IncomeBenefit records for enrollments near their anniversary' do
         # Create an enrollment that is exactly 365 days old so annual collection fires today

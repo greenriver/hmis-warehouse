@@ -50,6 +50,7 @@ module HmisSimulation
           spawn_clients(date: date)
           tick_primary(date: date)
           tick_annual_collections(date: date)
+          tick_concurrent(date: date)
 
           log.update!(
             clients_created: @clients_created,
@@ -202,6 +203,7 @@ module HmisSimulation
 
       @enrollments_opened += 1
       create_linked_entry_records(result[:hoh_enrollment], date, data_source: data_source, user_id: user_id, sim_client: sim_client)
+      assign_concurrent_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
 
       # Pre-select the outgoing transition and sample enrollment length
       next_pop, timing = sample_enrollment_exit(sim_client.current_population, date, sim_client.id)
@@ -352,6 +354,141 @@ module HmisSimulation
       when 1, 0 then 101  # Emergency shelter
       when 4    then 116  # Street outreach
       end
+    end
+
+    # -- Concurrent enrollment tick --
+
+    def tick_concurrent(date:)
+      concurrent_cfg = @config['concurrent_enrollments']
+      return unless concurrent_cfg.present?
+
+      data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+      user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
+      coc_code    = @config.dig('coc_codes', 'primary') || 'XX-500'
+
+      # Close expired concurrent enrollments
+      ConcurrentEnrollment.expiring_on(date).where(data_source_id: @data_source_id).find_each do |concurrent_enrollment|
+        close_concurrent_enrollment(concurrent_enrollment, date, data_source: data_source, user_id: user_id,
+                                                                 projects_cfg: concurrent_cfg['projects'] || [])
+      end
+
+      # Open reentries due today
+      ConcurrentEnrollment.pending_reentry_on(date).where(data_source_id: @data_source_id).find_each do |concurrent_enrollment|
+        open_concurrent_reentry(concurrent_enrollment, date, user_id: user_id, coc_code: coc_code,
+                                                             projects_cfg: concurrent_cfg['projects'] || [])
+      end
+    end
+
+    def assign_concurrent_enrollments(sim_client, date, data_source:, user_id:)
+      concurrent_cfg = @config['concurrent_enrollments']
+      return unless concurrent_cfg.present?
+
+      projects_cfg    = concurrent_cfg['projects'] || []
+      count_dist_cfg  = concurrent_cfg['count_distribution'] || { '0' => 1 }
+      data_error_rate = concurrent_cfg['data_error_rate'].to_f
+      coc_code        = @config.dig('coc_codes', 'primary') || 'XX-500'
+
+      normalized_weights = count_dist_cfg.transform_values(&:to_f)
+      cfg    = { 'distribution' => 'weighted', 'weights' => normalized_weights }
+      rng    = Random.new(@seed + "concurrent_count:#{sim_client.id}".hash)
+      count  = Distribution.sample(cfg, rng: rng).to_i
+
+      effective_projects = apply_data_error_rate(projects_cfg, sim_client, data_error_rate)
+
+      Builders::ConcurrentEnrollmentBuilder.new(
+        client: Hmis::Hud::Client.find(sim_client.hud_client_id),
+        date: date,
+        projects_config: effective_projects,
+        count: count,
+        coc_code: coc_code,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: @seed + "concurrent:#{sim_client.id}:#{date}".hash,
+      ).build!
+    end
+
+    def close_concurrent_enrollment(concurrent_enrollment, date, data_source:, user_id:, projects_cfg:)
+      enrollment = Hmis::Hud::Enrollment.find_by(id: concurrent_enrollment.hud_enrollment_id)
+      return unless enrollment
+
+      Builders::ExitBuilder.new(
+        enrollment: enrollment,
+        exit_date: date,
+        exit_destinations: { '116' => 1.0 },
+        data_source: data_source,
+        user_id: user_id,
+        seed: @seed,
+        context_prefix: "concurrent_exit:#{concurrent_enrollment.id}:#{date}",
+      ).build!
+
+      proj_cfg = projects_cfg.find { |p| p['name'] == concurrent_enrollment.project_name }
+      reentry  = schedule_concurrent_reentry(concurrent_enrollment, date, proj_cfg)
+
+      concurrent_enrollment.update!(hud_enrollment_id: nil, exit_on: nil, pending_reentry_on: reentry)
+    end
+
+    def open_concurrent_reentry(concurrent_enrollment, date, user_id:, coc_code:, projects_cfg:)
+      proj_cfg = projects_cfg.find { |p| p['name'] == concurrent_enrollment.project_name }
+      return unless proj_cfg
+
+      project = Hmis::Hud::Project.find_by(data_source_id: @data_source_id, ProjectName: concurrent_enrollment.project_name)
+      return unless project
+
+      client = Hmis::Hud::Client.find_by(id: concurrent_enrollment.hud_client_id)
+      return unless client
+
+      enrollment = Hmis::Hud::Enrollment.create!(
+        data_source_id: @data_source_id,
+        UserID: user_id,
+        ExportID: Bootstrapper::EXPORT_ID,
+        DateCreated: date.to_datetime,
+        DateUpdated: date.to_datetime,
+        EnrollmentID: FakeIdentifier.uuid,
+        PersonalID: client.PersonalID,
+        project_pk: project.id,
+        HouseholdID: FakeIdentifier.uuid,
+        EntryDate: date,
+        RelationshipToHoH: 1,
+        DisablingCondition: 99,
+        LivingSituation: 116,
+        EnrollmentCoC: coc_code,
+      )
+
+      duration_cfg = (proj_cfg['duration'] || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
+      duration = Distribution.sample(duration_cfg, rng: Random.new(@seed + "concurrent_reentry_dur:#{concurrent_enrollment.id}:#{date}".hash)).ceil.clamp(1, 365)
+
+      concurrent_enrollment.update!(hud_enrollment_id: enrollment.id, exit_on: date + duration, pending_reentry_on: nil)
+    end
+
+    def schedule_concurrent_reentry(concurrent_enrollment, exit_date, proj_cfg)
+      return nil unless proj_cfg
+
+      prob = proj_cfg['reentry_probability'].to_f
+      return nil if Random.new(@seed + "reentry_prob:#{concurrent_enrollment.id}".hash).rand >= prob
+
+      gap_cfg  = (proj_cfg['gap_before_reentry'] || { 'distribution' => 'constant', 'value' => 7 }).deep_stringify_keys
+      gap_days = Distribution.sample(gap_cfg, rng: Random.new(@seed + "reentry_gap:#{concurrent_enrollment.id}".hash)).ceil.clamp(0, 365)
+      exit_date + gap_days
+    end
+
+    def apply_data_error_rate(projects_cfg, sim_client, data_error_rate)
+      return projects_cfg if data_error_rate.zero?
+      return projects_cfg unless Random.new(@seed + "data_error:#{sim_client.id}".hash).rand < data_error_rate
+
+      # Data error: introduce an enrollment in a project type matching the primary
+      primary_enrollment = Hmis::Hud::Enrollment.find_by(id: sim_client.hud_enrollment_id)
+      return projects_cfg unless primary_enrollment
+
+      same_type_project = Hmis::Hud::Project.
+        where(data_source_id: @data_source_id, ProjectType: primary_enrollment.project&.ProjectType).
+        where.not(id: primary_enrollment.project_pk).
+        first
+      return projects_cfg unless same_type_project
+
+      error_entry = { 'name' => same_type_project.ProjectName, 'project_type' => same_type_project.ProjectType,
+                      'selection_weight' => 1.0, 'duration' => { 'distribution' => 'constant', 'value' => 30 },
+                      'gap_before_reentry' => { 'distribution' => 'constant', 'value' => 7 }, 'reentry_probability' => 0.0 }
+      [error_entry]
     end
 
     # -- Transition helpers --
