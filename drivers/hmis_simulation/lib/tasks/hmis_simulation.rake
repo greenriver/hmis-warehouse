@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -33,6 +35,16 @@ task :validate, [:path_or_key] => :environment do |_t, args|
   end
 end
 
+desc 'Bootstrap HUD records (orgs, projects, ProjectCoc, Inventory, Funders) from an AppConfigProperty key'
+task :bootstrap, [:key] => :environment do |_t, args|
+  key = args[:key]
+  raise ArgumentError, 'Usage: rake driver:hmis_simulation:bootstrap[hmis_simulation/key]' if key.blank?
+
+  config = HmisSimulation::ConfigLoader.from_app_config(key)
+  HmisSimulation::Bootstrapper.new(config).run!
+  puts "Bootstrap complete for #{config['name'].inspect} (data_source_id: #{config['data_source_id']})"
+end
+
 desc 'Load a simulation config JSON file into AppConfigProperty and validate it'
 task :setup_from_file, [:path] => :environment do |_t, args|
   path = args[:path]
@@ -41,7 +53,7 @@ task :setup_from_file, [:path] => :environment do |_t, args|
   raw = HmisSimulation::ConfigLoader.from_file(path)
   validator = HmisSimulation::ConfigValidator.new(raw)
   unless validator.valid?
-    warn "Config has errors — fix before loading:"
+    warn 'Config has errors — fix before loading:'
     validator.errors.each { |e| warn "  - #{e}" }
     exit 1
   end
