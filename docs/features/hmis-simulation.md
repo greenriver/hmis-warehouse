@@ -32,7 +32,7 @@ Each simulated client can carry up to three parallel enrollment tracks:
 
 ### Config storage
 
-Simulation configurations are JSON blobs stored in `AppConfigProperty` (key prefix: `hmis_simulation/`). Sample files live in `config/simulations/samples/` — copy one, set `data_source_id`, and load it via rake task.
+Simulation configurations are JSON blobs stored in `AppConfigProperty` (key prefix: `hmis_simulation/`). Sample files live in `drivers/hmis_simulation/config/sample/` — copy one, set `data_source_id`, and load it via rake task.
 
 ### State tables
 
@@ -78,7 +78,7 @@ Every generated record is recognizably synthetic:
 ### 1. Copy and edit a sample config
 
 ```bash
-cp config/simulations/samples/small_coc.json /tmp/my-demo-coc.json
+cp drivers/hmis_simulation/config/sample/small_coc.json /tmp/my-demo-coc.json
 ```
 
 Edit `/tmp/my-demo-coc.json`:
@@ -144,7 +144,7 @@ bundle exec rake driver:hmis_simulation:run_all
 
 ## Config reference
 
-The full annotated config with all options is in `config/simulations/samples/small_coc.json`. Key sections:
+The full annotated config with all options is in `drivers/hmis_simulation/config/sample/small_coc.json`. Key sections:
 
 | Section | Purpose |
 |---|---|

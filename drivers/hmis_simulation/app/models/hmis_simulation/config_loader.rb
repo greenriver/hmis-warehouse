@@ -8,11 +8,12 @@
 
 module HmisSimulation
   # Loads simulation configuration from AppConfigProperty or a JSON file,
-  # normalizes relative weights so callers always see values summing to 1.0.
+  # then normalizes relative weights per-track so callers always receive
+  # values that sum to 1.0 within each distribution.
   #
   # Usage:
   #   config = HmisSimulation::ConfigLoader.from_app_config('hmis_simulation/demo-coc')
-  #   config = HmisSimulation::ConfigLoader.from_file('config/simulations/samples/small_coc.json')
+  #   config = HmisSimulation::ConfigLoader.from_file('drivers/hmis_simulation/config/sample/small_coc.json')
   module ConfigLoader
     module_function
 
@@ -39,16 +40,22 @@ module HmisSimulation
     def normalize(config)
       config = config.deep_dup
 
-      normalize_entry_points!(config)
-      normalize_transition_weights!(config)
-      normalize_exit_destinations!(config)
-      normalize_concurrent_selection_weights!(config)
+      (config['tracks'] || []).each do |track|
+        case track['type']
+        when 'primary'
+          normalize_entry_points!(track)
+          normalize_transition_weights!(track)
+          normalize_exit_destinations!(track)
+        when 'concurrent'
+          normalize_count_distribution!(track)
+        end
+      end
 
       config
     end
 
-    def normalize_entry_points!(config)
-      pops = config['populations']
+    def normalize_entry_points!(track)
+      pops = track['populations']
       return unless pops.present?
 
       total = pops.sum { |p| p['entry_point'].to_f }
@@ -57,8 +64,8 @@ module HmisSimulation
       pops.each { |p| p['entry_point'] = p['entry_point'].to_f / total }
     end
 
-    def normalize_transition_weights!(config)
-      transitions = config['transitions']
+    def normalize_transition_weights!(track)
+      transitions = track['transitions']
       return unless transitions.present?
 
       transitions.group_by { |t| t['from'] }.each_value do |group|
@@ -69,8 +76,8 @@ module HmisSimulation
       end
     end
 
-    def normalize_exit_destinations!(config)
-      transitions = config['transitions']
+    def normalize_exit_destinations!(track)
+      transitions = track['transitions']
       return unless transitions.present?
 
       transitions.each do |t|
@@ -84,14 +91,14 @@ module HmisSimulation
       end
     end
 
-    def normalize_concurrent_selection_weights!(config)
-      projects = config.dig('concurrent_enrollments', 'projects')
-      return unless projects.present?
+    def normalize_count_distribution!(track)
+      dist = track['count_distribution']
+      return unless dist.present?
 
-      total = projects.sum { |p| p['selection_weight'].to_f }
+      total = dist.values.sum(&:to_f)
       return if total.zero?
 
-      projects.each { |p| p['selection_weight'] = p['selection_weight'].to_f / total }
+      track['count_distribution'] = dist.transform_values { |w| w.to_f / total }
     end
   end
 end

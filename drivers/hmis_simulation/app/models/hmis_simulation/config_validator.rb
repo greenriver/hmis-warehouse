@@ -7,17 +7,20 @@
 # frozen_string_literal: true
 
 module HmisSimulation
-  # Validates the structural integrity of a simulation configuration hash.
-  # Used by the validate rake task and at the start of bootstrap/run to
-  # surface problems before any records are written.
+  # Validates a simulation configuration hash.
+  #
+  # Runs JSON Schema validation first (structural + type checks), then
+  # applies semantic checks that cannot be expressed in a schema:
+  #   - project_ref values resolve to a project in organizations
+  #   - transition from/to names exist in the same primary track's populations
+  #   - lifecycle trigger_populations name a population in any primary track
+  #   - applies_to_tracks values name defined primary tracks
+  #   - each primary track has at least one population with entry_point > 0
+  #   - at least one track has type "primary"
   #
   # Usage:
   #   v = HmisSimulation::ConfigValidator.new(config)
-  #   if v.valid?
-  #     # proceed
-  #   else
-  #     puts v.errors.join("\n")
-  #   end
+  #   puts v.errors.join("\n") unless v.valid?
   class ConfigValidator
     attr_reader :errors
 
@@ -28,92 +31,146 @@ module HmisSimulation
 
     def valid?
       @errors = []
-      validate_top_level
+      reset_memos!
+
+      schema_errors = HmisSimulation::JsonValidator.perform(@config)
+      if schema_errors.any?
+        @errors.concat(schema_errors)
+        return false
+      end
+
+      validate_primary_track_exists
+      validate_entry_points
       validate_project_refs
       validate_transitions
-      validate_entry_points
-      validate_lifecycle_trigger_populations
-      validate_concurrent_project_refs
+      validate_lifecycle_tracks
+      validate_concurrent_tracks
+      validate_applies_to_tracks
+
       @errors.empty?
     end
 
     private
 
-    def validate_top_level
-      @errors << 'data_source_id must be a positive integer' unless @config['data_source_id'].to_i.positive?
-      @errors << 'seed is required' unless @config.key?('seed')
-      @errors << 'name is required' if @config['name'].blank?
-      @errors << 'coc_codes.primary is required' if @config.dig('coc_codes', 'primary').blank?
-      @errors << 'organizations must be a non-empty array' unless @config['organizations'].is_a?(Array) && @config['organizations'].any?
-      @errors << 'populations must be a non-empty array' unless @config['populations'].is_a?(Array) && @config['populations'].any?
+    def reset_memos!
+      @primary_tracks = nil
+      @concurrent_tracks = nil
+      @lifecycle_tracks = nil
+      @all_project_names = nil
+    end
+
+    def validate_primary_track_exists
+      return if primary_tracks.any?
+
+      @errors << 'at least one track with type "primary" is required'
+    end
+
+    def validate_entry_points
+      primary_tracks.each do |track|
+        pops = track['populations'] || []
+        next if pops.any? { |p| p['entry_point'].to_f.positive? }
+
+        @errors << "primary track #{track['name'].inspect} must have at least one population with entry_point > 0"
+      end
     end
 
     def validate_project_refs
       project_names = all_project_names
-      all_population_names
 
-      @config['populations']&.each do |pop|
-        ref = pop['project_ref']
-        next if ref.blank?
-        next if project_names.include?(ref)
+      primary_tracks.each do |track|
+        (track['populations'] || []).each do |pop|
+          ref = pop['project_ref']
+          next if ref.blank? || project_names.include?(ref)
 
-        @errors << "population #{pop['name'].inspect} has project_ref #{ref.inspect} that does not match any project name"
+          @errors << "primary track #{track['name'].inspect} population #{pop['name'].inspect} " \
+                     "has project_ref #{ref.inspect} that does not match any project name"
+        end
       end
     end
 
     def validate_transitions
-      population_names = all_population_names
+      primary_tracks.each do |track|
+        pop_names = (track['populations'] || []).map { |p| p['name'] }.to_set
 
-      @config['transitions']&.each do |t|
-        from = t['from']
-        to   = t['to']
+        (track['transitions'] || []).each do |t|
+          from = t['from']
+          to   = t['to']
 
-        @errors << "transition from=#{from.inspect} does not match any defined population" unless population_names.include?(from)
-        @errors << "transition to=#{to.inspect} does not match any defined population" unless population_names.include?(to)
-      end
-    end
+          unless pop_names.include?(from)
+            @errors << "primary track #{track['name'].inspect} transition from=#{from.inspect} " \
+                       'does not name a population in this track'
+          end
 
-    def validate_entry_points
-      pops = @config['populations'] || []
-      return if pops.any? { |p| p['entry_point'].to_f.positive? }
-
-      @errors << 'at least one population must have entry_point > 0'
-    end
-
-    def validate_lifecycle_trigger_populations
-      population_names = all_population_names
-
-      @config['lifecycle_enrollments']&.each do |lc|
-        lc['trigger_populations']&.each do |tp|
-          next if population_names.include?(tp)
-
-          @errors << "lifecycle_enrollment #{lc['name'].inspect} trigger_populations includes #{tp.inspect} which does not match any defined population"
+          unless pop_names.include?(to)
+            @errors << "primary track #{track['name'].inspect} transition to=#{to.inspect} " \
+                       'does not name a population in this track'
+          end
         end
-
-        ref = lc['project_ref']
-        @errors << "lifecycle_enrollment #{lc['name'].inspect} has project_ref #{ref.inspect} that does not match any project name" if ref.present? && !all_project_names.include?(ref)
       end
     end
 
-    def validate_concurrent_project_refs
+    def validate_lifecycle_tracks
+      all_pop_names = primary_tracks.flat_map { |t| t['populations'] || [] }.map { |p| p['name'] }.to_set
       project_names = all_project_names
 
-      @config.dig('concurrent_enrollments', 'projects')&.each do |p|
-        ref = p['name']
-        next if project_names.include?(ref)
+      lifecycle_tracks.each do |track|
+        (track['trigger_populations'] || []).each do |tp|
+          next if all_pop_names.include?(tp)
 
-        @errors << "concurrent_enrollments project #{ref.inspect} does not match any project name in organizations"
+          @errors << "lifecycle track #{track['name'].inspect} trigger_populations includes " \
+                     "#{tp.inspect} which does not name any population in any primary track"
+        end
+
+        ref = track['project_ref']
+        next if ref.blank? || project_names.include?(ref)
+
+        @errors << "lifecycle track #{track['name'].inspect} has project_ref #{ref.inspect} " \
+                   'that does not match any project name'
       end
+    end
+
+    def validate_concurrent_tracks
+      project_names = all_project_names
+
+      concurrent_tracks.each do |track|
+        (track['projects'] || []).each do |project_name|
+          next if project_names.include?(project_name)
+
+          @errors << "concurrent track #{track['name'].inspect} references project #{project_name.inspect} " \
+                     'that does not match any project name in organizations'
+        end
+      end
+    end
+
+    def validate_applies_to_tracks
+      primary_track_names = primary_tracks.map { |t| t['name'] }.to_set
+
+      (concurrent_tracks + lifecycle_tracks).each do |track|
+        (track['applies_to_tracks'] || []).each do |referenced_name|
+          next if primary_track_names.include?(referenced_name)
+
+          @errors << "track #{track['name'].inspect} applies_to_tracks includes " \
+                     "#{referenced_name.inspect} which does not name any primary track"
+        end
+      end
+    end
+
+    def primary_tracks
+      @primary_tracks ||= (@config['tracks'] || []).select { |t| t['type'] == 'primary' }
+    end
+
+    def concurrent_tracks
+      @concurrent_tracks ||= (@config['tracks'] || []).select { |t| t['type'] == 'concurrent' }
+    end
+
+    def lifecycle_tracks
+      @lifecycle_tracks ||= (@config['tracks'] || []).select { |t| t['type'] == 'lifecycle' }
     end
 
     def all_project_names
       @all_project_names ||= (@config['organizations'] || []).flat_map do |org|
         (org['projects'] || []).map { |p| p['name'] }
       end.to_set
-    end
-
-    def all_population_names
-      @all_population_names ||= (@config['populations'] || []).map { |p| p['name'] }.to_set
     end
   end
 end

@@ -8,8 +8,8 @@
 
 # Tasks are namespaced as driver:hmis_simulation:* by the driver loader.
 # Usage examples:
-#   bundle exec rake driver:hmis_simulation:validate[config/simulations/samples/small_coc.json]
-#   bundle exec rake driver:hmis_simulation:setup_from_file[config/simulations/samples/small_coc.json]
+#   bundle exec rake driver:hmis_simulation:validate[drivers/hmis_simulation/config/sample/small_coc.json]
+#   bundle exec rake driver:hmis_simulation:setup_from_file[drivers/hmis_simulation/config/sample/small_coc.json]
 #   bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc]
 #   bundle exec rake driver:hmis_simulation:run[hmis_simulation/demo-coc,2026-01-15]
 #   bundle exec rake driver:hmis_simulation:run_range[hmis_simulation/demo-coc,2026-01-01,2026-01-31]

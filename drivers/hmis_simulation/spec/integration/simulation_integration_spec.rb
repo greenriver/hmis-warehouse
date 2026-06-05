@@ -35,53 +35,88 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
           ],
         },
       ],
-      'household_templates' => {
-        'adult_only' => {
-          'hoh' => {
-            'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
-            'gender' => { 'woman' => 0.5, 'man' => 0.5 },
-            'veteran_probability' => 0.1,
-            'race' => { 'white' => 0.5, 'black_af_american' => 0.5 },
+      'data_quality' => {
+        'missing_dob_rate' => 0.02,
+        'missing_ssn_rate' => 0.05,
+        'missing_name_rate' => 0.01,
+        'approximate_dob_rate' => 0.02,
+      },
+      'tracks' => [
+        {
+          'name' => 'general_population',
+          'type' => 'primary',
+          'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 60 },
+          'household_cohesion_probability' => 0.9,
+          'household_templates' => {
+            'adult_only' => {
+              'hoh' => {
+                'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
+                'gender' => { 'woman' => 0.5, 'man' => 0.5 },
+                'veteran_probability' => 0.1,
+                'race' => { 'white' => 0.5, 'black_af_american' => 0.5 },
+              },
+            },
+          },
+          'populations' => [
+            { 'name' => 'street', 'label' => 'Street',
+              'project_ref' => 'Integration SO_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 1, 'exit_point' => 0.05 },
+            { 'name' => 'es', 'label' => 'ES',
+              'project_ref' => 'Integration ES NBN_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 0, 'exit_point' => 0.05 },
+            { 'name' => 'psh', 'label' => 'PSH',
+              'project_ref' => 'Integration PSH_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 0, 'exit_point' => 0.5 },
+          ],
+          'transitions' => [
+            { 'from' => 'street', 'to' => 'es', 'weight' => 1,
+              'timing' => { 'distribution' => 'uniform', 'min' => 2, 'max' => 5 },
+              'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+              'exit_destinations' => { '101' => 1 } },
+            { 'from' => 'es', 'to' => 'psh', 'weight' => 1,
+              'timing' => { 'distribution' => 'uniform', 'min' => 3, 'max' => 7 },
+              'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+              'exit_destinations' => { '435' => 1 } },
+          ],
+          'enrollment_config' => {
+            'disabilities' => {
+              'disabling_condition_probability' => 0.7,
+              'types' => { 'mental_health' => 0.6, 'substance_use' => 0.4 },
+            },
+            'income_at_entry' => {
+              'no_income_probability' => 0.35,
+              'sources' => { 'ssi' => 0.4, 'earned' => 0.3, 'ga' => 0.3 },
+            },
+            'health_and_dv' => {
+              'dv_survivor_probability' => 0.2,
+              'general_health' => { 'poor' => 0.3, 'fair' => 0.4, 'good' => 0.3 },
+            },
+            'annual_collection' => {
+              'miss_rate' => 0.0,
+              'timing_jitter' => { 'distribution' => 'constant', 'value' => 0 },
+            },
           },
         },
-      },
-      'populations' => [
-        { 'name' => 'street', 'label' => 'Street',
-          'project_ref' => 'Integration SO_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 1, 'exit_point' => 0.05 },
-        { 'name' => 'es', 'label' => 'ES',
-          'project_ref' => 'Integration ES NBN_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 0, 'exit_point' => 0.05 },
-        { 'name' => 'psh', 'label' => 'PSH',
-          'project_ref' => 'Integration PSH_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 0, 'exit_point' => 0.5 },
-      ],
-      'transitions' => [
-        { 'from' => 'street', 'to' => 'es', 'weight' => 1,
-          'timing' => { 'distribution' => 'uniform', 'min' => 2, 'max' => 5 },
-          'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
-          'exit_destinations' => { '101' => 1 } },
-        { 'from' => 'es', 'to' => 'psh', 'weight' => 1,
-          'timing' => { 'distribution' => 'uniform', 'min' => 3, 'max' => 7 },
-          'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
-          'exit_destinations' => { '435' => 1 } },
-      ],
-      'concurrent_enrollments' => {
-        'count_distribution' => { '0' => 3, '1' => 1 },
-        'data_error_rate' => 0.0,
-        'projects' => [
-          { 'name' => 'Integration SO_', 'project_type' => 4,
-            'selection_weight' => 1,
-            'duration' => { 'distribution' => 'constant', 'value' => 5 },
-            'gap_before_reentry' => { 'distribution' => 'constant', 'value' => 2 },
-            'reentry_probability' => 0.5 },
-        ],
-      },
-      'lifecycle_enrollments' => [
-        { 'name' => 'ce', 'label' => 'CE',
+        {
+          'name' => 'so_contacts',
+          'type' => 'concurrent',
+          'applies_to_tracks' => [],
+          'projects' => ['Integration SO_'],
+          'count_distribution' => { '0' => 3, '1' => 1 },
+          'data_error_rate' => 0.0,
+          'duration' => { 'distribution' => 'constant', 'value' => 5 },
+          'reentry' => {
+            'gap' => { 'distribution' => 'constant', 'value' => 2 },
+            'probability' => 0.5,
+          },
+        },
+        {
+          'name' => 'coordinated_entry',
+          'type' => 'lifecycle',
+          'applies_to_tracks' => [],
           'project_ref' => 'Integration CE_',
           'trigger_populations' => ['street', 'es'],
           'trigger_probability' => 0.5,
@@ -92,33 +127,9 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
               'probability' => 0.3,
               'after_days' => { 'distribution' => 'constant', 'value' => 30 },
             },
-          } },
+          },
+        },
       ],
-      'enrollment_config' => {
-        'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 60 },
-        'disabilities' => {
-          'disabling_condition_probability' => 0.7,
-          'types' => { 'mental_health' => 0.6, 'substance_use' => 0.4 },
-        },
-        'income_at_entry' => {
-          'no_income_probability' => 0.35,
-          'sources' => { 'ssi' => 0.4, 'earned' => 0.3, 'ga' => 0.3 },
-        },
-        'health_and_dv' => {
-          'dv_survivor_probability' => 0.2,
-          'general_health' => { 'poor' => 0.3, 'fair' => 0.4, 'good' => 0.3 },
-        },
-        'annual_collection' => {
-          'miss_rate' => 0.0,
-          'timing_jitter' => { 'distribution' => 'constant', 'value' => 0 },
-        },
-      },
-      'data_quality' => {
-        'missing_dob_rate' => 0.02,
-        'missing_ssn_rate' => 0.05,
-        'missing_name_rate' => 0.01,
-        'approximate_dob_rate' => 0.02,
-      },
     }
   end
 
@@ -319,7 +330,7 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
   describe 'sample config validity' do
     it 'validates the small_coc.json sample without errors' do
       raw = HmisSimulation::ConfigLoader.from_file(
-        Rails.root.join('config', 'simulations', 'samples', 'small_coc.json').to_s,
+        Rails.root.join('drivers', 'hmis_simulation', 'config', 'sample', 'small_coc.json').to_s,
       )
       # Override data_source_id for validation (sample has 0 which is intentionally invalid)
       raw['data_source_id'] = data_source.id

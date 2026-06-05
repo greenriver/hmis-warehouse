@@ -1,0 +1,389 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HmisSimulation Configuration",
+  "description": "Configuration schema for the HMIS Simulation engine. All project and organization names must end with '_' to mark them as synthetic data.",
+  "$defs": {
+    "distribution_config": {
+      "description": "A probability distribution for sampling numeric values.",
+      "type": "object",
+      "required": ["distribution"],
+      "properties": {
+        "distribution": {
+          "type": "string",
+          "enum": ["constant", "uniform", "normal", "poisson"],
+          "description": "Distribution type."
+        },
+        "value": { "type": "number", "description": "Fixed value (constant distribution)." },
+        "min": { "type": "number", "description": "Minimum value (uniform/normal)." },
+        "max": { "type": "number", "description": "Maximum value (uniform/normal)." },
+        "mean": { "type": "number", "description": "Mean (normal distribution)." },
+        "stddev": { "type": "number", "minimum": 0, "description": "Standard deviation (normal)." },
+        "lambda": { "type": "number", "minimum": 0, "description": "Rate parameter (Poisson)." }
+      }
+    },
+
+    "population": {
+      "description": "A named stage in the primary track housing journey.",
+      "type": "object",
+      "required": ["name", "entry_point", "exit_point"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" },
+        "project_ref": {
+          "type": "string",
+          "description": "Name of a project in organizations. Validated semantically."
+        },
+        "household_templates": {
+          "type": "object",
+          "description": "Map of household template name to relative selection weight.",
+          "additionalProperties": { "type": "number", "minimum": 0 }
+        },
+        "entry_point": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Relative weight for new-client entry. Normalized internally."
+        },
+        "exit_point": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability that a client permanently exits the system after this enrollment ends."
+        }
+      }
+    },
+
+    "transition": {
+      "description": "A directed edge in the primary track state machine.",
+      "type": "object",
+      "required": ["from", "to", "weight", "timing"],
+      "properties": {
+        "from": { "type": "string", "description": "Source population name (must exist in same track)." },
+        "to": { "type": "string", "description": "Destination population name (must exist in same track)." },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Relative selection weight. Normalized within each from-population."
+        },
+        "timing": {
+          "$ref": "#/$defs/distribution_config",
+          "description": "Distribution for enrollment duration in days."
+        },
+        "gap_before_entry": {
+          "$ref": "#/$defs/distribution_config",
+          "description": "Days between exit and next enrollment start (client is between programs)."
+        },
+        "exit_destinations": {
+          "type": "object",
+          "description": "Map of HUD exit destination code to relative weight. Normalized internally.",
+          "additionalProperties": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+
+    "funder": {
+      "type": "object",
+      "required": ["funder", "grant_id"],
+      "properties": {
+        "funder": { "type": "integer" },
+        "grant_id": { "type": "string" }
+      }
+    },
+
+    "project_in_org": {
+      "description": "A project inside an organization. Name must end with '_'.",
+      "type": "object",
+      "required": ["name", "project_type"],
+      "properties": {
+        "name": { "type": "string", "minLength": 2 },
+        "project_type": { "type": "integer" },
+        "capacity": { "type": "integer", "minimum": 0 },
+        "funders": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/funder" }
+        }
+      }
+    },
+
+    "organization": {
+      "description": "An organization that owns one or more projects. Name must end with '_'.",
+      "type": "object",
+      "required": ["name", "projects"],
+      "properties": {
+        "name": { "type": "string", "minLength": 2 },
+        "projects": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/project_in_org" }
+        }
+      }
+    },
+
+    "data_quality": {
+      "description": "Rates for missing or approximate demographic data.",
+      "type": "object",
+      "properties": {
+        "missing_dob_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "missing_ssn_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "missing_name_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "approximate_dob_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+
+    "enrollment_config": {
+      "description": "Demographics and assessment configuration for a primary track.",
+      "type": "object",
+      "properties": {
+        "disabilities": {
+          "type": "object",
+          "properties": {
+            "disabling_condition_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+            "types": {
+              "type": "object",
+              "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        },
+        "income_at_entry": {
+          "type": "object",
+          "properties": {
+            "no_income_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+            "sources": {
+              "type": "object",
+              "additionalProperties": { "type": "number", "minimum": 0 }
+            }
+          }
+        },
+        "health_and_dv": {
+          "type": "object",
+          "properties": {
+            "dv_survivor_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+            "currently_fleeing_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+            "general_health": {
+              "type": "object",
+              "additionalProperties": { "type": "number", "minimum": 0 }
+            }
+          }
+        },
+        "annual_collection": {
+          "type": "object",
+          "properties": {
+            "miss_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "timing_jitter": { "$ref": "#/$defs/distribution_config" }
+          }
+        }
+      }
+    },
+
+    "close_conditions": {
+      "description": "Conditions under which a lifecycle enrollment closes. At least one key is required.",
+      "type": "object",
+      "properties": {
+        "housing_move_in": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability this client's lifecycle enrollment closes on housing move-in."
+        },
+        "disengagement": {
+          "type": "object",
+          "required": ["probability", "after_days"],
+          "properties": {
+            "probability": { "type": "number", "minimum": 0, "maximum": 1 },
+            "after_days": { "$ref": "#/$defs/distribution_config" }
+          }
+        },
+        "pre_entry_exit": {
+          "type": "object",
+          "required": ["probability", "after_days"],
+          "properties": {
+            "probability": { "type": "number", "minimum": 0, "maximum": 1 },
+            "after_days": { "$ref": "#/$defs/distribution_config" }
+          }
+        }
+      }
+    },
+
+    "primary_track_fields": {
+      "description": "Additional required fields for a primary track.",
+      "required": ["new_clients_per_month", "household_templates", "populations"],
+      "properties": {
+        "new_clients_per_month": {
+          "$ref": "#/$defs/distribution_config",
+          "description": "Controls spawn rate. Steady-state ≈ (lambda/30) × average_days_enrolled."
+        },
+        "household_cohesion_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Per-member probability of re-including a household member on re-enrollment."
+        },
+        "household_templates": {
+          "type": "object",
+          "description": "Map of template name to demographic distribution config.",
+          "minProperties": 1
+        },
+        "populations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/population" },
+          "description": "Named stages in the housing journey for this track."
+        },
+        "transitions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/transition" }
+        },
+        "enrollment_config": { "$ref": "#/$defs/enrollment_config" },
+        "data_quality": { "$ref": "#/$defs/data_quality" }
+      }
+    },
+
+    "concurrent_track_fields": {
+      "description": "Additional required fields for a concurrent track.",
+      "required": ["projects", "count_distribution", "duration"],
+      "properties": {
+        "applies_to_tracks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Primary track names this concurrent track applies to. Empty = all primary tracks."
+        },
+        "projects": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Project names (from organizations) to enroll clients in."
+        },
+        "count_distribution": {
+          "type": "object",
+          "description": "Map of count string to relative weight. '0' = client gets no enrollment.",
+          "additionalProperties": { "type": "number", "minimum": 0 }
+        },
+        "data_error_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability of a data integrity error in the concurrent enrollment."
+        },
+        "duration": {
+          "$ref": "#/$defs/distribution_config",
+          "description": "Distribution for concurrent enrollment length in days."
+        },
+        "reentry": {
+          "type": "object",
+          "required": ["gap", "probability"],
+          "description": "Controls re-enrollment after a concurrent enrollment closes.",
+          "properties": {
+            "gap": {
+              "$ref": "#/$defs/distribution_config",
+              "description": "Days between close and re-enrollment."
+            },
+            "probability": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Probability of re-enrollment after close."
+            }
+          }
+        }
+      }
+    },
+
+    "lifecycle_track_fields": {
+      "description": "Additional required fields for a lifecycle track.",
+      "required": ["project_ref", "trigger_populations", "trigger_probability", "close_conditions"],
+      "properties": {
+        "applies_to_tracks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Primary track names this lifecycle track applies to. Empty = all primary tracks."
+        },
+        "project_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project name (from organizations) for the lifecycle enrollment."
+        },
+        "trigger_populations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Population names (from any primary track) that trigger this lifecycle enrollment."
+        },
+        "trigger_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability a client is enrolled when entering a trigger population."
+        },
+        "days_before_trigger": {
+          "$ref": "#/$defs/distribution_config",
+          "description": "Days the lifecycle enrollment opens before the primary enrollment starts."
+        },
+        "close_conditions": { "$ref": "#/$defs/close_conditions" }
+      }
+    },
+
+    "track": {
+      "description": "An enrollment track. Type determines which additional fields are required.",
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["primary", "concurrent", "lifecycle"] }
+      },
+      "if": {
+        "required": ["type"],
+        "properties": { "type": { "const": "primary" } }
+      },
+      "then": { "$ref": "#/$defs/primary_track_fields" },
+      "else": {
+        "if": {
+          "required": ["type"],
+          "properties": { "type": { "const": "concurrent" } }
+        },
+        "then": { "$ref": "#/$defs/concurrent_track_fields" },
+        "else": { "$ref": "#/$defs/lifecycle_track_fields" }
+      }
+    }
+  },
+
+  "type": "object",
+  "required": ["name", "data_source_id", "seed", "coc_codes", "organizations", "tracks"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name for this simulation config."
+    },
+    "data_source_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "ID of the GrdaWarehouse::DataSource (hmis: true) to write records into."
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Deterministic RNG seed. Same seed + same config produces identical output."
+    },
+    "coc_codes": {
+      "type": "object",
+      "required": ["primary"],
+      "properties": {
+        "primary": { "type": "string", "minLength": 1 },
+        "secondary": { "type": "string" }
+      }
+    },
+    "organizations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/organization" }
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/track" },
+      "description": "At least one 'primary' track is required (validated semantically)."
+    },
+    "data_quality": {
+      "$ref": "#/$defs/data_quality",
+      "description": "Global data quality defaults. Each primary track may override via its own data_quality."
+    }
+  }
+}
