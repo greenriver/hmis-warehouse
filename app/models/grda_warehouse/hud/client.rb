@@ -2832,6 +2832,27 @@ module GrdaWarehouse::Hud
     end
 
     # Include extensions at the end so they can override default behavior
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include AdultOnlyHouseholdsSubPop::GrdaWarehouse::Hud::ClientExtension
+    include AdultsWithChildrenSubPop::GrdaWarehouse::Hud::ClientExtension
+    include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Hud::ClientExtension
+    include AdultsWithChildrenYouthHohSubPop::GrdaWarehouse::Hud::ClientExtension
+    include ChildOnlyHouseholdsSubPop::GrdaWarehouse::Hud::ClientExtension
+    include ClientAccessControl::GrdaWarehouse::Hud::ClientExtension
+    include ClientLocationHistory::GrdaWarehouse::Hud::ClientExtension
+    include ClientsSubPop::GrdaWarehouse::Hud::ClientExtension
+    include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension
+    include EccoviaData::GrdaWarehouse::Hud::ClientExtension
+    include Financial::GrdaWarehouse::Hud::ClientExtension
+    include HealthFlexibleService::GrdaWarehouse::Hud::ClientExtension
+    include Hmis::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvImporter::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ClientExtension
+    include MedicaidHmisInterchange::GrdaWarehouse::Hud::ClientExtension
+    include NonVeteransSubPop::GrdaWarehouse::Hud::ClientExtension
+    include ServiceScanning::GrdaWarehouse::Hud::ClientExtension
+    include VeteransSubPop::GrdaWarehouse::Hud::ClientExtension
   end
 end
