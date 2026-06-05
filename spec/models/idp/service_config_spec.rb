@@ -87,12 +87,15 @@ RSpec.describe Idp::ServiceConfig, type: :model do
         service_token: 'test-token',
         org_id: 'test-org',
         project_id: 'test-proj',
+        additional_config: { client_id: 'my-service-account', realm: 'test-realm' },
       )
 
       service = config.to_service
       expect(service).to be_a(Idp::KeycloakService)
       expect(service.send(:api_url)).to eq('http://test.keycloak:8080')
       expect(service.send(:client_secret)).to eq('test-token')
+      expect(service.send(:client_id)).to eq('my-service-account')
+      expect(service.send(:realm)).to eq('test-realm')
       expect(service.config[:org_id]).to eq('test-org')
       expect(service.config[:project_id]).to eq('test-proj')
     end

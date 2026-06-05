@@ -105,6 +105,26 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
+    context 'with unknown attributes' do
+      it 'raises ArgumentError' do
+        expect do
+          service.update_user(
+            user_id: user_id,
+            attributes: { first_name: 'Jane', phone: '555-1234' },
+          )
+        end.to raise_error(ArgumentError, /phone/)
+      end
+    end
+
+    context 'with empty attributes' do
+      it 'returns true without making a request' do
+        result = service.update_user(user_id: user_id, attributes: {})
+
+        expect(result).to be true
+        expect(WebMock).not_to have_requested(:put, /#{Regexp.escape(api_url)}/)
+      end
+    end
+
     context 'with API error' do
       before do
         stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
@@ -249,6 +269,33 @@ RSpec.describe Idp::KeycloakService, type: :model do
         expect(result[:success]).to be false
         expect(result[:message]).to include('timeout')
       end
+    end
+  end
+
+  describe 'token retry on 401' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    it 'retries once with a fresh token when API returns 401' do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(
+          { status: 401, body: { error: 'invalid_token' }.to_json },
+          { status: 200, body: { id: user_id, username: 'test@example.com' }.to_json },
+        )
+
+      result = service.get_user(user_id: user_id)
+
+      expect(result).to include('id' => user_id)
+      expect(a_request(:post, token_url)).to have_been_made.times(2)
+    end
+
+    it 'does not retry more than once' do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 401, body: { error: 'invalid_token' }.to_json)
+
+      expect do
+        service.get_user(user_id: user_id)
+      end.to raise_error(Idp::ServiceError, /Failed to get user/)
+      expect(a_request(:post, token_url)).to have_been_made.times(2)
     end
   end
 
