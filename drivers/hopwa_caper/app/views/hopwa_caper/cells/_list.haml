@@ -2,16 +2,22 @@
 - current_user.policy_context.preload_project_dependencies(project_ids)
 - presenter = presenter_class.new(list, @report, current_user, format: :html)
 - display_headers = presenter.headers
-.card
-  .overflow-x-scroll
-    %table.table.table-sm.table-bordered
-      %thead.table-dark
+.card.overflow-x-scroll{style: "max-height: 80vh"}
+  %table.table.table-sm.table-bordered.table-fixed
+    %thead.table-dark
+      %tr
+        - display_headers.each_value do |header|
+          %th= header
+    %tbody
+      - list.each do |record|
         %tr
-          - display_headers.each_value do |header|
-            %th= header
-      %tbody
-        - list.each do |record|
-          %tr
-            - display_headers.each_key do |field|
-              %td{style: 'max-width: 600px;'}
+          - display_headers.each_key do |field|
+            %td{style: 'max-width: 600px;'}
+              - if field == 'destination_client_id'
+                = link_to appropriate_client_path(record[field]) do
+                  = record[field]
+              - elsif field == 'personal_id'
+                - value = presenter.display_value(record, field)
+                = hmis_external_link(record.enrollment&.client, data_source: record.enrollment&.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
+              - else
                 = presenter.display_value(record, field)

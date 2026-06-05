@@ -14,6 +14,8 @@ class ClientAccessControl::ClientsController < ApplicationController
   include ArelHelper
   include ClientPathGenerator
 
+  skip_before_action :set_anti_caching_headers, only: [:image]
+
   helper ClientHelper
 
   before_action :require_can_access_some_client_search!, only: [:index, :search, :simple]

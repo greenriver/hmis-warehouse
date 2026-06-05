@@ -35,3 +35,6 @@ CVE-2026-40295
 
 # our app code is patched but the built-in gem for ruby 3.4 remains. Currently ruby 3.4 has no patch to bump the dependency. Can be removed after we upgrade to ruby 4
 CVE-2026-41316
+
+# carrierwave's content_type_denylist is not used in our codebase
+CVE-2026-44587
