@@ -54,6 +54,12 @@ RSpec.describe HmisSimulation::Engine do
       ],
       'enrollment_config' => {
         'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 300 },
+        'disabilities' => {
+          'disabling_condition_probability' => 0.8,
+          'types' => { 'mental_health' => 0.7, 'substance_use' => 0.5 },
+        },
+        'income_at_entry' => { 'no_income_probability' => 0.3, 'sources' => { 'ssi' => 1.0 } },
+        'health_and_dv' => { 'dv_survivor_probability' => 0.2, 'general_health' => { 'fair' => 1.0 } },
       },
     }
   end
@@ -204,6 +210,62 @@ RSpec.describe HmisSimulation::Engine do
         engine.run(date: run_date)
         log = HmisSimulation::RunLog.find_by(data_source_id: data_source.id, run_date: run_date)
         expect(log.enrollments_opened).to be > 0
+      end
+    end
+
+    context 'linked records at entry' do
+      before { engine.run(date: run_date) }
+
+      it 'creates Disability records for enrolled clients' do
+        expect(Hmis::Hud::Disability.where(data_source: data_source).count).to be > 0
+      end
+
+      it 'creates IncomeBenefit records at entry stage' do
+        count = Hmis::Hud::IncomeBenefit.where(data_source: data_source, DataCollectionStage: 1).count
+        expect(count).to be > 0
+      end
+
+      it 'creates HealthAndDv records for enrolled clients' do
+        expect(Hmis::Hud::HealthAndDv.where(data_source: data_source).count).to be > 0
+      end
+
+      it 'sets DisablingCondition on enrollments to 0 or 1 (updated from 99 default)' do
+        updated = Hmis::Hud::Enrollment.
+          where(data_source: data_source).
+          where.not(DisablingCondition: 99)
+        expect(updated.count).to be > 0
+      end
+    end
+
+    context 'annual collection' do
+      it 'creates annual IncomeBenefit records for enrollments near their anniversary' do
+        # Create an enrollment that is exactly 365 days old so annual collection fires today
+        old_entry = run_date - 365
+        hoh = create(:hmis_hud_client, data_source: data_source)
+        project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test ES_')
+        enrollment = create(
+          :hmis_hud_enrollment,
+          data_source: data_source, client: hoh, project: project,
+          EntryDate: old_entry
+        )
+
+        # Use a config with zero jitter so the anniversary date is deterministic
+        zero_jitter_config = base_config.deep_dup
+        zero_jitter_config['enrollment_config'] ||= {}
+        zero_jitter_config['enrollment_config']['annual_collection'] = {
+          'miss_rate' => 0.0,
+          'timing_jitter' => { 'distribution' => 'constant', 'value' => 0 },
+        }
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, zero_jitter_config)
+        e = described_class.new(cfg)
+        e.run(date: run_date)
+
+        annual = Hmis::Hud::IncomeBenefit.where(
+          data_source: data_source,
+          EnrollmentID: enrollment.EnrollmentID,
+          DataCollectionStage: 5,
+        )
+        expect(annual.count).to eq(1)
       end
     end
   end

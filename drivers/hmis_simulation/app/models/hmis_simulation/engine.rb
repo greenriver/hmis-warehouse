@@ -49,6 +49,7 @@ module HmisSimulation
 
           spawn_clients(date: date)
           tick_primary(date: date)
+          tick_annual_collections(date: date)
 
           log.update!(
             clients_created: @clients_created,
@@ -143,6 +144,7 @@ module HmisSimulation
         seed: @seed,
         context_prefix: "exit:#{date}:#{sim_client.id}",
       ).build!
+      create_linked_exit_records(enrollment, date, data_source: data_source, user_id: user_id)
 
       @enrollments_closed += 1
 
@@ -199,6 +201,7 @@ module HmisSimulation
       ).build!
 
       @enrollments_opened += 1
+      create_linked_entry_records(result[:hoh_enrollment], date, data_source: data_source, user_id: user_id, sim_client: sim_client)
 
       # Pre-select the outgoing transition and sample enrollment length
       next_pop, timing = sample_enrollment_exit(sim_client.current_population, date, sim_client.id)
@@ -229,6 +232,125 @@ module HmisSimulation
           user_id: user_id,
         ).build_bed_night!
         @services_created += 1
+      end
+    end
+
+    # -- Linked record builders (called at enrollment entry/exit) --
+
+    def create_linked_entry_records(enrollment, date, data_source:, user_id:, sim_client:)
+      rng_seed = @seed + "linked:#{enrollment.EnrollmentID}".hash
+      disability_cfg = @config.dig('enrollment_config', 'disabilities') || {}
+      income_cfg     = @config.dig('enrollment_config', 'income_at_entry') || {}
+      hdv_cfg        = @config.dig('enrollment_config', 'health_and_dv') || {}
+
+      disability_result = Builders::DisabilityBuilder.new(
+        enrollment: enrollment,
+        date: date,
+        disability_config: disability_cfg,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: rng_seed,
+      ).build!
+      enrollment.update!(DisablingCondition: disability_result[:disabling_condition])
+
+      Builders::IncomeBenefitBuilder.new(
+        enrollment: enrollment,
+        date: date,
+        stage: :entry,
+        income_config: income_cfg,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: rng_seed + 1,
+      ).build!
+
+      Builders::HealthAndDvBuilder.new(
+        enrollment: enrollment,
+        date: date,
+        hdv_config: hdv_cfg,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: rng_seed + 2,
+      ).build!
+
+      # CLS at entry for street/shelter populations
+      population_cfg = find_population(sim_client.current_population)
+      return unless population_cfg&.dig('project_ref').present?
+
+      project = find_project_by_ref(population_cfg['project_ref'], data_source: data_source)
+      cls_code = cls_situation_code_for(project)
+      return unless cls_code
+
+      Builders::ClsBuilder.new(
+        enrollment: enrollment,
+        date: date,
+        situation_code: cls_code,
+        data_source: data_source,
+        user_id: user_id,
+      ).build!
+    end
+
+    def create_linked_exit_records(enrollment, exit_date, data_source:, user_id:)
+      income_cfg = @config.dig('enrollment_config', 'income_at_entry') || {}
+      Builders::IncomeBenefitBuilder.new(
+        enrollment: enrollment,
+        date: exit_date,
+        stage: :exit,
+        income_config: income_cfg,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: @seed + "exit_income:#{enrollment.EnrollmentID}".hash,
+      ).build!
+    end
+
+    # -- Annual collection tick --
+
+    def tick_annual_collections(date:)
+      annual_cfg = @config.dig('enrollment_config', 'annual_collection') || {}
+      miss_rate  = annual_cfg['miss_rate'].to_f
+      jitter_cfg = annual_cfg['timing_jitter'] || { 'distribution' => 'normal', 'mean' => 0, 'stddev' => 30, 'min' => -90, 'max' => 90 }
+
+      data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+      user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
+      income_cfg  = @config.dig('enrollment_config', 'income_at_entry') || {}
+
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id).
+        open_on_date(date).
+        find_each do |enrollment|
+          next unless annual_collection_due?(enrollment, date, jitter_cfg)
+          next if Random.new(@seed + "annual_miss:#{enrollment.EnrollmentID}:#{date}".hash).rand < miss_rate
+
+          Builders::IncomeBenefitBuilder.new(
+            enrollment: enrollment,
+            date: date,
+            stage: :annual,
+            income_config: income_cfg,
+            data_source: data_source,
+            user_id: user_id,
+            rng_seed: @seed + "annual:#{enrollment.EnrollmentID}:#{date}".hash,
+          ).build!
+        end
+    end
+
+    def annual_collection_due?(enrollment, date, jitter_cfg)
+      days_enrolled = (date - enrollment.EntryDate).to_i
+      return false if days_enrolled < 300
+
+      year_number = (days_enrolled / 365.0).ceil
+      jitter = Distribution.sample(
+        jitter_cfg.deep_stringify_keys,
+        rng: Random.new(@seed + "annual_jitter:#{enrollment.EnrollmentID}:#{year_number}".hash),
+      ).round
+      expected_date = enrollment.EntryDate + (365 * year_number) + jitter
+      date == expected_date
+    end
+
+    def cls_situation_code_for(project)
+      return nil unless project
+
+      case project.ProjectType
+      when 1, 0 then 101  # Emergency shelter
+      when 4    then 116  # Street outreach
       end
     end
 
