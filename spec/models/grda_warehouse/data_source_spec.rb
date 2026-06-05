@@ -310,6 +310,35 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe 'destination uniqueness' do
+    it 'allows creating the warehouse destination' do
+      expect(create(:destination_data_source)).to be_persisted
+    end
+
+    it 'rejects a second active destination data source' do
+      create(:destination_data_source)
+      duplicate = build(:destination_data_source, name: 'Other Warehouse', short_name: 'OW')
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:base]).to include('only one warehouse destination data source is allowed')
+    end
+
+    it 'allows a new destination after the existing one is deleted' do
+      create(:destination_data_source).destroy!
+      expect(build(:destination_data_source)).to be_valid
+    end
+
+    it 'allows updating the existing destination' do
+      destination = create(:destination_data_source)
+      destination.name = 'Updated Warehouse'
+      expect(destination).to be_valid
+    end
+
+    it 'does not restrict non-destination data sources' do
+      create(:destination_data_source)
+      expect(build(:source_data_source)).to be_valid
+    end
+  end
+
   describe 'PaperTrail' do
     it 'creates a version on update' do
       PaperTrailHelper.with_paper_trail do

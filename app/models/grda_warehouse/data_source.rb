@@ -29,6 +29,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             allow_nil: true,
             unless: -> { Rails.env.test? } # Skip validation in test environment, too cumbersome to enforce
   validate :hmis_hostname_immutable, if: :persisted?
+  validate :validate_unique_destination, if: -> { source_type.nil? && authoritative == false }
 
   before_validation :enforce_op_hmis_defaults, if: :hmis?
 
@@ -773,6 +774,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return if hmis_was.blank?
 
     errors.add(:hmis, 'cannot be changed once set')
+  end
+
+  private def validate_unique_destination
+    scope = self.class.where(source_type: nil, authoritative: false)
+    scope = scope.where.not(id: id) if persisted?
+    return unless scope.exists?
+
+    errors.add(:base, 'only one warehouse destination data source is allowed')
   end
 
   private def enforce_op_hmis_defaults
