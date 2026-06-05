@@ -1,70 +1,60 @@
 = f.error_notification
 
 .form-inputs
-  - if hmis_enabled?
-    - hmis_options = @available_hmis_hostnames
-    - hmis_options = [@data_source.hmis] + hmis_options if @data_source.hmis? && hmis_options.exclude?(@data_source.hmis)
-    = f.input :hmis, label: 'Open Path HMIS hostname', collection: hmis_options, include_blank: true, as: :select_two, input_html: { class: 'jHmisHostnameTrigger' }, hint: 'Hostnames are configured via HMIS_HOSTNAME. Leave blank for a non-HMIS data source.'
-
-  = f.input :name, hint: 'Please provide the full name of this data source.  Examples include: <strong>Boston Department of Neighborhood Development</strong> or <strong>New England Center and Home for Veterans</strong>'.html_safe
+  = f.input :name, label: 'Full Name', hint: 'Please provide the full name of this data source.  Examples include: <strong>Boston Department of Neighborhood Development</strong> or <strong>New England Center and Home for Veterans</strong>'.html_safe
 
   = f.input :short_name, input_html: {style: 'width: 10em;', maxlength: 15}, hint: 'A unique identifier for this data source.  Examples include: <strong>DND</strong> or <strong>NECHV</strong>'.html_safe
 
-  = f.input :source_id, hint: 'The SourceID for HMIS data sources, used to check to make sure uploads are for this data source.'
+  - if hmis_enabled?
+    -# Note: available hostnames configured via HMIS_HOSTNAME env var
+    - hmis_options = @available_hmis_hostnames
+    - hmis_options = [@data_source.hmis] + hmis_options if @data_source.hmis? && hmis_options.exclude?(@data_source.hmis)
+    = f.input :hmis, label: 'Open Path HMIS URL', collection: hmis_options, include_blank: true, as: :select_two, input_html: { class: 'jHmisHostnameTrigger' }, hint: 'Leave blank for a non-HMIS or External HMIS data source.'
 
-  .jNonHmisFields
-    = f.input :after_create_path, label: 'When adding a new client for this data source, which client page should we redirect to?', hint: 'Only applies to authoritative data sources.  Leaving this blank will redirect to the client dashboard.'
-
-    = f.input :munged_personal_id, as: :boolean, label: 'Does the Personal ID column contain a UUID?', hint: 'Checking this will add dashes to the Personal ID when displayed, converting 5011A79B04E34BB99D5A002A3E079C61 into 5011A79B-04E3-4BB9-9D5A-002A3E079C61.'
+  = f.input :source_id, label: 'Source ID', hint: 'The SourceID for HMIS data sources, used to check to make sure uploads are for this data source.'
 
   = f.input :visible_in_window, label: 'Should this data source be visible in the window into the warehouse?'
 
-  .jNonHmisFields
-    = f.input :source_type, as: :hidden, value: 'manual'
+  = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly to them will be able to see the source client details.'
 
+  .jNonHmisQuestions
+    = f.input :munged_personal_id, as: :boolean, label: 'Does the Personal ID column contain a UUID?', hint: 'Checking this will add dashes to the Personal ID when displayed, converting 5011A79B04E34BB99D5A002A3E079C61 into 5011A79B-04E3-4BB9-9D5A-002A3E079C61.'
+    = f.input :source_type, as: :hidden, value: 'manual'
     = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually', input_html: { class: 'jAuthoritativeTrigger' }
     .jAuthoritativeType
       = f.input :authoritative_type, collection: GrdaWarehouse::DataSource.authoritative_types, as: :select_two
 
-  = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly to them will be able to see the source client details.'
-
-  = f.input :disable_imports, as: :boolean, label: 'Disable HUD CSV imports', hint: 'When checked, manual uploads and automated daily imports are not allowed for this data source.', input_html: { class: 'jDisableImportsTrigger' }
-  .jImportPausedField{class: (@data_source.disable_imports ? 'd-none' : nil)}
-    = f.input :import_paused, label: 'Pause automated daily imports?', hint: 'Skips automated S3 CSV fetches only.'
-  .jNonHmisFields
+  .jAuthoritativeQuestions
+    = f.input :after_create_path, label: 'When adding a new client for this data source, which client page should we redirect to?', hint: 'Only applies to authoritative data sources.  Leaving this blank will redirect to the client dashboard.'
     = f.input :service_scannable, label: 'Enable Service Scanning?'
+
+  .jImporterQuestions
+    = f.input :disable_imports, as: :boolean, label: 'Disable HUD CSV imports', hint: 'When checked, manual uploads and automated daily imports are not allowed for this data source.', input_html: { class: 'jDisableImportsTrigger' }
+    .jImportPausedField
+      = f.input :import_paused, label: 'Pause automated daily imports?', hint: 'Skips automated S3 CSV fetches only.'
 
 
 = content_for :page_js do
   :javascript
-    // Show or hide "Authoritative Type" field, based on whether "Authoritative" is checked
-    $('.jAuthoritativeTrigger').on('change', function(e){
-      if($(this).is(":checked")){
-        $('.jAuthoritativeType').show();
-      }
-      else {
-        $('.jAuthoritativeType').hide();
-      }
-    });
-    $('.jAuthoritativeTrigger').trigger('change');
-
-    // Show or hide non-HMIS-relevant fields, based on whether HMIS hostname is present
-    function syncHmisFields() {
+    function refreshDataSourceForm() {
       var hasHmis = $('.jHmisHostnameTrigger').length && $('.jHmisHostnameTrigger').val();
       if (!hasHmis && #{@data_source.hmis?.to_json}) hasHmis = true;
-      $('.jNonHmisFields').toggle(!hasHmis);
-      if (hasHmis) {
-        $('.jNonHmisFields :input').prop('disabled', true);
-      } else {
-        $('.jNonHmisFields :input').prop('disabled', false);
-      }
+      var authoritative = $('.jAuthoritativeTrigger').is(':checked');
+      var authoritativeNonHmis = authoritative && !hasHmis;
+      var showImporterQuestions = !authoritativeNonHmis;
+
+      $('.jNonHmisQuestions').toggle(!hasHmis);
+      $('.jNonHmisQuestions :input').prop('disabled', hasHmis);
+
+      $('.jAuthoritativeQuestions').toggle(authoritativeNonHmis);
+      $('.jAuthoritativeQuestions :input').prop('disabled', !authoritativeNonHmis);
+
+      $('.jImporterQuestions').toggle(showImporterQuestions);
+      $('.jImporterQuestions :input').prop('disabled', !showImporterQuestions);
+
+      $('.jAuthoritativeType').toggle(authoritative);
+      $('.jImportPausedField').toggleClass('d-none', !showImporterQuestions || $('.jDisableImportsTrigger').is(':checked'));
     }
 
-    $('.jHmisHostnameTrigger').on('change', syncHmisFields);
-    syncHmisFields();
-
-    // Show or hide "imports paused" field, based on whether the data source is importable or not
-    $('.jDisableImportsTrigger').on('change', function(e){
-      $('.jImportPausedField').toggleClass('d-none', $(this).is(":checked"));
-    });
-    $('.jDisableImportsTrigger').trigger('change');
+    $('.jAuthoritativeTrigger, .jHmisHostnameTrigger, .jDisableImportsTrigger').on('change', refreshDataSourceForm);
+    refreshDataSourceForm();
