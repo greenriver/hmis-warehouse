@@ -759,12 +759,12 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   private def enforce_op_hmis_defaults
-    self.authoritative = true
-    self.authoritative_type = nil
-    self.source_type = nil
-    self.munged_personal_id = false
-    self.after_create_path = nil
-    self.service_scannable = false
+    self.authoritative = true        # OP HMIS is the system of record
+    self.authoritative_type = nil    # not needed for OP HMIS
+    self.source_type = nil           # not needed for OP HMIS
+    self.munged_personal_id = false  # do not inject dashes into Personal ID UUIDs
+    self.after_create_path = nil     # not applicable, clients are not created in the warehouse for OP HMIS
+    self.service_scannable = false   # not applicable, clients are not created in the warehouse for OP HMIS
   end
 
   private def open_path_hmis_url(entity, user: nil)
