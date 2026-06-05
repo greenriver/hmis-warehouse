@@ -1,0 +1,141 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe HmisSimulation::Engine do
+  let!(:data_source) { create(:hmis_data_source) }
+  let(:run_date)     { Date.new(2026, 1, 15) }
+
+  # High lambda so we reliably get clients on every test day.
+  # 300/month = ~10/day via Poisson — virtually never 0 in practice.
+  let(:base_config) do
+    {
+      'name' => 'Engine Test CoC',
+      'data_source_id' => data_source.id,
+      'seed' => 42,
+      'coc_codes' => { 'primary' => 'XX-500' },
+      'organizations' => [
+        {
+          'name' => 'Test Org_',
+          'projects' => [
+            { 'name' => 'Test ES_', 'project_type' => 1, 'capacity' => 50 },
+            { 'name' => 'Test PSH_', 'project_type' => 3, 'capacity' => 30 },
+          ],
+        },
+      ],
+      'household_templates' => {
+        'adult_only' => {
+          'hoh' => {
+            'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
+            'gender' => { 'woman' => 0.5, 'man' => 0.5 },
+            'veteran_probability' => 0.0,
+            'race' => { 'white' => 1.0 },
+          },
+        },
+      },
+      'populations' => [
+        { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test ES_',
+          'household_templates' => { 'adult_only' => 1 },
+          'entry_point' => 6, 'exit_point' => 0.1 },
+        { 'name' => 'psh', 'label' => 'PSH', 'project_ref' => 'Test PSH_',
+          'household_templates' => { 'adult_only' => 1 },
+          'entry_point' => 0, 'exit_point' => 0.5 },
+      ],
+      'transitions' => [
+        { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+          'timing' => { 'distribution' => 'constant', 'value' => 30 },
+          'exit_destinations' => { '435' => 1 } },
+      ],
+      'enrollment_config' => {
+        'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 300 },
+      },
+    }
+  end
+
+  let(:config) { HmisSimulation::ConfigLoader.send(:normalize, base_config) }
+
+  before do
+    User.setup_system_user
+    HmisSimulation::Bootstrapper.new(config).run!
+  end
+
+  subject(:engine) { described_class.new(config) }
+
+  def sim_clients
+    HmisSimulation::Client.where(data_source_id: data_source.id)
+  end
+
+  describe '#run' do
+    it 'creates HmisSimulation::Client state records' do
+      expect { engine.run(date: run_date) }.to change { sim_clients.count }.by_at_least(1)
+    end
+
+    it 'sets pending_enrollment_on to the run date for all spawned clients' do
+      engine.run(date: run_date)
+      expect(sim_clients.where.not(pending_enrollment_on: run_date).count).to eq(0)
+    end
+
+    it 'assigns each spawned client a current_population matching a defined population' do
+      engine.run(date: run_date)
+      population_names = config['populations'].map { |p| p['name'] }
+      sim_clients.pluck(:current_population).each do |pop|
+        expect(population_names).to include(pop)
+      end
+    end
+
+    it 'only assigns entry_point populations (street has entry_point > 0, psh does not)' do
+      engine.run(date: run_date)
+      populations = sim_clients.pluck(:current_population).uniq
+      expect(populations).to include('street')
+      expect(populations).not_to include('psh')
+    end
+
+    it 'sets exited_system: false for all spawned clients' do
+      engine.run(date: run_date)
+      expect(sim_clients.where(exited_system: true).count).to eq(0)
+    end
+
+    it 'writes a RunLog record for the run date' do
+      engine.run(date: run_date)
+      log = HmisSimulation::RunLog.find_by(data_source_id: data_source.id, run_date: run_date)
+      expect(log).to be_present
+      expect(log.error_message).to be_nil
+      expect(log.clients_created).to be > 0
+    end
+
+    context 'when run twice on the same date' do
+      it 'is idempotent — no duplicate clients or log entries' do
+        engine.run(date: run_date)
+        first_count = sim_clients.count
+
+        engine.run(date: run_date)
+        expect(sim_clients.count).to eq(first_count)
+        expect(HmisSimulation::RunLog.where(data_source_id: data_source.id, run_date: run_date).count).to eq(1)
+      end
+    end
+
+    context 'when run across multiple dates' do
+      it 'accumulates clients across days' do
+        engine.run(date: run_date)
+        count_day1 = sim_clients.count
+
+        engine.run(date: run_date + 1)
+        expect(sim_clients.count).to be > count_day1
+      end
+
+      it 'creates separate RunLog records per date' do
+        engine.run(date: run_date)
+        engine.run(date: run_date + 1)
+
+        logs = HmisSimulation::RunLog.where(data_source_id: data_source.id)
+        expect(logs.pluck(:run_date)).to include(run_date, run_date + 1)
+      end
+    end
+  end
+end

@@ -9,8 +9,6 @@
 class HmisSimulation::HouseholdGroup < GrdaWarehouseBase
   self.table_name = 'hmis_simulation_household_groups'
 
-  serialize :member_client_ids, coder: JSON
-
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :simulated_clients, class_name: 'HmisSimulation::Client', foreign_key: :household_group_id
 end

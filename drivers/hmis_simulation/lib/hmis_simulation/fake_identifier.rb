@@ -30,12 +30,12 @@ module HmisSimulation
       "999#{format('%06d', rand(1_000_000))}"
     end
 
-    def self.first_name
-      "#{cities.sample}_"
+    def self.first_name(rng: nil)
+      "#{rng ? cities.sample(random: rng) : cities.sample}_"
     end
 
-    def self.last_name
-      "#{rivers.sample}_"
+    def self.last_name(rng: nil)
+      "#{rng ? rivers.sample(random: rng) : rivers.sample}_"
     end
 
     def self.cities
