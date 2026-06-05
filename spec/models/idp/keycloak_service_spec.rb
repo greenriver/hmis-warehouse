@@ -599,40 +599,34 @@ RSpec.describe Idp::KeycloakService, type: :model do
   end
 
   describe '#supports_user_management?' do
-    context 'when API URL and credentials are configured' do
-      it 'returns true' do
-        expect(service.supports_user_management?).to be true
-      end
+    it 'returns true when fully configured' do
+      expect(service.supports_user_management?).to be true
+    end
+  end
+
+  describe 'config validation' do
+    it 'raises on missing api_url' do
+      expect do
+        described_class.new(config: { client_id: 'x', client_secret: 'y' })
+      end.to raise_error(Idp::ServiceError, /api_url/)
     end
 
-    context 'when API URL is missing' do
-      before do
-        service.config[:api_url] = nil
-      end
-
-      it 'returns false' do
-        expect(service.supports_user_management?).to be false
-      end
+    it 'raises on missing client_id' do
+      expect do
+        described_class.new(config: { api_url: 'http://kc:8080', client_secret: 'y' })
+      end.to raise_error(Idp::ServiceError, /client_id/)
     end
 
-    context 'when client_id is missing' do
-      before do
-        service.config[:client_id] = nil
-      end
-
-      it 'returns false' do
-        expect(service.supports_user_management?).to be false
-      end
+    it 'raises on missing client_secret' do
+      expect do
+        described_class.new(config: { api_url: 'http://kc:8080', client_id: 'x' })
+      end.to raise_error(Idp::ServiceError, /client_secret/)
     end
 
-    context 'when client_secret is missing' do
-      before do
-        service.config[:client_secret] = nil
-      end
-
-      it 'returns false' do
-        expect(service.supports_user_management?).to be false
-      end
+    it 'lists all missing keys' do
+      expect do
+        described_class.new(config: {})
+      end.to raise_error(Idp::ServiceError, /api_url, client_id, client_secret/)
     end
   end
 

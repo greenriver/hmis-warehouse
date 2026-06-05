@@ -27,6 +27,7 @@ module Idp
 
     def initialize(config: nil)
       super(config: config || default_config)
+      validate_config!
       @cached_token = nil
       @token_expires_at = nil
     end
@@ -366,6 +367,17 @@ module Idp
     end
 
     private
+
+    def validate_config!
+      missing = [:api_url, :client_id, :client_secret].select { |key| config[key].blank? }
+      return if missing.empty?
+
+      raise ServiceError.new(
+        "Keycloak misconfigured, missing: #{missing.join(', ')}",
+        idp_name: 'Keycloak',
+        operation: :initialize,
+      )
+    end
 
     def api_url
       config[:api_url]

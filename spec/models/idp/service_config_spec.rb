@@ -113,7 +113,7 @@ RSpec.describe Idp::ServiceConfig, type: :model do
     it 'merges additional_config into service config' do
       config = create(
         :idp_service_config,
-        additional_config: { timeout: 30 },
+        additional_config: { client_id: 'test-client', realm: 'openpath', timeout: 30 },
       )
 
       service = config.to_service

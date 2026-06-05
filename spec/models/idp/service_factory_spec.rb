@@ -49,6 +49,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
           to receive(:default_config).
           and_return({
                        api_url: 'http://env.keycloak:8080',
+                       client_id: 'env-client',
                        client_secret: 'env-secret',
                        org_id: 'env-org',
                        project_id: 'env-proj',
@@ -69,6 +70,10 @@ RSpec.describe Idp::ServiceFactory, type: :model do
     end
 
     context 'with soft-deleted config' do
+      let(:env_config) do
+        { api_url: 'http://env.keycloak:8080', client_id: 'env-client', client_secret: 'env-secret' }
+      end
+
       let!(:deleted_config) do
         config = create(
           :idp_service_config,
@@ -79,14 +84,19 @@ RSpec.describe Idp::ServiceFactory, type: :model do
       end
 
       it 'uses ENV config, ignoring deleted database config' do
+        allow_any_instance_of(Idp::KeycloakService).to receive(:default_config).and_return(env_config)
+
         service = described_class.for_connector('keycloak')
 
         expect(service).to be_a(Idp::KeycloakService)
-        # Should fall back to ENV since database config is deleted
       end
     end
 
     context 'with inactive config' do
+      let(:env_config) do
+        { api_url: 'http://env.keycloak:8080', client_id: 'env-client', client_secret: 'env-secret' }
+      end
+
       let!(:inactive_config) do
         create(
           :idp_service_config,
@@ -96,10 +106,11 @@ RSpec.describe Idp::ServiceFactory, type: :model do
       end
 
       it 'uses ENV config, ignoring inactive database config' do
+        allow_any_instance_of(Idp::KeycloakService).to receive(:default_config).and_return(env_config)
+
         service = described_class.for_connector('keycloak')
 
         expect(service).to be_a(Idp::KeycloakService)
-        # Should fall back to ENV since database config is inactive
       end
     end
   end

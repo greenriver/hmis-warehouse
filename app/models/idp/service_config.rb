@@ -7,10 +7,16 @@
 # frozen_string_literal: true
 
 module Idp
-  # Model for storing IDP service account credentials
+  # Persists IDP service-account credentials so they can be managed in the UI
+  # instead of hardcoded in ENV variables.
   #
-  # Allows administrators to configure service accounts for different IDPs
-  # (Keycloak, Okta, Azure AD, etc.) without hardcoding credentials in ENV variables.
+  # Column mapping (columns → config keys passed to the service):
+  #   api_url        → :api_url        — base URL of the IDP (e.g. http://keycloak:8080)
+  #   service_token  → :client_secret  — encrypted service-account secret
+  #   org_id         → :org_id         — (optional) organization identifier
+  #   project_id     → :project_id     — (optional) project identifier
+  #   additional_config (JSONB)         — provider-specific keys merged into the config hash:
+  #     Keycloak: { client_id: "…", realm: "…" }
   class ServiceConfig < GrdaWarehouseBase
     self.table_name = 'idp_service_configs'
     acts_as_paranoid
@@ -44,5 +50,6 @@ module Idp
 
       service_class.new(config: config_hash)
     end
+
   end
 end
