@@ -22,6 +22,6 @@ class HmisEnforcement
   end
 
   def self.configured_hmis_hostnames
-    ENV.fetch('HMIS_HOSTNAME', '').split(',').map { |h| h.strip.downcase }.reject(&:blank?)
+    ENV.fetch('HMIS_HOSTNAME', '').split(',').map { |h| h.strip.downcase }.compact_blank.uniq
   end
 end
