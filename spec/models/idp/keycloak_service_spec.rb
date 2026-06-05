@@ -286,22 +286,33 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect(result).not_to have_key(:phone)
     end
 
-    it 'includes warehouse group when user has warehouse access' do
-      allow(user).to receive(:login_to?).with(:warehouse).and_return(true)
-      allow(user).to receive(:login_to?).with(:hmis).and_return(false)
+    it 'includes warehouse group for a role-based user without ACLs' do
       result = service.build_import_user_data(user)
 
       expect(result[:groups]).to include('/warehouse-users')
       expect(result[:groups]).not_to include('/hmis-users')
     end
 
-    it 'includes hmis group when user has hmis access' do
-      allow(user).to receive(:login_to?).with(:warehouse).and_return(false)
-      allow(user).to receive(:login_to?).with(:hmis).and_return(true)
+    it 'includes hmis group when user is in an HMIS UserGroup' do
+      hmis_user_group = create(:hmis_user_group)
+      hmis_user_group.add(user)
       result = service.build_import_user_data(user)
 
       expect(result[:groups]).to include('/hmis-users')
+    end
+
+    it 'excludes warehouse group for an ACL user with no warehouse UserGroup membership' do
+      acl_user = create(:acl_user)
+      result = service.build_import_user_data(acl_user)
+
       expect(result[:groups]).not_to include('/warehouse-users')
+    end
+
+    it 'returns no groups for a system user' do
+      system_user = create(:user, email: 'noreply@greenriver.com')
+      result = service.build_import_user_data(system_user)
+
+      expect(result[:groups]).to be_empty
     end
 
     it 'marks email as unverified when confirmed_at is nil' do

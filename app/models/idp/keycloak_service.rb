@@ -298,10 +298,6 @@ module Idp
     # @param user [User] User object from Rails app
     # @return [Hash] User data in Keycloak partialImport format
     def build_import_user_data(user)
-      groups = []
-      groups << '/warehouse-users' if user.login_to?(:warehouse)
-      groups << '/hmis-users' if user.login_to?(:hmis)
-
       {
         username: user.email,
         email: user.email,
@@ -309,7 +305,7 @@ module Idp
         lastName: user.last_name,
         enabled: true,
         emailVerified: user.confirmed_at.present?,
-        groups: groups,
+        groups: keycloak_groups_for(user),
         credentials: [
           build_password_data(user),
           build_otp_credential(user),
@@ -489,6 +485,15 @@ module Idp
       request.body = body.to_json if body
 
       http.request(request)
+    end
+
+    def keycloak_groups_for(user)
+      return [] if user.system_user?
+
+      groups = []
+      groups << '/warehouse-users' unless user.using_acls? && !user.user_group_members.exists?
+      groups << '/hmis-users' if Hmis::UserGroupMember.exists?(user_id: user.id)
+      groups
     end
 
     # Build Keycloak password credential from bcrypt hash.
