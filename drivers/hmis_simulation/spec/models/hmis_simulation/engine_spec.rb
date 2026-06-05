@@ -137,5 +137,74 @@ RSpec.describe HmisSimulation::Engine do
         expect(logs.pluck(:run_date)).to include(run_date, run_date + 1)
       end
     end
+
+    context 'primary enrollment tick' do
+      it 'creates Enrollment records for spawned clients on the same day' do
+        engine.run(date: run_date)
+        enrolled = sim_clients.where.not(hud_enrollment_id: nil)
+        expect(enrolled.count).to be > 0
+      end
+
+      it 'sets next_transition_on for enrolled clients' do
+        engine.run(date: run_date)
+        enrolled = sim_clients.where.not(hud_enrollment_id: nil)
+        enrolled.each do |sc|
+          expect(sc.next_transition_on).to be_present
+          expect(sc.next_transition_on).to be > run_date
+        end
+      end
+
+      it 'stores next_population on enrolled clients' do
+        engine.run(date: run_date)
+        enrolled = sim_clients.where.not(hud_enrollment_id: nil)
+        population_names = config['populations'].map { |p| p['name'] }
+        enrolled.each do |sc|
+          expect(population_names).to include(sc.next_population)
+        end
+      end
+
+      it 'creates Exit records when next_transition_on fires' do
+        # Use config with 1-day timing so transitions fire the next day
+        fast_config = base_config.deep_dup
+        fast_config['transitions'].each { |t| t['timing'] = { 'distribution' => 'constant', 'value' => 1 } }
+        fast_config['transitions'].each { |t| t['gap_before_entry'] = { 'distribution' => 'constant', 'value' => 0 } }
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, fast_config)
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        e = described_class.new(cfg)
+
+        e.run(date: run_date)
+        Hmis::Hud::Enrollment.where(data_source: data_source).count
+
+        e.run(date: run_date + 1)
+        exit_count = Hmis::Hud::Exit.where(data_source: data_source).count
+        expect(exit_count).to be > 0
+      end
+
+      it 'creates bed-night Service records for NBN project enrollments' do
+        engine.run(date: run_date)
+
+        nbn_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test ES_')
+        nbn_enrollments = Hmis::Hud::Enrollment.where(
+          data_source: data_source, project_pk: nbn_project.id,
+        )
+
+        if nbn_enrollments.any?
+          services = Hmis::Hud::Service.where(data_source: data_source, RecordType: 200)
+          expect(services.count).to be > 0
+        end
+      end
+
+      it 'clears pending_enrollment_on after creating an enrollment' do
+        engine.run(date: run_date)
+        enrolled = sim_clients.where.not(hud_enrollment_id: nil)
+        expect(enrolled.where.not(pending_enrollment_on: nil).count).to eq(0)
+      end
+
+      it 'updates enrollments_opened in RunLog' do
+        engine.run(date: run_date)
+        log = HmisSimulation::RunLog.find_by(data_source_id: data_source.id, run_date: run_date)
+        expect(log.enrollments_opened).to be > 0
+      end
+    end
   end
 end

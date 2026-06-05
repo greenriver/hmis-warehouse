@@ -35,6 +35,33 @@ task :validate, [:path_or_key] => :environment do |_t, args|
   end
 end
 
+desc 'Run simulation for a single date (YYYY-MM-DD)'
+task :run, [:key, :date] => :environment do |_t, args|
+  key = args[:key]
+  raise ArgumentError, 'Usage: rake driver:hmis_simulation:run[hmis_simulation/key,2026-01-15]' if key.blank?
+
+  date   = Date.parse(args[:date])
+  config = HmisSimulation::ConfigLoader.from_app_config(key)
+  HmisSimulation::Engine.new(config).run(date: date)
+  puts "Run complete for #{date}"
+end
+
+desc 'Run simulation for a date range (YYYY-MM-DD)'
+task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
+  key        = args[:key]
+  start_date = Date.parse(args[:start_date])
+  end_date   = Date.parse(args[:end_date])
+  raise ArgumentError, 'Usage: rake driver:hmis_simulation:run_range[key,2026-01-01,2026-01-31]' if key.blank?
+
+  config = HmisSimulation::ConfigLoader.from_app_config(key)
+  engine = HmisSimulation::Engine.new(config)
+  (start_date..end_date).each do |date|
+    engine.run(date: date)
+    puts "  Completed #{date}"
+  end
+  puts "Range complete: #{start_date} – #{end_date}"
+end
+
 desc 'Bootstrap HUD records (orgs, projects, ProjectCoc, Inventory, Funders) from an AppConfigProperty key'
 task :bootstrap, [:key] => :environment do |_t, args|
   key = args[:key]

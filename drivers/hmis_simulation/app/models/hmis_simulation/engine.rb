@@ -42,12 +42,19 @@ module HmisSimulation
 
       begin
         Hmis::Hud::Base.transaction do
-          @clients_created = 0
+          @clients_created     = 0
+          @enrollments_opened  = 0
+          @enrollments_closed  = 0
+          @services_created    = 0
 
           spawn_clients(date: date)
+          tick_primary(date: date)
 
           log.update!(
             clients_created: @clients_created,
+            enrollments_opened: @enrollments_opened,
+            enrollments_closed: @enrollments_closed,
+            services_created: @services_created,
             finished_at: Time.current,
           )
         end
@@ -101,6 +108,193 @@ module HmisSimulation
         @clients_created += 1
       end
     end
+
+    # -- Primary enrollment tick --
+
+    def tick_primary(date:)
+      data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+      user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
+
+      # Process exits for clients whose enrollment ends today
+      Client.pending_exit(date).where(data_source_id: @data_source_id).find_each do |sim_client|
+        process_primary_exit(sim_client, date, data_source: data_source, user_id: user_id)
+      end
+
+      # Create enrollments for clients entering a program today
+      Client.pending_enrollment(date).where(data_source_id: @data_source_id).find_each do |sim_client|
+        process_primary_entry(sim_client, date, data_source: data_source, user_id: user_id)
+      end
+
+      # Generate bed nights for all active NBN enrollments
+      create_bed_nights(date, data_source: data_source, user_id: user_id)
+    end
+
+    def process_primary_exit(sim_client, date, data_source:, user_id:)
+      enrollment = Hmis::Hud::Enrollment.find(sim_client.hud_enrollment_id)
+      transition = find_transition(sim_client.current_population, sim_client.next_population)
+      exit_dests = transition&.dig('exit_destinations') || { '17' => 1.0 }
+
+      Builders::ExitBuilder.new(
+        enrollment: enrollment,
+        exit_date: date,
+        exit_destinations: exit_dests,
+        data_source: data_source,
+        user_id: user_id,
+        seed: @seed,
+        context_prefix: "exit:#{date}:#{sim_client.id}",
+      ).build!
+
+      @enrollments_closed += 1
+
+      population_cfg = find_population(sim_client.current_population)
+      if roll_exit_point(population_cfg, sim_client)
+        sim_client.update!(
+          exited_system: true,
+          hud_enrollment_id: nil,
+          next_transition_on: nil,
+          next_population: nil,
+        )
+      else
+        next_pop_name = sim_client.next_population || draw_next_population(sim_client.current_population, date, sim_client.id)
+        gap = sample_gap(transition, date, sim_client.id)
+        sim_client.update!(
+          current_population: next_pop_name,
+          entered_current_population_at: date,
+          hud_enrollment_id: nil,
+          next_transition_on: nil,
+          next_population: nil,
+          pending_enrollment_on: date + gap,
+        )
+      end
+    end
+
+    def process_primary_entry(sim_client, date, data_source:, user_id:)
+      population_cfg = find_population(sim_client.current_population)
+      return unless population_cfg
+
+      project_ref = population_cfg['project_ref']
+      project = find_project_by_ref(project_ref, data_source: data_source)
+      return unless project
+
+      hoh_client = Hmis::Hud::Client.find_by(id: sim_client.hud_client_id)
+      return unless hoh_client
+
+      household_group = (HouseholdGroup.find_by(id: sim_client.household_group_id) if sim_client.household_group_id.present?)
+      members = household_group&.member_client_ids || []
+      cohesion = @config.dig('enrollment_config', 'household_cohesion_probability').to_f
+      cohesion = 0.85 if cohesion.zero?
+
+      hud_household_id = FakeIdentifier.uuid
+      result = Builders::EnrollmentBuilder.new(
+        project: project,
+        hud_household_id: hud_household_id,
+        entry_date: date,
+        coc_code: @config.dig('coc_codes', 'primary') || 'XX-500',
+        hoh_client: hoh_client,
+        member_relationships: members,
+        household_cohesion_probability: cohesion,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: @seed + "entry:#{date}:#{sim_client.id}".hash,
+      ).build!
+
+      @enrollments_opened += 1
+
+      # Pre-select the outgoing transition and sample enrollment length
+      next_pop, timing = sample_enrollment_exit(sim_client.current_population, date, sim_client.id)
+
+      sim_client.update!(
+        hud_enrollment_id: result[:hoh_enrollment].id,
+        pending_enrollment_on: nil,
+        next_transition_on: date + timing,
+        next_population: next_pop,
+      )
+    end
+
+    def create_bed_nights(date, data_source:, user_id:)
+      nbn_project_pks = Hmis::Hud::Project.
+        where(data_source_id: @data_source_id, ProjectType: 1).
+        pluck(:id)
+      return if nbn_project_pks.empty?
+
+      active_nbn_enrollments = Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: nbn_project_pks).
+        open_on_date(date)
+
+      active_nbn_enrollments.find_each do |enrollment|
+        Builders::ServiceBuilder.new(
+          enrollment: enrollment,
+          date: date,
+          data_source: data_source,
+          user_id: user_id,
+        ).build_bed_night!
+        @services_created += 1
+      end
+    end
+
+    # -- Transition helpers --
+
+    def sample_enrollment_exit(population_name, date, client_id)
+      transitions = outgoing_transitions(population_name)
+      return [population_name, 30] if transitions.empty?
+
+      weights = transitions.each_with_object({}) { |t, h| h[t['to']] = t['weight'].to_f }
+      cfg     = { 'distribution' => 'weighted', 'weights' => weights }
+      next_pop = Distribution.sample(cfg, rng: rng("next_pop:#{date}:#{client_id}"))
+      transition = find_transition(population_name, next_pop)
+      timing_days = if transition
+        Distribution.sample(transition['timing'].deep_stringify_keys, rng: rng("timing:#{date}:#{client_id}")).ceil
+      else
+        30
+      end
+      [next_pop, [timing_days, 1].max]
+    end
+
+    def roll_exit_point(population_cfg, sim_client)
+      prob = population_cfg&.dig('exit_point').to_f
+      return false if prob.zero?
+      return true if prob >= 1.0
+
+      rng("exit_point:#{sim_client.id}").rand < prob
+    end
+
+    def sample_gap(transition, date, client_id)
+      gap_cfg = transition&.dig('gap_before_entry')
+      return 0 unless gap_cfg.present?
+
+      Distribution.sample(gap_cfg.deep_stringify_keys, rng: rng("gap:#{date}:#{client_id}")).ceil.clamp(0, 365)
+    end
+
+    def draw_next_population(from_population, date, client_id)
+      transitions = outgoing_transitions(from_population)
+      return from_population if transitions.empty?
+
+      weights = transitions.each_with_object({}) { |t, h| h[t['to']] = t['weight'].to_f }
+      cfg = { 'distribution' => 'weighted', 'weights' => weights }
+      Distribution.sample(cfg, rng: rng("next_pop_fallback:#{date}:#{client_id}"))
+    end
+
+    def outgoing_transitions(population_name)
+      (@config['transitions'] || []).select { |t| t['from'] == population_name }
+    end
+
+    def find_transition(from, to)
+      return nil unless from.present? && to.present?
+
+      (@config['transitions'] || []).find { |t| t['from'] == from && t['to'] == to }
+    end
+
+    def find_population(name)
+      (@config['populations'] || []).find { |p| p['name'] == name }
+    end
+
+    def find_project_by_ref(project_ref, data_source:)
+      return nil if project_ref.blank?
+
+      Hmis::Hud::Project.find_by(data_source_id: data_source.id, ProjectName: project_ref)
+    end
+
+    # -- Daily count --
 
     def daily_new_client_count(date:)
       monthly_cfg = @config.dig('enrollment_config', 'new_clients_per_month') ||

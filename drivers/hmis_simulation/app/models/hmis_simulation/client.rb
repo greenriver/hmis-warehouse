@@ -14,5 +14,5 @@ class HmisSimulation::Client < GrdaWarehouseBase
 
   scope :active, -> { where(exited_system: false) }
   scope :pending_enrollment, ->(date) { where(pending_enrollment_on: date) }
-  scope :pending_exit, ->(date) { where(next_transition_on: date) }
+  scope :pending_exit, ->(date) { where(next_transition_on: date).where.not(hud_enrollment_id: nil) }
 end
