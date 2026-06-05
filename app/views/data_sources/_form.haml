@@ -36,7 +36,7 @@
     %h3.h5-prs1 Import settings
     = f.input :source_id, label: 'Source ID', hint: 'Expected SourceID from Export.csv. If set, imports are rejected when it does not match. If left blank, any SourceID in the export file is accepted.'
     = f.input :disable_imports, as: :boolean, label: 'Disable HUD CSV imports', hint: 'When checked, manual uploads and automated daily imports are not allowed for this data source.', input_html: { class: 'jDisableImportsTrigger' }
-    = f.input :import_paused, label: 'Pause automated daily imports?', hint: 'When checked, skips automated S3 CSV fetches.'
+    = f.input :import_paused, label: 'Pause automated daily imports?'
 
 
 = content_for :page_js do
