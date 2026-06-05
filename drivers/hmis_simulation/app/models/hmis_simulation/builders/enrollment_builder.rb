@@ -20,6 +20,9 @@ module HmisSimulation
     class EnrollmentBuilder
       EXPORT_ID = Bootstrapper::EXPORT_ID
 
+      # Project types that receive a MoveInDate on enrollment entry
+      PH_PROJECT_TYPES = [3, 9, 10, 13].freeze
+
       # rng_seed: pre-computed integer seed for cohesion probability rolls.
       # Callers derive it as: simulation_seed + "entry:#{date}:#{client_id}".hash
       def initialize(
@@ -73,6 +76,7 @@ module HmisSimulation
           project_pk: @project.id,
           HouseholdID: @household_id,
           EntryDate: @entry_date,
+          MoveInDate: (PH_PROJECT_TYPES.include?(@project.ProjectType) ? @entry_date : nil),
           RelationshipToHoH: relationship_to_hoh,
           DisablingCondition: 99,
           LivingSituation: 116,

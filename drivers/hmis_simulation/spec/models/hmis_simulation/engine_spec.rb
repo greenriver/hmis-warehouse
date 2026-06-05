@@ -310,6 +310,105 @@ RSpec.describe HmisSimulation::Engine do
       end
     end
 
+    context 'lifecycle enrollments (CE)' do
+      let(:base_config_with_lifecycle) do
+        base_config.deep_dup.tap do |c|
+          c['organizations'].first['projects'] << { 'name' => 'CE Program_', 'project_type' => 14 }
+          c['lifecycle_enrollments'] = [
+            {
+              'name' => 'ce',
+              'label' => 'Coordinated Entry',
+              'project_ref' => 'CE Program_',
+              'trigger_populations' => ['street'],
+              'trigger_probability' => 1.0,
+              'days_before_trigger' => { 'distribution' => 'constant', 'value' => 0 },
+              'close_conditions' => {
+                'housing_move_in' => 0.5,
+                'disengagement' => {
+                  'probability' => 0.5,
+                  'after_days' => { 'distribution' => 'constant', 'value' => 1 },
+                },
+              },
+            },
+          ]
+        end
+      end
+      let(:lifecycle_config) { HmisSimulation::ConfigLoader.send(:normalize, base_config_with_lifecycle) }
+
+      before do
+        HmisSimulation::Bootstrapper.new(lifecycle_config).run!
+      end
+
+      it 'creates a CE LifecycleEnrollment when client enters a trigger population' do
+        described_class.new(lifecycle_config).run(date: run_date)
+        expect(HmisSimulation::LifecycleEnrollment.where(data_source_id: data_source.id, status: 'open').count).to be > 0
+      end
+
+      it 'does NOT create CE for populations not in trigger_populations' do
+        # Add a non-trigger population and a client in it
+        config = lifecycle_config.deep_dup
+        config['populations'].each { |p| p['entry_point'] = p['name'] == 'psh' ? 1 : 0 }
+        e = described_class.new(config)
+        e.run(date: run_date)
+        # psh is not a trigger_population, so no lifecycle enrollments
+        expect(HmisSimulation::LifecycleEnrollment.where(data_source_id: data_source.id).count).to eq(0)
+      end
+
+      it 'creates a CE HUD Enrollment linked to the CE project' do
+        described_class.new(lifecycle_config).run(date: run_date)
+        ce_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'CE Program_')
+        ce_enrollments = Hmis::Hud::Enrollment.where(data_source: data_source, project_pk: ce_project.id)
+        expect(ce_enrollments.count).to be > 0
+      end
+
+      it 'closes CE enrollment when primary enrollment has a MoveInDate (housing_move_in condition)' do
+        # Use a config where ALL CE close via housing_move_in
+        config = lifecycle_config.deep_dup
+        config['lifecycle_enrollments'].first['close_conditions'] = { 'housing_move_in' => 1.0 }
+
+        # And transitions lead to PSH (PH project type that gets MoveInDate)
+        config['transitions'] = [
+          { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+            'timing' => { 'distribution' => 'constant', 'value' => 1 },
+            'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+            'exit_destinations' => { '435' => 1 } },
+        ]
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        e = described_class.new(cfg)
+
+        e.run(date: run_date)     # spawn + primary enrollment (ES) + CE open
+        e.run(date: run_date + 1) # primary enrollment exits to PSH with MoveInDate
+
+        closed = HmisSimulation::LifecycleEnrollment.where(
+          data_source_id: data_source.id, status: 'closed', close_reason: 'housing_move_in',
+        )
+        expect(closed.count).to be > 0
+      end
+
+      it 'closes CE enrollment after disengagement timeout' do
+        # Config: only disengagement, 1-day timeout, probability=1.0
+        config = lifecycle_config.deep_dup
+        config['lifecycle_enrollments'].first['close_conditions'] = {
+          'disengagement' => {
+            'probability' => 1.0,
+            'after_days' => { 'distribution' => 'constant', 'value' => 1 },
+          },
+        }
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        e = described_class.new(cfg)
+
+        e.run(date: run_date)     # CE opens
+        e.run(date: run_date + 1) # disengagement fires (opens_on + 1 = run_date + 1)
+
+        closed = HmisSimulation::LifecycleEnrollment.where(
+          data_source_id: data_source.id, status: 'closed', close_reason: 'disengagement',
+        )
+        expect(closed.count).to be > 0
+      end
+    end
+
     context 'annual collection' do
       it 'creates annual IncomeBenefit records for enrollments near their anniversary' do
         # Create an enrollment that is exactly 365 days old so annual collection fires today

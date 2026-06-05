@@ -51,6 +51,7 @@ module HmisSimulation
           tick_primary(date: date)
           tick_annual_collections(date: date)
           tick_concurrent(date: date)
+          tick_lifecycle(date: date)
 
           log.update!(
             clients_created: @clients_created,
@@ -204,6 +205,7 @@ module HmisSimulation
       @enrollments_opened += 1
       create_linked_entry_records(result[:hoh_enrollment], date, data_source: data_source, user_id: user_id, sim_client: sim_client)
       assign_concurrent_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
+      trigger_lifecycle_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
 
       # Pre-select the outgoing transition and sample enrollment length
       next_pop, timing = sample_enrollment_exit(sim_client.current_population, date, sim_client.id)
@@ -489,6 +491,147 @@ module HmisSimulation
                       'selection_weight' => 1.0, 'duration' => { 'distribution' => 'constant', 'value' => 30 },
                       'gap_before_reentry' => { 'distribution' => 'constant', 'value' => 7 }, 'reentry_probability' => 0.0 }
       [error_entry]
+    end
+
+    # -- Lifecycle enrollment tick (CE) --
+
+    def tick_lifecycle(date:)
+      lifecycle_cfgs = @config['lifecycle_enrollments']
+      return unless lifecycle_cfgs.present?
+
+      data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+      user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
+
+      LifecycleEnrollment.
+        where(data_source_id: @data_source_id, status: 'open').
+        find_each do |lifecycle_enrollment|
+          process_lifecycle_close_conditions(lifecycle_enrollment, date, data_source: data_source, user_id: user_id, lifecycle_cfgs: lifecycle_cfgs)
+        end
+    end
+
+    def trigger_lifecycle_enrollments(sim_client, entry_date, data_source:, user_id:)
+      lifecycle_cfgs = @config['lifecycle_enrollments']
+      return unless lifecycle_cfgs.present?
+
+      coc_code = @config.dig('coc_codes', 'primary') || 'XX-500'
+
+      lifecycle_cfgs.each_with_index do |lc_cfg, idx|
+        trigger_populations = lc_cfg['trigger_populations'] || []
+        next unless trigger_populations.include?(sim_client.current_population)
+
+        # Skip if this client already has an open lifecycle enrollment of this type
+        next if LifecycleEnrollment.where(
+          data_source_id: @data_source_id,
+          hud_client_id: sim_client.hud_client_id,
+          lifecycle_name: lc_cfg['name'],
+          status: 'open',
+        ).exists?
+
+        rng = Random.new(@seed + "lifecycle_trigger:#{lc_cfg['name']}:#{sim_client.id}:#{idx}".hash)
+        next if rng.rand >= lc_cfg['trigger_probability'].to_f
+
+        gap_cfg   = (lc_cfg['days_before_trigger'] || { 'distribution' => 'constant', 'value' => 0 }).deep_stringify_keys
+        gap_days  = Distribution.sample(gap_cfg, rng: Random.new(@seed + "lifecycle_gap:#{sim_client.id}:#{idx}".hash)).ceil.clamp(0, 365)
+        opens_on  = entry_date - gap_days
+
+        project_ref = lc_cfg['project_ref']
+        ce_project  = Hmis::Hud::Project.find_by(data_source_id: @data_source_id, ProjectName: project_ref)
+        next unless ce_project
+
+        client = Hmis::Hud::Client.find_by(id: sim_client.hud_client_id)
+        next unless client
+
+        Builders::LifecycleEnrollmentBuilder.new(
+          client: client,
+          lifecycle_name: lc_cfg['name'],
+          ce_project: ce_project,
+          opens_on: opens_on,
+          coc_code: coc_code,
+          data_source: data_source,
+          user_id: user_id,
+        ).build!
+      end
+    end
+
+    def process_lifecycle_close_conditions(lifecycle_enrollment, date, data_source:, user_id:, lifecycle_cfgs:)
+      lc_cfg = lifecycle_cfgs.find { |c| c['name'] == lifecycle_enrollment.lifecycle_name }
+      return unless lc_cfg
+
+      close_conditions = lc_cfg['close_conditions'] || {}
+
+      # housing_move_in: check if any primary enrollment for this client has a MoveInDate
+      if check_housing_move_in?(lifecycle_enrollment, close_conditions)
+        close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'housing_move_in', data_source: data_source, user_id: user_id)
+        return
+      end
+
+      # disengagement: fires after a timeout from opens_on
+      if check_disengagement?(lifecycle_enrollment, date, close_conditions)
+        close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'disengagement', data_source: data_source, user_id: user_id)
+        return
+      end
+
+      # pre_entry_exit: fires after a shorter timeout, client may not have a primary enrollment
+      return unless check_pre_entry_exit?(lifecycle_enrollment, date, close_conditions)
+
+      close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'pre_entry_exit', data_source: data_source, user_id: user_id)
+    end
+
+    def check_housing_move_in?(lifecycle_enrollment, close_conditions)
+      return false unless close_conditions.key?('housing_move_in')
+
+      rng = Random.new(@seed + "lc_housing_move_in:#{lifecycle_enrollment.id}".hash)
+      return false if rng.rand >= close_conditions['housing_move_in'].to_f
+
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, PersonalID: hmis_personal_id_for(lifecycle_enrollment)).
+        where.not(MoveInDate: nil).
+        exists?
+    end
+
+    def check_disengagement?(lifecycle_enrollment, date, close_conditions)
+      disengage_cfg = close_conditions['disengagement']
+      return false unless disengage_cfg.present?
+
+      rng = Random.new(@seed + "lc_disengage_prob:#{lifecycle_enrollment.id}".hash)
+      return false if rng.rand >= disengage_cfg['probability'].to_f
+
+      after_days_cfg = (disengage_cfg['after_days'] || { 'distribution' => 'constant', 'value' => 365 }).deep_stringify_keys
+      after_days = Distribution.sample(after_days_cfg, rng: Random.new(@seed + "lc_disengage_days:#{lifecycle_enrollment.id}".hash)).ceil
+      date >= lifecycle_enrollment.opens_on + after_days
+    end
+
+    def check_pre_entry_exit?(lifecycle_enrollment, date, close_conditions)
+      pre_cfg = close_conditions['pre_entry_exit']
+      return false unless pre_cfg.present?
+
+      rng = Random.new(@seed + "lc_pre_exit_prob:#{lifecycle_enrollment.id}".hash)
+      return false if rng.rand >= pre_cfg['probability'].to_f
+
+      after_days_cfg = (pre_cfg['after_days'] || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
+      after_days = Distribution.sample(after_days_cfg, rng: Random.new(@seed + "lc_pre_exit_days:#{lifecycle_enrollment.id}".hash)).ceil
+      date >= lifecycle_enrollment.opens_on + after_days
+    end
+
+    def close_lifecycle_enrollment(lifecycle_enrollment, date, reason:, data_source:, user_id:)
+      enrollment = Hmis::Hud::Enrollment.find_by(id: lifecycle_enrollment.hud_enrollment_id)
+      if enrollment
+        Builders::ExitBuilder.new(
+          enrollment: enrollment,
+          exit_date: date,
+          exit_destinations: { '116' => 1.0 },
+          data_source: data_source,
+          user_id: user_id,
+          seed: @seed,
+          context_prefix: "lifecycle_exit:#{lifecycle_enrollment.id}:#{date}",
+        ).build!
+      end
+
+      lifecycle_enrollment.update!(status: 'closed', close_reason: reason)
+    end
+
+    def hmis_personal_id_for(lifecycle_enrollment)
+      Hmis::Hud::Client.find_by(id: lifecycle_enrollment.hud_client_id)&.PersonalID
     end
 
     # -- Transition helpers --
