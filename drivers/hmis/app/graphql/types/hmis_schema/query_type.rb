@@ -326,56 +326,9 @@ module Types
       current_user
     end
 
-    # "Root" access fields that reflect the user's global permission to do something somewhere in the data source
-    access_field do
-      define_method(:form_definition_policy) { @form_definition_policy ||= policy_for(Hmis::Form::Definition, policy_type: :form_definition) }
-      define_method(:ce_referral_policy) { @ce_referral_policy ||= policy_for(Hmis::Ce::Referral, policy_type: :ce_referral) }
-      define_method(:hmis_client_policy) { @hmis_client_policy ||= policy_for(Hmis::Hud::Client, policy_type: :hmis_client) }
-      define_method(:hmis_user_policy) { @hmis_user_policy ||= policy_for(Hmis::User, policy_type: :hmis_user) }
-      define_method(:ce_opportunity_policy) { @ce_opportunity_policy ||= policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity) }
-
-      bool_field(:can_manage_forms) { form_definition_policy.can_manage_forms? }
-      bool_field(:can_administrate_config) { form_definition_policy.can_administrate_config? }
-
-      # can_configure_data_collection is deprecated, and usages should be replaced by more-specific permission checks that delegate to policies.
-      # These policies all still check can_configure_data_collection internally, but using the policies in the frontend is aligned with our pattern and allows for future flexibility
-      bool_field(:can_configure_data_collection, deprecation_reason: 'Use policy permission specific to the need, such as canManageFormRules or canManageServices') { current_user.can_configure_data_collection? || false }
-      bool_field(:can_manage_form_rules) { form_definition_policy.can_manage_form_rules? }
-      bool_field(:can_manage_services) { policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage? }
-      bool_field(:can_manage_project_configs) { policy_for(Hmis::ProjectConfig, policy_type: :project_config).can_manage? }
-
-      bool_field(:can_impersonate_users) { hmis_user_policy.can_impersonate_users? }
-      bool_field(:can_audit_users) { hmis_user_policy.can_audit_users? }
-
-      # can_manage_denied_referrals is a legacy permission for our custom referrals solution that predated CE.
-      # It's not worth updating to use the new policy pattern, since we plan to sunset it.
-      bool_field(:can_manage_denied_referrals) { current_user.can_manage_denied_referrals? || false }
-
-      bool_field(:can_merge_clients) { policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients? }
-      bool_field(:can_edit_users_in_warehouse) { User.find(current_user.id).can_edit_users? } # warehouse permission
-
-      # can_administrate_coordinated_entry is deprecated, and usages should be replaced by more-specific permission checks that delegate to policies.
-      bool_field(:can_administrate_coordinated_entry, deprecation_reason: 'Use policy permission specific to the need, such as canManageCeDefaultContacts or canIndexOpportunities') { ce_referral_policy.can_manage_ce_default_contacts? }
-      bool_field(:can_manage_ce_default_contacts) { ce_referral_policy.can_manage_ce_default_contacts? }
-      bool_field(:can_manage_ce_match_rules) { ce_opportunity_policy.can_manage_ce_match_rules? }
-      bool_field(:can_index_opportunities) { policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity).can_index_opportunities? }
-      bool_field(:can_index_eligible_clients) { policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity).can_index_eligible_clients? }
-
-      bool_field(:can_view_clients) { hmis_client_policy.can_view? }
-      bool_field(:can_edit_clients, deprecation_reason: 'Use canCreateClients when checking for creation permission. Use client access object when checking for ability to edit a specific client.') { hmis_client_policy.can_create? }
-      bool_field(:can_create_clients) { hmis_client_policy.can_create? }
-      bool_field(:can_view_dob) { hmis_client_policy.can_view_dob? }
-      bool_field(:can_view_client_alerts) { hmis_client_policy.can_view_client_alerts? }
-
-      bool_field(:can_edit_organization, deprecation_reason: 'Use canCreateOrganizations when checking for creation permission. Use organization access object when checking for ability to edit a specific organization.') { policy_for(Hmis::Hud::Organization, policy_type: :hmis_organization).can_create? }
-      bool_field(:can_create_organizations) { policy_for(Hmis::Hud::Organization, policy_type: :hmis_organization).can_create? }
-      bool_field(:can_edit_project_details, deprecation_reason: 'Use canCreateProjects on the organization access object') { current_user.can_edit_project_details? || false }
-
-      bool_field(:can_index_referrals) { ce_referral_policy.can_index? }
-
-      # Deprecated permissions, unused in frontend
-      bool_field(:can_administer_hmis, deprecation_reason: 'Unused in the frontend') { false }
-      bool_field(:can_transfer_enrollments, deprecation_reason: 'Unused in the frontend') { false }
+    field :access, Types::HmisSchema::RootQueryAccess, null: false
+    def access
+      {}
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
