@@ -11,7 +11,6 @@
 
 class Hmis::AccessGroup < ApplicationRecord
   self.table_name = :hmis_access_groups
-  include RailsDrivers::Extensions
   include HmisEnabled
 
   acts_as_paranoid

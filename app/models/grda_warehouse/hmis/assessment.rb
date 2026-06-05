@@ -11,7 +11,8 @@ module GrdaWarehouse::Hmis
     dub 'assessments'
     has_paper_trail
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ClientLocationHistory::GrdaWarehouse::Hmis::AssessmentExtension
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
 

@@ -11,7 +11,6 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::CustomDataElementDefinition
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
