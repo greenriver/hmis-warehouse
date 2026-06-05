@@ -17,6 +17,9 @@ module Importing::HudZip
     end
 
     def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false)
+      data_source = GrdaWarehouse::DataSource.find(data_source_id)
+      return unless data_source.importable?
+
       lock_obtained = nil
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(

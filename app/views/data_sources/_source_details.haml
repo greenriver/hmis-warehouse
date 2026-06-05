@@ -8,7 +8,7 @@
       %td
         - if data_span = @data_source.data_span
           = "#{data_span[:start_date]} - #{data_span[:end_date]}"
-    - if ((!@data_source.authoritative? || @data_source.hmis?) && can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user, permission: :can_view_imports)) && can_upload_hud_zips?
+    - if @data_source.importable? && can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user, permission: :can_view_imports) && can_upload_hud_zips?
       %tr
         %th.pl-2 Uploads
         %td
@@ -35,17 +35,24 @@
           Visible in the Window into the Warehouse?
         %td
           = yes_no(@data_source.visible_in_window)
+      - unless @data_source.hmis?
+        %tr
+          %th.pl-2
+            Does the Personal ID column contain a UUID?
+          %td
+            = yes_no(@data_source.munged_personal_id)
       %tr
         %th.pl-2
-          Does the Personal ID column contain a UUID?
+          Disable HUD CSV Imports?
         %td
-          = yes_no(@data_source.munged_personal_id)
-      %tr
-        %th.pl-2
-          Import Paused?
-        %td
-          = yes_no(@data_source.import_paused)
-      - if @data_source.authoritative?
+          = yes_no(@data_source.disable_imports)
+      - if @data_source.importable?
+        %tr
+          %th.pl-2
+            Import Paused?
+          %td
+            = yes_no(@data_source.import_paused)
+      - if @data_source.authoritative? && !@data_source.hmis?
         %tr
           %th.pl-2 After Create Path
           %td= @data_source.after_create_path
@@ -55,9 +62,10 @@
       %tr
         %th.pl-2 Exposed with ROI?
         %td= yes_no(@data_source.obey_consent?)
-      %tr
-        %th.pl-2 Service Scanning Enabled?
-        %td= yes_no(@data_source.service_scannable)
+      - unless @data_source.hmis?
+        %tr
+          %th.pl-2 Service Scanning Enabled?
+          %td= yes_no(@data_source.service_scannable)
     %tr
       %th.pl-2 Viewable by the following users, regardless of visibility in window
       %td= @data_source.users.active.joins(:roles).where(roles: {can_view_clients: true}).diet.map(&:name).uniq.join(', ')

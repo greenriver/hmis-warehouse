@@ -3,8 +3,7 @@
     = link_to edit_data_source_path, class: 'btn btn-secondary btn-sm mb-4 mr-2' do
       %i.icon.icon-pencil
       = "Edit #{@data_source.name}"
--# TEMPORARY: Allow manual uploads to HMIS data sources (PT #185835773)
-- if (!@data_source.authoritative? || @data_source.hmis?) && can_upload_hud_zips? && @data_source.directly_viewable_by?(current_user, permission: :can_upload_hud_zips)
+- if @data_source.importable? && can_upload_hud_zips? && @data_source.directly_viewable_by?(current_user, permission: :can_upload_hud_zips)
   .config-button-wrapper
     = link_to new_data_source_upload_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-upload2
@@ -15,7 +14,7 @@
       %i.icon-enlarge2
       Import Overrides
 
-- if can_edit_data_sources?
+- if can_edit_data_sources? && @data_source.importable?
   .config-button-wrapper
     = link_to new_data_source_hmis_import_config_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
       %i.icon-file-drawn
@@ -29,7 +28,7 @@
       %i.icon-link-ext
       External HMIS Configuration
 
-- if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
+- if can_edit_data_sources? && @data_source.importable? && RailsDrivers.loaded.include?(:hmis_csv_importer)
   .config-button-wrapper
     = link_to edit_hmis_csv_importer_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-eye

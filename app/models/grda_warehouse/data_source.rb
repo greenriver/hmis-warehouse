@@ -21,6 +21,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   validates :name, presence: true
   validates :short_name, presence: true
+  validates :hmis, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
+  validates :hmis,
+            inclusion: { in: ->(_) { HmisEnforcement.configured_hmis_hostnames } },
+            allow_nil: true,
+            unless: -> { Rails.env.test? } # Skip validation in test environment, too cumbersome to enforce
+
+  before_validation :enforce_op_hmis_defaults, if: :hmis?
 
   after_create :maintain_system_group
   after_create :clear_ds_id_cache
@@ -49,9 +56,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
 
   scope :importable, -> do
-    # Authoritative data sources are not importable. There is a temporary exception for HMIS data sources,
-    # since they need to continue to accept imports during the migration phase. (PT #185835773)
-    source.where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
+    source.
+      where(disable_imports: false).
+      where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
   end
 
   scope :source, -> do
@@ -721,6 +728,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  def importable?
+    self.class.importable.where(id: id).exists?
+  end
+
+  def self.available_hmis_hostnames(exclude_data_source_id: nil)
+    assigned = where.not(hmis: nil)
+    assigned = assigned.where.not(id: exclude_data_source_id) if exclude_data_source_id
+    HmisEnforcement.configured_hmis_hostnames - assigned.pluck(:hmis).map(&:downcase)
+  end
+
   def hmis_name
     name if hmis?
   end
@@ -737,6 +754,15 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return open_path_hmis_url(entity, user: user) if hmis? && HmisEnforcement.hmis_enabled?
 
     external_hmis_configuration&.url(entity)
+  end
+
+  private def enforce_op_hmis_defaults
+    self.authoritative = true
+    self.authoritative_type = nil
+    self.source_type = nil
+    self.munged_personal_id = false
+    self.after_create_path = nil
+    self.service_scannable = false
   end
 
   private def open_path_hmis_url(entity, user: nil)
