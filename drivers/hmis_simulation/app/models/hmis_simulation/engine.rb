@@ -10,11 +10,11 @@ module HmisSimulation
   # Drives the simulation forward one calendar day at a time.
   #
   # Each call to #run(date:) processes exactly one simulated day:
-  #   1. Spawn new clients (drawn from new_clients_per_month, scaled to daily)
-  #   2. (Phase 4) Process primary enrollment exits and entries
-  #   3. (Phase 5) Annual record collection (IncomeBenefits etc.)
-  #   4. (Phase 6) Concurrent enrollment tick
-  #   5. (Phase 7) Lifecycle enrollment tick
+  #   1. Spawn new clients (looped over all primary tracks)
+  #   2. Process primary enrollment exits and entries (per primary track)
+  #   3. Annual record collection (IncomeBenefits, per client's track config)
+  #   4. Concurrent enrollment tick (looped over all concurrent tracks)
+  #   5. Lifecycle enrollment tick (looped over all lifecycle tracks)
   #   6. Write RunLog
   #
   # Idempotent: re-running the same date is a no-op (detected via RunLog).
@@ -73,29 +73,75 @@ module HmisSimulation
       RunLog.exists?(data_source_id: @data_source_id, run_date: date, error_message: nil)
     end
 
+    # -- Track helpers --
+
+    def primary_tracks
+      @primary_tracks ||= (@config['tracks'] || []).select { |t| t['type'] == 'primary' }
+    end
+
+    def secondary_tracks_of_type(type)
+      (@config['tracks'] || []).select { |t| t['type'] == type }
+    end
+
+    def secondary_tracks_for_client(type, sim_client)
+      secondary_tracks_of_type(type).select do |track|
+        track['applies_to_tracks'].blank? ||
+          track['applies_to_tracks'].include?(sim_client.track_name)
+      end
+    end
+
+    def track_for_population(population_name)
+      primary_tracks.find do |track|
+        (track['populations'] || []).any? { |p| p['name'] == population_name }
+      end
+    end
+
+    def find_population(name)
+      primary_tracks.flat_map { |t| t['populations'] || [] }.find { |p| p['name'] == name }
+    end
+
+    def enrollment_config_for(sim_client)
+      track = primary_tracks.find { |t| t['name'] == sim_client.track_name }
+      track&.fetch('enrollment_config', {}) || {}
+    end
+
+    def data_quality_for(sim_client)
+      global_dq = @config['data_quality'] || {}
+      track = primary_tracks.find { |t| t['name'] == sim_client.track_name }
+      global_dq.deep_merge(track&.fetch('data_quality', {}) || {})
+    end
+
     # -- Spawn --
 
     def spawn_clients(date:)
-      count = daily_new_client_count(date: date)
       data_source = GrdaWarehouse::DataSource.find(@data_source_id)
       user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
 
+      primary_tracks.each do |track|
+        spawn_clients_for_track(track, date: date, data_source: data_source, user_id: user_id)
+      end
+    end
+
+    def spawn_clients_for_track(track, date:, data_source:, user_id:)
+      count = daily_new_client_count_for_track(track, date: date)
+
       count.times do |i|
-        population = draw_entry_population(date: date, index: i)
+        population = draw_entry_population_for_track(track, date: date, index: i)
         next unless population
 
         template_name = draw_household_template(population: population, date: date, index: i)
-        template_cfg  = @config.dig('household_templates', template_name) || {}
+        template_cfg  = track.dig('household_templates', template_name) || {}
+        data_quality  = data_quality_for_track(track)
 
         result = Builders::HouseholdBuilder.new(
           household_template: template_cfg,
           household_template_name: template_name,
-          data_quality_config: @config['data_quality'] || {},
+          data_quality_config: data_quality,
           data_source: data_source,
           user_id: user_id,
           date: date,
           seed: @seed,
-          context_prefix: "spawn:#{date}:#{i}",
+          context_prefix: "spawn:#{track['name']}:#{date}:#{i}",
         ).build!
 
         Client.create!(
@@ -105,11 +151,17 @@ module HmisSimulation
           current_population: population['name'],
           entered_current_population_at: date,
           pending_enrollment_on: date,
+          track_name: track['name'],
           exited_system: false,
         )
 
         @clients_created += 1
       end
+    end
+
+    def data_quality_for_track(track)
+      global_dq = @config['data_quality'] || {}
+      global_dq.deep_merge(track.fetch('data_quality', {}) || {})
     end
 
     # -- Primary enrollment tick --
@@ -118,17 +170,14 @@ module HmisSimulation
       data_source = GrdaWarehouse::DataSource.find(@data_source_id)
       user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
 
-      # Process exits for clients whose enrollment ends today
       Client.pending_exit(date).where(data_source_id: @data_source_id).find_each do |sim_client|
         process_primary_exit(sim_client, date, data_source: data_source, user_id: user_id)
       end
 
-      # Create enrollments for clients entering a program today
       Client.pending_enrollment(date).where(data_source_id: @data_source_id).find_each do |sim_client|
         process_primary_entry(sim_client, date, data_source: data_source, user_id: user_id)
       end
 
-      # Generate bed nights for all active NBN enrollments
       create_bed_nights(date, data_source: data_source, user_id: user_id)
     end
 
@@ -146,7 +195,7 @@ module HmisSimulation
         seed: @seed,
         context_prefix: "exit:#{date}:#{sim_client.id}",
       ).build!
-      create_linked_exit_records(enrollment, date, data_source: data_source, user_id: user_id)
+      create_linked_exit_records(enrollment, date, data_source: data_source, user_id: user_id, sim_client: sim_client)
 
       @enrollments_closed += 1
 
@@ -185,7 +234,9 @@ module HmisSimulation
 
       household_group = (HouseholdGroup.find_by(id: sim_client.household_group_id) if sim_client.household_group_id.present?)
       members = household_group&.member_client_ids || []
-      cohesion = @config.dig('enrollment_config', 'household_cohesion_probability').to_f
+
+      track = primary_tracks.find { |t| t['name'] == sim_client.track_name }
+      cohesion = track&.fetch('household_cohesion_probability', nil).to_f
       cohesion = 0.85 if cohesion.zero?
 
       hud_household_id = FakeIdentifier.uuid
@@ -207,7 +258,6 @@ module HmisSimulation
       assign_concurrent_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
       trigger_lifecycle_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
 
-      # Pre-select the outgoing transition and sample enrollment length
       next_pop, timing = sample_enrollment_exit(sim_client.current_population, date, sim_client.id)
 
       sim_client.update!(
@@ -242,10 +292,11 @@ module HmisSimulation
     # -- Linked record builders (called at enrollment entry/exit) --
 
     def create_linked_entry_records(enrollment, date, data_source:, user_id:, sim_client:)
-      rng_seed = @seed + "linked:#{enrollment.EnrollmentID}".hash
-      disability_cfg = @config.dig('enrollment_config', 'disabilities') || {}
-      income_cfg     = @config.dig('enrollment_config', 'income_at_entry') || {}
-      hdv_cfg        = @config.dig('enrollment_config', 'health_and_dv') || {}
+      rng_seed       = @seed + "linked:#{enrollment.EnrollmentID}".hash
+      enrollment_cfg = enrollment_config_for(sim_client)
+      disability_cfg = enrollment_cfg['disabilities'] || {}
+      income_cfg     = enrollment_cfg['income_at_entry'] || {}
+      hdv_cfg        = enrollment_cfg['health_and_dv'] || {}
 
       disability_result = Builders::DisabilityBuilder.new(
         enrollment: enrollment,
@@ -276,7 +327,6 @@ module HmisSimulation
         rng_seed: rng_seed + 2,
       ).build!
 
-      # CLS at entry for street/shelter populations
       population_cfg = find_population(sim_client.current_population)
       return unless population_cfg&.dig('project_ref').present?
 
@@ -293,8 +343,9 @@ module HmisSimulation
       ).build!
     end
 
-    def create_linked_exit_records(enrollment, exit_date, data_source:, user_id:)
-      income_cfg = @config.dig('enrollment_config', 'income_at_entry') || {}
+    def create_linked_exit_records(enrollment, exit_date, data_source:, user_id:, sim_client:)
+      enrollment_cfg = enrollment_config_for(sim_client)
+      income_cfg = enrollment_cfg['income_at_entry'] || {}
       Builders::IncomeBenefitBuilder.new(
         enrollment: enrollment,
         date: exit_date,
@@ -309,18 +360,25 @@ module HmisSimulation
     # -- Annual collection tick --
 
     def tick_annual_collections(date:)
-      annual_cfg = @config.dig('enrollment_config', 'annual_collection') || {}
-      miss_rate  = annual_cfg['miss_rate'].to_f
-      jitter_cfg = annual_cfg['timing_jitter'] || { 'distribution' => 'normal', 'mean' => 0, 'stddev' => 30, 'min' => -90, 'max' => 90 }
-
       data_source = GrdaWarehouse::DataSource.find(@data_source_id)
       user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
-      income_cfg  = @config.dig('enrollment_config', 'income_at_entry') || {}
+
+      sim_clients_by_enrollment = Client.
+        where(data_source_id: @data_source_id).
+        where.not(hud_enrollment_id: nil).
+        index_by(&:hud_enrollment_id)
 
       Hmis::Hud::Enrollment.
         where(data_source_id: @data_source_id).
         open_on_date(date).
         find_each do |enrollment|
+          sim_client = sim_clients_by_enrollment[enrollment.id]
+          enrollment_cfg = sim_client ? enrollment_config_for(sim_client) : default_enrollment_config
+          annual_cfg    = enrollment_cfg['annual_collection'] || {}
+          miss_rate     = annual_cfg['miss_rate'].to_f
+          jitter_cfg    = annual_cfg['timing_jitter'] || default_jitter_cfg
+          income_cfg    = enrollment_cfg['income_at_entry'] || {}
+
           next unless annual_collection_due?(enrollment, date, jitter_cfg)
           next if Random.new(@seed + "annual_miss:#{enrollment.EnrollmentID}:#{date}".hash).rand < miss_rate
 
@@ -334,6 +392,14 @@ module HmisSimulation
             rng_seed: @seed + "annual:#{enrollment.EnrollmentID}:#{date}".hash,
           ).build!
         end
+    end
+
+    def default_jitter_cfg
+      { 'distribution' => 'normal', 'mean' => 0, 'stddev' => 30, 'min' => -90, 'max' => 90 }
+    end
+
+    def default_enrollment_config
+      primary_tracks.first&.fetch('enrollment_config', {}) || {}
     end
 
     def annual_collection_due?(enrollment, date, jitter_cfg)
@@ -361,55 +427,72 @@ module HmisSimulation
     # -- Concurrent enrollment tick --
 
     def tick_concurrent(date:)
-      concurrent_cfg = @config['concurrent_enrollments']
-      return unless concurrent_cfg.present?
+      return if secondary_tracks_of_type('concurrent').empty?
 
       data_source = GrdaWarehouse::DataSource.find(@data_source_id)
       user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
       coc_code    = @config.dig('coc_codes', 'primary') || 'XX-500'
 
-      # Close expired concurrent enrollments
       ConcurrentEnrollment.expiring_on(date).where(data_source_id: @data_source_id).find_each do |concurrent_enrollment|
-        close_concurrent_enrollment(concurrent_enrollment, date, data_source: data_source, user_id: user_id,
-                                                                 projects_cfg: concurrent_cfg['projects'] || [])
+        concurrent_track = find_concurrent_track(concurrent_enrollment.track_name)
+        close_concurrent_enrollment(
+          concurrent_enrollment, date,
+          data_source: data_source, user_id: user_id, concurrent_track: concurrent_track
+        )
       end
 
-      # Open reentries due today
       ConcurrentEnrollment.pending_reentry_on(date).where(data_source_id: @data_source_id).find_each do |concurrent_enrollment|
-        open_concurrent_reentry(concurrent_enrollment, date, user_id: user_id, coc_code: coc_code,
-                                                             projects_cfg: concurrent_cfg['projects'] || [])
+        concurrent_track = find_concurrent_track(concurrent_enrollment.track_name)
+        open_concurrent_reentry(
+          concurrent_enrollment, date,
+          user_id: user_id, coc_code: coc_code, concurrent_track: concurrent_track
+        )
       end
     end
 
     def assign_concurrent_enrollments(sim_client, date, data_source:, user_id:)
-      concurrent_cfg = @config['concurrent_enrollments']
-      return unless concurrent_cfg.present?
+      applicable_tracks = secondary_tracks_for_client('concurrent', sim_client)
+      return if applicable_tracks.empty?
 
-      projects_cfg    = concurrent_cfg['projects'] || []
-      count_dist_cfg  = concurrent_cfg['count_distribution'] || { '0' => 1 }
-      data_error_rate = concurrent_cfg['data_error_rate'].to_f
-      coc_code        = @config.dig('coc_codes', 'primary') || 'XX-500'
+      coc_code = @config.dig('coc_codes', 'primary') || 'XX-500'
 
-      normalized_weights = count_dist_cfg.transform_values(&:to_f)
-      cfg    = { 'distribution' => 'weighted', 'weights' => normalized_weights }
-      rng    = Random.new(@seed + "concurrent_count:#{sim_client.id}".hash)
-      count  = Distribution.sample(cfg, rng: rng).to_i
+      applicable_tracks.each_with_index do |concurrent_track, track_idx|
+        count_dist_cfg  = concurrent_track['count_distribution'] || { '0' => 1 }
+        data_error_rate = concurrent_track['data_error_rate'].to_f
 
-      effective_projects = apply_data_error_rate(projects_cfg, sim_client, data_error_rate)
+        cfg   = { 'distribution' => 'weighted', 'weights' => count_dist_cfg.transform_values(&:to_f) }
+        rng   = Random.new(@seed + "concurrent_count:#{sim_client.id}:#{track_idx}".hash)
+        count = Distribution.sample(cfg, rng: rng).to_i
+        next if count.zero?
 
-      Builders::ConcurrentEnrollmentBuilder.new(
-        client: Hmis::Hud::Client.find(sim_client.hud_client_id),
-        date: date,
-        projects_config: effective_projects,
-        count: count,
-        coc_code: coc_code,
-        data_source: data_source,
-        user_id: user_id,
-        rng_seed: @seed + "concurrent:#{sim_client.id}:#{date}".hash,
-      ).build!
+        projects_config = build_concurrent_projects_config(concurrent_track, sim_client, data_error_rate)
+
+        Builders::ConcurrentEnrollmentBuilder.new(
+          client: Hmis::Hud::Client.find(sim_client.hud_client_id),
+          date: date,
+          projects_config: projects_config,
+          count: count,
+          coc_code: coc_code,
+          data_source: data_source,
+          user_id: user_id,
+          track_name: concurrent_track['name'],
+          rng_seed: @seed + "concurrent:#{sim_client.id}:#{date}:#{track_idx}".hash,
+        ).build!
+      end
     end
 
-    def close_concurrent_enrollment(concurrent_enrollment, date, data_source:, user_id:, projects_cfg:)
+    def build_concurrent_projects_config(concurrent_track, sim_client, data_error_rate)
+      project_names = concurrent_track['projects'] || []
+      duration_cfg  = concurrent_track['duration'] || { 'distribution' => 'constant', 'value' => 30 }
+
+      projects_config = project_names.map do |name|
+        { 'name' => name, 'selection_weight' => 1.0, 'duration' => duration_cfg }
+      end
+
+      apply_data_error_rate(projects_config, sim_client, data_error_rate, duration_cfg)
+    end
+
+    def close_concurrent_enrollment(concurrent_enrollment, date, data_source:, user_id:, concurrent_track:)
       enrollment = Hmis::Hud::Enrollment.find_by(id: concurrent_enrollment.hud_enrollment_id)
       return unless enrollment
 
@@ -423,17 +506,17 @@ module HmisSimulation
         context_prefix: "concurrent_exit:#{concurrent_enrollment.id}:#{date}",
       ).build!
 
-      proj_cfg = projects_cfg.find { |p| p['name'] == concurrent_enrollment.project_name }
-      reentry  = schedule_concurrent_reentry(concurrent_enrollment, date, proj_cfg)
-
+      reentry = schedule_concurrent_reentry(concurrent_enrollment, date, concurrent_track)
       concurrent_enrollment.update!(hud_enrollment_id: nil, exit_on: nil, pending_reentry_on: reentry)
     end
 
-    def open_concurrent_reentry(concurrent_enrollment, date, user_id:, coc_code:, projects_cfg:)
-      proj_cfg = projects_cfg.find { |p| p['name'] == concurrent_enrollment.project_name }
-      return unless proj_cfg
+    def open_concurrent_reentry(concurrent_enrollment, date, user_id:, coc_code:, concurrent_track:)
+      return unless concurrent_track
 
-      project = Hmis::Hud::Project.find_by(data_source_id: @data_source_id, ProjectName: concurrent_enrollment.project_name)
+      project = Hmis::Hud::Project.find_by(
+        data_source_id: @data_source_id,
+        ProjectName: concurrent_enrollment.project_name,
+      )
       return unless project
 
       client = Hmis::Hud::Client.find_by(id: concurrent_enrollment.hud_client_id)
@@ -456,48 +539,60 @@ module HmisSimulation
         EnrollmentCoC: coc_code,
       )
 
-      duration_cfg = (proj_cfg['duration'] || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
-      duration = Distribution.sample(duration_cfg, rng: Random.new(@seed + "concurrent_reentry_dur:#{concurrent_enrollment.id}:#{date}".hash)).ceil.clamp(1, 365)
+      duration_cfg = (concurrent_track&.dig('duration') || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
+      duration = Distribution.sample(
+        duration_cfg,
+        rng: Random.new(@seed + "concurrent_reentry_dur:#{concurrent_enrollment.id}:#{date}".hash),
+      ).ceil.clamp(1, 365)
 
       concurrent_enrollment.update!(hud_enrollment_id: enrollment.id, exit_on: date + duration, pending_reentry_on: nil)
     end
 
-    def schedule_concurrent_reentry(concurrent_enrollment, exit_date, proj_cfg)
-      return nil unless proj_cfg
+    def schedule_concurrent_reentry(concurrent_enrollment, exit_date, concurrent_track)
+      return nil unless concurrent_track
 
-      prob = proj_cfg['reentry_probability'].to_f
+      reentry_cfg = concurrent_track['reentry'] || {}
+      prob = reentry_cfg['probability'].to_f
       return nil if Random.new(@seed + "reentry_prob:#{concurrent_enrollment.id}".hash).rand >= prob
 
-      gap_cfg  = (proj_cfg['gap_before_reentry'] || { 'distribution' => 'constant', 'value' => 7 }).deep_stringify_keys
-      gap_days = Distribution.sample(gap_cfg, rng: Random.new(@seed + "reentry_gap:#{concurrent_enrollment.id}".hash)).ceil.clamp(0, 365)
+      gap_cfg  = (reentry_cfg['gap'] || { 'distribution' => 'constant', 'value' => 7 }).deep_stringify_keys
+      gap_days = Distribution.sample(
+        gap_cfg,
+        rng: Random.new(@seed + "reentry_gap:#{concurrent_enrollment.id}".hash),
+      ).ceil.clamp(0, 365)
       exit_date + gap_days
     end
 
-    def apply_data_error_rate(projects_cfg, sim_client, data_error_rate)
-      return projects_cfg if data_error_rate.zero?
-      return projects_cfg unless Random.new(@seed + "data_error:#{sim_client.id}".hash).rand < data_error_rate
+    def find_concurrent_track(track_name)
+      secondary_tracks_of_type('concurrent').find { |t| t['name'] == track_name }
+    end
 
-      # Data error: introduce an enrollment in a project type matching the primary
+    def apply_data_error_rate(projects_config, sim_client, data_error_rate, default_duration_cfg = nil)
+      return projects_config if data_error_rate.zero?
+      return projects_config unless Random.new(@seed + "data_error:#{sim_client.id}".hash).rand < data_error_rate
+
       primary_enrollment = Hmis::Hud::Enrollment.find_by(id: sim_client.hud_enrollment_id)
-      return projects_cfg unless primary_enrollment
+      return projects_config unless primary_enrollment
 
       same_type_project = Hmis::Hud::Project.
         where(data_source_id: @data_source_id, ProjectType: primary_enrollment.project&.ProjectType).
         where.not(id: primary_enrollment.project_pk).
         first
-      return projects_cfg unless same_type_project
+      return projects_config unless same_type_project
 
-      error_entry = { 'name' => same_type_project.ProjectName, 'project_type' => same_type_project.ProjectType,
-                      'selection_weight' => 1.0, 'duration' => { 'distribution' => 'constant', 'value' => 30 },
-                      'gap_before_reentry' => { 'distribution' => 'constant', 'value' => 7 }, 'reentry_probability' => 0.0 }
+      error_duration = default_duration_cfg || { 'distribution' => 'constant', 'value' => 30 }
+      error_entry = {
+        'name' => same_type_project.ProjectName,
+        'selection_weight' => 1.0,
+        'duration' => error_duration,
+      }
       [error_entry]
     end
 
     # -- Lifecycle enrollment tick (CE) --
 
     def tick_lifecycle(date:)
-      lifecycle_cfgs = @config['lifecycle_enrollments']
-      return unless lifecycle_cfgs.present?
+      return if secondary_tracks_of_type('lifecycle').empty?
 
       data_source = GrdaWarehouse::DataSource.find(@data_source_id)
       user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
@@ -505,21 +600,24 @@ module HmisSimulation
       LifecycleEnrollment.
         where(data_source_id: @data_source_id, status: 'open').
         find_each do |lifecycle_enrollment|
-          process_lifecycle_close_conditions(lifecycle_enrollment, date, data_source: data_source, user_id: user_id, lifecycle_cfgs: lifecycle_cfgs)
+          lc_cfg = secondary_tracks_of_type('lifecycle').find { |t| t['name'] == lifecycle_enrollment.lifecycle_name }
+          process_lifecycle_close_conditions(
+            lifecycle_enrollment, date,
+            data_source: data_source, user_id: user_id, lc_cfg: lc_cfg
+          )
         end
     end
 
     def trigger_lifecycle_enrollments(sim_client, entry_date, data_source:, user_id:)
-      lifecycle_cfgs = @config['lifecycle_enrollments']
-      return unless lifecycle_cfgs.present?
+      applicable_tracks = secondary_tracks_for_client('lifecycle', sim_client)
+      return if applicable_tracks.empty?
 
       coc_code = @config.dig('coc_codes', 'primary') || 'XX-500'
 
-      lifecycle_cfgs.each_with_index do |lc_cfg, idx|
+      applicable_tracks.each_with_index do |lc_cfg, idx|
         trigger_populations = lc_cfg['trigger_populations'] || []
         next unless trigger_populations.include?(sim_client.current_population)
 
-        # Skip if this client already has an open lifecycle enrollment of this type
         next if LifecycleEnrollment.where(
           data_source_id: @data_source_id,
           hud_client_id: sim_client.hud_client_id,
@@ -530,9 +628,12 @@ module HmisSimulation
         rng = Random.new(@seed + "lifecycle_trigger:#{lc_cfg['name']}:#{sim_client.id}:#{idx}".hash)
         next if rng.rand >= lc_cfg['trigger_probability'].to_f
 
-        gap_cfg   = (lc_cfg['days_before_trigger'] || { 'distribution' => 'constant', 'value' => 0 }).deep_stringify_keys
-        gap_days  = Distribution.sample(gap_cfg, rng: Random.new(@seed + "lifecycle_gap:#{sim_client.id}:#{idx}".hash)).ceil.clamp(0, 365)
-        opens_on  = entry_date - gap_days
+        gap_cfg  = (lc_cfg['days_before_trigger'] || { 'distribution' => 'constant', 'value' => 0 }).deep_stringify_keys
+        gap_days = Distribution.sample(
+          gap_cfg,
+          rng: Random.new(@seed + "lifecycle_gap:#{sim_client.id}:#{idx}".hash),
+        ).ceil.clamp(0, 365)
+        opens_on = entry_date - gap_days
 
         project_ref = lc_cfg['project_ref']
         ce_project  = Hmis::Hud::Project.find_by(data_source_id: @data_source_id, ProjectName: project_ref)
@@ -553,25 +654,21 @@ module HmisSimulation
       end
     end
 
-    def process_lifecycle_close_conditions(lifecycle_enrollment, date, data_source:, user_id:, lifecycle_cfgs:)
-      lc_cfg = lifecycle_cfgs.find { |c| c['name'] == lifecycle_enrollment.lifecycle_name }
+    def process_lifecycle_close_conditions(lifecycle_enrollment, date, data_source:, user_id:, lc_cfg:)
       return unless lc_cfg
 
       close_conditions = lc_cfg['close_conditions'] || {}
 
-      # housing_move_in: check if any primary enrollment for this client has a MoveInDate
       if check_housing_move_in?(lifecycle_enrollment, close_conditions)
         close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'housing_move_in', data_source: data_source, user_id: user_id)
         return
       end
 
-      # disengagement: fires after a timeout from opens_on
       if check_disengagement?(lifecycle_enrollment, date, close_conditions)
         close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'disengagement', data_source: data_source, user_id: user_id)
         return
       end
 
-      # pre_entry_exit: fires after a shorter timeout, client may not have a primary enrollment
       return unless check_pre_entry_exit?(lifecycle_enrollment, date, close_conditions)
 
       close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'pre_entry_exit', data_source: data_source, user_id: user_id)
@@ -597,7 +694,10 @@ module HmisSimulation
       return false if rng.rand >= disengage_cfg['probability'].to_f
 
       after_days_cfg = (disengage_cfg['after_days'] || { 'distribution' => 'constant', 'value' => 365 }).deep_stringify_keys
-      after_days = Distribution.sample(after_days_cfg, rng: Random.new(@seed + "lc_disengage_days:#{lifecycle_enrollment.id}".hash)).ceil
+      after_days = Distribution.sample(
+        after_days_cfg,
+        rng: Random.new(@seed + "lc_disengage_days:#{lifecycle_enrollment.id}".hash),
+      ).ceil
       date >= lifecycle_enrollment.opens_on + after_days
     end
 
@@ -609,7 +709,10 @@ module HmisSimulation
       return false if rng.rand >= pre_cfg['probability'].to_f
 
       after_days_cfg = (pre_cfg['after_days'] || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
-      after_days = Distribution.sample(after_days_cfg, rng: Random.new(@seed + "lc_pre_exit_days:#{lifecycle_enrollment.id}".hash)).ceil
+      after_days = Distribution.sample(
+        after_days_cfg,
+        rng: Random.new(@seed + "lc_pre_exit_days:#{lifecycle_enrollment.id}".hash),
+      ).ceil
       date >= lifecycle_enrollment.opens_on + after_days
     end
 
@@ -640,8 +743,8 @@ module HmisSimulation
       transitions = outgoing_transitions(population_name)
       return [population_name, 30] if transitions.empty?
 
-      weights = transitions.each_with_object({}) { |t, h| h[t['to']] = t['weight'].to_f }
-      cfg     = { 'distribution' => 'weighted', 'weights' => weights }
+      weights  = transitions.each_with_object({}) { |t, h| h[t['to']] = t['weight'].to_f }
+      cfg      = { 'distribution' => 'weighted', 'weights' => weights }
       next_pop = Distribution.sample(cfg, rng: rng("next_pop:#{date}:#{client_id}"))
       transition = find_transition(population_name, next_pop)
       timing_days = if transition
@@ -677,17 +780,19 @@ module HmisSimulation
     end
 
     def outgoing_transitions(population_name)
-      (@config['transitions'] || []).select { |t| t['from'] == population_name }
+      track = track_for_population(population_name)
+      return [] unless track
+
+      (track['transitions'] || []).select { |t| t['from'] == population_name }
     end
 
     def find_transition(from, to)
       return nil unless from.present? && to.present?
 
-      (@config['transitions'] || []).find { |t| t['from'] == from && t['to'] == to }
-    end
+      track = track_for_population(from)
+      return nil unless track
 
-    def find_population(name)
-      (@config['populations'] || []).find { |p| p['name'] == name }
+      (track['transitions'] || []).find { |t| t['from'] == from && t['to'] == to }
     end
 
     def find_project_by_ref(project_ref, data_source:)
@@ -696,13 +801,12 @@ module HmisSimulation
       Hmis::Hud::Project.find_by(data_source_id: data_source.id, ProjectName: project_ref)
     end
 
-    # -- Daily count --
+    # -- Daily count and population draw (per primary track) --
 
-    def daily_new_client_count(date:)
-      monthly_cfg = @config.dig('enrollment_config', 'new_clients_per_month') ||
-                    { 'distribution' => 'poisson', 'lambda' => 1 }
-      daily_cfg = scale_to_daily(monthly_cfg.deep_stringify_keys)
-      count = Distribution.sample(daily_cfg, rng: rng("spawn_count:#{date}")).to_f
+    def daily_new_client_count_for_track(track, date:)
+      monthly_cfg = track['new_clients_per_month'] || { 'distribution' => 'poisson', 'lambda' => 1 }
+      daily_cfg   = scale_to_daily(monthly_cfg.deep_stringify_keys)
+      count       = Distribution.sample(daily_cfg, rng: rng("spawn_count:#{track['name']}:#{date}")).to_f
       [count.ceil, 0].max
     end
 
@@ -722,14 +826,14 @@ module HmisSimulation
       end
     end
 
-    def draw_entry_population(date:, index:)
-      populations = @config['populations'] || []
+    def draw_entry_population_for_track(track, date:, index:)
+      populations = track['populations'] || []
       candidates  = populations.select { |p| p['entry_point'].to_f.positive? }
       return nil if candidates.empty?
 
       weights = candidates.each_with_object({}) { |p, h| h[p['name']] = p['entry_point'].to_f }
       cfg     = { 'distribution' => 'weighted', 'weights' => weights }
-      name    = Distribution.sample(cfg, rng: rng("population:#{date}:#{index}"))
+      name    = Distribution.sample(cfg, rng: rng("population:#{track['name']}:#{date}:#{index}"))
       populations.find { |p| p['name'] == name }
     end
 

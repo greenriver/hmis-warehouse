@@ -29,38 +29,45 @@ RSpec.describe HmisSimulation::Engine do
           ],
         },
       ],
-      'household_templates' => {
-        'adult_only' => {
-          'hoh' => {
-            'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
-            'gender' => { 'woman' => 0.5, 'man' => 0.5 },
-            'veteran_probability' => 0.0,
-            'race' => { 'white' => 1.0 },
+      'tracks' => [
+        {
+          'name' => 'general',
+          'type' => 'primary',
+          'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 300 },
+          'household_cohesion_probability' => 0.85,
+          'household_templates' => {
+            'adult_only' => {
+              'hoh' => {
+                'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
+                'gender' => { 'woman' => 0.5, 'man' => 0.5 },
+                'veteran_probability' => 0.0,
+                'race' => { 'white' => 1.0 },
+              },
+            },
+          },
+          'populations' => [
+            { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test ES_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 6, 'exit_point' => 0.1 },
+            { 'name' => 'psh', 'label' => 'PSH', 'project_ref' => 'Test PSH_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 0, 'exit_point' => 0.5 },
+          ],
+          'transitions' => [
+            { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+              'timing' => { 'distribution' => 'constant', 'value' => 30 },
+              'exit_destinations' => { '435' => 1 } },
+          ],
+          'enrollment_config' => {
+            'disabilities' => {
+              'disabling_condition_probability' => 0.8,
+              'types' => { 'mental_health' => 0.7, 'substance_use' => 0.5 },
+            },
+            'income_at_entry' => { 'no_income_probability' => 0.3, 'sources' => { 'ssi' => 1.0 } },
+            'health_and_dv' => { 'dv_survivor_probability' => 0.2, 'general_health' => { 'fair' => 1.0 } },
           },
         },
-      },
-      'populations' => [
-        { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test ES_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 6, 'exit_point' => 0.1 },
-        { 'name' => 'psh', 'label' => 'PSH', 'project_ref' => 'Test PSH_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 0, 'exit_point' => 0.5 },
       ],
-      'transitions' => [
-        { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
-          'timing' => { 'distribution' => 'constant', 'value' => 30 },
-          'exit_destinations' => { '435' => 1 } },
-      ],
-      'enrollment_config' => {
-        'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 300 },
-        'disabilities' => {
-          'disabling_condition_probability' => 0.8,
-          'types' => { 'mental_health' => 0.7, 'substance_use' => 0.5 },
-        },
-        'income_at_entry' => { 'no_income_probability' => 0.3, 'sources' => { 'ssi' => 1.0 } },
-        'health_and_dv' => { 'dv_survivor_probability' => 0.2, 'general_health' => { 'fair' => 1.0 } },
-      },
     }
   end
 
@@ -77,6 +84,10 @@ RSpec.describe HmisSimulation::Engine do
     HmisSimulation::Client.where(data_source_id: data_source.id)
   end
 
+  def primary_populations
+    config['tracks'].find { |t| t['type'] == 'primary' }['populations']
+  end
+
   describe '#run' do
     it 'creates HmisSimulation::Client state records' do
       expect { engine.run(date: run_date) }.to change { sim_clients.count }.by_at_least(1)
@@ -89,7 +100,7 @@ RSpec.describe HmisSimulation::Engine do
 
     it 'assigns each spawned client a current_population matching a defined population' do
       engine.run(date: run_date)
-      population_names = config['populations'].map { |p| p['name'] }
+      population_names = primary_populations.map { |p| p['name'] }
       sim_clients.pluck(:current_population).each do |pop|
         expect(population_names).to include(pop)
       end
@@ -100,6 +111,11 @@ RSpec.describe HmisSimulation::Engine do
       populations = sim_clients.pluck(:current_population).uniq
       expect(populations).to include('street')
       expect(populations).not_to include('psh')
+    end
+
+    it 'assigns track_name to spawned clients' do
+      engine.run(date: run_date)
+      expect(sim_clients.pluck(:track_name).uniq).to eq(['general'])
     end
 
     it 'sets exited_system: false for all spawned clients' do
@@ -154,34 +170,31 @@ RSpec.describe HmisSimulation::Engine do
       it 'sets next_transition_on for enrolled clients' do
         engine.run(date: run_date)
         enrolled = sim_clients.where.not(hud_enrollment_id: nil)
-        enrolled.each do |sc|
-          expect(sc.next_transition_on).to be_present
-          expect(sc.next_transition_on).to be > run_date
+        enrolled.each do |sim_client|
+          expect(sim_client.next_transition_on).to be_present
+          expect(sim_client.next_transition_on).to be > run_date
         end
       end
 
       it 'stores next_population on enrolled clients' do
         engine.run(date: run_date)
         enrolled = sim_clients.where.not(hud_enrollment_id: nil)
-        population_names = config['populations'].map { |p| p['name'] }
-        enrolled.each do |sc|
-          expect(population_names).to include(sc.next_population)
+        population_names = primary_populations.map { |p| p['name'] }
+        enrolled.each do |sim_client|
+          expect(population_names).to include(sim_client.next_population)
         end
       end
 
       it 'creates Exit records when next_transition_on fires' do
-        # Use config with 1-day timing so transitions fire the next day
         fast_config = base_config.deep_dup
-        fast_config['transitions'].each { |t| t['timing'] = { 'distribution' => 'constant', 'value' => 1 } }
-        fast_config['transitions'].each { |t| t['gap_before_entry'] = { 'distribution' => 'constant', 'value' => 0 } }
+        fast_config['tracks'].first['transitions'].each { |t| t['timing'] = { 'distribution' => 'constant', 'value' => 1 } }
+        fast_config['tracks'].first['transitions'].each { |t| t['gap_before_entry'] = { 'distribution' => 'constant', 'value' => 0 } }
         cfg = HmisSimulation::ConfigLoader.send(:normalize, fast_config)
         HmisSimulation::Bootstrapper.new(cfg).run!
-        e = described_class.new(cfg)
+        fast_engine = described_class.new(cfg)
 
-        e.run(date: run_date)
-        Hmis::Hud::Enrollment.where(data_source: data_source).count
-
-        e.run(date: run_date + 1)
+        fast_engine.run(date: run_date)
+        fast_engine.run(date: run_date + 1)
         exit_count = Hmis::Hud::Exit.where(data_source: data_source).count
         expect(exit_count).to be > 0
       end
@@ -238,25 +251,21 @@ RSpec.describe HmisSimulation::Engine do
     end
 
     context 'concurrent enrollments' do
-      # Config with concurrent enrollments guaranteed on every client (count=1 always)
       let(:base_config_with_concurrent) do
-        base_config.deep_dup.tap do |c|
-          c['organizations'].first['projects'] << {
-            'name' => 'Concurrent SO_', 'project_type' => 4
-          }
-          c['concurrent_enrollments'] = {
+        base_config.deep_dup.tap do |cfg|
+          cfg['organizations'].first['projects'] << { 'name' => 'Concurrent SO_', 'project_type' => 4 }
+          cfg['tracks'] << {
+            'name' => 'so_contacts',
+            'type' => 'concurrent',
+            'applies_to_tracks' => [],
+            'projects' => ['Concurrent SO_'],
             'count_distribution' => { '1' => 1 },
             'data_error_rate' => 0.0,
-            'projects' => [
-              {
-                'name' => 'Concurrent SO_',
-                'project_type' => 4,
-                'selection_weight' => 1,
-                'duration' => { 'distribution' => 'constant', 'value' => 2 },
-                'gap_before_reentry' => { 'distribution' => 'constant', 'value' => 1 },
-                'reentry_probability' => 1.0,
-              },
-            ],
+            'duration' => { 'distribution' => 'constant', 'value' => 2 },
+            'reentry' => {
+              'gap' => { 'distribution' => 'constant', 'value' => 1 },
+              'probability' => 1.0,
+            },
           }
         end
       end
@@ -271,28 +280,29 @@ RSpec.describe HmisSimulation::Engine do
         expect(HmisSimulation::ConcurrentEnrollment.where(data_source_id: data_source.id).count).to be > 0
       end
 
-      it 'closes concurrent enrollments when exit_on fires' do
-        e = described_class.new(concurrent_config)
-        e.run(date: run_date)
+      it 'sets track_name on concurrent enrollments' do
+        described_class.new(concurrent_config).run(date: run_date)
+        expect(HmisSimulation::ConcurrentEnrollment.where(data_source_id: data_source.id).pluck(:track_name).uniq).to eq(['so_contacts'])
+      end
 
-        # concurrent enrollment duration = 2 days, so it expires on run_date + 2
-        e.run(date: run_date + 1)
-        e.run(date: run_date + 2)
+      it 'closes concurrent enrollments when exit_on fires' do
+        engine_instance = described_class.new(concurrent_config)
+        engine_instance.run(date: run_date)
+
+        engine_instance.run(date: run_date + 1)
+        engine_instance.run(date: run_date + 2)
 
         exits = Hmis::Hud::Exit.where(data_source: data_source)
-        # At least some concurrent exits should have been created
         expect(exits.count).to be > 0
       end
 
-      it 'schedules reentry when reentry_probability = 1.0' do
-        e = described_class.new(concurrent_config)
-        e.run(date: run_date)
+      it 'schedules reentry when reentry probability = 1.0' do
+        engine_instance = described_class.new(concurrent_config)
+        engine_instance.run(date: run_date)
 
-        # Duration=2, so expires on run_date+2
-        e.run(date: run_date + 1)
-        e.run(date: run_date + 2)
+        engine_instance.run(date: run_date + 1)
+        engine_instance.run(date: run_date + 2)
 
-        # With reentry_probability=1.0, all expired concurrent enrollments should have pending_reentry_on set
         expired = HmisSimulation::ConcurrentEnrollment.
           where(data_source_id: data_source.id).
           where.not(pending_reentry_on: nil)
@@ -300,37 +310,36 @@ RSpec.describe HmisSimulation::Engine do
       end
 
       it 'opens reentry enrollments when pending_reentry_on fires' do
-        e = described_class.new(concurrent_config)
-        e.run(date: run_date)       # spawns clients, creates concurrent enrollments (exit_on = run_date+2)
-        e.run(date: run_date + 2)   # expires concurrent, schedules reentry on run_date+3
+        engine_instance = described_class.new(concurrent_config)
+        engine_instance.run(date: run_date)
+        engine_instance.run(date: run_date + 2)
         enrollment_count = Hmis::Hud::Enrollment.where(data_source: data_source).count
 
-        e.run(date: run_date + 3)   # reentry fires, opens new concurrent enrollment
+        engine_instance.run(date: run_date + 3)
         expect(Hmis::Hud::Enrollment.where(data_source: data_source).count).to be > enrollment_count
       end
     end
 
     context 'lifecycle enrollments (CE)' do
       let(:base_config_with_lifecycle) do
-        base_config.deep_dup.tap do |c|
-          c['organizations'].first['projects'] << { 'name' => 'CE Program_', 'project_type' => 14 }
-          c['lifecycle_enrollments'] = [
-            {
-              'name' => 'ce',
-              'label' => 'Coordinated Entry',
-              'project_ref' => 'CE Program_',
-              'trigger_populations' => ['street'],
-              'trigger_probability' => 1.0,
-              'days_before_trigger' => { 'distribution' => 'constant', 'value' => 0 },
-              'close_conditions' => {
-                'housing_move_in' => 0.5,
-                'disengagement' => {
-                  'probability' => 0.5,
-                  'after_days' => { 'distribution' => 'constant', 'value' => 1 },
-                },
+        base_config.deep_dup.tap do |cfg|
+          cfg['organizations'].first['projects'] << { 'name' => 'CE Program_', 'project_type' => 14 }
+          cfg['tracks'] << {
+            'name' => 'coordinated_entry',
+            'type' => 'lifecycle',
+            'applies_to_tracks' => [],
+            'project_ref' => 'CE Program_',
+            'trigger_populations' => ['street'],
+            'trigger_probability' => 1.0,
+            'days_before_trigger' => { 'distribution' => 'constant', 'value' => 0 },
+            'close_conditions' => {
+              'housing_move_in' => 0.5,
+              'disengagement' => {
+                'probability' => 0.5,
+                'after_days' => { 'distribution' => 'constant', 'value' => 1 },
               },
             },
-          ]
+          }
         end
       end
       let(:lifecycle_config) { HmisSimulation::ConfigLoader.send(:normalize, base_config_with_lifecycle) }
@@ -345,12 +354,11 @@ RSpec.describe HmisSimulation::Engine do
       end
 
       it 'does NOT create CE for populations not in trigger_populations' do
-        # Add a non-trigger population and a client in it
         config = lifecycle_config.deep_dup
-        config['populations'].each { |p| p['entry_point'] = p['name'] == 'psh' ? 1 : 0 }
-        e = described_class.new(config)
-        e.run(date: run_date)
-        # psh is not a trigger_population, so no lifecycle enrollments
+        config['tracks'].find { |t| t['type'] == 'primary' }['populations'].each do |pop|
+          pop['entry_point'] = pop['name'] == 'psh' ? 1 : 0
+        end
+        described_class.new(config).run(date: run_date)
         expect(HmisSimulation::LifecycleEnrollment.where(data_source_id: data_source.id).count).to eq(0)
       end
 
@@ -362,12 +370,9 @@ RSpec.describe HmisSimulation::Engine do
       end
 
       it 'closes CE enrollment when primary enrollment has a MoveInDate (housing_move_in condition)' do
-        # Use a config where ALL CE close via housing_move_in
         config = lifecycle_config.deep_dup
-        config['lifecycle_enrollments'].first['close_conditions'] = { 'housing_move_in' => 1.0 }
-
-        # And transitions lead to PSH (PH project type that gets MoveInDate)
-        config['transitions'] = [
+        config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
+        config['tracks'].find { |t| t['type'] == 'primary' }['transitions'] = [
           { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
             'timing' => { 'distribution' => 'constant', 'value' => 1 },
             'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
@@ -375,10 +380,10 @@ RSpec.describe HmisSimulation::Engine do
         ]
         cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
         HmisSimulation::Bootstrapper.new(cfg).run!
-        e = described_class.new(cfg)
+        engine_instance = described_class.new(cfg)
 
-        e.run(date: run_date)     # spawn + primary enrollment (ES) + CE open
-        e.run(date: run_date + 1) # primary enrollment exits to PSH with MoveInDate
+        engine_instance.run(date: run_date)
+        engine_instance.run(date: run_date + 1)
 
         closed = HmisSimulation::LifecycleEnrollment.where(
           data_source_id: data_source.id, status: 'closed', close_reason: 'housing_move_in',
@@ -387,9 +392,8 @@ RSpec.describe HmisSimulation::Engine do
       end
 
       it 'closes CE enrollment after disengagement timeout' do
-        # Config: only disengagement, 1-day timeout, probability=1.0
         config = lifecycle_config.deep_dup
-        config['lifecycle_enrollments'].first['close_conditions'] = {
+        config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = {
           'disengagement' => {
             'probability' => 1.0,
             'after_days' => { 'distribution' => 'constant', 'value' => 1 },
@@ -397,10 +401,10 @@ RSpec.describe HmisSimulation::Engine do
         }
         cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
         HmisSimulation::Bootstrapper.new(cfg).run!
-        e = described_class.new(cfg)
+        engine_instance = described_class.new(cfg)
 
-        e.run(date: run_date)     # CE opens
-        e.run(date: run_date + 1) # disengagement fires (opens_on + 1 = run_date + 1)
+        engine_instance.run(date: run_date)
+        engine_instance.run(date: run_date + 1)
 
         closed = HmisSimulation::LifecycleEnrollment.where(
           data_source_id: data_source.id, status: 'closed', close_reason: 'disengagement',
@@ -411,7 +415,6 @@ RSpec.describe HmisSimulation::Engine do
 
     context 'annual collection' do
       it 'creates annual IncomeBenefit records for enrollments near their anniversary' do
-        # Create an enrollment that is exactly 365 days old so annual collection fires today
         old_entry = run_date - 365
         hoh = create(:hmis_hud_client, data_source: data_source)
         project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test ES_')
@@ -421,16 +424,16 @@ RSpec.describe HmisSimulation::Engine do
           EntryDate: old_entry
         )
 
-        # Use a config with zero jitter so the anniversary date is deterministic
         zero_jitter_config = base_config.deep_dup
-        zero_jitter_config['enrollment_config'] ||= {}
-        zero_jitter_config['enrollment_config']['annual_collection'] = {
-          'miss_rate' => 0.0,
-          'timing_jitter' => { 'distribution' => 'constant', 'value' => 0 },
-        }
+        zero_jitter_config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
+          track['enrollment_config'] ||= {}
+          track['enrollment_config']['annual_collection'] = {
+            'miss_rate' => 0.0,
+            'timing_jitter' => { 'distribution' => 'constant', 'value' => 0 },
+          }
+        end
         cfg = HmisSimulation::ConfigLoader.send(:normalize, zero_jitter_config)
-        e = described_class.new(cfg)
-        e.run(date: run_date)
+        described_class.new(cfg).run(date: run_date)
 
         annual = Hmis::Hud::IncomeBenefit.where(
           data_source: data_source,

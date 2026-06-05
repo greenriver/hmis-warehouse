@@ -31,35 +31,45 @@ RSpec.describe HmisSimulation::Bootstrapper do
           ],
         },
       ],
-      'populations' => [
-        { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test SO_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 1, 'exit_point' => 0.1 },
-        { 'name' => 'es', 'label' => 'ES', 'project_ref' => 'Test ES NBN_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 0, 'exit_point' => 0.1 },
-        { 'name' => 'psh', 'label' => 'PSH', 'project_ref' => 'Test PSH_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 0, 'exit_point' => 0.5 },
-      ],
-      'transitions' => [
-        { 'from' => 'street', 'to' => 'es', 'weight' => 1,
-          'timing' => { 'distribution' => 'constant', 'value' => 7 },
-          'exit_destinations' => { '101' => 1 } },
-        { 'from' => 'es', 'to' => 'psh', 'weight' => 1,
-          'timing' => { 'distribution' => 'constant', 'value' => 30 },
-          'exit_destinations' => { '435' => 1 } },
-      ],
-      'lifecycle_enrollments' => [
-        { 'name' => 'ce', 'label' => 'CE', 'project_ref' => 'Test CE_',
+      'tracks' => [
+        {
+          'name' => 'general',
+          'type' => 'primary',
+          'new_clients_per_month' => { 'distribution' => 'constant', 'value' => 5 },
+          'household_templates' => {
+            'adult_only' => { 'hoh' => { 'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 } } },
+          },
+          'populations' => [
+            { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test SO_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 1, 'exit_point' => 0.1 },
+            { 'name' => 'es', 'label' => 'ES', 'project_ref' => 'Test ES NBN_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 0, 'exit_point' => 0.1 },
+            { 'name' => 'psh', 'label' => 'PSH', 'project_ref' => 'Test PSH_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 0, 'exit_point' => 0.5 },
+          ],
+          'transitions' => [
+            { 'from' => 'street', 'to' => 'es', 'weight' => 1,
+              'timing' => { 'distribution' => 'constant', 'value' => 7 },
+              'exit_destinations' => { '101' => 1 } },
+            { 'from' => 'es', 'to' => 'psh', 'weight' => 1,
+              'timing' => { 'distribution' => 'constant', 'value' => 30 },
+              'exit_destinations' => { '435' => 1 } },
+          ],
+        },
+        {
+          'name' => 'coordinated_entry',
+          'type' => 'lifecycle',
+          'applies_to_tracks' => [],
+          'project_ref' => 'Test CE_',
           'trigger_populations' => ['street'],
           'trigger_probability' => 0.3,
           'days_before_trigger' => { 'distribution' => 'constant', 'value' => 0 },
-          'close_conditions' => { 'housing_move_in' => 1.0 } },
+          'close_conditions' => { 'housing_move_in' => 1.0 },
+        },
       ],
-      'enrollment_config' => {
-        'new_clients_per_month' => { 'distribution' => 'constant', 'value' => 5 },
-      },
     }
   end
 

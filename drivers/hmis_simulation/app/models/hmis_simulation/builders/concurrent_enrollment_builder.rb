@@ -20,15 +20,16 @@ module HmisSimulation
     class ConcurrentEnrollmentBuilder
       EXPORT_ID = Bootstrapper::EXPORT_ID
 
-      def initialize(client:, date:, projects_config:, count:, coc_code:, data_source:, user_id:, rng_seed:)
-        @client   = client
-        @date     = date
-        @projects = (projects_config || []).map(&:deep_stringify_keys)
-        @count    = count.to_i
-        @coc_code = coc_code
-        @ds       = data_source
-        @uid      = user_id
-        @rng_seed = rng_seed
+      def initialize(client:, date:, projects_config:, count:, coc_code:, data_source:, user_id:, rng_seed:, track_name: nil)
+        @client     = client
+        @date       = date
+        @projects   = (projects_config || []).map(&:deep_stringify_keys)
+        @count      = count.to_i
+        @coc_code   = coc_code
+        @ds         = data_source
+        @uid        = user_id
+        @rng_seed   = rng_seed
+        @track_name = track_name
       end
 
       def build!
@@ -49,6 +50,7 @@ module HmisSimulation
             hud_client_id: @client.id,
             hud_enrollment_id: enrollment.id,
             project_name: proj_cfg['name'],
+            track_name: @track_name,
             exit_on: @date + duration,
           )
         end

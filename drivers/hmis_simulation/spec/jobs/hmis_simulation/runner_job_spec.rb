@@ -26,25 +26,29 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
           ],
         },
       ],
-      'household_templates' => {
-        'adult_only' => {
-          'hoh' => {
-            'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
-            'gender' => { 'woman' => 0.5, 'man' => 0.5 },
-            'veteran_probability' => 0.0,
-            'race' => { 'white' => 1.0 },
+      'tracks' => [
+        {
+          'name' => 'general',
+          'type' => 'primary',
+          'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 30 },
+          'household_templates' => {
+            'adult_only' => {
+              'hoh' => {
+                'age' => { 'distribution' => 'uniform', 'min' => 25, 'max' => 55 },
+                'gender' => { 'woman' => 0.5, 'man' => 0.5 },
+                'veteran_probability' => 0.0,
+                'race' => { 'white' => 1.0 },
+              },
+            },
           },
+          'populations' => [
+            { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test ES_',
+              'household_templates' => { 'adult_only' => 1 },
+              'entry_point' => 1, 'exit_point' => 0.1 },
+          ],
+          'transitions' => [],
         },
-      },
-      'populations' => [
-        { 'name' => 'street', 'label' => 'Street', 'project_ref' => 'Test ES_',
-          'household_templates' => { 'adult_only' => 1 },
-          'entry_point' => 1, 'exit_point' => 0.1 },
       ],
-      'transitions' => [],
-      'enrollment_config' => {
-        'new_clients_per_month' => { 'distribution' => 'poisson', 'lambda' => 30 },
-      },
     }
   end
 
