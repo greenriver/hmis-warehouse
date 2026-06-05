@@ -25,6 +25,7 @@ module HmisUtil
 
     attr_reader :env_key, :generate_cdeds, :create_instances
 
+    # TODO(#9035): "generate_cdeds" option does not work in multi-HMIS environment, because of collisions
     def initialize(data_source_id:, env_key: nil, create_instances: true, generate_cdeds: !Rails.env.test?)
       @env_key = env_key.presence || compute_default_env_key
       @create_instances = create_instances
