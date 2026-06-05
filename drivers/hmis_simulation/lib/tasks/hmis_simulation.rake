@@ -35,6 +35,12 @@ task :validate, [:path_or_key] => :environment do |_t, args|
   end
 end
 
+desc 'Enqueue RunnerJob to advance all active simulations (called by cron via schedule.rb)'
+task run_all: :environment do
+  HmisSimulation::RunnerJob.perform_later
+  puts 'HmisSimulation::RunnerJob enqueued'
+end
+
 desc 'Run simulation for a single date (YYYY-MM-DD)'
 task :run, [:key, :date] => :environment do |_t, args|
   key = args[:key]
