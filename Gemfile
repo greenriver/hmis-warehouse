@@ -96,7 +96,6 @@ gem 'acts-as-taggable-on', '~>12.0'
 
 gem 'rack-cors'
 # Zitadel client is used for migrating users to Zitadel
-gem 'zitadel-client', require: false
 gem 'jwt', '~> 3.1'
 gem 'faraday', '~> 2.2'
 gem 'oauth2'
