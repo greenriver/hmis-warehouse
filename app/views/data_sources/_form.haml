@@ -43,7 +43,6 @@
   :javascript
     function refreshDataSourceForm() {
       var hasHmis = $('.jHmisHostnameTrigger').length && $('.jHmisHostnameTrigger').val();
-      if (!hasHmis && #{@data_source.hmis?.to_json}) hasHmis = true;
       var authoritative = $('.jAuthoritativeTrigger').is(':checked');
       var authoritativeNonHmis = authoritative && !hasHmis;
       var showImporterQuestions = !authoritativeNonHmis;

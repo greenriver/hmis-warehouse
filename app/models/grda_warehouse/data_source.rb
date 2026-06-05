@@ -21,6 +21,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   validates :name, presence: true
   validates :short_name, presence: true
+
+  normalizes :hmis, with: lambda(&:presence) # normalize empty string/blank into nil
   validates :hmis, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
   validates :hmis,
             inclusion: { in: ->(_) { HmisEnforcement.configured_hmis_hostnames } },
