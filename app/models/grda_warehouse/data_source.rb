@@ -28,6 +28,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             inclusion: { in: ->(_) { HmisEnforcement.configured_hmis_hostnames } },
             allow_nil: true,
             unless: -> { Rails.env.test? } # Skip validation in test environment, too cumbersome to enforce
+  validate :hmis_hostname_immutable, if: :persisted?
 
   before_validation :enforce_op_hmis_defaults, if: :hmis?
 
@@ -734,6 +735,15 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     self.class.importable.where(id: id).exists?
   end
 
+  # whether the user can upload HUD CSV files to this data source
+  def importable_by?(user)
+    return false unless importable?
+    return false unless user.can_upload_hud_zips?
+    return false unless directly_viewable_by?(user, permission: :can_upload_hud_zips)
+
+    true
+  end
+
   def self.available_hmis_hostnames(exclude_data_source_id: nil)
     assigned = where.not(hmis: nil)
     assigned = assigned.where.not(id: exclude_data_source_id) if exclude_data_source_id
@@ -756,6 +766,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return open_path_hmis_url(entity, user: user) if hmis? && HmisEnforcement.hmis_enabled?
 
     external_hmis_configuration&.url(entity)
+  end
+
+  private def hmis_hostname_immutable
+    return unless hmis_changed?
+    return if hmis_was.blank?
+
+    errors.add(:hmis, 'cannot be changed once set')
   end
 
   private def enforce_op_hmis_defaults

@@ -3,7 +3,7 @@
   .col-sm-8
     %h1 Uploads
   .col-sm-4
-    - if can_upload_hud_zips? && @data_source.importable?
+    - if @data_source.importable_by?(current_user)
       .pull-right
         = link_to new_data_source_upload_path, class: 'btn btn-primary pull-right mb-4' do
           %span.icon-plus

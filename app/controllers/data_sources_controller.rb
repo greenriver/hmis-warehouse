@@ -92,7 +92,7 @@ class DataSourcesController < ApplicationController
   end
 
   private def data_source_params
-    params.require(:grda_warehouse_data_source).
+    permitted = params.require(:grda_warehouse_data_source).
       permit(
         :name,
         :short_name,
@@ -114,6 +114,8 @@ class DataSourcesController < ApplicationController
           :after_create_path,
         ],
       )
+    permitted.delete(:hmis) if @data_source.hmis?
+    permitted
   end
 
   private def new_data_source_params

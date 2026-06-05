@@ -7,9 +7,11 @@
 
   - if hmis_enabled?
     -# Note: available hostnames configured via HMIS_HOSTNAME env var
-    - hmis_options = @available_hmis_hostnames
-    - hmis_options = [@data_source.hmis] + hmis_options if @data_source.hmis? && hmis_options.exclude?(@data_source.hmis)
-    = f.input :hmis, label: 'Open Path HMIS URL', collection: hmis_options, include_blank: true, as: :select_two, input_html: { class: 'jHmisHostnameTrigger' }, hint: 'Connects this data source to an Open Path HMIS installation. Leave blank for vendor HMIS or other non-OP HMIS sources.'
+    - if @data_source.hmis?
+      = f.input :hmis, label: 'Open Path HMIS URL', disabled: true, hint: 'The Open Path HMIS hostname cannot be changed. Contact support if you need to reassign this data source.', input_html: { class: 'jHmisHostnameTrigger' }
+    - else
+      - hmis_options = @available_hmis_hostnames
+      = f.input :hmis, label: 'Open Path HMIS URL', collection: hmis_options, include_blank: true, as: :select_two, input_html: { class: 'jHmisHostnameTrigger' }, hint: 'Connects this data source to an Open Path HMIS installation. Leave blank for vendor HMIS or other non-OP HMIS sources. This cannot be changed after it is set.'
 
   = f.input :visible_in_window, label: 'Should this data source be visible in the window into the warehouse?', hint: 'Controls whether clients from this data source appear in the Window into the Warehouse for users who do not have direct data source access.'
 

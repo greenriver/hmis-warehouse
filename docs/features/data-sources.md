@@ -3,7 +3,7 @@
 A **Data Source** (`GrdaWarehouse::DataSource`) represents a distinct origin of client and project data in the warehouse. Every HUD record (client, enrollment, project, etc.) belongs to exactly one data source via `data_source_id`.
 
 Relevant scopes on `GrdaWarehouse::DataSource`:
-- `destination` — the warehouse destination (typically there is only one)
+- `destination` — the warehouse destination; there is only one
 - `source` — non-destination data sources (data may originate from an external vendor HMIS or OP HMIS)
 - `importable` — sources that accept HUD CSV imports
 - `hmis` – sources that are connected to an Open Path HMIS
@@ -13,7 +13,7 @@ Relevant scopes on `GrdaWarehouse::DataSource`:
 
 ## Source vs destination in practice
 
-Most deployments have:
+Installations have:
 
 - **One destination** data source — the merged warehouse (`destination` scope)
 - **One or more source** data sources — vendor HMIS exports, authoritative supplemental data (health, youth), or Open Path HMIS
@@ -38,7 +38,7 @@ The table below documents columns on the `data_sources` table. "Admin UI" indica
 |-------|----------|-------------|
 | `name` | Form | Full display name (e.g. agency or program name). Required. |
 | `short_name` | Form | Short unique label (max 15 characters) shown in badges and compact UI. Required. |
-| `hmis` | Form (when HMIS enabled) | Hostname of an Open Path HMIS installation. When present, `hmis?` is true and HMIS API requests for that host resolve to this data source. Must be chosen from available entries in the `HMIS_HOSTNAME` env (comma-separated). |
+| `hmis` | Form (when HMIS enabled) | Hostname of an Open Path HMIS installation. When present, `hmis?` is true and HMIS API requests for that host resolve to this data source. Must be chosen from available entries in the `HMIS_HOSTNAME` env (comma-separated). Cannot be changed after it is set. |
 | `source_type` | Form (hidden default `manual` on create) | How data is ingested. Common values: `manual`, `sftp`, `s3`, `samba`, or `authoritative`. |
 | `authoritative` | Form | When true, this data source is the system of record for its data. Normally excludes the source from `importable` unless `hmis` is set. Enables direct warehouse client creation via `available_for_new_clients`. Grants a direct client-visibility path in access control for users assigned to the data source. |
 | `authoritative_type` | Form (when authoritative) | Sub-classification for authoritative sources. Values: `youth`, `vispdat`, `health`, `coordinated_assessment`, `other`, `synthetic`. Drives typed scopes (`.youth`, `.health`, etc.) used by features such as youth intake, health integrations, and VI-SPDAT reporting. Shown only when authoritative is checked and the source is not Open Path HMIS. |

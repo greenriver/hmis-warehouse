@@ -222,6 +222,39 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe '#importable_by?' do
+    let!(:upload_role) { create :role, name: 'upload role', can_upload_hud_zips: true }
+    let!(:upload_user) { create :acl_user }
+    let!(:vendor_ds) { create :source_data_source }
+
+    before do
+      Collection.maintain_system_groups
+      setup_access_control(upload_user, upload_role, Collection.system_collection(:data_sources))
+    end
+
+    it 'returns true when the source is importable and the user can upload' do
+      expect(vendor_ds.importable_by?(upload_user)).to be true
+    end
+
+    it 'returns false when imports are disabled' do
+      vendor_ds.update!(disable_imports: true)
+      expect(vendor_ds.importable_by?(upload_user)).to be false
+    end
+
+    it 'returns false when the user lacks upload permission' do
+      edit_only_role = create(:role, name: 'edit only role', can_edit_data_sources: true)
+      user = create(:acl_user)
+      setup_access_control(user, edit_only_role, Collection.system_collection(:data_sources))
+      expect(vendor_ds.importable_by?(user)).to be false
+    end
+
+    it 'returns false when the user lacks data source access' do
+      user = create(:acl_user)
+      setup_access_control(user, upload_role, create(:collection))
+      expect(vendor_ds.importable_by?(user)).to be false
+    end
+  end
+
   describe 'hmis hostnames' do
     it 'returns configured hostnames from env' do
       allow(ENV).to receive(:fetch).and_call_original
@@ -248,6 +281,20 @@ RSpec.describe model, type: :model do
       ds = build(:source_data_source, hmis: 'hmis-a.example.test', authoritative: true)
       expect(ds).not_to be_valid
       expect(ds.errors[:hmis]).to include('has already been taken')
+    end
+
+    it 'rejects changing hmis once set' do
+      ds = create(:source_data_source, hmis: 'hmis-a.example.test', authoritative: true)
+      ds.hmis = 'hmis-b.example.test'
+      expect(ds).not_to be_valid
+      expect(ds.errors[:hmis]).to include('cannot be changed once set')
+    end
+
+    it 'rejects clearing hmis once set' do
+      ds = create(:source_data_source, hmis: 'hmis-a.example.test', authoritative: true)
+      ds.hmis = nil
+      expect(ds).not_to be_valid
+      expect(ds.errors[:hmis]).to include('cannot be changed once set')
     end
   end
 
