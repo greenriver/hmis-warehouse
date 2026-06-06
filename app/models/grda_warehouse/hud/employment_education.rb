@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::EmploymentEducation
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::EmploymentEducationExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EmploymentEducationExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::EmploymentEducationExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::EmploymentEducationExtension
 
     attr_accessor :source_id
 

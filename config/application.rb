@@ -27,6 +27,8 @@ require_relative '../lib/hud_reports/route_concerns'
 
 module OpenPath
   class Application < Rails::Application
+    require_relative '../lib/rails_drivers'
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
 
@@ -120,6 +122,24 @@ module OpenPath
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
 
+    # Replace rails_drivers gem autoloading — mirrors what the gem's Railtie did
+    driver_app_components = ['models', 'controllers', 'mailers', 'helpers', 'jobs', 'graphql'].freeze
+
+    Dir[root.join('drivers', '*', 'app')].each do |driver_app|
+      driver_app_components.each do |component|
+        component_dir = File.join(driver_app, component)
+        config.autoload_paths << component_dir if File.directory?(component_dir)
+      end
+    end
+
+    Dir[root.join('drivers', '*', 'lib')].each do |driver_lib|
+      next unless File.directory?(driver_lib)
+
+      config.autoload_paths << driver_lib
+      tasks_dir = File.join(driver_lib, 'tasks')
+      Rails.autoloaders.main.ignore(tasks_dir) if File.directory?(tasks_dir)
+    end
+
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = routes
@@ -150,5 +170,17 @@ module OpenPath
     config.location_processors = []
     config.queued_tasks = {}
     config.report_archival_types = []
+
+    initializer 'load_driver_routes', before: :add_routing_paths, after: :bootstrap_hook do |app|
+      Dir[root.join('drivers', '*', 'config', 'routes.rb')].sort.each do |route_path|
+        app.routes_reloader.paths.unshift(route_path)
+      end
+    end
+
+    initializer 'load_driver_feature_initializers', after: :load_config_initializers do
+      Dir[root.join('drivers', '**', 'config', 'initializers', '**', '*.rb')].sort.each do |path|
+        load path
+      end
+    end
   end
 end
