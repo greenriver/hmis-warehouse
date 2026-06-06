@@ -533,6 +533,85 @@ module HmisSimulation
       Random.new(@seed + "miss:#{context_suffix}".hash).rand < miss_rate
     end
 
+    # -- CE record creation helpers --
+
+    # Creates an opening Assessment + Event (code 3) for a newly opened lifecycle enrollment.
+    def create_opening_ce_records(lc_enrollment, date, data_source:, user_id:)
+      hud_enrollment = Hmis::Hud::Enrollment.find_by(id: lc_enrollment.hud_enrollment_id)
+      return unless hud_enrollment
+
+      unless record_miss?("ce_assessment:#{hud_enrollment.EnrollmentID}")
+        Builders::AssessmentBuilder.new(
+          enrollment: hud_enrollment,
+          date: date,
+          data_source: data_source,
+          user_id: user_id,
+          rng_seed: @seed + "ce_assessment:#{hud_enrollment.EnrollmentID}".hash,
+        ).build!
+      end
+
+      return if record_miss?("ce_open_event:#{hud_enrollment.EnrollmentID}")
+
+      Builders::EventBuilder.new(
+        enrollment: hud_enrollment,
+        date: date,
+        event_code: 3,
+        data_source: data_source,
+        user_id: user_id,
+      ).build!
+    end
+
+    # Creates a mid-enrollment housing assessment Event (code 4) once per lifecycle enrollment,
+    # after the enrollment has been open for at least 30 days.
+    def create_midterm_ce_event(lc_enrollment, date, data_source:, user_id:)
+      hud_enrollment = Hmis::Hud::Enrollment.find_by(id: lc_enrollment.hud_enrollment_id)
+      return unless hud_enrollment
+
+      days_open = (date - hud_enrollment.EntryDate).to_i
+      return if days_open < 30
+
+      already_created = Hmis::Hud::Event.where(
+        data_source_id: @data_source_id,
+        EnrollmentID: hud_enrollment.EnrollmentID,
+        Event: 4,
+      ).exists?
+      return if already_created
+
+      return if record_miss?("ce_midterm_event:#{hud_enrollment.EnrollmentID}")
+
+      Builders::EventBuilder.new(
+        enrollment: hud_enrollment,
+        date: date,
+        event_code: 4,
+        data_source: data_source,
+        user_id: user_id,
+      ).build!
+    end
+
+    # Creates a closing Event for a lifecycle enrollment based on the close reason.
+    #   housing_move_in  → code 14 (PSH referral), ReferralResult 1 (accepted)
+    #   disengagement    → code 9 (no availability in continuum)
+    #   pre_entry_exit   → code 2 (problem solving / diversion)
+    def create_closing_ce_event(enrollment, date, reason:, data_source:, user_id:)
+      return if record_miss?("ce_close_event:#{enrollment.EnrollmentID}")
+
+      event_code, referral_result = case reason
+      when 'housing_move_in' then [14, 1]
+      when 'disengagement'   then [9,  nil]
+      else                        [2,  nil]
+      end
+
+      Builders::EventBuilder.new(
+        enrollment: enrollment,
+        date: date,
+        event_code: event_code,
+        referral_result: referral_result,
+        result_date: (date if referral_result),
+        data_source: data_source,
+        user_id: user_id,
+      ).build!
+    end
+
     # -- Concurrent enrollment tick --
 
     def tick_concurrent(date:)
@@ -751,7 +830,7 @@ module HmisSimulation
         client = Hmis::Hud::Client.find_by(id: sim_client.hud_client_id)
         next unless client
 
-        Builders::LifecycleEnrollmentBuilder.new(
+        lc_enrollment = Builders::LifecycleEnrollmentBuilder.new(
           client: client,
           lifecycle_name: lc_cfg['name'],
           ce_project: ce_project,
@@ -760,11 +839,15 @@ module HmisSimulation
           data_source: data_source,
           user_id: user_id,
         ).build!
+
+        create_opening_ce_records(lc_enrollment, opens_on, data_source: data_source, user_id: user_id)
       end
     end
 
     def process_lifecycle_close_conditions(lifecycle_enrollment, date, data_source:, user_id:, lc_cfg:)
       return unless lc_cfg
+
+      create_midterm_ce_event(lifecycle_enrollment, date, data_source: data_source, user_id: user_id)
 
       close_conditions = lc_cfg['close_conditions'] || {}
 
@@ -837,6 +920,8 @@ module HmisSimulation
           seed: @seed,
           context_prefix: "lifecycle_exit:#{lifecycle_enrollment.id}:#{date}",
         ).build!
+
+        create_closing_ce_event(enrollment, date, reason: reason, data_source: data_source, user_id: user_id)
       end
 
       lifecycle_enrollment.update!(status: 'closed', close_reason: reason)

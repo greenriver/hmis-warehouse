@@ -459,6 +459,55 @@ RSpec.describe HmisSimulation::Engine do
         )
         expect(closed.count).to be > 0
       end
+
+      it 'creates an opening Event (code 3) for CE enrollments' do
+        described_class.new(lifecycle_config).run(date: run_date)
+        opening_events = Hmis::Hud::Event.where(data_source: data_source, Event: 3)
+        expect(opening_events.count).to be > 0
+      end
+
+      it 'creates an Assessment for each CE enrollment' do
+        described_class.new(lifecycle_config).run(date: run_date)
+        ce_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'CE Program_')
+        ce_enrollment_ids = Hmis::Hud::Enrollment.
+          where(data_source: data_source, project_pk: ce_project.id).
+          pluck(:EnrollmentID)
+
+        assessments = Hmis::Hud::Assessment.where(data_source: data_source, EnrollmentID: ce_enrollment_ids)
+        expect(assessments.count).to be > 0
+      end
+
+      it 'creates 3-5 AssessmentResults per Assessment' do
+        described_class.new(lifecycle_config).run(date: run_date)
+        Hmis::Hud::Assessment.where(data_source: data_source).each do |assessment|
+          result_count = Hmis::Hud::AssessmentResult.where(
+            data_source: data_source,
+            AssessmentID: assessment.AssessmentID,
+          ).count
+          expect(result_count).to be_between(3, 5)
+        end
+      end
+
+      it 'creates a closing Event when CE enrollment closes with housing_move_in' do
+        config = lifecycle_config.deep_dup
+        config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
+        config['tracks'].find { |t| t['type'] == 'primary' }['transitions'] = [
+          { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+            'timing' => { 'distribution' => 'constant', 'value' => 1 },
+            'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+            'exit_destinations' => { '435' => 1 } },
+        ]
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        engine_instance = described_class.new(cfg)
+
+        engine_instance.run(date: run_date)
+        engine_instance.run(date: run_date + 1)
+
+        # housing_move_in close → code 14 (PSH referral, successful)
+        closing_events = Hmis::Hud::Event.where(data_source: data_source, Event: 14, ReferralResult: 1)
+        expect(closing_events.count).to be > 0
+      end
     end
 
     context 'annual collection' do
