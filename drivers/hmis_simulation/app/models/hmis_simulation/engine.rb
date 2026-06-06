@@ -724,6 +724,7 @@ module HmisSimulation
         RelationshipToHoH: 1,
         DisablingCondition: 99,
         LivingSituation: 116,
+        DateOfEngagement: (date if project.ProjectType == 4),
         EnrollmentCoC: coc_code,
       )
 

@@ -72,10 +72,11 @@ Five `hmis_simulation_*` tables track simulation progress so the engine can resu
 
 1. Spawn new clients (looped over all primary tracks)
 2. Primary exits and entries (transitions, gap between programs)
-3. Annual assessment collection (IncomeBenefits with jitter + miss rate)
-4. Concurrent enrollment tick (looped over all concurrent tracks)
-5. Lifecycle enrollment tick (CE trigger, close conditions)
-6. Write `RunLog`
+3. Periodic CLS records (SO: every ~30 days; CE: every ~90 days)
+4. Annual assessment collection (IncomeBenefits + EmploymentEducation with jitter + miss rate)
+5. Concurrent enrollment tick (looped over all concurrent tracks)
+6. Lifecycle enrollment tick (CE trigger, close conditions, mid-enrollment events)
+7. Write `RunLog`
 
 Each daily run is idempotent — re-running the same date is a no-op.
 
@@ -89,8 +90,8 @@ Every generated record is recognizably synthetic:
 |---|---|---|
 | PersonalID, EnrollmentID, etc. | `FAKE` prefix + 28 hex chars | `FAKE9a3f4b1c...` |
 | SSN | Always starts with `999` | `999421783` |
-| FirstName | US city name + `_` | `Portland_` |
-| LastName | River/water body name + `_` | `Columbia_` |
+| FirstName | US city or water body name + `_` | `Portland_`, `Tahoe_`, `Narragansett_` |
+| LastName | Latin plant binomial + `_` | `Quercus robur_`, `Betula pendula_` |
 | Project/Org names | Configured names must end with `_` | `Harbor ES NBN_` |
 
 ---
@@ -131,7 +132,7 @@ Validates the config and saves it as an `AppConfigProperty` record. The key is d
 bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]
 ```
 
-Creates organizations, projects, `ProjectCoc`, `Inventory`, and `Funder` records idempotently. Safe to re-run.
+Creates organizations, projects, `ProjectCoc`, `Inventory`, `Funder`, `HmisParticipation`, and `CeParticipation` records idempotently. Safe to re-run.
 
 ---
 
@@ -164,6 +165,76 @@ bundle exec rake driver:hmis_simulation:run_all
 
 ---
 
+## HUD compliance
+
+The simulation generates a complete set of HUD 2026 HMIS records for each project type, driven by machine-readable rules in `drivers/hmis_simulation/public/compliance/project_type_rules.json`. Records are sampled from valid HUD code sets via `HudHelper.util` (version-aware, switches from 2024 → 2026 on configured cutover dates).
+
+### Records generated per project type
+
+| Record | Project types | When |
+|---|---|---|
+| `HmisParticipation` | All | Bootstrap |
+| `CeParticipation` | CE (type 14) | Bootstrap |
+| `ProjectCoC.Zip`, `.GeographyType` | All | Bootstrap |
+| `Inventory.ESBedType`, sub-bed counts | Residential (0,1,2,3,8,9,10,13) | Bootstrap |
+| `LivingSituation` + full 3.917 suite | All | Enrollment entry |
+| `DateOfEngagement` | SO (type 4) | Enrollment entry |
+| `ReferralSource` | All | Enrollment entry |
+| `EmploymentEducation` | Residential (0,1,2,3,8,9,10,13) | Entry, annual, exit |
+| `CurrentLivingSituation` (periodic) | SO: ~30-day interval; CE: ~90-day interval | During enrollment |
+| `Assessment` + `AssessmentResults` | CE (type 14) | At enrollment open |
+| `Event` (opening, mid-enrollment, closing) | CE (type 14) | At open / mid / close |
+
+#### 3.917 Prior Living Situation fields
+
+`LivingSituation` is sampled from a per-population weighted distribution (configured via `prior_living_situation` in the population config, or project-type defaults). The following fields are derived or co-sampled:
+
+- `LengthOfStay` — sampled from valid HUD codes
+- `LOSUnderThreshold` — derived from `LengthOfStay` (1 if < 7 nights, 0 otherwise)
+- `PreviousStreetESSH` — sampled (~40% yes, ~45% no, ~15% DNC)
+- When `PreviousStreetESSH = 1`: `DateToStreetESSH`, `TimesHomelessPastThreeYears`, `MonthsHomelessPastThreeYears`
+
+#### CE Event codes
+
+| When | Event code | Description |
+|---|---|---|
+| Enrollment open | 3 | Referral to scheduled CE Crisis Needs Assessment |
+| Mid-enrollment (≥30 days open) | 4 | Referral to scheduled CE Housing Needs Assessment |
+| Close: `housing_move_in` | 14 | Referral to PSH (successful) |
+| Close: `disengagement` | 9 | No availability in continuum services |
+| Close: `pre_entry_exit` | 2 | Problem Solving / Diversion |
+
+### Data quality and deliberate violations
+
+`data_quality.record_miss_rate` (default `0.0025`) introduces a 0.25% chance that any required per-enrollment record is skipped. This simulates real-world gaps where a staff member forgets to complete an assessment, or a system import drops a record. The same seeded RNG is used for each record slot, so a given enrollment always produces the same miss result for a given simulation seed.
+
+Field-level data quality (missing DOB, approximate DOB, missing SSN, missing name) is controlled separately by the existing `missing_dob_rate`, `approximate_dob_rate`, `missing_ssn_rate`, and `missing_name_rate` keys.
+
+### Auditing compliance
+
+After running the simulation, check generated data against the compliance rules:
+
+```bash
+bundle exec rake driver:hmis_simulation:validate_data[hmis_simulation/demo-coc-small]
+```
+
+Reports violations grouped by type with counts. Expects near-zero violations for a well-configured simulation (only the deliberate `record_miss_rate` gaps). Example output:
+
+```
+✓ No compliance violations found for data_source_id 42
+```
+
+Or with violations:
+
+```
+✗ 3 compliance violation(s) found:
+  missing_date_of_engagement (2):
+    - SO enrollment "FAKE..." in "Street Outreach Team_" is missing DateOfEngagement
+    ...
+```
+
+---
+
 ## Config reference
 
 The full annotated config with all options is in `drivers/hmis_simulation/config/sample/small_coc.json`. Key sections:
@@ -174,6 +245,17 @@ The full annotated config with all options is in `drivers/hmis_simulation/config
 | `data_quality` | Global rates for missing/approximate DOB, SSN, and name. Each primary track may override via its own `data_quality` key (deep-merged on top of global). |
 | `tracks` | Array of track configs. At least one `type: "primary"` is required. |
 
+### Project config keys (inside `organizations[].projects[]`)
+
+| Key | Purpose |
+|---|---|
+| `name` | Project name; must end with `_` |
+| `project_type` | HUD project type integer |
+| `capacity` | Bed count used for Inventory records |
+| `funders` | Array of `{ funder, grant_id }` objects |
+| `hmis_participation_type` | `1` (HMIS Participating) or `2` (HMIS Protected). Default: `1`. |
+| `ce_participation` | CE participation flags (CE projects only): `access_point`, `prevention_assessment`, `crisis_assessment`, `housing_assessment`, `direct_services`, `receives_referrals` (all 0/1). |
+
 ### Primary track keys
 
 | Key | Purpose |
@@ -181,10 +263,36 @@ The full annotated config with all options is in `drivers/hmis_simulation/config
 | `new_clients_per_month` | Distribution controlling spawn rate. Steady-state ≈ (lambda/30) × avg_days_enrolled. |
 | `household_cohesion_probability` | Per-member probability of re-including an existing household member on re-enrollment. |
 | `household_templates` | Demographic distributions for adult-only, adult+child, and child-only households. |
-| `populations` | Named stages in the housing journey; `entry_point` and `exit_point` are relative weights. |
+| `populations` | Named stages in the housing journey; `entry_point` and `exit_point` are relative weights. Each population may have a `prior_living_situation` distribution (see below). |
 | `transitions` | How clients move between populations; each has a `timing` distribution, optional `gap_before_entry`, and `exit_destinations`. |
 | `enrollment_config` | Disability probabilities, income sources, health/DV rates, annual collection jitter. |
 | `data_quality` | Per-track override; deep-merged with the top-level `data_quality`. |
+
+#### Population `prior_living_situation`
+
+Each population entry may include a `prior_living_situation` weighted distribution over valid HUD `LivingSituation` codes. Keys are HUD code strings; values are relative weights (normalized internally). Validated against `HudHelper.util.valid_prior_living_situations` at config load time.
+
+```json
+{
+  "name": "street",
+  "prior_living_situation": {
+    "distribution": "weighted",
+    "weights": { "116": 70, "101": 10, "118": 5, "99": 15 }
+  }
+}
+```
+
+If omitted, `LivingSituation` is sampled uniformly from all valid HUD codes.
+
+### `data_quality` keys
+
+| Key | Default | Purpose |
+|---|---|---|
+| `missing_dob_rate` | `0.0` | Probability DOB is set to nil + `DOBDataQuality: 99` |
+| `approximate_dob_rate` | `0.0` | Probability DOB is year-only + `DOBDataQuality: 2` |
+| `missing_ssn_rate` | `0.0` | Probability SSN is nil + `SSNDataQuality: 99` |
+| `missing_name_rate` | `0.0` | Probability name is nil + `NameDataQuality: 99` |
+| `record_miss_rate` | `0.0` | Probability any required per-enrollment record is skipped entirely (EmploymentEducation, periodic CLS, CE Assessment, CE Event) |
 
 ### Concurrent track keys
 

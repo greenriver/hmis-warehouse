@@ -325,6 +325,84 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
   end
 
   # -----------------------------------------------------------------------
+  # Compliance: 30-day run satisfies HUD spec requirements
+  # -----------------------------------------------------------------------
+  describe '30-day compliance run' do
+    let(:compliance_start) { Date.new(2026, 2, 1) }
+    let(:compliance_end)   { Date.new(2026, 3, 2) }
+
+    before { run_engine(compliance_start..compliance_end) }
+
+    it 'creates HmisParticipation for every project' do
+      project_count       = ds_scope(Hmis::Hud::Project).count
+      participation_count = ds_scope(Hmis::Hud::HmisParticipation).count
+      expect(participation_count).to eq(project_count)
+    end
+
+    it 'creates CeParticipation for the CE project' do
+      ce_projects = ds_scope(Hmis::Hud::Project).where(ProjectType: 14)
+      ce_participation_count = ds_scope(Hmis::Hud::CeParticipation).count
+      expect(ce_participation_count).to eq(ce_projects.count)
+    end
+
+    it 'sets LivingSituation to a non-nil value on all enrollments' do
+      missing = ds_scope(Hmis::Hud::Enrollment).where(LivingSituation: nil)
+      expect(missing.count).to eq(0)
+    end
+
+    it 'sets DateOfEngagement on all SO project enrollments' do
+      so_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Integration SO_')
+      so_enrollments = ds_scope(Hmis::Hud::Enrollment).where(project_pk: so_project.id)
+      missing_engagement = so_enrollments.where(DateOfEngagement: nil)
+      expect(missing_engagement.count).to eq(0)
+    end
+
+    it 'creates EmploymentEducation for residential project enrollments' do
+      expect(ds_scope(Hmis::Hud::EmploymentEducation).count).to be > 0
+    end
+
+    it 'creates EmploymentEducation only for residential project types' do
+      non_residential_pks = ds_scope(Hmis::Hud::Project).
+        where(ProjectType: [4, 6, 7, 11, 12, 14]).
+        pluck(:id)
+      non_residential_enrollment_ids = ds_scope(Hmis::Hud::Enrollment).
+        where(project_pk: non_residential_pks).
+        pluck(:EnrollmentID)
+
+      if non_residential_enrollment_ids.any?
+        ee_for_non_residential = ds_scope(Hmis::Hud::EmploymentEducation).
+          where(EnrollmentID: non_residential_enrollment_ids)
+        expect(ee_for_non_residential.count).to eq(0)
+      end
+    end
+
+    it 'creates Assessment records for CE enrollments' do
+      ce_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Integration CE_')
+      ce_enrollment_ids = ds_scope(Hmis::Hud::Enrollment).
+        where(project_pk: ce_project.id).
+        pluck(:EnrollmentID)
+
+      expect(ds_scope(Hmis::Hud::Assessment).where(EnrollmentID: ce_enrollment_ids).count).to be > 0 if ce_enrollment_ids.any?
+    end
+
+    it 'creates Event records for CE enrollments' do
+      ce_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Integration CE_')
+      ce_enrollment_ids = ds_scope(Hmis::Hud::Enrollment).
+        where(project_pk: ce_project.id).
+        pluck(:EnrollmentID)
+
+      expect(ds_scope(Hmis::Hud::Event).where(EnrollmentID: ce_enrollment_ids).count).to be > 0 if ce_enrollment_ids.any?
+    end
+
+    it 'reports zero ComplianceValidator violations' do
+      validator  = HmisSimulation::ComplianceValidator.new(data_source_id: data_source.id)
+      violations = validator.validate!
+      expect(violations).to be_empty, "Expected 0 violations, got #{violations.size}:\n" \
+        "#{violations.map { |v| "  #{v[:type]}: #{v[:message]}" }.first(10).join("\n")}"
+    end
+  end
+
+  # -----------------------------------------------------------------------
   # Config validation: sample config passes validator
   # -----------------------------------------------------------------------
   describe 'sample config validity' do
