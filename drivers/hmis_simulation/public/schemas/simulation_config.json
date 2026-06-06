@@ -125,7 +125,13 @@
         "missing_dob_rate": { "type": "number", "minimum": 0, "maximum": 1 },
         "missing_ssn_rate": { "type": "number", "minimum": 0, "maximum": 1 },
         "missing_name_rate": { "type": "number", "minimum": 0, "maximum": 1 },
-        "approximate_dob_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+        "approximate_dob_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "record_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability of skipping creation of any required per-enrollment record (EmploymentEducation, CLS, Event, Assessment). Default 0.0025 (0.25%)."
+        }
       }
     },
 

@@ -78,6 +78,30 @@ task :bootstrap, [:key] => :environment do |_t, args|
   puts "Bootstrap complete for #{config['name'].inspect} (data_source_id: #{config['data_source_id']})"
 end
 
+desc 'Audit generated data for a simulation against HUD compliance rules'
+task :validate_data, [:key] => :environment do |_t, args|
+  key = args[:key]
+  raise ArgumentError, 'Usage: rake driver:hmis_simulation:validate_data[hmis_simulation/key]' if key.blank?
+
+  config = HmisSimulation::ConfigLoader.from_app_config(key)
+  data_source_id = config['data_source_id']
+
+  validator = HmisSimulation::ComplianceValidator.new(data_source_id: data_source_id)
+  violations = validator.validate!
+
+  if violations.empty?
+    puts "✓ No compliance violations found for data_source_id #{data_source_id}"
+  else
+    warn "✗ #{violations.size} compliance violation(s) found:"
+    violations.group_by { |v| v[:type] }.each do |type, group|
+      warn "  #{type} (#{group.size}):"
+      group.first(5).each { |v| warn "    - #{v[:message]}" }
+      warn "    ... and #{group.size - 5} more" if group.size > 5
+    end
+    exit 1
+  end
+end
+
 desc 'Load a simulation config JSON file into AppConfigProperty and validate it'
 task :setup_from_file, [:path] => :environment do |_t, args|
   path = args[:path]

@@ -274,4 +274,32 @@ RSpec.describe HmisSimulation::ConfigValidator do
       expect(v).to be_valid
     end
   end
+
+  describe 'prior_living_situation validation' do
+    def config_with_prior_living_situation(weights)
+      config = valid_config.deep_dup
+      config['tracks'][0]['populations'][0]['prior_living_situation'] = {
+        'distribution' => 'weighted',
+        'weights' => weights,
+      }
+      config
+    end
+
+    it 'is valid when prior_living_situation uses known HUD codes' do
+      v = described_class.new(config_with_prior_living_situation('116' => 60, '101' => 40))
+      expect(v).to be_valid
+    end
+
+    it 'errors when prior_living_situation uses an invalid HUD code' do
+      v = described_class.new(config_with_prior_living_situation('9999' => 1))
+      expect(v).not_to be_valid
+      expect(v.errors.join).to match(/9999/)
+    end
+
+    it 'errors when prior_living_situation uses a non-numeric key' do
+      v = described_class.new(config_with_prior_living_situation('homeless' => 1))
+      expect(v).not_to be_valid
+      expect(v.errors.join).to match(/homeless/)
+    end
+  end
 end

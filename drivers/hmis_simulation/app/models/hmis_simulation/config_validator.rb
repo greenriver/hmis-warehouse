@@ -46,6 +46,7 @@ module HmisSimulation
       validate_lifecycle_tracks
       validate_concurrent_tracks
       validate_applies_to_tracks
+      validate_prior_living_situations
 
       @errors.empty?
     end
@@ -165,6 +166,24 @@ module HmisSimulation
 
     def lifecycle_tracks
       @lifecycle_tracks ||= (@config['tracks'] || []).select { |t| t['type'] == 'lifecycle' }
+    end
+
+    def validate_prior_living_situations
+      valid_codes = HudHelper.util.valid_prior_living_situations.map(&:to_s).to_set
+
+      primary_tracks.each do |track|
+        (track['populations'] || []).each do |pop|
+          pls = pop.dig('prior_living_situation', 'weights')
+          next if pls.blank?
+
+          pls.each_key do |code|
+            next if valid_codes.include?(code.to_s)
+
+            @errors << "primary track #{track['name'].inspect} population #{pop['name'].inspect} " \
+                       "prior_living_situation weight key #{code.inspect} is not a valid HUD living situation code"
+          end
+        end
+      end
     end
 
     def all_project_names
