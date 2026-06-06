@@ -1,20 +1,14 @@
 # HMIS Simulation Engine
 
-Generates realistic, obviously-fake HMIS data for demo and staging environments. The engine populates `Hmis::Hud::*` tables directly — the same tables that back the HMIS front-end and warehouse reports — so generated clients appear in the UI and flow through to all standard HUD reports (APR, LSA, SPM, etc.).
-
-Related issue: open-path/Green-River#8210
+Generates realistic, obviously-fake HMIS data for development, demo, and staging environments. The engine populates `Hmis::Hud::*` (`GrdaWarehouse::Hud::*`) tables directly — the same tables that back the HMIS front-end and warehouse reports — so generated clients appear in the UI and flow through to all standard HUD reports (APR, LSA, SPM, etc.).
 
 ---
 
 ## Why
 
-Demo and staging environments need data that is:
-
 - **Fresh** — updated daily so the demo always looks like a live system
-- **Realistic** — enough variety in program types, client demographics, and enrollment patterns that HUD reports produce non-trivial output
+- **Realistic** — enough variety in program types, client demographics, and enrollment patterns that the data looks real.  Additionally, the data generally follows HMIS data entry guidelines with some intentional data quality issues.
 - **Obviously fake** — unambiguously synthetic so no simulated record can be mistaken for real client data
-
-The simulation generates all records with recognizable fake identifiers (see below) and is driven by a JSON config that controls populations, project mix, volume, and data quality rates.
 
 ---
 
@@ -26,7 +20,7 @@ A simulation config has a `tracks` array. Each track has a `type` (`primary`, `c
 
 | Track type | Example | Lifecycle |
 |---|---|---|
-| **primary** | General population ES → PSH journey | Sequential state machine; one active enrollment at a time; exits and re-enters based on configured transitions |
+| **primary** | General population homeless → housed journey through the continuum | Sequential state machine; one active enrollment at a time; exits and re-enters based on configured transitions |
 | **concurrent** | Street Outreach contacts, Case Management | Independent timer-based enrollments that overlap with the primary; may reopen after a gap |
 | **lifecycle** | Coordinated Entry | Opens when client enters a trigger population; closes on housing move-in, disengagement timeout, or pre-entry exit |
 
