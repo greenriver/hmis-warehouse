@@ -212,11 +212,13 @@ module HmisSimulation
       funder_code = funder_cfg['funder'].to_i
       grant_id    = funder_cfg['grant_id'].to_s
 
-      Hmis::Hud::Funder.find_or_initialize_by(
+      # The Funder column is stored as varchar but the model attribute is declared
+      # as :integer, so ActiveRecord binds an integer parameter and PostgreSQL
+      # rejects the varchar = integer comparison. Cast the column explicitly.
+      Hmis::Hud::Funder.where(
         data_source_id: data_source.id,
         ProjectID: project.ProjectID,
-        Funder: funder_code,
-      ).tap do |funder|
+      ).where('"Funder"::integer = ?', funder_code).first_or_initialize.tap do |funder|
         next unless funder.new_record?
 
         funder.assign_attributes(
