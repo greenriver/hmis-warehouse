@@ -54,7 +54,15 @@
         },
         {
           "name": "CE Coordinating Agency_",
-          "project_type": 14
+          "project_type": 14,
+          "ce_participation": {
+            "access_point": 1,
+            "prevention_assessment": 0,
+            "crisis_assessment": 1,
+            "housing_assessment": 1,
+            "direct_services": 1,
+            "receives_referrals": 1
+          }
         },
         {
           "name": "Case Management Services_",
@@ -68,7 +76,8 @@
     "missing_dob_rate": 0.02,
     "missing_ssn_rate": 0.05,
     "missing_name_rate": 0.01,
-    "approximate_dob_rate": 0.03
+    "approximate_dob_rate": 0.03,
+    "record_miss_rate": 0.0025
   },
 
   "tracks": [

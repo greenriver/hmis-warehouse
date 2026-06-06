@@ -130,6 +130,79 @@ RSpec.describe HmisSimulation::Bootstrapper do
       expect(cocs).to include('XX-500')
     end
 
+    it 'creates HmisParticipation for every project' do
+      bootstrapper.run!
+      project_count = ds_scope(Hmis::Hud::Project).count
+      expect(ds_scope(Hmis::Hud::HmisParticipation).count).to eq(project_count)
+    end
+
+    it 'sets HMISParticipationType to 1 by default' do
+      bootstrapper.run!
+      types = ds_scope(Hmis::Hud::HmisParticipation).pluck(:HMISParticipationType).uniq
+      expect(types).to eq([1])
+    end
+
+    it 'uses hmis_participation_type from project config when present' do
+      config_with_type = HmisSimulation::ConfigLoader.send(
+        :normalize,
+        base_config.deep_merge(
+          'organizations' => [
+            base_config['organizations'][0].deep_merge(
+              'projects' => base_config['organizations'][0]['projects'].map.with_index do |p, i|
+                i.zero? ? p.merge('hmis_participation_type' => 2) : p
+              end,
+            ),
+          ],
+        ),
+      )
+      described_class.new(config_with_type).run!
+      types = ds_scope(Hmis::Hud::HmisParticipation).pluck(:HMISParticipationType).sort
+      expect(types).to include(2)
+    end
+
+    it 'creates CeParticipation only for CE projects (type 14)' do
+      bootstrapper.run!
+      expect(ds_scope(Hmis::Hud::CeParticipation).count).to eq(1)
+    end
+
+    it 'does not create CeParticipation for non-CE projects' do
+      bootstrapper.run!
+      ce_project_ids = ds_scope(Hmis::Hud::Project).where(ProjectType: 14).pluck(:ProjectID)
+      non_ce_participations = ds_scope(Hmis::Hud::CeParticipation).
+        where.not(ProjectID: ce_project_ids)
+      expect(non_ce_participations.count).to eq(0)
+    end
+
+    it 'sets ProjectCoC Zip and GeographyType' do
+      bootstrapper.run!
+      coc = ds_scope(Hmis::Hud::ProjectCoc).first
+      expect(coc.Zip).to eq('99901')
+      expect(coc.GeographyType).to eq(1)
+    end
+
+    it 'sets ESBedType on ES-NBN inventory' do
+      bootstrapper.run!
+      es_nbn_project = ds_scope(Hmis::Hud::Project).find_by(ProjectType: 1)
+      inventory = ds_scope(Hmis::Hud::Inventory).find_by(ProjectID: es_nbn_project.ProjectID)
+      expect(inventory.ESBedType).to eq(1)
+    end
+
+    it 'sets HMISParticipatingBeds equal to BedInventory' do
+      bootstrapper.run!
+      ds_scope(Hmis::Hud::Inventory).each do |inv|
+        expect(inv.HMISParticipatingBeds).to eq(inv.BedInventory)
+      end
+    end
+
+    it 'partitions sub-bed counts so they sum to BedInventory' do
+      bootstrapper.run!
+      ds_scope(Hmis::Hud::Inventory).each do |inv|
+        sub_beds = inv.VetBedInventory.to_i + inv.YouthBedInventory.to_i + inv.CHBedInventory.to_i
+        expect(sub_beds).to eq(inv.BedInventory), \
+                            "Expected sub-beds (#{sub_beds}) to equal BedInventory (#{inv.BedInventory}) for project #{inv.ProjectID}"
+      end
+    end
+
     context 'when run twice' do
       it 'is idempotent — creates no duplicate records' do
         bootstrapper.run!
@@ -139,7 +212,9 @@ RSpec.describe HmisSimulation::Bootstrapper do
           and not_change { ds_scope(Hmis::Hud::Project).count }.
           and not_change { ds_scope(Hmis::Hud::ProjectCoc).count }.
           and not_change { ds_scope(Hmis::Hud::Inventory).count }.
-          and(not_change { ds_scope(Hmis::Hud::Funder).count })
+          and not_change { ds_scope(Hmis::Hud::Funder).count }.
+          and not_change { ds_scope(Hmis::Hud::HmisParticipation).count }.
+          and(not_change { ds_scope(Hmis::Hud::CeParticipation).count })
       end
     end
 

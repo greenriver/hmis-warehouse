@@ -89,6 +89,19 @@
       }
     },
 
+    "ce_participation_config": {
+      "description": "CE participation service flags for a Coordinated Entry project (type 14).",
+      "type": "object",
+      "properties": {
+        "access_point":           { "type": "integer", "minimum": 0, "maximum": 1 },
+        "prevention_assessment":  { "type": "integer", "minimum": 0, "maximum": 1 },
+        "crisis_assessment":      { "type": "integer", "minimum": 0, "maximum": 1 },
+        "housing_assessment":     { "type": "integer", "minimum": 0, "maximum": 1 },
+        "direct_services":        { "type": "integer", "minimum": 0, "maximum": 1 },
+        "receives_referrals":     { "type": "integer", "minimum": 0, "maximum": 1 }
+      }
+    },
+
     "project_in_org": {
       "description": "A project inside an organization. Name must end with '_'.",
       "type": "object",
@@ -100,6 +113,15 @@
         "funders": {
           "type": "array",
           "items": { "$ref": "#/$defs/funder" }
+        },
+        "hmis_participation_type": {
+          "type": "integer",
+          "enum": [1, 2],
+          "description": "HUD HMISParticipationType: 1=HMIS Participating, 2=HMIS Protected. Defaults to 1."
+        },
+        "ce_participation": {
+          "$ref": "#/$defs/ce_participation_config",
+          "description": "CE participation service flags. Only applicable to CE projects (project_type 14). Defaults applied from compliance rules when omitted."
         }
       }
     },
