@@ -53,7 +53,7 @@ RSpec.describe HmisSimulation::FakeIdentifier do
       expect(name.chomp('_')).not_to be_empty
     end
 
-    it 'draws from the city list' do
+    it 'draws from the city/water-body list' do
       names = 50.times.map { described_class.first_name }
       expect(names.uniq.length).to be > 1
     end
@@ -69,7 +69,7 @@ RSpec.describe HmisSimulation::FakeIdentifier do
       expect(name.chomp('_')).not_to be_empty
     end
 
-    it 'draws from the river/water body list' do
+    it 'draws from the Latin plant name list' do
       names = 50.times.map { described_class.last_name }
       expect(names.uniq.length).to be > 1
     end
