@@ -44,7 +44,7 @@ module HmisSimulation
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           AssessmentDate: @date,
-          AssessmentLocation: 'Community Assessment Site_',
+          AssessmentLocation: 'Community Assessment Site',
           AssessmentType: @rng.rand(1..3),
           AssessmentLevel: @rng.rand(1..2),
           PrioritizationStatus: @rng.rand(1..2),

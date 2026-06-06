@@ -45,7 +45,7 @@ module HmisSimulation
       def sample_destination
         dests = @exit_destinations.transform_keys(&:to_s)
         cfg   = { 'distribution' => 'weighted', 'weights' => dests }
-        rng   = Random.new(@seed + "#{@prefix}:destination".hash)
+        rng   = Random.new(@seed + HmisSimulation::Hashing.stable_hash("#{@prefix}:destination"))
         Distribution.sample(cfg, rng: rng)
       end
     end

@@ -92,7 +92,7 @@ module HmisSimulation
           HouseholdID: @household_id,
           EntryDate: @entry_date,
           MoveInDate: (PH_PROJECT_TYPES.include?(@project.ProjectType) ? @entry_date : nil),
-          DateOfEngagement: (@project.ProjectType == 4 ? @entry_date + rand(0..7) : nil),
+          DateOfEngagement: (@project.ProjectType == 4 ? @entry_date + Random.new(@rng_seed + 6).rand(0..7) : nil),
           RelationshipToHoH: relationship_to_hoh,
           DisablingCondition: 99,
           EnrollmentCoC: @coc_code,
@@ -161,7 +161,8 @@ module HmisSimulation
         return true if @cohesion_prob >= 1.0
         return false if @cohesion_prob <= 0.0
 
-        Random.new(@rng_seed + index).rand < @cohesion_prob
+        # Offset by 1000 to avoid seed collision with field-sampler offsets (0–6).
+        Random.new(@rng_seed + 1000 + index).rand < @cohesion_prob
       end
     end
   end

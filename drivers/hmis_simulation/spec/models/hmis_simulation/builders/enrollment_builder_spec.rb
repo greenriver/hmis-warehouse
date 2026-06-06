@@ -172,7 +172,7 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
     context 'DateOfEngagement for Street Outreach (project_type 4)' do
       let(:so_project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 4) }
 
-      def build_so
+      def build_so(seed: 42)
         described_class.new(
           project: so_project,
           hud_household_id: HmisSimulation::FakeIdentifier.uuid,
@@ -181,7 +181,7 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
           hoh_client: hoh_client,
           data_source: data_source,
           user_id: user_id,
-          rng_seed: 42,
+          rng_seed: seed,
         ).build!
       end
 
@@ -203,6 +203,14 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
       it 'does not set DateOfEngagement for non-SO project (type 1)' do
         enrollment = build[:hoh_enrollment]
         expect(enrollment.DateOfEngagement).to be_nil
+      end
+
+      # Regression: bare rand(0..7) produces a different value on every call.
+      # After fix, DateOfEngagement uses Random.new(@rng_seed + offset) and is stable.
+      it 'produces the same DateOfEngagement for the same rng_seed (determinism)' do
+        date1 = build_so(seed: 99)[:hoh_enrollment].DateOfEngagement
+        date2 = build_so(seed: 99)[:hoh_enrollment].DateOfEngagement
+        expect(date1).to eq(date2)
       end
     end
   end

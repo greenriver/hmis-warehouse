@@ -11,6 +11,9 @@ module HmisSimulation
     # Creates one Hmis::Hud::EmploymentEducation record at entry, annual, or exit.
     # Samples field values from valid HUD code sets via HudHelper.util.
     # Subject to record_miss_rate (callers check before invoking).
+    #
+    # Each field uses an independent Random derived from rng_seed + a fixed offset,
+    # so adding new fields in the future does not shift existing field values.
     class EmploymentEducationBuilder
       EXPORT_ID = Bootstrapper::EXPORT_ID
 
@@ -22,12 +25,12 @@ module HmisSimulation
         @stage      = stage
         @ds         = data_source
         @uid        = user_id
-        @rng        = Random.new(rng_seed)
+        @rng_seed   = rng_seed
       end
 
       def build!
         util = HudHelper.util
-        employed = sample_employed(util)
+        employed = sample_employed
 
         Hmis::Hud::EmploymentEducation.create!(
           data_source_id: @ds.id,
@@ -40,26 +43,26 @@ module HmisSimulation
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,
           DataCollectionStage: STAGE_CODES.fetch(@stage, 1),
-          LastGradeCompleted: sample_from(util.last_grade_completeds),
-          SchoolStatus: sample_from(util.school_statuses),
+          LastGradeCompleted: sample_from(util.last_grade_completeds, offset: 1),
+          SchoolStatus: sample_from(util.school_statuses, offset: 2),
           Employed: employed,
-          EmploymentType: (employed == 1 ? sample_from(util.employment_types.reject { |k, _| k == 99 }) : nil),
-          NotEmployedReason: (employed == 0 ? sample_from(util.not_employed_reasons.reject { |k, _| k == 99 }) : nil),
+          EmploymentType: (employed == 1 ? sample_from(util.employment_types.reject { |k, _| k == 99 }, offset: 3) : nil),
+          NotEmployedReason: (employed == 0 ? sample_from(util.not_employed_reasons.reject { |k, _| k == 99 }, offset: 4) : nil),
         )
       end
 
       private
 
-      def sample_from(hash)
-        hash.keys.sample(random: @rng)
+      def sample_from(hash, offset:)
+        hash.keys.sample(random: Random.new(@rng_seed + offset))
       end
 
-      def sample_employed(_util)
+      def sample_employed
         # Weight toward meaningful responses: 40% employed, 40% not employed, 20% DNC
         weights = { 1 => 0.40, 0 => 0.40, 99 => 0.20 }
         Distribution.sample(
           { 'distribution' => 'weighted', 'weights' => weights.transform_keys(&:to_s) },
-          rng: @rng,
+          rng: Random.new(@rng_seed),
         ).to_i
       end
     end

@@ -186,7 +186,8 @@ module HmisSimulation
 
         capacity = proj_cfg['capacity'].to_i.then { |c| c.positive? ? c : 10 }
         rules    = ComplianceRules.rules_for(project.ProjectType)&.dig('bootstrap') || {}
-        vet, youth, ch = sub_bed_partition(capacity) if rules['track_vet_beds']
+        bed_seed = @config['seed'].to_i + HmisSimulation::Hashing.stable_hash(project.ProjectID.to_s)
+        vet, youth, ch = sub_bed_partition(capacity, seed: bed_seed) if rules['track_vet_beds']
 
         inv.assign_attributes(
           **hud_attrs(data_source: data_source, user_id: user_id),
@@ -232,10 +233,12 @@ module HmisSimulation
 
     # Randomly partition +total+ into three non-negative integers [vet, youth, ch]
     # that sum exactly to +total+, using two random split points.
-    def sub_bed_partition(total)
+    # Accepts an optional +seed+ for deterministic output across process restarts.
+    def sub_bed_partition(total, seed: nil)
       return [0, 0, 0] if total.zero?
 
-      splits = 2.times.map { rand(total + 1) }.sort
+      rng = seed ? Random.new(seed) : Random.new
+      splits = 2.times.map { rng.rand(total + 1) }.sort
       [splits[0], splits[1] - splits[0], total - splits[1]]
     end
   end

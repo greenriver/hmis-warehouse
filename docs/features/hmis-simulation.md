@@ -85,8 +85,8 @@ Every generated record is recognizably synthetic:
 | PersonalID, EnrollmentID, etc. | `FAKE` prefix + 28 hex chars | `FAKE9a3f4b1c...` |
 | SSN | Always starts with `999` | `999421783` |
 | FirstName | US city or water body name + `_` | `Portland_`, `Tahoe_`, `Narragansett_` |
-| LastName | Latin plant binomial + `_` | `Quercus robur_`, `Betula pendula_` |
-| Project/Org names | Configured names must end with `_` | `Harbor ES NBN_` |
+| LastName | Latin plant binomial + `_` | `Quercus Robur_`, `Betula Pendula_` |
+| Project/Organization names | Configured names must end with `_` | `Harbor ES NBN_` |
 
 ---
 

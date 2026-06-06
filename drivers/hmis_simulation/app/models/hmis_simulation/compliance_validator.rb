@@ -11,6 +11,15 @@ module HmisSimulation
   # in ComplianceRules. Checks record *presence* only — value validity is enforced
   # at generation time by builders sampling from HudHelper.util code sets.
   #
+  # Checks performed:
+  #   - HmisParticipation — all projects
+  #   - CeParticipation — CE (type 14) projects only
+  #   - Inventory — residential project types (non-SO/SSO/Other/DayShelter/HP/CE)
+  #   - DateOfEngagement — SO (type 4) enrollments
+  #   - LivingSituation — all enrollments
+  #   - EmploymentEducation at entry — residential enrollment types
+  #   - Assessment — CE (type 14) enrollments
+  #
   # Returns an array of violation hashes, each with:
   #   :type        — Symbol identifying the violation
   #   :message     — Human-readable description
@@ -22,6 +31,9 @@ module HmisSimulation
   #   violations = v.validate!
   #   puts violations.map { |v| v[:message] }.join("\n")
   class ComplianceValidator
+    # Project types that do not require Inventory records (matches Bootstrapper constant)
+    NON_RESIDENTIAL_PROJECT_TYPES = [4, 6, 7, 11, 12, 14].freeze
+
     def initialize(data_source_id:)
       @data_source_id = data_source_id
       @violations = []
@@ -31,6 +43,7 @@ module HmisSimulation
       @violations = []
       check_project_records
       check_enrollment_fields
+      check_enrollment_records
       @violations
     end
 
@@ -39,7 +52,7 @@ module HmisSimulation
     def check_project_records
       projects = Hmis::Hud::Project.
         where(data_source_id: @data_source_id).
-        includes(:hmis_participations, :ce_participations)
+        includes(:hmis_participations, :ce_participations, :inventories)
 
       projects.each do |project|
         pt = project.ProjectType.to_i
@@ -53,14 +66,23 @@ module HmisSimulation
           )
         end
 
-        next unless ComplianceRules.ce_participation_required?(pt)
-        next if project.ce_participations.any?
+        if ComplianceRules.ce_participation_required?(pt) && project.ce_participations.empty?
+          add_violation(
+            type: :missing_ce_participation,
+            project_name: project.ProjectName,
+            project_type: pt,
+            message: "CE project #{project.ProjectName.inspect} (type #{pt}) is missing a CeParticipation record",
+          )
+        end
+
+        next if NON_RESIDENTIAL_PROJECT_TYPES.include?(pt)
+        next if project.inventories.any?
 
         add_violation(
-          type: :missing_ce_participation,
+          type: :missing_inventory,
           project_name: project.ProjectName,
           project_type: pt,
-          message: "CE project #{project.ProjectName.inspect} (type #{pt}) is missing a CeParticipation record",
+          message: "Residential project #{project.ProjectName.inspect} (type #{pt}) is missing an Inventory record",
         )
       end
     end
@@ -99,6 +121,71 @@ module HmisSimulation
             project_name: project_name,
             project_type: pt,
             message: "Enrollment #{enrollment_id.inspect} in #{project_name.inspect} (type #{pt}) is missing LivingSituation",
+          )
+        end
+    end
+
+    def check_enrollment_records
+      project_info = Hmis::Hud::Project.
+        where(data_source_id: @data_source_id).
+        pluck(:id, :ProjectType, :ProjectName).
+        each_with_object({}) do |(pk, pt, name), h|
+          h[pk] = { type: pt.to_i, name: name }
+        end
+
+      check_employment_education(project_info)
+      check_ce_assessments(project_info)
+    end
+
+    def check_employment_education(project_info)
+      residential_project_pks = project_info.select { |_, info| ComplianceRules.employment_education_required?(info[:type]) }.keys
+      return if residential_project_pks.empty?
+
+      # Enrollment IDs that have at least one entry-stage EE record
+      enrolled_ee_ids = Hmis::Hud::EmploymentEducation.
+        where(data_source_id: @data_source_id, DataCollectionStage: 1).
+        pluck(:EnrollmentID).
+        to_set
+
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: residential_project_pks).
+        pluck(:project_pk, :EnrollmentID).
+        each do |project_pk, enrollment_id|
+          next if enrolled_ee_ids.include?(enrollment_id)
+
+          info = project_info[project_pk]
+          add_violation(
+            type: :missing_employment_education,
+            project_name: info[:name],
+            project_type: info[:type],
+            message: "Enrollment #{enrollment_id.inspect} in #{info[:name].inspect} (type #{info[:type]}) " \
+                     'is missing an entry EmploymentEducation record',
+          )
+        end
+    end
+
+    def check_ce_assessments(project_info)
+      ce_project_pks = project_info.select { |_, info| info[:type] == 14 }.keys
+      return if ce_project_pks.empty?
+
+      # Enrollment IDs that have at least one Assessment record
+      assessed_enrollment_ids = Hmis::Hud::Assessment.
+        where(data_source_id: @data_source_id).
+        pluck(:EnrollmentID).
+        to_set
+
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: ce_project_pks).
+        pluck(:project_pk, :EnrollmentID).
+        each do |project_pk, enrollment_id|
+          next if assessed_enrollment_ids.include?(enrollment_id)
+
+          info = project_info[project_pk]
+          add_violation(
+            type: :missing_ce_assessment,
+            project_name: info[:name],
+            project_type: info[:type],
+            message: "CE enrollment #{enrollment_id.inspect} in #{info[:name].inspect} is missing an Assessment record",
           )
         end
     end

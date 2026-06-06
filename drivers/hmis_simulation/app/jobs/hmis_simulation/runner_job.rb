@@ -65,14 +65,17 @@ module HmisSimulation
       end
 
       engine = HmisSimulation::Engine.new(config)
+      failing_date = nil
       (start_date..end_date).each do |date|
+        failing_date = date
         engine.run(date: date)
       end
+      failing_date = nil
 
       days_run = (end_date - start_date).to_i + 1
       log("Simulation '#{config['name']}' advanced #{days_run} day(s) through #{end_date}")
     rescue StandardError => e
-      record_simulation_error(config, end_date, e)
+      record_simulation_error(config, failing_date || end_date, e)
     end
 
     def record_simulation_error(config, date, error)

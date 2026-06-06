@@ -11,7 +11,7 @@ class HmisSimulation::RunLog < GrdaWarehouseBase
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  scope :successful, -> { where(error_message: nil) }
+  scope :successful, -> { where(error_message: nil).where.not(finished_at: nil) }
 
   def self.last_successful_run_date(data_source_id)
     where(data_source_id: data_source_id).successful.maximum(:run_date)

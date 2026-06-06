@@ -114,7 +114,7 @@ module HmisSimulation
       private
 
       def rng(sub_context)
-        Random.new(@seed + "#{@prefix}:#{sub_context}".hash)
+        Random.new(@seed + HmisSimulation::Hashing.stable_hash("#{@prefix}:#{sub_context}"))
       end
 
       # -- Name --

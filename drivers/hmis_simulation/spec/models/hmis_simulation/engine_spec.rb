@@ -539,6 +539,146 @@ RSpec.describe HmisSimulation::Engine do
         )
         expect(annual.count).to eq(1)
       end
+
+      # Regression: with ceil(), days_enrolled=375, year_number=ceil(375/365)=2,
+      # and the annual for year 1 is never fired.
+      it 'fires year-1 annual when positive jitter pushes expected date past day 365' do
+        # entry 375 days before run_date; jitter=+10 → expected = entry + 365 + 10 = run_date
+        entry_date = run_date - 375
+        hoh = create(:hmis_hud_client, data_source: data_source)
+        project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test ES_')
+        enrollment = create(
+          :hmis_hud_enrollment,
+          data_source: data_source, client: hoh, project: project,
+          EntryDate: entry_date
+        )
+
+        cfg = base_config.deep_dup
+        cfg['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
+          track['enrollment_config'] ||= {}
+          track['enrollment_config']['annual_collection'] = {
+            'miss_rate' => 0.0,
+            'timing_jitter' => { 'distribution' => 'constant', 'value' => 10 },
+          }
+        end
+        described_class.new(HmisSimulation::ConfigLoader.send(:normalize, cfg)).run(date: run_date)
+
+        annual = Hmis::Hud::IncomeBenefit.where(
+          data_source: data_source,
+          EnrollmentID: enrollment.EnrollmentID,
+          DataCollectionStage: 5,
+        )
+        expect(annual.count).to eq(1)
+      end
+    end
+
+    context 'RunLog behavior' do
+      it 'retries a previously-failed date without raising RecordNotUnique' do
+        # Simulate a prior failed run that left an errored RunLog
+        HmisSimulation::RunLog.create!(
+          data_source_id: data_source.id,
+          run_date: run_date,
+          started_at: 1.hour.ago,
+          finished_at: 1.hour.ago,
+          error_message: 'Previous failure',
+        )
+
+        expect { engine.run(date: run_date) }.not_to raise_error
+
+        log = HmisSimulation::RunLog.find_by(data_source_id: data_source.id, run_date: run_date)
+        expect(log.error_message).to be_nil
+        expect(log.finished_at).to be_present
+      end
+
+      describe 'RunLog.successful scope' do
+        it 'excludes in-progress logs (nil finished_at)' do
+          log = HmisSimulation::RunLog.create!(
+            data_source_id: data_source.id,
+            run_date: run_date + 200,
+            started_at: Time.current,
+            clients_created: 0,
+          )
+          expect(HmisSimulation::RunLog.successful.pluck(:id)).not_to include(log.id)
+        end
+
+        it 'includes completed successful logs' do
+          log = HmisSimulation::RunLog.create!(
+            data_source_id: data_source.id,
+            run_date: run_date + 200,
+            started_at: Time.current,
+            finished_at: Time.current,
+            clients_created: 0,
+          )
+          expect(HmisSimulation::RunLog.successful.pluck(:id)).to include(log.id)
+        end
+
+        it 'excludes logs with error_message even when finished_at is set' do
+          log = HmisSimulation::RunLog.create!(
+            data_source_id: data_source.id,
+            run_date: run_date + 200,
+            started_at: Time.current,
+            finished_at: Time.current,
+            error_message: 'failed',
+            clients_created: 0,
+          )
+          expect(HmisSimulation::RunLog.successful.pluck(:id)).not_to include(log.id)
+        end
+      end
+    end
+
+    context 'when a sim_client has an orphaned hud_enrollment_id' do
+      it 'does not raise when processing an exit for a deleted enrollment' do
+        engine.run(date: run_date)
+
+        sim_client_with_enrollment = HmisSimulation::Client.
+          where(data_source_id: data_source.id).
+          find { |c| c.hud_enrollment_id && c.next_transition_on }
+        skip 'no enrolled sim_client with transition found' unless sim_client_with_enrollment
+
+        # Orphan the enrollment by deleting it directly
+        Hmis::Hud::Enrollment.where(id: sim_client_with_enrollment.hud_enrollment_id).delete_all
+        sim_client_with_enrollment.update!(next_transition_on: run_date + 1)
+
+        expect { engine.run(date: run_date + 1) }.not_to raise_error
+      end
+    end
+
+    context 'household_cohesion_probability: 0 is respected, not overridden to 0.85' do
+      it 'never includes household members when cohesion is explicitly set to 0' do
+        hoh = create(:hmis_hud_client, data_source: data_source)
+        member = create(:hmis_hud_client, data_source: data_source)
+        group = HmisSimulation::HouseholdGroup.create!(
+          data_source_id: data_source.id,
+          hoh_client_id: hoh.id,
+          member_client_ids: [{ 'hud_client_id' => member.id, 'relationship_to_hoh' => 2 }],
+          household_template_name: 'adult_and_child',
+        )
+
+        zero_cohesion_config = base_config.deep_dup.tap do |cfg|
+          cfg['tracks'].first['household_cohesion_probability'] = 0
+        end
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, zero_cohesion_config)
+        engine_instance = described_class.new(cfg)
+
+        HmisSimulation::Client.create!(
+          data_source_id: data_source.id,
+          hud_client_id: hoh.id,
+          household_group_id: group.id,
+          current_population: 'street',
+          entered_current_population_at: run_date,
+          pending_enrollment_on: run_date,
+          track_name: 'general',
+          exited_system: false,
+        )
+
+        engine_instance.run(date: run_date)
+
+        member_enrollments = Hmis::Hud::Enrollment.where(
+          data_source: data_source,
+          PersonalID: member.PersonalID,
+        )
+        expect(member_enrollments.count).to eq(0)
+      end
     end
   end
 end
