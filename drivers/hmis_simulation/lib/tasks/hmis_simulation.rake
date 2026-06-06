@@ -10,9 +10,25 @@
 # Usage examples:
 #   bundle exec rake driver:hmis_simulation:validate[drivers/hmis_simulation/config/sample/small_coc.json]
 #   bundle exec rake driver:hmis_simulation:setup_from_file[drivers/hmis_simulation/config/sample/small_coc.json]
-#   bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc]
-#   bundle exec rake driver:hmis_simulation:run[hmis_simulation/demo-coc,2026-01-15]
-#   bundle exec rake driver:hmis_simulation:run_range[hmis_simulation/demo-coc,2026-01-01,2026-01-31]
+#   bundle exec rake driver:hmis_simulation:run[hmis_simulation/demo-coc-small,2026-01-15]
+#   bundle exec rake driver:hmis_simulation:run_range[hmis_simulation/demo-coc-small,2026-01-01,2026-01-31]
+#   bundle exec rake driver:hmis_simulation:run_all
+#
+# Bootstrap runs automatically before the first run. The standalone bootstrap task
+# is still available if you need to pre-create HUD records ahead of time:
+#   bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]
+
+def ensure_simulation_bootstrapped(config)
+  data_source_id = config['data_source_id'].to_i
+  return if Hmis::Hud::Project.where(
+    data_source_id: data_source_id,
+    ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
+  ).exists?
+
+  puts "No projects found for '#{config['name']}' — bootstrapping now..."
+  HmisSimulation::Bootstrapper.new(config).run!
+  puts "Bootstrap complete for '#{config['name']}'"
+end
 
 desc 'Validate a simulation config file or AppConfigProperty key'
 task :validate, [:path_or_key] => :environment do |_t, args|
@@ -48,6 +64,7 @@ task :run, [:key, :date] => :environment do |_t, args|
 
   date   = Date.parse(args[:date])
   config = HmisSimulation::ConfigLoader.from_app_config(key)
+  ensure_simulation_bootstrapped(config)
   HmisSimulation::Engine.new(config).run(date: date)
   puts "Run complete for #{date}"
 end
@@ -60,6 +77,7 @@ task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:run_range[key,2026-01-01,2026-01-31]' if key.blank?
 
   config = HmisSimulation::ConfigLoader.from_app_config(key)
+  ensure_simulation_bootstrapped(config)
   engine = HmisSimulation::Engine.new(config)
   (start_date..end_date).each do |date|
     engine.run(date: date)
@@ -118,5 +136,6 @@ task :setup_from_file, [:path] => :environment do |_t, args|
   key = "hmis_simulation/#{raw['name'].parameterize}"
   HmisSimulation::ConfigLoader.upsert_app_config(key, raw)
   puts "Saved config as AppConfigProperty key: #{key.inspect}"
-  puts "Run bootstrap next: rake driver:hmis_simulation:bootstrap[#{key}]"
+  puts 'Bootstrap will run automatically on first run_all, run, or run_range.'
+  puts "To bootstrap now: rake driver:hmis_simulation:bootstrap[#{key}]"
 end

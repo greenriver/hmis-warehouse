@@ -56,6 +56,8 @@ module HmisSimulation
       config = HmisSimulation::ConfigLoader.from_app_config(key)
       data_source_id = config['data_source_id'].to_i
 
+      ensure_bootstrapped(config)
+
       last_run = HmisSimulation::RunLog.last_successful_run_date(data_source_id)
       start_date = last_run ? last_run + 1 : end_date
 
@@ -76,6 +78,18 @@ module HmisSimulation
       log("Simulation '#{config['name']}' advanced #{days_run} day(s) through #{end_date}")
     rescue StandardError => e
       record_simulation_error(config, failing_date || end_date, e)
+    end
+
+    def ensure_bootstrapped(config)
+      data_source_id = config['data_source_id'].to_i
+      return if Hmis::Hud::Project.where(
+        data_source_id: data_source_id,
+        ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
+      ).exists?
+
+      log("No projects found for '#{config['name']}' — bootstrapping now")
+      HmisSimulation::Bootstrapper.new(config).run!
+      log("Bootstrap complete for '#{config['name']}'")
     end
 
     def record_simulation_error(config, date, error)

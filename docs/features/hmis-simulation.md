@@ -120,7 +120,7 @@ bundle exec rake driver:hmis_simulation:setup_from_file[/tmp/my-demo-coc.json]
 
 Validates the config and saves it as an `AppConfigProperty` record. The key is derived from the config's `name` field (e.g. `hmis_simulation/demo-coc-small`).
 
-### 4. Bootstrap HUD records
+Bootstrap runs automatically the first time you call `run_all`, `run`, or `run_range` — no separate step required. If you need to pre-create the HUD records before the first run (e.g. to inspect projects in the UI first), you can bootstrap explicitly:
 
 ```bash
 bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]

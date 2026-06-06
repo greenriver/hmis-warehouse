@@ -188,7 +188,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6'
+gem 'puma', '~> 8'
 
 gem 'dotenv-rails'
 
