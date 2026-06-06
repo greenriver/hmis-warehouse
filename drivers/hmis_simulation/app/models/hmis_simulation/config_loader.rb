@@ -46,6 +46,7 @@ module HmisSimulation
           normalize_entry_points!(track)
           normalize_transition_weights!(track)
           normalize_exit_destinations!(track)
+          normalize_prior_living_situation_weights!(track)
         when 'concurrent'
           normalize_count_distribution!(track)
         end
@@ -88,6 +89,18 @@ module HmisSimulation
         next if total.zero?
 
         t['exit_destinations'] = dests.transform_values { |w| w.to_f / total }
+      end
+    end
+
+    def normalize_prior_living_situation_weights!(track)
+      (track['populations'] || []).each do |pop|
+        weights = pop.dig('prior_living_situation', 'weights')
+        next unless weights.present?
+
+        total = weights.values.sum(&:to_f)
+        next if total.zero?
+
+        pop['prior_living_situation']['weights'] = weights.transform_values { |w| w.to_f / total }
       end
     end
 

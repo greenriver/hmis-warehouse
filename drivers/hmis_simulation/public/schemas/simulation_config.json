@@ -48,6 +48,18 @@
           "minimum": 0,
           "maximum": 1,
           "description": "Probability that a client permanently exits the system after this enrollment ends."
+        },
+        "prior_living_situation": {
+          "type": "object",
+          "description": "Weighted distribution over HUD 3.917 LivingSituation codes for clients entering this population. Keys are HUD code strings (e.g. '116'). Weights normalized internally. Validated semantically against HudHelper.util.valid_prior_living_situations.",
+          "properties": {
+            "distribution": { "type": "string", "const": "weighted" },
+            "weights": {
+              "type": "object",
+              "description": "Map of HUD LivingSituation code (string) to relative weight.",
+              "additionalProperties": { "type": "number", "minimum": 0 }
+            }
+          }
         }
       }
     },

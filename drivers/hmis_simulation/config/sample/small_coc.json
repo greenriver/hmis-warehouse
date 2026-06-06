@@ -128,7 +128,11 @@
           "project_ref": "Street Outreach Team_",
           "household_templates": { "adult_only": 0.7, "adult_and_child": 0.2, "child_only": 0.1 },
           "entry_point": 5,
-          "exit_point": 0.05
+          "exit_point": 0.05,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "116": 70, "101": 10, "118": 5, "302": 5, "99": 10 }
+          }
         },
         {
           "name": "es_nbn",
@@ -136,7 +140,11 @@
           "project_ref": "Harbor ES NBN_",
           "household_templates": { "adult_only": 0.8, "adult_and_child": 0.15, "child_only": 0.05 },
           "entry_point": 4,
-          "exit_point": 0.08
+          "exit_point": 0.08,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "116": 50, "101": 20, "335": 10, "336": 10, "302": 5, "99": 5 }
+          }
         },
         {
           "name": "es_entry_exit",
@@ -144,7 +152,11 @@
           "project_ref": "Crossroads ES Entry Exit_",
           "household_templates": { "adult_only": 0.5, "adult_and_child": 0.45, "child_only": 0.05 },
           "entry_point": 3,
-          "exit_point": 0.08
+          "exit_point": 0.08,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "116": 45, "101": 20, "335": 10, "336": 10, "302": 5, "99": 10 }
+          }
         },
         {
           "name": "th",
@@ -152,7 +164,11 @@
           "project_ref": "Transitional Steps TH_",
           "household_templates": { "adult_only": 0.6, "adult_and_child": 0.4 },
           "entry_point": 0,
-          "exit_point": 0.25
+          "exit_point": 0.25,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "101": 30, "116": 30, "302": 10, "336": 10, "99": 20 }
+          }
         },
         {
           "name": "psh",
@@ -160,7 +176,11 @@
           "project_ref": "Stable Futures PSH_",
           "household_templates": { "adult_only": 0.9, "adult_and_child": 0.1 },
           "entry_point": 0,
-          "exit_point": 0.5
+          "exit_point": 0.5,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "101": 30, "302": 30, "116": 20, "410": 5, "99": 15 }
+          }
         },
         {
           "name": "rrh",
@@ -168,7 +188,11 @@
           "project_ref": "Rapid Rehouse Program_",
           "household_templates": { "adult_only": 0.4, "adult_and_child": 0.6 },
           "entry_point": 0,
-          "exit_point": 0.65
+          "exit_point": 0.65,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "101": 35, "116": 25, "302": 25, "99": 15 }
+          }
         }
       ],
 

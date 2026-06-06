@@ -49,6 +49,7 @@ module HmisSimulation
 
           spawn_clients(date: date)
           tick_primary(date: date)
+          tick_cls_records(date: date)
           tick_annual_collections(date: date)
           tick_concurrent(date: date)
           tick_lifecycle(date: date)
@@ -248,6 +249,7 @@ module HmisSimulation
         hoh_client: hoh_client,
         member_relationships: members,
         household_cohesion_probability: cohesion,
+        population_config: population_cfg || {},
         data_source: data_source,
         user_id: user_id,
         rng_seed: @seed + "entry:#{date}:#{sim_client.id}".hash,
@@ -328,18 +330,31 @@ module HmisSimulation
       ).build!
 
       population_cfg = find_population(sim_client.current_population)
-      return unless population_cfg&.dig('project_ref').present?
+      if population_cfg&.dig('project_ref').present?
+        project = find_project_by_ref(population_cfg['project_ref'], data_source: data_source)
+        cls_code = cls_situation_code_for(project)
+        if cls_code
+          Builders::ClsBuilder.new(
+            enrollment: enrollment,
+            date: date,
+            situation_code: cls_code,
+            data_source: data_source,
+            user_id: user_id,
+          ).build!
+        end
+      end
 
-      project = find_project_by_ref(population_cfg['project_ref'], data_source: data_source)
-      cls_code = cls_situation_code_for(project)
-      return unless cls_code
+      pt = enrollment.project&.ProjectType.to_i
+      return unless ComplianceRules.employment_education_required?(pt)
+      return if record_miss?("ee_entry:#{enrollment.EnrollmentID}")
 
-      Builders::ClsBuilder.new(
+      Builders::EmploymentEducationBuilder.new(
         enrollment: enrollment,
         date: date,
-        situation_code: cls_code,
+        stage: :entry,
         data_source: data_source,
         user_id: user_id,
+        rng_seed: rng_seed + 10,
       ).build!
     end
 
@@ -354,6 +369,19 @@ module HmisSimulation
         data_source: data_source,
         user_id: user_id,
         rng_seed: @seed + "exit_income:#{enrollment.EnrollmentID}".hash,
+      ).build!
+
+      pt = enrollment.project&.ProjectType.to_i
+      return unless ComplianceRules.employment_education_required?(pt)
+      return if record_miss?("ee_exit:#{enrollment.EnrollmentID}")
+
+      Builders::EmploymentEducationBuilder.new(
+        enrollment: enrollment,
+        date: exit_date,
+        stage: :exit,
+        data_source: data_source,
+        user_id: user_id,
+        rng_seed: @seed + "ee_exit:#{enrollment.EnrollmentID}".hash,
       ).build!
     end
 
@@ -391,6 +419,19 @@ module HmisSimulation
             user_id: user_id,
             rng_seed: @seed + "annual:#{enrollment.EnrollmentID}:#{date}".hash,
           ).build!
+
+          pt = enrollment.project&.ProjectType.to_i
+          next unless ComplianceRules.employment_education_required?(pt)
+          next if record_miss?("ee_annual:#{enrollment.EnrollmentID}:#{date}")
+
+          Builders::EmploymentEducationBuilder.new(
+            enrollment: enrollment,
+            date: date,
+            stage: :annual,
+            data_source: data_source,
+            user_id: user_id,
+            rng_seed: @seed + "ee_annual:#{enrollment.EnrollmentID}:#{date}".hash,
+          ).build!
         end
     end
 
@@ -422,6 +463,74 @@ module HmisSimulation
       when 1, 0 then 101  # Emergency shelter
       when 4    then 116  # Street outreach
       end
+    end
+
+    # -- Periodic CLS tick (SO and CE) --
+
+    def tick_cls_records(date:)
+      cls_project_types = [4, 14]
+      cls_project_pks = Hmis::Hud::Project.
+        where(data_source_id: @data_source_id, ProjectType: cls_project_types).
+        pluck(:id)
+      return if cls_project_pks.empty?
+
+      data_source = GrdaWarehouse::DataSource.find(@data_source_id)
+      user_id     = Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
+
+      open_enrollments = Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: cls_project_pks).
+        open_on_date(date)
+
+      open_enrollments.find_each do |enrollment|
+        pt = enrollment.project&.ProjectType.to_i
+        freq_config = ComplianceRules.cls_frequency(pt)
+        next unless freq_config
+        next unless cls_due?(enrollment, date, freq_config)
+        next if record_miss?("cls:#{enrollment.EnrollmentID}:#{date}")
+
+        situation = enrollment.LivingSituation.to_i
+        situation = 116 if [8, 9, 99, 0].include?(situation)
+
+        Builders::ClsBuilder.new(
+          enrollment: enrollment,
+          date: date,
+          situation_code: situation,
+          data_source: data_source,
+          user_id: user_id,
+        ).build!
+      end
+    end
+
+    def cls_due?(enrollment, date, freq_config)
+      days_enrolled = (date - enrollment.EntryDate).to_i
+      frequency     = freq_config[:days]
+      return false if days_enrolled < frequency / 2
+
+      n = (days_enrolled.to_f / frequency).ceil
+      return false if n < 1
+
+      jitter_cfg = {
+        'distribution' => 'normal',
+        'mean' => 0,
+        'stddev' => freq_config[:jitter_stddev].to_f,
+        'min' => -(freq_config[:jitter_stddev] * 2),
+        'max' => freq_config[:jitter_stddev] * 2,
+      }
+      jitter = Distribution.sample(
+        jitter_cfg,
+        rng: Random.new(@seed + "cls_jitter:#{enrollment.EnrollmentID}:#{n}".hash),
+      ).round
+      expected = enrollment.EntryDate + (frequency * n) + jitter
+      date == expected
+    end
+
+    # Returns true with probability record_miss_rate (from global data_quality config).
+    # Uses a deterministic seeded roll so the same enrollment+date always produces the same result.
+    def record_miss?(context_suffix)
+      miss_rate = (@config.dig('data_quality', 'record_miss_rate') || 0).to_f
+      return false if miss_rate.zero?
+
+      Random.new(@seed + "miss:#{context_suffix}".hash).rand < miss_rate
     end
 
     # -- Concurrent enrollment tick --

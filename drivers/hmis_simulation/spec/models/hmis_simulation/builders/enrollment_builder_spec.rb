@@ -21,7 +21,7 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
   let(:hud_household_id) { HmisSimulation::FakeIdentifier.uuid }
   let(:coc_code) { 'XX-500' }
 
-  def build(member_relationships: [], cohesion_probability: 1.0)
+  def build(member_relationships: [], cohesion_probability: 1.0, population_config: {})
     described_class.new(
       project: project,
       hud_household_id: hud_household_id,
@@ -30,6 +30,7 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
       hoh_client: hoh_client,
       member_relationships: member_relationships,
       household_cohesion_probability: cohesion_probability,
+      population_config: population_config,
       data_source: data_source,
       user_id: user_id,
       rng_seed: 42,
@@ -103,6 +104,105 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
       it 'returns empty member_enrollments array' do
         result = build(member_relationships: members, cohesion_probability: 0.0)
         expect(result[:member_enrollments]).to be_empty
+      end
+    end
+
+    context 'HUD 3.917 Prior Living Situation fields' do
+      it 'sets LivingSituation to a valid HUD code' do
+        enrollment = build[:hoh_enrollment]
+        valid = HudHelper.util.valid_prior_living_situations.map(&:to_s).to_set
+        expect(valid).to include(enrollment.LivingSituation.to_s)
+      end
+
+      it 'draws LivingSituation from prior_living_situation distribution when configured' do
+        pop_cfg = { 'prior_living_situation' => { 'distribution' => 'weighted', 'weights' => { '101' => 1.0 } } }
+        enrollment = build(population_config: pop_cfg)[:hoh_enrollment]
+        expect(enrollment.LivingSituation).to eq(101)
+      end
+
+      it 'sets LengthOfStay to a valid HUD code' do
+        enrollment = build[:hoh_enrollment]
+        valid = HudHelper.util.length_of_stays.keys
+        expect(valid).to include(enrollment.LengthOfStay)
+      end
+
+      it 'sets LOSUnderThreshold derived from LengthOfStay' do
+        enrollment = build[:hoh_enrollment]
+        los = enrollment.LengthOfStay
+        if [10, 11].include?(los)
+          expect(enrollment.LOSUnderThreshold).to eq(1)
+        elsif [8, 9, 99].include?(los)
+          expect(enrollment.LOSUnderThreshold).to eq(99)
+        else
+          expect(enrollment.LOSUnderThreshold).to eq(0)
+        end
+      end
+
+      it 'sets PreviousStreetESSH to 0, 1, or 99' do
+        enrollment = build[:hoh_enrollment]
+        expect([0, 1, 99]).to include(enrollment.PreviousStreetESSH)
+      end
+
+      it 'sets DateToStreetESSH when PreviousStreetESSH is 1' do
+        # Try several seeds until we get PreviousStreetESSH = 1
+        pop_cfg = { 'prior_living_situation' => { 'distribution' => 'weighted', 'weights' => { '116' => 1.0 } } }
+        results = 30.times.map do |i|
+          described_class.new(
+            project: project, hud_household_id: HmisSimulation::FakeIdentifier.uuid,
+            entry_date: date, coc_code: coc_code, hoh_client: hoh_client,
+            population_config: pop_cfg, data_source: data_source,
+            user_id: user_id, rng_seed: i
+          ).build![:hoh_enrollment]
+        end
+        with_prev_street = results.select { |e| e.PreviousStreetESSH == 1 }
+        next if with_prev_street.empty?
+
+        with_prev_street.each { |e| expect(e.DateToStreetESSH).to be_present }
+      end
+    end
+
+    context 'ReferralSource' do
+      it 'sets ReferralSource to a valid HUD code' do
+        enrollment = build[:hoh_enrollment]
+        valid = HudHelper.util.referral_sources.keys
+        expect(valid).to include(enrollment.ReferralSource)
+      end
+    end
+
+    context 'DateOfEngagement for Street Outreach (project_type 4)' do
+      let(:so_project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 4) }
+
+      def build_so
+        described_class.new(
+          project: so_project,
+          hud_household_id: HmisSimulation::FakeIdentifier.uuid,
+          entry_date: date,
+          coc_code: coc_code,
+          hoh_client: hoh_client,
+          data_source: data_source,
+          user_id: user_id,
+          rng_seed: 42,
+        ).build!
+      end
+
+      it 'sets DateOfEngagement on SO enrollments' do
+        enrollment = build_so[:hoh_enrollment]
+        expect(enrollment.DateOfEngagement).to be_present
+      end
+
+      it 'sets DateOfEngagement on or after entry date' do
+        enrollment = build_so[:hoh_enrollment]
+        expect(enrollment.DateOfEngagement).to be >= date
+      end
+
+      it 'sets DateOfEngagement within 7 days of entry' do
+        enrollment = build_so[:hoh_enrollment]
+        expect(enrollment.DateOfEngagement).to be <= date + 7
+      end
+
+      it 'does not set DateOfEngagement for non-SO project (type 1)' do
+        enrollment = build[:hoh_enrollment]
+        expect(enrollment.DateOfEngagement).to be_nil
       end
     end
   end

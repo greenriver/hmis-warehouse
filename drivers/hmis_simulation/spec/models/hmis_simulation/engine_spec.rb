@@ -248,6 +248,54 @@ RSpec.describe HmisSimulation::Engine do
           where.not(DisablingCondition: 99)
         expect(updated.count).to be > 0
       end
+
+      it 'creates EmploymentEducation records at entry for residential project types' do
+        # base_config has ES-NBN (type 1) which is residential
+        count = Hmis::Hud::EmploymentEducation.where(data_source: data_source, DataCollectionStage: 1).count
+        expect(count).to be > 0
+      end
+
+      it 'sets LivingSituation to a valid HUD code on enrollments' do
+        valid = HudHelper.util.valid_prior_living_situations.to_set
+        enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
+        enrollments.each do |e|
+          expect(valid).to include(e.LivingSituation), "Expected #{e.LivingSituation} to be valid"
+        end
+      end
+    end
+
+    context 'periodic CLS records for SO enrollments' do
+      let(:so_config) do
+        base_config.deep_dup.tap do |cfg|
+          # Add an SO project (not linked to any population so engine won't auto-spawn into it)
+          cfg['organizations'].first['projects'] << { 'name' => 'Test SO_', 'project_type' => 4 }
+        end
+      end
+      let(:so_normalized) { HmisSimulation::ConfigLoader.send(:normalize, so_config) }
+
+      before do
+        HmisSimulation::Bootstrapper.new(so_normalized).run!
+      end
+
+      it 'creates CLS records for SO enrollments at the frequency interval' do
+        so_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test SO_')
+        client = create(:hmis_hud_client, data_source: data_source)
+        # Entry 1 day ago; CLS window is days 15-45 (30 ± 2*stddev)
+        create(
+          :hmis_hud_enrollment,
+          data_source: data_source,
+          project: so_project,
+          client: client,
+          EntryDate: run_date - 1,
+        )
+
+        engine_instance = described_class.new(so_normalized)
+        # Run days 1 through 50 relative to entry to cover the first CLS window
+        (1..50).each { |i| engine_instance.run(date: run_date + i) }
+
+        cls_count = Hmis::Hud::CurrentLivingSituation.where(data_source: data_source).count
+        expect(cls_count).to be >= 1
+      end
     end
 
     context 'concurrent enrollments' do
