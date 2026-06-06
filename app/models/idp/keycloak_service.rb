@@ -23,8 +23,11 @@ module Idp
   # - client_id: Service account client ID with manage-users permission
   # - client_secret: Service account client secret
   class KeycloakService < Service
+    UPDATABLE_ATTRIBUTES = %i[first_name last_name email].freeze
+
     def initialize(config: nil)
       super(config: config || default_config)
+      validate_config!
       @cached_token = nil
       @token_expires_at = nil
     end
@@ -59,13 +62,8 @@ module Idp
           connector_user_id: user_id,
         }
       when 400..499
-        begin
-          error_data = JSON.parse(response.body)
-        rescue StandardError
-          error_data = {}
-        end
         raise ServiceError.new(
-          "Failed to create user: #{error_data['errorMessage'] || response.body}",
+          "Failed to create user: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: :create_user,
         )
@@ -85,6 +83,9 @@ module Idp
     # @return [Boolean] true if successful
     # @raise [Idp::ServiceError] if update fails
     def update_user(user_id:, attributes:)
+      unknown = attributes.keys - UPDATABLE_ATTRIBUTES
+      raise ArgumentError, "Unknown attributes: #{unknown.join(', ')}" if unknown.any?
+
       updates = {}
       updates[:firstName] = attributes[:first_name] if attributes[:first_name]
       updates[:lastName] = attributes[:last_name] if attributes[:last_name]
@@ -94,7 +95,7 @@ module Idp
         updates[:emailVerified] = false
       end
 
-      return {} if updates.empty?
+      return true if updates.empty?
 
       response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}", body: updates)
 
@@ -102,13 +103,8 @@ module Idp
       when 200..299
         true
       when 400..499
-        begin
-          error_data = JSON.parse(response.body)
-        rescue StandardError
-          error_data = {}
-        end
         raise ServiceError.new(
-          "Failed to update user: #{error_data['errorMessage'] || response.body}",
+          "Failed to update user: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: :update_user,
         )
@@ -139,13 +135,8 @@ module Idp
           operation: :get_user,
         )
       when 400..499
-        begin
-          error_data = JSON.parse(response.body)
-        rescue StandardError
-          error_data = {}
-        end
         raise ServiceError.new(
-          "Failed to get user: #{error_data['errorMessage'] || response.body}",
+          "Failed to get user: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: :get_user,
         )
@@ -174,13 +165,8 @@ module Idp
       when 200..299
         true
       when 400..499
-        begin
-          error_data = JSON.parse(response.body)
-        rescue StandardError
-          error_data = {}
-        end
         raise ServiceError.new(
-          "Failed to reactivate user: #{error_data['errorMessage'] || response.body}",
+          "Failed to reactivate user: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: :reactivate_user,
         )
@@ -244,15 +230,9 @@ module Idp
           message: "Keycloak server error: #{response.code}",
         }
       else
-        begin
-          error_data = JSON.parse(response.body)
-          message = error_data['error_description'] || error_data['error'] || response.body
-        rescue StandardError
-          message = response.body
-        end
         {
           success: false,
-          message: "Connection failed: #{message}",
+          message: "Connection failed: #{error_message_from(response)}",
         }
       end
     rescue Errno::ECONNREFUSED
@@ -298,10 +278,6 @@ module Idp
     # @param user [User] User object from Rails app
     # @return [Hash] User data in Keycloak partialImport format
     def build_import_user_data(user)
-      groups = []
-      groups << '/warehouse-users' if user.login_to?(:warehouse)
-      groups << '/hmis-users' if user.login_to?(:hmis)
-
       {
         username: user.email,
         email: user.email,
@@ -309,7 +285,7 @@ module Idp
         lastName: user.last_name,
         enabled: true,
         emailVerified: user.confirmed_at.present?,
-        groups: groups,
+        groups: keycloak_groups_for(user),
         credentials: [
           build_password_data(user),
           build_otp_credential(user),
@@ -338,19 +314,13 @@ module Idp
           response: JSON.parse(response.body),
         }
       else
-        begin
-          error_data = JSON.parse(response.body)
-          error_message = error_data['error'] || error_data['errorMessage'] || response.body
-        rescue StandardError
-          error_message = response.body
-        end
         {
           success: false,
-          error: "Import failed (#{response.code}): #{error_message}",
+          error: "Import failed (#{response.code}): #{error_message_from(response)}",
           failed_count: users.size,
         }
       end
-    rescue StandardError => e
+    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Timeout::Error, Net::OpenTimeout, Net::ReadTimeout, SocketError => e
       {
         success: false,
         error: e.message,
@@ -388,14 +358,8 @@ module Idp
           response: JSON.parse(response.body),
         }
       else
-        begin
-          error_data = JSON.parse(response.body)
-          error_message = error_data['error'] || error_data['errorMessage'] || response.body
-        rescue StandardError
-          error_message = response.body
-        end
         raise Idp::ServiceError.new(
-          "Import failed (#{response.code}): #{error_message}",
+          "Import failed (#{response.code}): #{error_message_from(response)}",
           idp_name: idp_name,
           operation: :import_from_file,
         )
@@ -403,6 +367,17 @@ module Idp
     end
 
     private
+
+    def validate_config!
+      missing = [:api_url, :client_id, :client_secret].select { |key| config[key].blank? }
+      return if missing.empty?
+
+      raise ServiceError.new(
+        "Keycloak misconfigured, missing: #{missing.join(', ')}",
+        idp_name: 'Keycloak',
+        operation: :initialize,
+      )
+    end
 
     def api_url
       config[:api_url]
@@ -437,7 +412,7 @@ module Idp
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
 
-      request = Net::HTTP::Post.new(uri.path)
+      request = Net::HTTP::Post.new(uri.request_uri)
       request['Content-Type'] = 'application/x-www-form-urlencoded'
       request.body = URI.encode_www_form(
         grant_type: 'client_credentials',
@@ -464,31 +439,46 @@ module Idp
     # @param path [String] API endpoint path
     # @param body [Hash, nil] Request body (optional)
     # @return [Net::HTTPResponse] HTTP response
-    def make_request(method, path, body: nil)
+    def make_request(method, path, body: nil, token_retried: false)
       uri = URI("#{api_url}#{path}")
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
+      http.open_timeout = 10
+      http.read_timeout = 30
 
       request_class =
         case method
-        when :get
-          Net::HTTP::Get
-        when :post
-          Net::HTTP::Post
-        when :put
-          Net::HTTP::Put
-        when :delete
-          Net::HTTP::Delete
-        else
-          raise ArgumentError, "Unsupported HTTP method: #{method}"
+        when :get    then Net::HTTP::Get
+        when :post   then Net::HTTP::Post
+        when :put    then Net::HTTP::Put
+        when :delete then Net::HTTP::Delete
+        else raise ArgumentError, "Unsupported HTTP method: #{method}"
         end
 
-      request = request_class.new(uri.path)
+      request = request_class.new(uri.request_uri)
       request['Authorization'] = "Bearer #{access_token}"
       request['Content-Type'] = 'application/json'
       request.body = body.to_json if body
 
-      http.request(request)
+      response = http.request(request)
+
+      if response.code.to_i == 401 && !token_retried
+        @cached_token = nil
+        @token_expires_at = nil
+        return make_request(method, path, body: body, token_retried: true)
+      end
+
+      response
+    end
+
+    def keycloak_groups_for(user)
+      return [] if user.system_user?
+
+      groups = []
+      acl_user_without_groups = user.using_acls? && !user.user_group_members.exists?
+      groups << '/warehouse-users' unless acl_user_without_groups
+      groups << '/hmis-users' if Hmis::UserGroupMember.exists?(user_id: user.id)
+      groups
     end
 
     # Build Keycloak password credential from bcrypt hash.
@@ -534,6 +524,13 @@ module Idp
           secretEncoding: 'BASE32'
         }.to_json,
       }
+    end
+
+    def error_message_from(response)
+      data = JSON.parse(response.body)
+      data['errorMessage'] || data['error_description'] || data['error'] || response.body
+    rescue StandardError
+      response.body
     end
 
     protected

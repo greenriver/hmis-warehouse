@@ -105,6 +105,26 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
+    context 'with unknown attributes' do
+      it 'raises ArgumentError' do
+        expect do
+          service.update_user(
+            user_id: user_id,
+            attributes: { first_name: 'Jane', phone: '555-1234' },
+          )
+        end.to raise_error(ArgumentError, /phone/)
+      end
+    end
+
+    context 'with empty attributes' do
+      it 'returns true without making a request' do
+        result = service.update_user(user_id: user_id, attributes: {})
+
+        expect(result).to be true
+        expect(WebMock).not_to have_requested(:put, /#{Regexp.escape(api_url)}/)
+      end
+    end
+
     context 'with API error' do
       before do
         stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
@@ -252,6 +272,33 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  describe 'token retry on 401' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    it 'retries once with a fresh token when API returns 401' do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(
+          { status: 401, body: { error: 'invalid_token' }.to_json },
+          { status: 200, body: { id: user_id, username: 'test@example.com' }.to_json },
+        )
+
+      result = service.get_user(user_id: user_id)
+
+      expect(result).to include('id' => user_id)
+      expect(a_request(:post, token_url)).to have_been_made.times(2)
+    end
+
+    it 'does not retry more than once' do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 401, body: { error: 'invalid_token' }.to_json)
+
+      expect do
+        service.get_user(user_id: user_id)
+      end.to raise_error(Idp::ServiceError, /Failed to get user/)
+      expect(a_request(:post, token_url)).to have_been_made.times(2)
+    end
+  end
+
   describe '#build_import_user_data' do
     let(:user) do
       create(
@@ -286,22 +333,33 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect(result).not_to have_key(:phone)
     end
 
-    it 'includes warehouse group when user has warehouse access' do
-      allow(user).to receive(:login_to?).with(:warehouse).and_return(true)
-      allow(user).to receive(:login_to?).with(:hmis).and_return(false)
+    it 'includes warehouse group for a role-based user without ACLs' do
       result = service.build_import_user_data(user)
 
       expect(result[:groups]).to include('/warehouse-users')
       expect(result[:groups]).not_to include('/hmis-users')
     end
 
-    it 'includes hmis group when user has hmis access' do
-      allow(user).to receive(:login_to?).with(:warehouse).and_return(false)
-      allow(user).to receive(:login_to?).with(:hmis).and_return(true)
+    it 'includes hmis group when user is in an HMIS UserGroup' do
+      hmis_user_group = create(:hmis_user_group)
+      hmis_user_group.add(user)
       result = service.build_import_user_data(user)
 
       expect(result[:groups]).to include('/hmis-users')
+    end
+
+    it 'excludes warehouse group for an ACL user with no warehouse UserGroup membership' do
+      acl_user = create(:acl_user)
+      result = service.build_import_user_data(acl_user)
+
       expect(result[:groups]).not_to include('/warehouse-users')
+    end
+
+    it 'returns no groups for a system user' do
+      system_user = create(:user, email: 'noreply@greenriver.com')
+      result = service.build_import_user_data(system_user)
+
+      expect(result[:groups]).to be_empty
     end
 
     it 'marks email as unverified when confirmed_at is nil' do
@@ -541,40 +599,34 @@ RSpec.describe Idp::KeycloakService, type: :model do
   end
 
   describe '#supports_user_management?' do
-    context 'when API URL and credentials are configured' do
-      it 'returns true' do
-        expect(service.supports_user_management?).to be true
-      end
+    it 'returns true when fully configured' do
+      expect(service.supports_user_management?).to be true
+    end
+  end
+
+  describe 'config validation' do
+    it 'raises on missing api_url' do
+      expect do
+        described_class.new(config: { client_id: 'x', client_secret: 'y' })
+      end.to raise_error(Idp::ServiceError, /api_url/)
     end
 
-    context 'when API URL is missing' do
-      before do
-        service.config[:api_url] = nil
-      end
-
-      it 'returns false' do
-        expect(service.supports_user_management?).to be false
-      end
+    it 'raises on missing client_id' do
+      expect do
+        described_class.new(config: { api_url: 'http://kc:8080', client_secret: 'y' })
+      end.to raise_error(Idp::ServiceError, /client_id/)
     end
 
-    context 'when client_id is missing' do
-      before do
-        service.config[:client_id] = nil
-      end
-
-      it 'returns false' do
-        expect(service.supports_user_management?).to be false
-      end
+    it 'raises on missing client_secret' do
+      expect do
+        described_class.new(config: { api_url: 'http://kc:8080', client_id: 'x' })
+      end.to raise_error(Idp::ServiceError, /client_secret/)
     end
 
-    context 'when client_secret is missing' do
-      before do
-        service.config[:client_secret] = nil
-      end
-
-      it 'returns false' do
-        expect(service.supports_user_management?).to be false
-      end
+    it 'lists all missing keys' do
+      expect do
+        described_class.new(config: {})
+      end.to raise_error(Idp::ServiceError, /api_url, client_id, client_secret/)
     end
   end
 

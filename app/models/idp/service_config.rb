@@ -7,10 +7,16 @@
 # frozen_string_literal: true
 
 module Idp
-  # Model for storing IDP service account credentials
+  # Persists IDP service-account credentials so they can be managed in the UI
+  # instead of hardcoded in ENV variables.
   #
-  # Allows administrators to configure service accounts for different IDPs
-  # (Keycloak, Okta, Azure AD, etc.) without hardcoding credentials in ENV variables.
+  # Column mapping (columns → config keys passed to the service):
+  #   api_url        → :api_url        — base URL of the IDP (e.g. http://keycloak:8080)
+  #   service_token  → :client_secret  — encrypted service-account secret
+  #   org_id         → :org_id         — (optional) organization identifier
+  #   project_id     → :project_id     — (optional) project identifier
+  #   additional_config (JSONB)         — provider-specific keys merged into the config hash:
+  #     Keycloak: { client_id: "…", realm: "…" }
   class ServiceConfig < GrdaWarehouseBase
     self.table_name = 'idp_service_configs'
     acts_as_paranoid
@@ -21,6 +27,7 @@ module Idp
     validates :name, presence: true
     validates :api_url, presence: true
     validates :service_token, presence: true
+    validate :validate_connector_id
 
     scope :active, -> { where(active: true) }
 
@@ -28,7 +35,9 @@ module Idp
     #
     # @return [Class] The service class (e.g., Idp::KeycloakService)
     def service_class
-      Idp::ServiceFactory.services[connector_id.to_s] || Idp::NullService
+      Idp::ServiceFactory.services[connector_id.to_s] || raise(
+        Idp::ServiceError.new("Unknown connector: #{connector_id}", operation: :service_class),
+      )
     end
 
     # Instantiate the service with this config's stored credentials
@@ -43,6 +52,16 @@ module Idp
       }.merge((additional_config || {}).symbolize_keys)
 
       service_class.new(config: config_hash)
+    end
+
+    private
+
+    def validate_connector_id
+      return if connector_id.blank? # presence validation handles this
+
+      return if Idp::ServiceFactory.services.key?(connector_id.to_s)
+
+      errors.add(:connector_id, "unknown provider: #{connector_id}")
     end
   end
 end
