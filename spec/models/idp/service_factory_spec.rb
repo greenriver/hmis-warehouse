@@ -62,10 +62,10 @@ RSpec.describe Idp::ServiceFactory, type: :model do
     end
 
     context 'with unknown connector' do
-      it 'returns NullService' do
-        service = described_class.for_connector('unknown_idp')
-
-        expect(service).to be_a(Idp::NullService)
+      it 'raises ServiceError' do
+        expect do
+          described_class.for_connector('unknown_idp')
+        end.to raise_error(Idp::ServiceError, /Unknown connector/)
       end
     end
 

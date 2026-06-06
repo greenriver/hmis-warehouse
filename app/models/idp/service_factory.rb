@@ -21,11 +21,8 @@ module Idp
   class ServiceFactory
     class << self
       # Registry mapping connector_id to service class.
-      attr_reader :services
-
-      # Initialize the registry.
-      def initialize_registry
-        @services = {} if @services.nil?
+      def services
+        @services ||= {}
       end
 
       # Register an IDP service class for a given connector_id.
@@ -34,10 +31,9 @@ module Idp
       # @param service_class [Class] The IDP service class (must inherit from Idp::Service)
       # @raise [ArgumentError] if service_class doesn't inherit from Idp::Service
       def register_idp_service(connector_id, service_class)
-        initialize_registry
         raise ArgumentError, "#{service_class.name} must inherit from Idp::Service" unless service_class < Idp::Service
 
-        @services[connector_id.to_s] = service_class
+        services[connector_id.to_s] = service_class
       end
 
       # Get an IDP service instance for the given connector_id.
@@ -46,9 +42,8 @@ module Idp
       #
       # @param connector_id [String] The connector ID
       # @return [Idp::Service] Instance of the appropriate IDP service
-      # @return [Idp::NullService] If connector_id is not registered
+      # @raise [Idp::ServiceError] If connector_id is not registered
       def for_connector(connector_id)
-        initialize_registry
         return Idp::NullService.new(connector_id) unless connector_id.present?
 
         # Check for Idp::ServiceConfig record first
@@ -56,8 +51,8 @@ module Idp
         return config_record.to_service if config_record
 
         # Fall back to registered service classes
-        service_class = @services[connector_id.to_s]
-        return Idp::NullService.new(connector_id) unless service_class
+        service_class = services[connector_id.to_s]
+        raise Idp::ServiceError.new("Unknown connector: #{connector_id}", operation: :for_connector) unless service_class
 
         service_class.new
       end
@@ -66,8 +61,7 @@ module Idp
       #
       # @return [Array<String>] List of registered connector IDs
       def supported_idps
-        initialize_registry
-        @services.keys
+        services.keys
       end
 
       # Check if an IDP supports a specific feature.
@@ -85,6 +79,8 @@ module Idp
         else
           false
         end
+      rescue Idp::ServiceError
+        false
       end
 
       # Get the time period used to determine recent activity.
