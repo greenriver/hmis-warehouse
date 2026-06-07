@@ -37,6 +37,7 @@ module HmisSimulation
           PersonalID: @enrollment.PersonalID,
           ExitDate: @exit_date,
           Destination: destination,
+          OtherDestination: ('Other_' if destination.to_s == '17'),
         )
       end
 
