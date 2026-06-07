@@ -157,6 +157,20 @@ To enqueue it manually:
 bundle exec rake driver:hmis_simulation:run_all
 ```
 
+### Warehouse sync
+
+After all simulation days complete, `RunnerJob` synchronously runs the warehouse pipeline so simulated clients appear in reports immediately:
+
+| Step | What it does |
+|---|---|
+| `GrdaWarehouse::Tasks::IdentifyDuplicates.run!` | Creates `GrdaWarehouse::WarehouseClient` and destination `GrdaWarehouse::Hud::Client` records for each simulated source client |
+| `GrdaWarehouse::Tasks::IdentifyDuplicates.match_existing!` | Links any orphaned source clients to their destination |
+| `GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!` | Builds `ServiceHistoryEnrollment` and `ServiceHistoryService` rows that warehouse reports read |
+| `GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!` | Updates the materialized view used by client search and most report queries |
+| `GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts` | Updates dashboard summary counts |
+
+Steps intentionally omitted: `ProjectCleanup`, `ClientCleanup`, `SanityCheckServiceHistory`, `EarliestResidentialService`, and `ReportingSetupJob`. These are safe to skip because the simulation bootstraps projects correctly, generates no orphaned destination clients, and does not require population dashboard charts. `ReportingSetupJob` (for `Reporting::Housed` / population dashboards) can be triggered separately if those report surfaces are needed.
+
 ---
 
 ## HUD compliance

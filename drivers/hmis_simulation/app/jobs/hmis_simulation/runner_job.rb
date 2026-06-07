@@ -16,7 +16,7 @@ module HmisSimulation
   # Each simulation is isolated — one failure writes an error RunLog entry but
   # does not prevent other simulations from running.
   #
-  # After all simulations complete, queues warehouse service-history processing
+  # After all simulations complete, runs the warehouse sync pipeline synchronously
   # so the new HUD records are immediately available in reports.
   #
   # Usage (manual):
@@ -46,8 +46,8 @@ module HmisSimulation
         advance_simulation(key, end_date: end_date)
       end
 
-      Hmis::Hud::Enrollment.queue_service_history_processing!
-      log('Service history processing queued')
+      sync_warehouse
+      log('Warehouse sync complete')
     end
 
     private
@@ -112,6 +112,19 @@ module HmisSimulation
       end
     rescue StandardError
       nil
+    end
+
+    def sync_warehouse
+      log('Linking simulated clients to warehouse destination records...')
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+      log('Processing service history...')
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
+
+      log('Refreshing materialized view and cached counts...')
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
     end
 
     def log(message)

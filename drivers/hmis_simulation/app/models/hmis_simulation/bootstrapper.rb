@@ -37,6 +37,8 @@ module HmisSimulation
       user_id     = Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
       primary_coc = @config.dig('coc_codes', 'primary')
 
+      find_or_create_export(data_source: data_source)
+
       Hmis::Hud::Base.transaction do
         @config['organizations'].each do |org_cfg|
           org = find_or_create_organization(org_cfg, data_source: data_source, user_id: user_id)
@@ -75,6 +77,29 @@ module HmisSimulation
         DateCreated: Time.current,
         DateUpdated: Time.current,
       }
+    end
+
+    # For data to show up on the Data Sources page it needs an export record OR to be marked as an HMIS data source.
+    # For now, we'll just create an export record.
+    def find_or_create_export(data_source:)
+      Hmis::Hud::Export.find_or_initialize_by(
+        data_source_id: data_source.id,
+        ExportID: EXPORT_ID,
+      ).tap do |export|
+        next unless export.new_record?
+
+        export.assign_attributes(
+          ExportDate: Time.current,
+          ExportStartDate: OPERATING_START_DATE,
+          ExportEndDate: Date.current,
+          SoftwareName: 'HmisSimulation',
+          SoftwareVersion: '1.0',
+          ExportPeriodType: 3,
+          ExportDirective: 2,
+          HashStatus: 1,
+        )
+        export.save!
+      end
     end
 
     def find_or_create_organization(org_cfg, data_source:, user_id:)

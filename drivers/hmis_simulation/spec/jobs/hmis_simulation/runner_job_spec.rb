@@ -55,6 +55,10 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
   let(:config_key) { 'hmis_simulation/runner-test-coc' }
   let(:config)     { HmisSimulation::ConfigLoader.send(:normalize, base_config) }
 
+  # match_existing! calls GrdaWarehouse::DataSource.warehouse_id → destination.first.id.
+  # A destination data source must exist before sync_warehouse runs.
+  let!(:destination_data_source) { create(:destination_data_source) }
+
   before do
     User.setup_system_user
     AppConfigProperty.where(key: config_key).delete_all

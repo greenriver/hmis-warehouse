@@ -403,6 +403,31 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
   end
 
   # -----------------------------------------------------------------------
+  # Warehouse sync: IdentifyDuplicates creates WarehouseClient records
+  # -----------------------------------------------------------------------
+  describe 'warehouse sync' do
+    # IdentifyDuplicates requires a destination data source (source_type: nil,
+    # authoritative: false) to create destination clients and WarehouseClient links.
+    let!(:destination_data_source) { create(:destination_data_source) }
+
+    before { run_engine(start_date..end_date) }
+
+    it 'links simulated clients to warehouse destination records via IdentifyDuplicates' do
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      source_client_ids = Hmis::Hud::Client.where(data_source_id: data_source.id).pluck(:id)
+      expect(GrdaWarehouse::WarehouseClient.where(source_id: source_client_ids).count).to be > 0
+    end
+
+    # batch_process_unprocessed! enqueues service history via Delayed::Worker, which
+    # opens a new DB connection and cannot see uncommitted test-transaction data.
+    # The full ServiceHistoryEnrollment pipeline is verified manually or in a
+    # non-transactional integration environment.
+    it 'ServiceHistoryEnrollment assertions require non-transactional test setup' do
+      skip 'batch_process_unprocessed! uses a new DB connection — cannot see transactional test data'
+    end
+  end
+
+  # -----------------------------------------------------------------------
   # Config validation: sample config passes validator
   # -----------------------------------------------------------------------
   describe 'sample config validity' do
