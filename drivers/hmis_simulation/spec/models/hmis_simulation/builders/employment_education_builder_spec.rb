@@ -45,9 +45,9 @@ RSpec.describe HmisSimulation::Builders::EmploymentEducationBuilder do
       expect(record.DataCollectionStage).to eq(3)
     end
 
-    it 'sets DataCollectionStage to 2 for annual stage' do
+    it 'sets DataCollectionStage to 5 for annual stage' do
       record = build(stage: :annual)
-      expect(record.DataCollectionStage).to eq(2)
+      expect(record.DataCollectionStage).to eq(5)
     end
 
     it 'sets InformationDate to the provided date' do

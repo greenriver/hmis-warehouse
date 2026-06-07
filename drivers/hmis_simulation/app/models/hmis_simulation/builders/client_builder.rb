@@ -32,9 +32,7 @@ module HmisSimulation
     #     context_prefix: "spawn:#{date}:#{i}:hoh",
     #   ).build!
     #   # => { client: Hmis::Hud::Client, custom_name: Hmis::Hud::CustomClientName }
-    class ClientBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class ClientBuilder < BaseBuilder
       # Gender config key → HUD column name mapping
       GENDER_MAP = {
         'woman' => :Woman,
@@ -58,10 +56,9 @@ module HmisSimulation
       }.freeze
 
       def initialize(client_config:, data_quality_config:, data_source:, user_id:, date:, seed:, context_prefix:)
+        super(data_source: data_source, user_id: user_id)
         @cfg    = (client_config || {}).deep_stringify_keys
         @dq     = (data_quality_config || {}).deep_stringify_keys
-        @ds     = data_source
-        @uid    = user_id
         @date   = date
         @seed   = seed
         @prefix = context_prefix
@@ -74,11 +71,7 @@ module HmisSimulation
         dob, dob_dq                   = build_dob
 
         client = Hmis::Hud::Client.new(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           PersonalID: personal_id,
           FirstName: first_name,
           LastName: last_name,
@@ -94,10 +87,7 @@ module HmisSimulation
         client.save!
 
         custom_name = Hmis::Hud::CustomClientName.new(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date).except(:ExportID),
           CustomClientNameID: FakeIdentifier.uuid,
           PersonalID: personal_id,
           first: first_name,

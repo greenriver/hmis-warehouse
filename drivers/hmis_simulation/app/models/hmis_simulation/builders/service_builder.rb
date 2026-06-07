@@ -12,24 +12,18 @@ module HmisSimulation
     # Currently supports bed nights (RecordType/TypeProvided 200) for ES NBN projects.
     # Future record types (referrals, PATH services, etc.) can be added as additional
     # build_* methods following the same pattern.
-    class ServiceBuilder
-      EXPORT_ID    = Bootstrapper::EXPORT_ID
-      BED_NIGHT    = 200
+    class ServiceBuilder < BaseBuilder
+      BED_NIGHT = 200
 
       def initialize(enrollment:, date:, data_source:, user_id:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment = enrollment
         @date       = date
-        @ds         = data_source
-        @uid        = user_id
       end
 
       def build_bed_night!
         Hmis::Hud::Service.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           ServicesID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,

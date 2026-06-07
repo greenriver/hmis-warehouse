@@ -11,24 +11,17 @@ module HmisSimulation
     # Creates one Hmis::Hud::CurrentLivingSituation record.
     # Called at enrollment entry for street/shelter populations, and
     # periodically for ongoing enrollments (future enhancement).
-    class ClsBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class ClsBuilder < BaseBuilder
       def initialize(enrollment:, date:, situation_code:, data_source:, user_id:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment      = enrollment
         @date            = date
         @situation_code  = situation_code
-        @ds              = data_source
-        @uid             = user_id
       end
 
       def build!
         Hmis::Hud::CurrentLivingSituation.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           CurrentLivingSitID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,

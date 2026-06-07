@@ -13,7 +13,7 @@
 # results for unrelated entities.
 #
 # Usage:
-#   rng = Random.new(simulation_seed + context_string.hash)
+#   rng = Random.new(simulation_seed + HmisSimulation::Hashing.stable_hash(context_string))
 #   HmisSimulation::Distribution.sample(config, rng: rng)
 #
 # Supported distribution types:
@@ -29,31 +29,30 @@ module HmisSimulation
     # Sample a value from the distribution described by +config+.
     # +rng+ must be a Random instance.
     def self.sample(config, rng:)
-      config = config.deep_stringify_keys if config.respond_to?(:deep_stringify_keys)
-      type = config.fetch('distribution') { config.fetch(:distribution) }
+      type = config.fetch('distribution')
 
       case type.to_s
       when 'constant'
-        config.fetch('value') { config.fetch(:value) }
+        config.fetch('value')
 
       when 'uniform'
-        min = config.fetch('min') { config.fetch(:min) }.to_f
-        max = config.fetch('max') { config.fetch(:max) }.to_f
+        min = config.fetch('min').to_f
+        max = config.fetch('max').to_f
         min + rng.rand * (max - min)
 
       when 'normal'
-        mean   = config.fetch('mean') { config.fetch(:mean) }.to_f
-        stddev = config.fetch('stddev') { config.fetch(:stddev) }.to_f
-        min    = (config['min'] || config[:min])&.to_f
-        max    = (config['max'] || config[:max])&.to_f
+        mean   = config.fetch('mean').to_f
+        stddev = config.fetch('stddev').to_f
+        min    = config['min']&.to_f
+        max    = config['max']&.to_f
         sample_normal(mean: mean, stddev: stddev, min: min, max: max, rng: rng)
 
       when 'poisson'
-        lambda_val = config.fetch('lambda') { config.fetch(:lambda) }.to_f
+        lambda_val = config.fetch('lambda').to_f
         sample_poisson(lambda: lambda_val, rng: rng)
 
       when 'weighted'
-        weights = config.fetch('weights') { config.fetch(:weights) }
+        weights = config.fetch('weights')
         normalized = normalize_weights(weights)
         threshold = rng.rand
         cumulative = 0.0
@@ -98,6 +97,9 @@ module HmisSimulation
     private_class_method :sample_normal
 
     def self.sample_poisson(lambda:, rng:)
+      return 0 if lambda <= 0
+      raise ArgumentError, "lambda too large for Knuth algorithm (#{lambda}; max 100)" if lambda > 100
+
       # Knuth algorithm
       l = Math.exp(-lambda)
       k = 0

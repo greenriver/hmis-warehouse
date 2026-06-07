@@ -247,6 +247,72 @@ RSpec.describe HmisSimulation::ComplianceValidator do
     end
   end
 
+  describe '#validate! — CLS checks' do
+    context 'when an SO enrollment is missing a CurrentLivingSituation record' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 4) }
+      let!(:_participation) { create(:hmis_hud_hmis_participation, data_source: data_source, project: project) }
+      let!(:_enrollment) do
+        create(:hmis_hud_enrollment, data_source: data_source, project: project, LivingSituation: 116)
+      end
+
+      it 'reports a missing_cls_record violation' do
+        expect(violation_types(validator.validate!)).to include(:missing_cls_record)
+      end
+    end
+
+    context 'when an SO enrollment has a CurrentLivingSituation record' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 4) }
+      let!(:_participation) { create(:hmis_hud_hmis_participation, data_source: data_source, project: project) }
+      let!(:client) { create(:hmis_hud_client, data_source: data_source) }
+      let!(:enrollment) do
+        create(
+          :hmis_hud_enrollment,
+          data_source: data_source,
+          project: project,
+          client: client,
+          LivingSituation: 116,
+        )
+      end
+      let!(:_cls) do
+        create(:hmis_current_living_situation, data_source: data_source, enrollment: enrollment, client: client)
+      end
+
+      it 'does not report a missing_cls_record violation' do
+        expect(violation_types(validator.validate!)).not_to include(:missing_cls_record)
+      end
+    end
+
+    context 'when a non-SO/CE enrollment has no CurrentLivingSituation record' do
+      let!(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 1) }
+      let!(:_participation) { create(:hmis_hud_hmis_participation, data_source: data_source, project: project) }
+      let!(:_project_coc) { create(:hmis_hud_project_coc, data_source: data_source, project: project) }
+      let!(:_inventory) { create(:hmis_hud_inventory, data_source: data_source, project: project) }
+      let!(:client) { create(:hmis_hud_client, data_source: data_source) }
+      let!(:enrollment) do
+        create(
+          :hmis_hud_enrollment,
+          data_source: data_source,
+          project: project,
+          client: client,
+          LivingSituation: 116,
+        )
+      end
+      let!(:_ee) do
+        create(
+          :hmis_employment_education,
+          data_source: data_source,
+          enrollment: enrollment,
+          client: client,
+          data_collection_stage: 1,
+        )
+      end
+
+      it 'does not report a missing_cls_record violation' do
+        expect(violation_types(validator.validate!)).not_to include(:missing_cls_record)
+      end
+    end
+  end
+
   describe '#validate! — CE assessment checks' do
     context 'when a CE enrollment has no Assessment' do
       let!(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 14) }

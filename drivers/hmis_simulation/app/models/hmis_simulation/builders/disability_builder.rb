@@ -13,9 +13,7 @@ module HmisSimulation
     #
     # Returns { disabling_condition: 0|1 } so the caller can update the
     # enrollment's DisablingCondition field.
-    class DisabilityBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class DisabilityBuilder < BaseBuilder
       # Config key → HUD DisabilityType integer
       TYPE_MAP = {
         'physical' => 5,
@@ -30,17 +28,17 @@ module HmisSimulation
       NO_INDEFINITE_TYPES = [6, 8].freeze
 
       def initialize(enrollment:, date:, disability_config:, data_source:, user_id:, rng_seed:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment   = enrollment
         @date         = date
         @cfg          = (disability_config || {}).deep_stringify_keys
-        @ds           = data_source
-        @uid          = user_id
         @rng_seed     = rng_seed
       end
 
       def build!
         disabling_condition = roll_disabling_condition
         types = @cfg['types'] || {}
+        always_disabling = false
 
         types.each_with_index do |(config_key, probability), idx|
           hud_type = TYPE_MAP[config_key]
@@ -50,12 +48,11 @@ module HmisSimulation
           response = rng.rand < probability.to_f ? 1 : 0
           indefinite = indefinite_and_impairs(hud_type, disabling_condition, idx)
 
+          # Types 6 and 8 always qualify as disabling when present, regardless of the roll.
+          always_disabling = true if response == 1 && NO_INDEFINITE_TYPES.include?(hud_type)
+
           Hmis::Hud::Disability.create!(
-            data_source_id: @ds.id,
-            UserID: @uid,
-            ExportID: EXPORT_ID,
-            DateCreated: @date.to_datetime,
-            DateUpdated: @date.to_datetime,
+            **audit_attrs(@date),
             DisabilitiesID: FakeIdentifier.uuid,
             EnrollmentID: @enrollment.EnrollmentID,
             PersonalID: @enrollment.PersonalID,
@@ -67,6 +64,7 @@ module HmisSimulation
           )
         end
 
+        disabling_condition = true if always_disabling
         { disabling_condition: disabling_condition ? 1 : 0 }
       end
 

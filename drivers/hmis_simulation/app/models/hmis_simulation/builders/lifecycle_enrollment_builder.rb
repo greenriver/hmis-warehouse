@@ -15,26 +15,29 @@ module HmisSimulation
     #   - Opens when a client enters a trigger_population
     #   - EntryDate may be backdated by days_before_trigger
     #   - Closes on housing_move_in, disengagement timeout, or pre_entry_exit
-    class LifecycleEnrollmentBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
+    class LifecycleEnrollmentBuilder < BaseBuilder
+      # HUD codes that are valid literally-homeless current living situations for CE entry.
+      CE_LIVING_SITUATIONS = [116, 101, 118].freeze
 
-      def initialize(client:, lifecycle_name:, ce_project:, opens_on:, coc_code:, data_source:, user_id:)
+      def initialize(client:, lifecycle_name:, ce_project:, opens_on:, coc_code:, data_source:, user_id:, rng_seed: nil)
+        super(data_source: data_source, user_id: user_id)
         @client         = client
         @lifecycle_name = lifecycle_name
         @project        = ce_project
         @opens_on       = opens_on
         @coc_code       = coc_code
-        @ds             = data_source
-        @uid            = user_id
+        @rng_seed       = rng_seed
       end
 
       def build!
+        living_situation = if @rng_seed
+          CE_LIVING_SITUATIONS.sample(random: Random.new(@rng_seed))
+        else
+          PLACE_NOT_MEANT_FOR_HABITATION
+        end
+
         enrollment = Hmis::Hud::Enrollment.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @opens_on.to_datetime,
-          DateUpdated: @opens_on.to_datetime,
+          **audit_attrs(@opens_on),
           EnrollmentID: FakeIdentifier.uuid,
           PersonalID: @client.PersonalID,
           project_pk: @project.id,
@@ -43,7 +46,7 @@ module HmisSimulation
           EntryDate: @opens_on,
           RelationshipToHoH: 1,
           DisablingCondition: 99,
-          LivingSituation: 116,
+          LivingSituation: living_situation,
           EnrollmentCoC: @coc_code,
         )
 

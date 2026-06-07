@@ -15,9 +15,7 @@ module HmisSimulation
     #   1. Opening event (code 3 — CE Crisis Needs Assessment referral)
     #   2. Mid-enrollment event (code 4 — CE Housing Needs Assessment referral)
     #   3. Closing event (code matched to close reason)
-    class EventBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class EventBuilder < BaseBuilder
       def initialize(
         enrollment:,
         date:,
@@ -27,22 +25,17 @@ module HmisSimulation
         referral_result: nil,
         result_date: nil
       )
+        super(data_source: data_source, user_id: user_id)
         @enrollment      = enrollment
         @date            = date
         @event_code      = event_code
-        @ds              = data_source
-        @uid             = user_id
         @referral_result = referral_result
         @result_date     = result_date
       end
 
       def build!
         Hmis::Hud::Event.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           EventID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,

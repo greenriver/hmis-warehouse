@@ -13,6 +13,8 @@ class HmisSimulation::LifecycleEnrollment < GrdaWarehouseBase
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  validates :status, inclusion: { in: STATUSES }
+
   scope :pending_open_on, ->(date) { where(status: 'pending_open', opens_on: date) }
   scope :open_for_client, ->(client_id) { where(hud_client_id: client_id, status: 'open') }
 end

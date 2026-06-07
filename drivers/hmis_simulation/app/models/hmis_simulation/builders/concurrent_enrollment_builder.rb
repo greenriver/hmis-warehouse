@@ -17,25 +17,24 @@ module HmisSimulation
     #   - Creates Hmis::Hud::Enrollment in that project
     #   - Samples the duration distribution → sets exit_on on the state record
     #   - Creates HmisSimulation::ConcurrentEnrollment state record
-    class ConcurrentEnrollmentBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class ConcurrentEnrollmentBuilder < BaseBuilder
       def initialize(client:, date:, projects_config:, count:, coc_code:, data_source:, user_id:, rng_seed:, track_name: nil)
+        super(data_source: data_source, user_id: user_id)
         @client     = client
         @date       = date
         @projects   = (projects_config || []).map(&:deep_stringify_keys)
         @count      = count.to_i
         @coc_code   = coc_code
-        @ds         = data_source
-        @uid        = user_id
         @rng_seed   = rng_seed
         @track_name = track_name
       end
 
+      # Returns an array of the Hmis::Hud::Enrollment records created so the engine
+      # can create linked entry records for each.
       def build!
-        return if @count.zero? || @projects.empty?
+        return [] if @count.zero? || @projects.empty?
 
-        @count.times do |slot|
+        @count.times.filter_map do |slot|
           proj_cfg = pick_project(slot)
           next unless proj_cfg
 
@@ -53,6 +52,8 @@ module HmisSimulation
             track_name: @track_name,
             exit_on: @date + duration,
           )
+
+          enrollment
         end
       end
 
@@ -73,11 +74,7 @@ module HmisSimulation
 
       def create_enrollment(project)
         Hmis::Hud::Enrollment.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           EnrollmentID: FakeIdentifier.uuid,
           PersonalID: @client.PersonalID,
           project_pk: project.id,
@@ -86,7 +83,7 @@ module HmisSimulation
           EntryDate: @date,
           RelationshipToHoH: 1,
           DisablingCondition: 99,
-          LivingSituation: 116,
+          LivingSituation: PLACE_NOT_MEANT_FOR_HABITATION,
           DateOfEngagement: (@date if project.ProjectType == 4),
           EnrollmentCoC: @coc_code,
         )

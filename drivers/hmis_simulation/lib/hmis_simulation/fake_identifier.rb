@@ -22,8 +22,7 @@ module HmisSimulation
     # Generates a 32-character HUD-style ID (no dashes, matching generate_uuid convention)
     # with a FAKE prefix so it is obviously synthetic at a glance.
     def self.uuid
-      hex = SecureRandom.uuid.delete('-')
-      "FAKE#{hex[4..]}"
+      "FAKE#{SecureRandom.hex(14)}"
     end
 
     def self.ssn

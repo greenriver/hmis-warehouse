@@ -119,7 +119,7 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
           'applies_to_tracks' => [],
           'project_ref' => 'Integration CE_',
           'trigger_populations' => ['street', 'es'],
-          'trigger_probability' => 0.5,
+          'trigger_probability' => 1.0,
           'days_before_trigger' => { 'distribution' => 'constant', 'value' => 0 },
           'close_conditions' => {
             'housing_move_in' => 0.7,
@@ -382,7 +382,8 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
         where(project_pk: ce_project.id).
         pluck(:EnrollmentID)
 
-      expect(ds_scope(Hmis::Hud::Assessment).where(EnrollmentID: ce_enrollment_ids).count).to be > 0 if ce_enrollment_ids.any?
+      expect(ce_enrollment_ids).not_to be_empty
+      expect(ds_scope(Hmis::Hud::Assessment).where(EnrollmentID: ce_enrollment_ids).count).to be > 0
     end
 
     it 'creates Event records for CE enrollments' do
@@ -391,7 +392,8 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
         where(project_pk: ce_project.id).
         pluck(:EnrollmentID)
 
-      expect(ds_scope(Hmis::Hud::Event).where(EnrollmentID: ce_enrollment_ids).count).to be > 0 if ce_enrollment_ids.any?
+      expect(ce_enrollment_ids).not_to be_empty
+      expect(ds_scope(Hmis::Hud::Event).where(EnrollmentID: ce_enrollment_ids).count).to be > 0
     end
 
     it 'reports zero ComplianceValidator violations' do

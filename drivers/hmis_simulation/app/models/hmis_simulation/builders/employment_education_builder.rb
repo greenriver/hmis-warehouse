@@ -14,17 +14,14 @@ module HmisSimulation
     #
     # Each field uses an independent Random derived from rng_seed + a fixed offset,
     # so adding new fields in the future does not shift existing field values.
-    class EmploymentEducationBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
-      STAGE_CODES = { entry: 1, annual: 2, exit: 3 }.freeze
+    class EmploymentEducationBuilder < BaseBuilder
+      STAGE_CODES = { entry: 1, update: 2, exit: 3, annual: 5 }.freeze
 
       def initialize(enrollment:, date:, stage:, data_source:, user_id:, rng_seed:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment = enrollment
         @date       = date
         @stage      = stage
-        @ds         = data_source
-        @uid        = user_id
         @rng_seed   = rng_seed
       end
 
@@ -33,11 +30,7 @@ module HmisSimulation
         employed = sample_employed
 
         Hmis::Hud::EmploymentEducation.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           EmploymentEducationID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
@@ -46,8 +39,8 @@ module HmisSimulation
           LastGradeCompleted: sample_from(util.last_grade_completeds, offset: 1),
           SchoolStatus: sample_from(util.school_statuses, offset: 2),
           Employed: employed,
-          EmploymentType: (employed == 1 ? sample_from(util.employment_types.reject { |k, _| k == 99 }, offset: 3) : nil),
-          NotEmployedReason: (employed == 0 ? sample_from(util.not_employed_reasons.reject { |k, _| k == 99 }, offset: 4) : nil),
+          EmploymentType: (employed == 1 ? sample_from(util.employment_types.reject { |k, _| k == 99 }, offset: 3) : (99 if employed == 99)),
+          NotEmployedReason: (employed == 0 ? sample_from(util.not_employed_reasons.reject { |k, _| k == 99 }, offset: 4) : (99 if employed == 99)),
         )
       end
 

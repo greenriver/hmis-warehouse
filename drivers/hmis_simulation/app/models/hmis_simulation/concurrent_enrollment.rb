@@ -11,6 +11,8 @@ class HmisSimulation::ConcurrentEnrollment < GrdaWarehouseBase
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  validates :hud_client_id, :project_name, presence: true
+
   scope :expiring_on, ->(date) { where(exit_on: date) }
   scope :pending_reentry_on, ->(date) { where(pending_reentry_on: date) }
 end

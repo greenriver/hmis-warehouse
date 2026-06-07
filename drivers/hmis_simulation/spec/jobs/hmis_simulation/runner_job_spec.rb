@@ -123,6 +123,8 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
           described_class.perform_now(end_date: run_date)
           # The good simulation should have completed
           expect(HmisSimulation::RunLog.where(data_source_id: data_source.id, run_date: run_date).count).to eq(1)
+          # The broken simulation should have a RunLog entry recording the error
+          expect(HmisSimulation::RunLog.where(data_source_id: 999_999, run_date: run_date).where.not(error_message: nil).count).to eq(1)
         end
       end
     end

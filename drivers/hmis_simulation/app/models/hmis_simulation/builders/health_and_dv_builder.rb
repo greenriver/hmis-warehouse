@@ -9,18 +9,15 @@
 module HmisSimulation
   module Builders
     # Creates one Hmis::Hud::HealthAndDv record at enrollment entry.
-    class HealthAndDvBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class HealthAndDvBuilder < BaseBuilder
       # HUD GeneralHealthStatus values
       GENERAL_HEALTH = { 'excellent' => 1, 'good' => 2, 'fair' => 3, 'poor' => 4 }.freeze
 
       def initialize(enrollment:, date:, hdv_config:, data_source:, user_id:, rng_seed:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment = enrollment
         @date       = date
         @cfg        = (hdv_config || {}).deep_stringify_keys
-        @ds         = data_source
-        @uid        = user_id
         @rng_seed   = rng_seed
       end
 
@@ -30,11 +27,7 @@ module HmisSimulation
         health_status = sample_general_health
 
         Hmis::Hud::HealthAndDv.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           HealthAndDVID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,

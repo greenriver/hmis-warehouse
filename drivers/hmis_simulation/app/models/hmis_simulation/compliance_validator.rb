@@ -12,12 +12,13 @@ module HmisSimulation
   # at generation time by builders sampling from HudHelper.util code sets.
   #
   # Checks performed:
-  #   - HmisParticipation — all projects
+  #   - HmisParticipation — projects where ComplianceRules.hmis_participation_required?
   #   - CeParticipation — CE (type 14) projects only
   #   - Inventory — residential project types (non-SO/SSO/Other/DayShelter/HP/CE)
   #   - DateOfEngagement — SO (type 4) enrollments
   #   - LivingSituation — all enrollments
   #   - EmploymentEducation at entry — residential enrollment types
+  #   - CurrentLivingSituation — SO (type 4) and CE (type 14) enrollments
   #   - Assessment — CE (type 14) enrollments
   #
   # Returns an array of violation hashes, each with:
@@ -57,7 +58,7 @@ module HmisSimulation
       projects.each do |project|
         pt = project.ProjectType.to_i
 
-        if project.hmis_participations.empty?
+        if ComplianceRules.hmis_participation_required?(pt) && project.hmis_participations.empty?
           add_violation(
             type: :missing_hmis_participation,
             project_name: project.ProjectName,
@@ -134,6 +135,7 @@ module HmisSimulation
         end
 
       check_employment_education(project_info)
+      check_cls_records(project_info)
       check_ce_assessments(project_info)
     end
 
@@ -160,6 +162,32 @@ module HmisSimulation
             project_type: info[:type],
             message: "Enrollment #{enrollment_id.inspect} in #{info[:name].inspect} (type #{info[:type]}) " \
                      'is missing an entry EmploymentEducation record',
+          )
+        end
+    end
+
+    def check_cls_records(project_info)
+      cls_project_pks = project_info.select { |_, info| ComplianceRules.cls_required?(info[:type]) }.keys
+      return if cls_project_pks.empty?
+
+      cls_enrollment_ids = Hmis::Hud::CurrentLivingSituation.
+        where(data_source_id: @data_source_id).
+        pluck(:EnrollmentID).
+        to_set
+
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: cls_project_pks).
+        pluck(:project_pk, :EnrollmentID).
+        each do |project_pk, enrollment_id|
+          next if cls_enrollment_ids.include?(enrollment_id)
+
+          info = project_info[project_pk]
+          add_violation(
+            type: :missing_cls_record,
+            project_name: info[:name],
+            project_type: info[:type],
+            message: "Enrollment #{enrollment_id.inspect} in #{info[:name].inspect} (type #{info[:type]}) " \
+                     'is missing a CurrentLivingSituation record',
           )
         end
     end

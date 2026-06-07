@@ -12,7 +12,7 @@ RSpec.describe HmisSimulation::Distribution do
   let(:seed) { 42 }
 
   def rng(context)
-    Random.new(seed + context.hash)
+    Random.new(seed + HmisSimulation::Hashing.stable_hash(context))
   end
 
   describe '.sample' do

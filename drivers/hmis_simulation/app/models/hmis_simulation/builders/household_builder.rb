@@ -21,7 +21,7 @@ module HmisSimulation
     #       { 'hud_client_id' => N, 'relationship_to_hoh' => N }
     #     ],
     #   }
-    class HouseholdBuilder
+    class HouseholdBuilder < BaseBuilder
       def initialize(
         household_template:,
         household_template_name:,
@@ -32,11 +32,10 @@ module HmisSimulation
         seed:,
         context_prefix:
       )
+        super(data_source: data_source, user_id: user_id)
         @template      = (household_template || {}).deep_stringify_keys
         @template_name = household_template_name
         @dq            = (data_quality_config || {}).deep_stringify_keys
-        @ds            = data_source
-        @uid           = user_id
         @date          = date
         @seed          = seed
         @prefix        = context_prefix
@@ -97,7 +96,7 @@ module HmisSimulation
         count_cfg = member_cfg['count']
         return 1 unless count_cfg.present?
 
-        rng  = Random.new(@seed + "#{@prefix}:member_count:#{group_idx}".hash)
+        rng  = Random.new(@seed + HmisSimulation::Hashing.stable_hash("#{@prefix}:member_count:#{group_idx}"))
         raw  = Distribution.sample(count_cfg.deep_stringify_keys, rng: rng)
         min  = count_cfg['min'].to_i
         raw  = [raw.round, min].max if min.positive?

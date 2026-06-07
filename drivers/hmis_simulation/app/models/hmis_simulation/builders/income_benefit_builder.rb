@@ -14,9 +14,7 @@ module HmisSimulation
     # Config keys (income_at_entry section from simulation config):
     #   no_income_probability: float — probability client has no income
     #   sources: hash of source_key => weight (e.g. { "ssi" => 0.2, "earned" => 0.1 })
-    class IncomeBenefitBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class IncomeBenefitBuilder < BaseBuilder
       DATA_COLLECTION_STAGES = { entry: 1, update: 2, exit: 3, annual: 5 }.freeze
 
       # Maps config source keys to HUD field names and typical monthly amounts
@@ -30,12 +28,11 @@ module HmisSimulation
       }.freeze
 
       def initialize(enrollment:, date:, stage:, income_config:, data_source:, user_id:, rng_seed:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment    = enrollment
         @date          = date
         @stage         = stage
         @income_cfg    = (income_config || {}).deep_stringify_keys
-        @ds            = data_source
-        @uid           = user_id
         @rng_seed      = rng_seed
       end
 
@@ -44,11 +41,7 @@ module HmisSimulation
         attrs = build_income_attributes
 
         Hmis::Hud::IncomeBenefit.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           IncomeBenefitsID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
@@ -70,7 +63,10 @@ module HmisSimulation
         cfg = { 'distribution' => 'weighted', 'weights' => sources }
         selected = Distribution.sample(cfg, rng: Random.new(@rng_seed + 1))
         source = INCOME_SOURCES[selected]
-        return { IncomeFromAnySource: 0 } unless source
+        unless source
+          Rails.logger.warn { "HmisSimulation::IncomeBenefitBuilder: unknown income source key #{selected.inspect}; defaulting to no income" }
+          return { IncomeFromAnySource: 0 }
+        end
 
         amount = Random.new(@rng_seed + 2).rand(source[:typical_amount] * 0.5..source[:typical_amount] * 1.5).round
         {

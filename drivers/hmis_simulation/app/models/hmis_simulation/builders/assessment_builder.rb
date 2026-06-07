@@ -13,9 +13,7 @@ module HmisSimulation
     #
     # Scores are plausible-looking numeric strings drawn from a fixed list of
     # result type / value generators (e.g. "VI-SPDAT Score" → 0-17).
-    class AssessmentBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class AssessmentBuilder < BaseBuilder
       # Each entry: [result_type_label, value_range]
       RESULT_TYPES = [
         ['VI-SPDAT Score',        0..17],
@@ -26,20 +24,15 @@ module HmisSimulation
       ].freeze
 
       def initialize(enrollment:, date:, data_source:, user_id:, rng_seed:)
+        super(data_source: data_source, user_id: user_id)
         @enrollment = enrollment
         @date       = date
-        @ds         = data_source
-        @uid        = user_id
         @rng        = Random.new(rng_seed)
       end
 
       def build!
         assessment = Hmis::Hud::Assessment.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @date.to_datetime,
-          DateUpdated: @date.to_datetime,
+          **audit_attrs(@date),
           AssessmentID: FakeIdentifier.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
@@ -50,14 +43,10 @@ module HmisSimulation
           PrioritizationStatus: @rng.rand(1..2),
         )
 
-        result_count = 3 + @rng.rand(3)
+        result_count = [3 + @rng.rand(3), RESULT_TYPES.size].min
         RESULT_TYPES.sample(result_count, random: @rng).each do |type_label, value_range|
           Hmis::Hud::AssessmentResult.create!(
-            data_source_id: @ds.id,
-            UserID: @uid,
-            ExportID: EXPORT_ID,
-            DateCreated: @date.to_datetime,
-            DateUpdated: @date.to_datetime,
+            **audit_attrs(@date),
             AssessmentResultID: FakeIdentifier.uuid,
             AssessmentID: assessment.AssessmentID,
             EnrollmentID: @enrollment.EnrollmentID,

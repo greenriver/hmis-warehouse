@@ -27,6 +27,10 @@ module HmisSimulation
     def from_file(path)
       raw = JSON.parse(File.read(path))
       normalize(raw.deep_stringify_keys)
+    rescue Errno::ENOENT => e
+      raise KeyError, "Simulation config file not found: #{path} (#{e.message})"
+    rescue JSON::ParserError => e
+      raise KeyError, "Simulation config file is not valid JSON: #{path} (#{e.message})"
     end
 
     def upsert_app_config(key, config)

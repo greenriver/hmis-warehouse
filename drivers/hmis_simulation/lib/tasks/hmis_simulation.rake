@@ -19,6 +19,10 @@
 #   bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]
 
 module HmisSimulationRake
+  def self.ensure_not_production!
+    raise 'Refusing to run hmis_simulation tasks in production' if Rails.env.production?
+  end
+
   def self.ensure_simulation_bootstrapped(config)
     data_source_id = config['data_source_id'].to_i
     return if Hmis::Hud::Project.where(
@@ -86,12 +90,14 @@ end
 
 desc 'Enqueue RunnerJob to advance all active simulations (called by cron via schedule.rb)'
 task run_all: :environment do
+  HmisSimulationRake.ensure_not_production!
   HmisSimulation::RunnerJob.perform_later
   puts 'HmisSimulation::RunnerJob enqueued'
 end
 
 desc 'Run simulation for a single date (YYYY-MM-DD)'
 task :run, [:key, :date] => :environment do |_t, args|
+  HmisSimulationRake.ensure_not_production!
   key = args[:key]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:run[hmis_simulation/key,2026-01-15]' if key.blank?
 
@@ -106,6 +112,7 @@ end
 
 desc 'Run simulation for a date range (YYYY-MM-DD)'
 task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
+  HmisSimulationRake.ensure_not_production!
   key        = args[:key]
   start_date = Date.parse(args[:start_date])
   end_date   = Date.parse(args[:end_date])
@@ -127,6 +134,7 @@ end
 
 desc 'Bootstrap HUD records (orgs, projects, ProjectCoc, Inventory, Funders) from an AppConfigProperty key'
 task :bootstrap, [:key] => :environment do |_t, args|
+  HmisSimulationRake.ensure_not_production!
   key = args[:key]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:bootstrap[hmis_simulation/key]' if key.blank?
 
@@ -137,6 +145,7 @@ end
 
 desc 'Audit generated data for a simulation against HUD compliance rules'
 task :validate_data, [:key] => :environment do |_t, args|
+  HmisSimulationRake.ensure_not_production!
   key = args[:key]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:validate_data[hmis_simulation/key]' if key.blank?
 
@@ -161,6 +170,7 @@ end
 
 desc 'Load a simulation config JSON file into AppConfigProperty and validate it'
 task :setup_from_file, [:path] => :environment do |_t, args|
+  HmisSimulationRake.ensure_not_production!
   path = args[:path]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:setup_from_file[path/to/config.json]' if path.blank?
 

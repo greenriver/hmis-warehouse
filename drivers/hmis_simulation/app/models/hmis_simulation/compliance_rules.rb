@@ -73,7 +73,7 @@ module HmisSimulation
     end
 
     def all_rules
-      @all_rules ||= JSON.parse(File.read(RULES_PATH)).reject { |k, _| k.start_with?('_') }
+      @all_rules ||= JSON.parse(File.read(RULES_PATH)).reject { |k, _| k.start_with?('_') }.freeze
     end
   end
 end

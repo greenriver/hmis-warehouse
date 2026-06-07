@@ -21,9 +21,7 @@ module HmisSimulation
     #     hoh_enrollment:     Hmis::Hud::Enrollment,
     #     member_enrollments: [Hmis::Hud::Enrollment],
     #   }
-    class EnrollmentBuilder
-      EXPORT_ID = Bootstrapper::EXPORT_ID
-
+    class EnrollmentBuilder < BaseBuilder
       # Project types that receive a MoveInDate on enrollment entry
       PH_PROJECT_TYPES = [3, 9, 10, 13].freeze
 
@@ -33,7 +31,7 @@ module HmisSimulation
       LOS_DK_CODES = [8, 9, 99].freeze
 
       # rng_seed: pre-computed integer seed for cohesion probability rolls.
-      # Callers derive it as: simulation_seed + "entry:#{date}:#{client_id}".hash
+      # Callers derive it as: simulation_seed + HmisSimulation::Hashing.stable_hash("entry:#{date}:#{client_id}")
       def initialize( # rubocop:disable Metrics/ParameterLists
         project:,
         hud_household_id:,
@@ -47,6 +45,7 @@ module HmisSimulation
         user_id:,
         rng_seed:
       )
+        super(data_source: data_source, user_id: user_id)
         @project       = project
         @household_id  = hud_household_id
         @entry_date    = entry_date
@@ -55,8 +54,6 @@ module HmisSimulation
         @members       = member_relationships
         @cohesion_prob = household_cohesion_probability.to_f
         @pop_cfg       = population_config || {}
-        @ds            = data_source
-        @uid           = user_id
         @rng_seed      = rng_seed
       end
 
@@ -81,11 +78,7 @@ module HmisSimulation
         prev_ss = sample_previous_street_essh
 
         Hmis::Hud::Enrollment.create!(
-          data_source_id: @ds.id,
-          UserID: @uid,
-          ExportID: EXPORT_ID,
-          DateCreated: @entry_date.to_datetime,
-          DateUpdated: @entry_date.to_datetime,
+          **audit_attrs(@entry_date),
           EnrollmentID: FakeIdentifier.uuid,
           PersonalID: client.PersonalID,
           project_pk: @project.id,
@@ -102,8 +95,8 @@ module HmisSimulation
           LOSUnderThreshold: derive_los_under_threshold(ls),
           PreviousStreetESSH: prev_ss,
           DateToStreetESSH: (prev_ss == 1 ? sample_date_to_street_essh : nil),
-          TimesHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.times_homeless_options) : nil),
-          MonthsHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.month_categories) : nil),
+          TimesHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.times_homeless_options, rng_offset: 7) : nil),
+          MonthsHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.month_categories, rng_offset: 8) : nil),
           ReferralSource: sample_referral_source(util),
         )
       end
