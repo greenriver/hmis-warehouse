@@ -255,7 +255,7 @@ module HmisSimulation
 
       track = primary_tracks.find { |t| t['name'] == sim_client.track_name }
       cohesion = track&.fetch('household_cohesion_probability', nil)
-      cohesion = 0.85 if cohesion.nil?
+      cohesion ||= 0.85
       cohesion = cohesion.to_f
 
       hud_household_id = FakeIdentifier.uuid
@@ -406,11 +406,6 @@ module HmisSimulation
     # -- Annual collection tick --
 
     def tick_annual_collections(date:)
-      sim_clients_by_enrollment = Client.
-        where(data_source_id: @data_source_id).
-        where.not(hud_enrollment_id: nil).
-        index_by(&:hud_enrollment_id)
-
       project_type_by_pk = Hmis::Hud::Project.
         where(data_source_id: @data_source_id).
         pluck(:id, :ProjectType).
@@ -419,39 +414,46 @@ module HmisSimulation
       Hmis::Hud::Enrollment.
         where(data_source_id: @data_source_id).
         open_on_date(date).
-        find_each do |enrollment|
-          sim_client = sim_clients_by_enrollment[enrollment.id]
-          enrollment_cfg = sim_client ? enrollment_config_for(sim_client) : default_enrollment_config
-          annual_cfg    = enrollment_cfg['annual_collection'] || {}
-          miss_rate     = annual_cfg['miss_rate'].to_f
-          jitter_cfg    = annual_cfg['timing_jitter'] || default_jitter_cfg
-          income_cfg    = enrollment_cfg['income_at_entry'] || {}
+        in_batches do |batch|
+          enrollment_ids = batch.pluck(:id)
+          sim_clients_by_enrollment = Client.
+            where(data_source_id: @data_source_id, hud_enrollment_id: enrollment_ids).
+            index_by(&:hud_enrollment_id)
 
-          next unless annual_collection_due?(enrollment, date, jitter_cfg)
-          next if Random.new(@seed + stable_hash("annual_miss:#{enrollment.EnrollmentID}:#{date}")).rand < miss_rate
+          batch.each do |enrollment|
+            sim_client = sim_clients_by_enrollment[enrollment.id]
+            enrollment_cfg = sim_client ? enrollment_config_for(sim_client) : default_enrollment_config
+            annual_cfg    = enrollment_cfg['annual_collection'] || {}
+            miss_rate     = annual_cfg['miss_rate'].to_f
+            jitter_cfg    = annual_cfg['timing_jitter'] || default_jitter_cfg
+            income_cfg    = enrollment_cfg['income_at_entry'] || {}
 
-          Builders::IncomeBenefitBuilder.new(
-            enrollment: enrollment,
-            date: date,
-            stage: :annual,
-            income_config: income_cfg,
-            data_source: data_source,
-            user_id: current_user_id,
-            rng_seed: @seed + stable_hash("annual:#{enrollment.EnrollmentID}:#{date}"),
-          ).build!
+            next unless annual_collection_due?(enrollment, date, jitter_cfg)
+            next if Random.new(@seed + stable_hash("annual_miss:#{enrollment.EnrollmentID}:#{date}")).rand < miss_rate
 
-          pt = project_type_by_pk[enrollment.project_pk].to_i
-          next unless ComplianceRules.employment_education_required?(pt)
-          next if record_miss?("ee_annual:#{enrollment.EnrollmentID}:#{date}")
+            Builders::IncomeBenefitBuilder.new(
+              enrollment: enrollment,
+              date: date,
+              stage: :annual,
+              income_config: income_cfg,
+              data_source: data_source,
+              user_id: current_user_id,
+              rng_seed: @seed + stable_hash("annual:#{enrollment.EnrollmentID}:#{date}"),
+            ).build!
 
-          Builders::EmploymentEducationBuilder.new(
-            enrollment: enrollment,
-            date: date,
-            stage: :annual,
-            data_source: data_source,
-            user_id: current_user_id,
-            rng_seed: @seed + stable_hash("ee_annual:#{enrollment.EnrollmentID}:#{date}"),
-          ).build!
+            pt = project_type_by_pk[enrollment.project_pk].to_i
+            next unless ComplianceRules.employment_education_required?(pt)
+            next if record_miss?("ee_annual:#{enrollment.EnrollmentID}:#{date}")
+
+            Builders::EmploymentEducationBuilder.new(
+              enrollment: enrollment,
+              date: date,
+              stage: :annual,
+              data_source: data_source,
+              user_id: current_user_id,
+              rng_seed: @seed + stable_hash("ee_annual:#{enrollment.EnrollmentID}:#{date}"),
+            ).build!
+          end
         end
     end
 
@@ -771,12 +773,12 @@ module HmisSimulation
 
       reentry_cfg = concurrent_track['reentry'] || {}
       prob = reentry_cfg['probability'].to_f
-      return nil if Random.new(@seed + stable_hash("reentry_prob:#{concurrent_enrollment.id}")).rand >= prob
+      return nil if Random.new(@seed + stable_hash("reentry_prob:#{concurrent_enrollment.id}:#{exit_date}")).rand >= prob
 
       gap_cfg  = (reentry_cfg['gap'] || { 'distribution' => 'constant', 'value' => 7 }).deep_stringify_keys
       gap_days = Distribution.sample(
         gap_cfg,
-        rng: Random.new(@seed + stable_hash("reentry_gap:#{concurrent_enrollment.id}")),
+        rng: Random.new(@seed + stable_hash("reentry_gap:#{concurrent_enrollment.id}:#{exit_date}")),
       ).ceil.clamp(0, 365)
       exit_date + gap_days
     end

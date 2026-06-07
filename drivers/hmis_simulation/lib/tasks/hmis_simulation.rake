@@ -18,47 +18,49 @@
 # is still available if you need to pre-create HUD records ahead of time:
 #   bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]
 
-def ensure_simulation_bootstrapped(config)
-  data_source_id = config['data_source_id'].to_i
-  return if Hmis::Hud::Project.where(
-    data_source_id: data_source_id,
-    ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
-  ).exists?
+module HmisSimulationRake
+  def self.ensure_simulation_bootstrapped(config)
+    data_source_id = config['data_source_id'].to_i
+    return if Hmis::Hud::Project.where(
+      data_source_id: data_source_id,
+      ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
+    ).exists?
 
-  puts "No projects found for '#{config['name']}' — bootstrapping now..."
-  HmisSimulation::Bootstrapper.new(config).run!
-  puts "Bootstrap complete for '#{config['name']}'"
-end
-
-def print_simulation_summary(data_source_id)
-  puts '— Data source totals ————————————————'
-  {
-    'Clients' => Hmis::Hud::Client,
-    'CustomClientNames' => Hmis::Hud::CustomClientName,
-    'Enrollments' => Hmis::Hud::Enrollment,
-    'Exits' => Hmis::Hud::Exit,
-    'Services' => Hmis::Hud::Service,
-    'Disabilities' => Hmis::Hud::Disability,
-    'IncomeBenefits' => Hmis::Hud::IncomeBenefit,
-    'HealthAndDv' => Hmis::Hud::HealthAndDv,
-    'EmploymentEducation' => Hmis::Hud::EmploymentEducation,
-    'CurrentLivingSit.' => Hmis::Hud::CurrentLivingSituation,
-    'Assessments' => Hmis::Hud::Assessment,
-    'AssessmentResults' => Hmis::Hud::AssessmentResult,
-    'Events' => Hmis::Hud::Event,
-    'WarehouseClients' => GrdaWarehouse::WarehouseClient,
-    'ServiceHistoryEnr.' => GrdaWarehouse::ServiceHistoryEnrollment,
-  }.each do |label, klass|
-    count = klass.where(data_source_id: data_source_id).count
-    puts "  #{label.ljust(22)} #{count}" if count > 0
+    puts "No projects found for '#{config['name']}' — bootstrapping now..."
+    HmisSimulation::Bootstrapper.new(config).run!
+    puts "Bootstrap complete for '#{config['name']}'"
   end
-  puts '—————————————————————————————————————'
-end
 
-def sync_simulation_warehouse(data_source_id, updated_since: nil)
-  puts 'Syncing warehouse...'
-  HmisSimulation::WarehouseSyncer.new(data_source_ids: data_source_id).call(updated_since: updated_since)
-  puts 'Warehouse sync complete'
+  def self.print_simulation_summary(data_source_id)
+    puts '— Data source totals ————————————————'
+    {
+      'Clients' => Hmis::Hud::Client,
+      'CustomClientNames' => Hmis::Hud::CustomClientName,
+      'Enrollments' => Hmis::Hud::Enrollment,
+      'Exits' => Hmis::Hud::Exit,
+      'Services' => Hmis::Hud::Service,
+      'Disabilities' => Hmis::Hud::Disability,
+      'IncomeBenefits' => Hmis::Hud::IncomeBenefit,
+      'HealthAndDv' => Hmis::Hud::HealthAndDv,
+      'EmploymentEducation' => Hmis::Hud::EmploymentEducation,
+      'CurrentLivingSit.' => Hmis::Hud::CurrentLivingSituation,
+      'Assessments' => Hmis::Hud::Assessment,
+      'AssessmentResults' => Hmis::Hud::AssessmentResult,
+      'Events' => Hmis::Hud::Event,
+      'WarehouseClients' => GrdaWarehouse::WarehouseClient,
+      'ServiceHistoryEnr.' => GrdaWarehouse::ServiceHistoryEnrollment,
+    }.each do |label, klass|
+      count = klass.where(data_source_id: data_source_id).count
+      puts "  #{label.ljust(22)} #{count}" if count > 0
+    end
+    puts '—————————————————————————————————————'
+  end
+
+  def self.sync_simulation_warehouse(data_source_id, updated_since: nil)
+    puts 'Syncing warehouse...'
+    HmisSimulation::WarehouseSyncer.new(data_source_ids: data_source_id).call(updated_since: updated_since)
+    puts 'Warehouse sync complete'
+  end
 end
 
 desc 'Validate a simulation config file or AppConfigProperty key'
@@ -95,10 +97,10 @@ task :run, [:key, :date] => :environment do |_t, args|
 
   date   = Date.parse(args[:date])
   config = HmisSimulation::ConfigLoader.from_app_config(key)
-  ensure_simulation_bootstrapped(config)
+  HmisSimulationRake.ensure_simulation_bootstrapped(config)
   batch_start = Time.current
   HmisSimulation::Engine.new(config).run(date: date)
-  sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
+  HmisSimulationRake.sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
   puts "Run complete for #{date}"
 end
 
@@ -110,17 +112,17 @@ task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:run_range[key,2026-01-01,2026-01-31]' if key.blank?
 
   config = HmisSimulation::ConfigLoader.from_app_config(key)
-  ensure_simulation_bootstrapped(config)
+  HmisSimulationRake.ensure_simulation_bootstrapped(config)
   engine = HmisSimulation::Engine.new(config)
   batch_start = Time.current
   (start_date..end_date).each do |date|
     engine.run(date: date)
     puts "  Completed #{date}"
   end
-  sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
+  HmisSimulationRake.sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
   puts "Range complete: #{start_date} – #{end_date}"
   puts ''
-  print_simulation_summary(config['data_source_id'].to_i)
+  HmisSimulationRake.print_simulation_summary(config['data_source_id'].to_i)
 end
 
 desc 'Bootstrap HUD records (orgs, projects, ProjectCoc, Inventory, Funders) from an AppConfigProperty key'

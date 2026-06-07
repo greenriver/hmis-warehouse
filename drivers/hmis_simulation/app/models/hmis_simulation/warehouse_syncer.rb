@@ -14,8 +14,13 @@ module HmisSimulation
   # RefreshWarehouseViewsJob so the rake task returns promptly; data appears
   # in reports once that job completes (eventual consistency).
   #
-  # Scoped to the destination clients for the given data source(s) so that
-  # unrelated clients in the system are not touched.
+  # Note: IdentifyDuplicates and batch_process_unprocessed! are system-wide
+  # operations — they process all unlinked clients and unprocessed enrollments,
+  # not just those belonging to the simulation data source(s). On a server used
+  # exclusively for simulation this is fine; on a staging server with real
+  # imported data, each simulation run will re-run deduplication and service
+  # history for all data sources. The view refresh (refresh_views) IS scoped
+  # to the simulation destination clients via destination_ids.
   #
   # Usage:
   #   batch_start = Time.current
