@@ -369,11 +369,10 @@ RSpec.describe 'HmisSimulation end-to-end', :integration do
         where(project_pk: non_residential_pks).
         pluck(:EnrollmentID)
 
-      if non_residential_enrollment_ids.any?
-        ee_for_non_residential = ds_scope(Hmis::Hud::EmploymentEducation).
-          where(EnrollmentID: non_residential_enrollment_ids)
-        expect(ee_for_non_residential.count).to eq(0)
-      end
+      expect(non_residential_enrollment_ids).not_to be_empty
+      ee_for_non_residential = ds_scope(Hmis::Hud::EmploymentEducation).
+        where(EnrollmentID: non_residential_enrollment_ids)
+      expect(ee_for_non_residential.count).to eq(0)
     end
 
     it 'creates Assessment records for CE enrollments' do
