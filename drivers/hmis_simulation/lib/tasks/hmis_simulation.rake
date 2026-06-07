@@ -30,6 +30,37 @@ def ensure_simulation_bootstrapped(config)
   puts "Bootstrap complete for '#{config['name']}'"
 end
 
+def print_simulation_summary(data_source_id)
+  puts '— Data source totals ————————————————'
+  {
+    'Clients' => Hmis::Hud::Client,
+    'CustomClientNames' => Hmis::Hud::CustomClientName,
+    'Enrollments' => Hmis::Hud::Enrollment,
+    'Exits' => Hmis::Hud::Exit,
+    'Services' => Hmis::Hud::Service,
+    'Disabilities' => Hmis::Hud::Disability,
+    'IncomeBenefits' => Hmis::Hud::IncomeBenefit,
+    'HealthAndDv' => Hmis::Hud::HealthAndDv,
+    'EmploymentEducation' => Hmis::Hud::EmploymentEducation,
+    'CurrentLivingSit.' => Hmis::Hud::CurrentLivingSituation,
+    'Assessments' => Hmis::Hud::Assessment,
+    'AssessmentResults' => Hmis::Hud::AssessmentResult,
+    'Events' => Hmis::Hud::Event,
+    'WarehouseClients' => GrdaWarehouse::WarehouseClient,
+    'ServiceHistoryEnr.' => GrdaWarehouse::ServiceHistoryEnrollment,
+  }.each do |label, klass|
+    count = klass.where(data_source_id: data_source_id).count
+    puts "  #{label.ljust(22)} #{count}" if count > 0
+  end
+  puts '—————————————————————————————————————'
+end
+
+def sync_simulation_warehouse(data_source_id, updated_since: nil)
+  puts 'Syncing warehouse...'
+  HmisSimulation::WarehouseSyncer.new(data_source_ids: data_source_id).call(updated_since: updated_since)
+  puts 'Warehouse sync complete'
+end
+
 desc 'Validate a simulation config file or AppConfigProperty key'
 task :validate, [:path_or_key] => :environment do |_t, args|
   path_or_key = args[:path_or_key]
@@ -65,7 +96,9 @@ task :run, [:key, :date] => :environment do |_t, args|
   date   = Date.parse(args[:date])
   config = HmisSimulation::ConfigLoader.from_app_config(key)
   ensure_simulation_bootstrapped(config)
+  batch_start = Time.current
   HmisSimulation::Engine.new(config).run(date: date)
+  sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
   puts "Run complete for #{date}"
 end
 
@@ -79,11 +112,15 @@ task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
   config = HmisSimulation::ConfigLoader.from_app_config(key)
   ensure_simulation_bootstrapped(config)
   engine = HmisSimulation::Engine.new(config)
+  batch_start = Time.current
   (start_date..end_date).each do |date|
     engine.run(date: date)
     puts "  Completed #{date}"
   end
+  sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
   puts "Range complete: #{start_date} – #{end_date}"
+  puts ''
+  print_simulation_summary(config['data_source_id'].to_i)
 end
 
 desc 'Bootstrap HUD records (orgs, projects, ProjectCoc, Inventory, Funders) from an AppConfigProperty key'

@@ -42,11 +42,12 @@ module HmisSimulation
 
       log("Found #{config_keys.size} simulation config(s)")
 
-      config_keys.each do |key|
+      batch_start = Time.current
+      data_source_ids = config_keys.filter_map do |key|
         advance_simulation(key, end_date: end_date)
       end
 
-      sync_warehouse
+      sync_warehouse(data_source_ids: data_source_ids, updated_since: batch_start)
       log('Warehouse sync complete')
     end
 
@@ -76,8 +77,10 @@ module HmisSimulation
 
       days_run = (end_date - start_date).to_i + 1
       log("Simulation '#{config['name']}' advanced #{days_run} day(s) through #{end_date}")
+      data_source_id
     rescue StandardError => e
       record_simulation_error(config, failing_date || end_date, e)
+      nil
     end
 
     def ensure_bootstrapped(config)
@@ -114,17 +117,9 @@ module HmisSimulation
       nil
     end
 
-    def sync_warehouse
-      log('Linking simulated clients to warehouse destination records...')
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
-
-      log('Processing service history...')
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
-
-      log('Refreshing materialized view and cached counts...')
-      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
-      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
+    def sync_warehouse(data_source_ids:, updated_since: nil)
+      log('Syncing warehouse...')
+      HmisSimulation::WarehouseSyncer.new(data_source_ids: data_source_ids).call(updated_since: updated_since)
     end
 
     def log(message)

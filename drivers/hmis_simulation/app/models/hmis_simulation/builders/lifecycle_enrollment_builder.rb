@@ -38,6 +38,7 @@ module HmisSimulation
           EnrollmentID: FakeIdentifier.uuid,
           PersonalID: @client.PersonalID,
           project_pk: @project.id,
+          ProjectID: @project.ProjectID,
           HouseholdID: FakeIdentifier.uuid,
           EntryDate: @opens_on,
           RelationshipToHoH: 1,

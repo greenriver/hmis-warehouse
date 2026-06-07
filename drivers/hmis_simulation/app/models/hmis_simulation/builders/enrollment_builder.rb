@@ -89,6 +89,7 @@ module HmisSimulation
           EnrollmentID: FakeIdentifier.uuid,
           PersonalID: client.PersonalID,
           project_pk: @project.id,
+          ProjectID: @project.ProjectID,
           HouseholdID: @household_id,
           EntryDate: @entry_date,
           MoveInDate: (PH_PROJECT_TYPES.include?(@project.ProjectType) ? @entry_date : nil),
