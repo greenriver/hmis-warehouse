@@ -15,8 +15,6 @@ module HmisSimulation
     # Each field uses an independent Random derived from rng_seed + a fixed offset,
     # so adding new fields in the future does not shift existing field values.
     class EmploymentEducationBuilder < BaseBuilder
-      STAGE_CODES = { entry: 1, update: 2, exit: 3, annual: 5 }.freeze
-
       def initialize(enrollment:, date:, stage:, data_source:, user_id:, rng_seed:)
         super(data_source: data_source, user_id: user_id)
         @enrollment = enrollment
@@ -35,7 +33,7 @@ module HmisSimulation
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,
-          DataCollectionStage: STAGE_CODES.fetch(@stage, 1),
+          DataCollectionStage: DATA_COLLECTION_STAGES.fetch(@stage, 1),
           LastGradeCompleted: sample_from(util.last_grade_completeds, offset: 1),
           SchoolStatus: sample_from(util.school_statuses, offset: 2),
           Employed: employed,

@@ -36,18 +36,12 @@ module HmisSimulation
           PLACE_NOT_MEANT_FOR_HABITATION
         end
 
-        enrollment = Hmis::Hud::Enrollment.create!(
-          **audit_attrs(@opens_on),
-          EnrollmentID: FakeIdentifier.uuid,
-          PersonalID: @client.PersonalID,
-          project_pk: @project.id,
-          ProjectID: @project.ProjectID,
-          HouseholdID: FakeIdentifier.uuid,
-          EntryDate: @opens_on,
-          RelationshipToHoH: 1,
-          DisablingCondition: 99,
-          LivingSituation: living_situation,
-          EnrollmentCoC: @coc_code,
+        enrollment = create_solo_enrollment(
+          client: @client,
+          project: @project,
+          date: @opens_on,
+          coc_code: @coc_code,
+          living_situation: living_situation,
         )
 
         LifecycleEnrollment.create!(

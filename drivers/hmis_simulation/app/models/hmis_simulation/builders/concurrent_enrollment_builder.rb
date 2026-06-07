@@ -73,19 +73,12 @@ module HmisSimulation
       end
 
       def create_enrollment(project)
-        Hmis::Hud::Enrollment.create!(
-          **audit_attrs(@date),
-          EnrollmentID: FakeIdentifier.uuid,
-          PersonalID: @client.PersonalID,
-          project_pk: project.id,
-          ProjectID: project.ProjectID,
-          HouseholdID: FakeIdentifier.uuid,
-          EntryDate: @date,
-          RelationshipToHoH: 1,
-          DisablingCondition: 99,
-          LivingSituation: PLACE_NOT_MEANT_FOR_HABITATION,
-          DateOfEngagement: (@date if project.ProjectType == 4),
-          EnrollmentCoC: @coc_code,
+        create_solo_enrollment(
+          client: @client,
+          project: project,
+          date: @date,
+          coc_code: @coc_code,
+          date_of_engagement: (@date if project.ProjectType == 4),
         )
       end
 

@@ -9,13 +9,10 @@
 require 'rails_helper'
 
 RSpec.describe HmisSimulation::Builders::HouseholdBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let(:user_id) do
-    User.setup_system_user
-    Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
-  end
-  let(:date)  { Date.new(2026, 1, 15) }
-  let(:seed)  { 99 }
+  include_context 'hmis simulation builder setup'
+
+  let(:date) { Date.new(2026, 1, 15) }
+  let(:seed) { 99 }
 
   let(:adult_only_template) do
     {

@@ -95,6 +95,10 @@ module HmisSimulation
       @current_user_id ||= Hmis::Hud::User.system_user(data_source_id: @data_source_id).user_id
     end
 
+    def primary_coc_code
+      @primary_coc_code ||= primary_coc_code
+    end
+
     # -- Track helpers --
 
     def primary_tracks
@@ -262,7 +266,7 @@ module HmisSimulation
         project: project,
         hud_household_id: hud_household_id,
         entry_date: date,
-        coc_code: @config.dig('coc_codes', 'primary') || 'XX-500',
+        coc_code: primary_coc_code,
         hoh_client: hoh_client,
         member_relationships: members,
         household_cohesion_probability: cohesion,
@@ -643,7 +647,7 @@ module HmisSimulation
     def tick_concurrent(date:)
       return if secondary_tracks_of_type('concurrent').empty?
 
-      coc_code = @config.dig('coc_codes', 'primary') || 'XX-500'
+      coc_code = primary_coc_code
 
       ConcurrentEnrollment.expiring_on(date).where(data_source_id: @data_source_id).find_each do |concurrent_enrollment|
         concurrent_track = find_concurrent_track(concurrent_enrollment.track_name)
@@ -669,7 +673,7 @@ module HmisSimulation
       hud_client = Hmis::Hud::Client.find_by(id: sim_client.hud_client_id)
       return unless hud_client
 
-      coc_code = @config.dig('coc_codes', 'primary') || 'XX-500'
+      coc_code = primary_coc_code
 
       applicable_tracks.each_with_index do |concurrent_track, track_idx|
         count_dist_cfg  = concurrent_track['count_distribution'] || { '0' => 1 }
@@ -744,23 +748,14 @@ module HmisSimulation
       client = Hmis::Hud::Client.find_by(id: concurrent_enrollment.hud_client_id)
       return unless client
 
-      enrollment = Hmis::Hud::Enrollment.create!(
-        data_source_id: @data_source_id,
-        UserID: user_id,
-        ExportID: Bootstrapper::EXPORT_ID,
-        DateCreated: Time.current,
-        DateUpdated: Time.current,
-        EnrollmentID: FakeIdentifier.uuid,
-        PersonalID: client.PersonalID,
-        project_pk: project.id,
-        ProjectID: project.ProjectID,
-        HouseholdID: FakeIdentifier.uuid,
-        EntryDate: date,
-        RelationshipToHoH: 1,
-        DisablingCondition: 99,
-        LivingSituation: 116,
-        DateOfEngagement: (date if project.ProjectType == 4),
-        EnrollmentCoC: coc_code,
+      enrollment = Builders::BaseBuilder.create_solo_enrollment(
+        client: client,
+        project: project,
+        date: date,
+        coc_code: coc_code,
+        data_source: data_source,
+        user_id: user_id,
+        date_of_engagement: (date if project.ProjectType == 4),
       )
 
       sim_client = Client.find_by(hud_client_id: concurrent_enrollment.hud_client_id, data_source_id: @data_source_id)
@@ -836,7 +831,7 @@ module HmisSimulation
       applicable_tracks = secondary_tracks_for_client('lifecycle', sim_client)
       return if applicable_tracks.empty?
 
-      coc_code = @config.dig('coc_codes', 'primary') || 'XX-500'
+      coc_code = primary_coc_code
 
       applicable_tracks.each_with_index do |lc_cfg, idx|
         trigger_populations = lc_cfg['trigger_populations'] || []
@@ -919,31 +914,24 @@ module HmisSimulation
     end
 
     def check_disengagement?(lifecycle_enrollment, date, close_conditions)
-      disengage_cfg = close_conditions['disengagement']
-      return false unless disengage_cfg.present?
-
-      rng = Random.new(@seed + stable_hash("lc_disengage_prob:#{lifecycle_enrollment.id}"))
-      return false if rng.rand >= disengage_cfg['probability'].to_f
-
-      after_days_cfg = (disengage_cfg['after_days'] || { 'distribution' => 'constant', 'value' => 365 }).deep_stringify_keys
-      after_days = Distribution.sample(
-        after_days_cfg,
-        rng: Random.new(@seed + stable_hash("lc_disengage_days:#{lifecycle_enrollment.id}")),
-      ).ceil
-      date >= lifecycle_enrollment.opens_on + after_days
+      check_timed_close_condition?(lifecycle_enrollment, date, close_conditions, 'disengagement', 'lc_disengage')
     end
 
     def check_pre_entry_exit?(lifecycle_enrollment, date, close_conditions)
-      pre_cfg = close_conditions['pre_entry_exit']
-      return false unless pre_cfg.present?
+      check_timed_close_condition?(lifecycle_enrollment, date, close_conditions, 'pre_entry_exit', 'lc_pre_exit', default_days: 30)
+    end
 
-      rng = Random.new(@seed + stable_hash("lc_pre_exit_prob:#{lifecycle_enrollment.id}"))
-      return false if rng.rand >= pre_cfg['probability'].to_f
+    def check_timed_close_condition?(lifecycle_enrollment, date, close_conditions, config_key, rng_prefix, default_days: 365)
+      cfg = close_conditions[config_key]
+      return false unless cfg.present?
 
-      after_days_cfg = (pre_cfg['after_days'] || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
+      rng = Random.new(@seed + stable_hash("#{rng_prefix}_prob:#{lifecycle_enrollment.id}"))
+      return false if rng.rand >= cfg['probability'].to_f
+
+      after_days_cfg = (cfg['after_days'] || { 'distribution' => 'constant', 'value' => default_days }).deep_stringify_keys
       after_days = Distribution.sample(
         after_days_cfg,
-        rng: Random.new(@seed + stable_hash("lc_pre_exit_days:#{lifecycle_enrollment.id}")),
+        rng: Random.new(@seed + stable_hash("#{rng_prefix}_days:#{lifecycle_enrollment.id}")),
       ).ceil
       date >= lifecycle_enrollment.opens_on + after_days
     end

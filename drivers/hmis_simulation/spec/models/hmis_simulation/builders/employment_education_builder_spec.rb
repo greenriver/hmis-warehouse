@@ -9,15 +9,10 @@
 require 'rails_helper'
 
 RSpec.describe HmisSimulation::Builders::EmploymentEducationBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let(:user_id) do
-    User.setup_system_user
-    Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
-  end
-  let(:date)       { Date.new(2026, 3, 1) }
-  let(:project)    { create(:hmis_hud_project, data_source: data_source, ProjectType: 1) }
-  let(:client)     { create(:hmis_hud_client, data_source: data_source) }
-  let(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: client) }
+  include_context 'hmis simulation builder setup'
+
+  let(:date)    { Date.new(2026, 3, 1) }
+  let(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 1) }
 
   def build(stage: :entry, rng_seed: 42)
     described_class.new(
@@ -73,7 +68,6 @@ RSpec.describe HmisSimulation::Builders::EmploymentEducationBuilder do
     end
 
     it 'sets EmploymentType when Employed is 1' do
-      # With different seeds one will produce Employed=1
       records = 20.times.map { |i| build(rng_seed: i) }
       employed_records = records.select { |r| r.Employed == 1 }
       next if employed_records.empty?
@@ -91,10 +85,26 @@ RSpec.describe HmisSimulation::Builders::EmploymentEducationBuilder do
       unemployed.each { |r| expect(valid).to include(r.NotEmployedReason) }
     end
 
-    it 'leaves EmploymentType nil when Employed is not 1' do
-      records = 20.times.map { |i| build(rng_seed: i) }
-      not_employed = records.reject { |r| r.Employed == 1 }
-      not_employed.each { |r| expect(r.EmploymentType).to be_nil }
+    context 'HUD 4.02 — DNC (99) compliance' do
+      it 'sets EmploymentType to 99 and NotEmployedReason to 99 when Employed is 99' do
+        records = 20.times.map { |i| build(rng_seed: i) }.select { |r| r.Employed == 99 }
+        next if records.empty?
+
+        records.each do |r|
+          expect(r.EmploymentType).to eq(99)
+          expect(r.NotEmployedReason).to eq(99)
+        end
+      end
+
+      it 'leaves EmploymentType nil when Employed is 0' do
+        records = 20.times.map { |i| build(rng_seed: i) }.select { |r| r.Employed == 0 }
+        records.each { |r| expect(r.EmploymentType).to be_nil }
+      end
+
+      it 'leaves NotEmployedReason nil when Employed is 1' do
+        records = 20.times.map { |i| build(rng_seed: i) }.select { |r| r.Employed == 1 }
+        records.each { |r| expect(r.NotEmployedReason).to be_nil }
+      end
     end
 
     it 'produces varied results across different seeds' do

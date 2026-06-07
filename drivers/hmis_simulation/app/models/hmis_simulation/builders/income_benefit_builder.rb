@@ -15,8 +15,6 @@ module HmisSimulation
     #   no_income_probability: float — probability client has no income
     #   sources: hash of source_key => weight (e.g. { "ssi" => 0.2, "earned" => 0.1 })
     class IncomeBenefitBuilder < BaseBuilder
-      DATA_COLLECTION_STAGES = { entry: 1, update: 2, exit: 3, annual: 5 }.freeze
-
       # Maps config source keys to HUD field names and typical monthly amounts
       INCOME_SOURCES = {
         'ssi' => { field: :SSI, amount_field: :SSIAmount, typical_amount: 943 },

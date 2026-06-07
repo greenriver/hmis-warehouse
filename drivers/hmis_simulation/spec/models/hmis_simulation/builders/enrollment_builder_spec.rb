@@ -9,17 +9,14 @@
 require 'rails_helper'
 
 RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let(:user_id) do
-    User.setup_system_user
-    Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
-  end
-  let(:date) { Date.new(2026, 2, 1) }
-  let(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 1) }
-  let(:hoh_client) { create(:hmis_hud_client, data_source: data_source) }
-  let(:member_client) { create(:hmis_hud_client, data_source: data_source) }
+  include_context 'hmis simulation builder setup'
+
+  let(:date)             { Date.new(2026, 2, 1) }
+  let(:project)          { create(:hmis_hud_project, data_source: data_source, ProjectType: 1) }
+  let(:hoh_client)       { create(:hmis_hud_client, data_source: data_source) }
+  let(:member_client)    { create(:hmis_hud_client, data_source: data_source) }
   let(:hud_household_id) { HmisSimulation::FakeIdentifier.uuid }
-  let(:coc_code) { 'XX-500' }
+  let(:coc_code)         { 'XX-500' }
 
   def build(member_relationships: [], cohesion_probability: 1.0, population_config: {})
     described_class.new(

@@ -160,48 +160,26 @@ module HmisSimulation
         rng('veteran').rand < prob ? 1 : 0
       end
 
-      # -- Gender --
+      # -- Gender / Race --
 
-      def build_gender_attributes
-        defaults = GENDER_MAP.values.each_with_object({}) { |col, h| h[col] = 0 }
-        gender_cfg = @cfg['gender']
+      def build_gender_attributes = build_categorical_attributes(GENDER_MAP, 'gender', 'gender', 'gender_fallback')
+      def build_race_attributes   = build_categorical_attributes(RACE_MAP,   'race',   'race',   'race_fallback')
 
-        if gender_cfg.present?
-          valid_weights = gender_cfg.slice(*GENDER_MAP.keys).transform_values(&:to_f)
+      def build_categorical_attributes(map, config_key, rng_context, fallback_context)
+        defaults = map.values.each_with_object({}) { |col, h| h[col] = 0 }
+        cfg_val = @cfg[config_key]
+        if cfg_val.present?
+          valid_weights = cfg_val.slice(*map.keys).transform_values(&:to_f)
           if valid_weights.values.sum.positive?
-            cfg = { 'distribution' => 'weighted', 'weights' => valid_weights }
-            selected = Distribution.sample(cfg, rng: rng('gender'))
-            col = GENDER_MAP[selected]
-            defaults[col] = 1 if col
+            selected = Distribution.sample(
+              { 'distribution' => 'weighted', 'weights' => valid_weights },
+              rng: rng(rng_context),
+            )
+            defaults[map[selected]] = 1 if map[selected]
             return defaults
           end
         end
-
-        # Fallback: pick a random known gender
-        col = GENDER_MAP.values.sample(random: rng('gender_fallback'))
-        defaults[col] = 1
-        defaults
-      end
-
-      # -- Race --
-
-      def build_race_attributes
-        defaults = RACE_MAP.values.each_with_object({}) { |col, h| h[col] = 0 }
-        race_cfg = @cfg['race']
-
-        if race_cfg.present?
-          valid_weights = race_cfg.slice(*RACE_MAP.keys).transform_values(&:to_f)
-          if valid_weights.values.sum.positive?
-            cfg = { 'distribution' => 'weighted', 'weights' => valid_weights }
-            selected = Distribution.sample(cfg, rng: rng('race'))
-            col = RACE_MAP[selected]
-            defaults[col] = 1 if col
-            return defaults
-          end
-        end
-
-        col = RACE_MAP.values.sample(random: rng('race_fallback'))
-        defaults[col] = 1
+        defaults[map.values.sample(random: rng(fallback_context))] = 1
         defaults
       end
 

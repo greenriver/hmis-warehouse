@@ -9,14 +9,10 @@
 require 'rails_helper'
 
 RSpec.describe HmisSimulation::Builders::LifecycleEnrollmentBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let(:user_id) do
-    User.setup_system_user
-    Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
-  end
-  let(:date)      { Date.current - 5 }
-  let(:opens_on)  { date - 3 }
-  let(:client)    { create(:hmis_hud_client, data_source: data_source) }
+  include_context 'hmis simulation builder setup'
+
+  let(:date)       { Date.current - 5 }
+  let(:opens_on)   { date - 3 }
   let(:ce_project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 14) }
 
   subject(:builder) do

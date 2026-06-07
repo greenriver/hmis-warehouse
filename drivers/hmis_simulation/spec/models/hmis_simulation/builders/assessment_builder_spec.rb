@@ -9,15 +9,10 @@
 require 'rails_helper'
 
 RSpec.describe HmisSimulation::Builders::AssessmentBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let(:user_id) do
-    User.setup_system_user
-    Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
-  end
-  let(:date)       { Date.new(2026, 4, 1) }
-  let(:project)    { create(:hmis_hud_project, data_source: data_source, ProjectType: 14) }
-  let(:client)     { create(:hmis_hud_client, data_source: data_source) }
-  let(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: client) }
+  include_context 'hmis simulation builder setup'
+
+  let(:date)    { Date.new(2026, 4, 1) }
+  let(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 14) }
 
   def build(rng_seed: 42)
     described_class.new(

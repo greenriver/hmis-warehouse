@@ -9,16 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe HmisSimulation::Builders::ExitBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let(:user_id) do
-    User.setup_system_user
-    Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
-  end
-  let(:entry_date) { Date.current - 30 }
-  let(:date)       { Date.current - 1 }
-  let(:client)     { create(:hmis_hud_client, data_source: data_source) }
-  let(:project)    { create(:hmis_hud_project, data_source: data_source) }
-  let(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, client: client, project: project, EntryDate: entry_date) }
+  include_context 'hmis simulation builder setup'
+
+  let(:date) { Date.current - 1 }
 
   subject(:builder) do
     described_class.new(
