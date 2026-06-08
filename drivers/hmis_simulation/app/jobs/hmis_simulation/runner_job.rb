@@ -57,7 +57,7 @@ module HmisSimulation
       config = HmisSimulation::ConfigLoader.from_app_config(key)
       data_source_id = config['data_source_id'].to_i
 
-      ensure_bootstrapped(config)
+      ensure_bootstrapped(config, data_source_id: data_source_id)
 
       last_run = HmisSimulation::RunLog.last_successful_run_date(data_source_id)
       start_date = last_run ? last_run + 1 : end_date
@@ -68,23 +68,22 @@ module HmisSimulation
       end
 
       engine = HmisSimulation::Engine.new(config)
-      failing_date = nil
       (start_date..end_date).each do |date|
-        failing_date = date
         engine.run(date: date)
+      rescue StandardError => e
+        record_simulation_error(config, data_source_id, date, e)
+        return nil
       end
-      failing_date = nil
 
       days_run = (end_date - start_date).to_i + 1
       log("Simulation '#{config['name']}' advanced #{days_run} day(s) through #{end_date}")
       data_source_id
     rescue StandardError => e
-      record_simulation_error(config, failing_date || end_date, e)
+      record_simulation_error(config, data_source_id, end_date, e)
       nil
     end
 
-    def ensure_bootstrapped(config)
-      data_source_id = config['data_source_id'].to_i
+    def ensure_bootstrapped(config, data_source_id:)
       return if Hmis::Hud::Project.where(
         data_source_id: data_source_id,
         ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
@@ -95,8 +94,7 @@ module HmisSimulation
       log("Bootstrap complete for '#{config['name']}'")
     end
 
-    def record_simulation_error(config, date, error)
-      data_source_id = config['data_source_id'].to_i
+    def record_simulation_error(config, data_source_id, date, error)
       warn_msg = "Simulation '#{config['name']}' (data_source_id: #{data_source_id}) failed on #{date}: #{error.message}"
       log(warn_msg)
       Sentry.capture_exception(error) if defined?(Sentry)
