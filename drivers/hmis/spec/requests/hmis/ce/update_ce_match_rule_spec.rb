@@ -88,6 +88,14 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'updateCeMatchRule', 'rule', 'expression')).to eq('current_age >= 65')
   end
 
+  context 'when the user lacks can_administrate_coordinated_entry' do
+    let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_administrate_coordinated_entry) }
+
+    it 'denies access' do
+      expect_access_denied post_graphql(id: rule.id, input: { name: 'Should not update' }) { mutation }
+    end
+  end
+
   context 'when the rule is in another data source' do
     let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: other_data_source, name: 'Other DS') }
 
