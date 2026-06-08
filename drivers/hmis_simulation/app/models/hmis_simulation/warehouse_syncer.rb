@@ -77,7 +77,7 @@ module HmisSimulation
           where(data_source_id: @data_source_ids, PersonalID: personal_ids).
           pluck(:id)
       else
-        GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_ids).pluck(:id)
+        Hmis::Hud::Client.where(data_source_id: @data_source_ids).pluck(:id)
       end
       GrdaWarehouse::WarehouseClient.where(source_id: source_ids).pluck(:destination_id)
     end

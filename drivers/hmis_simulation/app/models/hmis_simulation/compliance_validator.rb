@@ -42,6 +42,7 @@ module HmisSimulation
 
     def validate!
       @violations = []
+      @project_info_by_pk = nil
       check_project_records
       check_enrollment_fields
       check_enrollment_records
@@ -89,18 +90,11 @@ module HmisSimulation
     end
 
     def check_enrollment_fields
-      project_info = Hmis::Hud::Project.
-        where(data_source_id: @data_source_id).
-        pluck(:id, :ProjectType, :ProjectName).
-        each_with_object({}) do |(pk, pt, name), h|
-          h[pk] = { type: pt.to_i, name: name }
-        end
-
       Hmis::Hud::Enrollment.
         where(data_source_id: @data_source_id).
         pluck(:project_pk, :EnrollmentID, :DateOfEngagement, :LivingSituation).
         each do |project_pk, enrollment_id, date_of_engagement, living_situation|
-          info = project_info[project_pk]
+          info = project_info_by_pk[project_pk]
           next unless info
 
           pt = info[:type]
@@ -127,16 +121,9 @@ module HmisSimulation
     end
 
     def check_enrollment_records
-      project_info = Hmis::Hud::Project.
-        where(data_source_id: @data_source_id).
-        pluck(:id, :ProjectType, :ProjectName).
-        each_with_object({}) do |(pk, pt, name), h|
-          h[pk] = { type: pt.to_i, name: name }
-        end
-
-      check_employment_education(project_info)
-      check_cls_records(project_info)
-      check_ce_assessments(project_info)
+      check_employment_education(project_info_by_pk)
+      check_cls_records(project_info_by_pk)
+      check_ce_assessments(project_info_by_pk)
     end
 
     def check_employment_education(project_info)
@@ -215,6 +202,15 @@ module HmisSimulation
             project_type: info[:type],
             message: "CE enrollment #{enrollment_id.inspect} in #{info[:name].inspect} is missing an Assessment record",
           )
+        end
+    end
+
+    def project_info_by_pk
+      @project_info_by_pk ||= Hmis::Hud::Project.
+        where(data_source_id: @data_source_id).
+        pluck(:id, :ProjectType, :ProjectName).
+        each_with_object({}) do |(pk, pt, name), h|
+          h[pk] = { type: pt.to_i, name: name }
         end
     end
 

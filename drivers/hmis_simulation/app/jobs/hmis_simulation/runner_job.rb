@@ -113,7 +113,8 @@ module HmisSimulation
           error_message: error.message,
         )
       end
-    rescue StandardError
+    rescue StandardError => e
+      Rails.logger.error("[HmisSimulation] Failed to record simulation error for data_source_id #{data_source_id}: #{e.message}")
       nil
     end
 

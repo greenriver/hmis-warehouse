@@ -96,7 +96,7 @@ module HmisSimulation
     end
 
     def primary_coc_code
-      @primary_coc_code ||= primary_coc_code
+      @primary_coc_code ||= @config.dig('coc_codes', 'primary') || 'XX-500'
     end
 
     # -- Track helpers --

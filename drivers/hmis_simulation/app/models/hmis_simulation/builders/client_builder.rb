@@ -65,6 +65,7 @@ module HmisSimulation
       end
 
       def build!
+        @sampled_age = sample_age
         personal_id = FakeIdentifier.uuid
         first_name, last_name, name_dq = build_name
         ssn, ssn_dq                   = build_ssn
@@ -133,7 +134,7 @@ module HmisSimulation
         if roll_rate('missing_dob_rate', 'dob_missing')
           [nil, 99]
         elsif roll_rate('approximate_dob_rate', 'dob_approximate')
-          birth_year = @date.year - sample_age.to_i
+          birth_year = @date.year - @sampled_age.to_i
           [Date.new(birth_year, 1, 1), 2]
         else
           [dob_from_age, 1]
@@ -141,8 +142,7 @@ module HmisSimulation
       end
 
       def dob_from_age
-        age = sample_age
-        @date - (age * 365.25).round
+        @date - (@sampled_age * 365.25).round
       end
 
       def sample_age
@@ -154,8 +154,7 @@ module HmisSimulation
 
       def build_veteran_status
         prob = @cfg['veteran_probability'].to_f
-        age = sample_age
-        return 0 if age < 18
+        return 0 if @sampled_age < 18
 
         rng('veteran').rand < prob ? 1 : 0
       end
