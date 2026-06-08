@@ -49,6 +49,7 @@ class DataSourcesController < ApplicationController
 
   def new
     @data_source = data_source_source.new
+    @per_page_js = ['data_source_form']
   end
 
   def create
@@ -60,18 +61,21 @@ class DataSourcesController < ApplicationController
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
+      @per_page_js = ['data_source_form']
       flash[:error] = Translation.translate('Unable to create new Data Source')
       render action: :new
     end
   end
 
   def edit
+    @per_page_js = ['data_source_form']
   end
 
   def update
     if @data_source.update(data_source_params)
       redirect_to data_source_path(@data_source), notice: 'Data Source updated'
     else
+      @per_page_js = ['data_source_form']
       flash[:error] = "Unable to update data source. #{@data_source.errors.full_messages.to_sentence}"
       render :edit
     end
