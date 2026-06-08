@@ -383,4 +383,79 @@ RSpec.describe HmisSimulation::ComplianceValidator do
       end
     end
   end
+
+  describe '#validate! — HealthAndDv at exit checks' do
+    let!(:project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 0) }
+    let!(:_participation) { create(:hmis_hud_hmis_participation, data_source: data_source, project: project) }
+    let!(:_project_coc) { create(:hmis_hud_project_coc, data_source: data_source, project: project) }
+    let!(:_inventory) { create(:hmis_hud_inventory, data_source: data_source, project: project) }
+    let!(:client) { create(:hmis_hud_client, data_source: data_source) }
+    let!(:enrollment) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: data_source,
+        project: project,
+        client: client,
+        LivingSituation: 116,
+      )
+    end
+    let!(:_ee) do
+      create(
+        :hmis_employment_education,
+        data_source: data_source,
+        enrollment: enrollment,
+        client: client,
+        data_collection_stage: 1,
+      )
+    end
+    let!(:enrollment_exit) { create(:hmis_hud_exit, data_source: data_source, enrollment: enrollment, client: client) }
+
+    context 'when an exited enrollment is missing a HealthAndDv exit record' do
+      it 'reports a missing_health_and_dv_at_exit violation' do
+        expect(violation_types(validator.validate!)).to include(:missing_health_and_dv_at_exit)
+      end
+    end
+
+    context 'when an exited enrollment has a HealthAndDv exit record' do
+      let!(:_hdv) do
+        create(
+          :hmis_health_and_dv,
+          data_source: data_source,
+          enrollment: enrollment,
+          client: client,
+          data_collection_stage: 3,
+        )
+      end
+
+      it 'does not report a missing_health_and_dv_at_exit violation' do
+        expect(violation_types(validator.validate!)).not_to include(:missing_health_and_dv_at_exit)
+      end
+    end
+
+    context 'when enrollment is open (no exit)' do
+      before { enrollment_exit.destroy! }
+
+      it 'does not report a missing_health_and_dv_at_exit violation' do
+        expect(violation_types(validator.validate!)).not_to include(:missing_health_and_dv_at_exit)
+      end
+    end
+
+    context 'when a CE (type 14) enrollment exits without a HealthAndDv exit record' do
+      let!(:ce_project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 14) }
+      let!(:_ce_hmis_participation) { create(:hmis_hud_hmis_participation, data_source: data_source, project: ce_project) }
+      let!(:_ce_participation) { create(:hmis_hud_ce_participation, data_source: data_source, project: ce_project) }
+      let!(:ce_enrollment) do
+        create(:hmis_hud_enrollment, data_source: data_source, project: ce_project,
+                                     client: client, LivingSituation: 116)
+      end
+      let!(:_ce_exit) { create(:hmis_hud_exit, data_source: data_source, enrollment: ce_enrollment, client: client) }
+
+      it 'does not report a missing_health_and_dv_at_exit violation for the CE enrollment' do
+        violations = validator.validate!.select do |v|
+          v[:type] == :missing_health_and_dv_at_exit && v[:project_type] == 14
+        end
+        expect(violations).to be_empty
+      end
+    end
+  end
 end

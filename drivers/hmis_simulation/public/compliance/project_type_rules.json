@@ -14,7 +14,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -40,7 +41,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -66,7 +68,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -92,7 +95,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -118,7 +122,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": true,
-      "employment_education_required": false
+      "employment_education_required": false,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": true,
@@ -144,7 +149,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": false
+      "employment_education_required": false,
+      "health_and_dv_required": false
     },
     "during_enrollment": {
       "cls_required": false,
@@ -170,7 +176,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": false
+      "employment_education_required": false,
+      "health_and_dv_required": false
     },
     "during_enrollment": {
       "cls_required": false,
@@ -196,7 +203,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -222,7 +230,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -248,7 +257,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -274,7 +284,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": false
+      "employment_education_required": false,
+      "health_and_dv_required": false
     },
     "during_enrollment": {
       "cls_required": false,
@@ -300,7 +311,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": false
+      "employment_education_required": false,
+      "health_and_dv_required": false
     },
     "during_enrollment": {
       "cls_required": false,
@@ -326,7 +338,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": true
+      "employment_education_required": true,
+      "health_and_dv_required": true
     },
     "during_enrollment": {
       "cls_required": false,
@@ -352,7 +365,8 @@
     },
     "enrollment_entry": {
       "date_of_engagement_required": false,
-      "employment_education_required": false
+      "employment_education_required": false,
+      "health_and_dv_required": false
     },
     "during_enrollment": {
       "cls_required": true,

@@ -199,6 +199,28 @@ RSpec.describe HmisSimulation::Engine do
         expect(exit_count).to be > 0
       end
 
+      it 'creates HealthAndDv records at exit stage (DataCollectionStage 3) for enrollments that exit' do
+        fast_config = base_config.deep_dup
+        fast_config['tracks'].first['transitions'].each { |t| t['timing'] = { 'distribution' => 'constant', 'value' => 1 } }
+        fast_config['tracks'].first['transitions'].each { |t| t['gap_before_entry'] = { 'distribution' => 'constant', 'value' => 0 } }
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, fast_config)
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        fast_engine = described_class.new(cfg)
+
+        fast_engine.run(date: run_date)
+        fast_engine.run(date: run_date + 1)
+
+        exit_enrollment_ids = Hmis::Hud::Exit.where(data_source: data_source).pluck(:EnrollmentID)
+        expect(exit_enrollment_ids).not_to be_empty, 'expected at least one exit to have occurred — check engine config'
+
+        hdv_exit_count = Hmis::Hud::HealthAndDv.where(
+          data_source: data_source,
+          DataCollectionStage: 3,
+          EnrollmentID: exit_enrollment_ids,
+        ).count
+        expect(hdv_exit_count).to be > 0
+      end
+
       it 'creates bed-night Service records for NBN project enrollments' do
         engine.run(date: run_date)
 
@@ -640,6 +662,55 @@ RSpec.describe HmisSimulation::Engine do
         sim_client_with_enrollment.update!(next_transition_on: run_date + 1)
 
         expect { engine.run(date: run_date + 1) }.not_to raise_error
+      end
+    end
+
+    context 'when sim_client has nil next_population at exit (defensive re-sample path)' do
+      it 'logs a warning and re-samples the transition without raising' do
+        engine.run(date: run_date)
+
+        sim_client = HmisSimulation::Client.where(data_source_id: data_source.id).
+          find { |c| c.hud_enrollment_id.present? && c.next_transition_on.present? }
+        skip 'no enrolled sim_client with transition found' unless sim_client
+
+        sim_client.update!(next_population: nil, next_transition_on: run_date + 1)
+
+        # Ensure we take the transition branch rather than the system-exit branch
+        allow(engine).to receive(:roll_exit_point).and_return(false)
+
+        expect { engine.run(date: run_date + 1) }.not_to raise_error
+
+        sim_client.reload
+        expect(sim_client.current_population).to eq('psh')
+      end
+    end
+
+    context 'when LifecycleEnrollment has nil hud_enrollment_id' do
+      it 'marks the record closed without raising' do
+        hud_client = create(:hmis_hud_client, data_source: data_source)
+        lifecycle_enrollment = HmisSimulation::LifecycleEnrollment.create!(
+          data_source_id: data_source.id,
+          hud_client_id: hud_client.id,
+          hud_enrollment_id: nil,
+          lifecycle_name: 'coordinated_entry',
+          status: 'open',
+          opens_on: run_date,
+        )
+
+        expect do
+          engine.send(
+            :close_lifecycle_enrollment,
+            lifecycle_enrollment,
+            run_date,
+            reason: 'disengagement',
+            data_source: engine.send(:data_source),
+            user_id: engine.send(:current_user_id),
+          )
+        end.not_to raise_error
+
+        lifecycle_enrollment.reload
+        expect(lifecycle_enrollment.status).to eq('closed')
+        expect(lifecycle_enrollment.close_reason).to eq('disengagement')
       end
     end
 

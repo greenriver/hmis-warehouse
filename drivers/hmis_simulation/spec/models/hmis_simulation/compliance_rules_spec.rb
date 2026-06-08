@@ -208,4 +208,22 @@ RSpec.describe HmisSimulation::ComplianceRules do
       end
     end
   end
+
+  describe '.health_and_dv_required?' do
+    it 'returns true for ES-EE (type 0)' do
+      expect(described_class.health_and_dv_required?(0)).to be true
+    end
+
+    it 'returns true for SO (type 4)' do
+      expect(described_class.health_and_dv_required?(4)).to be true
+    end
+
+    it 'returns false for Services Only (type 6)' do
+      expect(described_class.health_and_dv_required?(6)).to be false
+    end
+
+    it 'returns false for CE (type 14)' do
+      expect(described_class.health_and_dv_required?(14)).to be false
+    end
+  end
 end

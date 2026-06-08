@@ -20,6 +20,7 @@ module HmisSimulation
   #   - EmploymentEducation at entry — residential enrollment types
   #   - CurrentLivingSituation — SO (type 4) and CE (type 14) enrollments
   #   - Assessment — CE (type 14) enrollments
+  #   - HealthAndDv at exit — project types where health_and_dv_required? is true (exited enrollments only)
   #
   # Returns an array of violation hashes, each with:
   #   :type        — Symbol identifying the violation
@@ -121,6 +122,7 @@ module HmisSimulation
       check_employment_education(project_info_by_pk)
       check_cls_records(project_info_by_pk)
       check_ce_assessments(project_info_by_pk)
+      check_health_and_dv_at_exit(project_info_by_pk)
     end
 
     def check_employment_education(project_info)
@@ -160,11 +162,26 @@ module HmisSimulation
       )
     end
 
+    def check_health_and_dv_at_exit(project_info)
+      check_presence_for_projects(
+        project_info: project_info,
+        project_filter: ->(pt) { ComplianceRules.health_and_dv_required?(pt) },
+        hud_class: Hmis::Hud::HealthAndDv,
+        stage_scope: { DataCollectionStage: 3 },
+        enrollment_condition: ->(scope) { scope.joins(:exit) },
+        violation_type: :missing_health_and_dv_at_exit,
+        message_builder: ->(id, name, type) {
+          "Exited enrollment #{id.inspect} in #{name.inspect} (type #{type}) is missing an exit HealthAndDv record"
+        },
+      )
+    end
+
     def check_presence_for_projects(
       project_info:,
       project_filter:,
       hud_class:,
       stage_scope: nil,
+      enrollment_condition: nil,
       violation_type:,
       message_builder:
     )
@@ -175,20 +192,21 @@ module HmisSimulation
       scope = scope.where(**stage_scope) if stage_scope
       existing_ids = scope.pluck(:EnrollmentID).to_set
 
-      Hmis::Hud::Enrollment.
-        where(data_source_id: @data_source_id, project_pk: matching_pks).
-        pluck(:project_pk, :EnrollmentID).
-        each do |project_pk, enrollment_id|
-          next if existing_ids.include?(enrollment_id)
+      enrollment_scope = Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: matching_pks)
+      enrollment_scope = enrollment_condition.call(enrollment_scope) if enrollment_condition
 
-          info = project_info[project_pk]
-          add_violation(
-            type: violation_type,
-            project_name: info[:name],
-            project_type: info[:type],
-            message: message_builder.call(enrollment_id, info[:name], info[:type]),
-          )
-        end
+      enrollment_scope.pluck(:project_pk, :EnrollmentID).each do |project_pk, enrollment_id|
+        next if existing_ids.include?(enrollment_id)
+
+        info = project_info[project_pk]
+        add_violation(
+          type: violation_type,
+          project_name: info[:name],
+          project_type: info[:type],
+          message: message_builder.call(enrollment_id, info[:name], info[:type]),
+        )
+      end
     end
 
     def project_info_by_pk

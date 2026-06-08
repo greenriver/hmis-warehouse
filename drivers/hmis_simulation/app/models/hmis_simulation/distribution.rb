@@ -69,10 +69,12 @@ module HmisSimulation
 
     # Normalize a weights hash so values sum to 1.0.
     # Raises ArgumentError if all weights are zero.
+    # Skips division when weights are already normalized (e.g. pre-processed by ConfigLoader).
     def self.normalize_weights(weights)
       weights = weights.transform_keys(&:to_s).transform_values(&:to_f)
       total = weights.values.sum
       raise ArgumentError, "weights must have at least one positive value (got #{weights.inspect})" if total.zero?
+      return weights if (total - 1.0).abs < 1e-9
 
       weights.transform_values { |w| w / total }
     end

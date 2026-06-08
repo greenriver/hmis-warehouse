@@ -39,7 +39,9 @@ module HmisSimulation
       record.save!
     end
 
-    # -- private --
+    # Internal helpers — not part of the public API.
+    # module_function methods cannot be made truly private; these are exposed as
+    # module functions but are not intended to be called from outside this module.
 
     def normalize(config)
       config = config.deep_dup

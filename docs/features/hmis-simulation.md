@@ -120,7 +120,7 @@ bundle exec rake driver:hmis_simulation:setup_from_file[/tmp/my-demo-coc.json]
 
 Validates the config and saves it as an `AppConfigProperty` record. The key is derived from the config's `name` field (e.g. `hmis_simulation/demo-coc-small`).
 
-Bootstrap runs automatically the first time you call `run_all`, `run`, or `run_range` — no separate step required. If you need to pre-create the HUD records before the first run (e.g. to inspect projects in the UI first), you can bootstrap explicitly:
+Bootstrap runs automatically the first time you call `run_all`, `run`, or `run_range` — no separate step required. If you need to pre-create the project records before the first run (e.g. to inspect projects in the UI first), you can bootstrap explicitly:
 
 ```bash
 bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]
@@ -159,7 +159,7 @@ bundle exec rake driver:hmis_simulation:run_all
 
 ### Warehouse sync
 
-After all simulation days complete, `RunnerJob` synchronously runs the warehouse pipeline so simulated clients appear in reports immediately:
+After all simulation days complete, `RunnerJob` runs the warehouse pipeline so simulated clients appear in reports:
 
 | Step | What it does |
 |---|---|
@@ -169,13 +169,13 @@ After all simulation days complete, `RunnerJob` synchronously runs the warehouse
 | `GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!` | Updates the materialized view used by client search and most report queries |
 | `GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts` | Updates dashboard summary counts |
 
-Steps intentionally omitted: `ProjectCleanup`, `ClientCleanup`, `SanityCheckServiceHistory`, `EarliestResidentialService`, and `ReportingSetupJob`. These are safe to skip because the simulation bootstraps projects correctly, generates no orphaned destination clients, and does not require population dashboard charts. `ReportingSetupJob` (for `Reporting::Housed` / population dashboards) can be triggered separately if those report surfaces are needed.
+Steps intentionally omitted for performance: `ProjectCleanup`, `ClientCleanup`, `SanityCheckServiceHistory`, `EarliestResidentialService`, and `ReportingSetupJob`. These will all run on the next nightly run.
 
 ---
 
 ## HUD compliance
 
-The simulation generates a complete set of HUD 2026 HMIS records for each project type, driven by machine-readable rules in `drivers/hmis_simulation/public/compliance/project_type_rules.json`. Records are sampled from valid HUD code sets via `HudHelper.util` (version-aware, switches from 2024 → 2026 on configured cutover dates).
+The simulation generates a complete set of HUD 2026 HMIS records for each project type, driven by machine-readable rules in `drivers/hmis_simulation/public/compliance/project_type_rules.json`. Records are sampled from valid HUD code sets via `HudHelper.util`.
 
 ### Records generated per project type
 

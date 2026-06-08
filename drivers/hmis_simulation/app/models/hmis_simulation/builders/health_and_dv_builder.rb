@@ -13,15 +13,17 @@ module HmisSimulation
       # HUD GeneralHealthStatus values
       GENERAL_HEALTH = { 'excellent' => 1, 'good' => 2, 'fair' => 3, 'poor' => 4 }.freeze
 
-      def initialize(enrollment:, date:, hdv_config:, data_source:, user_id:, rng_seed:)
+      def initialize(enrollment:, date:, hdv_config:, data_source:, user_id:, rng_seed:, stage: :entry)
         super(data_source: data_source, user_id: user_id)
         @enrollment = enrollment
         @date       = date
         @cfg        = (hdv_config || {}).deep_stringify_keys
         @rng_seed   = rng_seed
+        @stage      = stage
       end
 
       def build!
+        dcs = DATA_COLLECTION_STAGES.fetch(@stage, 1)
         dv_survivor = roll_probability('dv_survivor_probability', 0)
         currently_fleeing = dv_survivor == 1 ? roll_probability('currently_fleeing_probability', 1) : 0
         health_status = sample_general_health
@@ -32,7 +34,7 @@ module HmisSimulation
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,
-          DataCollectionStage: 1,
+          DataCollectionStage: dcs,
           DomesticViolenceSurvivor: dv_survivor,
           CurrentlyFleeing: currently_fleeing,
           GeneralHealthStatus: health_status,

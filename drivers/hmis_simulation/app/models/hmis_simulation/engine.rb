@@ -36,6 +36,14 @@ module HmisSimulation
     end
 
     def run(date:)
+      RunLog.with_advisory_lock("hmis_simulation:#{@data_source_id}", timeout_seconds: 0) do
+        run_locked(date: date)
+      end
+    end
+
+    private
+
+    def run_locked(date:)
       return if already_run?(date)
 
       log = RunLog.find_or_initialize_by(
@@ -77,8 +85,6 @@ module HmisSimulation
         raise
       end
     end
-
-    private
 
     def already_run?(date)
       RunLog.where(data_source_id: @data_source_id, run_date: date, error_message: nil).
@@ -199,6 +205,9 @@ module HmisSimulation
     def process_primary_exit(sim_client, date, data_source:, user_id:)
       enrollment = Hmis::Hud::Enrollment.find_by(id: sim_client.hud_enrollment_id)
       return unless enrollment
+
+      # DateOfEngagement can be up to 7 days after entry; clamp so it never exceeds exit date.
+      enrollment.update!(DateOfEngagement: date) if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement > date
 
       transition = find_transition(sim_client.current_population, sim_client.next_population)
       exit_dests = transition&.dig('exit_destinations') || { '17' => 1.0 }
@@ -397,6 +406,20 @@ module HmisSimulation
       ).build!
 
       pt = (project_type || enrollment.project&.ProjectType).to_i
+
+      if ComplianceRules.health_and_dv_required?(pt) && !record_miss?("hdv_exit:#{enrollment.EnrollmentID}")
+        hdv_cfg = enrollment_cfg['health_and_dv'] || {}
+        Builders::HealthAndDvBuilder.new(
+          enrollment: enrollment,
+          date: exit_date,
+          stage: :exit,
+          hdv_config: hdv_cfg,
+          data_source: data_source,
+          user_id: user_id,
+          rng_seed: @seed + stable_hash("hdv_exit:#{enrollment.EnrollmentID}"),
+        ).build!
+      end
+
       return unless ComplianceRules.employment_education_required?(pt)
       return if record_miss?("ee_exit:#{enrollment.EnrollmentID}")
 
@@ -601,17 +624,25 @@ module HmisSimulation
     # Creates a mid-enrollment housing assessment Event (code 4) once per lifecycle enrollment,
     # after the enrollment has been open for at least 30 days.
     def create_midterm_ce_event(lc_enrollment, date, data_source:, user_id:)
-      hud_enrollment = Hmis::Hud::Enrollment.find_by(id: lc_enrollment.hud_enrollment_id)
+      hud_enrollment = if @lc_hud_enrollment_by_pk
+        @lc_hud_enrollment_by_pk[lc_enrollment.hud_enrollment_id]
+      else
+        Hmis::Hud::Enrollment.find_by(id: lc_enrollment.hud_enrollment_id)
+      end
       return unless hud_enrollment
 
       days_open = (date - hud_enrollment.EntryDate).to_i
       return if days_open < 30
 
-      already_created = Hmis::Hud::Event.where(
-        data_source_id: @data_source_id,
-        EnrollmentID: hud_enrollment.EnrollmentID,
-        Event: 4,
-      ).exists?
+      already_created = if @lc_existing_event4_ids
+        @lc_existing_event4_ids.include?(hud_enrollment.EnrollmentID)
+      else
+        Hmis::Hud::Event.where(
+          data_source_id: @data_source_id,
+          EnrollmentID: hud_enrollment.EnrollmentID,
+          Event: 4,
+        ).exists?
+      end
       return if already_created
 
       return if record_miss?("ce_midterm_event:#{hud_enrollment.EnrollmentID}")
@@ -623,6 +654,7 @@ module HmisSimulation
         data_source: data_source,
         user_id: user_id,
       ).build!
+      @lc_existing_event4_ids&.add(hud_enrollment.EnrollmentID)
     end
 
     # Creates a closing Event for a lifecycle enrollment based on the close reason.
@@ -743,6 +775,19 @@ module HmisSimulation
         context_prefix: "concurrent_exit:#{concurrent_enrollment.id}:#{date}",
       ).build!
 
+      pt = enrollment.project&.ProjectType.to_i
+      if ComplianceRules.health_and_dv_required?(pt) && !record_miss?("hdv_exit:#{enrollment.EnrollmentID}")
+        Builders::HealthAndDvBuilder.new(
+          enrollment: enrollment,
+          date: date,
+          stage: :exit,
+          hdv_config: {},
+          data_source: data_source,
+          user_id: user_id,
+          rng_seed: @seed + stable_hash("hdv_exit:#{enrollment.EnrollmentID}"),
+        ).build!
+      end
+
       reentry = schedule_concurrent_reentry(concurrent_enrollment, date, concurrent_track)
       concurrent_enrollment.update!(hud_enrollment_id: nil, exit_on: nil, pending_reentry_on: reentry)
     end
@@ -836,6 +881,7 @@ module HmisSimulation
     def tick_lifecycle(date:)
       return if secondary_tracks_of_type('lifecycle').empty?
 
+      preload_lifecycle_tick_cache
       LifecycleEnrollment.
         where(data_source_id: @data_source_id, status: 'open').
         find_each do |lifecycle_enrollment|
@@ -845,6 +891,23 @@ module HmisSimulation
             data_source: data_source, user_id: current_user_id, lc_cfg: lc_cfg
           )
         end
+    ensure
+      @lc_hud_enrollment_by_pk = nil
+      @lc_existing_event4_ids = nil
+    end
+
+    def preload_lifecycle_tick_cache
+      hud_enrollment_pks = LifecycleEnrollment.
+        where(data_source_id: @data_source_id, status: 'open').
+        pluck(:hud_enrollment_id).compact
+      @lc_hud_enrollment_by_pk = Hmis::Hud::Enrollment.
+        where(id: hud_enrollment_pks).
+        index_by(&:id)
+      enrollment_ids = @lc_hud_enrollment_by_pk.values.map(&:EnrollmentID)
+      @lc_existing_event4_ids = Hmis::Hud::Event.
+        where(data_source_id: @data_source_id, EnrollmentID: enrollment_ids, Event: 4).
+        pluck(:EnrollmentID).
+        to_set
     end
 
     def trigger_lifecycle_enrollments(sim_client, entry_date, data_source:, user_id:)
@@ -933,6 +996,9 @@ module HmisSimulation
     def check_housing_move_in?(lifecycle_enrollment, close_conditions)
       return false unless close_conditions.key?('housing_move_in')
 
+      # Stable per-client roll: probability controls what share of clients close via
+      # housing_move_in, not a per-day chance. Seeded without a date so the result
+      # is the same every tick — a client is either in the closing cohort or not.
       rng = Random.new(@seed + stable_hash("lc_housing_move_in:#{lifecycle_enrollment.id}"))
       return false if rng.rand >= close_conditions['housing_move_in'].to_f
 

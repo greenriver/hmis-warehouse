@@ -52,6 +52,10 @@ module HmisSimulation
       all_rules.dig(project_type.to_s, 'enrollment_entry', 'employment_education_required') || false
     end
 
+    def health_and_dv_required?(project_type)
+      all_rules.dig(project_type.to_s, 'enrollment_entry', 'health_and_dv_required') || false
+    end
+
     def date_of_engagement_required?(project_type)
       all_rules.dig(project_type.to_s, 'enrollment_entry', 'date_of_engagement_required') || false
     end

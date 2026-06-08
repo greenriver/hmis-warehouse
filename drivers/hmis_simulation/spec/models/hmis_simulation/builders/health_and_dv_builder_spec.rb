@@ -74,5 +74,23 @@ RSpec.describe HmisSimulation::Builders::HealthAndDvBuilder do
       # 1=Excellent, 2=Good, 3=Fair, 4=Poor in HUD
       expect([1, 2, 3, 4]).to include(result.GeneralHealthStatus)
     end
+
+    context 'with stage: :exit' do
+      subject(:builder) do
+        described_class.new(
+          enrollment: enrollment,
+          date: date,
+          stage: :exit,
+          hdv_config: hdv_config,
+          data_source: data_source,
+          user_id: user_id,
+          rng_seed: 42,
+        )
+      end
+
+      it 'sets DataCollectionStage to 3 (exit)' do
+        expect(builder.build!.DataCollectionStage).to eq(3)
+      end
+    end
   end
 end
