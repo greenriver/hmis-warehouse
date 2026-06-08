@@ -32,9 +32,6 @@ module HmisSimulation
   #   violations = v.validate!
   #   puts violations.map { |v| v[:message] }.join("\n")
   class ComplianceValidator
-    # Project types that do not require Inventory records (matches Bootstrapper constant)
-    NON_RESIDENTIAL_PROJECT_TYPES = [4, 6, 7, 11, 12, 14].freeze
-
     def initialize(data_source_id:)
       @data_source_id = data_source_id
       @violations = []
@@ -77,7 +74,7 @@ module HmisSimulation
           )
         end
 
-        next if NON_RESIDENTIAL_PROJECT_TYPES.include?(pt)
+        next unless ComplianceRules.inventory_required?(pt)
         next if project.inventories.any?
 
         add_violation(
@@ -180,7 +177,7 @@ module HmisSimulation
     end
 
     def check_ce_assessments(project_info)
-      ce_project_pks = project_info.select { |_, info| info[:type] == 14 }.keys
+      ce_project_pks = project_info.select { |_, info| info[:type] == ComplianceRules::CE_PROJECT_TYPE }.keys
       return if ce_project_pks.empty?
 
       # Enrollment IDs that have at least one Assessment record

@@ -67,7 +67,7 @@ RSpec.describe HmisSimulation::Builders::HouseholdBuilder do
       it 'creates an hmis_simulation_household_groups record with no members' do
         result = build(adult_only_template)
         group = HmisSimulation::HouseholdGroup.find(result[:household_group_id])
-        expect(group.member_client_ids).to be_empty
+        expect(group.member_relationships).to be_empty
       end
 
       it 'returns a hud_household_id that is a FAKE UUID' do
@@ -91,13 +91,13 @@ RSpec.describe HmisSimulation::Builders::HouseholdBuilder do
       it 'creates an hmis_simulation_household_groups record with 2 member entries' do
         result = build(adult_and_child_template)
         group = HmisSimulation::HouseholdGroup.find(result[:household_group_id])
-        expect(group.member_client_ids.length).to eq(2)
+        expect(group.member_relationships.length).to eq(2)
       end
 
       it 'stores relationship_to_hoh for each member' do
         result = build(adult_and_child_template)
         group = HmisSimulation::HouseholdGroup.find(result[:household_group_id])
-        relationships = group.member_client_ids.map { |m| m['relationship_to_hoh'] }
+        relationships = group.member_relationships.map { |m| m['relationship_to_hoh'] }
         expect(relationships).to all(eq(2))
       end
 

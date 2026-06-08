@@ -101,10 +101,18 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
 
     context 'error isolation' do
       let(:config_key2) { 'hmis_simulation/broken-coc' }
+      let!(:broken_data_source) { create(:hmis_data_source) }
 
       before do
-        # A second config that references a non-existent data_source_id — engine will raise
-        broken = base_config.merge('name' => 'Broken CoC', 'data_source_id' => 999_999)
+        # A second config with a project_ref that doesn't exist — Bootstrapper.validate! raises ConfigError
+        broken_tracks = base_config['tracks'].map do |t|
+          t.merge('populations' => t['populations'].map { |p| p.merge('project_ref' => 'NonExistentProject_') })
+        end
+        broken = base_config.merge(
+          'name' => 'Broken CoC',
+          'data_source_id' => broken_data_source.id,
+          'tracks' => broken_tracks,
+        )
         HmisSimulation::ConfigLoader.upsert_app_config(config_key2, broken)
       end
 
@@ -124,7 +132,7 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
           # The good simulation should have completed
           expect(HmisSimulation::RunLog.where(data_source_id: data_source.id, run_date: run_date).count).to eq(1)
           # The broken simulation should have a RunLog entry recording the error
-          expect(HmisSimulation::RunLog.where(data_source_id: 999_999, run_date: run_date).where.not(error_message: nil).count).to eq(1)
+          expect(HmisSimulation::RunLog.where(data_source_id: broken_data_source.id, run_date: run_date).where.not(error_message: nil).count).to eq(1)
         end
       end
     end

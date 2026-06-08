@@ -22,10 +22,6 @@ module HmisSimulation
     PROJECT_COC_ZIP = '99901'
     PROJECT_COC_GEOGRAPHY_TYPE = 1 # Urban
 
-    # Project types that do not require Inventory records (SO, SSO, Other,
-    # Day Shelter, HP, CE — matches HudUtility2026#project_types_without_inventory)
-    NON_RESIDENTIAL_PROJECT_TYPES = [4, 6, 7, 11, 12, 14].freeze
-
     def initialize(config)
       @config = config.deep_stringify_keys
     end
@@ -48,9 +44,9 @@ module HmisSimulation
             find_or_create_project_coc(project, coc_code: primary_coc, data_source: data_source, user_id: user_id)
             find_or_create_hmis_participation(project, proj_cfg, data_source: data_source, user_id: user_id)
 
-            find_or_create_inventory(project, proj_cfg, coc_code: primary_coc, data_source: data_source, user_id: user_id) unless NON_RESIDENTIAL_PROJECT_TYPES.include?(project.ProjectType)
+            find_or_create_inventory(project, proj_cfg, coc_code: primary_coc, data_source: data_source, user_id: user_id) if ComplianceRules.inventory_required?(project.ProjectType)
 
-            find_or_create_ce_participation(project, proj_cfg, data_source: data_source, user_id: user_id) if project.ProjectType == 14
+            find_or_create_ce_participation(project, proj_cfg, data_source: data_source, user_id: user_id) if project.ProjectType == ComplianceRules::CE_PROJECT_TYPE
 
             (proj_cfg['funders'] || []).each do |funder_cfg|
               find_or_create_funder(funder_cfg, project: project, data_source: data_source, user_id: user_id)

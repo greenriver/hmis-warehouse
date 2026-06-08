@@ -650,7 +650,7 @@ RSpec.describe HmisSimulation::Engine do
         group = HmisSimulation::HouseholdGroup.create!(
           data_source_id: data_source.id,
           hoh_client_id: hoh.id,
-          member_client_ids: [{ 'hud_client_id' => member.id, 'relationship_to_hoh' => 2 }],
+          member_relationships: [{ 'hud_client_id' => member.id, 'relationship_to_hoh' => 2 }],
           household_template_name: 'adult_and_child',
         )
 

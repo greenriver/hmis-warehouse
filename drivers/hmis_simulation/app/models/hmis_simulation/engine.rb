@@ -254,7 +254,7 @@ module HmisSimulation
       return unless hoh_client
 
       household_group = (HouseholdGroup.find_by(id: sim_client.household_group_id) if sim_client.household_group_id.present?)
-      members = household_group&.member_client_ids || []
+      members = household_group&.member_relationships || []
 
       track = primary_tracks.find { |t| t['name'] == sim_client.track_name }
       cohesion = track&.fetch('household_cohesion_probability', nil)
@@ -487,9 +487,9 @@ module HmisSimulation
       return nil unless enrollment&.project
 
       case enrollment.project.ProjectType
-      when 1, 0 then 101  # Emergency shelter
-      when 4    then 116  # Street outreach — always place not meant for habitation
-      when 14             # Coordinated Entry — use the client's actual living situation
+      when *ComplianceRules::ES_PROJECT_TYPES then 101 # Emergency shelter
+      when ComplianceRules::SO_PROJECT_TYPE then 116 # Street outreach — always place not meant for habitation
+      when ComplianceRules::CE_PROJECT_TYPE # Coordinated Entry — use the client's actual living situation
         situation = enrollment.LivingSituation.to_i
         [8, 9, 99, 0].include?(situation) ? 116 : situation
       end
@@ -498,7 +498,7 @@ module HmisSimulation
     # -- Periodic CLS tick (SO and CE) --
 
     def tick_cls_records(date:)
-      cls_project_types = [4, 14]
+      cls_project_types = [ComplianceRules::SO_PROJECT_TYPE, ComplianceRules::CE_PROJECT_TYPE]
       project_type_by_pk = Hmis::Hud::Project.
         where(data_source_id: @data_source_id, ProjectType: cls_project_types).
         pluck(:id, :ProjectType).

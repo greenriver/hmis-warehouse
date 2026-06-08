@@ -67,7 +67,7 @@ module HmisSimulation
           data_source_id: @ds.id,
           hoh_client_id: hoh_id,
           household_template_name: @template_name,
-          member_client_ids: member_relationships,
+          member_relationships: member_relationships,
         )
 
         {

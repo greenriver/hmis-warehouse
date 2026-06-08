@@ -26,6 +26,9 @@ module HmisSimulation
     RULES_PATH = Rails.root.join(
       'drivers', 'hmis_simulation', 'public', 'compliance', 'project_type_rules.json'
     ).freeze
+    CE_PROJECT_TYPE = 14
+    SO_PROJECT_TYPE = 4
+    ES_PROJECT_TYPES = [0, 1].freeze
 
     module_function
 

@@ -97,7 +97,7 @@ RSpec.describe HmisSimulation::ConfigLoader do
     end
 
     it 'raises if the file does not exist' do
-      expect { described_class.from_file('/no/such/file.json') }.to raise_error(Errno::ENOENT)
+      expect { described_class.from_file('/no/such/file.json') }.to raise_error(KeyError, /not found/)
     end
   end
 
