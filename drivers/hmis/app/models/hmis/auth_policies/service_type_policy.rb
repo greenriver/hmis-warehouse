@@ -27,4 +27,14 @@ class Hmis::AuthPolicies::ServiceTypePolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::CustomServiceType)
   end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    def can_manage?
+      global_permissions.include?(:can_configure_data_collection)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Hud::CustomServiceType)
+  end
 end

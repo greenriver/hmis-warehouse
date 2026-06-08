@@ -34,11 +34,11 @@ class Hmis::AuthPolicies::ProjectConfigPolicy < Hmis::AuthPolicies::ResourcePoli
 
     def can_view? = can_manage?
 
-    protected
-
     def can_manage?
       global_permissions.include?(:can_configure_data_collection)
     end
+
+    protected
 
     def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::ProjectConfig)
   end

@@ -11,6 +11,7 @@ class DataSourcesController < ApplicationController
   before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
   before_action :set_data_source, only: [:show, :edit, :update, :destroy]
+  before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
 
   def index
     # search
@@ -48,6 +49,7 @@ class DataSourcesController < ApplicationController
 
   def new
     @data_source = data_source_source.new
+    @per_page_js = ['data_source_form']
   end
 
   def create
@@ -59,26 +61,23 @@ class DataSourcesController < ApplicationController
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
+      @per_page_js = ['data_source_form']
       flash[:error] = Translation.translate('Unable to create new Data Source')
       render action: :new
     end
   end
 
   def edit
+    @per_page_js = ['data_source_form']
   end
 
   def update
-    error = false
-    begin
-      @data_source.update!(data_source_params)
-    rescue StandardError => e
-      error = true
-    end
-    if error
-      flash[:error] = "Unable to update data source. #{e}"
-      render :show
-    else
+    if @data_source.update(data_source_params)
       redirect_to data_source_path(@data_source), notice: 'Data Source updated'
+    else
+      @per_page_js = ['data_source_form']
+      flash[:error] = "Unable to update data source. #{@data_source.errors.full_messages.to_sentence}"
+      render :edit
     end
   end
 
@@ -90,8 +89,14 @@ class DataSourcesController < ApplicationController
     redirect_to action: :index
   end
 
+  private def load_hmis_hostname_options
+    @available_hmis_hostnames = GrdaWarehouse::DataSource.available_hmis_hostnames(
+      exclude_data_source_id: @data_source&.id,
+    )
+  end
+
   private def data_source_params
-    params.require(:grda_warehouse_data_source).
+    permitted = params.require(:grda_warehouse_data_source).
       permit(
         :name,
         :short_name,
@@ -100,10 +105,12 @@ class DataSourcesController < ApplicationController
         :after_create_path,
         :visible_in_window,
         :import_paused,
+        :disable_imports,
         :source_id,
         :munged_personal_id,
         :service_scannable,
         :obey_consent,
+        :hmis,
         projects_attributes:
         [
           :id,
@@ -111,6 +118,8 @@ class DataSourcesController < ApplicationController
           :after_create_path,
         ],
       )
+    permitted.delete(:hmis) if @data_source.hmis?
+    permitted
   end
 
   private def new_data_source_params
@@ -125,9 +134,11 @@ class DataSourcesController < ApplicationController
         :authoritative_type,
         :after_create_path,
         :import_paused,
+        :disable_imports,
         :source_id,
         :service_scannable,
         :obey_consent,
+        :hmis,
       )
   end
 
