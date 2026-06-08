@@ -53,7 +53,7 @@ module ManagesCeMatchRules
     errors.add(
       :base,
       :information,
-      full_message: 'This rule would remove a substantial number of current candidates.',
+      full_message: 'This rule would remove a substantial number of currently eligible clients.',
       severity: :warning,
       data: {
         affectedUnitGroups: warn_unit_groups.map do |unit_group_info|
