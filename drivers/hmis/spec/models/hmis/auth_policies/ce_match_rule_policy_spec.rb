@@ -55,6 +55,23 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
           expect(policy.can_update?).to be false
           expect(policy.can_delete?).to be false
         end
+      context 'and the rule owner is a project' do
+        let!(:project) { create(:hmis_hud_project, data_source: data_source) }
+        let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: project) }
+        it 'returns true' do
+          expect(policy.can_create?).to be true
+          expect(policy.can_update?).to be true
+          expect(policy.can_delete?).to be true
+        end
+        context 'in another data source' do
+          let(:project) { create(:hmis_hud_project, data_source: other_data_source) }
+
+          it 'returns false' do
+            expect(policy.can_create?).to be false
+            expect(policy.can_update?).to be false
+            expect(policy.can_delete?).to be false
+          end
+        end
       end
     end
   end
