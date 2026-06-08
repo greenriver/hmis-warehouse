@@ -936,8 +936,12 @@ module HmisSimulation
       rng = Random.new(@seed + stable_hash("lc_housing_move_in:#{lifecycle_enrollment.id}"))
       return false if rng.rand >= close_conditions['housing_move_in'].to_f
 
+      personal_id_subquery = Hmis::Hud::Client.
+        where(id: lifecycle_enrollment.hud_client_id).
+        select(:PersonalID)
+
       Hmis::Hud::Enrollment.
-        where(data_source_id: @data_source_id, PersonalID: hmis_personal_id_for(lifecycle_enrollment)).
+        where(data_source_id: @data_source_id, PersonalID: personal_id_subquery).
         where.not(MoveInDate: nil).
         exists?
     end
@@ -982,10 +986,6 @@ module HmisSimulation
       end
 
       lifecycle_enrollment.update!(status: 'closed', close_reason: reason)
-    end
-
-    def hmis_personal_id_for(lifecycle_enrollment)
-      Hmis::Hud::Client.find_by(id: lifecycle_enrollment.hud_client_id)&.PersonalID
     end
 
     # -- Transition helpers --

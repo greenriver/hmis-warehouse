@@ -97,7 +97,7 @@ module HmisSimulation
           DateToStreetESSH: (prev_ss == 1 ? sample_date_to_street_essh : nil),
           TimesHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.times_homeless_options, rng_offset: 7) : nil),
           MonthsHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.month_categories, rng_offset: 8) : nil),
-          ReferralSource: sample_referral_source(util),
+          ReferralSource: sample_referral_source,
         )
       end
 
@@ -138,7 +138,7 @@ module HmisSimulation
         @entry_date - days_ago
       end
 
-      def sample_referral_source(_util)
+      def sample_referral_source
         # General weighted distribution; biased toward common codes
         weights = { '1' => 30, '2' => 10, '7' => 20, '11' => 15, '18' => 15, '39' => 10 }
         Distribution.sample(
