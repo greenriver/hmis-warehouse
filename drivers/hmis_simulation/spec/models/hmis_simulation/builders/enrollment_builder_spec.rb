@@ -158,6 +158,28 @@ RSpec.describe HmisSimulation::Builders::EnrollmentBuilder do
       end
     end
 
+    context 'MoveInDate' do
+      it 'does not set MoveInDate on PH enrollment at entry (tick_housing_move_in sets it later)' do
+        psh_project = create(:hmis_hud_project, data_source: data_source, ProjectType: 3)
+        enrollment = described_class.new(
+          project: psh_project,
+          hud_household_id: HmisSimulation::FakeIdentifier.uuid,
+          entry_date: date,
+          coc_code: coc_code,
+          hoh_client: hoh_client,
+          data_source: data_source,
+          user_id: user_id,
+          rng_seed: 42,
+        ).build![:hoh_enrollment]
+        expect(enrollment.MoveInDate).to be_nil
+      end
+
+      it 'does not set MoveInDate on non-PH enrollment' do
+        enrollment = build[:hoh_enrollment]
+        expect(enrollment.MoveInDate).to be_nil
+      end
+    end
+
     context 'ReferralSource' do
       it 'sets ReferralSource to a valid HUD code' do
         enrollment = build[:hoh_enrollment]

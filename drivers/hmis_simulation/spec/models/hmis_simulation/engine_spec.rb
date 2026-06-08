@@ -439,15 +439,21 @@ RSpec.describe HmisSimulation::Engine do
         expect(ce_enrollments.count).to be > 0
       end
 
-      it 'closes CE enrollment when primary enrollment has a MoveInDate (housing_move_in condition)' do
+      it 'closes CE enrollment once MoveInDate is set on primary PH enrollment (housing_move_in condition)' do
         config = lifecycle_config.deep_dup
         config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
-        config['tracks'].find { |t| t['type'] == 'primary' }['transitions'] = [
-          { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
-            'timing' => { 'distribution' => 'constant', 'value' => 1 },
-            'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
-            'exit_destinations' => { '435' => 1 } },
-        ]
+        config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
+          track['transitions'] = [
+            { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+              'timing' => { 'distribution' => 'constant', 'value' => 1 },
+              'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+              'exit_destinations' => { '435' => 1 } },
+          ]
+          track['enrollment_config']['ph_move_in'] = {
+            'probability' => 1.0,
+            'delay_days' => { 'distribution' => 'constant', 'value' => 0 },
+          }
+        end
         cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
         HmisSimulation::Bootstrapper.new(cfg).run!
         engine_instance = described_class.new(cfg)
@@ -513,12 +519,18 @@ RSpec.describe HmisSimulation::Engine do
       it 'creates a closing Event when CE enrollment closes with housing_move_in' do
         config = lifecycle_config.deep_dup
         config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
-        config['tracks'].find { |t| t['type'] == 'primary' }['transitions'] = [
-          { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
-            'timing' => { 'distribution' => 'constant', 'value' => 1 },
-            'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
-            'exit_destinations' => { '435' => 1 } },
-        ]
+        config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
+          track['transitions'] = [
+            { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+              'timing' => { 'distribution' => 'constant', 'value' => 1 },
+              'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+              'exit_destinations' => { '435' => 1 } },
+          ]
+          track['enrollment_config']['ph_move_in'] = {
+            'probability' => 1.0,
+            'delay_days' => { 'distribution' => 'constant', 'value' => 0 },
+          }
+        end
         cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
         HmisSimulation::Bootstrapper.new(cfg).run!
         engine_instance = described_class.new(cfg)
@@ -529,6 +541,106 @@ RSpec.describe HmisSimulation::Engine do
         # housing_move_in close → code 14 (PSH referral, successful)
         closing_events = Hmis::Hud::Event.where(data_source: data_source, Event: 14, ReferralResult: 1)
         expect(closing_events.count).to be > 0
+      end
+    end
+
+    context 'tick_housing_move_in' do
+      # Base config variant with 1-day ES→PSH transition and configurable ph_move_in.
+      def psh_config_with_move_in(probability:, delay_days:)
+        base_config.deep_dup.tap do |cfg|
+          cfg['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
+            track['transitions'] = [
+              { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
+                'timing' => { 'distribution' => 'constant', 'value' => 1 },
+                'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
+                'exit_destinations' => { '435' => 1 } },
+            ]
+            track['enrollment_config']['ph_move_in'] = {
+              'probability' => probability,
+              'delay_days' => { 'distribution' => 'constant', 'value' => delay_days },
+            }
+          end
+        end
+      end
+
+      it 'does not set MoveInDate before delay_days have passed' do
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, psh_config_with_move_in(probability: 1.0, delay_days: 5))
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        engine_instance = described_class.new(cfg)
+
+        # Day 0: clients spawn into ES. Day 1: clients exit ES, enter PSH (gap=0, same tick).
+        # Days 2..5: delay_days=5 not yet reached (entry+5 > current date).
+        engine_instance.run(date: run_date)
+        engine_instance.run(date: run_date + 1)
+        engine_instance.run(date: run_date + 2)
+
+        psh_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test PSH_')
+        psh_enrollments = Hmis::Hud::Enrollment.where(data_source: data_source, project_pk: psh_project.id)
+        expect(psh_enrollments.where.not(MoveInDate: nil).count).to eq(0)
+      end
+
+      it 'sets MoveInDate on PH enrollments after delay_days have passed' do
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, psh_config_with_move_in(probability: 1.0, delay_days: 5))
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        engine_instance = described_class.new(cfg)
+
+        # Enter PSH on day 1 (entry_date = run_date + 1). Move-in fires when date >= entry + 5.
+        7.times { |d| engine_instance.run(date: run_date + d) }
+
+        psh_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test PSH_')
+        psh_enrollments = Hmis::Hud::Enrollment.where(data_source: data_source, project_pk: psh_project.id)
+        expect(psh_enrollments.where.not(MoveInDate: nil).count).to be > 0
+      end
+
+      it 'sets MoveInDate to entry_date + delay_days, not the tick date' do
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, psh_config_with_move_in(probability: 1.0, delay_days: 5))
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        engine_instance = described_class.new(cfg)
+
+        7.times { |d| engine_instance.run(date: run_date + d) }
+
+        psh_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test PSH_')
+        Hmis::Hud::Enrollment.
+          where(data_source: data_source, project_pk: psh_project.id).
+          where.not(MoveInDate: nil).
+          each do |enrollment|
+            expect(enrollment.MoveInDate).to eq(enrollment.EntryDate + 5)
+          end
+      end
+
+      it 'never sets MoveInDate when ph_move_in probability is 0' do
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, psh_config_with_move_in(probability: 0.0, delay_days: 1))
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        engine_instance = described_class.new(cfg)
+
+        10.times { |d| engine_instance.run(date: run_date + d) }
+
+        psh_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test PSH_')
+        psh_enrollments = Hmis::Hud::Enrollment.where(data_source: data_source, project_pk: psh_project.id)
+        expect(psh_enrollments.where.not(MoveInDate: nil).count).to eq(0)
+      end
+
+      it 'does not set MoveInDate again on enrollments that already have one' do
+        cfg = HmisSimulation::ConfigLoader.send(:normalize, psh_config_with_move_in(probability: 1.0, delay_days: 1))
+        HmisSimulation::Bootstrapper.new(cfg).run!
+        engine_instance = described_class.new(cfg)
+
+        5.times { |d| engine_instance.run(date: run_date + d) }
+
+        psh_project = Hmis::Hud::Project.find_by(data_source: data_source, ProjectName: 'Test PSH_')
+        move_in_dates = Hmis::Hud::Enrollment.
+          where(data_source: data_source, project_pk: psh_project.id).
+          where.not(MoveInDate: nil).
+          pluck(:id, :MoveInDate).
+          to_h
+
+        # Run more ticks — MoveInDate should remain unchanged.
+        5.times { |d| engine_instance.run(date: run_date + 5 + d) }
+
+        move_in_dates.each do |enrollment_id, original_date|
+          current = Hmis::Hud::Enrollment.find(enrollment_id).MoveInDate
+          expect(current).to eq(original_date)
+        end
       end
     end
 

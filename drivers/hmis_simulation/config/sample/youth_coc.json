@@ -303,6 +303,10 @@
           "timing_jitter": {
             "distribution": "normal", "mean": 0, "stddev": 35, "min": -90, "max": 90
           }
+        },
+        "ph_move_in": {
+          "probability": 0.70,
+          "delay_days": { "distribution": "normal", "mean": 30, "stddev": 15, "min": 1, "max": 120 }
         }
       }
     },

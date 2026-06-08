@@ -210,6 +210,20 @@
             "miss_rate": { "type": "number", "minimum": 0, "maximum": 1 },
             "timing_jitter": { "$ref": "#/$defs/distribution_config" }
           }
+        },
+        "ph_move_in": {
+          "type": "object",
+          "description": "Controls when MoveInDate is set on PH enrollments. Omit or set probability to 0 to leave MoveInDate unset (client left before being housed).",
+          "properties": {
+            "probability": {
+              "type": "number", "minimum": 0, "maximum": 1,
+              "description": "Share of PH enrollments that will ever receive a MoveInDate."
+            },
+            "delay_days": {
+              "$ref": "#/$defs/distribution_config",
+              "description": "Days from EntryDate to MoveInDate."
+            }
+          }
         }
       }
     },

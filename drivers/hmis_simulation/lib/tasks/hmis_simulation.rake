@@ -116,7 +116,7 @@ task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
   key        = args[:key]
   start_date = Date.parse(args[:start_date])
   end_date   = Date.parse(args[:end_date])
-  raise ArgumentError, 'Usage: rake driver:hmis_simulation:run_range[key,2026-01-01,2026-01-31]' if key.blank?
+  raise ArgumentError, 'Usage: rake driver:hmis_simulation:run_range[key,2026-01-01,2026-01-31]' if key.blank? || start_date.blank? || end_date.blank?
 
   config = HmisSimulation::ConfigLoader.from_app_config(key)
   HmisSimulationRake.ensure_simulation_bootstrapped(config)

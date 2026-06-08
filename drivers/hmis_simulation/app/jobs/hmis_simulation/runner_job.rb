@@ -31,6 +31,9 @@ module HmisSimulation
     SIM_KEY_PREFIX = 'hmis_simulation/'
 
     def perform(end_date: Date.current)
+      # Prevent running in production
+      return if Rails.env.production?
+
       setup_notifier('HmisSimulation::RunnerJob')
 
       config_keys = AppConfigProperty.where('key LIKE ?', "#{SIM_KEY_PREFIX}%").pluck(:key)
@@ -117,6 +120,11 @@ module HmisSimulation
     end
 
     def sync_warehouse(data_source_ids:, updated_since: nil)
+      # Skip in test environment — IdentifyDuplicates, service history processing,
+      # and RefreshWarehouseViewsJob are all slow and no simulation spec asserts on
+      # their output.
+      return if Rails.env.test?
+
       log('Syncing warehouse...')
       HmisSimulation::WarehouseSyncer.new(data_source_ids: data_source_ids).call(updated_since: updated_since)
     end

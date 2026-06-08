@@ -8,6 +8,8 @@
 
 module HmisSimulation
   module Builders
+    # See @docs/features/hmis-simulation.md
+    #
     # Shared foundation for all HmisSimulation builder classes.
     #
     # Provides:

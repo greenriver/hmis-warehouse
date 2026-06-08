@@ -22,7 +22,7 @@ module HmisSimulation
     #     member_enrollments: [Hmis::Hud::Enrollment],
     #   }
     class EnrollmentBuilder < BaseBuilder
-      # Project types that receive a MoveInDate on enrollment entry
+      # PH project types — referenced by Engine#tick_housing_move_in
       PH_PROJECT_TYPES = [3, 9, 10, 13].freeze
 
       # LengthOfStay codes considered "under threshold" (less than one week)
@@ -85,7 +85,7 @@ module HmisSimulation
           ProjectID: @project.ProjectID,
           HouseholdID: @household_id,
           EntryDate: @entry_date,
-          MoveInDate: (PH_PROJECT_TYPES.include?(@project.ProjectType) ? @entry_date : nil),
+          MoveInDate: nil,
           DateOfEngagement: (@project.ProjectType == 4 ? @entry_date + Random.new(@rng_seed + 6).rand(0..7) : nil),
           RelationshipToHoH: relationship_to_hoh,
           DisablingCondition: 99,

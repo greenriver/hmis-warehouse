@@ -352,6 +352,10 @@
           "timing_jitter": {
             "distribution": "normal", "mean": 0, "stddev": 25, "min": -90, "max": 90
           }
+        },
+        "ph_move_in": {
+          "probability": 0.75,
+          "delay_days": { "distribution": "normal", "mean": 45, "stddev": 20, "min": 1, "max": 180 }
         }
       }
     },
@@ -543,6 +547,10 @@
           "timing_jitter": {
             "distribution": "normal", "mean": 0, "stddev": 15, "min": -60, "max": 60
           }
+        },
+        "ph_move_in": {
+          "probability": 0.80,
+          "delay_days": { "distribution": "normal", "mean": 30, "stddev": 10, "min": 1, "max": 90 }
         }
       }
     },

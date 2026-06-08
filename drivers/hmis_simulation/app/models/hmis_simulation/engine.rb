@@ -9,6 +9,8 @@
 module HmisSimulation
   # Drives the simulation forward one calendar day at a time.
   #
+  # See @docs/features/hmis-simulation.md
+  #
   # Each call to #run(date:) processes exactly one simulated day:
   #   1. Spawn new clients (looped over all primary tracks)
   #   2. Process primary enrollment exits and entries (per primary track)
@@ -67,6 +69,7 @@ module HmisSimulation
 
           spawn_clients(date: date)
           tick_primary(date: date)
+          tick_housing_move_in(date: date)
           tick_cls_records(date: date)
           tick_annual_collections(date: date)
           tick_concurrent(date: date)
@@ -327,6 +330,52 @@ module HmisSimulation
         ).build_bed_night!
         @services_created += 1
       end
+    end
+
+    # -- Housing move-in tick --
+
+    # Sets MoveInDate on open PH enrollments whose configured delay has elapsed.
+    # MoveInDate is NOT set at enrollment entry — it is deferred here so that some
+    # clients can exit PH without ever receiving a move-in date (they left before
+    # being housed), which reflects real-world HMIS data.
+    #
+    # Config (under primary track enrollment_config.ph_move_in):
+    #   probability  – share of clients who will ever receive a MoveInDate (0–1)
+    #   delay_days   – distribution of days from EntryDate to MoveInDate
+    #
+    # Both rolls are stable per enrollment (seeded by EnrollmentID), so the move-in
+    # date is determined at first tick and never changes.
+    def tick_housing_move_in(date:)
+      ph_project_pks = Hmis::Hud::Project.
+        where(data_source_id: @data_source_id, ProjectType: Builders::EnrollmentBuilder::PH_PROJECT_TYPES).
+        pluck(:id)
+      return if ph_project_pks.empty?
+
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, project_pk: ph_project_pks, MoveInDate: nil).
+        open_on_date(date).
+        find_each do |enrollment|
+          sim_client = Client.find_by(data_source_id: @data_source_id, hud_enrollment_id: enrollment.id)
+          next unless sim_client
+
+          move_in_cfg = enrollment_config_for(sim_client)['ph_move_in'] || {}
+          probability = move_in_cfg['probability'].to_f
+          next if probability.zero?
+
+          rng = Random.new(@seed + stable_hash("ph_move_in_prob:#{enrollment.EnrollmentID}"))
+          next if rng.rand >= probability
+
+          delay_cfg = (move_in_cfg['delay_days'] || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
+          delay_days = Distribution.sample(
+            delay_cfg,
+            rng: Random.new(@seed + stable_hash("ph_move_in_days:#{enrollment.EnrollmentID}")),
+          ).ceil.clamp(0, 365)
+
+          move_in_date = enrollment.EntryDate + delay_days
+          next if move_in_date > date
+
+          enrollment.update!(MoveInDate: move_in_date)
+        end
     end
 
     # -- Linked record builders (called at enrollment entry/exit) --

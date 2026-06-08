@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 module HmisSimulation
+  # See @docs/features/hmis-simulation.md
+  #
   # Creates or updates the HMIS records that provide the structural scaffolding
   # a simulation needs: organizations, projects, ProjectCoc, Inventory, Funder,
   # HmisParticipation, and CeParticipation records. All operations are idempotent
@@ -33,9 +35,9 @@ module HmisSimulation
       user_id     = Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
       primary_coc = @config.dig('coc_codes', 'primary')
 
-      find_or_create_export(data_source: data_source)
-
       Hmis::Hud::Base.transaction do
+        find_or_create_export(data_source: data_source)
+
         @config['organizations'].each do |org_cfg|
           org = find_or_create_organization(org_cfg, data_source: data_source, user_id: user_id)
 
