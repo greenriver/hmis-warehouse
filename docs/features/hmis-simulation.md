@@ -188,6 +188,7 @@ The simulation generates a complete set of HUD 2026 HMIS records for each projec
 | `LivingSituation` + full 3.917 suite | All | Enrollment entry |
 | `DateOfEngagement` | SO (type 4) | Enrollment entry |
 | `ReferralSource` | All | Enrollment entry |
+| `HealthAndDv` | All (entry); residential + SO (0,1,2,3,4,8,9,10,13) (exit) | Entry + exit |
 | `EmploymentEducation` | Residential (0,1,2,3,8,9,10,13) | Entry, annual, exit |
 | `CurrentLivingSituation` (periodic) | SO: ~30-day interval; CE: ~90-day interval | During enrollment |
 | `Assessment` + `AssessmentResults` | CE (type 14) | At enrollment open |
@@ -300,7 +301,7 @@ If omitted, `LivingSituation` is sampled uniformly from all valid HUD codes.
 | `approximate_dob_rate` | `0.0` | Probability DOB is year-only + `DOBDataQuality: 2` |
 | `missing_ssn_rate` | `0.0` | Probability SSN is nil + `SSNDataQuality: 99` |
 | `missing_name_rate` | `0.0` | Probability name is nil + `NameDataQuality: 99` |
-| `record_miss_rate` | `0.0` | Probability any required per-enrollment record is skipped entirely (EmploymentEducation, periodic CLS, CE Assessment, CE Event) |
+| `record_miss_rate` | `0.0` | Probability any required per-enrollment record is skipped entirely (HealthAndDv at exit, EmploymentEducation, periodic CLS, CE Assessment, CE Event) |
 
 ### Concurrent track keys
 
