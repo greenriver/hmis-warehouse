@@ -124,80 +124,69 @@ module HmisSimulation
     end
 
     def check_employment_education(project_info)
-      residential_project_pks = project_info.select { |_, info| ComplianceRules.employment_education_required?(info[:type]) }.keys
-      return if residential_project_pks.empty?
-
-      # Enrollment IDs that have at least one entry-stage EE record
-      enrolled_ee_ids = Hmis::Hud::EmploymentEducation.
-        where(data_source_id: @data_source_id, DataCollectionStage: 1).
-        pluck(:EnrollmentID).
-        to_set
-
-      Hmis::Hud::Enrollment.
-        where(data_source_id: @data_source_id, project_pk: residential_project_pks).
-        pluck(:project_pk, :EnrollmentID).
-        each do |project_pk, enrollment_id|
-          next if enrolled_ee_ids.include?(enrollment_id)
-
-          info = project_info[project_pk]
-          add_violation(
-            type: :missing_employment_education,
-            project_name: info[:name],
-            project_type: info[:type],
-            message: "Enrollment #{enrollment_id.inspect} in #{info[:name].inspect} (type #{info[:type]}) " \
-                     'is missing an entry EmploymentEducation record',
-          )
-        end
+      check_presence_for_projects(
+        project_info: project_info,
+        project_filter: ->(pt) { ComplianceRules.employment_education_required?(pt) },
+        hud_class: Hmis::Hud::EmploymentEducation,
+        stage_scope: { DataCollectionStage: 1 },
+        violation_type: :missing_employment_education,
+        message_builder: ->(id, name, type) {
+          "Enrollment #{id.inspect} in #{name.inspect} (type #{type}) is missing an entry EmploymentEducation record"
+        },
+      )
     end
 
     def check_cls_records(project_info)
-      cls_project_pks = project_info.select { |_, info| ComplianceRules.cls_required?(info[:type]) }.keys
-      return if cls_project_pks.empty?
-
-      cls_enrollment_ids = Hmis::Hud::CurrentLivingSituation.
-        where(data_source_id: @data_source_id).
-        pluck(:EnrollmentID).
-        to_set
-
-      Hmis::Hud::Enrollment.
-        where(data_source_id: @data_source_id, project_pk: cls_project_pks).
-        pluck(:project_pk, :EnrollmentID).
-        each do |project_pk, enrollment_id|
-          next if cls_enrollment_ids.include?(enrollment_id)
-
-          info = project_info[project_pk]
-          add_violation(
-            type: :missing_cls_record,
-            project_name: info[:name],
-            project_type: info[:type],
-            message: "Enrollment #{enrollment_id.inspect} in #{info[:name].inspect} (type #{info[:type]}) " \
-                     'is missing a CurrentLivingSituation record',
-          )
-        end
+      check_presence_for_projects(
+        project_info: project_info,
+        project_filter: ->(pt) { ComplianceRules.cls_required?(pt) },
+        hud_class: Hmis::Hud::CurrentLivingSituation,
+        violation_type: :missing_cls_record,
+        message_builder: ->(id, name, type) {
+          "Enrollment #{id.inspect} in #{name.inspect} (type #{type}) is missing a CurrentLivingSituation record"
+        },
+      )
     end
 
     def check_ce_assessments(project_info)
-      ce_project_pks = project_info.select { |_, info| info[:type] == ComplianceRules::CE_PROJECT_TYPE }.keys
-      return if ce_project_pks.empty?
+      check_presence_for_projects(
+        project_info: project_info,
+        project_filter: ->(pt) { pt == ComplianceRules::CE_PROJECT_TYPE },
+        hud_class: Hmis::Hud::Assessment,
+        violation_type: :missing_ce_assessment,
+        message_builder: ->(id, name, _type) {
+          "CE enrollment #{id.inspect} in #{name.inspect} is missing an Assessment record"
+        },
+      )
+    end
 
-      # Enrollment IDs that have at least one Assessment record
-      assessed_enrollment_ids = Hmis::Hud::Assessment.
-        where(data_source_id: @data_source_id).
-        pluck(:EnrollmentID).
-        to_set
+    def check_presence_for_projects(
+      project_info:,
+      project_filter:,
+      hud_class:,
+      stage_scope: nil,
+      violation_type:,
+      message_builder:
+    )
+      matching_pks = project_info.select { |_, info| project_filter.call(info[:type]) }.keys
+      return if matching_pks.empty?
+
+      scope = hud_class.where(data_source_id: @data_source_id)
+      scope = scope.where(**stage_scope) if stage_scope
+      existing_ids = scope.pluck(:EnrollmentID).to_set
 
       Hmis::Hud::Enrollment.
-        where(data_source_id: @data_source_id, project_pk: ce_project_pks).
+        where(data_source_id: @data_source_id, project_pk: matching_pks).
         pluck(:project_pk, :EnrollmentID).
         each do |project_pk, enrollment_id|
-          next if assessed_enrollment_ids.include?(enrollment_id)
+          next if existing_ids.include?(enrollment_id)
 
           info = project_info[project_pk]
           add_violation(
-            type: :missing_ce_assessment,
+            type: violation_type,
             project_name: info[:name],
             project_type: info[:type],
-            message: "CE enrollment #{enrollment_id.inspect} in #{info[:name].inspect} is missing an Assessment record",
+            message: message_builder.call(enrollment_id, info[:name], info[:type]),
           )
         end
     end

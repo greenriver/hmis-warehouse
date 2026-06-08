@@ -32,6 +32,7 @@ module HmisSimulation
       @config = config.deep_stringify_keys
       @data_source_id = @config['data_source_id'].to_i
       @seed = @config['seed'].to_i
+      @record_miss_rate = (@config.dig('data_quality', 'record_miss_rate') || 0).to_f
     end
 
     def run(date:)
@@ -564,10 +565,9 @@ module HmisSimulation
     # Returns true with probability record_miss_rate (from global data_quality config).
     # Uses a deterministic seeded roll so the same enrollment+date always produces the same result.
     def record_miss?(context_suffix)
-      miss_rate = (@config.dig('data_quality', 'record_miss_rate') || 0).to_f
-      return false if miss_rate.zero?
+      return false if @record_miss_rate.zero?
 
-      Random.new(@seed + stable_hash("miss:#{context_suffix}")).rand < miss_rate
+      Random.new(@seed + stable_hash("miss:#{context_suffix}")).rand < @record_miss_rate
     end
 
     # -- CE record creation helpers --
