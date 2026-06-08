@@ -42,12 +42,7 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
             name
             expression
           }
-          errors {
-            attribute
-            fullMessage
-            severity
-            data
-          }
+          #{error_fields}
         }
       }
     GRAPHQL
