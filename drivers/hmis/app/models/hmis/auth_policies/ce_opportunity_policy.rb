@@ -32,4 +32,23 @@ class Hmis::AuthPolicies::CeOpportunityPolicy < Hmis::AuthPolicies::ResourcePoli
     def opportunity = resource
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Ce::Opportunity)
   end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    def can_index_opportunities?
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    def can_index_eligible_clients?
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    # Whether the user can manage CE match rules in the data source.
+    def can_manage_ce_match_rules?
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Ce::Opportunity)
+  end
 end
