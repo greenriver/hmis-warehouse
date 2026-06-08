@@ -9,6 +9,7 @@
 module ManagesCeMatchRules
   extend ActiveSupport::Concern
 
+  # If the rule change will remove more than 25% of the current candidates, warn the user
   IMPACT_WARNING_RATIO = 0.25
 
   private
