@@ -19,7 +19,9 @@ module HudReports
     acts_as_paranoid
     include ActionView::Helpers::DateHelper
     include SafeInspectable
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HopwaCaper::HudReports::ReportInstanceExtension
+    include HudSpmReport::HudReports::ReportInstanceExtension
     include HudReportArchival
 
     self.table_name = 'hud_report_instances'

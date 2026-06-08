@@ -20,6 +20,7 @@ module GrdaWarehouse
       active.where(slug: slug).first
     end
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisExternalApis::GrdaWarehouse::RemoteCredentialExtension
   end
 end

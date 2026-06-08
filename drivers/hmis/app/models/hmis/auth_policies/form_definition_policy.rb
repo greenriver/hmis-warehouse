@@ -72,6 +72,22 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       can_manage_form_by_role?(role: role)
     end
 
+    # Whether the user can manage some forms in the data source
+    def can_manage_forms?
+      global_permissions.include?(:can_manage_forms)
+    end
+
+    # Whether the user can manage some form rules in the data source.
+    # Users may be able to create/edit/delete form rules, but not manage the form itself.
+    def can_manage_form_rules?
+      global_permissions.include?(:can_configure_data_collection)
+    end
+
+    # Whether the user has "super-admin" config permissions
+    def can_administrate_config?
+      global_permissions.include?(:can_administrate_config)
+    end
+
     protected
 
     def can_manage_form_by_role?(role:)

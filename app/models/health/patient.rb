@@ -12,7 +12,12 @@ module Health
   class Patient < Base
     extend OrderAsSpecified
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ClaimsReporting::Health::PatientExtension
+    include HealthComprehensiveAssessment::Health::PatientExtension
+    include HealthPctp::Health::PatientExtension
+    include HealthQaFactory::Health::PatientExtension
+    include HealthThriveAssessment::Health::PatientExtension
     include ArelHelper
     acts_as_paranoid
 
