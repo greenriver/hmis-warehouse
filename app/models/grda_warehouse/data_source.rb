@@ -769,11 +769,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     external_hmis_configuration&.url(entity)
   end
 
+  # Validate that the HMIS hostname was not changed
   private def hmis_hostname_immutable
-    return unless hmis_changed?
-    return if hmis_was.blank?
-
-    errors.add(:hmis, 'cannot be changed once set')
+    errors.add(:hmis, 'cannot be changed once set') if hmis_changed? && hmis_was.present?
   end
 
   private def enforce_op_hmis_defaults
