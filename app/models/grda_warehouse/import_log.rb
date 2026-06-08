@@ -37,5 +37,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
     end
   end
   # Overrides some methods, so must be included at the end
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisCsvImporter::GrdaWarehouse::ImportLogExtension
+  include HmisCsvTwentyTwenty::GrdaWarehouse::ImportLogExtension
 end

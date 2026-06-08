@@ -634,9 +634,10 @@ module Types
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
         merge(Hmis::Ce::Match::CandidatePool.active).
-        distinct.order(:id)
+        distinct
 
       scope = scope.apply_filters(filters) if filters
+      scope = scope.order(:id)
       scope
     end
 

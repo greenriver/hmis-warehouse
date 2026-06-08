@@ -11,12 +11,13 @@
 # Control: PHI attributes documented
 module Health
   class Vaccination < EpicBase
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include TextMessage::Health::VaccinationExtension
     include ObviousClientMatcher
 
-    MODERNA = 'ModernaTX, Inc.'.freeze
-    PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
-    JANSSEN = 'Janssen'.freeze
+    MODERNA = 'ModernaTX, Inc.'
+    PFIZER = 'Pfizer, Inc., and BioNTech'
+    JANSSEN = 'Janssen'
 
     phi_patient :medicaid_id
     phi_attr :id, Phi::OtherIdentifier
