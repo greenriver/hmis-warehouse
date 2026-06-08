@@ -49,7 +49,7 @@ module Mutations
           !confirmed && # Only if the user didn't already confirm the change
           # Only if the expression or applicability config has changed.
           # - expression change can cause candidates to become ineligible
-          # - applicability config change can cause this rule to apply to more pools, which may remove candidates from those pools
+          # - applicability config change can cause this rule to apply to more pools, which may remove candidates from those pools.
           (rule.will_save_change_to_expression? || rule.will_save_change_to_applicability_config?)
       end
     end

@@ -960,11 +960,6 @@ type CeMatchRule {
   structuredExpression: CeMatchRuleStructuredExpression
 }
 
-input CeMatchRuleApplicabilityConfigInput {
-  projectFunders: [FundingSource!]
-  projectTypes: [ProjectType!]
-}
-
 enum CeMatchRuleBooleanOperator {
   AND
   OR
@@ -1006,7 +1001,6 @@ enum CeMatchRuleComparator {
 }
 
 input CeMatchRuleInput {
-  applicabilityConfig: CeMatchRuleApplicabilityConfigInput
   expression: String
   name: String
   ownerId: ID

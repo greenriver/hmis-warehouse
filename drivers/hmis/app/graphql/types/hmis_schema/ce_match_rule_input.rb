@@ -15,13 +15,11 @@ module Types
     argument :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwner, required: false
     argument :rule_type, String, required: false
     argument :priority_rank, Integer, required: false
-    argument :applicability_config, Types::HmisSchema::CeMatchRuleApplicabilityConfigInput, required: false
     argument :expression, String, required: false
     argument :structured_expression, Types::HmisSchema::CeMatchRuleStructuredExpressionInput, required: false
 
     def to_rule_attributes
-      attrs = to_h.except(:structured_expression, :applicability_config).compact
-      attrs[:applicability_config] = applicability_config.to_params if applicability_config
+      attrs = to_h.except(:structured_expression).compact
       expr = expression_from_input
       attrs[:expression] = expr if expr
       attrs

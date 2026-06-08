@@ -37,7 +37,6 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       ownerId: ds1.id,
       ownerType: 'DATA_SOURCE',
       ruleType: 'eligibility_requirement',
-      applicabilityConfig: {},
       expression: 'current_age >= 18',
     }
   end
