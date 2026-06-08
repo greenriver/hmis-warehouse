@@ -25,8 +25,9 @@ module HmisSimulation
       "FAKE#{SecureRandom.hex(14)}"
     end
 
-    def self.ssn
-      "999#{format('%06d', rand(1_000_000))}"
+    def self.ssn(rng: nil)
+      digits = rng ? format('%06d', rng.rand(1_000_000)) : format('%06d', SecureRandom.random_number(1_000_000))
+      "999#{digits}"
     end
 
     def self.first_name(rng: nil)

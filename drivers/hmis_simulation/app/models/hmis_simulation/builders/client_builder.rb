@@ -124,7 +124,7 @@ module HmisSimulation
         if roll_rate('missing_ssn_rate', 'ssn_missing')
           [nil, 99]
         else
-          [FakeIdentifier.ssn, 1]
+          [FakeIdentifier.ssn(rng: rng('ssn')), 1]
         end
       end
 

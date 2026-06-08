@@ -277,7 +277,14 @@ module HmisSimulation
       ).build!
 
       @enrollments_opened += 1
-      create_entry_records(result[:hoh_enrollment], date, data_source: data_source, user_id: user_id, sim_client: sim_client)
+      create_entry_records(
+        result[:hoh_enrollment],
+        date,
+        data_source: data_source,
+        user_id: user_id,
+        sim_client: sim_client,
+        project_type: project.ProjectType,
+      )
       assign_concurrent_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
       trigger_lifecycle_enrollments(sim_client, date, data_source: data_source, user_id: user_id)
 
@@ -314,7 +321,7 @@ module HmisSimulation
 
     # -- Linked record builders (called at enrollment entry/exit) --
 
-    def create_entry_records(enrollment, date, data_source:, user_id:, sim_client:)
+    def create_entry_records(enrollment, date, data_source:, user_id:, sim_client:, project_type: nil)
       rng_seed       = @seed + stable_hash("linked:#{enrollment.EnrollmentID}")
       enrollment_cfg = enrollment_config_for(sim_client)
       disability_cfg = enrollment_cfg['disabilities'] || {}
@@ -361,7 +368,7 @@ module HmisSimulation
         ).build!
       end
 
-      pt = enrollment.project&.ProjectType.to_i
+      pt = (project_type || enrollment.project&.ProjectType).to_i
       return unless ComplianceRules.employment_education_required?(pt)
       return if record_miss?("ee_entry:#{enrollment.EnrollmentID}")
 
@@ -375,7 +382,7 @@ module HmisSimulation
       ).build!
     end
 
-    def create_linked_exit_records(enrollment, exit_date, data_source:, user_id:, sim_client:)
+    def create_linked_exit_records(enrollment, exit_date, data_source:, user_id:, sim_client:, project_type: nil)
       enrollment_cfg = enrollment_config_for(sim_client)
       income_cfg = enrollment_cfg['income_at_entry'] || {}
       Builders::IncomeBenefitBuilder.new(
@@ -388,7 +395,7 @@ module HmisSimulation
         rng_seed: @seed + stable_hash("exit_income:#{enrollment.EnrollmentID}"),
       ).build!
 
-      pt = enrollment.project&.ProjectType.to_i
+      pt = (project_type || enrollment.project&.ProjectType).to_i
       return unless ComplianceRules.employment_education_required?(pt)
       return if record_miss?("ee_exit:#{enrollment.EnrollmentID}")
 
@@ -700,8 +707,12 @@ module HmisSimulation
 
         enrollments.each do |enrollment|
           create_entry_records(
-            enrollment, date,
-            data_source: data_source, user_id: user_id, sim_client: sim_client
+            enrollment,
+            date,
+            data_source: data_source,
+            user_id: user_id,
+            sim_client: sim_client,
+            project_type: enrollment.project&.ProjectType,
           )
         end
       end
@@ -759,7 +770,16 @@ module HmisSimulation
       )
 
       sim_client = Client.find_by(hud_client_id: concurrent_enrollment.hud_client_id, data_source_id: @data_source_id)
-      create_entry_records(enrollment, date, data_source: data_source, user_id: user_id, sim_client: sim_client) if sim_client
+      if sim_client
+        create_entry_records(
+          enrollment,
+          date,
+          data_source: data_source,
+          user_id: user_id,
+          sim_client: sim_client,
+          project_type: project.ProjectType,
+        )
+      end
 
       duration_cfg = (concurrent_track&.dig('duration') || { 'distribution' => 'constant', 'value' => 30 }).deep_stringify_keys
       duration = Distribution.sample(
@@ -875,7 +895,16 @@ module HmisSimulation
         create_opening_ce_records(lc_enrollment, opens_on, data_source: data_source, user_id: user_id)
 
         hud_enrollment = Hmis::Hud::Enrollment.find_by(id: lc_enrollment.hud_enrollment_id)
-        create_entry_records(hud_enrollment, opens_on, data_source: data_source, user_id: user_id, sim_client: sim_client) if hud_enrollment
+        next unless hud_enrollment
+
+        create_entry_records(
+          hud_enrollment,
+          opens_on,
+          data_source: data_source,
+          user_id: user_id,
+          sim_client: sim_client,
+          project_type: ce_project.ProjectType,
+        )
       end
     end
 
