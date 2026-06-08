@@ -59,12 +59,7 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
               }
             }
           }
-          errors {
-            attribute
-            fullMessage
-            severity
-            data
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

@@ -25,9 +25,7 @@ RSpec.describe 'deleteCeMatchRule mutation', type: :request do
             id
             name
           }
-          errors {
-            fullMessage
-          }
+          #{error_fields}
         }
       }
     GRAPHQL
