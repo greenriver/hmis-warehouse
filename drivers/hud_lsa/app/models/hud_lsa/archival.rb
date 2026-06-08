@@ -11,10 +11,6 @@ module HudLsa
     extend ActiveSupport::Concern
 
     included do
-      ::HudReports::ReportInstance.class_eval do
-        has_one_attached :lsa_summary_results_csv
-      end
-
       ::HudReportArchival.register_archival_generator(title, self)
     end
   end

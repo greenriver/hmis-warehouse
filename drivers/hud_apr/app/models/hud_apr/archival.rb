@@ -11,13 +11,6 @@ module HudApr
     extend ActiveSupport::Concern
 
     included do
-      ::HudReports::ReportInstance.class_eval do
-        has_one_attached :apr_clients_csv
-        has_one_attached :apr_living_situations_csv
-        has_one_attached :apr_ce_assessments_csv
-        has_one_attached :apr_ce_events_csv
-      end
-
       ::HudReportArchival.register_archival_generator(title, self)
     end
 
