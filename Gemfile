@@ -97,7 +97,7 @@ gem 'rack-cors'
 # Zitadel client is used for migrating users to Zitadel
 gem 'jwt', '~> 3.1'
 gem 'faraday', '~> 2.2'
-gem 'oauth2'
+gem 'oauth2', '>= 2.0.22'
 
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
@@ -147,7 +147,7 @@ gem 'htmlentities'
 # ETO API related
 gem 'rest-client', '~> 2.0'
 gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
-gem 'gmail', require: false
+# gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
