@@ -33,6 +33,18 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
       project_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
     end
 
+    def can_split_household?
+      project_permissions.include?(:can_split_households)
+    end
+
+    def can_audit?
+      project_permissions.include?(:can_audit_enrollments)
+    end
+
+    def can_view_location_map?
+      project_permissions.include?(:can_view_enrollment_location_map)
+    end
+
     protected
 
     # convenience

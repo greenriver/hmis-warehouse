@@ -100,12 +100,14 @@ module Types
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
     access_field permissions: nil do
-      can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-      can :split_households
-      can :audit_enrollments
-      can :view_enrollment_location_map
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_enrollment) }
+
+      bool_field(:can_view_enrollment_details) { policy.can_view_details? }
+      bool_field(:can_edit_enrollments) { policy.can_edit? }
+      bool_field(:can_delete_enrollments) { policy.can_delete? }
+      bool_field(:can_split_households) { policy.can_split_household? }
+      bool_field(:can_audit_enrollments) { policy.can_audit? }
+      bool_field(:can_view_enrollment_location_map) { policy.can_view_location_map? }
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.
