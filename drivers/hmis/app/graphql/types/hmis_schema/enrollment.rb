@@ -297,7 +297,7 @@ module Types
 
       # Perf optimization: preload project dependencies for open enrollments, to avoid N+1
       # when resolving HmisSchema::EnrollmentSummary#can_view_enrollment
-      context[:current_user].policy_context.preload_project_dependencies(open_enrollments.map(&:project_pk))
+      current_user.policy_context.preload_project_dependencies(open_enrollments.pluck(:project_pk))
 
       open_enrollments
     end
