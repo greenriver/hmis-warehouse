@@ -293,7 +293,13 @@ module Types
       client = load_ar_client_association(object)
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
-      load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
+      open_enrollments = client.enrollments.where.not(id: object.id).open_including_wip
+
+      # Perf optimization: preload project dependencies for open enrollments, to avoid N+1
+      # when resolving HmisSchema::EnrollmentSummary#can_view_enrollment
+      context[:current_user].policy_context.preload_project_dependencies(open_enrollments.map(&:project_pk))
+
+      open_enrollments
     end
 
     def reminders
