@@ -1,8 +1,3 @@
-x-env-file: &env_file
-  - .env.development.local
-  - .env.local
-  - docker/auth/keycloak-credentials.env
-
 x-app: &app
   image: hmis-warehouse:5.3
   build:
@@ -33,18 +28,10 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
-    # Comma-separated list of valid JWT audiences. Should include both:
-    # - hmis-warehouse (for warehouse oauth2-proxy)
-    # - hmis-frontend (for HMIS oauth2-proxy)
-    # Defaults to all if not set
-    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend,superset}
-    JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
-    # Internal connections use Docker network hostname 'dex'
-    # Issuer must match what browsers see (https://dex.dev.test/dex) for token validation
-    ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
-    JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
 
-  env_file: *env_file
+  env_file:
+    - .env.development.local
+    - .env.local
 
 x-backend: &backend
   <<: *app

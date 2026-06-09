@@ -3,7 +3,8 @@
 # This override is NOT loaded by a default `docker compose up`. Bring up the full
 # Keycloak/Dex/oauth2-proxy stack with both files explicitly:
 #
-#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.auth.yml up
+#   export COMPOSE_FILE=docker-compose.yml:docker/docker-compose.auth.yml
+#   docker compose up
 #
 # It adds the six auth services and rewires `web` to sit behind oauth2-proxy. A plain
 # `docker compose up` (base file only) is byte-for-byte the same as on `main`.
@@ -180,7 +181,7 @@ services:
   keycloak:
     restart: unless-stopped
     build:
-      context: ./docker/keycloak
+      context: docker/keycloak
       dockerfile: Dockerfile
     image: op-keycloak:local
     container_name: op-keycloak
@@ -237,6 +238,12 @@ services:
     labels:
       - traefik.enable=false
     hostname: internal-warehouse.dev.test
+    env_file: *env_file
+    environment:
+      IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend,superset}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+      ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
+      JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
     depends_on:
       oauth2-proxy-warehouse:
         condition: service_started

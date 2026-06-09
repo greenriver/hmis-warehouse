@@ -43,10 +43,11 @@ docker compose exec db psql -U postgres -c 'CREATE DATABASE keycloak'
 docker compose exec db psql -U postgres -c 'CREATE DATABASE dex'
 ```
 
-**4. Bring up the stack** with both compose files (export `COMPOSE_FILE` to skip the `-f` flags):
+**4. Bring up the stack** with both compose files. Use the repo-root symlink (`docker-compose.yml`)
+so the project directory stays at the repo root and all relative paths resolve correctly:
 
 ```bash
-export COMPOSE_FILE=docker/docker-compose.yml:docker/docker-compose.auth.yml
+export COMPOSE_FILE=docker-compose.yml:docker/docker-compose.auth.yml
 docker compose build keycloak
 docker compose up
 ```
