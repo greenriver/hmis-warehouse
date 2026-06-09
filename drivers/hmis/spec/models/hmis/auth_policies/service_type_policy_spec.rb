@@ -52,4 +52,17 @@ RSpec.describe Hmis::AuthPolicies::ServiceTypePolicy, type: :model do
       end
     end
   end
+
+  describe 'Global#can_manage?' do
+    let(:policy) { user.policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type) }
+
+    it 'returns false when user does not have can_configure_data_collection permission' do
+      remove_permissions(access_control, :can_configure_data_collection)
+      expect(policy.can_manage?).to be false
+    end
+
+    it 'returns true when user has can_configure_data_collection permission' do
+      expect(policy.can_manage?).to be true
+    end
+  end
 end

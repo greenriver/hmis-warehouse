@@ -246,4 +246,52 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
       end
     end
   end
+
+  describe 'Global#can_manage_forms?' do
+    let(:policy) { user.policy_for(Hmis::Form::Definition, policy_type: :form_definition) }
+
+    it 'returns false when user does not have can_manage_forms permission' do
+      expect(policy.can_manage_forms?).to be false
+    end
+
+    context 'when user has can_manage_forms permission' do
+      let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_manage_forms]) }
+
+      it 'returns true' do
+        expect(policy.can_manage_forms?).to be true
+      end
+    end
+  end
+
+  describe 'Global#can_manage_form_rules?' do
+    let(:policy) { user.policy_for(Hmis::Form::Definition, policy_type: :form_definition) }
+
+    it 'returns false when user does not have can_configure_data_collection permission' do
+      expect(policy.can_manage_form_rules?).to be false
+    end
+
+    context 'when user has can_configure_data_collection permission' do
+      let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection]) }
+
+      it 'returns true' do
+        expect(policy.can_manage_form_rules?).to be true
+      end
+    end
+  end
+
+  describe 'Global#can_administrate_config?' do
+    let(:policy) { user.policy_for(Hmis::Form::Definition, policy_type: :form_definition) }
+
+    it 'returns false when user does not have can_administrate_config permission' do
+      expect(policy.can_administrate_config?).to be false
+    end
+
+    context 'when user has can_administrate_config permission' do
+      let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_config]) }
+
+      it 'returns true' do
+        expect(policy.can_administrate_config?).to be true
+      end
+    end
+  end
 end

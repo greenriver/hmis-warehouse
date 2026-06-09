@@ -20,4 +20,8 @@ class HmisEnforcement
     hmis_user = Hmis::User.find_by(id: user.id)
     hmis_user&.can_administer_hmis?
   end
+
+  def self.configured_hmis_hostnames
+    ENV.fetch('HMIS_HOSTNAME', '').split(',').map { |h| h.strip.downcase }.compact_blank.uniq
+  end
 end
