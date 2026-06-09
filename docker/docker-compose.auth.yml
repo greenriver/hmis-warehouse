@@ -1,0 +1,248 @@
+# Opt-in auth dev stack (L0.1 — idp-l0-docker-dev-stack).
+#
+# This override is NOT loaded by a default `docker compose up`. Bring up the full
+# Keycloak/Dex/oauth2-proxy stack with both files explicitly:
+#
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.auth.yml up
+#
+# It adds the six auth services and rewires `web` to sit behind oauth2-proxy. A plain
+# `docker compose up` (base file only) is byte-for-byte the same as on `main`.
+#
+# Note on anchors: YAML anchors do not cross compose files, so `*env_file` from the base
+# is redefined here. The auth containers (oauth2-proxy, dex) read their config from
+# env_file / their own entrypoints and do not consume the Rails app `environment:` block,
+# so the base's `*env` merge is intentionally not duplicated into this file.
+x-env-file: &env_file
+  - .env.development.local
+  - .env.local
+  - docker/auth/keycloak-credentials.env
+
+services:
+  oauth2-proxy-warehouse:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-warehouse-oauth2.rule=Host(`hmis-warehouse.dev.test`)
+      - traefik.http.routers.hmis-warehouse-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-warehouse-oauth2.service=hmis-warehouse-oauth2
+      - traefik.http.routers.hmis-warehouse-oauth2.tls=true
+      - traefik.http.services.hmis-warehouse-oauth2.loadbalancer.server.port=4180
+    container_name: oauth2-proxy-warehouse
+    image: quay.io/oauth2-proxy/oauth2-proxy@sha256:786bed0f000c0f8a7b31619244ebab02406a8856a4faf3f5fb1df61fbd6c30ed # v7.12.0
+    command: --alpha-config /oauth2-proxy-warehouse.yaml --config /oauth2-proxy-warehouse.cfg
+    hostname: hmis-warehouse.dev.test
+    extra_hosts:
+      - "dex.dev.test:host-gateway"
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy-warehouse.cfg:/oauth2-proxy-warehouse.cfg"
+      - "./dev/auth/dev.oauth2-proxy-warehouse.yaml:/oauth2-proxy-warehouse.yaml"
+    env_file: *env_file
+    environment:
+      FQDN: hmis-warehouse.dev.test
+      VIRTUAL_HOST: hmis-warehouse.dev.test
+      VIRTUAL_PORT: 4180
+    ports:
+      - 4180:4180/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  oauth2-proxy-hmis:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-frontend-oauth2.rule=Host(`hmis.dev.test`)
+      - traefik.http.routers.hmis-frontend-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-frontend-oauth2.service=hmis-frontend-oauth2
+      - traefik.http.routers.hmis-frontend-oauth2.tls=true
+      - traefik.http.services.hmis-frontend-oauth2.loadbalancer.server.port=4181
+    container_name: oauth2-proxy-hmis
+    image: quay.io/oauth2-proxy/oauth2-proxy@sha256:786bed0f000c0f8a7b31619244ebab02406a8856a4faf3f5fb1df61fbd6c30ed # v7.12.0
+    command: --alpha-config /oauth2-proxy-hmis.yaml --config /oauth2-proxy-hmis.cfg
+    hostname: hmis.dev.test
+    extra_hosts:
+      - "internal-warehouse.dev.test:host-gateway"
+      - "host.docker.internal:host-gateway"
+      - "dex.dev.test:host-gateway"
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy-hmis.cfg:/oauth2-proxy-hmis.cfg"
+      - "./dev/auth/dev.oauth2-proxy-hmis.yaml:/oauth2-proxy-hmis.yaml"
+    env_file: *env_file
+    environment:
+      FQDN: hmis.dev.test
+      VIRTUAL_HOST: hmis.dev.test
+      VIRTUAL_PORT: 4181
+    ports:
+      - 4181:4181/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  oauth2-proxy-hmis-backend:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.hmis-backend-oauth2.rule=Host(`hmis-backend.dev.test`)
+      - traefik.http.routers.hmis-backend-oauth2.entrypoints=web-secure
+      - traefik.http.routers.hmis-backend-oauth2.service=hmis-backend-oauth2
+      - traefik.http.routers.hmis-backend-oauth2.tls=true
+      - traefik.http.services.hmis-backend-oauth2.loadbalancer.server.port=4182
+    container_name: oauth2-proxy-hmis-backend
+    image: quay.io/oauth2-proxy/oauth2-proxy@sha256:786bed0f000c0f8a7b31619244ebab02406a8856a4faf3f5fb1df61fbd6c30ed # v7.12.0
+    command: --alpha-config /oauth2-proxy-hmis-backend.yaml --config /oauth2-proxy-hmis-backend.cfg
+    hostname: hmis-backend.dev.test
+    extra_hosts:
+      - "internal-warehouse.dev.test:host-gateway"
+      - "host.docker.internal:host-gateway"
+      - "dex.dev.test:host-gateway"
+    volumes:
+      - "./docker/auth/dev.oauth2-proxy-hmis-backend.cfg:/oauth2-proxy-hmis-backend.cfg"
+      - "./dev/auth/dev.oauth2-proxy-hmis-backend.yaml:/oauth2-proxy-hmis-backend.yaml"
+    env_file: *env_file
+    environment:
+      FQDN: hmis-backend.dev.test
+      VIRTUAL_HOST: hmis-backend.dev.test
+      VIRTUAL_PORT: 4182
+    ports:
+      - 4182:4182/tcp
+    depends_on:
+      dex:
+        condition: service_healthy
+  auth-db-init:
+    image: index.docker.io/library/postgres@sha256:fbcea1bd13b6a882cd6caa6b58db3ae5c102efe50ec625b3e2a5cbc50db5bfe4 # 17.5-bookworm
+    container_name: auth-db-init
+    command: >
+      bash -c "
+        for dbname in dex keycloak; do
+          psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = '$$dbname'\" | grep -q 1 ||
+            psql -h db -U postgres -c \"CREATE DATABASE $$dbname\";
+        done
+      "
+    environment:
+      PGPASSWORD: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  dex:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dex.rule=Host(`dex.dev.test`)
+      - traefik.http.routers.dex.entrypoints=web-secure
+      - traefik.http.routers.dex.tls=true
+      - traefik.http.services.dex.loadbalancer.server.port=4443
+      - traefik.http.services.dex.loadbalancer.server.scheme=http
+    container_name: dex
+    # image: dexidp/dex:latest-alpine
+    image: ghcr.io/dexidp/dex@sha256:5d0656fce7d453c0e3b2706abf40c0d0ce5b371fb0b73b3cf714d05f35fa5f86 # v2.44.0
+    # Source Keycloak credentials at runtime, expand env vars in template, then start Dex
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ -f /auth/keycloak-credentials.env ]; then
+          echo "Loading Keycloak credentials..."
+          export $$(grep -v "^#" /auth/keycloak-credentials.env | xargs)
+        fi
+        sed \
+          -e "s|\$${KEYCLOAK_IDP_CLIENT_ID}|$${KEYCLOAK_IDP_CLIENT_ID}|g" \
+          -e "s|\$${KEYCLOAK_IDP_CLIENT_SECRET}|$${KEYCLOAK_IDP_CLIENT_SECRET}|g" \
+          -e "s|\$${GITHUB_IDP_CLIENT_ID}|$${GITHUB_IDP_CLIENT_ID}|g" \
+          -e "s|\$${GITHUB_IDP_CLIENT_SECRET}|$${GITHUB_IDP_CLIENT_SECRET}|g" \
+          /dex.yaml.template > /tmp/dex.yaml
+        exec dex serve /tmp/dex.yaml
+    hostname: dex
+    volumes:
+      - "./docker/auth/dev.dex.yaml.template:/dex.yaml.template:ro"
+      - "./docker/auth:/auth:ro"
+    env_file: *env_file
+    environment:
+      FQDN: dex.dev.test
+      VIRTUAL_HOST: dex.dev.test
+      VIRTUAL_PORT: 4443
+    ports:
+      - 4443:4443/tcp
+    networks:
+      default:
+        aliases:
+          - dex.dev.test
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      auth-db-init:
+        condition: service_completed_successfully
+    # oauth2 proxy kept failing intermittently, added this health check
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "4443"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Keycloak IDP services
+  keycloak:
+    restart: unless-stopped
+    build:
+      context: ./docker/keycloak
+      dockerfile: Dockerfile
+    image: op-keycloak:local
+    container_name: op-keycloak
+    command: start-dev --import-realm
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.keycloak.rule=Host(`op-keycloak.dev.test`)
+      - traefik.http.routers.keycloak.entrypoints=web-secure
+      - traefik.http.routers.keycloak.tls=true
+      - traefik.http.services.keycloak.loadbalancer.server.port=8080
+      - traefik.http.services.keycloak.loadbalancer.server.scheme=http
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: op-keycloak.dev.test
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: AdminPassword1!
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          "curl -f http://localhost:9000/health/ready 2>/dev/null || bash -c 'exec 3<>/dev/tcp/localhost/8080' 2>/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    volumes:
+      - ./docker/keycloak/realm-import.json:/opt/keycloak/data/import/realm-import.json:ro
+    ports:
+      - "8080:8080"
+    hostname: op-keycloak.dev.test
+    networks:
+      default:
+        aliases:
+          - op-keycloak.dev.test
+    depends_on:
+      db:
+        condition: service_healthy
+      auth-db-init:
+        condition: service_completed_successfully
+
+  # Rewire web to sit behind oauth2-proxy when the auth stack is opted into.
+  # Base labels can't be deleted by an override, so neutralize web's Traefik
+  # registration by overriding the traefik.enable label to false (oauth2-proxy-warehouse
+  # now fronts hmis-warehouse.dev.test). VIRTUAL_HOST/VIRTUAL_PORT are nginx-proxy
+  # leftovers nothing reads here, so they're left as-is on the base service.
+  web:
+    labels:
+      - traefik.enable=false
+    hostname: internal-warehouse.dev.test
+    depends_on:
+      oauth2-proxy-warehouse:
+        condition: service_started
+      oauth2-proxy-hmis:
+        condition: service_started
+      oauth2-proxy-hmis-backend:
+        condition: service_started
+      dex:
+        condition: service_healthy
