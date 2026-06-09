@@ -462,6 +462,8 @@ module Types
 
       definition = Hmis::Form::Definition.configurable_by(current_user).
         non_static.latest_versions.where(identifier: identifier).first
+
+      # Return nil (Not Found in the UI) if the user doesn't have permission to access this form
       return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
