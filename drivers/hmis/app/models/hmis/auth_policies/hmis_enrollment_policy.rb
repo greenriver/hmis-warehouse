@@ -45,6 +45,14 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
       project_permissions.include?(:can_view_enrollment_location_map)
     end
 
+    # Whether the user can see a summary of all of this client's other open enrollments on the
+    # Enrollment Details card (linked number that opens a modal). Unlike normal enrollment visibility, this
+    # permission intentionally exposes minimal info for open enrollments at any project, even
+    # projects the user cannot otherwise access (via HmisSchema::EnrollmentSummary type).
+    def can_view_open_enrollment_summary?
+      project_permissions.include?(:can_view_open_enrollment_summary)
+    end
+
     protected
 
     # convenience

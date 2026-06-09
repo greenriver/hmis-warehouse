@@ -130,6 +130,18 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     end
   end
 
+  describe '#can_view_open_enrollment_summary?' do
+    it 'returns true if user has can_view_open_enrollment_summary at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_view_open_enrollment_summary, *view_permissions])
+      expect(policy.can_view_open_enrollment_summary?).to be true
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_view_open_enrollment_summary, *view_permissions])
+      expect(policy.can_view_open_enrollment_summary?).to be false
+    end
+  end
+
   describe '#can_create_file?' do
     it 'returns true when the user has can_manage_any_client_files on the enrollment project' do
       create_access_control(user, project, with_permission: [:can_manage_any_client_files])

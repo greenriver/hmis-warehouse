@@ -82,7 +82,7 @@ module GraphqlApplicationHelper
     # Filter to only enrollments the user has permission to see;
     # Filter down to open enrollments in the specified project on the specified date
     enrollments.filter do |en|
-      has_permission = current_permission?(permission: :can_view_enrollment_details, entity: en)
+      has_permission = current_user.policy_for(en, policy_type: :hmis_enrollment).can_view_details?
       has_permission && en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
   end

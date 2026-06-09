@@ -269,7 +269,7 @@ module Types
 
     # N+1, not performant for queries on collections
     def geolocations
-      return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
+      return [] unless enrollment_policy.can_view_location_map?
 
       # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
       object.as_warehouse.enrollment_location_histories.valid
@@ -288,7 +288,7 @@ module Types
     # This is different from the "summary_fields" which are governed by a different
     # permission ('can_view_limited_enrollment_details').
     def open_enrollment_summary
-      return [] unless current_permission?(permission: :can_view_open_enrollment_summary, entity: object)
+      return [] unless enrollment_policy.can_view_open_enrollment_summary?
 
       client = load_ar_client_association(object)
       # There is no "viewable_by" check on the enrollments, because this permission
@@ -330,7 +330,7 @@ module Types
 
     # Needed because limited access viewers cannot resolve the project
     def project_name
-      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project&.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object)
+      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project&.confidential && !enrollment_policy.can_view_details?
 
       project&.project_name
     end
@@ -477,6 +477,12 @@ module Types
       assignments = load_ar_association(object, :staff_assignments)
       # Sort in-memory to avoid n+1. Equivalent of: order(created_at: :desc, id: :desc)
       assignments.to_a.sort_by { |sa| [-sa.created_at.to_i, -sa.id] }
+    end
+
+    private
+
+    def enrollment_policy
+      @enrollment_policy ||= current_user.policy_for(object, policy_type: :hmis_enrollment)
     end
   end
 end
