@@ -110,10 +110,10 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
       end
     end
 
-    describe '#can_view? and form rule management permissions' do
+    describe '#can_configure_form? and form rule management permissions' do
       shared_examples 'returns false' do
         it 'returns false' do
-          expect(policy.can_view?).to be false
+          expect(policy.can_configure_form?).to be false
           expect(policy.can_add_form_rule?).to be false
           expect(policy.can_delete_form_rule?).to be false
         end
@@ -121,7 +121,7 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
 
       shared_examples 'returns true' do
         it 'returns true' do
-          expect(policy.can_view?).to be true
+          expect(policy.can_configure_form?).to be true
           expect(policy.can_add_form_rule?).to be true
           expect(policy.can_delete_form_rule?).to be true
         end
@@ -216,9 +216,9 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
       end
     end
 
-    describe '#can_index? and #can_manage_form_rules?' do
+    describe '#can_configure_forms? and #can_manage_form_rules?' do
       it 'returns false when user does not have can_configure_data_collection permission' do
-        expect(policy.can_index?).to be false
+        expect(policy.can_configure_forms?).to be false
         expect(policy.can_manage_form_rules?).to be false
       end
 
@@ -226,7 +226,7 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
         let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection]) }
 
         it 'returns true' do
-          expect(policy.can_index?).to be true
+          expect(policy.can_configure_forms?).to be true
           expect(policy.can_manage_form_rules?).to be true
         end
       end

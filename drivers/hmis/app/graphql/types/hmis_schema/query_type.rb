@@ -439,7 +439,7 @@ module Types
       # not be used for the application, because there is no project context passed
       # to the definition.
       definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_view?
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
     end
@@ -457,12 +457,12 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      # return early if the user has no permission to view forms at all
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_index?
+      # return early if the user has no permission to configure forms at all
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      definition = Hmis::Form::Definition.form_editor_viewable_by(current_user).
+      definition = Hmis::Form::Definition.configurable_by(current_user).
         non_static.latest_versions.where(identifier: identifier).first
-      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_view?
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
     end
@@ -471,9 +471,9 @@ module Types
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_index?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.form_editor_viewable_by(current_user).non_static.valid.latest_versions
+      scope = Hmis::Form::Definition.configurable_by(current_user).non_static.valid.latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
