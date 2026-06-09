@@ -84,6 +84,18 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     end
   end
 
+  describe '#can_view_limited?' do
+    it 'returns true if user has can_view_limited_enrollment_details at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details])
+      expect(policy.can_view_limited?).to be true
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_view_limited_enrollment_details])
+      expect(policy.can_view_limited?).to be false
+    end
+  end
+
   describe '#can_split_household?' do
     it 'returns true if user can split households at the enrollment project' do
       create_access_control(user, project, with_permission: [:can_split_households, *view_permissions])

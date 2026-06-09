@@ -8,7 +8,18 @@
 
 class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
-    # TODO: Add policy methods for can_view and can_view_limited and use them in GraphQL queries
+    # Whether the user can view the full enrollment details (grants access to the Enrollment Dashboard).
+    def can_view_details?
+      # Note: "can_view_enrollment_details" requires the "can_view_project" permission as a dependency,
+      # so the user must have both (enforced already by UserContext#project_permissions)
+      project_permissions.include?(:can_view_enrollment_details)
+    end
+
+    # Whether the user can view limited enrollment details (Entry/Exit date, project name, project type, move-in date, last bed night date).
+    # Note: user can have access to view limited enrollment details even if they cannot view the project.
+    def can_view_limited?
+      project_permissions.include?(:can_view_limited_enrollment_details)
+    end
 
     def can_edit?
       project_permissions.include?(:can_edit_enrollments)
@@ -20,10 +31,6 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
 
       # Otherwise, to delete an active enrollment the user needs "can_delete_enrollments" permission
       project_permissions.include?(:can_delete_enrollments)
-    end
-
-    def can_view_details?
-      project_permissions.include?(:can_view_enrollment_details) # can_view_enrollment_details? requires can_view_project?
     end
 
     def can_create_file?

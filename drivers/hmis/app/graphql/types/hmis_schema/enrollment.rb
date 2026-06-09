@@ -25,24 +25,13 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
-    # check for the most minimal permission needed to resolve this object
-    # (can_view_project AND can_view_enrollment_details) OR can_view_limited_enrollment_details
+    # Check for the most minimal permission needed to resolve this object (full-access or limited-access)
+    # This is a secondary guard against data source leakage, the viewable_by scope is our primary defense.
     def self.authorized?(object, ctx)
       return false unless super
 
-      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
-      # the viewable_by scope is our primary defense against this.
-      return true if GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_limited_enrollment_details, entity: object)
-
-      return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
-
-      project = if object.association(:project).loaded?
-        object.project
-      else
-        ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
-      end
-
-      GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
+      policy = ctx[:current_user].policy_for(object, policy_type: :hmis_enrollment)
+      policy.can_view_limited? || policy.can_view_details?
     end
 
     # Override the "field" function to perform field-level authorization.
