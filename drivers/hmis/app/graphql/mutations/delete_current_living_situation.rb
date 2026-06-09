@@ -14,7 +14,8 @@ module Mutations
 
     def resolve(id:)
       current_living_situation = Hmis::Hud::CurrentLivingSituation.viewable_by(current_user).find_by(id: id)
-      access_denied! unless current_living_situation && current_user.policy_for(current_living_situation.enrollment, policy_type: :hmis_enrollment).can_edit?
+      access_denied! unless current_living_situation
+      access_denied! unless current_user.policy_for(current_living_situation.enrollment, policy_type: :hmis_enrollment).can_edit?
 
       current_living_situation.with_lock do
         # If this CLS is the owner of a FormProcessor, destroy related records (for example clh_location)
