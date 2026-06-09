@@ -64,10 +64,15 @@
           %dl
             %dt Consent Type
             %dd= file.consent_type_with_extras
-          - if file.active_consent_form?
-            .active-release.mb-2{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'You will need to refresh the page to see changes to active release forms'}}
-              %i.icon-flag
-              Active
+          - if file.most_recent_consent_form?
+            .mb-2
+              %span.label.label-default Most Recent
+              - exp = file.calculated_expiration_date
+              - if exp
+                - if exp.past?
+                  %span.label.label-danger Expired #{exp.to_date}
+                - else
+                  %span.label.label-success Expires #{exp.to_date}
           - if @consent_editable
             - unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
               = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|

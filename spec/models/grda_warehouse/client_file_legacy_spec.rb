@@ -55,7 +55,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
 
         it 'active release is set to the consent form' do
-          expect(file.active_consent_form?).to be true
+          expect(file.most_recent_consent_form?).to be true
         end
 
         describe 'when a new non-consent form is uploaded' do
@@ -84,7 +84,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           end
 
           it 'active release is still set to the original consent form' do
-            expect(file.active_consent_form?).to be true
+            expect(file.most_recent_consent_form?).to be true
           end
 
           it 'does not change the client consent_form_signed_on' do
@@ -102,7 +102,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
             end
 
             it 'active release is set to the new consent form' do
-              expect(second_file.active_consent_form?).to be true
+              expect(second_file.most_recent_consent_form?).to be true
             end
             describe 'when the new consent form is un-confirmed' do
               before :each do
@@ -113,7 +113,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               end
 
               it 'the active release remains the same' do
-                expect(second_file.active_consent_form?).to be true
+                expect(second_file.most_recent_consent_form?).to be true
               end
 
               describe 'when the original consent is un-confirmed' do
