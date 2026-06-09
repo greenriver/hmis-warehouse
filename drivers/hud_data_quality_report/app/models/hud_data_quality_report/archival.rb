@@ -11,11 +11,6 @@ module HudDataQualityReport
     extend ActiveSupport::Concern
 
     included do
-      ::HudReports::ReportInstance.class_eval do
-        has_one_attached :dq_clients_csv
-        has_one_attached :dq_living_situations_csv
-      end
-
       ::HudReportArchival.register_archival_generator(title, self)
     end
 

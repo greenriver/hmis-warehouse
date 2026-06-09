@@ -420,5 +420,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ce_referrals.each(&:destroy!)
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisExternalApis::Hmis::Hud::ProjectExtension
 end

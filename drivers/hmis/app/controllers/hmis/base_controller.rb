@@ -9,6 +9,7 @@
 class Hmis::BaseController < ActionController::Base
   include BaseApplicationControllerBehavior
   include LogRagePayloadBehavior
+  include ControllerCacheBehavior
 
   before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
@@ -18,6 +19,7 @@ class Hmis::BaseController < ActionController::Base
   before_action :set_csrf_cookie
   before_action :set_app_user_header
   before_action :set_git_revision_header
+  before_action :set_anti_caching_headers, if: :hmis_user_signed_in?
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token

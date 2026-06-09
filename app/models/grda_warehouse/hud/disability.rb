@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Disability
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::DisabilityExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::DisabilityExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::DisabilityExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::DisabilityExtension
 
     self.table_name = 'Disabilities'
     self.sequence_name = "public.\"#{table_name}_id_seq\""

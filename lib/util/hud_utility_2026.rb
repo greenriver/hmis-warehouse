@@ -718,12 +718,7 @@ module HudUtility2026
     codes = coc_codes_options
     return codes.freeze if Rails.env.production?
 
-    test_codes = {
-      'XX-500' => 'Test CoC',
-      'XX-501' => '2nd Test CoC',
-      'XX-502' => '3rd Test CoC', # testkit
-      'XX-518' => '4th Test CoC', # testkit
-    }
+    test_codes = {}
     # Some legacy test CoCs
     if Rails.env.test?
       test_codes['AA-000'] = 'Test CoC AA-000'
@@ -739,6 +734,11 @@ module HudUtility2026
         test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
       end
     end
+    # Named test CoCs override the range above so their friendly names are preserved
+    test_codes['XX-500'] = 'Test CoC'
+    test_codes['XX-501'] = '2nd Test CoC'
+    test_codes['XX-502'] = '3rd Test CoC' # testkit
+    test_codes['XX-518'] = '4th Test CoC' # testkit
     invalid_codes = ENV['INVALID_COC_CODES'].to_s.split(',')
     test_codes.delete_if { |k, _| invalid_codes&.include?(k) }
 

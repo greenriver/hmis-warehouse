@@ -92,8 +92,7 @@ module Types
       field(name, BaseAccess.build(self, class_name: class_name, &block), null: false, **field_attrs)
 
       define_method(name) do
-        # If object is nil, (e.g. on the root QueryType access object), return {} so the generated Access type has a non-null parent
-        object.nil? ? {} : object
+        object
       end
     end
 

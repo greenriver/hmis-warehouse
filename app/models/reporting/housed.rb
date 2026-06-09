@@ -10,7 +10,15 @@
 # require 'get_process_mem'
 module Reporting
   class Housed < ReportingBase
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include AdultOnlyHouseholdsSubPop::Reporting::HousedExtension
+    include AdultsWithChildrenSubPop::Reporting::HousedExtension
+    include AdultsWithChildrenTwentyfivePlusHohSubPop::Reporting::HousedExtension
+    include AdultsWithChildrenYouthHohSubPop::Reporting::HousedExtension
+    include ChildOnlyHouseholdsSubPop::Reporting::HousedExtension
+    include ClientsSubPop::Reporting::HousedExtension
+    include NonVeteransSubPop::Reporting::HousedExtension
+    include VeteransSubPop::Reporting::HousedExtension
     ADVISORY_LOCK_KEY = 'reporting_housed_calculation'
 
     self.table_name = :warehouse_houseds

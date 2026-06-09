@@ -39,8 +39,8 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       form_definition.draft? && can_manage_form?
     end
 
-    # Whether the user can resolve this form to view it on the frontend.
-    def can_view? = can_configure_data_collection_for_form_by_role?
+    # Whether the user can configure this form in the form editor.
+    def can_configure_form? = can_configure_data_collection_for_form_by_role?
 
     # Whether the user can add a new Hmis::Form::Instance to the form definition
     def can_add_form_rule? = can_configure_data_collection_for_form_by_role?
@@ -87,8 +87,8 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       global_permissions.include?(:can_manage_forms)
     end
 
-    # Whether the user can view, and manage rules for, some forms in the data source.
-    def can_index?
+    # Whether the user can configure some forms in the data source. Governs overall access to the Admin Forms UI.
+    def can_configure_forms?
       global_permissions.include?(:can_configure_data_collection)
     end
 
