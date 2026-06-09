@@ -61,8 +61,6 @@ import!
   └── post_process              # Service history rebuild, duplicate detection, etc.
 ```
 
-`ingest!` ends with an optional **after_ingest** step. Staging models may implement `after_ingest!(data_source:, project_ids:, date_range:)` to run warehouse-only fixes that do not belong in the normal HUD column pipeline. The importer invokes these hooks for every data source after the four ingestion passes complete. Individual hooks decide whether to act (for example, based on data source type). The FY2026 enrollment importer currently uses this to populate `Enrollment.project_pk` for Open Path HMIS data sources — a warehouse column required by the HMIS application that links enrollments via `Project.id` rather than HUD `ProjectID`, including for rows left unchanged during ingestion.
-
 ### Ingestion
 
 Ingestion reconciles staged data with the warehouse in four passes:
@@ -78,7 +76,7 @@ Ingestion reconciles staged data with the warehouse in four passes:
 
 **Pass 3 — Remove pending deletes.** Anything still carrying `pending_date_deleted` existed in the warehouse within scope but was absent from the import — it's soft-deleted. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation.
 
-**After ingest — Post-ingest hooks.** Staging models may implement `after_ingest!`; the importer calls them for all data sources. Hooks receive `data_source`, `project_ids` (from `Project.csv`), and `date_range`. The FY2026 enrollment importer populates `project_pk` when the data source is an Open Path HMIS installation (`data_source.hmis?`), setting it on all enrollments in the imported projects regardless of export date range.
+**After ingest — Post-ingest hooks.** Staging models may implement `after_ingest!`; the importer calls them for all data sources. Hooks receive `data_source`, `project_ids` (from `Project.csv`), and `date_range`. The FY2026 enrollment importer populates `project_pk` when the data source is an Open Path HMIS installation, setting it on all enrollments in the imported projects regardless of export date range.
 
 ## Validation
 
