@@ -62,6 +62,32 @@ module HmisCsvTwentyTwentySix::Importer
       ]
     end
 
+    def self.after_ingest!(data_source:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
+      return unless data_source.hmis?
+
+      populate_project_pk!(data_source_id: data_source.id, project_ids: project_ids)
+    end
+
+    # Sets project_pk for all enrollments in the imported projects (from Project.csv),
+    # regardless of export date range. HMIS requires project_pk on every enrollment
+    # in those projects, including rows unchanged by the import.
+    def self.populate_project_pk!(data_source_id:, project_ids:)
+      return if project_ids.blank?
+
+      e_t = warehouse_class.arel_table
+      project_ids.each_slice(250) do |project_ids_slice|
+        GrdaWarehouse::Hud::Project.
+          where(data_source_id: data_source_id, ProjectID: project_ids_slice).
+          pluck(:ProjectID, :id).
+          each do |project_id, project_pk|
+            warehouse_class.
+              where(data_source_id: data_source_id, ProjectID: project_id).
+              where(e_t[:project_pk].eq(nil).or(e_t[:project_pk].not_eq(project_pk))).
+              update_all(project_pk: project_pk)
+          end
+      end
+    end
+
     def self.hmis_validations
       {
         EnrollmentID: [

@@ -622,6 +622,21 @@ module HmisCsvImporter::Importer
 
       # Update the effective export end date of the export
       log_timing :set_effective_export_end_date
+
+      # Run any after_ingest hooks
+      log_timing :after_ingest
+    end
+
+    def after_ingest
+      importable_files.each_value do |klass|
+        next unless klass.respond_to?(:after_ingest!)
+
+        klass.after_ingest!(
+          data_source: data_source,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+        )
+      end
     end
 
     def set_effective_export_end_date
