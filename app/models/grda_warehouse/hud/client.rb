@@ -1135,6 +1135,14 @@ module GrdaWarehouse::Hud
       clear_view_cache
     end
 
+    def self.bulk_invalidate_consent!(ids, batch_size: 500)
+      return if ids.blank?
+
+      where(id: ids).find_in_batches(batch_size: batch_size) do |batch|
+        batch.each(&:invalidate_consent!)
+      end
+    end
+
     def apply_housing_release_status
       return unless GrdaWarehouse::Config.implied_consent?
 

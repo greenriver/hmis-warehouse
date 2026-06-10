@@ -64,15 +64,7 @@
           %dl
             %dt Consent Type
             %dd= file.consent_type_with_extras
-          - if file.most_recent_consent_form?
-            .mb-2
-              %span.label.label-default Most Recent
-              - exp = file.calculated_expiration_date
-              - if exp
-                - if exp.past?
-                  %span.label.label-danger Expired #{exp.to_date}
-                - else
-                  %span.label.label-success Expires #{exp.to_date}
+          = render 'clients/files/consent_badges', file: file
           - if @consent_editable
             - unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
               = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|

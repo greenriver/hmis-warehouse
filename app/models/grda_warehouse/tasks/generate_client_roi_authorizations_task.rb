@@ -49,7 +49,19 @@ module GrdaWarehouse::Tasks
 
           # cleanup auth records for clients that have lost ROI status (but client still exists). This might be due to data correction rather than revocation
           GrdaWarehouse::ClientRoiAuthorization.where(destination_client: missing_ids).delete_all
+          GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(missing_ids, batch_size: batch_size) if missing_ids.any?
         end
+
+        # Invalidate consent for clients whose ROI has expired but still have consent_form_id set
+        expired_scope = GrdaWarehouse::ClientRoiAuthorization.
+          where(status: [GrdaWarehouse::ClientRoiAuthorization::PARTIAL_STATUS, GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS]).
+          where.not(expires_at: nil).
+          where(expires_at: ..Date.current).
+          joins(:destination_client).
+          merge(GrdaWarehouse::Hud::Client.where.not(consent_form_id: nil))
+        expired_scope = expired_scope.where(destination_client_id: client_ids) if client_ids
+        expired_client_ids = expired_scope.pluck(:destination_client_id)
+        GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(expired_client_ids, batch_size: batch_size)
 
         # cleanup orphaned auth records where the client record no-longer exists at all
         orphan_ids = GrdaWarehouse::ClientRoiAuthorization.with_invalid_client.pluck(:id)

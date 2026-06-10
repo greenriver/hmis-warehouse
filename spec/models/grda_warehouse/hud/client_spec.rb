@@ -555,5 +555,28 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
     end
+
+    describe '.bulk_invalidate_consent!' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_b)
+        GrdaWarehouse::Config.invalidate_cache
+      end
+
+      it 'calls invalidate_consent! on each client' do
+        clients = create_list(:grda_warehouse_hud_client, 3)
+        clients.each { |c| create(:client_file_expanded_consent, client: c) }
+
+        clients.each { |c| expect(c.reload.consent_form_id).not_to be_nil }
+
+        GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(clients.map(&:id))
+
+        clients.each { |c| expect(c.reload.consent_form_id).to be_nil }
+      end
+
+      it 'is a no-op when given an empty array' do
+        expect { GrdaWarehouse::Hud::Client.bulk_invalidate_consent!([]) }.not_to raise_error
+      end
+    end
   end
 end
