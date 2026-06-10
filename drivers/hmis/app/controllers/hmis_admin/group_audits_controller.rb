@@ -28,7 +28,7 @@ class HmisAdmin::GroupAuditsController < ApplicationController
   private
 
   def set_variables
-    @group = Hmis::AccessGroup.find(params[:group_id].to_i)
+    @group = Hmis::AccessGroup.with_deleted.find(params[:group_id].to_i)
     @history = Audit::Versions.new(@group, hmis_group_audit_config)
     @versions = @history.version_array.sort_by(&:created_at).reverse
   end

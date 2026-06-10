@@ -28,7 +28,7 @@ class HmisAdmin::RoleAuditsController < ApplicationController
   private
 
   def set_variables
-    @role = Hmis::Role.find(params[:role_id].to_i)
+    @role = Hmis::Role.with_deleted.find(params[:role_id].to_i)
     @history = Audit::Versions.new(@role, hmis_role_audit_config)
     @versions = @history.version_array.sort_by(&:created_at).reverse
   end
