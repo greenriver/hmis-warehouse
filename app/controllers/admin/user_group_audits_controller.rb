@@ -26,7 +26,7 @@ module Admin
     private
 
     def set_variables
-      @user_group = UserGroup.find(params[:user_group_id].to_i)
+      @user_group = UserGroup.with_deleted.find(params[:user_group_id].to_i)
       @history = Audit::Versions.new(@user_group, user_group_audit_config)
       @versions = @history.version_array.sort_by(&:created_at).reverse
     end

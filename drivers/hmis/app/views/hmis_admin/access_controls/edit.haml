@@ -1,7 +1,12 @@
 = render 'breadcrumbs'
-.o-page
-  .o-page__title
-    %h1 Edit Access Control #{@access_control.id}
+
+.d-flex
+  %h1 Edit Access Control #{@access_control.id}
+  .ml-auto
+    = link_to hmis_admin_access_control_audit_path(@access_control), class: 'btn btn-info mb-3' do
+      %i.fa.fa-history
+      %span.icon-eye
+      History
 = render 'admin/access_controls/description', entity_type: 'HMIS'
 .row
   .col-sm-8

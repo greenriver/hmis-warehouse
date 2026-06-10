@@ -156,7 +156,7 @@ module Types
       when 'FORM_TYPES'
         # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
         # not all users can access all form types:
-        form_types = if user.can_administrate_config?
+        form_types = if user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
           # Super-admins should be able to select any form type when creating a form
           Hmis::Form::Definition.form_role_enum_map.members
         else
@@ -277,6 +277,7 @@ module Types
     def self.user_picklist(current_user)
       return [] unless current_user
 
+      # TODO(#9003)
       # User picklist is currently used:
       # - when filtering audit events
       # - when filtering client merge history
