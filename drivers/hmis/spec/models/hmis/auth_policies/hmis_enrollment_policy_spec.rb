@@ -11,9 +11,12 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
   let(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
   let(:policy) { user.policy_for(enrollment, policy_type: :hmis_enrollment) }
 
+  # Permissions required for viewing an enrollment
+  let(:view_permissions) { [:can_view_enrollment_details, :can_view_project] }
+
   describe '#can_edit?' do
     it 'returns true if user can edit' do
-      create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [:can_edit_enrollments, *view_permissions])
       expect(policy.can_edit?).to be true
     end
 
@@ -23,34 +26,34 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     end
 
     it 'returns false if user can view but not edit' do
-      create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: view_permissions)
       expect(policy.can_edit?).to be false
     end
 
     it 'returns false if user has no permissions in this project' do
-      create_access_control(user, other_project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, other_project, with_permission: [:can_edit_enrollments, *view_permissions])
       expect(policy.can_edit?).to be false
     end
   end
 
   describe '#can_delete?' do
     it 'returns true if user can delete' do
-      create_access_control(user, project, with_permission: [:can_delete_enrollments, :can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [:can_delete_enrollments, :can_edit_enrollments, *view_permissions])
       expect(policy.can_delete?).to be true
     end
 
     it 'returns false if user cannot delete' do
-      create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [:can_edit_enrollments, *view_permissions])
       expect(policy.can_delete?).to be false
     end
 
     it 'returns false if user lacks can_edit_enrollments (missing permission requirements)' do
-      create_access_control(user, project, with_permission: [:can_delete_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [:can_delete_enrollments, *view_permissions])
       expect(policy.can_delete?).to be false
     end
 
     it 'returns false if user has no permissions in this project' do
-      create_access_control(user, other_project, with_permission: [:can_delete_enrollments, :can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, other_project, with_permission: [:can_delete_enrollments, :can_edit_enrollments, *view_permissions])
       expect(policy.can_delete?).to be false
     end
 
@@ -58,7 +61,7 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
       let(:enrollment) { create(:hmis_hud_wip_enrollment, project: project, client: client, data_source: data_source) }
 
       it 'returns true if user can edit' do
-        create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(user, project, with_permission: [:can_edit_enrollments, *view_permissions])
         expect(policy.can_delete?).to be true
       end
     end
@@ -66,7 +69,7 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
   describe '#can_view_details?' do
     it 'returns true if user can view details' do
-      create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: view_permissions)
       expect(policy.can_view_details?).to be true
     end
 
@@ -78,6 +81,76 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
     it 'returns false if user lacks can_view_enrollment_details, even if they can_view_limited_enrollment_details' do
       create_access_control(user, project.data_source, with_permission: [:can_view_project, :can_view_limited_enrollment_details])
       expect(policy.can_view_details?).to be false
+    end
+  end
+
+  describe '#can_view_limited?' do
+    it 'returns true if user has can_view_limited_enrollment_details at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details])
+      expect(policy.can_view_limited?).to be true
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_view_limited_enrollment_details])
+      expect(policy.can_view_limited?).to be false
+    end
+  end
+
+  describe '#can_split_household?' do
+    it 'returns true if user can split households at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_split_households, *view_permissions])
+      expect(policy.can_split_household?).to be true
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_split_households, *view_permissions])
+      expect(policy.can_split_household?).to be false
+    end
+  end
+
+  describe '#can_audit?' do
+    it 'returns true if user can audit enrollments at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_audit_enrollments, *view_permissions])
+      expect(policy.can_audit?).to be true
+    end
+
+    it 'returns false if user lacks can_view_project (required for can_audit_enrollments)' do
+      create_access_control(user, project, with_permission: [:can_audit_enrollments, :can_view_enrollment_details])
+      expect(policy.can_audit?).to be false
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_audit_enrollments, *view_permissions])
+      expect(policy.can_audit?).to be false
+    end
+  end
+
+  describe '#can_view_location_map?' do
+    it 'returns true if user can view the enrollment location map at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_view_enrollment_location_map, *view_permissions])
+      expect(policy.can_view_location_map?).to be true
+    end
+
+    it 'returns false if user lacks can_view_project (required for can_view_enrollment_location_map)' do
+      create_access_control(user, project, with_permission: [:can_view_enrollment_location_map, :can_view_enrollment_details])
+      expect(policy.can_view_location_map?).to be false
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_view_enrollment_location_map, *view_permissions])
+      expect(policy.can_view_location_map?).to be false
+    end
+  end
+
+  describe '#can_view_open_enrollment_summary?' do
+    it 'returns true if user has can_view_open_enrollment_summary at the enrollment project' do
+      create_access_control(user, project, with_permission: [:can_view_open_enrollment_summary, *view_permissions])
+      expect(policy.can_view_open_enrollment_summary?).to be true
+    end
+
+    it 'returns false if user has no permissions in this project' do
+      create_access_control(user, other_project, with_permission: [:can_view_open_enrollment_summary, *view_permissions])
+      expect(policy.can_view_open_enrollment_summary?).to be false
     end
   end
 
