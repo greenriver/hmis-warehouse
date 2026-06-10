@@ -275,7 +275,7 @@ module Types
     end
 
     def self.user_picklist(current_user)
-      return [] unless current_user&.policy_for(Hmis::User, policy_type: :hmis_user)&.can_index_users?
+      return [] unless current_user&.policy_for(Hmis::User, policy_type: :hmis_user)&.can_view_user_picklist?
 
       Hmis::User.with_deleted.map do |user|
         {

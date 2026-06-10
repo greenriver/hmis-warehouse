@@ -372,7 +372,7 @@ module Types
     application_users_field :application_users
     def application_users(**args)
       user_policy = policy_for(Hmis::User, policy_type: :hmis_user)
-      access_denied! unless user_policy.can_audit_users? || user_policy.can_impersonate_users?
+      access_denied! unless user_policy.can_index_application_users?
 
       user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
       resolve_application_users(user_scope, **args)

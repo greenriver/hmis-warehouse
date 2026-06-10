@@ -119,9 +119,31 @@ RSpec.describe Hmis::AuthPolicies::HmisUserPolicy, type: :model do
       end
     end
 
-    describe '#can_index_users?' do
+    describe '#can_index_application_users?' do
       it 'returns false without permissions' do
-        expect(policy.can_index_users?).to be false
+        expect(policy.can_index_application_users?).to be false
+      end
+
+      context 'when user has can_audit_users permission' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_audit_users]) }
+
+        it 'returns true' do
+          expect(policy.can_index_application_users?).to be true
+        end
+      end
+
+      context 'when user has can_impersonate_users permission' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_impersonate_users]) }
+
+        it 'returns true' do
+          expect(policy.can_index_application_users?).to be true
+        end
+      end
+    end
+
+    describe '#can_view_user_picklist?' do
+      it 'returns false without permissions' do
+        expect(policy.can_view_user_picklist?).to be false
       end
 
       [
@@ -138,7 +160,7 @@ RSpec.describe Hmis::AuthPolicies::HmisUserPolicy, type: :model do
           let!(:access_control) { create_access_control(user, data_source, with_permission: permissions) }
 
           it 'returns true' do
-            expect(policy.can_index_users?).to be true
+            expect(policy.can_view_user_picklist?).to be true
           end
         end
       end
