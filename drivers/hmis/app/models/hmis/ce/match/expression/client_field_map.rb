@@ -48,6 +48,12 @@ module Hmis::Ce::Match::Expression
       end
     end
 
+    private
+
+    def arel
+      Hmis::ArelHelper
+    end
+
     def all
       @all ||= {
         days_since_last_exit: days_since_last_exit_field,
@@ -57,12 +63,6 @@ module Hmis::Ce::Match::Expression
         open_enrollment_project_types_excluding_incomplete: open_enrollment_project_types_excluding_incomplete_field,
         open_referral_project_types: open_referral_project_types_field,
       }
-    end
-
-    private
-
-    def arel
-      Hmis::ArelHelper
     end
 
     def days_since_last_exit_field
