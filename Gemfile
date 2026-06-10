@@ -101,6 +101,7 @@ gem 'devise-two-factor', '~> 4.1.1'
 gem 'rack-cors'
 gem 'doorkeeper'
 
+gem 'jwt', '~> 3.1' # Validates IdP-issued JWT access tokens
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
