@@ -198,6 +198,7 @@ module HmisExternalApis::AcHmis
 
       AhaScores::AhaResult.new(
         score: score,
+        # This field is a 0/1 flag indicating whether the Alt-AHA should be performed or not. (1 = Alt-AHA is required, 0 = Alt-AHA is not required).
         mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
         dw_client_id: dw_client_id,
         generator: score_obj['generator'],
@@ -258,6 +259,7 @@ module HmisExternalApis::AcHmis
       )
     end
 
+    # Parse "standard" scores (AHA and MH-AHA) that are integers in [-1, 1..10]
     def parse_standard_score(score_value)
       raise ArgumentError, 'Received blank score' if score_value.blank?
       raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_SCORES.include?(score_value.to_i)
