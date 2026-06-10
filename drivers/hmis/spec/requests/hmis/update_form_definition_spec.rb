@@ -13,9 +13,9 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:fd1) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: Hmis::Form::Definition::DRAFT }
-  let!(:fd2) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT }
-  let!(:fd3) { create :hmis_form_definition, role: :CLIENT }
+  let!(:fd1) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: Hmis::Form::Definition::DRAFT, data_source: ds1 }
+  let!(:fd2) { create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd3) { create :hmis_form_definition, role: :CLIENT, data_source: ds1 }
 
   before(:each) do
     hmis_login(user)
