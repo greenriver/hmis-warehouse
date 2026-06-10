@@ -682,18 +682,6 @@ module Types
       Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
     end
 
-    field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
-      argument :form_definition_identifier, String, required: true
-    end
-    def ce_match_custom_assessment_fields(form_definition_identifier:)
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-
-      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
-        data_source_id: current_user.hmis_data_source_id,
-        form_definition_identifier: form_definition_identifier,
-      )
-    end
-
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms
@@ -714,6 +702,18 @@ module Types
         where(data_source_id: ds_id, identifier: identifiers_with_cdeds).
         latest_versions.
         order(:title)
+    end
+
+    field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
+      argument :form_definition_identifier, String, required: true
+    end
+    def ce_match_custom_assessment_fields(form_definition_identifier:)
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+
+      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
+        data_source_id: current_user.hmis_data_source_id,
+        form_definition_identifier: form_definition_identifier,
+      )
     end
   end
 end

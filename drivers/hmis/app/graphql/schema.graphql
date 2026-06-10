@@ -950,7 +950,7 @@ type CeMatchField {
   """
   key: String!
   label: String!
-  pickListOptions: [PickListOption!]!
+  pickListOptions: [PickListOption!]
   pickListReference: String
   repeats: Boolean!
 }
