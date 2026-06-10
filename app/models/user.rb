@@ -16,7 +16,6 @@ class User < ApplicationRecord
   # Extensions from drivers — see ADR 0007
   include CasAccess::UserExtension
   include Hmis::UserExtension
-  include DeviseUserPatch
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
