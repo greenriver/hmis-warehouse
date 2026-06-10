@@ -672,20 +672,21 @@ module Types
     end
 
     # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
-    # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
     field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
     def ce_match_client_fields
-      access_denied! unless current_user.can_administrate_config? # todo @martha - use policy, but that PR is not approved yet and deprioritized
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      # TODO: when UI is ready for non-GR users, replace with:
+      # access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+      # and do the same in the next two queries.
 
       Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
     end
 
-    # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
     field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
       argument :form_definition_identifier, String, required: true
     end
     def ce_match_custom_assessment_fields(form_definition_identifier:)
-      access_denied! unless current_user.can_administrate_config?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
 
       Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
         data_source_id: current_user.hmis_data_source_id,
@@ -694,10 +695,9 @@ module Types
     end
 
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
-    # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms
-      access_denied! unless current_user.can_administrate_config?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
 
       ds_id = current_user.hmis_data_source_id
 
