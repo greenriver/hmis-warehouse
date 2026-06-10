@@ -82,6 +82,8 @@ module UserConcern
     has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
     has_many :activity_logs
 
+    has_many :user_authentication_sources, dependent: :destroy
+
     has_many :two_factors_memorized_devices
     has_many :oauth_identities, dependent: :destroy
 

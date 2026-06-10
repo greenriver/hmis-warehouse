@@ -19,6 +19,7 @@ class Hmis::User < ApplicationRecord
   include Memery
 
   include UserConcern
+  include JwtUser
   include HasRecentItems
   include DeviseUserPatch
 
