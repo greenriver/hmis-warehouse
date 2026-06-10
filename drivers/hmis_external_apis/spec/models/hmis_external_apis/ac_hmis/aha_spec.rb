@@ -282,29 +282,11 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     end
   end
 
-  context 'when response does not contain AHA score' do
-    let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
-
-    before do
-      response = mock_api_response(
-        client_data(
-          dw_client_id: mci_unique_id.value,
-          scores: [mh_aha_score_hash(score: 10)],
-        ),
-      )
-      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
-    end
-
-    it 'raises Error with message about missing AHA score' do
-      expect { aha.fetch_score(client) }.to raise_error(HmisErrors::ApiError, /does not contain AHA score/)
-    end
-  end
-
   context 'when AHA score is invalid' do
     let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
 
     [-2, 0, 1.5, 11, 'str'].each do |invalid_score|
-      it "logs to Sentry and raises when sole AHA requested (#{invalid_score})" do
+      it "logs to Sentry and returns nil for AHA when sole AHA requested (#{invalid_score})" do
         allow(Sentry).to receive(:capture_message)
         response = mock_api_response(
           client_data(
@@ -314,7 +296,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         )
         setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
 
-        expect { aha.fetch_score(client) }.to raise_error(HmisErrors::ApiError, /does not contain AHA score/)
+        expect(aha.fetch_score(client)[:aha]).to be_nil
         expect(Sentry).to have_received(:capture_message).with(/AHA received invalid AHA score entry/)
       end
     end

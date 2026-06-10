@@ -113,6 +113,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when response does not contain AHA score' do
+      it 'returns server error' do
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha],
+        ).and_return({ aha: nil })
+
+        expect_gql_error(
+          post_graphql(client_id: c1.id) { mutation },
+          message: 'Response does not contain AHA score',
+        )
+      end
+    end
+
     context 'when client has no MCI unique ID' do
       let!(:client_without_mci) { create(:hmis_hud_client, data_source: ds1, user: u1) }
 

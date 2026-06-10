@@ -282,11 +282,6 @@ module HmisExternalApis::AcHmis
         parsed_by_generator[generator_key].compact.max_by(&:score)
       end
 
-      # If no AHA score is found and only AHA was requested, raise an error.
-      # This maintains previous behavior of this class.
-      # (Not yet clear on whether MH-AHA or VisionLink should raise if missing when they are requested.)
-      raise(Error, 'Response does not contain AHA score') if requested_generators == [:aha] && results[:aha].blank?
-
       results
     end
 
