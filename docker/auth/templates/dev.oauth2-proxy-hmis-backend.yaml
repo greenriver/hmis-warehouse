@@ -56,7 +56,6 @@ providers:
       - name: connector_id
         allow:
           - value: local
-          - value: github_idp
           - value: keycloak
     microsoftEntraIDConfig: {}
     name: Dex

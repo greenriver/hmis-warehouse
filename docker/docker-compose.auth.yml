@@ -137,14 +137,7 @@ services:
         sed \
           -e "s|\$${KEYCLOAK_IDP_CLIENT_ID}|$${KEYCLOAK_IDP_CLIENT_ID}|g" \
           -e "s|\$${KEYCLOAK_IDP_CLIENT_SECRET}|$${KEYCLOAK_IDP_CLIENT_SECRET}|g" \
-          -e "s|\$${GITHUB_IDP_CLIENT_ID}|$${GITHUB_IDP_CLIENT_ID}|g" \
-          -e "s|\$${GITHUB_IDP_CLIENT_SECRET}|$${GITHUB_IDP_CLIENT_SECRET}|g" \
           /dex.yaml.template > /tmp/dex.yaml
-        if [ -z "$${GITHUB_IDP_CLIENT_ID:-}" ] || [ -z "$${GITHUB_IDP_CLIENT_SECRET:-}" ]; then
-          echo "GITHUB_IDP_CLIENT_ID/SECRET not set — removing GitHub connector."
-          awk '/^  - type: github/{skip=1;next} /^  - type:/{skip=0} !skip' /tmp/dex.yaml > /tmp/dex2.yaml
-          mv /tmp/dex2.yaml /tmp/dex.yaml
-        fi
         exec dex serve /tmp/dex.yaml
     hostname: dex
     volumes:

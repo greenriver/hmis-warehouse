@@ -24,13 +24,6 @@ expiry:
   refreshTokens:
     validIfNotUsedFor: "12h"
 connectors:
-  - type: github
-    id: github_idp
-    name: "Login with GitHub"
-    config:
-      clientID: ${GITHUB_IDP_CLIENT_ID}
-      clientSecret: ${GITHUB_IDP_CLIENT_SECRET}
-      redirectURI: https://dex.dev.test/dex/callback
   - type: oidc
     id: keycloak
     name: Open Path Account
