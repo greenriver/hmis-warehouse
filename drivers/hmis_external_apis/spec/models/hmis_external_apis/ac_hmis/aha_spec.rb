@@ -22,7 +22,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
   end
 
   # Helper methods for mocking score values returned by API
-  def score_hash(score:, generator:, alt_aha_flag: nil, metadata: nil)
+  def aha_score_hash(score:, generator: 'AHA', alt_aha_flag: nil, metadata: nil)
     {
       'score' => score,
       'metadata' => metadata || { 'alt_aha_flag' => alt_aha_flag }.compact,
@@ -38,7 +38,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     }
   end
 
-  def visionlink_score_hash(score:, metadata: nil, generator: 'VisionLink')
+  def visionlink_score_hash(score:, generator: 'VisionLink', metadata: nil)
     {
       'score' => score,
       'generator' => generator,
@@ -119,7 +119,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
-            score_hash(score: 8, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 8, alt_aha_flag: 0),
             mh_aha_score_hash(score: 10),
           ],
         ),
@@ -162,9 +162,9 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
-            score_hash(score: 3, generator: 'AHA', alt_aha_flag: 0),
-            score_hash(score: 7, generator: 'AHA', alt_aha_flag: 1),
-            score_hash(score: 5, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 3, alt_aha_flag: 0),
+            aha_score_hash(score: 7, alt_aha_flag: 1),
+            aha_score_hash(score: 5, alt_aha_flag: 0),
             mh_aha_score_hash(score: 10),
           ],
         ),
@@ -188,7 +188,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       response = mock_api_response(
         client_data(
           dw_client_id: mci_unique_id.value,
-          scores: [score_hash(score: -1, generator: 'AHA', alt_aha_flag: 1)],
+          scores: [aha_score_hash(score: -1, alt_aha_flag: 1)],
         ),
       )
       setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
@@ -220,8 +220,8 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
 
     before do
       response = mock_api_response(
-        client_data(dw_client_id: mci_unique_id1.value, scores: [score_hash(score: 6, generator: 'AHA', alt_aha_flag: 0)]),
-        client_data(dw_client_id: mci_unique_id2.value, scores: [score_hash(score: 9, generator: 'AHA', alt_aha_flag: 1)]),
+        client_data(dw_client_id: mci_unique_id1.value, scores: [aha_score_hash(score: 6, alt_aha_flag: 0)]),
+        client_data(dw_client_id: mci_unique_id2.value, scores: [aha_score_hash(score: 9, alt_aha_flag: 1)]),
       )
       setup_api_expectation(mci_unique_ids: [mci_unique_id1.value, mci_unique_id2.value], response: response)
     end
@@ -253,21 +253,21 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id1.value,
           scores: [
-            score_hash(score: 4, generator: 'AHA', alt_aha_flag: 0),
-            score_hash(score: 8, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 4, alt_aha_flag: 0),
+            aha_score_hash(score: 8, alt_aha_flag: 0),
           ],
         ),
         client_data(
           dw_client_id: mci_unique_id2.value,
           scores: [
-            score_hash(score: 2, generator: 'AHA', alt_aha_flag: 1),
-            score_hash(score: 6, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 2, alt_aha_flag: 1),
+            aha_score_hash(score: 6, alt_aha_flag: 0),
             mh_aha_score_hash(score: 10),
           ],
         ),
         client_data(
           dw_client_id: mci_unique_id3.value,
-          scores: [score_hash(score: 9, generator: 'AHA', alt_aha_flag: 1)],
+          scores: [aha_score_hash(score: 9, alt_aha_flag: 1)],
         ),
       )
       setup_api_expectation(mci_unique_ids: [mci_unique_id1.value, mci_unique_id2.value, mci_unique_id3.value], response: response)
@@ -309,7 +309,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         response = mock_api_response(
           client_data(
             dw_client_id: mci_unique_id.value,
-            scores: [score_hash(score: invalid_score, generator: 'AHA', alt_aha_flag: 0)],
+            scores: [aha_score_hash(score: invalid_score, alt_aha_flag: 0)],
           ),
         )
         setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
@@ -328,7 +328,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
-            score_hash(score: 5, generator: 'aha', alt_aha_flag: 0),
+            aha_score_hash(score: 5, generator: 'aha', alt_aha_flag: 0),
             mh_aha_score_hash(score: 7, generator: 'mh-aha'),
             visionlink_score_hash(score: 3.5, generator: 'VISIONLINK'),
           ],
@@ -356,7 +356,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
           scores: [
             mh_aha_score_hash(score: 3),
             mh_aha_score_hash(score: 7),
-            score_hash(score: 9, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 9, alt_aha_flag: 0),
           ],
         ),
       )
@@ -373,14 +373,14 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
           dw_client_id: mci_unique_id.value,
           scores: [
             mh_aha_score_hash(score: 7),
-            score_hash(score: 3, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 3, alt_aha_flag: 0),
           ],
         ),
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
             mh_aha_score_hash(score: 2),
-            score_hash(score: 9, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 9, alt_aha_flag: 0),
           ],
         ),
       )
@@ -395,7 +395,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       response = mock_api_response(
         client_data(
           dw_client_id: mci_unique_id.value,
-          scores: [score_hash(score: 8, generator: 'AHA', alt_aha_flag: 0)],
+          scores: [aha_score_hash(score: 8, alt_aha_flag: 0)],
         ),
       )
       setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
@@ -486,7 +486,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
-            score_hash(score: 8, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 8, alt_aha_flag: 0),
             mh_aha_score_hash(score: 5),
           ],
         ),
@@ -505,7 +505,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
-            score_hash(score: 0, generator: 'AHA', alt_aha_flag: 0),
+            aha_score_hash(score: 0, alt_aha_flag: 0),
             mh_aha_score_hash(score: 6),
           ],
         ),
@@ -528,8 +528,8 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         client_data(
           dw_client_id: mci_unique_id.value,
           scores: [
-            score_hash(score: 8, generator: 'AHA', alt_aha_flag: 0),
-            score_hash(score: 99, generator: 'UnknownGenerator', alt_aha_flag: 0),
+            aha_score_hash(score: 8, alt_aha_flag: 0),
+            aha_score_hash(score: 99, generator: 'UnknownGenerator', alt_aha_flag: 0),
           ],
         ),
       )
