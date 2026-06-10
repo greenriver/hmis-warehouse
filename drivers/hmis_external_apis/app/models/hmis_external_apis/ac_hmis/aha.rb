@@ -50,15 +50,32 @@ module HmisExternalApis::AcHmis
     ].freeze
 
     SYSTEM_ID = 'ac_hmis_aha'
-    AHA_GENERATOR = 'AHA'
-    VALID_AHA_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero. (Note that 'MH-AHA' generator appears to support zero as a score.)
+    # Internal symbol keys map to the generator string returned by the Scores API.
+    # Use normalize_generator to match API/request values case-insensitively.
+    GENERATORS = {
+      aha: 'AHA',
+      mh_aha: 'MH-AHA',
+      visionlink: 'VisionLink',
+    }.freeze
+    VALID_SCORES = [-1, *(1..10)].freeze # AHA and MH-AHA can be -1 or 1..10, but not zero.
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 15 : 10
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
     # Custom error class for MciUniqueId so the mutation can catch it
     class NoMciUniqueIdError < HmisErrors::ApiError; end
 
-    def fetch_score(client, lookup_catalyst: nil, lookup_reason: nil)
+    # Fetches scores from the external Scores API for an HMIS source client, and any
+    # linked source clients sharing the same destination client.
+    #
+    # @param client [Hmis::Hud::Client] HMIS source client (not a destination/warehouse client)
+    # @param lookup_catalyst [String, nil] optional catalyst submitted to the API when present on the form
+    # @param lookup_reason [Array<String>, nil] optional reasons submitted to the API when present on the form
+    # @param requested_generators [Array<Symbol>] `:aha`, `:mh_aha`, and/or `:visionlink` (default: `[:aha]`)
+    # @return [Hash] keyed by requested generator, with typed result objects (see build_results)
+    #   => { aha: AhaScores::AhaResult(...), mh_aha: AhaScores::MhAhaResult(...), visionlink: AhaScores::VisionLinkResult(...) }
+    def fetch_score(client, lookup_catalyst: nil, lookup_reason: nil, requested_generators: [:aha])
+      raise ArgumentError, "unsupported generators: #{requested_generators.inspect}" unless requested_generators.all? { |key| GENERATORS.key?(key) }
+
       # Collect MCI unique IDs for this client and all source clients with the same destination client
       clients = [client, *client.destination_client&.source_clients&.to_a]
       mci_uniq_ids = clients.compact.uniq.filter_map do |c|
@@ -79,35 +96,10 @@ module HmisExternalApis::AcHmis
       raise NoMciUniqueIdError if client_not_found_response?(result)
 
       data = result.parsed_body&.dig('data')
-      raise(Error, "AHA response missing `data` key. Response body: `#{result.parsed_body}`") unless data
+      raise(Error, "Scores API response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
-      score_objects = data.flat_map do |response_client|
-        response_client.dig('scores')&.filter_map do |score_obj|
-          score_value = score_obj.dig('score')
-          next unless score_obj.dig('generator') == AHA_GENERATOR # non-AHA scores
-
-          raise(Error, 'Received blank score') if score_value.blank?
-          raise(Error, "Received invalid score: #{score_value.inspect}") unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_AHA_SCORES.include?(score_value.to_i)
-
-          OpenStruct.new(
-            # AHA Score
-            score: score_value.to_i,
-            # This field is a 0/1 flag indicating whether the Alt-AHA should be performed or not. (1 = Alt-AHA is required, 0 = Alt-AHA is not required).
-            mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
-            # MCI Unique ID that is associated with the AHA score
-            dw_client_id: Array.wrap(response_client.dig('dw_client_id') || response_client.dig('dw_client_id_dw_client_id'))&.first,
-            # Generator is always 'AHA'
-            generator: score_obj.dig('generator'),
-          )
-        end
-      end
-
-      # Find the highest AHA score
-      highest_aha_score = score_objects.compact.max_by(&:score)
-
-      raise(Error, 'Response does not contain AHA score') unless highest_aha_score.present?
-
-      highest_aha_score
+      parsed_by_generator = parse_response_scores(data)
+      build_results(parsed_by_generator, requested_generators)
     end
 
     def self.enabled?
@@ -122,6 +114,180 @@ module HmisExternalApis::AcHmis
 
     def conn
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
+    end
+
+    def normalize_generator(raw)
+      normalized = raw.to_s.downcase.strip.tr('_', '-')
+      GENERATORS.find do |key, label|
+        key.to_s.tr('_', '-') == normalized || label.downcase == normalized
+      end&.first
+    end
+
+    # Walks the API `data` array (one element per matching client) and collects valid parsed
+    # scores grouped by generator. Each client may return multiple score entries; sibling MCI IDs
+    # may each appear as separate clients. Unknown generators are skipped. Invalid entries are
+    # skipped after logging to Sentry (see parse_score_entry). The highest score per generator is
+    # chosen later in build_results.
+    #
+    # Example API shape:
+    #   data: [
+    #     { 'dw_client_id' => '100000001', 'scores' => [
+    #       { 'score' => 7, 'generator' => 'AHA', 'metadata' => { 'alt_aha_flag' => '1' } },
+    #       { 'score' => 5, 'generator' => 'MH-AHA', 'metadata' => { ... } },
+    #     ]},
+    #     { 'dw_client_id' => '100000002', 'scores' => [
+    #       { 'score' => 9, 'generator' => 'AHA', 'metadata' => { 'alt_aha_flag' => '0' } },
+    #     ]},
+    #   ]
+    #
+    # Example return value:
+    #   { aha: [AhaResult(score: 7, ...), AhaResult(score: 9, ...)], mh_aha: [MhAhaResult(score: 5, ...)] }
+    def parse_response_scores(data)
+      parsed_by_generator = Hash.new { |hash, key| hash[key] = [] }
+
+      data.each do |response_client|
+        dw_client_id = Array.wrap(
+          response_client.dig('dw_client_id') || response_client.dig('dw_client_id_dw_client_id'),
+        ).first
+
+        response_client.dig('scores')&.each do |score_obj|
+          generator_key = normalize_generator(score_obj['generator'])
+          next unless generator_key
+
+          parsed = parse_score_entry(score_obj, dw_client_id, generator_key)
+          parsed_by_generator[generator_key] << parsed if parsed
+        end
+      end
+
+      parsed_by_generator
+    end
+
+    # Parses a single score entry from the API into a typed result for the given generator.
+    # Returns nil (without raising) when the entry is invalid; logs the failure to Sentry so
+    # other entries and generators can still be returned.
+    #
+    # Example score_obj (AHA):
+    #   { 'score' => 8, 'generator' => 'AHA', 'metadata' => { 'alt_aha_flag' => '0' } }
+    #   => AhaScores::AhaResult(score: 8, mci_quality_indicator: 0, dw_client_id: '100000001', generator: 'AHA')
+    #
+    # Example score_obj (VisionLink):
+    #   { 'score' => -999, 'generator' => 'VisionLink', 'metadata' => { 'is_eligible_ra' => false, ... } }
+    #   => AhaScores::VisionLinkResult(score: -999, is_eligible_ra: false, ...)
+    def parse_score_entry(score_obj, dw_client_id, generator_key)
+      case generator_key
+      when :aha then parse_aha_entry(score_obj, dw_client_id)
+      when :mh_aha then parse_mh_aha_entry(score_obj, dw_client_id)
+      when :visionlink then parse_visionlink_entry(score_obj, dw_client_id)
+      end
+    rescue StandardError => e
+      Sentry.capture_message(
+        "AHA received invalid #{GENERATORS.fetch(generator_key)} score entry: #{e.message}",
+      )
+      nil
+    end
+
+    # Parses an AHA generator entry. Score must be an integer in [-1, 1..10] (zero invalid).
+    # Extracts alt_aha_flag from metadata as mci_quality_indicator.
+    #
+    # Example:
+    #   score_obj: { 'score' => 8, 'generator' => 'AHA', 'metadata' => { 'alt_aha_flag' => '0' } }
+    #   dw_client_id: '100000001'
+    #   => AhaScores::AhaResult(score: 8, mci_quality_indicator: 0, dw_client_id: '100000001', generator: 'AHA')
+    def parse_aha_entry(score_obj, dw_client_id)
+      score = parse_standard_score(score_obj.dig('score'))
+
+      AhaScores::AhaResult.new(
+        score: score,
+        mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
+        dw_client_id: dw_client_id,
+        generator: score_obj['generator'],
+      )
+    end
+
+    # Parses an MH-AHA generator entry. Uses the same score validation as AHA ([-1, 1..10]).
+    #
+    # Example:
+    #   score_obj: { 'score' => 5, 'generator' => 'MH-AHA', 'metadata' => { 'row_id' => '123', 'run_id' => 'aha_abc' } }
+    #   dw_client_id: '100000022'
+    #   => AhaScores::MhAhaResult(score: 5, dw_client_id: '100000022', generator: 'MH-AHA')
+    def parse_mh_aha_entry(score_obj, dw_client_id)
+      score = parse_standard_score(score_obj.dig('score'))
+
+      AhaScores::MhAhaResult.new(
+        score: score,
+        dw_client_id: dw_client_id,
+        generator: score_obj['generator'],
+      )
+    end
+
+    # Parses a VisionLink generator entry. Accepts any numeric score (including -999, which means
+    # no score but may still carry eligibility flags). Metadata field types are preserved as returned
+    # by the API (booleans stay boolean, numeric flags stay numeric).
+    #
+    # Example:
+    #   score_obj: {
+    #     'score' => -999,
+    #     'generator' => 'VisionLink',
+    #     'metadata' => {
+    #       'is_eligible_ra' => false, 'currently_unhoused' => false, 'is_eligible_cc' => true,
+    #       'homeless_risk' => 0, 'section_8' => 0, 'city_of_pittsburgh' => 0,
+    #       'subsidized_housing' => 0, 'recent_erap_use' => 0,
+    #     },
+    #   }
+    #   dw_client_id: '100000022'
+    #   => AhaScores::VisionLinkResult(score: -999, is_eligible_ra: false, is_eligible_cc: true, ...)
+    def parse_visionlink_entry(score_obj, dw_client_id)
+      score_value = score_obj.dig('score')
+      raise ArgumentError, 'Received blank score' if score_value.blank?
+      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric)
+
+      metadata = score_obj['metadata'] || {}
+
+      AhaScores::VisionLinkResult.new(
+        score: score_value,
+        dw_client_id: dw_client_id,
+        generator: score_obj['generator'],
+        is_eligible_ra: metadata['is_eligible_ra'],
+        currently_unhoused: metadata['currently_unhoused'],
+        is_eligible_cc: metadata['is_eligible_cc'],
+        homeless_risk: metadata['homeless_risk'],
+        section_8: metadata['section_8'],
+        city_of_pittsburgh: metadata['city_of_pittsburgh'],
+        subsidized_housing: metadata['subsidized_housing'],
+        recent_erap_use: metadata['recent_erap_use'],
+      )
+    end
+
+    def parse_standard_score(score_value)
+      raise ArgumentError, 'Received blank score' if score_value.blank?
+      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_SCORES.include?(score_value.to_i)
+
+      score_value.to_i
+    end
+
+    # Selects the highest-scoring parsed entry per requested generator and returns a hash keyed
+    # by generator symbol. Values are typed result objects or nil when that
+    # generator was requested but no valid entries were found in the API response.
+    #
+    # Example return value for requested_generators: [:aha, :mh_aha, :visionlink]
+    #   {
+    #     aha: AhaScores::AhaResult(score: 9, mci_quality_indicator: 0, dw_client_id: '100000002', generator: 'AHA'),
+    #     mh_aha: AhaScores::MhAhaResult(score: 5, dw_client_id: '100000001', generator: 'MH-AHA'),
+    #     visionlink: nil,
+    #   }
+    def build_results(parsed_by_generator, requested_generators)
+      # For each requested generator, select the highest score from the parsed entries.
+      # Returns a hash of generator keys to the best score result for that generator.
+      results = requested_generators.index_with do |generator_key|
+        parsed_by_generator[generator_key].compact.max_by(&:score)
+      end
+
+      # If no AHA score is found and only AHA was requested, raise an error.
+      # This maintains previous behavior of this class.
+      # (Not yet clear on whether MH-AHA or VisionLink should raise if missing when they are requested.)
+      raise(Error, 'Response does not contain AHA score') if requested_generators == [:aha] && results[:aha].blank?
+
+      results
     end
 
     def create_payload(mci_uniq_ids, lookup_catalyst, lookup_reason)
