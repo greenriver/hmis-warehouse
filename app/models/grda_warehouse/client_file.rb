@@ -275,7 +275,7 @@ module GrdaWarehouse
       user_id == user.id
     end
 
-    def most_recent_consent_form?
+    def active_consent_form?
       client.consent_form_id == id
     end
 

@@ -2,7 +2,7 @@
 -# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 
 .consent-status-badges.mb-2
-  - if file.most_recent_consent_form? && !file.revoked?
+  - if file.active_consent_form? && !file.revoked?
     %span.badge.text-bg-success Active
   - exp = file.calculated_expiration_date
   - if exp
