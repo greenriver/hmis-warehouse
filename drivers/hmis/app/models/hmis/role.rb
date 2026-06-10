@@ -13,6 +13,7 @@ class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
   acts_as_paranoid
   has_paper_trail
+  include HistoryDescriptions
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
