@@ -41,7 +41,6 @@ module Types
     field :updated_by, Types::Application::User, null: true
     field :project_matches, Types::Forms::ProjectMatch.array_page_type, null: false
     form_rules_field
-    field :ce_match_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on this form that are usable as CE Match Rule condition fields'
 
     def form_rules(**args)
       resolve_form_rules(object.instances, **args)
@@ -124,10 +123,6 @@ module Types
 
     def supports_save_in_progress
       object.supports_save_in_progress?
-    end
-
-    def ce_match_fields
-      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields(object)
     end
 
     protected

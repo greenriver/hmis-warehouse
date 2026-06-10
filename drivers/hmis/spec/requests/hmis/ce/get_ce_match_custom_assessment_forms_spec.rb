@@ -13,18 +13,25 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
         ceMatchCustomAssessmentForms {
           identifier
           title
-          ceMatchFields {
-            key
+        }
+      }
+    GRAPHQL
+  end
+
+  let(:fields_query) do
+    <<~GRAPHQL
+      query GetCeMatchCustomAssessmentFields($formDefinitionIdentifier: String!) {
+        ceMatchCustomAssessmentFields(formDefinitionIdentifier: $formDefinitionIdentifier) {
+          key
+          label
+          itemType
+          repeats
+          expressionField
+          formDefinitionIdentifier
+          pickListReference
+          pickListOptions {
+            code
             label
-            itemType
-            repeats
-            expressionField
-            formDefinitionIdentifier
-            pickListReference
-            pickListOptions {
-              code
-              label
-            }
           }
         }
       }
@@ -39,6 +46,12 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     response, result = post_graphql { query }
     expect(response.status).to eq(200), result.inspect
     result.dig('data', 'ceMatchCustomAssessmentForms')
+  end
+
+  def query_custom_assessment_fields(identifier)
+    response, result = post_graphql(formDefinitionIdentifier: identifier) { fields_query }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'ceMatchCustomAssessmentFields')
   end
 
   let!(:published_form) do
@@ -238,10 +251,40 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     expect(forms.pluck('title')).to eq(['Retired Assessment', 'Score Assessment'])
   end
 
-  it 'returns ceMatchFields and excludes file/json-backed fields' do
-    score_form = query_custom_assessment_forms.find { |form| form['identifier'] == 'score_assessment' }
+  it 'does not resolve fields for every form in the form list query' do
+    3.times do |idx|
+      create(
+        :hmis_form_definition,
+        identifier: "performance_assessment_#{idx}",
+        title: "Performance Assessment #{idx}",
+        role: :CUSTOM_ASSESSMENT,
+        status: :published,
+        version: 1,
+        data_source: ds1,
+        generate_cdeds: true,
+        definition: {
+          'item' => [
+            {
+              'type' => 'STRING',
+              'link_id' => "performance_q_#{idx}",
+              'text' => "Performance Field #{idx}",
+              'mapping' => { 'custom_field_key' => "performance_field_#{idx}" },
+            },
+          ],
+        },
+      )
+    end
 
-    expect(score_form['ceMatchFields']).to contain_exactly(
+    expect do
+      response, result = post_graphql { query }
+      expect(response.status).to eq(200), result.inspect
+    end.to make_database_queries(count: 5..15)
+  end
+
+  it 'returns fields for one selected custom assessment and excludes file/json-backed fields' do
+    fields = query_custom_assessment_fields('score_assessment')
+
+    expect(fields).to contain_exactly(
       hash_including(
         'key' => 'score',
         'itemType' => 'CHOICE',
@@ -257,15 +300,13 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
   end
 
   it 'sets expressionField to cde.custom_assessment.{key} for CDED-backed fields' do
-    retired_form_result = query_custom_assessment_forms.find { |form| form['identifier'] == 'retired_assessment' }
-    item = retired_form_result['ceMatchFields'].first
+    item = query_custom_assessment_fields('retired_assessment').first
 
     expect(item['expressionField']).to eq('cde.custom_assessment.retired_field')
   end
 
   it 'unions pick list options from published and retired form versions but not drafts' do
-    score_form = query_custom_assessment_forms.find { |form| form['identifier'] == 'score_assessment' }
-    score_field = score_form['ceMatchFields'].find { |field| field['key'] == 'score' }
+    score_field = query_custom_assessment_fields('score_assessment').find { |field| field['key'] == 'score' }
 
     expect(score_field['pickListOptions']).to contain_exactly(
       hash_including('code' => 'high', 'label' => 'High'),
@@ -275,11 +316,20 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     expect(score_field['pickListOptions'].pluck('code')).not_to include('draft')
   end
 
+  it 'does not return fields for draft-only or other data source forms' do
+    expect(query_custom_assessment_fields('draft_only_assessment')).to be_empty
+    expect(query_custom_assessment_fields('other_ds_assessment')).to be_empty
+  end
+
   context 'without can_administrate_config permission' do
     let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_administrate_config) }
 
-    it 'returns an error' do
+    it 'returns an error for the form list query' do
       expect_gql_error(post_graphql { query }, message: 'access denied')
+    end
+
+    it 'returns an error for the field list query' do
+      expect_gql_error(post_graphql(formDefinitionIdentifier: 'score_assessment') { fields_query }, message: 'access denied')
     end
   end
 end

@@ -20,17 +20,20 @@ module Hmis::Ce::Match::Expression
       end
     end
 
-    def custom_assessment_fields(form_definition)
+    def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
       cdeds = Hmis::Hud::CustomDataElementDefinition.
         for_ce_match_conditions.
-        where(data_source_id: form_definition.data_source_id, form_definition_identifier: form_definition.identifier).
+        where(data_source_id: data_source_id, form_definition_identifier: form_definition_identifier).
         order(:key)
 
       # CDEDs carry persistence/query metadata, but the user-facing builder
       # labels, item types, repeats flag, and pick lists live on form definition
       # items. Build the item metadata once per form identifier so each CDED can
       # be translated into a complete CeMatchField without re-walking every form.
-      metadata_by_key = item_metadata_by_key(form_versions_for(form_definition))
+      form_versions = form_versions_for(data_source_id, form_definition_identifier).to_a
+      return [] if form_versions.empty?
+
+      metadata_by_key = item_metadata_by_key(form_versions)
 
       cdeds.map do |cded|
         metadata = metadata_by_key.fetch(cded.key)
@@ -51,13 +54,13 @@ module Hmis::Ce::Match::Expression
 
     private
 
-    def form_versions_for(form_definition)
+    def form_versions_for(data_source_id, form_definition_identifier)
       Hmis::Form::Definition.
         with_role(:CUSTOM_ASSESSMENT).
         # Include published and retired versions because match rules may need to
         # target values collected by older assessment versions.
         published_or_retired.
-        where(data_source_id: form_definition.data_source_id, identifier: form_definition.identifier).
+        where(data_source_id: data_source_id, identifier: form_definition_identifier).
         order(version: :desc, id: :desc)
     end
 

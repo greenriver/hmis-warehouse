@@ -679,8 +679,20 @@ module Types
       Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
     end
 
+    # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
+    field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
+      argument :form_definition_identifier, String, required: true
+    end
+    def ce_match_custom_assessment_fields(form_definition_identifier:)
+      access_denied! unless current_user.can_administrate_config?
+
+      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
+        data_source_id: current_user.hmis_data_source_id,
+        form_definition_identifier: form_definition_identifier,
+      )
+    end
+
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
-    # Returns Forms::FormDefinition so the frontend can display a dropdown of assessments, then a dependent dropdown of CE Match fields.
     # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms

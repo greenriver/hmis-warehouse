@@ -4948,11 +4948,6 @@ FormDefinition
 type FormDefinition {
   access: FormDefinitionAccess!
   cacheKey: ID!
-
-  """
-  Fields on this form that are usable as CE Match Rule condition fields
-  """
-  ceMatchFields: [CeMatchField!]!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   definition: FormDefinitionJson!
@@ -10182,6 +10177,11 @@ type Query {
   Client fields available for CE Match Rule expressions.
   """
   ceMatchClientFields: [CeMatchField!]!
+
+  """
+  Fields on the form that are usable as CE Match Rule condition fields.
+  """
+  ceMatchCustomAssessmentFields(formDefinitionIdentifier: String!): [CeMatchField!]!
 
   """
   Published and retired custom assessment form definitions in the user's data source that have CE Match fields.
