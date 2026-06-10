@@ -2,9 +2,11 @@
 # Generates oauth2-proxy alpha-config files from templates in docker/auth/.
 # Output goes to dev/auth/ which is gitignored.
 #
-# The active templates contain no ${...} placeholders — their OIDC clientSecrets are
-# hardcoded to match Dex's staticClients — so this script does no substitution. It copies
-# each template into dev/auth/ and prepends a provenance/SHA header. The only load-bearing
+# The oauth2-proxy templates this script processes contain no ${...} placeholders — their
+# OIDC clientSecrets are hardcoded to match Dex's staticClients — so this script does no
+# substitution. (dev.dex.yaml.template has its own placeholders, expanded by the Dex
+# container entrypoint, not by this script.) It copies each template into dev/auth/ and
+# prepends a provenance/SHA header. The only load-bearing
 # dev secret in this stack is OAUTH2_PROXY_COOKIE_SECRET (oauth2-proxy's cookie-encryption
 # key), which the .cfg files do not set, so it falls back to this env var at runtime.
 # This script validates that it is present in .env.development.local.
