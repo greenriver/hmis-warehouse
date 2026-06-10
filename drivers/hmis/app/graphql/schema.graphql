@@ -933,6 +933,28 @@ type CeEligibleUnitGroupsPaginated {
   pagesCount: Int!
 }
 
+"""
+Field metadata for CE Match Rule expressions
+"""
+type CeMatchField {
+  """
+  The identifier used in CE Match Rule expressions
+  """
+  expressionField: String!
+  formDefinitionIdentifier: String
+  id: ID!
+  itemType: ItemType!
+
+  """
+  The CDED key for this field, or the client field key for a client field
+  """
+  key: String!
+  label: String!
+  pickListOptions: [PickListOption!]!
+  pickListReference: String
+  repeats: Boolean!
+}
+
 type CeMatchRule {
   expression: String!
 
@@ -4928,9 +4950,9 @@ type FormDefinition {
   cacheKey: ID!
 
   """
-  Form items on this definition that are usable as CE Match Rule condition fields
+  Fields on this form that are usable as CE Match Rule condition fields
   """
-  ceMatchItems: [FormItem!]!
+  ceMatchFields: [CeMatchField!]!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   definition: FormDefinitionJson!
@@ -5074,11 +5096,6 @@ type FormItem {
   Label to use for placeholder and population table
   """
   briefText: String
-
-  """
-  The identifier used in CE Match Rule expressions (e.g. "current_age" or "cde.custom_assessment.foo").
-  """
-  ceMatchExpressionField: String
 
   """
   Component to use for display/input of this item
@@ -10162,9 +10179,9 @@ type Query {
   ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
 
   """
-  Synthetic form items representing client fields (from ClientFieldMap) available for CE Match Rule expressions.
+  Client fields available for CE Match Rule expressions.
   """
-  ceMatchClientItems: [FormItem!]!
+  ceMatchClientFields: [CeMatchField!]!
 
   """
   Published and retired custom assessment form definitions in the user's data source that have CE Match fields.

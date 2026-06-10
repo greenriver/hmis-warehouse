@@ -4,19 +4,24 @@ require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe 'ceMatchClientItems query', type: :request do
+RSpec.describe 'ceMatchClientFields query', type: :request do
   include_context 'hmis base setup'
 
   let(:query) do
     <<~GRAPHQL
-      query GetCeMatchClientItems {
-        ceMatchClientItems {
-          linkId
-          type
-          text
+      query GetCeMatchClientFields {
+        ceMatchClientFields {
+          key
+          label
+          itemType
           repeats
+          expressionField
+          formDefinitionIdentifier
           pickListReference
-          ceMatchExpressionField
+          pickListOptions {
+            code
+            label
+          }
         }
       }
     GRAPHQL
@@ -29,17 +34,23 @@ RSpec.describe 'ceMatchClientItems query', type: :request do
   def query_client_items
     response, result = post_graphql { query }
     expect(response.status).to eq(200), result.inspect
-    result.dig('data', 'ceMatchClientItems')
+    result.dig('data', 'ceMatchClientFields')
   end
 
-  it 'returns a FormItem for each supported client field' do
+  it 'returns CE match field metadata for each supported client field' do
     items = query_client_items
 
     expect(items).to contain_exactly(
-      hash_including('linkId' => 'current_age',         'type' => 'INTEGER', 'ceMatchExpressionField' => 'current_age'),
-      hash_including('linkId' => 'veteran_status',      'type' => 'CHOICE',  'ceMatchExpressionField' => 'veteran_status',
-                     'pickListReference' => 'NoYesReasonsForMissingData'),
-      hash_including('linkId' => 'days_since_last_exit', 'type' => 'INTEGER', 'ceMatchExpressionField' => 'days_since_last_exit'),
+      hash_including('key' => 'current_age', 'itemType' => 'INTEGER', 'expressionField' => 'current_age', 'formDefinitionIdentifier' => nil),
+      hash_including(
+        'key' => 'veteran_status',
+        'itemType' => 'CHOICE',
+        'expressionField' => 'veteran_status',
+        'formDefinitionIdentifier' => nil,
+        'pickListReference' => 'NoYesReasonsForMissingData',
+        'pickListOptions' => [],
+      ),
+      hash_including('key' => 'days_since_last_exit', 'itemType' => 'INTEGER', 'expressionField' => 'days_since_last_exit', 'formDefinitionIdentifier' => nil),
     )
   end
 

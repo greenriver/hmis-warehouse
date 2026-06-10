@@ -48,49 +48,12 @@ module Types
     field :mapping, Types::Forms::FieldMapping, null: true
     field :assessment_date, Boolean, 'Whether this item corresponds to the assessment date. Must be used with DATE type. Should be used no more than once per form', null: true
 
-    # CE Match Rules support
-    field :ce_match_expression_field, String, 'The identifier used in CE Match Rule expressions (e.g. "current_age" or "cde.custom_assessment.foo").', null: true
-
     # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
-
-    # Builds a synthetic FormItem-shaped Hash suitable for use as a graphql-ruby resolver object.
-    #
-    # Synthetic FormItems are used when we want to expose metadata about fields that aren't
-    # actually defined in a form definition — for example, client attributes (age, veteran status)
-    # that are usable as CE Match Rule condition fields but have no one backing FormDefinition item.
-    # graphql-ruby resolves field values by calling Hash#[] on the object, so all nullable fields
-    # must be present in the hash (even if nil) to avoid resolver errors. SYNTHETIC_DEFAULTS
-    # supplies those nil-safe defaults; callers only need to provide the meaningful attributes.
-    SYNTHETIC_DEFAULTS = {
-      'repeats' => false,
-      'pick_list_reference' => nil,
-      'required' => false,
-      'read_only' => false,
-      'warn_if_empty' => false,
-      'hidden' => false,
-      'disabled_display' => 'HIDDEN',
-    }.freeze
-
-    def self.build(attrs)
-      SYNTHETIC_DEFAULTS.merge(attrs.stringify_keys)
-    end
 
     # By default, disabled items are hidden. Leaving here to match legacy behavior.
     def disabled_display
       object['disabled_display'] || 'HIDDEN'
-    end
-
-    def ce_match_expression_field
-      # For CDE-backed items (FormDefinition#ce_match_items): "cde.custom_assessment.{custom_field_key}"
-      custom_field_key = object.dig('mapping', 'custom_field_key')
-      return Hmis::Ce::Match::Expression::CdeFieldMap.field_key_for(Hmis::Ce::Match::Expression::FieldMap::CUSTOM_ASSESSMENT, custom_field_key) if custom_field_key.present?
-
-      # For client items: the link_id itself (e.g. "current_age").
-      # Only surface for known ClientFieldMap keys so we don't accidentally emit a CE identifier for
-      # ordinary form items that happen to share a link_id with a client field.
-      link_id = object['link_id']
-      Hmis::Ce::Match::Expression::ClientFieldMap.new.all.key?(link_id&.to_sym) ? link_id : nil
     end
   end
 end

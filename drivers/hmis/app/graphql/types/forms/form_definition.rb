@@ -41,7 +41,7 @@ module Types
     field :updated_by, Types::Application::User, null: true
     field :project_matches, Types::Forms::ProjectMatch.array_page_type, null: false
     form_rules_field
-    field :ce_match_items, [Forms::FormItem], null: false, description: 'Form items on this definition that are usable as CE Match Rule condition fields'
+    field :ce_match_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on this form that are usable as CE Match Rule condition fields'
 
     def form_rules(**args)
       resolve_form_rules(object.instances, **args)
@@ -126,20 +126,8 @@ module Types
       object.supports_save_in_progress?
     end
 
-    def ce_match_items
-      usable_cded_keys = Hmis::Hud::CustomDataElementDefinition.
-        for_ce_match_conditions.
-        where(data_source_id: object.data_source_id, form_definition_identifier: object.identifier).
-        pluck(:key).to_set
-
-      items = []
-      object.walk_definition_nodes do |item|
-        custom_field_key = item.dig('mapping', 'custom_field_key')
-        next unless custom_field_key.present? && usable_cded_keys.include?(custom_field_key)
-
-        items << Forms::FormItem.build(item)
-      end
-      items
+    def ce_match_fields
+      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields(object)
     end
 
     protected

@@ -13,13 +13,18 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
         ceMatchCustomAssessmentForms {
           identifier
           title
-          ceMatchItems {
-            linkId
-            type
-            text
+          ceMatchFields {
+            key
+            label
+            itemType
             repeats
+            expressionField
+            formDefinitionIdentifier
             pickListReference
-            ceMatchExpressionField
+            pickListOptions {
+              code
+              label
+            }
           }
         }
       }
@@ -43,22 +48,90 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
       title: 'Score Assessment',
       role: :CUSTOM_ASSESSMENT,
       status: :published,
-      version: 1,
+      version: 2,
       data_source: ds1,
       generate_cdeds: true,
       definition: {
         'item' => [
           {
-            'type' => 'INTEGER',
+            'type' => 'CHOICE',
             'link_id' => 'score_q',
             'text' => 'Score',
+            'pick_list_options' => [
+              { 'code' => 'high', 'label' => 'High' },
+              { 'code' => 'medium', 'label' => 'Medium' },
+            ],
             'mapping' => { 'custom_field_key' => 'score' },
+          },
+          {
+            'type' => 'GROUP',
+            'link_id' => 'group',
+            'text' => 'Group',
+            'item' => [
+              {
+                'type' => 'BOOLEAN',
+                'link_id' => 'nested_q',
+                'text' => 'Nested Field',
+                'mapping' => { 'custom_field_key' => 'nested_field' },
+              },
+            ],
           },
           {
             'type' => 'FILE',
             'link_id' => 'upload_q',
             'text' => 'Upload',
             'mapping' => { 'custom_field_key' => 'upload' },
+          },
+        ],
+      },
+    )
+  end
+
+  let!(:older_score_form) do
+    create(
+      :hmis_form_definition,
+      identifier: 'score_assessment',
+      title: 'Score Assessment',
+      role: :CUSTOM_ASSESSMENT,
+      status: :retired,
+      version: 1,
+      data_source: ds1,
+      definition: {
+        'item' => [
+          {
+            'type' => 'CHOICE',
+            'link_id' => 'score_q',
+            'text' => 'Score',
+            'pick_list_options' => [
+              { 'code' => 'medium', 'label' => 'Medium' },
+              { 'code' => 'low', 'label' => 'Low' },
+            ],
+            'mapping' => { 'custom_field_key' => 'score' },
+          },
+        ],
+      },
+    )
+  end
+
+  let!(:draft_score_form) do
+    create(
+      :hmis_form_definition,
+      identifier: 'score_assessment',
+      title: 'Score Assessment',
+      role: :CUSTOM_ASSESSMENT,
+      status: :draft,
+      version: 3,
+      data_source: ds1,
+      definition: {
+        'item' => [
+          {
+            'type' => 'CHOICE',
+            'link_id' => 'score_q',
+            'text' => 'Score',
+            'pick_list_options' => [
+              { 'code' => 'draft', 'label' => 'Draft' },
+            ],
+            'mapping' => { 'custom_field_key' => 'score' },
           },
         ],
       },
@@ -165,23 +238,41 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     expect(forms.pluck('title')).to eq(['Retired Assessment', 'Score Assessment'])
   end
 
-  it 'returns ceMatchItems as FormItem objects and excludes file/json-backed fields' do
+  it 'returns ceMatchFields and excludes file/json-backed fields' do
     score_form = query_custom_assessment_forms.find { |form| form['identifier'] == 'score_assessment' }
 
-    expect(score_form['ceMatchItems']).to contain_exactly(
+    expect(score_form['ceMatchFields']).to contain_exactly(
       hash_including(
-        'linkId' => 'score_q',
-        'type' => 'INTEGER',
-        'ceMatchExpressionField' => 'cde.custom_assessment.score',
+        'key' => 'score',
+        'itemType' => 'CHOICE',
+        'expressionField' => 'cde.custom_assessment.score',
+        'formDefinitionIdentifier' => 'score_assessment',
+      ),
+      hash_including(
+        'key' => 'nested_field',
+        'itemType' => 'BOOLEAN',
+        'expressionField' => 'cde.custom_assessment.nested_field',
       ),
     )
   end
 
-  it 'sets ceMatchExpressionField to cde.custom_assessment.{key} for CDED-backed items' do
+  it 'sets expressionField to cde.custom_assessment.{key} for CDED-backed fields' do
     retired_form_result = query_custom_assessment_forms.find { |form| form['identifier'] == 'retired_assessment' }
-    item = retired_form_result['ceMatchItems'].first
+    item = retired_form_result['ceMatchFields'].first
 
-    expect(item['ceMatchExpressionField']).to eq('cde.custom_assessment.retired_field')
+    expect(item['expressionField']).to eq('cde.custom_assessment.retired_field')
+  end
+
+  it 'unions pick list options from published and retired form versions but not drafts' do
+    score_form = query_custom_assessment_forms.find { |form| form['identifier'] == 'score_assessment' }
+    score_field = score_form['ceMatchFields'].find { |field| field['key'] == 'score' }
+
+    expect(score_field['pickListOptions']).to contain_exactly(
+      hash_including('code' => 'high', 'label' => 'High'),
+      hash_including('code' => 'medium', 'label' => 'Medium'),
+      hash_including('code' => 'low', 'label' => 'Low'),
+    )
+    expect(score_field['pickListOptions'].pluck('code')).not_to include('draft')
   end
 
   context 'without can_administrate_config permission' do

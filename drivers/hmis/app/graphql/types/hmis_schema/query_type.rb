@@ -670,19 +670,17 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
-    # Synthetic FormItem catalog for client fields (from ClientFieldMap) available in CE Match Rule expressions.
-    # Resolved as typed FormItem objects rather than a PickList so the frontend gets field metadata such as
-    # type, repeats, and pickListReference.
+    # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
     # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
-    field :ce_match_client_items, [Forms::FormItem], null: false, description: 'Synthetic form items representing client fields (from ClientFieldMap) available for CE Match Rule expressions.'
-    def ce_match_client_items
+    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
+    def ce_match_client_fields
       access_denied! unless current_user.can_administrate_config? # todo @martha - use policy, but that PR is not approved yet and deprioritized
 
-      Hmis::Ce::Match::Expression::ClientFieldMap.new.ce_match_v1_item_attrs.map { |attrs| Forms::FormItem.build(attrs) }
+      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
     end
 
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
-    # Returns Forms::FormDefinition so the frontend can display a dropdown of assessments, then a dependent dropdown of CDEDs.
+    # Returns Forms::FormDefinition so the frontend can display a dropdown of assessments, then a dependent dropdown of CE Match fields.
     # TODO: widen permission to can_administrate_coordinated_entry? once the CE Match Rules UI is ready for non-GR users.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms

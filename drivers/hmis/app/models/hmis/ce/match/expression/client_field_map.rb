@@ -38,17 +38,13 @@ module Hmis::Ce::Match::Expression
       formatted
     end
 
-    # Returns item attribute hashes for fields that are supported in the V1 CE Match Rule structured builder.
-    # Each hash includes at minimum 'link_id', 'type', and 'text', and is suitable for Types::Forms::FormItem.build.
-    # todo @martha - not sure this is needed and v1 is ugly
-    # maybe we CAN just support all fields, including project fields, in v1?
-    # maybe rename ce_match_item_attrs to something more clear
-    def ce_match_v1_item_attrs
+    # Returns client fields supported in the CE Match Rule structured builder, with display metadata.
+    def ce_match_fields
       all.filter_map do |link_id, field_def|
-        attrs = field_def[:ce_match_item_attrs]
+        attrs = field_def[:display_metadata]
         next unless attrs
 
-        attrs.merge('link_id' => link_id.to_s)
+        attrs.merge('key' => link_id.to_s)
       end
     end
 
@@ -76,7 +72,7 @@ module Hmis::Ce::Match::Expression
         joins: [{ hmis_source_clients: { enrollments: :exit } }],
         arel_field: calculator.arel_expression,
         format_for_display: method(:format_days),
-        ce_match_item_attrs: { 'type' => 'INTEGER', 'text' => 'Days since last exit' },
+        display_metadata: { 'item_type' => 'INTEGER', 'label' => 'Days since last exit' },
       }
     end
 
@@ -85,7 +81,7 @@ module Hmis::Ce::Match::Expression
         query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
         format_for_display: ->(v) { HudHelper.util.veteran_status(v) },
         arel_field: arel.c_t['VeteranStatus'],
-        ce_match_item_attrs: { 'type' => 'CHOICE', 'text' => 'Veteran status', 'pick_list_reference' => 'NoYesReasonsForMissingData' },
+        display_metadata: { 'item_type' => 'CHOICE', 'label' => 'Veteran status', 'pick_list_reference' => 'NoYesReasonsForMissingData' },
       }
     end
 
@@ -94,7 +90,7 @@ module Hmis::Ce::Match::Expression
       {
         query: ->(clients) { calculator.call(clients) },
         arel_field: calculator.arel_expression,
-        ce_match_item_attrs: { 'type' => 'INTEGER', 'text' => 'Current age' },
+        display_metadata: { 'item_type' => 'INTEGER', 'label' => 'Current age' },
       }
     end
 
